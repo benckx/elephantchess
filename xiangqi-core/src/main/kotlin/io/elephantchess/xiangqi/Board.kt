@@ -5,15 +5,11 @@ import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.Position.Companion.getAllPositions
-import io.github.oshai.kotlinlogging.KotlinLogging
 
 class Board(
     initFen: String = DEFAULT_START_FEN,
-    private val logMoves: Boolean = false,
     private val keepHistory: Boolean = false,
 ) {
-
-    private val logger = KotlinLogging.logger {}
 
     private val content: Array<Array<PhysicalPiece?>> = Array(WIDTH) { Array(HEIGHT) { null } }
     private val history = mutableListOf<HistoricalMove>()
@@ -120,10 +116,16 @@ class Board(
         return listAllMoves(color).filterNot { move -> isIllegal(move, color) }
     }
 
+    /**
+     * Include illegal moves that could put the player in check or would result in general facing each other
+     */
     fun listAllMoves(color: Color): List<HalfMove> {
         return listAllPieces(color).flatMap { piece -> listAllMoves(piece) }
     }
 
+    /**
+     * Include illegal moves that could put the player in check or would result in general facing each other
+     */
     fun listAllMoves(pieceAtPosition: PieceAtPosition): List<HalfMove> {
         val piecePosition = pieceAtPosition.position
         val color = pieceAtPosition.color()
@@ -283,30 +285,6 @@ class Board(
     }
 
     fun registerMove(move: HalfMove): PhysicalPiece? {
-        fun logMoveIfEnabled(physicalPiece: PhysicalPiece, capture: PhysicalPiece?) {
-            if (logMoves && logger.isDebugEnabled()) {
-                val beforeLines = printToLines()
-
-                logger.debug {
-                    val base = "${physicalPiece.pieceType.prettyName()} moves $move"
-                    if (capture == null) {
-                        base
-                    } else {
-                        base + " and takes ${capture.pieceType.prettyName()}"
-                    }
-                }
-                logger.debug {
-                    val afterLines = printToLines()
-                    require(afterLines.size == beforeLines.size)
-                    val nbrOfLines = afterLines.size
-                    val mergedLines = (0 until nbrOfLines).map { i ->
-                        beforeLines[i] + " ".repeat(3) + afterLines[i]
-                    }
-                    "\n\n" + mergedLines.joinToString("\n")
-                }
-            }
-        }
-
         val piece = pieceAt(move.from)
         if (piece.color() != colorToPlay) {
             throw IllegalStateException("inconsistent colors")
@@ -329,7 +307,6 @@ class Board(
                 attackMap = calculateAttacksMap(color)
             )
         }
-        logMoveIfEnabled(piece, capture)
         return capture
     }
 
@@ -502,8 +479,6 @@ class Board(
 
     companion object {
 
-        private val logger = KotlinLogging.logger {}
-
         const val WIDTH = 9
         const val HEIGHT = 10
         const val DEFAULT_START_FEN = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
@@ -528,7 +503,6 @@ class Board(
                 val board = Board(currentFen)
                 board.isLegalMove(parseMoveFromUci(move))
             } catch (e: Exception) {
-                logger.error { "Error while checking if move is legal $e" }
                 false
             }
         }

@@ -21,9 +21,9 @@ allprojects {
     }
 
     dependencies {
-        implementation "io.github.oshai:kotlin-logging-jvm:7.0.4"
         implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-        implementation "ch.qos.logback:logback-classic:1.5.16"
+        testImplementation "io.github.oshai:kotlin-logging-jvm:7.0.4"
+        testImplementation "ch.qos.logback:logback-classic:1.5.16"
         testImplementation "org.jetbrains.kotlin:kotlin-test"
     }
 
