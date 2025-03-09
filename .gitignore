@@ -1,1 +1,14 @@
-./.idea
+.idea
+.gradle
+build
+01xq/
+.DS_Store
+*.min.js
+*.min.css
+*.csv
+app-overrides.properties
+formatter.json
+*.class
+*.jar
+.kotlin
+rendered_email.html
