@@ -26,6 +26,8 @@ fun main() {
     println(board.print())
 
     println()
+    println()
+
     board.registerMove("h2e2") // C2=5
     board.registerMove("h9g7") // H8+7
     println(board.outputFen())
@@ -51,6 +53,7 @@ rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0
 2  . C . . . . . C .
 1  . . . . . . . . .
 0  R N B A K A B N R
+
 
 rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
 
