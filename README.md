@@ -2,8 +2,8 @@
 
 [elephantchess.io](https://elephantchess.io) is a web application to play and study Chinese chess (or xiangqi 象棋).
 
-You can create issues to report bugs or request feature changes, as well as checking the
-current [roadmap](https://github.com/users/benckx/projects/2/views/1)
+You can create issues to report bugs or request feature changes. The
+current [roadmap](https://github.com/users/benckx/projects/2/views/1) is also available on this repo.
 
 As of now, the public repository only provides the re-usable libraries. Those are under LGPL-3.0 license. The rest of
 the webapp code is not yet open source, but might become so in the future.
