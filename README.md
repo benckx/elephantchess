@@ -77,7 +77,8 @@ Test data for unit tests of `xiangqi-core`.
 
 # Libraries Usage
 
-As of now, you can use the libraries via JitPack. You need to add the JitPack repository to your build.gradle file:
+At the moment, you can use the libraries via JitPack. You only need to add the JitPack repository to your build.gradle
+file:
 
 ```Groovy
 repositories {
