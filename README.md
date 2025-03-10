@@ -75,16 +75,20 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
 
 Test data for unit tests of `xiangqi-core`.
 
-# Usages
+# Libraries Usage
 
 Add the following to the "repositories" section. You need to set the `GITHUB_USER` and `GITHUB_TOKEN` environment
-variables, where `GITHUB_USER` is your GitHub username and `GITHUB_TOKEN` is a personal access token with "read
-packages" access.
+variables, where `GITHUB_USER` is your GitHub username and `GITHUB_TOKEN` is
+a [personal access token](https://github.com/settings/tokens) with the `read:packages` permission (classic token is
+enough).
 
-(In the future we should use something more practical)
+Instead of environment variables, you can also store your token in a file.
+
+Obviously, this is not very practical to have to set up a token but that's the way GitHub works. In the future, it would
+be better to set up something more practical like publishing to Maven Central or even Jitpack.
 
 ```Groovy
-    repositories {
+repositories {
     maven {
         url = "https://maven.pkg.github.com/benckx/elephantchess"
         credentials {
@@ -98,5 +102,5 @@ packages" access.
 Then you can use the dependencies:
 
 ```Groovy
-    implementation 'io.elephantchess:xiangqi-core:1.0.0'
+implementation 'io.elephantchess:xiangqi-core:1.0.0'
 ```
