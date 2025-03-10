@@ -77,14 +77,22 @@ Test data for unit tests of `xiangqi-core`.
 
 # Usages
 
-In your repositories, add:
+Add the following to the "repositories" section. You need to set the `GITHUB_USER` and `GITHUB_TOKEN` environment
+variables, where `GITHUB_USER` is your GitHub username and `GITHUB_TOKEN` is a personal access token with "read
+packages" access.
+
+(In the future we should use something more practical)
 
 ```Groovy
     repositories {
-        maven {
-            url = "https://maven.pkg.github.com/benckx/elephantchess"
+    maven {
+        url = "https://maven.pkg.github.com/benckx/elephantchess"
+        credentials {
+            username = System.getenv("GITHUB_USER")
+            password = System.getenv("GITHUB_TOKEN")
         }
     }
+}
 ```
 
 Then you can use the dependencies:
