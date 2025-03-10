@@ -28,6 +28,19 @@ subprojects {
         testImplementation "org.jetbrains.kotlin:kotlin-test"
     }
 
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+
     test {
         useJUnitPlatform()
         minHeapSize = '1G'
