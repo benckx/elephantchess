@@ -74,3 +74,21 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
 ## xiangqi-core-test-utils
 
 Test data for unit tests of `xiangqi-core`.
+
+# Usages
+
+In your repositories, add:
+
+```gradle
+    repositories {
+        maven {
+            url = "https://maven.pkg.github.com/benckx/elephantchess"
+        }
+    }
+```
+
+Then you can use the dependencies:
+
+```gradle
+    implementation 'io.elephantchess:xiangqi-core:1.0.0'
+```
