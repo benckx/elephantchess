@@ -79,7 +79,7 @@ Test data for unit tests of `xiangqi-core`.
 
 In your repositories, add:
 
-```gradle
+```Groovy
     repositories {
         maven {
             url = "https://maven.pkg.github.com/benckx/elephantchess"
@@ -89,6 +89,6 @@ In your repositories, add:
 
 Then you can use the dependencies:
 
-```gradle
+```Groovy
     implementation 'io.elephantchess:xiangqi-core:1.0.0'
 ```
