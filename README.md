@@ -12,7 +12,7 @@ license. The rest of the webapp code is not open source yet.
 
 ## xiangqi-core
 
-Kotlin library to providing a representation of a Chinese chess board.
+Kotlin library providing a representation of a Chinese chess board.
 
 ### Example 1
 
