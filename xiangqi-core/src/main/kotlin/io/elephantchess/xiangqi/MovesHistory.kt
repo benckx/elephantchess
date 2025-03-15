@@ -2,6 +2,9 @@ package io.elephantchess.xiangqi
 
 import io.elephantchess.utils.SequenceUtils.allCombinationsOfMax
 import io.elephantchess.utils.SequenceUtils.longestConsecutiveSequence
+import io.elephantchess.xiangqi.AbstractPieceType.CHARIOT
+import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Position.Companion.parsePositionFromUci
 
 data class MovesHistory(val history: List<HistoricalMove>) {
 
@@ -17,7 +20,7 @@ data class MovesHistory(val history: List<HistoricalMove>) {
             .toMap()
     }
 
-    private fun detectConsecutiveChecks(color: Color, maxAttackers: Int): List<SequenceOfChecks> {
+    fun detectConsecutiveChecks(color: Color, maxAttackers: Int): List<SequenceOfChecks> {
         fun filterOutSubSets(sequences: List<SequenceOfChecks>): List<SequenceOfChecks> {
             return sequences.filterNot { sequence -> sequences.any { sequence.isSubSetOf(it) } }
         }
@@ -25,6 +28,13 @@ data class MovesHistory(val history: List<HistoricalMove>) {
         val sequences = allCombinationsOfMax(findAllCheckingPieces(color), maxAttackers)
             .flatMap { pieces ->
                 val moves = longestConsecutiveChecks(pieces)
+
+//                println("pieces: $pieces")
+//                if (pieces == setOf(PhysicalPiece(PieceType(CHARIOT, RED), parsePositionFromUci("a0")))) {
+//                    println("moves: ${moves.size}")
+//                    println("areAllPiecesInvolved: ${areAllPiecesInvolved(pieces, moves)}")
+//                }
+
                 if (moves.size > 1 && areAllPiecesInvolved(pieces, moves)) {
                     listOf(SequenceOfChecks(color, pieces, moves))
                 } else {
@@ -35,7 +45,7 @@ data class MovesHistory(val history: List<HistoricalMove>) {
         return filterOutSubSets(sequences)
     }
 
-    private fun findAllCheckingPieces(color: Color): List<PhysicalPiece> {
+    fun findAllCheckingPieces(color: Color): List<PhysicalPiece> {
         return history
             .flatMap { move -> move.attackMap.keys }
             .map { pieceAtPosition -> pieceAtPosition.physicalPiece }
@@ -43,7 +53,7 @@ data class MovesHistory(val history: List<HistoricalMove>) {
             .distinct()
     }
 
-    private fun longestConsecutiveChecks(attackingPieces: Collection<PhysicalPiece>): List<HistoricalMove> {
+    fun longestConsecutiveChecks(attackingPieces: Collection<PhysicalPiece>): List<HistoricalMove> {
         val checkingMoves = history
             .filter { move -> move.isCheckingOpponent }
             .filter { move -> attackingPieces.any { move.isAttackingGeneral(it) } }
@@ -51,7 +61,7 @@ data class MovesHistory(val history: List<HistoricalMove>) {
         return longestConsecutiveSequence(checkingMoves) { previous, current -> previous.index + 2 == current.index }
     }
 
-    private companion object {
+    companion object {
 
         /**
          * Each piece is attacking the general at least once in the moves

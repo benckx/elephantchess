@@ -15,7 +15,7 @@ object SequenceUtils {
                 val first = elements.first()
                 val rest = elements - first
                 val combinations = allCombinations(rest)
-                return combinations + combinations.map { it + first }
+                return combinations + combinations.map { it + first } + setOf(setOf(first))
             }
         }
     }
