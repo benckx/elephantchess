@@ -89,5 +89,5 @@ repositories {
 Then you can use the dependencies:
 
 ```Groovy
-implementation "com.github.benckx.elephantchess:xiangqi-core:1.0.7"
+implementation "com.github.benckx.elephantchess:xiangqi-core:1.0.8"
 ```
