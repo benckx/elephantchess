@@ -14,7 +14,7 @@ license. The rest of the webapp code is not open source yet.
 
 Kotlin API to launch and communicate with chess engines running as system processes.
 
-The entry point is the `EnginePool` service, witch is a coroutine-safe pool of engine processes. It allows multiple
+The entry point is the `EnginePool` service, which is a coroutine-safe pool of engine processes. It allows multiple
 users to use the same engine process with different positions. For example,
 on [elephantchess](https://elephantchess.io), multiple users can play against the bot with different depths. Their
 queries are "queued", so multiple PvB games can happen concurrently (even though technically one process is really only
@@ -25,8 +25,8 @@ you want to optimize for concurrency, or have fewer engine processes - with more
 optimize for responsiveness.
 
 On [elephantchess](https://elephantchess.io) for example, each Kubernetes pod has one engine pool with one instance of
-Pikafish and one instance of Fairy Stockfish, with one thread each (so the engine processes don't use more than one CPU core
-and the rest of the app remains responsible, as each pod only has 2 CPU cores at the moment).
+Pikafish and one instance of Fairy Stockfish, with one thread each (so the engine processes don't use more than one CPU
+core and the rest of the app remains responsible, as each pod only has 2 CPU cores at the moment).
 
 The `numberOfThreads` option is not managed in the `EnginePool` itself, but is simply passed along to the engine
 process. In Pikafish for example, this command is `setoption name Threads value 8`. But you don't need to input that
