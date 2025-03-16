@@ -224,5 +224,6 @@ repositories {
 Then you can use the dependencies:
 
 ```Groovy
-implementation "com.github.benckx.elephantchess:xiangqi-core:1.0.8"
+implementation "com.github.benckx.elephantchess:engine-api:1.1.0"
+implementation "com.github.benckx.elephantchess:xiangqi-core:1.1.0"
 ```
