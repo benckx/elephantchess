@@ -110,7 +110,7 @@ fun main() {
         val fen = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
         val infoLinesResult = enginePool.queryForDepth(fen, PikafishEngineId, 10)
         val infoLineResult = infoLinesResult?.deepestResult()
-        println("engine result: ${infoLineResult?.line}")
+        println("parsed engine result: $infoLineResult")
         println("best move: ${infoLineResult?.pv?.first()}")
     }
 
@@ -143,7 +143,7 @@ outputs
 10:21:17.799 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - info depth 10 seldepth 11 multipv 1 score cp 44 nodes 14722 nps 253827 hashfull 6 tbhits 0 time 58 pv h2e2 b9c7 h0g2 b7a7 i0h0 a9b9
 10:21:17.799 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - bestmove h2e2 ponder b9c7
 10:21:17.843 [main] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: stop
-engine result: info depth 10 seldepth 11 multipv 1 score cp 44 nodes 14722 nps 253827 hashfull 6 tbhits 0 time 58 pv h2e2 b9c7 h0g2 b7a7 i0h0 a9b9
+parsed engine result: InfoLineResult(depth=10, time=55, mate=null, cp=32, pv=[h2e2, h9g7, h0g2, c6c5, i0h0, i9h9, h0h4, b9c7, b0c2], line=info depth 10 seldepth 13 multipv 1 score cp 32 nodes 151567 nps 2755763 hashfull 45 tbhits 0 time 55 pv h2e2 h9g7 h0g2 c6c5 i0h0 i9h9 h0h4 b9c7 b0c2)
 best move: h2e2
 10:21:17.868 [main] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: quit
 ```

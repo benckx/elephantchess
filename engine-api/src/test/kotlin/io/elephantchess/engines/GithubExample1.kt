@@ -13,7 +13,7 @@ fun main() {
         val fen = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
         val infoLinesResult = enginePool.queryForDepth(fen, PikafishEngineId, 10)
         val infoLineResult = infoLinesResult?.deepestResult()
-        println("engine result: ${infoLineResult?.line}")
+        println("parsed engine result: $infoLineResult")
         println("best move: ${infoLineResult?.pv?.first()}")
     }
 
