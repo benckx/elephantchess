@@ -46,6 +46,9 @@ class EnginePool(
         }
     }
 
+    /**
+     * Safe in the sense that it will swap to Fairy Stockfish if a non-standard FEN is detected
+     */
     suspend fun safeQueryForDepth(
         fen: String,
         engineId: EngineId,

@@ -18,6 +18,9 @@ data class InfoLinesResult(
             .lastOrNull()?.cp
     }
 
+    /**
+     * @return [InfoLineResult] with the greatest depth
+     */
     fun deepestResult(): InfoLineResult? {
         return infoLines
             .sortedBy { line -> line.depth }

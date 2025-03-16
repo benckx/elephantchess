@@ -12,4 +12,4 @@ formatter.json
 *.jar
 .kotlin
 rendered_email.html
-engines/
+/engines/

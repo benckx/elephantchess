@@ -1,5 +1,9 @@
 package io.elephantchess.engines.protocol.model
 
+/**
+ * DTO that represents a single line parsed from the engine output, e.g.
+ * `info depth 10 seldepth 11 multipv 1 score cp 44 nodes 14722 nps 253827 hashfull 6 tbhits 0 time 58 pv h2e2 b9c7 h0g2 b7a7 i0h0 a9b9`
+ */
 data class InfoLineResult(
     val depth: Int?,
     val time: Long?,

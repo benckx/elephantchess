@@ -54,7 +54,7 @@ fun main() {
 private suspend fun runExperiment(fens: List<String>, poolSize: Int, depth: Int): ExperimentResult {
     val results = synchronizedList(mutableListOf<FenAndResult>())
     val engineConfigs: Map<EngineId, EngineConfig> = mapOf(PikafishEngineId to EngineConfig("2022-12-26", poolSize, 1))
-    val enginePool = EnginePool(engineConfigs, Executors.newVirtualThreadPerTaskExecutor())
+    val enginePool = EnginePool(engineConfigs, Executors.newFixedThreadPool(poolSize))
 
     val timeMs = measureTimeMillis {
         val jobs = fens.map { fen ->

@@ -23,8 +23,8 @@ subprojects {
 
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-        testImplementation "io.github.oshai:kotlin-logging-jvm:7.0.4"
-        testImplementation "ch.qos.logback:logback-classic:1.5.16"
+        testImplementation "io.github.oshai:kotlin-logging-jvm:$loggingVersion"
+        testImplementation "ch.qos.logback:logback-classic:$logbackVersion"
         testImplementation "org.jetbrains.kotlin:kotlin-test"
     }
 
@@ -51,6 +51,9 @@ subprojects {
 project(":engine-api") {
     dependencies {
         implementation project(":xiangqi-core")
+        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
+        implementation "io.github.oshai:kotlin-logging-jvm:$loggingVersion"
+        implementation "ch.qos.logback:logback-classic:$logbackVersion"
     }
 }
 
