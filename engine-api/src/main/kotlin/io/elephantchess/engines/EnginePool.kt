@@ -43,14 +43,14 @@ class EnginePool(
         }
     }
 
-    suspend fun queryForDepth(fen: String, engine: EngineId, depth: Int, timeout: Long = 20_000): InfoLinesResult? {
-        return acquireAndExecute(engine, timeout) { lockableEngineProcess ->
+    suspend fun queryForDepth(fen: String, engineId: EngineId, depth: Int, timeout: Long = 20_000): InfoLinesResult? {
+        return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
             lockableEngineProcess.queryForBestMove(fen, depth)
         }
     }
 
     private suspend fun <T> acquireAndExecute(
-        engine: EngineId,
+        engineId: EngineId,
         timeout: Long,
         block: suspend (LockableEngineProcess) -> T?,
     ): T? {
@@ -86,7 +86,7 @@ class EnginePool(
             }
         }
 
-        return acquireEngineProcess(engine, timeout)
+        return acquireEngineProcess(engineId, timeout)
             ?.let { executeOnEngine(it) { block(it) } }
     }
 
