@@ -1,4 +1,5 @@
 rootProject.name = 'elephantchess.io'
 
+include('engine-api')
 include('xiangqi-core')
 include('xiangqi-core-test-utils')

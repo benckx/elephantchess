@@ -48,6 +48,12 @@ subprojects {
     }
 }
 
+project(":engine-api") {
+    dependencies {
+        implementation project(":xiangqi-core")
+    }
+}
+
 project(":xiangqi-core") {
     dependencies {
         testImplementation project(":xiangqi-core-test-utils")
