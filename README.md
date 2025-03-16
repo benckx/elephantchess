@@ -8,7 +8,7 @@ current [roadmap](https://github.com/users/benckx/projects/2/views/1) is also av
 As of now, the public repository only contains a couple of libraries developed for the backend. Those are under LGPL-3.0
 license. The rest of the webapp code is not open source yet.
 
-# Modules
+# Libraries
 
 ## engine-api
 
@@ -17,16 +17,19 @@ Kotlin API to launch and communicate with chess engines running as system proces
 The entry point is the `EnginePool` service, which is a coroutine-safe pool of engine processes. It allows multiple
 users to use the same engine process with different positions. For example,
 on [elephantchess](https://elephantchess.io), multiple users can play against the bot with different depths. Their
-queries are "queued", so multiple PvB games can happen concurrently (even though technically one process is really only
-used by one user at a given time)
+queries are "queued" so multiple PvB games can happen concurrently (even though technically, at a given time, a given
+process is used by max one user, as the process is lockable).
 
-You can decide to run multiple engine processes of a given engine (by increase `poolSize`) - with 1 thread for each - if
-you want to optimize for concurrency, or have fewer engine processes - with more threads for each - if you want to
-optimize for responsiveness.
+You can decide e.g. to run multiple engine processes of a given engine (by increasing `poolSize`) - with 1 thread for
+each (`numberOfThreads` option) - if you want to optimize for concurrency; or choose to run fewer engine processes -
+but with more threads in each - if you want to optimize for responsiveness.
 
-On [elephantchess](https://elephantchess.io) for example, each Kubernetes pod has one engine pool with one instance of
+On [elephantchess](https://elephantchess.io) for example, each Kubernetes pod has an engine pool with one instance of
 Pikafish and one instance of Fairy Stockfish, with one thread each (so the engine processes don't use more than one CPU
 core and the rest of the app remains responsible, as each pod only has 2 CPU cores at the moment).
+
+It would probably be sensible to use a similar setup on an Android app, given not all mobile devices have many CPU
+cores.
 
 The `numberOfThreads` option is not managed in the `EnginePool` itself, but is simply passed along to the engine
 process. In Pikafish for example, this command is `setoption name Threads value 8`. But you don't need to input that
