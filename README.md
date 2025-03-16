@@ -25,7 +25,7 @@ you want to optimize for concurrency, or have fewer engine processes - with more
 optimize for responsiveness.
 
 On [elephantchess](https://elephantchess.io) for example, each Kubernetes pod has one engine pool with one instance of
-Pikafish and one instance of Fairy Stock, with one thread each (so the engine processes don't use more than one CPU core
+Pikafish and one instance of Fairy Stockfish, with one thread each (so the engine processes don't use more than one CPU core
 and the rest of the app remains responsible, as each pod only has 2 CPU cores at the moment).
 
 The `numberOfThreads` option is not managed in the `EnginePool` itself, but is simply passed along to the engine
@@ -70,6 +70,18 @@ engines
         └── pikafish.nnue
 
 4 directories, 7 files
+```
+
+You can create your own `EngineProcessLocator`. For example - on [elephantchess](https://elephantchess.io) - we have a
+Dockerized version:
+
+```kotlin
+object DockerizedProcessLocator : EngineProcessLocator {
+
+    override fun launchCommand(binFileName: String) =
+        "/bin/bash -lc /app/engines/$binFileName"
+
+}
 ```
 
 Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. Versions posterior to
