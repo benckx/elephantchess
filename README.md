@@ -124,7 +124,7 @@ outputs
 
 ```
 10:21:17.168 [pool-1-thread-1] INFO  i.e.e.process.PikafishEngineProcess - running Pikafish engine, launching ./engines/pikafish/2022-12-26/pikafish-modern
-10:21:17.199 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: setoption name Threads value 1
+10:21:17.199 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: setoption name Threads value 8
 10:21:17.200 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - Pikafish 2022-12-26 by the Pikafish developers (see AUTHORS file)
 10:21:17.222 [main] INFO  i.e.e.process.PikafishEngineProcess - Pikafish process has started
 10:21:17.224 [main] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: isready
