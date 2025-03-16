@@ -12,7 +12,8 @@ import kotlin.system.measureTimeMillis
 
 /**
  * Not really a unit test because it would be slow to run during the build,
- * and also because it would require engine binaries to be accessible
+ * and also because it would require engine binaries to be accessible.
+ * It's more a script that demonstrate the co-routine safety of the EnginePool.
  */
 fun main() {
     val n = 100
