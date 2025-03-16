@@ -5,9 +5,6 @@ import io.elephantchess.engines.protocol.commands.EngineProcessLocator
 import io.elephantchess.engines.protocol.commands.LocalProcessLocator
 import io.elephantchess.engines.protocol.model.InfoLinesResult
 import io.elephantchess.engines.utils.EngineUtils.waitForCondition
-import io.elephantchess.xiangqi.AbstractPieceType
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Color
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -44,28 +41,6 @@ class EnginePool(
             process.waitUntilReadyBlocking(10_000)
             SimpleLockableEngineProcess(process)
         }
-    }
-
-    /**
-     * Safe in the sense that it will swap to Fairy Stockfish if a non-standard FEN is detected
-     */
-    suspend fun safeQueryForDepth(
-        fen: String,
-        engineId: EngineId,
-        depth: Int,
-        timeout: Long = 60_000,
-    ): InfoLinesResult? {
-        var safeEngineId = engineId
-        if (!engineId.supportsNonStandardFens && isNonStandardFen(fen) && engineProcesses.any { it.engineProcess.engineId.supportsNonStandardFens }) {
-            logger.warn { "non standard fen detected, forcing use engine that supports it: $fen" }
-            safeEngineId = engineProcesses
-                .find { it.engineProcess.engineId.supportsNonStandardFens }
-                ?.engineProcess
-                ?.engineId
-                ?: engineId
-        }
-
-        return queryForDepth(fen, safeEngineId, depth, timeout)
     }
 
     suspend fun queryForDepth(fen: String, engine: EngineId, depth: Int, timeout: Long = 20_000): InfoLinesResult? {
@@ -152,29 +127,6 @@ class EnginePool(
 
         override fun unlock() {
             isFree = true
-        }
-
-    }
-
-    companion object {
-
-        fun isNonStandardFen(fen: String): Boolean {
-            try {
-                val board = Board(fen)
-                Color.entries.forEach { color ->
-                    val allPieces = board.listAllPieces(color)
-                    AbstractPieceType.entries.forEach { pieceType ->
-                        val countPerType = allPieces.count { it.abstractPieceType() == pieceType }
-                        if (countPerType > pieceType.maxLegal) {
-                            return true
-                        }
-                    }
-                }
-
-                return false
-            } catch (_: Exception) {
-                return true
-            }
         }
 
     }

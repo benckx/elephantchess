@@ -50,10 +50,10 @@ subprojects {
 
 project(":engine-api") {
     dependencies {
-        implementation project(":xiangqi-core")
         implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
         implementation "io.github.oshai:kotlin-logging-jvm:$loggingVersion"
         implementation "ch.qos.logback:logback-classic:$logbackVersion"
+        testImplementation project(":xiangqi-core")
     }
 }
 
