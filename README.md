@@ -15,28 +15,26 @@ license. The rest of the webapp code is not open source yet.
 Kotlin API to launch and communicate with chess engines running as system processes.
 
 The entry point is the `EnginePool` service, which is a coroutine-safe pool of engine processes. It allows multiple
-users to use the same engine process with different positions. For example,
-on [elephantchess](https://elephantchess.io), multiple users can play against the bot with different depths. Their
-queries are "queued" so multiple PvB games can happen concurrently (even though technically, at a given time, a given
-process is used by max one user, as the process is lockable).
+users to use the same pool of engine processes concurrently. For example, on [elephantchess](https://elephantchess.io),
+multiple users can play against the bot at different depths. Their queries are "queued" so multiple PvB games can happen
+at the same time (even though technically, at a given time, a given process is used by max one user, as the process is
+lockable).
 
-You can decide e.g. to run multiple engine processes of a given engine (by increasing `poolSize`) - with 1 thread for
-each (`numberOfThreads` option) - if you want to optimize for concurrency; or choose to run fewer engine processes -
-but with more threads in each - if you want to optimize for responsiveness.
+You can decide e.g. to run multiple engine processes of a given engine (by increasing `poolSize`) with 1 thread for
+each (`numberOfThreads` option) if you want to optimize for concurrency; or choose to run fewer engine processes but
+with more threads for each instance if you want to optimize for responsiveness.
 
-On [elephantchess](https://elephantchess.io) for example, each Kubernetes pod has an engine pool with one instance of
+On [elephantchess](https://elephantchess.io) for example, each Kubernetes pod has an `EnginePool` with one instance of
 Pikafish and one instance of Fairy Stockfish, with one thread each (so the engine processes don't use more than one CPU
-core and the rest of the app remains responsible, as each pod only has 2 CPU cores at the moment).
+core and the rest of the app remains responsive, as each pod only has 2 CPU cores at the moment). It would probably be
+sensible to use a similar setup on an Android app, given not all mobile devices have a lot of CPU cores.
 
-It would probably be sensible to use a similar setup on an Android app, given not all mobile devices have many CPU
-cores.
+The `numberOfThreads` option is not used in the `EnginePool` itself, but is simply passed along to the engine process.
+In Pikafish for example, it's passed to the engine process with command `setoption name Threads value 8` (you don't need
+to input that command yourself, as it's abstracted away by the `engine-api` library).
 
-The `numberOfThreads` option is not managed in the `EnginePool` itself, but is simply passed along to the engine
-process. In Pikafish for example, this command is `setoption name Threads value 8`. But you don't need to input that
-command yourself, as it's abstracted away by the `engine-api` library.
-
-The engines are queries with [FEN notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation). In xiangqi,
-the starting position is encoded as `rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0`.
+The engines are queries with the [FEN notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation). In
+xiangqi, the starting position is encoded as `rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0`.
 
 ### Configuration
 
@@ -75,7 +73,7 @@ engines
 4 directories, 7 files
 ```
 
-You can create your own `EngineProcessLocator`. For example - on [elephantchess](https://elephantchess.io) - we have a
+You can create your own `EngineProcessLocator`. For example, on [elephantchess](https://elephantchess.io), we use this
 Dockerized version:
 
 ```kotlin
@@ -92,9 +90,13 @@ Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/
 now [elephantchess](https://elephantchess.io) uses Pikafish 2023-03-05.
 
 Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now we only
-used version 11.2; so it's not versioned in the `engines` folder.
+use version 11.2; so it's not versioned in the `engines` folder.
 
 ### Example 1
+
+In this example, we create a pool with one Pikafish process that uses 8 physical threads. So it will have good response
+time, even with large depth values, but if it runs on a machine that has 8 CPU cores or less, it will use all the CPU
+when queried.
 
 ```kotlin
 import io.elephantchess.engines.process.EngineConfig
@@ -148,9 +150,9 @@ best move: h2e2
 10:21:17.868 [main] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: quit
 ```
 
-## xiangqi - core
+## xiangqi-core
 
-Kotlin library providing a representation of a Chinese chess board .
+Kotlin library providing a representation of a Chinese chess board.
 
 ### Example 1
 
