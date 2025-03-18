@@ -53,7 +53,8 @@ object LocalProcessLocator : EngineProcessLocator {
 }
 ```
 
-It assumes folder `engines` is structured as follows:
+It assumes folder `engines` is structured as follows. In this case multiple binaries and versions are available, but you
+can use the library with just one.
 
 ```
 $ tree engines
@@ -61,11 +62,11 @@ engines
 ├── fairy-stockfish
 └── pikafish
     ├── 2022-12-26
-    │         ├── pikafish-modern
-    │         └── pikafish.nnue
+    │   ├── pikafish-modern
+    │   └── pikafish.nnue
     ├── 2023-02-16
-    │         ├── pikafish-modern
-    │         └── pikafish.nnue
+    │   ├── pikafish-modern
+    │   └── pikafish.nnue
     └── 2023-03-05
         ├── pikafish-modern
         └── pikafish.nnue
