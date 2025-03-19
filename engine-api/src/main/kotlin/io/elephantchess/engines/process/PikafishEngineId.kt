@@ -12,10 +12,10 @@ object PikafishEngineId : EngineId() {
 
     override fun makeProcess(
         config: EngineConfig,
-        locator: EngineProcessLocator,
+        engineProcessLocator: EngineProcessLocator,
     ): EngineProcess =
         PikafishEngineProcess(
-            locator = locator,
+            locator = engineProcessLocator,
             version = config.version,
             numberOfThreads = config.numberOfThreads
         )

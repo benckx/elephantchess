@@ -53,8 +53,7 @@ object LocalProcessLocator : EngineProcessLocator {
 }
 ```
 
-It assumes folder `engines` is structured as follows. In this case multiple binaries and versions are available, but you
-can use the library with just one.
+It assumes folder `engines` is structured as follows:
 
 ```
 $ tree engines
@@ -72,6 +71,17 @@ engines
         └── pikafish.nnue
 
 4 directories, 7 files
+```
+
+In the above example, multiple binaries and versions are available, but you can use the `engine-api` library with just
+one version:
+
+```
+engines
+└── pikafish
+    └── 2023-02-16
+        ├── pikafish-modern
+        └── pikafish.nnue
 ```
 
 You can create your own `EngineProcessLocator`. For example, on [elephantchess](https://elephantchess.io), we use this

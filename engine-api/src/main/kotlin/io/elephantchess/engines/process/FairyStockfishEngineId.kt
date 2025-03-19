@@ -12,10 +12,10 @@ object FairyStockfishEngineId : EngineId() {
 
     override fun makeProcess(
         config: EngineConfig,
-        locator: EngineProcessLocator,
+        engineProcessLocator: EngineProcessLocator,
     ): EngineProcess =
         FairyStockfishEngineProcess(
-            locator = locator,
+            locator = engineProcessLocator,
             numberOfThreads = config.numberOfThreads
         )
 
