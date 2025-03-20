@@ -228,6 +228,8 @@ Test data for unit tests of `xiangqi-core`.
 
 # Libraries Usage
 
+[![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
+
 At the moment, you can use the libraries via JitPack. You only need to add the JitPack repository to your build.gradle
 file:
 
