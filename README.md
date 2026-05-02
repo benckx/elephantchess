@@ -8,6 +8,10 @@ current [roadmap](https://github.com/users/benckx/projects/2/views/1) is also av
 As of now, the public repository only contains a couple of libraries developed for the backend. Those are under LGPL-3.0
 license. The rest of the webapp code is not open source yet.
 
+# JavaScript Libraries
+
+Those are managed and documented separately at https://elephantchess.io/about/developers/board-gui-example
+
 # Libraries
 
 ## engine-api
