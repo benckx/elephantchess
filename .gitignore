@@ -5,11 +5,9 @@ build
 *.min.js
 *.min.css
 *.csv
-app-overrides.properties
 formatter.json
 *.class
 *.jar
 .kotlin
-rendered_email.html
 /engines/
 *.properties
