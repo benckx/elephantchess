@@ -1,7 +1,6 @@
 .idea
 .gradle
 build
-01xq/
 .DS_Store
 *.min.js
 *.min.css
@@ -13,3 +12,4 @@ formatter.json
 .kotlin
 rendered_email.html
 /engines/
+*.properties
