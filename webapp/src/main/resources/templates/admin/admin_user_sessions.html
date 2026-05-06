@@ -1,0 +1,40 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>User Sessions</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <style>
+        table.stats-table th,
+        table.stats-table td {
+            white-space: nowrap;
+        }
+    </style>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-user-sessions.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>User Sessions</h1>
+    <hr/>
+    <table id="user-sessions" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">user</th>
+            <th class="label-cell">os</th>
+            <th class="label-cell">agent</th>
+            <th class="label-cell">country</th>
+            <th class="label-cell">region</th>
+            <th class="label-cell">city</th>
+            <th>IP</th>
+            <th class="label-cell">created</th>
+            <th class="label-cell">updated</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

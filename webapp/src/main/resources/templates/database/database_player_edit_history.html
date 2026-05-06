@@ -1,0 +1,28 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Player Edit History</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/database/database-player-edit.css">
+    <script defer src="/js/database/database-player-profile-dto.js"></script>
+    <script defer src="/js/database/database-player-utils.js"></script>
+    <script defer src="/js/database/database-player-edit-history.js"></script>
+</head>
+<body data-player-id="{{player_id}}">
+{{body_init}}
+<div class="main-container-text-extended">
+    <h1 id="page-title">Player Edit History</h1>
+    <hr/>
+    <div id="loading-message" style="display: block;">
+        <p>Loading edit history...</p>
+    </div>
+    <div id="history-content" style="display: none;">
+        <div id="version-history-container"></div>
+    </div>
+    <br/>
+    <div class="center-content-div">
+        <a id="player-profile-link" href="#">view current player page version</a>
+    </div>
+</div>
+</body>
+</html>

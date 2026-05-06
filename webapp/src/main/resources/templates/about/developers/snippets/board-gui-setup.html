@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Setup</title>
+  <link rel="stylesheet" href="https://cdn.elephantchess.io/dist/{{dist_version}}/board.min.css">
+  <script defer src="https://cdn.elephantchess.io/dist/{{dist_version}}/xiangqi.min.js"></script>
+  <script defer src="https://cdn.elephantchess.io/dist/{{dist_version}}/board-gui.min.js"></script>
+</head>
+<body>
+
+<div id="board-container" class="board-container"></div>
+
+<script>
+  window.addEventListener('load', () => {
+      const boardGui = new BoardGui({
+            elementId: 'board-container'// defaults to #board-container
+        });
+      boardGui.loadFen(DEFAULT_START_FEN);
+  });
+</script>
+</body>
+</html>

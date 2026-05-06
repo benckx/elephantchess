@@ -1,0 +1,103 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+h4 {
+    margin-top: 18px;
+    margin-bottom: 4px;
+}
+
+ul {
+    margin-top: 5px;
+    margin-bottom: 7px;
+}
+
+#gender {
+    width: 200px;
+    height: 28px;
+    padding: 5px;
+    font-size: 14px;
+}
+
+#sources-container {
+    margin-top: 10px;
+}
+
+.source-item {
+    display: grid;
+    grid-template-columns: 80px 1fr auto auto;
+    gap: 5px;
+    margin-bottom: 10px;
+    align-items: start;
+}
+
+.source-item input {
+    height: 25px;
+}
+
+.source-item input[type="number"] {
+    width: 100%;
+}
+
+.source-item .app-buttons-blue {
+    background-color: #02207e;
+    color: white;
+    padding: 5px 20px;
+    text-decoration: none;
+    margin: 4px 2px;
+    border-radius: 3px;
+    border-width: 0;
+    font-weight: bold;
+    text-transform: lowercase;
+    font-size: 14px;
+    height: 28px;
+    cursor: pointer;
+}
+
+.source-item .app-buttons-blue:hover {
+    background-color: #0533c4;
+}
+
+.source-item .view-source-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+}
+
+.source-item .view-source-link a {
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.source-item .view-source-link a:hover {
+    text-decoration: underline;
+}
+
+.remove-source-btn,
+.visit-source-btn {
+    width: 90px;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+#save-changes-btn,
+#cancel-btn {
+    width: 150px;
+    height: 40px;
+}

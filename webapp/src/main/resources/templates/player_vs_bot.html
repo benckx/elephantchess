@@ -1,0 +1,108 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Play vs. Bot</title>
+    {{meta_no_index}}
+    {{board_js}}
+    <script defer src="/js/player-vs-bot/player-vs-bot-dto.js"></script>
+    <script defer src="/js/player-vs-bot/player-vs-bot-client.js"></script>
+    <script defer src="/js/player-vs-bot/player-vs-bot-controller.js"></script>
+    <script defer src="/js/player-vs-bot/player-vs-bot-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="flex-triptych-container">
+    <div class="flex-triptych-left-container">
+        <div id="mobile-navigation-panel" class="navigation-panel mobile-navigation-panel only-mobile"></div>
+        <div class="info-box">
+            <table class="info-box-table">
+                <tbody>
+                <tr>
+                    <td class="icon-cell">
+                        <img src="/images/icons/bot-icon.png" alt="training"/>
+                    </td>
+                    <td class="description-cell">
+                        <table class="info-box-sub-table">
+                            <tbody>
+                            <tr>
+                                <td class="labels">Player</td>
+                                <td class="values">
+                                    <span id="online-status-indicator"
+                                          class="online-status-indicator online-status-indicator-smaller">
+                                    </span>
+                                    <span id="info-player"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="labels">Color</td>
+                                <td class="values"><span id="info-user-color"></span></td>
+                            </tr>
+                            <tr>
+                                <td class="labels">Created</td>
+                                <td class="values"><span id="info-created"></span></td>
+                            </tr>
+                            <tr>
+                                <td class="labels">Engine</td>
+                                <td class="values"><span id="info-engine"></span></td>
+                            </tr>
+                            <tr>
+                                <td class="labels">Depth</td>
+                                <td class="values"><span id="info-depth"></span></td>
+                            </tr>
+                            <tr>
+                                <td class="labels">Outcome</td>
+                                <td class="values"><span id="info-outcome"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="game-actions-buttons-info-box" class="info-box" style="display: none">
+            <table class="info-box-table">
+                <tbody>
+                <tr id="resign-button" class="disabled-button">
+                    <td class="icon-cell">
+                        <img src="/images/icons/surrender.png" alt="resign"/>
+                    </td>
+                    <td class="description-cell">
+                        Resign
+                    </td>
+                </tr>
+                <tr id="cancel-button" class="disabled-button">
+                    <td class="icon-cell">
+                        <img src="/images/icons/cancel.png" style="opacity: 70%" alt="cancel"/>
+                    </td>
+                    <td class="description-cell">
+                        Cancel
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        {{analysis_summary_report}}
+        {{latest_supporter_banner_desktop_info_box}}
+        <div id="analysis-button-container-left-side">
+            <input type="button" value="Analyze" id="analyze-button-left-side"
+                   class="app-buttons-bigger app-buttons-disabled"/>
+        </div>
+    </div>
+    <div class="flex-triptych-board-container">
+        <div id="board-container" class="board-container"></div>
+    </div>
+    <div class="flex-triptych-right-container">
+        {{settings_info_box}}
+        <div id="move-tree-container" class="move-tree-container"></div>
+        <div id="move-history-navigation-panel" class="navigation-panel only-desktop"></div>
+        {{latest_supporter_banner_mobile_info_box}}
+        <div id="analysis-button-container-right-side">
+            <input type="button" value="Analyze" id="analyze-button-right-side"
+                   class="app-buttons-bigger app-buttons-disabled"/>
+        </div>
+    </div>
+</div>
+{{logged_as_guest_message}}
+</body>
+</html>

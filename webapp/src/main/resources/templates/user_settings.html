@@ -1,0 +1,65 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Settings</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/user-settings.css"/>
+    <script defer src="/js/modules/countries.js"></script>
+    <script defer src="/js/user-settings/notification-settings-widget.js"></script>
+    <script defer src="/js/user-settings/user-settings.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>Profile Settings</h1>
+    <hr/>
+    <h4 class="label">Description</h4>
+    <label for="description"></label>
+    <textarea id="description" rows="8" cols="50"></textarea>
+    <div id="description-character-counter" class="character-counter"></div>
+    <h4 class="label">Country</h4>
+    <label for="countries"></label>
+    <select name="countries" id="countries">
+        <option value="none">none</option>
+    </select>
+    <br/>
+    <input id="save-profile-button" type="button" class="app-buttons-bigger" value="save">
+    <h1>Email Notifications Settings</h1>
+    <hr/>
+    <table id="notifications-settings-table"></table>
+    <input id="save-notifications-button" type="button" class="app-buttons-bigger" value="save">
+    <h1>Email Address</h1>
+    <hr/>
+    <div id="email-valid" class="little-message little-message-flattened valid-data hidden">
+        <div class="icon-container">
+            <img src="/images/icons/right-icon.png" alt="valid"/>
+        </div>
+        <div class="message-container">
+            Your email address has been successfully verified.
+        </div>
+    </div>
+    <div id="email-invalid" class="little-message little-message-flattened invalid-data hidden">
+        <div class="icon-container">
+            <img src="/images/icons/wrong-icon.png" alt="invalid"/>
+        </div>
+        <div class="message-container">
+            Your email has been flagged as invalid; it can be - for example - because it does not exist or the inbox is
+            full. Password recovery and notifications will not be sent. Please <a href="/about">contact us</a> if you
+            want to resolve this issue.
+        </div>
+    </div>
+    <div id="email-validity-unknown" class="little-message little-message-flattened unknown-data hidden">
+        <div class="icon-container">
+            <img src="/images/icons/question.png" alt="unknown"/>
+        </div>
+        <div class="message-container">
+            It is not known whether your email is valid or not. Password recovery and notifications will not be sent.
+            Please <a href="/about">contact us</a> if you want to resolve this issue.
+        </div>
+    </div>
+    <div id="email-address-container">
+        <input id="email-address" type="text" disabled/>
+    </div>
+</div>
+</body>
+</html>

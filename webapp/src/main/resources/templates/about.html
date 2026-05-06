@@ -1,0 +1,195 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>About elephantchess.io</title>
+    <meta name="description"
+          content="The main motivation behind this webapp was to create a nice, dynamic GUI to play xiangqi puzzles, which didn't seem available at the time.">
+    <link rel="stylesheet" href="/css/about.css"/>
+    <script defer src="/js/default-base-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <div class="logo-container">
+        <img src="/images/logo-smaller.png" alt="logo"/>
+    </div>
+    <h1>About</h1>
+    <hr/>
+    <p>
+        The initial motivation behind this webapp was to create a nice, dynamic GUI to play <a
+            href="/puzzles?medium=about_page">xiangqi puzzles</a>, which didn't seem available at the time. We currently
+        have about 18,000 puzzles available. As of now, all the puzzles are "find the shortest path to mate" (which is
+        the most straight forward to infer from existing games data), but we're planning to create puzzles in other
+        categories as well.
+    </p>
+    On top of that - with the idea of bringing xiangqi to a more "western" audience - we added the following:
+    <ul>
+        <li>
+            <a href="/?medium=about_page">Player-vs-Player</a> (PvP)
+        </li>
+        <li>
+            <span id="play-bot-span" class="action-link" onclick="showPlayBotModal()">Player-vs-Bot</span> (PvB)
+        </li>
+        <li>
+            <a href="/analysis?medium=about_page">Analysis Board</a>
+        </li>
+        <li>
+            <a href="/database?medium=about_page">Game Database</a>
+        </li>
+    </ul>
+    <p>
+        We're planning to keep the app ad free and free to use - and possibly open source. In the future we hope user
+        contributions will be sufficient to cover server costs.
+    </p>
+    <h1>Support Us</h1>
+    <hr/>
+    <p>
+        If you like our project and want to help us, there are a few things you can do:
+    </p>
+    <ul>
+        <li>
+            You can support us on <a href="https://ko-fi.com/elephantchess" target="_blank">Ko-fi</a>
+            or on <a href="https://www.paypal.com/paypalme/benckx/4" target="_blank">PayPal</a>
+        </li>
+        <li>
+            You can <a href="https://elephanchessio.myspreadshop.com/all" target="_blank">visit our store</a>, we have
+            <a href="https://elephanchessio.myspreadshop.com/men+t-shirts?q=P22" target="_blank">t-shirts</a>, <a
+                href="https://elephanchessio.myspreadshop.com/men+hoodies+%26+sweatshirts?q=P25"
+                target="_blank">hoodies</a>, <a
+                href="https://elephanchessio.myspreadshop.com/accessories+mugs+%26+drinkware?q=P110" target="_blank">mugs</a>,
+            <a href="https://elephanchessio.myspreadshop.com/stickers?q=D61" target="_blank">stickers</a>, etc.
+        </li>
+        <li>
+            And of course, you can share the link with your friends and play some games.
+        </li>
+    </ul>
+    <h1>Contact Us</h1>
+    <hr/>
+    <p>
+        Feel free to come talk to us via those different channels; to report bugs, provide feedback, discuss new
+        features, propose changes or discuss anything xiangqi or chess related.
+    </p>
+    <ul>
+        <li>
+            Join our <a href="https://discord.gg/WEGDqnWXNg" target="_blank">Discord server</a>
+        </li>
+        <li>
+            Fill the <a href="/contact?medium=about_page">contact form</a>
+        </li>
+        <li>
+            Open a ticket on the dedicated <a href="https://github.com/benckx/elephantchess.io/issues" target="_blank">GitHub
+            repository</a> (for bugs reports and change requests)
+        </li>
+        <li>
+            Follow current developments and provide feedback on the <a href="https://github.com/users/benckx/projects/2"
+                                                                       target="_blank">GitHub project board</a>
+        </li>
+    </ul>
+    <p>
+        The website is managed by <a
+            href="https://kbopub.economie.fgov.be/kbopub/zoeknummerform.html?nummer=0700.990.987&actionLu=Recherche&lang=en"
+            target="_blank">Encelade</a>, LLC registered in Belgium. Project lead is <a href="https://benckx.me"
+                                                                                        target="_blank">benckx</a>.
+    </p>
+    <h1>Developers</h1>
+    <hr/>
+    The Board GUI library as well as a couple of Kotlin libraries are open source under the LGPLv3 license:
+    <ul>
+        <li>
+            <a href="/about/developers/board-gui-example">Board GUI</a> (documentation and example)
+        </li>
+        <li>
+            Kotlin Libraries <a href="https://github.com/benckx/elephantchess" target="_blank">on GitHub</a>
+        </li>
+    </ul>
+    <h1>Assets Credits</h1>
+    <hr/>
+    <ul>
+        <li>
+            Click sound by by <a
+                href="https://pixabay.com/users/irinairinafomicheva-25140203/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=13693"
+                target="_blank">irinairinafomicheva</a> from <a
+                href="https://pixabay.com//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=13693"
+                target="_blank">Pixabay</a>
+        </li>
+        <li>
+            Someone joined your game notification sound by
+            <a href="https://freesound.org/people/eqylizer/sounds/624598/" target="_blank">eqylizer</a>
+        </li>
+        <li>
+            It's now your turn to play notification sound by
+            <a href="https://freesound.org/people/Rob_Marion/sounds/542013/" target="_blank">Rob Marion</a>
+        </li>
+        <li>
+            Trophy icons by <a href="https://www.flaticon.com/authors/freepik" target="_blank">Freepik</a>
+        </li>
+        <li>
+            Rotation icon by <a href="https://www.flaticon.com/authors/freepik" target="_blank">Freepik</a>
+        </li>
+        <li>
+            Coordinates icon by <a href="https://www.flaticon.com/authors/travisavery" target="_blank">TravisAvery</a>
+        </li>
+        <li>
+            Right/Wrong icons by <a href="https://www.vecteezy.com/vector-art/3025935-right-wrong-round-icons-set"
+                                    target="_blank"> Poorna Chandra Ghanta</a>
+        </li>
+        <li>
+            Edit position icon by <a href="https://www.flaticon.com/free-icons/write" title="write icons">Tanah
+            Basah</a>
+        </li>
+        <li>
+            Flags icons <a href="https://flagicons.lipis.dev" target="_blank">https://flagicons.lipis.dev/</a>
+        </li>
+        <li>
+            Traditional pieces from <a href="https://commons.wikimedia.org/wiki/File:Xiangqi_Board.svg" target="_blank">Wikimedia</a>
+        </li>
+        <li>
+            Elephant design by <a href="https://www.shutterstock.com/g/rumbig" target="_blank">Rumbig</a>
+        </li>
+    </ul>
+    <h1>Front-End Libraries</h1>
+    <hr/>
+    <ul>
+        <li>
+            <a href="https://apexcharts.com/" target="_blank">ApexCharts.js</a>
+        </li>
+        <li>
+            <a href="https://mymth.github.io/vanillajs-datepicker" target="_blank">vanillajs-datepicker</a>
+        </li>
+        <li>
+            <a href=https://github.com/kpdecker/jsdiff target="_blank">jsdiff</a>
+        </li>
+    </ul>
+    <h1>Engines</h1>
+    <hr/>
+    <ul>
+        <li>
+            Pikafish <a href="https://github.com/official-pikafish/Pikafish/releases/tag/Pikafish-2023-03-05"
+                        target="_blank">2023-03-05</a> by PikaCat++ (PikaCat-OuO), New Horizons (skystarspython), d:blue
+            (dhbloo), Vincentzyx
+        </li>
+        <li>
+            Fairy Stockfish <a href="https://github.com/fairy-stockfish/Fairy-Stockfish/releases/tag/fairy_sf_11_2"
+                               target="_blank">11.2</a> by <a href="https://github.com/ianfab" target="_blank">Fabian
+            Fichter</a>
+        </li>
+    </ul>
+    <h1>Frequently Asked Questions</h1>
+    <hr/>
+    <ul>
+        <li>
+            <a href="/about/faq?medium=about_page">view FAQ</a>
+        </li>
+    </ul>
+    <h1>Changelog</h1>
+    <hr/>
+    <ul>
+        <li>
+            <a href="/about/changelog?medium=about_page">view changelog</a>
+        </li>
+    </ul>
+</div>
+{{footer}}
+{{kofi_floating_widget}}
+</body>
+</html>

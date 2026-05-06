@@ -1,0 +1,77 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.drop-down-menu-container {
+    width: 130px;
+}
+
+/* TODO: needs to be in a common class or something */
+.previous-version-contextual-menu {
+    display: none;
+    position: fixed;
+}
+
+.my-game-item {
+    width: 100%;
+    height: 84px;
+}
+
+.my-game-item .indicator-pane {
+    width: 8%;
+}
+
+.my-game-item .delete-icon {
+    width: 24px;
+}
+
+.my-game-item .analysis-name {
+    color: #262626;
+    font-size: 16px;
+}
+
+.my-game-item .analysis-version {
+    margin-top: 2px !important;
+    font-size: 14px;
+}
+
+.my-game-item .number-of-annotations,
+.my-game-item .number-of-variations {
+    margin-top: 2px !important;
+    font-size: 13px;
+    color: #515050;
+}
+
+@media (max-width: 1000px) {
+    .my-game-item {
+        height: 154px;
+    }
+
+    .my-game-item .analysis-name {
+        font-size: 30px;
+    }
+
+    .my-game-item .analysis-version {
+        font-size: 28px;
+    }
+
+    .my-game-item .number-of-annotations,
+    .my-game-item .number-of-variations {
+        font-size: 26px;
+    }
+}

@@ -1,0 +1,48 @@
+<div id="position-editor-modal" class="modal-content" data-nosnippet>
+    <h2>Position Editor</h2>
+    <div id="central-panel">
+        <div id="board-inner" class="inner-panel">
+            <div id="editor-board-container" class="board-container"></div>
+        </div>
+        <div id="tools-inner" class="inner-panel">
+            <div id="tools-editor-icons-panel" class="tools-sub-panel">
+                <div id="position-editor-default-start-position-button" class="icon-wrapper div-button-enabled">
+                    <img src="/images/icons/finish-flag.png" class="tools-editor-icons" alt="default start position"/>
+                </div>
+                <div id="position-editor-undo-button" class="icon-wrapper div-button-disabled">
+                    <img src="/images/icons/undo-arrow.png" class="tools-editor-icons" alt="undo"/>
+                </div>
+                <div id="position-editor-clear-board-button" class="icon-wrapper div-button-enabled">
+                    <img src="/images/icons/recycle-bin.png" class="tools-editor-icons" alt="empty board"/>
+                </div>
+                <div id="position-editor-eraser-button" class="icon-wrapper div-button-enabled">
+                    <img src="/images/icons/eraser.png" class="tools-editor-icons" alt="eraser tool"/>
+                </div>
+            </div>
+            <div class="tools-sub-panel"></div>
+            <div id="position-editor-to-play-panel" class="tools-sub-panel">
+                <div class="standard-radio">
+                    <span>
+                        <input type="radio" name="position-editor-to-play"
+                               id="position-editor-red-to-play" value="RED" checked>
+                    </span>
+                    <span class="label-span">
+                        <label for="position-editor-red-to-play">Red to play</label>
+                    </span>
+                </div>
+                <div class="standard-radio">
+                    <span>
+                        <input type="radio" name="position-editor-to-play"
+                               id="position-editor-black-to-play" value="BLACK">
+                    </span>
+                    <span class="label-span">
+                        <label for="position-editor-black-to-play">Black to play</label>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-buttons-panel">
+        <input id="ok-button" type="button" class="app-buttons" value="ok">
+    </div>
+</div>

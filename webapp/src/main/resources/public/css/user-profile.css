@@ -1,0 +1,202 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.main-container-text {
+    margin-top: 0;
+}
+
+h1 {
+    margin-top: 16px;
+}
+
+h2 {
+    margin-top: 20px;
+}
+
+.empty-block-placeholder {
+    border: 1px dashed rgba(98, 98, 99, 0.71);
+    color: rgba(113, 113, 114, 0.78);
+    border-radius: 15px;
+    width: 95%;
+    margin-left: 2.5%;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+    font-style: italic;
+    margin-bottom: 8px;
+    margin-top: 8px;
+}
+
+#profile-header {
+    width: 100%;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    height: 40px;
+}
+
+.profile-header-panel {
+    float: left;
+    padding: 0;
+    margin-right: 10px;
+}
+
+#profile-flag,
+#status-indicator {
+    margin-top: 13px;
+}
+
+#profile-description {
+    font-size: 15px;
+    font-style: italic;
+    margin-bottom: 8px;
+    margin-top: 8px;
+}
+
+#puzzle-stats-section {
+    display: none;
+}
+
+#profile-puzzle-stats-data {
+    visibility: hidden;
+}
+
+#summary-data-table {
+    margin-left: 24px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    border-spacing: 0 3px;
+}
+
+#summary-data-table td {
+    font-size: 17px;
+}
+
+#summary-data-table .header-cell {
+    width: 120px;
+}
+
+#summary-data-table .value-cell {
+    width: 50px;
+    text-align: right;
+}
+
+#summary-data-table .value-cell span {
+    font-weight: bold;
+    width: 100%;
+}
+
+#rating-line-chart {
+    margin-left: 11px;
+    width: 100%;
+}
+
+#number-bar-chart {
+    width: 100%;
+}
+
+#ratings-table {
+    border-spacing: 34px 12px;
+}
+
+#ratings-table td {
+    width: 60px;
+    text-align: center;
+}
+
+#ratings-table th {
+    text-align: right;
+    font-style: italic;
+    font-weight: normal;
+}
+
+.online-status-indicator {
+    margin-right: 0;
+}
+
+.puzzle-chart-container {
+    flex-flow: column;
+    width: 90%;
+}
+
+@media (max-width: 1000px) {
+    h2 {
+        font-size: 36px;
+        margin-top: 30px;
+    }
+
+    #profile-header {
+        height: 62px;
+    }
+
+    .profile-header-panel {
+        margin-right: 14px;
+    }
+
+    .flag-icons {
+        height: 25px;
+    }
+
+    #profile-description {
+        font-size: 30px;
+    }
+
+    #ratings-table {
+        border-spacing: 26px 30px;
+        font-size: 30px;
+    }
+
+    #ratings-table td {
+        width: 98px;
+        text-align: center;
+    }
+
+    .time-control-icons-larger {
+        width: 48px;
+    }
+
+    #summary-data-table {
+        margin-left: 24px;
+        margin-top: 14px;
+        margin-bottom: 14px;
+        border-spacing: 0 5px;
+    }
+
+    #summary-data-table td {
+        font-size: 28px;
+    }
+
+    #summary-data-table .header-cell {
+        width: 240px;
+    }
+
+    #summary-data-table .value-cell {
+        width: 100px;
+    }
+
+    .apexcharts-text tspan {
+        font-size: 20px;
+    }
+
+    .puzzle-chart-container {
+        width: 98%;
+    }
+}

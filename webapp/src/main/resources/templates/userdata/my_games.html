@@ -1,0 +1,47 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>My Games</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/my-user-data-items.css"/>
+    <link rel="stylesheet" href="/css/my-games.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/userdata/my-games-dto.js"></script>
+    <script defer src="/js/userdata/my-games.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>My Games</h1>
+    <hr class="only-desktop"/>
+    <div class="standard-checkbox">
+        <span>
+            <input id="include-canceled-checkbox" type="checkbox"/>
+        </span>
+        <span class="label-span">
+            <label for="include-canceled-checkbox">Include canceled games</label>
+        </span>
+    </div>
+    <div class="standard-checkbox">
+        <span>
+            <input id="include-below-move-3-checkbox" type="checkbox"/>
+        </span>
+        <span class="label-span">
+            <label for="include-below-move-3-checkbox">Include games with less than 3 moves</label>
+        </span>
+    </div>
+    <div id="my-game-items">
+    </div>
+    <div id="is-loading-message">
+        Loading more games...
+    </div>
+    <div id="no-game-played-message" class="empty-list-message-user-data">
+        You didn't play any game yet. You can join a game in the <a href="/">Lobby</a>
+        or <span class="action-link" onclick="showNewGameModal()">create one</span>
+    </div>
+    {{logged_as_guest_message}}
+</div>
+</body>
+</html>

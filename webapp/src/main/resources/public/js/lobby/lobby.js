@@ -1,0 +1,363 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+const YOUTUBE_EMBED = `
+            <iframe src="https://www.youtube.com/embed/nApZihrdQGo?si=iUZBitjMJCAQYiTL"
+                    title="YouTube video player" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+
+/**
+ * @return {HTMLInputElement}
+ */
+function makeAppButton(id, value) {
+    const button = document.createElement('input');
+    button.type = 'button';
+    button.id = id;
+    button.className = 'app-buttons';
+    button.value = value;
+    return button;
+}
+
+class LobbyPage extends BasePage {
+
+    #client = new LobbyClient();
+
+    #gameToJoinListTable = document.getElementById('games-to-join-list-table');
+    #createNewGameButton = document.getElementById('create-new-game-button');
+
+    // no game to join message links
+    #noGameToJoinMessage = document.getElementById('no-game-to-join-message');
+    #createGameSpan = document.getElementById('create-game-span');
+    #playBotSpan = document.getElementById('play-bot-span');
+    #puzzleTrainingSpan = document.getElementById('puzzle-training-span');
+
+    // info below the game list
+    #onlineUsers = document.getElementById('online-users-and-rating');
+
+    // puzzle training box
+    #puzzleBoardGui = createWebappBoardGui({
+        elementId: 'puzzle-board-container',
+        showCoordinates: false,
+        mini: true,
+    });
+
+    /**
+     *
+     * @type {HTMLAnchorElement}
+     */
+    #puzzleBoardLinkMask = document.getElementById('puzzle-board-link-mask');
+
+    #youTubeDiv = document.getElementById('youtube-embed-container');
+    #isYouTubeEmbedRendered = false;
+
+    constructor() {
+        super();
+        UI.preloadModal(Modals.NEW_GAME);
+        this.#createNewGameButton.addEventListener('click', () => showNewGameModal());
+        this.#createGameSpan.addEventListener('click', () => showNewGameModal());
+        this.#playBotSpan.addEventListener('click', () => showPlayBotModal());
+        this.#puzzleTrainingSpan.addEventListener('click', () => {
+            window.open('/puzzles', '_self');
+        });
+        this.#initPuzzleBox();
+        this.#loadUpcomingEvents();
+        this.#loadSupporters();
+
+        // mostly added this to debug when working on the modals
+        // but can also be used in prod to share links to specific modals
+        setTimeout(() => {
+            if (getQueryParam('pvb') != null) {
+                showPlayBotModal();
+            } else if (getQueryParam('new-game') != null) {
+                showNewGameModal();
+            }
+        }, 800);
+
+        addEventListener('scroll', (_) => this.#renderYouTubeEmbed());
+        addEventListener('resize', (_) => this.#renderYouTubeEmbed());
+
+        const settingsGui = new SettingsGui(this.#puzzleBoardGui, null);
+        new LiveGamesViewer(settingsGui);
+    }
+
+    additionalGamesToJoinListeners() {
+        return [update => {
+            this.#renderGameList(update.gamesToJoin);
+
+            switch (update.totalOnline) {
+                case 0:
+                    this.#onlineUsers.innerText = 'No user online';
+                    break;
+                case 1:
+                    this.#onlineUsers.innerText = '1 user online';
+                    break;
+                default:
+                    this.#onlineUsers.innerText = `${update.totalOnline} users online`;
+            }
+        }];
+    }
+
+    /**
+     * @param entries {GameToPlayDto[]}
+     */
+    #renderGameList(entries) {
+        const table = this.#gameToJoinListTable;
+        const body = table.getElementsByTagName('tbody').item(0);
+        body.innerHTML = '';
+
+        entries.sort(sortByOnline);
+        // TODO: sort by rating most similar to user's
+
+        if (entries.length === 0) {
+            this.#noGameToJoinMessage.classList.add('no-game-to-join-message-visible');
+        } else {
+            this.#noGameToJoinMessage.classList.remove('no-game-to-join-message-visible');
+            let row = body.insertRow();
+            row.classList.add('col-spanner');
+            let cell = row.insertCell();
+            cell.setAttribute('colspan', '7');
+        }
+
+        entries.forEach((entry, i) => {
+            // html elements
+            const row = body.insertRow();
+
+            // is online indicator
+            const isOnlineCell = row.insertCell();
+            isOnlineCell.className = 'online-cell';
+
+            const isOnlineIndicator = document.createElement('div');
+            isOnlineIndicator.className = 'online-status-indicator';
+            if (entry.isOpponentOnline) {
+                isOnlineIndicator.classList.add(IS_ONLINE_CSS_CLASS);
+            }
+            isOnlineCell.append(isOnlineIndicator);
+
+            // username and rating
+            const usernameCell = row.insertCell();
+            usernameCell.classList.add('username-cell', 'crop-text-ellipsis');
+
+            usernameCell.append(
+                buildUsernameSpan(
+                    entry.opponentUserId,
+                    entry.opponentUsername,
+                    entry.opponentUserType
+                )
+            );
+
+            const ratingCell = row.insertCell();
+            ratingCell.className = 'rating-cell';
+            ratingCell.innerText = entry.opponentRating.toString();
+
+            // color
+            const colorCell = row.insertCell();
+            colorCell.className = 'color-cell';
+            colorCell.append(buildColorSpan(entry.opponentColor));
+
+            // time control
+            const timeControlIconCell = row.insertCell();
+            const timeControlCell = row.insertCell();
+            timeControlIconCell.className = 'time-control-icons-cell';
+            timeControlCell.classList.add('time-control-cell', 'crop-text-ellipsis');
+
+            const imageName = timeControlCategoryIconMap.get(entry.timeControlCategory);
+            const img = document.createElement('img');
+            img.className = 'time-control-icons';
+            img.src = `${ICON_PATH}/${imageName}`;
+            timeControlIconCell.append(img);
+
+            let timeControlLabel = '--';
+            if (entry.timeControl != null) {
+                timeControlLabel = entry.timeControl.printShort(' +');
+            }
+            timeControlCell.innerText = timeControlLabel;
+
+            // rating mode
+            const ratingModeCell = row.insertCell();
+            ratingModeCell.className = 'rating-mode-cell';
+
+            const ratingModeSpan = document.createElement('span');
+            ratingModeCell.append(ratingModeSpan);
+            if (entry.isRated) {
+                ratingModeSpan.innerText = 'Rated';
+            } else {
+                ratingModeSpan.innerText = 'Casual';
+            }
+
+            // some space
+            const separatorCell = row.insertCell();
+            separatorCell.className = 'separator-cell';
+
+            // join button
+            const joinButtonCell = row.insertCell();
+            joinButtonCell.className = 'join-button-cell';
+
+            const joinButton = makeAppButton(`join-game-button-${entry.gameId}`, 'join');
+            joinButtonCell.append(joinButton);
+            joinButton.classList.add('join-buttons');
+            joinButton.addEventListener('click', () => this.#handleClickJoinButton(entry));
+
+            // remove border for last row
+            // FIXME: this can be done in CSS
+            if (i === entries.length - 1) {
+                row.classList.add('last-row');
+                for (let i = 0; i < row.cells.length; i++) {
+                    row.cells[i].classList.add('last-row');
+                }
+            }
+        });
+    }
+
+    /**
+     * @param entry {GameToPlayDto}
+     */
+    #handleClickJoinButton(entry) {
+        if (userIdOrNull() === entry.opponentUserId) {
+            UI.pushErrorNotification('You can not join your own game ;)');
+        } else if (entry.isCorrespondenceGame && !isUserAuthenticated()) {
+            UI.pushErrorNotification('Correspondence games are not available for guests. Please sign up or log in.');
+        } else {
+            this.#joinGame(entry.gameId);
+        }
+    }
+
+    #joinGame(gameId) {
+        this.#client.joinGame(gameId, (color) => {
+            window.open(`/game?id=${gameId}&color=${color}`, '_self');
+        });
+    }
+
+    #initPuzzleBox() {
+        this.#puzzleBoardGui.disablePlayerMove();
+
+        // wait until user is identified before loading current puzzle
+        // so it can be assigned to the new user
+        let interval = null;
+        interval = setIntervalNoDelay(() => {
+            if (isUserIdentified()) {
+                clearInterval(interval);
+                this.#client.getCurrentPuzzle((dto) => {
+                    this.#puzzleBoardGui.loadFen(dto.fen);
+                    this.#puzzleBoardGui.flipToColor(dto.color);
+                    this.#puzzleBoardLinkMask.href = `/puzzles?id=${dto.puzzleId}`;
+                });
+            }
+        }, 200);
+
+        if (isSafari) {
+            document
+                .getElementById('puzzle-board-container')
+                .classList.add('safari-mini-board-container');
+        }
+    }
+
+    #loadUpcomingEvents() {
+        this.#client.listUpcomingEvents((events) => {
+            const eventsDiv = document.getElementById('upcoming-events');
+
+            if (events.length === 0) {
+                eventsDiv.innerText = 'No upcoming events';
+            } else {
+                events.forEach(event => {
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'upcoming-event';
+
+                    const datesDiv = document.createElement('div');
+                    datesDiv.className = 'dates';
+                    datesDiv.innerText = `${formatDayToShortDateFormat(event.start)} - ${formatDayToShortDateFormat(event.end)}`;
+
+                    const description = document.createElement('div');
+                    description.className = 'description';
+                    description.innerText = event.description;
+
+                    const link = document.createElement('a');
+                    link.href = event.link;
+                    link.innerText = cropUrl(event.link);
+                    link.target = '_blank';
+
+                    const linkDiv = document.createElement('div');
+                    linkDiv.className = 'link';
+                    linkDiv.appendChild(link);
+
+                    eventDiv.appendChild(datesDiv);
+                    eventDiv.appendChild(description);
+                    eventDiv.appendChild(linkDiv);
+                    eventsDiv.appendChild(eventDiv);
+                });
+
+                eventsDiv.style.display = 'block';
+            }
+        });
+    }
+
+    #loadSupporters() {
+        // load recurrent supporters
+        this.#client.listLatestRecurrentSupporters((response) => {
+            const supportersDiv = document.getElementById('monthly-supporters-list');
+            if (response.entries.length === 0) {
+                supportersDiv.innerText = 'No monthly supporters yet';
+            } else {
+                supportersDiv.innerHTML = '';
+                response.entries.forEach((entry, index) => {
+                    const link = document.createElement('a');
+                    link.href = `/@/${entry.username}?medium=supporters-lobby`;
+                    link.innerText = entry.username;
+                    supportersDiv.appendChild(link);
+
+                    if (index < response.entries.length - 1) {
+                        supportersDiv.appendChild(document.createTextNode(', '));
+                    }
+                });
+            }
+        });
+
+        // load one-time supporters
+        this.#client.listLatestTippers((response) => {
+            const tippersDiv = document.getElementById('one-time-supporters-list');
+            if (response.entries.length === 0) {
+                tippersDiv.innerText = 'No one-time supporters yet';
+            } else {
+                tippersDiv.innerHTML = '';
+                response.entries.forEach((entry, index) => {
+                    const link = document.createElement('a');
+                    link.href = `/@/${entry.username}?medium=supporters-lobby`;
+                    link.innerText = entry.username;
+                    tippersDiv.appendChild(link);
+
+                    if (index < response.entries.length - 1) {
+                        tippersDiv.appendChild(document.createTextNode(', '));
+                    }
+                });
+            }
+        });
+    }
+
+    #renderYouTubeEmbed() {
+        if (!this.#isYouTubeEmbedRendered) {
+            if (isInViewport(this.#youTubeDiv)) {
+                this.#youTubeDiv.innerHTML = YOUTUBE_EMBED;
+                this.#isYouTubeEmbedRendered = true;
+            }
+        }
+    }
+
+}
+
+window.onload = () => new LobbyPage();

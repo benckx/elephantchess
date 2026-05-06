@@ -1,0 +1,30 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Database Edit</title>
+    {{meta_no_index}}
+    <script defer src="/js/default-base-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-error-message">
+    <div class="center-content-div">
+        <img alt="401 Unauthorized" class="warning-icon" src="/images/icons/warning.png">
+    </div>
+    <div class="big-fat-error-message">
+        <p>
+            Only authenticated users with the Editor role can edit the database.
+        </p>
+        <p>
+            If you want to join the Editor team and contribute, please contact use via the <a href="/contact">form</a>
+            or the <a href="https://discord.gg/WEGDqnWXNg" target="_blank">Discord</a>.
+        </p>
+        <p>
+            If the Editor role has been granted to you, you might need to log out and log in again for the changes to
+            take effect.
+        </p>
+    </div>
+</div>
+{{footer}}
+</body>
+</html>

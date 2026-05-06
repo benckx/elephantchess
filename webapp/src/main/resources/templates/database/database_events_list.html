@@ -1,0 +1,27 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>All Database Events</title>
+    <meta name="description" content="Browse Chinese chess tournaments and events."/>
+    <link rel="stylesheet" href="/css/database/database.css"/>
+    <link rel="stylesheet" href="/css/database/database-events-list.css"/>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/database/database-events-list.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>Database Events</h1>
+    <hr/>
+    <div class="center-content-div" style="flex-direction: column">
+        {{events_table}}
+    </div>
+    <div id="is-loading-message" style="display: none;">
+        Loading more events...
+    </div>
+    <div id="end-of-pagination-message" style="display: none;">
+        No more events to show
+    </div>
+</div>
+</body>
+</html>

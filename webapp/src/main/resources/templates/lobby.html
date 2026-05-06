@@ -1,0 +1,210 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Lobby</title>
+    <meta name="description"
+          content="Create a Chinese chess game, share the link with your friend, or join a game from the lobby.">
+    <link rel="stylesheet" href="/css/lobby.css">
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/game-thumb.js"></script>
+    <script defer src="/js/lobby/live-games-viewer.js"></script>
+    <script defer src="/js/lobby/lobby-dto.js"></script>
+    <script defer src="/js/lobby/lobby-client.js"></script>
+    <script defer src="/js/lobby/lobby.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="flex-lobby-container">
+    <div class="flex-lobby-element flex-games-to-join-list-container">
+        <h1>Lobby</h1>
+        <div id="games-to-join-list-container">
+            <div id="games-to-join-list-table-container">
+                <table id="games-to-join-list-table">
+                    <thead>
+                    <tr>
+                        <th class="online-cell"></th>
+                        <th class="username-cell">Player</th>
+                        <th class="rating-cell">Rating</th>
+                        <th class="color-cell">Color</th>
+                        <th class="time-control-icons-cell">Time</th>
+                        <th class="time-control-cell"></th>
+                        <th class="rating-mode-cell">Mode</th>
+                        <th class="separator-cell"></th>
+                        <th class="join-button-cell"></th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="no-game-to-join-message" class="empty-list-message">
+                    <p>
+                        There is no game to join at the moment. But you can
+                        <b><span id="create-game-span" class="action-link">create one</span></b>
+                        or maybe train <span id="play-bot-span" class="action-link">against a bot</span>.
+                        You could also <span id="puzzle-training-span" class="action-link">play some puzzles</span>
+                        instead.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div id="online-users-and-rating" class="discrete-messages"><i>loading</i></div>
+    </div>
+    <div class="flex-lobby-element flex-new-game-logo-container">
+        <div id="game-menu-container" class="center-content-div">
+            <div>
+                <input id="create-new-game-button"
+                       type="button"
+                       class="app-buttons-much-bigger"
+                       value="create new game">
+            </div>
+        </div>
+        <div id="logo-holder" class="center-content-div">
+            <img alt="elephantchess.io" src="/images/logo-smaller.png" loading="lazy"/>
+        </div>
+    </div>
+    <div class="flex-lobby-element">
+        <h1>Puzzle Training</h1>
+        <div>
+            <p>
+                Puzzles are a great way to improve. They can help you develop your tactical vision, pattern recognition,
+                and calculation skills.
+            </p>
+        </div>
+        <div class="center-content-div">
+            <div class="board-outer-container">
+                <a id="puzzle-board-link-mask" class="board-outer-container-link-mask"></a>
+                <div id="puzzle-board-container" class="board-container mini-board-container"></div>
+            </div>
+        </div>
+    </div>
+    <div class="flex-lobby-element">
+        <h1>Special Thanks</h1>
+        {{latest_supporter_banner_content}}
+        <p><a href="/about/faq#why-support-us">Read more</a></p>
+        <div id="kofi-logo-holder" class="center-content-div logo-holder">
+            <div>
+                <a href="https://ko-fi.com/elephantchess" target="_blank">
+                    <img id="kofi-logo" src="/images/kofi-logo-new-small.png" alt="support us on Ko-fi" loading="lazy"/>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="flex-lobby-element">
+        <h1>Contact Us</h1>
+        <div>
+            <p>
+                Don't hesitate to reach out on <a href="https://github.com/benckx/elephantchess.io/issues"
+                                                  target="_blank">GitHub</a> to report issues and ask questions or to
+                look up what are the <a href="https://github.com/users/benckx/projects/2/views/1" target="_blank">current
+                developments</a> being worked on.
+            </p>
+            <p>
+                You can also join our <a href="https://discord.gg/WEGDqnWXNg" target="_blank">Discord</a> for more
+                general free form discussion or use the <a href="/contact?medium=lobby">contact form</a>.
+            </p>
+            <p>
+                We're always eager to hear your ideas on how to improve the platform.
+            </p>
+        </div>
+        <div class="center-content-div logo-holder">
+            <a href="https://discord.gg/WEGDqnWXNg" target="_blank">
+                <img id="discord-logo"
+                     src="/images/discord-logo-normal-black.png"
+                     alt="join our Discord"
+                     loading="lazy"/>
+            </a>
+        </div>
+    </div>
+</div>
+<div class="flex-lobby-container">
+    <div class="flex-lobby-element flex-lobby-element-inter-title">
+        <h1>Latest Games</h1>
+    </div>
+</div>
+<div class="flex-lobby-container">
+    {{game_thumb}}[[iterations:3; {gameType: 'pvp', parentClass: 'latest-pvp-game-thumb'}]]
+</div>
+<div class="flex-lobby-container">
+    <div class="center-content-div browse-more-link-container">
+        <a href="/browse/player-vs-player?medium=lobby" class="browse-more-link">Browse Latest Games</a>
+    </div>
+</div>
+<div class="flex-lobby-container">
+    <div class="flex-lobby-element flex-lobby-element-inter-title">
+        <h1>Latest Bot Games</h1>
+    </div>
+</div>
+<div class="flex-lobby-container">
+    {{game_thumb}}[[iterations:3; {gameType: 'pvb', parentClass: 'latest-pvb-game-thumb'}]]
+</div>
+<div class="flex-lobby-container">
+    <div class="center-content-div browse-more-link-container">
+        <a href="/browse/player-vs-bot?medium=lobby" class="browse-more-link">Browse Latest Games</a>
+    </div>
+</div>
+<div class="flex-lobby-container">
+    <div class="flex-lobby-element">
+        <h1>How to Play</h1>
+        <p>
+            We're planning to create some nice help pages about the rules (in some distant future). In the
+            meantime, you can learn by following this YouTube tutorial or check the <a
+                href="https://en.wikipedia.org/wiki/Xiangqi" target="_blank">Wikipedia page</a>.
+        </p>
+        <div id="youtube-embed-container" class="center-content-div"></div>
+    </div>
+    <div class="flex-lobby-element">
+        <h1>Tip</h1>
+        <p>
+            If you're still struggling to play with the chinese characters, you can switch to the romanized
+            (i.e. westernized) piece style with the second button on the settings widget.
+        </p>
+        <p>
+            The settings widget is always accessible on the right side of the screen.
+        </p>
+        <div class="center-content-div">
+            <div class="center-content-div" style="width: 90%">
+                {{settings_info_box}}
+            </div>
+        </div>
+    </div>
+    <div class="flex-lobby-element">
+        <h1>Tip</h1>
+        <p>
+            We noticed some users seem to be playing against themselves with 2 accounts.
+        </p>
+        <p>
+            If you want to play with a friend who is sitting next to you or if you just want to test positions,
+            you can use our <a href="/board?medium=lobby">Simple Board</a> tool.
+        </p>
+        <p>
+            And if you think some features are missing, don't hesitate to reach out on <a
+                href="https://discord.gg/WEGDqnWXNg" target="_blank">Discord</a>.
+        </p>
+    </div>
+    <div class="flex-lobby-element">
+        <h1>Working on a New Variant</h1>
+        <p>
+            We are currently working on an implementation of <i>The Game of the Seven Kingdoms</i>
+            <nobr>(七國象棋),</nobr>
+            a 7 players Chinese chess variant that you will be able to play with 6 friends (or fewer).
+        </p>
+        <p>
+            <a href="/7k/about?medium=lobby">Read more</a>
+        </p>
+    </div>
+    <div class="flex-lobby-element monthly-supporters our-supporters">
+        <h1>Latest Supporters</h1>
+        <div id="monthly-supporters-list">Loading...</div>
+    </div>
+    <div class="flex-lobby-element one-time-supporters our-supporters">
+        <h1>Latest Tippers</h1>
+        <div id="one-time-supporters-list">Loading...</div>
+    </div>
+    <div id="upcoming-events" class="flex-lobby-element">
+        <h1>Upcoming Events</h1>
+    </div>
+</div>
+{{footer}}
+{{kofi_floating_widget}}
+</body>
+</html>

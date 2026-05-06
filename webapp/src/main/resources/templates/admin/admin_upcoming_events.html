@@ -1,0 +1,70 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Upcoming Events</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker.min.css">
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <link rel="stylesheet" href="/css/admin/admin-upcoming-events.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
+    <script defer src="/js/admin/admin-upcoming-events.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Upcoming Events</h1>
+    <hr/>
+
+    <h2>Create New Event</h2>
+    <hr/>
+    <form id="create-event-form">
+        <table class="form-table">
+            <tr>
+                <td><label for="event-start">Start Date:</label></td>
+                <td><input type="text" id="event-start" name="startDate" required class="datepicker-field"/></td>
+            </tr>
+            <tr>
+                <td><label for="event-end">End Date:</label></td>
+                <td><input type="text" id="event-end" name="endDate" required class="datepicker-field"/></td>
+            </tr>
+            <tr>
+                <td><label for="event-description">Description:</label></td>
+                <td><input type="text" id="event-description" name="description" required style="width: 400px;"/></td>
+            </tr>
+            <tr>
+                <td><label for="event-link">Link (URL):</label></td>
+                <td><input type="url" id="event-link" name="link" required style="width: 400px;"
+                           placeholder="https://..."/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input type="button" id="submit-event-btn" class="app-buttons" value="Create Event"/>
+                </td>
+            </tr>
+        </table>
+    </form>
+
+    <h2>Existing Events</h2>
+    <hr/>
+    <table id="upcoming-events-table" class="stats-table">
+        <thead>
+        <tr>
+            <th class="value-cell">id</th>
+            <th class="label-cell">enabled</th>
+            <th class="label-cell">start</th>
+            <th class="label-cell">end</th>
+            <th class="long-label-cell">description</th>
+            <th class="long-label-cell">link</th>
+            <th class="label-cell">created</th>
+            <th class="label-cell">created by</th>
+            <th class="label-cell">actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

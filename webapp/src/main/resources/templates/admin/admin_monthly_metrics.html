@@ -1,0 +1,22 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Monthly Metrics</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <link rel="stylesheet" href="/css/admin/admin-monthly-metrics.css"/>
+    {{apex_charts}}
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/widgets/single-metric-bar-chart.js"></script>
+    <script defer src="/js/admin/widgets/stacked-monthly-metrics-bar-chart.js"></script>
+    <script defer src="/js/admin/widgets/yearly-metrics-bar-chart.js"></script>
+    <script defer src="/js/admin/admin-analytics-dto.js"></script>
+    <script defer src="/js/admin/admin-monthly-metrics.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <div id="charts-container"></div>
+</div>
+</body>
+</html>

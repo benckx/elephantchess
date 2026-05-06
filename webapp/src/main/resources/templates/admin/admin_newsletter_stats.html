@@ -1,0 +1,40 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Newsletter Stats</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-newsletter-stats-dto.js"></script>
+    <script defer src="/js/admin/admin-newsletter-stats.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Newsletter Stats</h1>
+    <hr/>
+    <p>
+        potential recipients for new newsletter: <span id="potential-recipients">-</span>
+    </p>
+    <table id="newsletter-stats" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">template</th>
+            <th class="label-cell">subject</th>
+            <th class="label-cell">first Sent</th>
+            <th class="label-cell">last Sent</th>
+            <th class="value-cell">days</th>
+            <th class="value-cell">total</th>
+            <th class="value-cell">sent</th>
+            <th class="value-cell">pending</th>
+            <th class="value-cell">clicks</th>
+            <th class="value-cell">unsub</th>
+            <th class="value-cell">unsub (all)</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

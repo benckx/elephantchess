@@ -1,0 +1,28 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Ads Analytics</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    {{apex_charts}}
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/widgets/ads-cost-vs-metric-bar-chart.js"></script>
+    <script defer src="/js/admin/admin-analytics-dto.js"></script>
+    <script defer src="/js/admin/admin-analytics-ads.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <div style="margin-bottom: 30px;">
+        <label for="time-range-selector" style="font-weight: bold; vertical-align: middle;">Time range:</label>
+        <select id="time-range-selector" style="padding: 5px 10px; font-size: 14px; margin-left: 10px; vertical-align: middle;">
+            <option value="6">Last 6 months</option>
+            <option value="12">Last 12 months</option>
+            <option value="18" selected>Last 18 months</option>
+            <option value="all">All data</option>
+        </select>
+    </div>
+    <div id="charts-container"></div>
+</div>
+</body>
+</html>

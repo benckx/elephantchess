@@ -1,0 +1,329 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>The Game of the Seven Kingdoms - About</title>
+    <meta name="description" content="{{seven_kingdoms_description}} The rules are explained on this page.">
+    <meta name="keywords" content="{{seven_kingdoms_keywords}}"/>
+    <link rel="stylesheet" href="/css/seven-kingdoms/seven-kingdoms-module.css"/>
+    <link rel="stylesheet" href="/css/seven-kingdoms/seven-kingdoms-about.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/modules/seven-kingdoms-module.js"></script>
+    <script defer src="/js/widgets/seven-kingdoms-board-widget.js"></script>
+    <script defer src="/js/seven-kingdoms/seven-kingdoms-about.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>The Game of the Seven Kingdoms</h1>
+    <hr/>
+    <p>
+        The Game of the Seven Kingdoms (七國象棋) is a seven players Chinese chess variant. It is currently in
+        development on elephantchess. You can follow up on development on <a
+            href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">GitHub</a> or on our <a
+            href="https://discord.gg/WEGDqnWXNg" target="_blank">Discord server</a>.
+    </p>
+    <p>
+        The boards shown on this page are interactive. You can mouse over a piece to visualize its moves, and click on
+        it to make a move. Have fun!
+    </p>
+    <div id="board-setup-outer-container">
+        <div id="board-container-setup" class="board-container-7k"></div>
+    </div>
+    <div id="turn-to-play-box" class="center-content-div">
+        <div><b>Turn</b>&nbsp;</div>
+        <div id="turn-color-name">White</div>
+        <div id="turn-color-indicator" class="kingdom-color-indicator kingdom-color-indicator-white"></div>
+    </div>
+    <h1>Rules</h1>
+    <hr/>
+    <i>Setup</i>
+    <ul>
+        <li>
+            The board is 19x19 intersections, so equivalent to a Go (Baduk) board.
+        </li>
+        <li>
+            Each side has 17 pieces: a <a href="#general-moves">General (將)</a>, a <a href="#chancellor-moves">Chancellor
+            (偏)</a>, a <a href="#diplomat-moves">Diplomat (裨)</a>, a <a href="#cannon-moves">Cannon (砲)</a>, a <a
+                href="#go-between-moves">Go-Between (行人)</a>, an <a href="#archer-moves">Archer (弓)</a>, a <a
+                href="#crossbowman-moves">Crossbowman (弩)</a>, four <a href="#knight-moves">Knights (騎)</a>, two <a
+                href="#dagger-moves">Dagger soldiers (刀)</a> and four <a href="#swordsman-moves">Swordsmen (劍)</a>.
+        </li>
+        <li>
+            The yellow piece in the board center is the <a href="#emperor-moves">Emperor (周)</a> and isn't played by
+            any player.
+        </li>
+        <li>
+            There are 120 pieces total (including the Emperor).
+        </li>
+        <li>
+            The seven kingdoms are Qin (秦) the white army (west), Chu (楚) the red army (south), Han (韓) the orange
+            army (south), Qi (齊) the blue army (east), Wei (魏) the green army (east), Zhao (趙) the purple army
+            (north) and Yan (燕) the black army (north).
+        </li>
+        <li>
+            The game starts with Qin, the white kingdom, and then the order of play is counterclockwise (i.e. in the
+            same order as listed above).
+        </li>
+    </ul>
+    <i>Gameplay</i>
+    <ul>
+        <li>
+            The game is normally played by 7 players. If there are fewer players, the extra kingdoms can be removed, or
+            some players can own more than one kingdom.
+        </li>
+        <li>
+            On our first implementation — since it might be difficult to find 6 other players to play with — we plan to
+            allow games of minimum 2 players (max. 4 kingdoms per players), minimum 4 players (max. 2 kingdoms per
+            player) or 7 players (exactly 1 kingdom per player).
+        </li>
+        <li>
+            We could later implement an Eight Kingdoms variant, with an additional army, in order to make 2 and 4
+            players games more balanced.
+        </li>
+        <li>
+            To make it more practical, when playing multiple kingdoms, all kingdoms of a given player must be contiguous
+            (i.e. be next to each other), so they can all be played at once without needing to wait for another player
+            to play in-between. For example, player 1 plays white and red, player 2 plays orange and blue, player 3
+            plays green and purple and player 4 plays black.
+        </li>
+        <li>
+            Time control is based on players, not kingdoms.
+        </li>
+        <li>
+            If a player resigns or flags (i.e. times out), their remaining armies remain in the game, but their turn is
+            now skipped.
+        </li>
+    </ul>
+    <i>End of Game Conditions</i>
+    <ul>
+        <li>
+            A player is out when he loses the General or more than 10 pieces.
+        </li>
+        <li>
+            The player who captures the General or the most pieces of the loser wins his remaining army.
+        </li>
+        <li>
+            The final victory goes to the first player who wins two kingdoms or captures more than 30 pieces.
+        </li>
+        <li>
+            Except for the <a href="#cannon-moves">Cannon</a> and the <a href="#go-between-moves">Go-Between</a>, all
+            pieces capture the same way that they move.
+        </li>
+    </ul>
+    <h1>Moves</h1>
+    <hr/>
+    <div class="piece-rules">
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="general-moves">General</h2>
+                <p>
+                    The General 将 moves any distance orthogonally or diagonally (like a chess Queen).
+                </p>
+                <p>
+                    It is represented by the letter Q in FEN and as a chess Queen icon on the board.
+                </p>
+                <p>
+                    The player who captures the General wins his remaining army.
+                </p>
+                <p>
+                    There is no check in this game (so, it is not mandatory to remove an attack on the General).
+                </p>
+                <p>
+                    <span id="reset-general-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-general" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="chancellor-moves">Chancellor</h2>
+                <p>
+                    The Chancellor (or Deputy General) 偏 moves any distance orthogonally (like a chess Rook).
+                </p>
+                <p>
+                    It is represented by the letter R in FEN and as a chess Rook icon on the board.
+                </p>
+                <p>
+                    <span id="reset-chancellor-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-chancellor" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="diplomat-moves">Diplomat</h2>
+                <p>
+                    The Diplomat (or Officer) 裨 moves any distance diagonally (like a chess Bishop).
+                </p>
+                <p>
+                    It is represented by the letter B in FEN and as a chess Bishop icon on the board.
+                </p>
+                <p>
+                    <span id="reset-diplomat-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-diplomat" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="cannon-moves">Cannon</h2>
+                <p>
+                    The Cannon (or Catapult) 砲 moves any distance orthogonally without capturing. To capture, it jumps
+                    exactly one piece in its way (so exactly like a Chinese chess Cannon).
+                </p>
+                <p>
+                    It is represented by the letter C in FEN.
+                </p>
+                <p>
+                    <span id="reset-cannon-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-cannon" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="go-between-moves">Go-Between</h2>
+                <p>
+                    The Go-Between 行人 (or Diplomat - not to be confused with the other Bishop-like piece that is also
+                    called Diplomat) moves any distance orthogonally or diagonally. It cannot capture nor can it be
+                    captured. Thus, it is used for defense, or for a Cannon pivot.
+                </p>
+                <p>
+                    It is represented by the letter G in FEN.
+                </p>
+                <p>
+                    <span id="reset-go-between-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-go-between" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="archer-moves">Archer</h2>
+                <p>
+                    The Archer 弓 moves <b>up to four</b> intersections orthogonally or diagonally.
+                </p>
+                <p>
+                    It is represented by the letter H in FEN.
+                </p>
+                <p>
+                    <span id="reset-archer-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-archer" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="crossbowman-moves">Crossbowman</h2>
+                <p>
+                    The Crossbowman 弩 (or Crossbow) move <b>up to five</b> intersections orthogonally or diagonally.
+                </p>
+                <p>
+                    It is represented by the letter W in FEN.
+                </p>
+                <p>
+                    <span id="reset-crossbowman-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-crossbowman" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="knight-moves">Knight</h2>
+                <p>
+                    The Knight 騎 moves one intersection orthogonally first, then continues <b>one to three</b>
+                    intersections diagonally outward. It can be blocked like a Chinese chess Knight (i.e. if the
+                    orthogonal intersection is occupied).
+                </p>
+                <p>
+                    It can not jump over other pieces like in chess.
+                </p>
+                <p>
+                    It is represented by the letter N in FEN.
+                </p>
+                <p>
+                    <span id="reset-knight-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-knight" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="dagger-moves">Dagger</h2>
+                <p>
+                    Dagger Soldier (or knife) 刀 moves one intersection diagonally; so like a Chinese chess Advisor.
+                </p>
+                <p>
+                    It is represented by the letter A in FEN.
+                </p>
+                <p>
+                    <span id="reset-dagger-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-dagger" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="swordsman-moves">Swordsman</h2>
+                <p>
+                    The Swordsman (or Broadsword) 劍 moves one intersection orthogonality.
+                </p>
+                <p>
+                    It is represented by the letter S in FEN.
+                </p>
+                <p>
+                    <span id="reset-sword-board-button" class="action-link">reset test board</span> /
+                    <a href="/7k/playground">playground board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-sword" class="board-container-7k"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="emperor-moves">Emperor</h2>
+                <p>
+                    Finally, the Emperor 周 does not move, cannot be captured and is not played by any player. It can
+                    however be used as a pivot for the Cannon and can block a Knight orthogonal move.
+                </p>
+                <p>
+                    By convention and since it never changes position, it is not rendered on the FEN.
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-emperor" class="board-container-7k"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{{footer}}
+</body>
+</html>

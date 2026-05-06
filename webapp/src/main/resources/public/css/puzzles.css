@@ -1,0 +1,164 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+table.info-box-sub-table td.values {
+    font-weight: normal;
+}
+
+.hidden-values {
+    color: #585757;
+}
+
+span.next-puzzle-link {
+    font-weight: bold;
+}
+
+span#puzzle-id {
+    font-size: 15px;
+}
+
+#puzzle-feedback-info-box {
+    height: 100px;
+}
+
+#user-rating-info-box {
+    display: none;
+    height: 90px;
+}
+
+img.less-dark-icons {
+    opacity: 80%;
+}
+
+table.feedback-info-box-table {
+    display: none;
+}
+
+table.feedback-info-box-table-rendered {
+    display: table;
+}
+
+#game-info-box {
+    height: 98px;
+}
+
+#game-info-box table.info-box-table {
+    height: 100%;
+}
+
+#game-info-box .game-info-container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+#vote-up-down-container {
+    visibility: hidden;
+    position: absolute;
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 10px;
+    right: 16px;
+}
+
+#vote-up-down-container img {
+    height: 32px;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 3px 6px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+    border-radius: 5px;
+    background-color: #fbf7f0;
+}
+
+#vote-up-down-container img:active {
+    box-shadow: none;
+}
+
+#vote-up-down-container img:hover {
+    opacity: 0.9;
+}
+
+#vote-up-down-container img:first-child {
+    margin-right: 12px;
+}
+
+#vote-up-down-container img:first-child:hover {
+    background-color: rgba(0, 100, 0, 0.3);
+}
+
+#vote-up-down-container img:last-child:hover {
+    background-color: rgba(139, 0, 0, 0.3);
+}
+
+#vote-up-down-container img.voted-for {
+    opacity: 1;
+}
+
+#vote-up-down-container img.voted-against {
+    opacity: 0.3;
+}
+
+@media (max-width: 1000px) {
+    #puzzle-feedback-info-box {
+        height: 196px;
+    }
+
+    #user-rating-info-box {
+        height: 164px;
+    }
+
+    #game-info-box {
+        display: none;
+    }
+
+    span#puzzle-id {
+        font-size: 38px;
+    }
+
+    #vote-up-down-container {
+        width: 140px;
+        height: 60px;
+        top: 15px;
+        right: 15px;
+    }
+
+    #vote-up-down-container img {
+        height: 60px;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 1000px) {
+    #vote-up-down-container {
+        top: revert;
+        right: 52px;
+        bottom: 50px
+    }
+
+    #vote-up-down-container img {
+        border-radius: 15px;
+    }
+
+    #vote-up-down-container img:first-child {
+        margin-right: 20px;
+    }
+}

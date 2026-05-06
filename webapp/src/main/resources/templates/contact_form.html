@@ -1,0 +1,33 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>About</title>
+    <meta name="description"
+          content="Contact elephantchess.io via Discord of the contact form. We would love to hear your feedback and suggestions!">
+    <link rel="stylesheet" href="/css/contact-form.css"/>
+    <script defer src="/js/contact-form.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>Contact</h1>
+    <div id="form-container">
+        <label for="email-address">Email</label>
+        <br/>
+        <input id="email-address"/>
+        <br/>
+        <br/>
+        <label for="contact-form-textarea">Message</label>
+        <textarea id="contact-form-textarea"></textarea>
+        <br/>
+        <br/>
+        <div id="captcha-container"></div>
+        <br/>
+        <div class="center-content-div">
+            <input id="send-button" type="button" class="app-buttons" value="send">
+        </div>
+    </div>
+</div>
+{{footer}}
+</body>
+</html>

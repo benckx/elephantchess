@@ -1,0 +1,35 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>{{page_title}} Games</title>
+    <meta name="description"
+          content="Browse Database (DB) games from tournaments and events.">
+    <link rel="stylesheet" href="/css/browse-games.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/widgets/game-thumb.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/database/database-player-utils.js"></script>
+    <script defer src="/js/browse-games.js"></script>
+    <script defer src="/js/browse-db-event-games.js"></script>
+</head>
+<body data-event-id="{{event_id}}">
+{{body_init}}
+<div class="main-container-text-extended">
+    <h1>{{page_title}} Games</h1>
+    <hr class="only-desktop"/>
+    <div id="db-games-container">
+        {{game_thumb}}[[iterations:12; {gameType: 'db', parentClass: 'db-game-thumb'}]]
+    </div>
+    <div id="is-loading-message" style="display: none;">
+        Loading more games...
+    </div>
+    <div id="end-of-pagination-message" style="display: none;">
+        No more games to show
+    </div>
+    <div id="no-games-message" class="empty-list-message" style="display: none;">
+        No games found for this event.
+    </div>
+</div>
+</body>
+</html>

@@ -5,9 +5,13 @@ build
 *.min.js
 *.min.css
 *.csv
+*.gz
+*.properties
 formatter.json
 *.class
 *.jar
 .kotlin
-/engines/
-*.properties
+rendered_email.html
+**/out/
+dev_dataset.json
+engines

@@ -1,0 +1,27 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>All Players</title>
+    <meta name="description" content="Browse all Chinese chess (Xiangqi) players."/>
+    <link rel="stylesheet" href="/css/database/database.css"/>
+    <link rel="stylesheet" href="/css/database/database-players-list.css"/>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/database/database-players-list.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>Players</h1>
+    <hr/>
+    <div class="center-content-div" style="flex-direction: column">
+        {{players_table}}
+    </div>
+    <div id="is-loading-message" style="display: none;">
+        Loading more players...
+    </div>
+    <div id="end-of-pagination-message" style="display: none;">
+        No more players to show
+    </div>
+</div>
+</body>
+</html>

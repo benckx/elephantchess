@@ -1,0 +1,146 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#position-editor-modal {
+    width: 900px;
+    height: 948px;
+}
+
+#position-editor-modal #central-panel {
+    display: flex;
+    align-content: center;
+}
+
+#position-editor-modal .inner-panel {
+}
+
+#position-editor-modal #board-inner {
+    width: 824px;
+    margin-right: 48px;
+}
+
+#position-editor-modal #tools-inner {
+    width: 220px;
+}
+
+#position-editor-modal #board-inner #editor-board-container {
+    width: 608px;
+}
+
+#position-editor-modal #tools-inner .tools-piece-holder {
+    float: left;
+    position: relative;
+    padding: 6px;
+}
+
+#position-editor-modal #tools-inner .tools-sub-panel {
+    width: 100%;
+}
+
+#position-editor-modal #tools-inner #position-editor-to-play-panel {
+    padding: 8px 4px;
+    clear: both;
+}
+
+#position-editor-modal #tools-inner #tools-editor-icons-panel {
+    text-align: left;
+    height: 188px;
+}
+
+#position-editor-modal #tools-inner #tools-editor-icons-panel .icon-wrapper {
+    display: block;
+    float: left;
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+#position-editor-modal #tools-inner .tools-editor-icons {
+    width: 64px;
+    height: 64px;
+    padding: 8px;
+}
+
+#position-editor-modal #tools-inner .tools-piece-holder .piece-image {
+    width: 68px;
+    height: 68px;
+}
+
+#position-editor-modal #tools-inner .tools-piece-holder.tools-piece-holder-selected {
+    background-color: rgba(255, 200, 0, 0.35);
+    outline: 2px solid rgba(210, 140, 0, 0.9);
+    border-radius: 4px;
+}
+
+/* Semi-transparent "ghost" piece shown while previewing a placement */
+#position-editor-modal #board-inner .piece-holder .piece-image-ghost {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* When a ghost is overlaid, dim the existing piece so the preview is visible */
+#position-editor-modal #board-inner .piece-holder:has(.piece-image-ghost) .piece-image:not(.piece-image-ghost) {
+    opacity: 0.35;
+}
+
+#position-editor-modal #tools-inner #position-editor-undo-button img {
+    width: 50px;
+    height: 50px;
+    margin: 7px;
+}
+
+/* Highlight for the active tool button (eraser) */
+#position-editor-modal #tools-inner .position-editor-tool-selected {
+    background-color: rgba(255, 200, 0, 0.35);
+    outline: 2px solid rgba(210, 140, 0, 0.9);
+    border-radius: 4px;
+}
+
+/*
+ * Visual indication that a piece can be erased when the eraser tool is active
+ * and the cursor is over the piece.
+ */
+#position-editor-modal #board-inner .piece-holder.piece-holder-eraser-hover {
+    position: relative;
+}
+
+#position-editor-modal #board-inner .piece-holder.piece-holder-eraser-hover .piece-image {
+    opacity: 0.5;
+    filter: drop-shadow(0 0 3px rgba(220, 0, 0, 0.9));
+}
+
+#position-editor-modal #board-inner .piece-holder.piece-holder-eraser-hover::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60%;
+    height: 60%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    background-image:
+        linear-gradient(45deg, transparent 45%, rgba(220, 0, 0, 0.85) 45%, rgba(220, 0, 0, 0.85) 55%, transparent 55%),
+        linear-gradient(-45deg, transparent 45%, rgba(220, 0, 0, 0.85) 45%, rgba(220, 0, 0, 0.85) 55%, transparent 55%);
+}
+
+@media (max-width: 1000px) {
+    #position-editor-modal {
+        width: 100%;
+        height: 1180px;
+    }
+}

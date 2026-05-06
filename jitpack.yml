@@ -1,2 +1,5 @@
 jdk:
   - openjdk21
+
+install:
+  - ./gradlew :engine-api:publishToMavenLocal :xiangqi-core:publishToMavenLocal :xiangqi-core-test-utils:publishToMavenLocal :seven-kingdoms-core:publishToMavenLocal :seven-kingdoms-core-test-utils:publishToMavenLocal -PpublishVersion=$VERSION

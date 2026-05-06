@@ -1,0 +1,58 @@
+<nav class="admin-submenu">
+    <div>
+        <span class="admin-submenu-category">[status]</span>
+        <a href="/admin" class="admin-submenu-link">overview</a>
+        <span>|</span>
+        <a href="/admin/newsletter-stats" class="admin-submenu-link">newsletters</a>
+        <span>|</span>
+        <a href="/admin/upcoming-events" class="admin-submenu-link">upcoming events</a>
+    </div>
+    <div>
+        <span class="admin-submenu-category">[data]</span>
+        <a href="/admin/analytics" class="admin-submenu-link">analytics</a>
+        <span>|</span>
+        <a href="/admin/sessions" class="admin-submenu-link">user sessions</a>
+    </div>
+    <div>
+        <span class="admin-submenu-category">[analytics]</span>
+        <a href="/admin/analytics-ads" class="admin-submenu-link">analytics (ads)</a>
+        <span>|</span>
+        <a href="/admin/monthly-metrics" class="admin-submenu-link">monthly metrics</a>
+        <span>|</span>
+        <a href="/admin/online-users-stats" class="admin-submenu-link">online users stats</a>
+        <span>|</span>
+        <a href="/admin/daily-page-views" class="admin-submenu-link">daily page views</a>
+        <span>|</span>
+        <a href="/admin/monthly-page-views" class="admin-submenu-link">monthly page views</a>
+        <span>|</span>
+        <a href="/admin/database-table-sizes" class="admin-submenu-link">db table sizes</a>
+    </div>
+    <div>
+        <span class="admin-submenu-category">[feeds]</span>
+        <a href="/admin/feeds" class="admin-submenu-link">feeds</a>
+        <span>|</span>
+        <a href="/admin/player-profile-edits" class="admin-submenu-link">player profiles edits</a>
+        <span>|</span>
+        <a href="/admin/chat-messages" class="admin-submenu-link">chat messages</a>
+        <span>|</span>
+        <a href="/admin/db-search-queries" class="admin-submenu-link">db search queries</a>
+        <span>|</span>
+        <a href="/admin/password-recovery-attempts" class="admin-submenu-link">password recovery</a>
+        <span>|</span>
+        <a href="/admin/pre-analysis" class="admin-submenu-link">pre-analysis</a>
+        <span>|</span>
+        <a href="/admin/thrown-exceptions" class="admin-submenu-link">exceptions</a>
+    </div>
+</nav>
+<script>
+    // highlight the current page link based on URL
+    document.addEventListener('DOMContentLoaded', function () {
+        const currentPath = window.location.pathname;
+        const links = document.querySelectorAll('.admin-submenu-link');
+        links.forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+    });
+</script>

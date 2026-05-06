@@ -1,0 +1,30 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Online Users Statistics</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    {{apex_charts}}
+    <script defer src="/js/admin/widgets/online-users-hourly-chart.js"></script>
+    <script defer src="/js/admin/widgets/online-users-day-of-week-chart.js"></script>
+    <script defer src="/js/admin/widgets/online-users-daily-chart.js"></script>
+    <script defer src="/js/admin/widgets/online-users-monthly-chart.js"></script>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-online-users-stats.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Online Users Statistics</h1>
+    <hr/>
+    <h2>By Hour of Day</h2>
+    <div id="online-users-hourly-chart" style="margin-bottom: 40px;"></div>
+    <h2>By Day of Week</h2>
+    <div id="online-users-day-of-week-chart" style="margin-bottom: 40px;"></div>
+    <h2>By Day</h2>
+    <div id="online-users-daily-chart" style="margin-bottom: 40px;"></div>
+    <h2>By Month (Last 18 Months)</h2>
+    <div id="online-users-monthly-chart" style="margin-bottom: 40px;"></div>
+</div>
+</body>
+</html>

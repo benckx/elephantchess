@@ -1,0 +1,2206 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet author="benckx" id="0001">
+        <createTable tableName="puzzle">
+            <column name="id" type="varchar(8)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="ref_game_source" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ref_game_source_id" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="algorithm" type="varchar(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="engine" type="varchar(20)"/>
+            <column name="dataset" type="varchar(50)"/>
+            <column name="player_color" type="varchar(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_fen" type="varchar(150)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="initial_rating" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="puzzle_half_move">
+            <column name="puzzle_id" type="varchar(8)">
+                <constraints foreignKeyName="puzzle_half_move_to_puzzle_fk"
+                             references="puzzle(id)"
+                             nullable="false"/>
+            </column>
+            <column name="position" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uci" type="varchar(4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_solution" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="puzzle_id, position"
+                       constraintName="puzzle_half_move_pk"
+                       tableName="puzzle_half_move"/>
+
+        <createTable tableName="puzzle_category_tag">
+            <column name="puzzle_id" type="varchar(8)">
+                <constraints foreignKeyName="puzzle_category_to_puzzle_fk"
+                             references="puzzle(id)"
+                             nullable="false"/>
+            </column>
+            <column name="category" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="puzzle_id, category"
+                       constraintName="puzzle_category_pk"
+                       tableName="puzzle_category_tag"/>
+
+        <createTable tableName="user">
+            <column name="id" type="varchar(8)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="handle" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="bytea">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creation" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_of_birth" type="date"/>
+            <column name="description" type="varchar(500)"/>
+            <column name="game_rating" type="int"/>
+            <column name="puzzle_rating" type="int"/>
+            <column name="last_puzzle_assigned" type="varchar(8)"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="user"
+                                 baseColumnNames="last_puzzle_assigned"
+                                 constraintName="user_last_puzzle_assigned_fk"
+                                 referencedTableName="puzzle"
+                                 referencedColumnNames="id"/>
+
+        <createTable tableName="puzzle_result">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="puzzle_id" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_creation" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome" type="varchar(7)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="puzzle_rating_from" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="puzzle_rating_to" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="player_rating_from" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="player_rating_to" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="puzzle_result"
+                                 baseColumnNames="puzzle_id"
+                                 constraintName="puzzle_result_to_puzzle_id"
+                                 referencedTableName="puzzle"
+                                 referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="puzzle_result"
+                                 baseColumnNames="user_id"
+                                 constraintName="puzzle_result_to_user_id"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+
+        <createTable tableName="puzzle_result_anonymous">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="puzzle_id" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_creation" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome" type="varchar(7)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="puzzle_result_anonymous"
+                                 baseColumnNames="puzzle_id"
+                                 constraintName="puzzle_result_anonymous_to_puzzle_id_fk"
+                                 referencedTableName="puzzle"
+                                 referencedColumnNames="id"/>
+
+        <createIndex tableName="puzzle_result" indexName="puzzle_result_creation_index">
+            <column name="entry_creation"/>
+        </createIndex>
+        <createIndex tableName="puzzle_result_anonymous" indexName="puzzle_result_anonymous_creation_index">
+            <column name="entry_creation"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="benckx" id="0002">
+        <addColumn tableName="user">
+            <column name="last_online" type="datetime"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="benckx" id="0003">
+        <comment>user profile</comment>
+        <addColumn tableName="user">
+            <column name="country" type="varchar(3)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="benckx" id="0004">
+        <createTable tableName="password_recovery_attempt">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="recovery_code" type="varchar(64)"/>
+            <column name="entry_creation" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_provided" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="matching_user_id" type="varchar(8)"/>
+            <column name="has_been_recovered" type="boolean" defaultValueComputed="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_recovered" type="datetime"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="benckx" id="0005">
+        <createTable tableName="reference_game_opening">
+            <column name="id" type="varchar(8)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(300)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="reference_game_opening_variation">
+            <column name="id" type="varchar(8)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(300)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="reference_game_event">
+            <column name="id" type="varchar(8)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(300)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_visible" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="reference_player">
+            <column name="id" type="varchar(8)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chinese_name" type="varchar(50)"/>
+            <column name="is_visible" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="reference_game">
+            <column name="id" type="varchar(8)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="number_of_half_moves" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source" type="varchar(10)"/>
+            <column name="source_id" type="varchar(50)"/>
+            <column name="date" type="date"/>
+            <column name="year" type="int"/>
+            <column name="event" type="varchar(8)">
+                <constraints foreignKeyName="ref_game_to_event_fk" references="reference_game_event(id)"/>
+            </column>
+            <column name="round" type="int"/>
+            <column name="red_player" type="varchar(8)">
+                <constraints foreignKeyName="red_player_ref_game_fk" references="reference_player(id)"/>
+            </column>
+            <column name="black_player" type="varchar(8)">
+                <constraints foreignKeyName="black_player_ref_game_fk" references="reference_player(id)"/>
+            </column>
+            <column name="outcome" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="final_fen" type="varchar(300)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_checkmate" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_stalemate" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="analysis_status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="analysis_start_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="analysis_end_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="opening" type="varchar(8)">
+                <constraints foreignKeyName="ref_game_opening_fk" references="reference_game_opening(id)"/>
+            </column>
+            <column name="opening_variation" type="varchar(8)">
+                <constraints foreignKeyName="ref_game_opening_variation_fk"
+                             references="reference_game_opening_variation(id)"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="reference_game_half_move">
+            <column name="reference_game_id" type="varchar(8)">
+                <constraints foreignKeyName="reference_game_half_move_to_puzzle_fk"
+                             references="reference_game(id)"
+                             nullable="false"/>
+            </column>
+            <column name="position" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uci" type="varchar(4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fen" type="varchar(300)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="in_check" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="reference_game_id, position"
+                       constraintName="reference_game_half_move_pk"
+                       tableName="reference_game_half_move"/>
+
+        <createIndex tableName="reference_game" indexName="reference_game_source_index">
+            <column name="source"/>
+            <column name="source_id"/>
+        </createIndex>
+
+        <createIndex tableName="reference_game" indexName="reference_game_red_player_index">
+            <column name="red_player"/>
+        </createIndex>
+
+        <createIndex tableName="reference_game" indexName="reference_game_black_player_index">
+            <column name="black_player"/>
+        </createIndex>
+
+        <createIndex tableName="reference_game" indexName="reference_game_outcome_index">
+            <column name="outcome"/>
+        </createIndex>
+
+        <createIndex tableName="reference_game_half_move" indexName="reference_game_move_position_index">
+            <column name="position"/>
+        </createIndex>
+
+        <createIndex tableName="reference_game_half_move" indexName="reference_game_move_uci_index">
+            <column name="uci"/>
+        </createIndex>
+
+        <createIndex tableName="reference_game_half_move" indexName="reference_game_move_fen_index">
+            <column name="fen"/>
+        </createIndex>
+
+        <createTable tableName="reference_game_half_move_analysis">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reference_game_id" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="engine" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="depth" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cp" type="int"/>
+            <column name="pv" type="varchar(500)"/>
+            <column name="entry_creation" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="reference_game_half_move_analysis_to_move_fk"
+                                 baseTableName="reference_game_half_move_analysis"
+                                 baseColumnNames="reference_game_id, position"
+                                 referencedTableName="reference_game_half_move"
+                                 referencedColumnNames="reference_game_id, position"/>
+
+        <!-- TODO: add the moves in WXF? -->
+    </changeSet>
+
+    <changeSet author="benckx" id="0006">
+        <comment>
+            Analysis whether user solved with the pre-recorded solution (high rate could be a sign of cheating)
+        </comment>
+        <addColumn tableName="puzzle_result">
+            <column name="used_pre_recorded_solution" type="boolean"/>
+        </addColumn>
+        <addColumn tableName="puzzle_result_anonymous">
+            <column name="used_pre_recorded_solution" type="boolean"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="0007" author="benckx">
+        <addColumn tableName="user">
+            <column name="has_role_admin" type="boolean" defaultValueBoolean="false"/>
+            <column name="has_role_editor" type="boolean" defaultValueBoolean="false"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="0008" author="benckx">
+        <createTable tableName="analysis">
+            <column name="id" type="varchar(8)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="owner_user_id" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="analysis_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reference_game_id" type="varchar(8)">
+                <constraints foreignKeyName="analysis_to_ref_game_fk" references="reference_game(id)"/>
+            </column>
+            <column name="current_version_number" type="int"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="analysis"
+                                 baseColumnNames="owner_user_id"
+                                 constraintName="analysis_owner_to_user_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+
+        <createTable tableName="analysis_version">
+            <column name="analysis_id" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version_number" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="selected_node_id" type="varchar(20)"/>
+            <column name="open_branch_ids" type="varchar(200)"/>
+        </createTable>
+        <addPrimaryKey tableName="analysis_version" columnNames="analysis_id,version_number"/>
+        <addForeignKeyConstraint baseTableName="analysis_version"
+                                 baseColumnNames="analysis_id"
+                                 constraintName="analysis_version_to_analysis_fk"
+                                 referencedTableName="analysis"
+                                 referencedColumnNames="id"/>
+
+        <createTable tableName="analysis_node">
+            <column name="analysis_id" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version_number" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="node_id" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="move" type="varchar(4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="level" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="previous" type="varchar(20)"/>
+            <column name="next" type="varchar(20)"/>
+        </createTable>
+        <addPrimaryKey tableName="analysis_node" columnNames="analysis_id,version_number,node_id"/>
+        <addForeignKeyConstraint baseTableName="analysis_node"
+                                 baseColumnNames="analysis_id,version_number"
+                                 constraintName="analysis_node_to_analysis_version_fk"
+                                 referencedTableName="analysis_version"
+                                 referencedColumnNames="analysis_id,version_number"/>
+
+        <createTable tableName="analysis_child_node">
+            <column name="analysis_id" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version_number" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="child_node_id" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_node_id" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="analysis_child_node" columnNames="analysis_id,version_number,child_node_id"/>
+        <addForeignKeyConstraint baseTableName="analysis_child_node"
+                                 baseColumnNames="analysis_id,version_number,child_node_id"
+                                 constraintName="analysis_child_node_to_analysis_node_fk"
+                                 referencedTableName="analysis_node"
+                                 referencedColumnNames="analysis_id,version_number,node_id"/>
+
+        <createTable tableName="analysis_engine_data_cache">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="analysis_id" type="varchar(8)">
+                <constraints nullable="false" foreignKeyName="analysis_engine_data_cache_to_analysis_fk"/>
+            </column>
+            <column name="fen_key" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="depth" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cp" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pv" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="in_checkmate" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="0009" author="benckx">
+        <comment>create db cache for opening data</comment>
+        <createTable tableName="opening_repository_occurrences_cache">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="previous_moves" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="next_move" type="varchar(4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="occurrences" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_creation" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="opening_repository_occurrences_cache"
+                     indexName="opening_repository_occurrences_cache_previous_moves_index">
+            <column name="previous_moves"/>
+        </createIndex>
+
+        <createTable tableName="opening_repository_outcome_cache">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="moves" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="red_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="blacks_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_creation" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="opening_repository_outcome_cache"
+                     indexName="opening_repository_outcome_cache_moves_index">
+            <column name="moves"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="0010" author="benckx">
+        <modifyDataType tableName="analysis_version" columnName="open_branch_ids" newDataType="varchar(1000)"/>
+    </changeSet>
+
+    <changeSet id="0011" author="benckx">
+        <createTable tableName="analysis_node_annotation">
+            <column name="analysis_id" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version_number" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="node_id" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="annotation_content" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="analysis_node_annotation" columnNames="analysis_id,version_number,node_id"/>
+        <addForeignKeyConstraint baseTableName="analysis_node_annotation"
+                                 baseColumnNames="analysis_id,version_number"
+                                 constraintName="analysis_node_annotation_to_analysis_version_fk"
+                                 referencedTableName="analysis_version"
+                                 referencedColumnNames="analysis_id,version_number"/>
+    </changeSet>
+
+    <changeSet id="0012" author="benckx">
+        <comment>refactor db cache for opening data</comment>
+        <createTable tableName="opening_pre_calculation_cache">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="number_of_moves" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="moves" type="varchar(200)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="occurrences" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_red_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_black_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_draws" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_creation" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_update" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="opening_pre_calculation_cache"
+                     indexName="opening_pre_calculation_cache_number_of_moves_index">
+            <column name="number_of_moves"/>
+        </createIndex>
+        <createIndex tableName="opening_pre_calculation_cache" indexName="opening_pre_calculation_cache_moves_index">
+            <column name="moves"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="0013" author="benckx">
+        <addColumn tableName="user">
+            <column name="has_role_moderator" type="boolean" defaultValueBoolean="false"/>
+            <column name="email_notification_enabled_newsletter" type="boolean" defaultValueBoolean="true"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="0014" author="benckx">
+        <createIndex tableName="analysis" indexName="analysis_owner_index">
+            <column name="owner_user_id"/>
+        </createIndex>
+        <createIndex tableName="analysis_node" indexName="analysis_node_to_parent_analysis_index">
+            <column name="analysis_id"/>
+            <column name="version_number"/>
+        </createIndex>
+        <createIndex tableName="analysis_child_node" indexName="analysis_child_node_to_parent_analysis_index">
+            <column name="analysis_id"/>
+            <column name="version_number"/>
+        </createIndex>
+        <createIndex tableName="analysis_node_annotation" indexName="analysis_node_annotation_to_parent_analysis_index">
+            <column name="analysis_id"/>
+            <column name="version_number"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="0015" author="benckx">
+        <createTable tableName="kubernetes_pod">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="pod_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_creation" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_update" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="0016" author="benckx">
+        <comment>remove old opening cache</comment>
+        <dropTable tableName="opening_repository_occurrences_cache"/>
+        <dropTable tableName="opening_repository_outcome_cache"/>
+    </changeSet>
+
+    <changeSet id="0017" author="benckx">
+        <addColumn tableName="user">
+            <column name="session_prolonged_at" type="datetime"/>
+            <column name="old_expiration_time" type="datetime"/>
+            <column name="new_expiration_time" type="datetime"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="0018" author="benckx">
+        <modifyDataType tableName="analysis_node_annotation"
+                        columnName="annotation_content"
+                        newDataType="LONGVARCHAR"/>
+    </changeSet>
+
+    <changeSet id="0019" author="benckx">
+        <comment>player vs player</comment>
+        <update tableName="user">
+            <column name="game_rating" value="1000"/>
+        </update>
+
+        <createTable tableName="game">
+            <column name="id" type="varchar(8)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="inviter" type="varchar(8)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invitee" type="varchar(8)"/>
+            <column name="inviter_color" type="varchar(5)"/>
+            <column name="is_rated" type="boolean"/>
+            <column name="current_fen" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_half_move_index" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="k_value" type="int"/>
+            <column name="inviter_rating_from" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="inviter_rating_to" type="int"/>
+            <column name="invitee_rating_from" type="int"/>
+            <column name="invitee_rating_to" type="int"/>
+            <column name="outcome" type="varchar(10)"/>
+            <column name="created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="draw_proposition_user" type="varchar(8)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="game"
+                                 baseColumnNames="inviter"
+                                 constraintName="game_inviter_to_user_id_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="game"
+                                 baseColumnNames="invitee"
+                                 constraintName="game_invitee_to_user_id_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="game"
+                                 baseColumnNames="draw_proposition_user"
+                                 constraintName="draw_proposition_user_to_user_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+
+        <createTable tableName="game_status_event">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="game_id" type="varchar(8)">
+                <constraints foreignKeyName="game_status_event_to_game_id_fk" references="game(id)" nullable="false"/>
+            </column>
+            <column name="event_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(8)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="game_status_event_to_user_fk"
+                                 baseTableName="game_status_event" baseColumnNames="user_id"
+                                 referencedTableName="user" referencedColumnNames="id"/>
+
+        <createTable tableName="game_move">
+            <column name="game_id" type="varchar(8)">
+                <constraints foreignKeyName="game_move_to_game_fk" references="game(id)" nullable="false"/>
+            </column>
+            <column name="position" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uci" type="varchar(4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="game_id, position" constraintName="game_move_pk" tableName="game_move"/>
+    </changeSet>
+
+    <changeSet id="0020" author="benckx">
+        <addColumn tableName="user">
+            <column name="email_notification_enabled_user_joined_game"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_notification_enabled_opponent_played_move"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_notification_enabled_opponent_resigned"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_notification_enabled_opponent_proposed_draw"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_notification_enabled_opponent_accepted_draw"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_notification_enabled_opponent_declined_draw"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="0021" author="benckx">
+        <addNotNullConstraint tableName="game" columnName="is_rated"/>
+    </changeSet>
+
+    <changeSet id="0022" author="benckx">
+        <addColumn tableName="game">
+            <column name="time_control_category" type="varchar(20)" defaultValue="CORRESPONDENCE"/>
+            <column name="time_control_base" type="int"/>
+            <column name="time_control_increment" type="int"/>
+            <column name="min_flag_check_time" type="datetime"/>
+        </addColumn>
+        <renameColumn tableName="user" oldColumnName="game_rating" newColumnName="game_rating_correspondence"/>
+        <addColumn tableName="user">
+            <column name="game_rating_bullet" type="int" defaultValue="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_blitz" type="int" defaultValue="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_rapid" type="int" defaultValue="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_classical" type="int" defaultValue="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_several_days" type="int" defaultValue="1000">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addNotNullConstraint tableName="user" columnName="game_rating_correspondence"/>
+    </changeSet>
+
+    <changeSet id="0023" author="benckx">
+        <comment>extend id length</comment>
+        <modifyDataType tableName="puzzle"
+                        columnName="id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="puzzle_half_move"
+                        columnName="puzzle_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="puzzle_category_tag"
+                        columnName="puzzle_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="user"
+                        columnName="id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="user"
+                        columnName="last_puzzle_assigned"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="puzzle_result"
+                        columnName="puzzle_id" newDataType="varchar(12)"/>
+        <modifyDataType tableName="puzzle_result"
+                        columnName="user_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="puzzle_result_anonymous"
+                        columnName="puzzle_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="password_recovery_attempt"
+                        columnName="matching_user_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game_opening"
+                        columnName="id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game_opening_variation"
+                        columnName="id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game_event"
+                        columnName="id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_player"
+                        columnName="id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game"
+                        columnName="id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game"
+                        columnName="event"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game"
+                        columnName="red_player"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game"
+                        columnName="black_player"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game"
+                        columnName="opening"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game"
+                        columnName="opening_variation"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game_half_move"
+                        columnName="reference_game_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="reference_game_half_move_analysis"
+                        columnName="reference_game_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="analysis"
+                        columnName="id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="analysis"
+                        columnName="owner_user_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="analysis"
+                        columnName="reference_game_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="analysis_version"
+                        columnName="analysis_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="analysis_node"
+                        columnName="analysis_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="analysis_child_node"
+                        columnName="analysis_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="analysis_engine_data_cache"
+                        columnName="analysis_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="analysis_node_annotation"
+                        columnName="analysis_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="game"
+                        columnName="id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="game"
+                        columnName="invitee"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="game"
+                        columnName="inviter"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="game"
+                        columnName="draw_proposition_user"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="game_status_event"
+                        columnName="game_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="game_status_event"
+                        columnName="user_id"
+                        newDataType="varchar(12)"/>
+        <modifyDataType tableName="game_move"
+                        columnName="game_id"
+                        newDataType="varchar(12)"/>
+    </changeSet>
+
+    <changeSet id="0024" author="benckx">
+        <comment>email validation</comment>
+        <addColumn tableName="user">
+            <column name="is_email_valid" type="boolean"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="0025" author="benckx">
+        <addColumn tableName="analysis_engine_data_cache">
+            <column name="mate_in" type="int"/>
+            <column name="raw_line" type="text"/>
+        </addColumn>
+        <addColumn tableName="reference_game_half_move_analysis">
+            <column name="mate_in" type="int"/>
+            <column name="raw_line" type="text"/>
+        </addColumn>
+        <dropNotNullConstraint tableName="analysis_engine_data_cache" columnName="cp"/>
+    </changeSet>
+
+    <changeSet id="0026" author="benckx">
+        <createTable tableName="user_session">
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="remote_address" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_agent" type="varchar(255)"/>
+            <column name="platform" type="varchar(50)"/>
+            <column name="created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="user_session"
+                       columnNames="user_id, remote_address"
+                       constraintName="user_session_pk"/>
+    </changeSet>
+
+    <changeSet id="0027" author="benckx">
+        <addColumn tableName="user_session">
+            <column name="country_code" type="varchar(4)"/>
+            <column name="country_name" type="varchar(100)"/>
+            <column name="city" type="varchar(100)"/>
+            <column name="region" type="varchar(100)"/>
+        </addColumn>
+        <dropColumn tableName="user_session" columnName="platform"/>
+    </changeSet>
+
+    <changeSet id="0028" author="benckx">
+        <dropTable tableName="user_session"/>
+        <createTable tableName="user_session">
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="remote_address" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_agent" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="operating_system_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="agent_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="agent_class" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="country_code" type="varchar(4)"/>
+            <column name="country_name" type="varchar(100)"/>
+            <column name="city" type="varchar(100)"/>
+            <column name="region" type="varchar(100)"/>
+            <column name="created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="user_session"
+                       columnNames="user_id, remote_address, operating_system_name, agent_name"
+                       constraintName="user_session_pk"/>
+    </changeSet>
+
+    <changeSet id="0029" author="benckx">
+        <createTable tableName="user_session_anonymous">
+            <column name="remote_address" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_agent" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="operating_system_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="agent_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="agent_class" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="country_code" type="varchar(4)"/>
+            <column name="country_name" type="varchar(100)"/>
+            <column name="city" type="varchar(100)"/>
+            <column name="region" type="varchar(100)"/>
+            <column name="created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="user_session_anonymous"
+                       columnNames="remote_address, operating_system_name, agent_name"
+                       constraintName="user_session_anonymous_pk"/>
+    </changeSet>
+
+    <changeSet id="0030" author="benckx">
+        <dropNotNullConstraint tableName="user_session" columnName="agent_class"/>
+        <dropNotNullConstraint tableName="user_session_anonymous" columnName="agent_class"/>
+    </changeSet>
+
+    <changeSet id="0031" author="benckx">
+        <comment>fix correspondence games</comment>
+        <addColumn tableName="game">
+            <column name="time_control_mode" type="varchar(16)" defaultValue="GAME_TIME">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <update tableName="game">
+            <column name="time_control_base" value="604800"/>
+            <column name="time_control_mode" value="MOVE_TIME"/>
+            <where>time_control_base is null and time_control_category = 'CORRESPONDENCE'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="0032" author="benckx">
+        <comment>persist bot games</comment>
+        <createTable tableName="bot_game">
+            <column name="id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)"/>
+            <column name="user_color" type="varchar(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="engine" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="depth" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_fen" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_half_move_index" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome" type="varchar(10)"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="bot_game_to_user_fk"
+                                 baseTableName="bot_game"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <createTable tableName="bot_game_move">
+            <column name="bot_game_id" type="varchar(12)">
+                <constraints foreignKeyName="bot_game_move_to_bot_game_fk" references="bot_game(id)" nullable="false"/>
+            </column>
+            <column name="position" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uci" type="varchar(4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="from_opening_repository" type="boolean"/>
+            <column name="event_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="bot_game_move" columnNames="bot_game_id, position"/>
+        <createTable tableName="bot_game_status_event">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="bot_game_id" type="varchar(12)">
+                <constraints foreignKeyName="bot_game_status_event_to_bot_game_id_fk" references="bot_game(id)"
+                             nullable="false"/>
+            </column>
+            <column name="event_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="bot_game" indexName="bot_game_user_id_idx">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="bot_game_move" indexName="bot_game_move_bot_game_id_idx">
+            <column name="bot_game_id"/>
+        </createIndex>
+        <createIndex tableName="bot_game_status_event" indexName="bot_game_event_bot_game_id_idx">
+            <column name="bot_game_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="0033" author="benckx">
+        <modifyDataType tableName="user" columnName="description" newDataType="varchar(1000)"/>
+    </changeSet>
+
+    <changeSet id="0034" author="benckx">
+        <addColumn tableName="bot_game">
+            <column name="start_fen" type="varchar(200)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="0035" author="benckx">
+        <createTable tableName="move_analysis">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="game_id" type="varchar(12)">
+                <constraints nullable="true"
+                             foreignKeyName="user_game_move_analysis_to_pvp_game_fk"
+                             references="game(id)"/>
+            </column>
+            <column name="bot_game_id" type="varchar(12)">
+                <constraints nullable="true"
+                             foreignKeyName="user_game_move_analysis_to_pvb_game_fk"
+                             references="bot_game(id)"/>
+            </column>
+            <column name="ref_game_id" type="varchar(12)">
+                <constraints nullable="true"
+                             foreignKeyName="user_game_move_analysis_to_ref_game_fk"
+                             references="reference_game(id)"/>
+            </column>
+            <column name="position" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fen_key" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="depth" type="int">
+                <constraints nullable="true"/>
+            </column>
+            <column name="already_in_cache" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="raw_line" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="entry_creation" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="move_analysis" indexName="move_analysis_game_id_idx">
+            <column name="game_id"/>
+        </createIndex>
+        <createIndex tableName="move_analysis" indexName="move_analysis_bot_id_idx">
+            <column name="bot_game_id"/>
+        </createIndex>
+        <createIndex tableName="move_analysis" indexName="move_analysis_ref_game_id_idx">
+            <column name="ref_game_id"/>
+        </createIndex>
+        <addColumn tableName="game">
+            <column name="analysis_status" type="varchar(20)" defaultValue="NOT_STARTED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="analysis_start_time" type="datetime"/>
+            <column name="analysis_end_time" type="datetime"/>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="analysis_status" type="varchar(20)" defaultValue="NOT_STARTED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="analysis_start_time" type="datetime"/>
+            <column name="analysis_end_time" type="datetime"/>
+        </addColumn>
+        <addColumn tableName="analysis">
+            <column name="game_id" type="varchar(12)">
+                <constraints foreignKeyName="analysis_to_game_fk" references="game(id)"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="analysis">
+            <column name="bot_game_id" type="varchar(12)">
+                <constraints foreignKeyName="analysis_to_bot_game_fk" references="bot_game(id)"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0036" author="benckx">
+        <comment>Pre-Analysis overview</comment>
+    </changeSet>
+    <changeSet id="0037" author="benckx">
+        <comment>Re-create engine cache materialized views properly</comment>
+        <dropTable tableName="reference_game_half_move_analysis"/>
+    </changeSet>
+    <changeSet id="0038" author="benckx">
+        <dropNotNullConstraint tableName="analysis_engine_data_cache" columnName="pv"/>
+        <dropNotNullConstraint tableName="analysis_engine_data_cache" columnName="cp"/>
+    </changeSet>
+    <changeSet id="0039" author="benckx">
+        <dropPrimaryKey tableName="user_session"/>
+        <addColumn tableName="user_session">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+        </addColumn>
+        <dropPrimaryKey tableName="user_session_anonymous"/>
+        <addColumn tableName="user_session_anonymous">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0040" author="benckx">
+        <createTable tableName="stats_online_users_minutes">
+            <column name="measured_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="online_users_5min" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="online_users_1h" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="online_users_24h" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="anonymous_sessions_5min" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="anonymous_sessions_1h" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="anonymous_sessions_24h" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="stats_online_users_days">
+            <column name="measured_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="online_users_7d" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="online_users_30d" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="anonymous_sessions_7d" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="anonymous_sessions_30d" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="0041" author="benckx">
+        <addColumn tableName="analysis_version">
+            <column name="start_fen" type="varchar(200)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0042" author="benckx">
+        <addColumn tableName="puzzle_result">
+            <column name="up_voted" type="boolean"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0043" author="benckx">
+        <dropNotNullConstraint tableName="user" columnName="handle"/>
+        <dropNotNullConstraint tableName="user" columnName="email"/>
+        <dropNotNullConstraint tableName="user" columnName="password"/>
+        <addNotNullConstraint tableName="user" columnName="email_notification_enabled_newsletter"/>
+        <addColumn tableName="user">
+            <column name="user_type" type="varchar(24)" defaultValue="AUTHENTICATED">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addDefaultValue tableName="user" columnName="game_rating_correspondence" defaultValueNumeric="1000"/>
+        <addDefaultValue tableName="user" columnName="puzzle_rating" defaultValueNumeric="800"/>
+    </changeSet>
+    <changeSet id="0044" author="benckx">
+        <addForeignKeyConstraint baseTableName="user_session"
+                                 baseColumnNames="user_id"
+                                 constraintName="user_session_to_user_id_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0045" author="benckx">
+        <createTable tableName="google_ads_spending">
+            <column name="day" type="date">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="impressions" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="clicks" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="average_cpc" type="float">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cost" type="float">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="0046" author="benckx">
+        <addColumn tableName="game">
+            <column name="allow_guests_to_join" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="always_visible_in_lobby" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0047" author="benckx">
+        <comment>Flag some games as containing errors</comment>
+        <addColumn tableName="game">
+            <column name="contains_errors" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0048" author="benckx">
+        <addNotNullConstraint tableName="user" columnName="puzzle_rating"/>
+    </changeSet>
+    <changeSet id="0049" author="benckx">
+        <createIndex tableName="game" indexName="game_status_index">
+            <column name="game_status"/>
+        </createIndex>
+        <createIndex tableName="game" indexName="game_last_updated_index">
+            <column name="last_updated"/>
+        </createIndex>
+        <createIndex tableName="game" indexName="game_inviter_index">
+            <column name="inviter"/>
+        </createIndex>
+        <createIndex tableName="game" indexName="game_invitee_index">
+            <column name="invitee"/>
+        </createIndex>
+        <createIndex tableName="user" indexName="user_type_index">
+            <column name="user_type"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0050" author="benckx">
+        <createTable tableName="discord_game_notification">
+            <column name="message_id" type="varchar(50)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="channel_id" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sent_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="marked_as_online" type="boolean"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="discord_game_notification"
+                                 baseColumnNames="game_id"
+                                 constraintName="discord_game_notification_game_fk"
+                                 referencedTableName="game"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="discord_game_notification"
+                                 baseColumnNames="user_id"
+                                 constraintName="discord_game_notification_user_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0051" author="benckx">
+        <dropColumn tableName="discord_game_notification" columnName="marked_as_online"/>
+    </changeSet>
+    <changeSet id="0052" author="benckx">
+        <addColumn tableName="game">
+            <column name="join_source" type="varchar(40)"/>
+            <column name="join_source_id" type="varchar(40)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0053" author="benckx">
+        <createTable tableName="email_verification">
+            <column name="id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="verification_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="service_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="result" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="0054" author="benckx">
+        <dropColumn tableName="user" columnName="is_email_valid"/>
+    </changeSet>
+    <changeSet id="0055" author="benckx">
+        <createTable tableName="newsletter">
+            <column name="id" type="varchar(20)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="template_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject" type="varchar(250)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="newsletter_email">
+            <column name="newsletter_id" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_address" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unsubscribe_from_newsletter_code" type="varchar(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unsubscribe_from_all_code" type="varchar(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sent_time" type="datetime"/>
+            <column name="unsubscribed_from_newsletter" type="datetime"/>
+            <column name="unsubscribed_from_all" type="datetime"/>
+        </createTable>
+        <addPrimaryKey tableName="newsletter_email" columnNames="newsletter_id, email_address"/>
+        <addForeignKeyConstraint baseTableName="newsletter_email"
+                                 baseColumnNames="newsletter_id"
+                                 constraintName="newsletter_id_fk"
+                                 referencedTableName="newsletter"
+                                 referencedColumnNames="id"/>
+        <createTable tableName="utm_medium_click">
+            <column name="event_id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="utm_medium" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="page_url" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="click_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="0056" author="benckx">
+        <createTable tableName="seven_kingdoms_game">
+            <column name="id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="game_status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_index" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_fen" type="varchar(600)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="color_to_play" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="min_players" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="player_white" type="varchar(12)"/>
+            <column name="player_red" type="varchar(12)"/>
+            <column name="player_orange" type="varchar(12)"/>
+            <column name="player_blue" type="varchar(12)"/>
+            <column name="player_green" type="varchar(12)"/>
+            <column name="player_purple" type="varchar(12)"/>
+            <column name="player_black" type="varchar(12)"/>
+            <column name="winner_color" type="varchar(10)"/>
+            <column name="winner_user_id" type="varchar(12)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="seven_kingdoms_game"
+                                 baseColumnNames="player_white"
+                                 constraintName="player_white_to_user_7k_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="seven_kingdoms_game"
+                                 baseColumnNames="player_red"
+                                 constraintName="player_red_to_user_7k_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="seven_kingdoms_game"
+                                 baseColumnNames="player_orange"
+                                 constraintName="player_orange_to_user_7k_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="seven_kingdoms_game"
+                                 baseColumnNames="player_blue"
+                                 constraintName="player_blue_to_user_7k_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="seven_kingdoms_game"
+                                 baseColumnNames="player_green"
+                                 constraintName="player_green_to_user_7k_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="seven_kingdoms_game"
+                                 baseColumnNames="player_purple"
+                                 constraintName="player_purple_to_user_7k_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="seven_kingdoms_game"
+                                 baseColumnNames="player_black"
+                                 constraintName="player_black_to_user_7k_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <createTable tableName="seven_kingdoms_game_move">
+            <column name="game_id" type="varchar(12)">
+                <constraints foreignKeyName="seven_kingdoms_game_move_to_game_fk" references="seven_kingdoms_game(id)"
+                             nullable="false"/>
+            </column>
+            <column name="position" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uci" type="varchar(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="move_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="game_id, position"
+                       constraintName="seven_kingdoms_game_move_pk"
+                       tableName="seven_kingdoms_game_move"/>
+        <createTable tableName="seven_kingdoms_game_event">
+            <column name="id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="game_id" type="varchar(12)">
+                <constraints foreignKeyName="seven_kingdoms_game_status_event_to_game_id_fk"
+                             references="seven_kingdoms_game(id)" nullable="false"/>
+            </column>
+            <column name="index" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)"/>
+            <column name="colors" type="varchar(10) array"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="seven_kingdoms_game_event"
+                                 baseColumnNames="user_id"
+                                 constraintName="seven_kingdoms_game_event_to_user_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0057" author="benckx">
+        <dropNotNullConstraint tableName="seven_kingdoms_game" columnName="color_to_play" columnDataType="varchar(10)"/>
+    </changeSet>
+    <changeSet id="0058" author="benckx">
+        <createIndex tableName="seven_kingdoms_game" indexName="seven_kingdoms_game_last_updated_idx">
+            <column name="last_updated"/>
+        </createIndex>
+        <createIndex tableName="seven_kingdoms_game_move" indexName="seven_kingdoms_game_move_game_id_idx">
+            <column name="game_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0059" author="benckx">
+        <addColumn tableName="utm_medium_click">
+            <column name="user_id" type="varchar(12)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0060" author="benckx">
+        <addColumn tableName="utm_medium_click">
+            <column name="remote_address" type="varchar(50)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0061" author="benckx">
+        <createTable tableName="email_verification_bounce">
+            <column name="email" type="varchar(256)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="bounced_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <modifyDataType tableName="user" columnName="email" newDataType="varchar(256)"/>
+        <modifyDataType tableName="email_verification" columnName="email" newDataType="varchar(256)"/>
+    </changeSet>
+    <changeSet id="0062" author="benckx">
+        <createTable tableName="game_chat_message">
+            <column name="game_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="index" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="game_id, index"
+                       constraintName="game_chat_message_pkey"
+                       tableName="game_chat_message"/>
+        <addForeignKeyConstraint baseTableName="game_chat_message"
+                                 baseColumnNames="game_id"
+                                 constraintName="game_chat_message_to_game_fk"
+                                 referencedTableName="game"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="game_chat_message"
+                                 baseColumnNames="author"
+                                 constraintName="game_chat_message_to_author_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0063" author="benckx">
+        <createTable tableName="upcoming_event">
+            <column name="id" type="int">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="event_start" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_end" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="link" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="0064" author="benckx">
+        <addColumn tableName="analysis_version">
+            <column name="selected_node_fen" type="varchar(300)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0065" author="benckx">
+        <createIndex tableName="game_chat_message" indexName="game_chat_message_game_id_idx">
+            <column name="game_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0066" author="benckx">
+        <createTable tableName="reference_game_search_query">
+            <column name="query_id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="query_time" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="search_start" type="date"/>
+            <column name="search_end" type="date"/>
+            <column name="player_name" type="text"/>
+            <column name="player_id" type="varchar(12)"/>
+            <column name="event_name" type="text"/>
+            <column name="event_id" type="varchar(12)"/>
+            <column name="offset" type="int"/>
+            <column name="number_of_results" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="limit" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="reference_game_query_user_id_fk"
+                                 baseTableName="reference_game_search_query"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="reference_game_query_player_id_fk"
+                                 baseTableName="reference_game_search_query"
+                                 baseColumnNames="player_id"
+                                 referencedTableName="reference_player"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="reference_game_query_event_id_fk"
+                                 baseTableName="reference_game_search_query"
+                                 baseColumnNames="event_id"
+                                 referencedTableName="reference_game_event"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0067" author="benckx">
+        <addColumn tableName="reference_game_search_query">
+            <column name="fen" type="varchar(300)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0068" author="benckx">
+        <addColumn tableName="reference_game_search_query">
+            <column name="player_color" type="varchar(5)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0069" author="benckx">
+        <createTable tableName="page_view_event">
+            <column name="event_id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_path" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="page_view_event" indexName="page_view_event_user_id_index">
+            <column name="user_id"/>
+        </createIndex>
+        <addForeignKeyConstraint constraintName="page_view_event_user_id_fk"
+                                 baseTableName="page_view_event"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0071" author="benckx">
+        <createTable tableName="thrown_exception">
+            <column name="id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="exception_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="http_code" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="exception_class" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="exception_message" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="0072" author="benckx">
+        <addColumn tableName="move_analysis">
+            <column name="is_engine_move_analysis" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <update tableName="reference_game">
+            <column name="analysis_status" value="PARTIALLY_COMPLETED"/>
+            <where>analysis_status = 'COMPLETED'</where>
+        </update>
+        <update tableName="game">
+            <column name="analysis_status" value="PARTIALLY_COMPLETED"/>
+            <where>analysis_status = 'COMPLETED'</where>
+        </update>
+        <update tableName="bot_game">
+            <column name="analysis_status" value="PARTIALLY_COMPLETED"/>
+            <where>analysis_status = 'COMPLETED'</where>
+        </update>
+    </changeSet>
+    <changeSet id="0073" author="benckx">
+        <createIndex tableName="game_move" indexName="game_move_time_index">
+            <column name="event_time"/>
+        </createIndex>
+        <createIndex tableName="bot_game_move" indexName="bot_game_move_time_index">
+            <column name="event_time"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0074" author="benckx">
+        <addColumn tableName="reference_player">
+            <column name="source" type="varchar(10)"/>
+            <column name="source_id" type="varchar(50)"/>
+            <column name="canonical_name" type="varchar(50)"/>
+            <column name="gender" type="char(1)"/>
+        </addColumn>
+        <update tableName="reference_player">
+            <column name="canonical_name" valueComputed="name"/>
+        </update>
+        <addNotNullConstraint tableName="reference_player"
+                              columnName="canonical_name"
+                              columnDataType="varchar(50)"/>
+        <renameColumn tableName="reference_player" oldColumnName="name" newColumnName="source_name"/>
+        <createTable tableName="reference_player_profile_version">
+            <column name="player_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="profile" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="canonical_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chinese_name" type="varchar(50)"/>
+            <column name="gender" type="char(1)"/>
+            <column name="version_time" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="editor_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="text"/>
+        </createTable>
+        <addPrimaryKey tableName="reference_player_profile_version"
+                       columnNames="player_id, version"
+                       constraintName="reference_player_profile_version_pk"/>
+        <addForeignKeyConstraint baseTableName="reference_player_profile_version"
+                                 baseColumnNames="player_id"
+                                 constraintName="ref_player_profile_version_to_player_fk"
+                                 referencedTableName="reference_player"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="reference_player_profile_version"
+                                 baseColumnNames="editor_id"
+                                 constraintName="ref_player_profile_version_to_user_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <createTable tableName="reference_player_profile_source">
+            <column name="player_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_index" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="url" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="editor_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="text"/>
+        </createTable>
+        <addPrimaryKey tableName="reference_player_profile_source"
+                       columnNames="player_id, version, source_index"
+                       constraintName="reference_player_profile_source_pk"/>
+        <addForeignKeyConstraint baseTableName="reference_player_profile_source"
+                                 baseColumnNames="player_id, version"
+                                 constraintName="ref_player_profile_source_to_version_fk"
+                                 referencedTableName="reference_player_profile_version"
+                                 referencedColumnNames="player_id, version"/>
+        <addForeignKeyConstraint baseTableName="reference_player_profile_source"
+                                 baseColumnNames="editor_id"
+                                 constraintName="ref_player_profile_source_to_user_fk"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0075" author="benckx">
+        <renameColumn
+                tableName="stats_online_users_minutes"
+                oldColumnName="online_users_5min"
+                newColumnName="authenticated_users_5min"/>
+        <renameColumn
+                tableName="stats_online_users_minutes"
+                oldColumnName="online_users_1h"
+                newColumnName="authenticated_users_1h"/>
+        <renameColumn
+                tableName="stats_online_users_minutes"
+                oldColumnName="online_users_24h"
+                newColumnName="authenticated_users_24h"/>
+        <renameColumn
+                tableName="stats_online_users_minutes"
+                oldColumnName="anonymous_sessions_5min"
+                newColumnName="guests_users_5min"/>
+        <renameColumn
+                tableName="stats_online_users_minutes"
+                oldColumnName="anonymous_sessions_1h"
+                newColumnName="guests_users_1h"/>
+        <renameColumn
+                tableName="stats_online_users_minutes"
+                oldColumnName="anonymous_sessions_24h"
+                newColumnName="guests_users_24h"/>
+        <renameColumn
+                tableName="stats_online_users_days"
+                oldColumnName="online_users_7d"
+                newColumnName="authenticated_users_7d"/>
+        <renameColumn
+                tableName="stats_online_users_days"
+                oldColumnName="online_users_30d"
+                newColumnName="authenticated_users_30d"/>
+        <renameColumn
+                tableName="stats_online_users_days"
+                oldColumnName="anonymous_sessions_7d"
+                newColumnName="guests_users_7d"/>
+        <renameColumn
+                tableName="stats_online_users_days"
+                oldColumnName="anonymous_sessions_30d"
+                newColumnName="guests_users_30d"/>
+    </changeSet>
+    <changeSet id="0076" author="benckx">
+        <addColumn tableName="reference_player_profile_version">
+            <column name="enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0077" author="benckx">
+        <renameTable oldTableName="reference_player_profile_version" newTableName="reference_player_profile_edit"/>
+        <renameTable oldTableName="reference_player_profile_source" newTableName="reference_player_profile_edit_source"/>
+        <dropColumn tableName="reference_player_profile_edit_source" columnName="comment"/>
+    </changeSet>
+    <changeSet id="0078" author="benckx">
+        <dropColumn tableName="user" columnName="has_role_moderator"/>
+    </changeSet>
+    <changeSet id="0079" author="benckx">
+        <createTable tableName="kofi_event">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="kofi_transaction_id" type="uuid">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="verification_token" type="uuid"/>
+            <column name="message_id" type="uuid"/>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="transaction_type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_public" type="boolean"/>
+            <column name="from_name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="text"/>
+            <column name="amount" type="decimal(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="url" type="varchar(500)"/>
+            <column name="email" type="varchar(255)"/>
+            <column name="currency" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_subscription_payment" type="boolean"/>
+            <column name="is_first_subscription_payment" type="boolean"/>
+            <column name="tier_name" type="varchar(255)"/>
+            <column name="discord_username" type="varchar(255)"/>
+            <column name="discord_userid" type="varchar(255)"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="matched_user_id" type="varchar(8)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="kofi_event"
+                                 baseColumnNames="matched_user_id"
+                                 constraintName="fk_kofi_event_user"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <createIndex tableName="kofi_event" indexName="idx_kofi_event_timestamp">
+            <column name="timestamp"/>
+        </createIndex>
+        <createIndex tableName="kofi_event" indexName="idx_kofi_event_transaction_type">
+            <column name="transaction_type"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0081" author="benckx">
+        <dropColumn tableName="kofi_event" columnName="verification_token"/>
+    </changeSet>
+    <changeSet id="0082" author="benckx">
+        <modifyDataType
+                tableName="kofi_event"
+                columnName="matched_user_id"
+                newDataType="varchar(12)"/>
+        <addColumn tableName="kofi_event">
+            <column name="automatically_matched" type="boolean"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0083" author="benckx">
+        <addColumn tableName="game">
+            <column name="is_private" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0084" author="benckx">
+        <addColumn tableName="upcoming_event">
+            <column name="created_at" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_by" type="varchar(12)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="is_enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="upcoming_event"
+                                 baseColumnNames="created_by"
+                                 constraintName="fk_upcoming_event_created_by"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0086" author="benckx">
+        <addColumn tableName="user">
+            <column name="last_profile_update" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0088" author="benckx">
+        <createIndex tableName="move_analysis" indexName="move_analysis_entry_creation_idx">
+            <column name="entry_creation"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0089" author="benckx">
+        <renameColumn tableName="game"
+                      oldColumnName="is_private"
+                      newColumnName="private_invite"/>
+    </changeSet>
+    <changeSet id="0090" author="benckx">
+    </changeSet>
+    <changeSet id="0091" author="benckx">
+        <modifyDataType tableName="analysis" columnName="created" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="analysis" columnName="last_updated" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="analysis_version" columnName="created" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="bot_game" columnName="created" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="bot_game" columnName="last_updated" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="bot_game" columnName="analysis_start_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="bot_game" columnName="analysis_end_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="bot_game_move" columnName="event_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="bot_game_status_event" columnName="event_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="discord_game_notification" columnName="sent_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="email_verification" columnName="verification_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="email_verification_bounce" columnName="bounced_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="game" columnName="created" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="game" columnName="last_updated" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="game" columnName="min_flag_check_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="game" columnName="analysis_start_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="game" columnName="analysis_end_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="game_chat_message" columnName="message_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="game_move" columnName="event_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="game_status_event" columnName="event_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="kofi_event" columnName="timestamp" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="kofi_event" columnName="created_at" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="kubernetes_pod" columnName="entry_creation" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="kubernetes_pod" columnName="entry_update" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="move_analysis" columnName="entry_creation" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="newsletter_email" columnName="created_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="newsletter_email" columnName="sent_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="newsletter_email" columnName="unsubscribed_from_newsletter"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="newsletter_email" columnName="unsubscribed_from_all"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="opening_pre_calculation_cache" columnName="entry_creation"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="opening_pre_calculation_cache" columnName="entry_update"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="page_view_event" columnName="event_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="password_recovery_attempt" columnName="entry_creation"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="password_recovery_attempt" columnName="date_recovered"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="puzzle_result" columnName="entry_creation" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="puzzle_result_anonymous" columnName="entry_creation"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="reference_game" columnName="analysis_start_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="reference_game" columnName="analysis_end_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="reference_game_search_query" columnName="query_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="reference_player_profile_edit" columnName="version_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="seven_kingdoms_game" columnName="created" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="seven_kingdoms_game" columnName="last_updated"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="seven_kingdoms_game_event" columnName="event_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="seven_kingdoms_game_move" columnName="move_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="stats_online_users_days" columnName="measured_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="stats_online_users_minutes" columnName="measured_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="thrown_exception" columnName="exception_time"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="upcoming_event" columnName="created_at" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user" columnName="creation" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user" columnName="last_online" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user" columnName="session_prolonged_at" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user" columnName="old_expiration_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user" columnName="new_expiration_time" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user" columnName="last_profile_update" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user_session" columnName="created" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user_session" columnName="last_updated" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user_session_anonymous" columnName="created" newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="user_session_anonymous" columnName="last_updated"
+                        newDataType="timestamp with time zone"/>
+        <modifyDataType tableName="utm_medium_click" columnName="click_time" newDataType="timestamp with time zone"/>
+    </changeSet>
+    <changeSet id="0092" author="benckx">
+        <comment>Recreate move_analysis_coalesced view dropped in 0090 for the timestamptz migration</comment>
+    </changeSet>
+</databaseChangeLog>

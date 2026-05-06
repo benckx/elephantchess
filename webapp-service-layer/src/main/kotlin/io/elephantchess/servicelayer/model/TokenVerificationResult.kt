@@ -1,0 +1,3 @@
+package io.elephantchess.servicelayer.model
+
+interface TokenVerificationResult

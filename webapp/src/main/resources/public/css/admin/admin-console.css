@@ -1,0 +1,142 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+h2 {
+    margin-top: 24px;
+}
+
+.stats-table {
+    font-size: 15px;
+}
+
+.stats-table th,
+.stats-table td {
+    text-align: center;
+    padding-left: 2px;
+    padding-right: 2px;
+    max-height: 50px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stats-table th.value-cell,
+.stats-table td.value-cell {
+    width: 80px;
+    max-width: 80px;
+}
+
+.stats-table th.value-cell-larger,
+.stats-table td.value-cell-larger {
+    width: 100px;
+    max-width: 100px;
+}
+
+.stats-table th.label-cell,
+.stats-table td.label-cell {
+    width: 180px;
+    max-width: 180px;
+}
+
+.stats-table th.long-label-cell,
+.stats-table td.long-label-cell {
+    width: 330px;
+    max-width: 330px;
+}
+
+.stats-table th.ultra-long-label-cell,
+.stats-table td.ultra-long-label-cell {
+    width: 1100px;
+    max-width: 1100px;
+    text-align: left;
+}
+
+.stats-table td.long-label-cell,
+.stats-table td.label-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-link {
+    float: left;
+    margin-right: 10px;
+    margin-top: 2px;
+}
+
+#users-analysis {
+    border-spacing: 0 5px;
+}
+
+.not-legit-game, .not-legit-game a,
+.not-legit-game, .not-legit-game span {
+    color: #969696;
+}
+
+#online-users-counter,
+#online-within-hours-counter-24 {
+    font-size: 17px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#online-users,
+#online-within-hours-24 {
+    display: inline-block;
+}
+
+/* admin submenu style */
+.admin-submenu {
+    margin-top: 16px;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.admin-submenu > div {
+    margin-bottom: 5px;
+}
+
+.admin-submenu-category {
+    display: inline-block;
+    width: 80px;
+    font-weight: bold;
+    color: #333;
+    margin-right: 8px;
+}
+
+.admin-submenu-link {
+    text-decoration: none;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.admin-submenu-link.active {
+    color: #7500ac;
+    font-weight: bold;
+}
+
+@media (max-width: 1000px) {
+    .admin-submenu {
+        font-size: 30px;
+    }
+
+    .admin-submenu-category {
+        width: 160px;
+    }
+}

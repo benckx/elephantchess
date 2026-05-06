@@ -1,0 +1,30 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>My Bot Games</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/my-user-data-items.css"/>
+    <link rel="stylesheet" href="/css/my-bot-games.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/userdata/my-bot-games-dto.js"></script>
+    <script defer src="/js/userdata/my-bot-games.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>My Bot Games</h1>
+    <hr class="only-desktop"/>
+    <div id="my-game-items">
+    </div>
+    <div id="is-loading-message">
+        Loading more games...
+    </div>
+    <div id="no-game-played-message" class="empty-list-message-user-data">
+        You didn't play any bot game yet. <a href="#" onclick="showPlayBotModal()">Play against the bot</a>.
+    </div>
+    {{logged_as_guest_message}}
+</div>
+</body>
+</html>

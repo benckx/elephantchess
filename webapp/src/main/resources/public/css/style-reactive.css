@@ -1,0 +1,694 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+@media (max-width: 1400px) {
+    a.top-bar-menu-items {
+        width: 48px;
+        margin-right: 0;
+    }
+
+    img.top-bar-menu-items-icons {
+        margin-right: 0;
+    }
+
+    .top-bar-menu-label {
+        display: none;
+    }
+
+    #handle-menu-container {
+        min-width: 50px;
+        max-width: 50px;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    #handle-div {
+        display: none;
+    }
+
+    #user-profile-icon {
+        display: block;
+    }
+
+
+    #number-of-games-in-lobby-counter-circle {
+        margin-left: 32px;
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 1000px) {
+    body {
+        font-size: 36px;
+    }
+
+    h1 {
+        font-size: 52px;
+        margin-top: 36px;
+    }
+
+    h2 {
+        font-size: 42px;
+    }
+
+    h3 {
+        font-size: 38px;
+    }
+
+    h4 {
+        font-size: 32px;
+        margin-top: 20px;
+        margin-bottom: 8px;
+    }
+
+    .main-container,
+    .main-container-text,
+    .main-container-text-extended,
+    .main-container-text-extended-larger,
+    .main-container-text-error-message {
+        width: 96%;
+    }
+
+    .standard-data-table .user-rating-delta-value-box,
+    .standard-data-table .user-rating-delta-value-smaller,
+    .standard-data-table .user-rating-delta-value-box-positive,
+    .standard-data-table .user-rating-delta-value-box-negative {
+        font-size: 18px;
+    }
+
+    input[type="checkbox"],
+    input[type="radio"] {
+        -ms-transform: scale(2); /* IE 9 */
+        -webkit-transform: scale(2); /* Chrome, Safari, Opera */
+        transform: scale(2);
+        margin-right: 16px;
+    }
+
+    input[type='text'],
+    input[type='password'] {
+        font-size: 36px;
+        height: 50px;
+    }
+
+    .action-link {
+        font-size: 32px;
+    }
+
+    .standard-checkbox,
+    .standard-radio {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    .standard-checkbox .label-span label,
+    .standard-radio .label-span label {
+        font-size: 38px;
+    }
+
+    .flex-triptych-container {
+        flex-direction: column;
+        margin-left: 15px;
+        margin-right: 15px;
+    }
+
+    .flex-triptych-left-container,
+    .flex-triptych-board-container,
+    .flex-triptych-right-container {
+        width: 100%;
+        margin: 0;
+        min-width: auto;
+        max-width: 100%;
+    }
+
+    .flex-triptych-board-container {
+        order: 1;
+    }
+
+    .flex-triptych-left-container {
+        margin-top: 20px;
+        order: 2;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .flex-triptych-right-container {
+        order: 3;
+    }
+
+
+    /*noinspection ALL*/
+    .modal-content {
+        font-size: 38px;
+        width: 100%;
+        border-radius: 0;
+        border-width: 3px;
+        border-left-width: 0;
+        border-right-width: 0;
+        padding-top: 40px;
+        padding-bottom: 40px;
+        padding-left: 0;
+        padding-right: 0;
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 10px 25px;
+    }
+
+    .modal-content h3 {
+        font-size: 38px;
+    }
+
+    .modal-form-label {
+        margin-bottom: 20px;
+    }
+
+    .signup-validation-text {
+        font-size: 24px;
+    }
+
+    .signup-valid-text {
+        font-size: 28px;
+    }
+
+    .modal-center-text {
+        margin-top: 34px;
+        margin-bottom: 34px;
+    }
+
+    #login-modal,
+    #signup-modal,
+    #play-bot-modal,
+    #join-game-confirmation-modal {
+        width: 100%;
+    }
+
+    .game-thumb {
+        min-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .game-thumb-info-box {
+        margin-bottom: 18px;
+    }
+
+    .game-thumb-player-name,
+    .game-thumb-rating,
+    .game-thumb-status {
+        font-size: 30px;
+    }
+
+    .game-thumb-last-updated {
+        font-size: 26px;
+    }
+
+    .game-thumb img.winner-icon {
+        height: 24px;
+    }
+
+    .game-thumb img.live-icon {
+        height: 24px;
+        margin-left: 6px;
+    }
+
+    .flag-icons {
+        height: 20px;
+    }
+
+    span.sub-text {
+        font-size: 24px;
+    }
+
+    .empty-list-message-user-data {
+        display: none;
+        width: 90%;
+        margin-top: 40px;
+        margin-left: 46px;
+        font-size: 34px;
+        max-width: 600px;
+    }
+
+    .notification-box,
+    .notification-box-info,
+    .notification-box-error {
+        width: 100%;
+        max-width: 100%;
+        min-height: 90px;
+        top: 0;
+        font-size: 34px;
+        border-radius: 0;
+    }
+
+    #user-turn-to-play-games-header,
+    #top-bar-menu {
+        height: 110px;
+    }
+
+    #top-bar-menu-item-global,
+    #top-bar-menu-item-database,
+    #top-bar-menu-item-analysis,
+    #top-bar-menu-item-merch {
+        display: none;
+    }
+
+    a.top-bar-menu-items {
+        height: 110px;
+        width: 116px;
+    }
+
+    #user-turn-to-play-games-header {
+        min-width: 80px;
+        /* hacky but otherwise it kinda overlaps with profile icon */
+        margin-left: -20px;
+    }
+
+    #username-drop-down-menu {
+        top: 111px; /* height + border */
+        width: 340px;
+        display: none;
+    }
+
+    .username-drop-down-menu-item {
+        height: 70px;
+        font-size: 40px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    #user-turn-to-play-games-panel {
+        height: 600px;
+        width: 550px;
+        right: 511px;
+        font-size: 34px;
+    }
+
+    #user-turn-to-play-games-list-container {
+        height: 480px;
+    }
+
+    .user-turn-to-play-games-entry-last-updated {
+        font-size: 32px
+    }
+
+    .user-turn-to-play-games-entry {
+        padding: 10px;
+        magin-left: 8px;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        border-radius: 10px;
+    }
+
+    .user-turn-to-play-games-entry .online-status-indicator-smaller {
+        margin-left: 8px;
+    }
+
+    .discord-logo-container {
+        display: none;
+    }
+
+    img.top-bar-menu-items-icons {
+        height: 52px;
+    }
+
+    #top-menu-main-container {
+        width: 100%;
+    }
+
+    #user-profile-icon {
+        display: block;
+        width: 80px;
+    }
+
+    #user-profile-icon img {
+        width: 30px;
+        height: 30px;
+    }
+
+    #handle-menu-container {
+        min-width: 80px;
+        height: 110px;
+    }
+
+    img#user-turn-to-play-games-header-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .little-message {
+        font-size: 30px;
+    }
+
+    input[type=button].app-buttons,
+    input[type=button].app-buttons-red,
+    input[type=button].app-buttons-bigger,
+    input[type=button].app-buttons-much-bigger {
+        border-radius: 6px;
+    }
+
+    /* use the color of :hover (since there is no hover on mobile) */
+    input[type=button].app-buttons,
+    input[type=button].app-buttons-bigger,
+    input[type=button].app-buttons-much-bigger {
+        background-color: #077d01;
+    }
+
+    input[type=button].app-buttons-disabled,
+    input[type=button].app-buttons-disabled:hover {
+        background-color: #848484;
+    }
+
+    input[type=button].app-buttons,
+    input[type=button].app-buttons-red {
+        font-size: 30px;
+        height: 55px;
+        min-width: 180px;
+    }
+
+    input[type=button].app-buttons-bigger {
+        font-size: 34px;
+        height: 60px;
+        min-width: 200px;
+    }
+
+    input[type=button].app-buttons-much-bigger {
+        font-size: 36px;
+        height: 66px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        min-width: 220px;
+    }
+
+    input[type=button].app-buttons-smaller {
+        font-size: 20px;
+        height: 54px;
+    }
+
+    .online-status-indicator-smaller {
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        margin-right: 10px;
+    }
+
+    .online-status-indicator {
+        width: 22px;
+        height: 22px;
+        border-radius: 11px;
+        margin-right: 11px;
+    }
+
+    .notification-counter-circle {
+        width: 48px;
+        height: 48px;
+    }
+
+    .notification-counter-value {
+        font-size: 30px;
+        margin-top: 2px;
+    }
+
+    .info-box {
+        padding-top: 14px;
+        padding-bottom: 14px;
+        margin-bottom: 20px;
+    }
+
+    table.info-box-table {
+        font-size: 26px;
+        border-spacing: 0 20px;
+    }
+
+    table.info-box-table td.description-cell {
+        line-height: 40px;
+    }
+
+    table.info-box-table td.icon-cell img {
+        max-width: 60px;
+    }
+
+    table.info-box-sub-table td {
+        font-size: 32px;
+    }
+
+    table.info-box-sub-table td.labels {
+        font-size: 34px;
+    }
+
+    table.info-box-table tr.enabled-button td.description-cell,
+    table.info-box-table tr.disabled-button td.description-cell {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .info-box .help-icon {
+        width: 30px;
+        margin-top: 4px;
+        margin-right: 4px;
+    }
+
+    .move-tree-container .move-container {
+        width: 40%;
+    }
+
+    .move-tree-container .move-label-placeholder {
+        font-size: 26px;
+        width: 70px;
+        margin-left: 25px;
+    }
+
+    .move-tree-container .eval-placeholder {
+        font-size: 20px;
+        margin-left: 6px;
+        margin-right: 6px;
+        width: 50px;
+    }
+
+    .move-tree-container .move-line-container {
+        height: 55px;
+    }
+
+    .move-tree-container .full-move-index-label {
+        font-size: 20px;
+    }
+
+    #move-history-navigation-panel {
+        margin-top: 20px;
+        height: 80px;
+    }
+
+    .navigation-panel .navigation-panel-button img {
+        height: 45px;
+    }
+
+    .navigation-panel .navigation-panel-button {
+        padding: 10px 32px;
+    }
+
+    #settings-info-box {
+        height: 90px;
+    }
+
+    #settings-info-box img {
+        width: 68px;
+    }
+
+    #settings-info-box img#move-format-button {
+        width: 68px;
+    }
+
+    #settings-info-box img#flip-board-button,
+    #settings-info-box img#show-coordinates-button,
+    #settings-info-box img#show-analytics-arrows {
+        width: 55px;
+    }
+
+    #settings-info-box img#edit-position-button {
+        width: 60px;
+    }
+
+    #settings-info-box .setting-option-item,
+    #settings-info-box .setting-option-double-item {
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+
+    #settings-info-box .setting-option-item {
+        width: 88px;
+    }
+
+    #settings-info-box .setting-option-double-item {
+        width: 140px;
+    }
+
+    #settings-info-box .setting-option-double-item img {
+        margin-left: 2px;
+        margin-right: 2px;
+    }
+
+    .user-rating-value-box {
+        font-size: 40px;
+    }
+
+    .user-rating-delta-value-box {
+        font-size: 30px;
+    }
+
+    #analysis-button-container-left-side {
+        display: none;
+    }
+
+    #analysis-button-container-right-side {
+        display: flex;
+    }
+
+    .only-desktop, .only-desktop-flex {
+        display: none;
+    }
+
+    .only-mobile {
+        display: block;
+    }
+
+    .only-mobile-flex {
+        display: flex;
+    }
+
+    /*noinspection CssReplaceWithShorthandSafely*/
+    .guest-message-box {
+        font-size: 32px;
+        border-width: 4px;
+        border-left-width: 0;
+        border-right-width: 0;
+        border-radius: 0;
+        width: 100%;
+        margin-top: 44px;
+        margin-bottom: 44px;
+        padding-left: 34px;
+        padding-right: 34px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    img#user-turn-to-play-games-header-icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    #user-turn-to-play-games-counter-circle {
+        margin-left: 50px;
+    }
+
+    #number-of-games-in-lobby-counter-circle {
+        margin-left: 56px;
+    }
+
+    #analysis-summary #analysis-summary-table th,
+    #analysis-summary #analysis-summary-table td {
+        font-size: 30px;
+    }
+
+    #analysis-summary img.winner-icon {
+        height: 28px;
+        margin-left: 4px;
+    }
+
+    .bar-indicator-red-wins {
+        border-top-left-radius: 6px;
+        border-bottom-left-radius: 6px;
+    }
+
+    .bar-indicator-black-wins {
+        border-top-right-radius: 6px;
+        border-bottom-right-radius: 6px;
+    }
+
+    #chat-box-container {
+        height: 400px;
+    }
+
+    #chat-box-messages-container {
+        height: 320px;
+    }
+
+    #chat-box-send-container {
+        height: 80px;
+    }
+
+    .chat-box-message .header {
+        font-size: 22px;
+        margin-bottom: 5px;
+    }
+
+    .chat-box-message .timestamp {
+        margin-left: 20px;
+        font-size: 13px;
+    }
+
+    .chat-box-message .message-content {
+        font-size: 30px;
+    }
+
+    /* Footer mobile styles */
+    .app-footer {
+        padding-top: 80px;
+        padding-left: 80px;
+        padding-right: 80px;
+        margin-top: 30px;
+        font-size: 36px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .footer-section {
+        text-align: center;
+        width: 100%;
+    }
+
+    .footer-section h3 {
+        font-size: 48px;
+        margin-bottom: 26px;
+    }
+
+    .footer-section ul li {
+        margin-bottom: 15px;
+    }
+
+    .footer-bottom {
+        margin-top: 30px;
+        margin-bottom: 0;
+        padding-top: 20px;
+        padding-bottom: 15px;
+        font-size: 26px;
+    }
+
+    .footer-bottom p {
+        font-size: 26px;
+        margin: 0;
+    }
+
+    .browse-more-link {
+        font-size: 36px;
+    }
+
+    .floatingchat-container-mobi,
+    .floating-chat-kofi-popup-iframe-mobi {
+        transform: scale(2.0) !important;
+        transform-origin: bottom left !important;
+    }
+}

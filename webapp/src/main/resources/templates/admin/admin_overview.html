@@ -1,0 +1,109 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Overview</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <link rel="stylesheet" href="/css/admin/admin-overview.css"/>
+    {{apex_charts}}
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/widgets/hourly-page-views-chart.js"></script>
+    <script defer src="/js/admin/admin-overview.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Online Now</h1>
+    <hr/>
+    <div id="online-users-counter"></div>
+    <div id="online-users"></div>
+    <br/>
+
+    <h1>Online 24h</h1>
+    <hr/>
+    <div id="online-within-hours-counter-24"></div>
+    <div id="online-within-hours-24"></div>
+    <br/>
+
+    <h1>Latest Activity</h1>
+    <hr/>
+    <table id="latest-activity" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">activity</th>
+            <th class="value-cell-larger">time</th>
+        </tr>
+        <tr>
+            <td>PvP</td>
+            <td><span id="latest-pvp-timestamp">--</span></td>
+        </tr>
+        <tr>
+            <td>PvP > 3</td>
+            <td><span id="latest-pvp3-timestamp">--</span></td>
+        </tr>
+        <tr>
+            <td>PvB</td>
+            <td><span id="latest-pvb-timestamp">--</span></td>
+        </tr>
+        <tr>
+            <td>PvB > 3</td>
+            <td><span id="latest-pvb3-timestamp">--</span></td>
+        </tr>
+        <tr>
+            <td>live PvP</td>
+            <td><span id="live-pvp-games">--</span></td>
+        </tr>
+        <tr>
+            <td>live PvB</td>
+            <td><span id="live-pvb-games">--</span></td>
+        </tr>
+        <tr>
+            <td>Puzzle</td>
+            <td><span id="latest-puzzle-timestamp">--</span></td>
+        </tr>
+        <tr>
+            <td>Puzzle vote</td>
+            <td><span id="latest-puzzle-vote-timestamp">--</span></td>
+        </tr>
+        <tr>
+            <td>Move analysis</td>
+            <td><span id="latest-move-analysis-timestamp">--</span></td>
+        </tr>
+        <tr>
+            <td>New guest</td>
+            <td><span id="latest-new-guest-timestamp">--</span></td>
+        </tr>
+        <tr>
+            <td>New user</td>
+            <td><span id="latest-new-authenticated-user-timestamp">--</span></td>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <br/>
+
+    <h1>Unique Page Views (24h)</h1>
+    <hr/>
+    <div class="center-content-div">
+        <div id="hourly-page-views-chart"></div>
+    </div>
+    <br/>
+
+    <h1>Latest Exceptions</h1>
+    <hr/>
+    <table id="latest-exceptions" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">time</th>
+            <th class="label-cell">code</th>
+            <th class="label-cell">class</th>
+            <th class="label-cell">message</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

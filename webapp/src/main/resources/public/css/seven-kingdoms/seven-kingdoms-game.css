@@ -1,0 +1,170 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.player-info {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.player-info .left-side,
+.player-info .right-side {
+    display: flex;
+    align-items: center;
+}
+
+.move-history-container {
+    height: 270px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.move-history-container .move-item {
+    width: 100%;
+    height: 38px;
+    display: flex;
+    justify-content: left;
+    align-content: center;
+    background-color: rgb(224, 210, 189);
+}
+
+.move-history-container .move-item-inner-container {
+    display: flex;
+    width: inherit;
+    padding-left: 8px;
+}
+
+.move-history-container .move-item-selected  {
+    border: 1px solid red;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.move-history-container .move-item:hover {
+    cursor: pointer;
+    background-color: #01138a;
+}
+
+.move-history-container .move-item .index-label {
+    color: black;
+    display: block;
+    text-align: center;
+    width: 100%;
+}
+
+.move-history-container .move-item:hover .index-label {
+    color: black;
+}
+
+.move-history-container .move-item .index-container {
+    align-content: center;
+    width: 40px;
+    font-size: 12px;
+    border: 0 solid #1e1d1d;
+    border-right-width: 1px;
+    background-color: #c7baa6;
+}
+
+.move-history-container .move-item .color-indicator-container,
+.move-history-container .move-item .piece-icon-container,
+.move-history-container .move-item .captured-kingdom-container {
+    align-content: center;
+    height: 100%;
+    padding-left: 5px;
+    padding-right: 5px;
+    width: fit-content;
+}
+
+.move-history-container .move-item .piece-icon-container img {
+    width: 20px;
+    height: 20px;
+}
+
+.move-history-container .move-item .kingdom-color-indicator {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.move-history-container .move-item .move-label-container {
+    font-size: 13px;
+    width: 65px;
+    align-content: center;
+    padding-left: 4px;
+}
+
+.move-history-container .move-item:hover .move-label-container {
+    color: white;
+    font-weight: bold;
+}
+
+.kingdoms-data {
+    width: 100%;
+    display: flex;
+    justify-content: left;
+    align-content: center;
+}
+
+.kingdoms-data .kingdom-color-indicator {
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+#kingdoms-data-table {
+    width: 100%;
+}
+
+#kingdoms-data-table .indicator-cell {
+    width: 8%;
+}
+
+#kingdoms-data-table .kingdom-name-cell {
+    width: 26%;
+}
+
+#kingdoms-data-table .eliminated {
+    color: gray;
+    text-decoration: line-through;
+}
+
+#kingdoms-data-table .captures-counter-cell {
+    color: darkgreen;
+    text-align: center;
+    width: 23%;
+}
+
+#kingdoms-data-table .losses-counter-cell {
+    color: darkred;
+    text-align: center;
+    width: 23%;
+}
+
+#kingdoms-data-table .captured-kingdoms-indicator-cell {
+    width: 20%;
+}
+
+#kingdoms-data-table .captured-kingdoms-indicator-cell .kingdom-color-indicator:first-child {
+    margin-left: 0;
+}
