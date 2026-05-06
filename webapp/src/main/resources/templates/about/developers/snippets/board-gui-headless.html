@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Example</title>
+  <meta charset="UTF-8"/>
+  <script defer src="https://cdn.elephantchess.io/dist/{{dist_version}}/xiangqi.min.js"></script>
+</head>
+<body>
+<script>
+  window.addEventListener('load', () => {
+      // init
+      const board = new Board();
+      board.loadFen(DEFAULT_START_FEN);
+
+      // logs the current FEN and position
+      console.log(board.outputFen());
+      board.printBoard();
+
+      // play two moves
+      board.registerMove(HalfMove.parseUci('h2e2')); // C2=5
+      board.registerMove(HalfMove.parseUci('h9g7')); // H8+7
+
+      // logs the current FEN and position after the moves
+      console.log(board.outputFen());
+      board.printBoard();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>The Game of the Seven Kingdoms - Playground</title>
+    <meta name="description" content="{{seven_kingdoms_description}} Try is for yourself!">
+    <meta name="keywords" content="{{seven_kingdoms_keywords}}"/>
+    <link rel="stylesheet" href="/css/seven-kingdoms/seven-kingdoms-module.css"/>
+    <link rel="stylesheet" href="/css/seven-kingdoms/seven-kingdoms-playground.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/modules/seven-kingdoms-module.js"></script>
+    <script defer src="/js/widgets/seven-kingdoms-board-widget.js"></script>
+    <script defer src="/js/seven-kingdoms/seven-kingdoms-playground.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="flex-triptych-container">
+    <div class="flex-triptych-left-container">
+        <div class="info-box">
+            <table class="info-box-table">
+                <tbody>
+                <tr>
+                    <td class="icon-cell">
+                        <img id="main-icon" src="/images/icons/info.png" alt="info"/>
+                    </td>
+                    <td class="description-cell">
+                        <p>
+                            Just a page where we prototype the implementation of the <a
+                                href="http://localhost:8080/7k/about">Seven Kingdoms</a> xiangqi variant.
+                        </p>
+                        <p>
+                            Current status of project: Moves are implemented (without enforcing turn)
+                        </p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="info-box">
+            <div>Current FEN</div>
+            <textarea id="fen-output-area"></textarea>
+            <div class="center-content-div">
+                <div id="share-fen-action" class="action-link">share FEN</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-triptych-board-container">
+        <div id="board-container" class="board-container-7k">
+        </div>
+    </div>
+
+    <div class="flex-triptych-right-container">
+        <div class="info-box" style="padding: 20px">
+            piece type:
+            <a id="piece-type-icons" href="#">Icons</a>,
+            <a id="piece-type-chinese" href="#">Chinese</a>,
+            <a id="piece-type-uci" href="#">UCI</a>
+        </div>
+    </div>
+</div>
+{{logged_as_guest_message}}
+</body>
+</html>

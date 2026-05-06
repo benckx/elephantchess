@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://elephantchess.io/sitemap.xml

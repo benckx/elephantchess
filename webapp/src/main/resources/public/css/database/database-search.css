@@ -1,0 +1,264 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+input[type=text] {
+    height: 24px;
+    width: 100%;
+}
+
+input[type=text].datepicker-field {
+    width: 150px;
+}
+
+/* aligned on the largest button */
+.app-buttons-bigger {
+    width: 92px;
+}
+
+.search-container, .suggestions-box {
+    width: 500px;
+}
+
+.search-container {
+    margin-bottom: 10px;
+}
+
+.search-label {
+    font-size: 17px;
+    font-weight: bold;
+    color: #2b2b2b;
+}
+
+.suggestions-box {
+    visibility: hidden;
+    position: absolute;
+    z-index: 100;
+}
+
+.suggestions-box-content {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    max-height: 350px;
+    z-index: 100;
+}
+
+.suggestion-element {
+    width: 480px;
+    text-align: left;
+    font-style: italic;
+    color: #2b2b2b;
+    background: #f4f3f3;
+    padding: 4px 6px;
+    font-size: 13px;
+    z-index: 110;
+}
+
+.suggestion-element:hover {
+    cursor: pointer;
+    background: chocolate;
+}
+
+#buttons-container {
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+
+.time-control-icons {
+    z-index: 50;
+}
+
+#date-range-search-inputs {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-flow: row;
+}
+
+#relative-time-options-block {
+    margin-left: 18px;
+    font-size: 15px;
+    font-family: Courier New, Courier, Lucida Sans Typewriter, Lucida Typewriter, monospace;
+}
+
+.player-color-options {
+    color: #2b2b2b;
+    font-size: 15px;
+}
+
+.player-color-options-disabled {
+    color: #878787;
+}
+
+/* Two-column layout */
+.database-search-layout {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.database-search-left {
+    flex: 1;
+    min-width: 0;
+    max-width: 550px;
+}
+
+.database-search-right {
+    flex-shrink: 0;
+}
+
+.my-game-item {
+    height: 104px;
+    width: 94%;
+}
+
+.my-game-item .left-pane {
+    width: 11%;
+}
+
+.my-game-item .outcome-label-holder {
+    width: 54px;
+}
+
+.my-game-item .player-names {
+    font-size: 16px;
+}
+
+.my-game-item .red-player-name {
+    color: #bb0d01;
+}
+
+.my-game-item .black-player-name {
+    color: black;
+}
+
+.my-game-item .game-date {
+    color: #202020;
+}
+
+.my-game-item .event-name {
+    font-size: 14px;
+    font-style: italic;
+    color: #2f2f2f;
+    margin-top: 4px !important;
+}
+
+/* Featured players list */
+.database-search-right h2 {
+    font-size: 20px;
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #2b2b2b;
+}
+
+#featured-players-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.featured-player-link {
+    display: block;
+    padding: 10px 10px;
+    background: #f4f4f5;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+.featured-player-link:hover {
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.list-of-entities-link {
+    display: inline-block;
+    margin-left: 8px;
+    margin-bottom: 1px;
+}
+
+.list-of-entities-link a {
+    font-size: 17px;
+    font-weight: normal;
+}
+
+@media (max-width: 1000px) {
+    .database-search-layout {
+        flex-direction: column;
+        margin-bottom: 30px;
+    }
+
+    .database-search-left,
+    .database-search-right {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .database-search-right h2 {
+        font-size: 36px;
+    }
+
+    .search-label {
+        font-size: 34px;
+    }
+
+    .search-container {
+        width: 100%;
+        margin-bottom: 14px;
+    }
+
+    input[type=text] {
+        height: 50px;
+        width: 100%;
+    }
+
+    input[type=text].datepicker-field {
+        width: 200px;
+    }
+
+    .player-color-options {
+        font-size: 30px;
+    }
+
+    .featured-player-link {
+        font-size: 28px;
+        padding: 14px 14px;
+    }
+
+    .my-game-item {
+        height: 212px;
+        width: 100%;
+    }
+
+    .my-game-item .outcome-label-holder {
+        width: 84px;
+    }
+
+    .my-game-item .player-names {
+        font-size: 32px;
+    }
+
+    .my-game-item .event-name {
+        font-size: 28px;
+    }
+
+    .list-of-entities-link a,
+    #relative-time-options-block a {
+        font-size: 28px;
+    }
+}

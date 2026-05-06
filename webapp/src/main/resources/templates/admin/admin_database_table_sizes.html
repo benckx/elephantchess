@@ -1,0 +1,34 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Database Table Sizes</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    {{apex_charts}}
+    <script defer src="/js/admin/widgets/database-table-sizes-chart.js"></script>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-database-table-sizes.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Database Table Sizes</h1>
+    <hr/>
+    <p>Total tables: <span id="total-tables">-</span></p>
+    <div id="table-sizes-chart" style="height: 400px;margin-bottom: 20px"></div>
+    <table id="table-sizes" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">table</th>
+            <th class="label-cell">rows (est.)</th>
+            <th class="value-cell">table</th>
+            <th class="value-cell">index</th>
+            <th class="value-cell">total</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

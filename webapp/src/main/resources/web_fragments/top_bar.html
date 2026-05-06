@@ -1,0 +1,90 @@
+<div id="top-bar-menu">
+    <div id="top-menu-main-container" class="main-container">
+        <div class="discord-logo-container center-div-content">
+            <a href="https://discord.gg/WEGDqnWXNg" target="_blank">
+                <img src="/images/discord-logo-smaller-black.png" alt="join our Discord" loading="lazy">
+            </a>
+        </div>
+        <a id="top-bar-menu-item-lobby" class="top-bar-menu-items" href="/">
+            <img src="/images/icons/home-optimized.png" class="top-bar-menu-items-icons" alt="lobby" loading="lazy">
+            <div class="top-bar-menu-label">Lobby</div>
+            <div id="number-of-games-in-lobby-counter-circle" class="notification-counter-circle">
+                <div id="number-of-games-in-lobby-counter-counter" class="notification-counter-value"></div>
+            </div>
+        </a>
+        <a id="top-bar-menu-item-new-game" class="top-bar-menu-items" onclick="showNewGameModal()">
+            <img src="/images/icons/swords-optimized.png" class="top-bar-menu-items-icons" alt="play bot"
+                 loading="lazy">
+            <div class="top-bar-menu-label">Play</div>
+        </a>
+        <a id="top-bar-menu-item-play-bot" class="top-bar-menu-items" onclick="showPlayBotModal()">
+            <img src="/images/icons/bot-icon-optimized.png" class="top-bar-menu-items-icons" alt="play bot"
+                 loading="lazy">
+            <div class="top-bar-menu-label">Play Bot</div>
+        </a>
+        <a id="top-bar-menu-item-puzzles" class="top-bar-menu-items" href="/puzzles">
+            <img src="/images/icons/puzzle-piece-optimized.png" class="top-bar-menu-items-icons" alt="puzzles">
+            <div class="top-bar-menu-label">Puzzles</div>
+        </a>
+        <a id="top-bar-menu-item-database" class="top-bar-menu-items" href="/database">
+            <img src="/images/icons/servers-optimized.png" class="top-bar-menu-items-icons" alt="database"
+                 loading="lazy">
+            <div class="top-bar-menu-label">Database</div>
+        </a>
+        <a id="top-bar-menu-item-analysis" class="top-bar-menu-items" href="/analysis">
+            <img src="/images/icons/pie-chart-optimized.png" class="top-bar-menu-items-icons" alt="analysis board"
+                 loading="lazy">
+            <div class="top-bar-menu-label">Analysis</div>
+        </a>
+        <a id="top-bar-menu-item-global" class="top-bar-menu-items" href="/global">
+            <img src="/images/icons/global-optimized.png" class="top-bar-menu-items-icons" alt="global" loading="lazy">
+            <div class="top-bar-menu-label">Global</div>
+        </a>
+        <a id="top-bar-menu-item-merch" class="top-bar-menu-items" href="https://elephanchessio.myspreadshop.com/all"
+           target="_blank">
+            <img src="/images/icons/coffee-mug.png" class="top-bar-menu-items-icons" alt="merch">
+            <div class="top-bar-menu-label">Swag</div>
+        </a>
+        <a id="top-bar-menu-item-support" class="top-bar-menu-items" href="https://ko-fi.com/elephantchess"
+           target="_blank">
+            <img src="/images/icons/contribution-icon-optimized.png" class="top-bar-menu-items-icons" alt="support"
+                 loading="lazy">
+            <div class="top-bar-menu-label">Support</div>
+        </a>
+        <a id="top-bar-menu-item-about" class="top-bar-menu-items" href="/about">
+            <img src="/images/icons/about-us-icon-optimized.png" class="top-bar-menu-items-icons" alt="about"
+                 loading="lazy">
+            <div class="top-bar-menu-label">About</div>
+        </a>
+        <div id="login-side">
+            <div id="user-turn-to-play-games-container">
+                <div id="user-turn-to-play-games-header">
+                    <img src="/images/icons/simple-grid.svg" id="user-turn-to-play-games-header-icon"
+                         alt="turn to play">
+                    <div id="user-turn-to-play-games-counter-circle" class="notification-counter-circle">
+                        <div id="user-turn-to-play-games-counter-value" class="notification-counter-value">
+                            0
+                        </div>
+                    </div>
+                </div>
+                <div id="user-turn-to-play-games-panel">
+                    <div style="width: 100%; text-align: center;" data-nosnippet>
+                        Games where it is your turn to play
+                    </div>
+                    <div id="user-turn-to-play-games-list-container" data-nosnippet></div>
+                    <div id="user-turn-to-play-games-empty-list-message" class="empty-list-message" data-nosnippet>
+                        There are no game where it is your turn to play right now. You can
+                        create a new game in the <a href="/">Lobby</a>. You can also see all your games on
+                        <a href="/userdata/games">this page</a>.
+                    </div>
+                </div>
+            </div>
+            <div id="handle-menu-container">
+                <div id="user-profile-icon">
+                    <img id="user-profile-icon-img" src="/images/icons/user_profile_smaller.png" alt="profile">
+                </div>
+                <div id="handle-div"></div>
+            </div>
+        </div>
+    </div>
+</div>

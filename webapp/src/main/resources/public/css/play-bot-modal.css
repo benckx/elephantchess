@@ -1,0 +1,78 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#play-bot-modal h3 {
+    margin-top: 0;
+}
+
+#play-bot-modal #play-bot-modal-table {
+    width: 100%;
+}
+
+#play-bot-modal #play-bot-modal-table td {
+    padding: 5px;
+    vertical-align: top;
+}
+
+#play-bot-modal #play-bot-modal-table td.left-cell {
+    padding-left: 3px;
+    padding-right: 15px;
+    width: 45%;
+}
+
+#play-bot-modal #play-bot-modal-table td.right-cell {
+    padding-left: 15px;
+    padding-right: 3px;
+    width: 45%;
+}
+
+#start-fen {
+    width: 100%;
+    text-align: center;
+}
+
+#play-bot-modal .standard-radio .label-span {
+    padding: 2px;
+    padding-left: 2px;
+    cursor: pointer;
+}
+
+#play-bot-modal #deeper-levels-message {
+    font-size: 18px;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    width: 90%;
+}
+
+@media (max-width: 1000px) {
+    #play-bot-modal {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    #start-fen {
+        font-size: 27px;
+    }
+
+    #play-bot-modal #deeper-levels-message {
+        font-size: 34px;
+        margin-top: 20px;
+        margin-bottom: 14px;
+    }
+}

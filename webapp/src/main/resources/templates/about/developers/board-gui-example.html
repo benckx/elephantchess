@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>board-gui.js – minimal example</title>
+    <meta name="description"
+          content="Minimal standalone example showing how to use the board-gui.js widget, a front-end library to play Chinese chess."/>
+    <meta name="keywords"
+          content="xiangqi, chinese chess board, library"/>
+    <link rel="stylesheet" href="/css/developers.css">
+    {{board_gui_assets}}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+<div class="example-page">
+    <h1><code>board-gui.js</code> – minimal example</h1>
+    <p>
+        This page demonstrates the <em>smallest</em> working setup for the <code>BoardGui</code> widget: just <code>board.css</code>,
+        <code>xiangqi.js</code> and <code>board-gui.js</code>. View the page source for a copy-pasteable starting point.
+        The non-minified versions of the JS and CSS files are accessible if you just removed the ".min" from the URLs,
+        so you can also see the functions.
+    </p>
+    <p>
+        If you only need in-memory functions (e.g. validating if a FEN is correct), you can just use
+        <code>xiangqi.js</code> without the GUI. <code>board-gui.js</code> only provides the visual board and user
+        interaction, but it relies on <code>xiangqi.js</code> for all the game logic (for examples legal moves).
+        Therefore <code>board-gui.js</code> requires <code>board.css</code>.
+    </p>
+    <p>
+        The images (pieces) and sound assets are resolved from <code>https://cdn.elephantchess.io/static</code> by
+        default, but you can also specify a custom base URL in <code>assetsBaseUrl</code> when initializing the <code>BoardGui</code>
+        and copy the assets to be served by your own server. Pieces can be downloaded from <a
+            href="https://cdn.elephantchess.io/static/pieces.zip" target="_blank">https://cdn.elephantchess.io/static/pieces.zip</a>.
+    </p>
+    <div class="board-wrapper">
+        <div id="board-container" class="board-container"></div>
+    </div>
+    <div class="fen-export-box">
+        <input id="fen-export-input" type="text" readonly="readonly"/>
+        <button id="fen-copy-button" type="button">Copy</button>
+    </div>
+
+    <div class="controls">
+        <button id="btn-reset">Reset</button>
+        <button id="btn-flip">Flip</button>
+        <button id="btn-clear">Clear</button>
+        <button id="btn-random-move">Play random legal move</button>
+        <button id="btn-style-romanized">Pieces: Romanized rounded</button>
+        <button id="btn-style-traditional">Pieces: Traditional</button>
+    </div>
+
+    <h2>Setup</h2>
+    <pre><code class="language-html">{{snippet_setup}}</code></pre>
+
+    <h2>Using <code>xiangqi.js</code> without the GUI</h2>
+    <p>
+        If you only need the game logic in memory (e.g. validating a FEN, listing legal moves, detecting checkmate,
+        etc.), you can use <code>xiangqi.js</code> on its own — no <code>board-gui.js</code> and no
+        <code>board.css</code> required.
+    <p>
+        Open your browser console on this page and run the snippet below (the callback body of <code>window.addEventListener</code>);
+        it prints the FEN and an ASCII representation of the board, plays two moves, and log the updated representation.
+    </p>
+    <pre><code class="language-html">{{snippet_headless}}</code></pre>
+    <p>Expected console output</p>
+    <pre><code class="language-plaintext">rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0
+
+   a b c d e f g h i
+
+9  r n b a k a b n r
+8                   
+7    c           c  
+6  p   p   p   p   p
+5                   
+4
+2    C           C  
+1                   
+0  R N B A K A B N R
+
+
+rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
+
+   a b c d e f g h i
+
+9  r n b a k a b   r
+8                   
+7    c         n c  
+6  p   p   p   p   p
+5                   
+4                   
+3  P   P   P   P   P
+2    C     C        
+1                   
+0  R N B A K A B N R</code></pre>
+    <p>
+        A few useful entry points exposed by <code>xiangqi.js</code>:
+    </p>
+    <ul>
+        <li><code>new Board()</code> / <code>board.loadFen(fen)</code> / <code>board.outputFen()</code></li>
+        <li><code>board.registerMove(HalfMove.parseUci('h2e2'))</code> – apply a UCI move</li>
+        <li><code>board.listAllLegalMoves()</code> / <code>board.listLegalMovesFrom(position)</code></li>
+        <li><code>board.isInCheck(Color.RED)</code> / <code>board.isCheckmate(Color.RED)</code> / <code>board.isStalemate(Color.RED)</code>
+        </li>
+        <li><code>calculateFen(moves, startFen)</code> – compute the FEN after a list of moves</li>
+        <li><code>validateStartFen(fen)</code> – throws if the position is checkmate / stalemate / invalid</li>
+        <li><code>exportMovesToPgnLine(moves)</code>, <code>translateMovesToWxf(...)</code>, etc.</li>
+    </ul>
+</div>
+<script>
+    window.addEventListener('load', () => {
+
+        // noinspection JSUnresolvedReference
+        hljs.highlightAll();
+
+        // by default: https://cdn.elephantchess.io/static
+        const assetsBaseUrl = '{{board_gui_assets_base_url_option}}';
+
+        const boardGui = new BoardGui({
+            elementId: 'board-container', // (default)
+            showCoordinates: true,
+            assetsBaseUrl: assetsBaseUrl
+        });
+
+        boardGui.loadFen(DEFAULT_START_FEN);
+
+        const fenInput = document.getElementById('fen-export-input');
+        const refreshFen = () => fenInput.value = boardGui.outputFen();
+        refreshFen();
+
+        boardGui.addAfterMoveListener(move => {
+            console.log('move played:', move, '\nFEN:', boardGui.outputFen());
+            refreshFen();
+        });
+
+        // Fired after animated repositioning (e.g. loadFen with animate=true)
+        // completes and the internal Board has been updated.
+        boardGui.addAfterDrawPositionsListener(refreshFen);
+
+        document.getElementById('btn-reset').onclick = () => {
+            boardGui.loadFen(DEFAULT_START_FEN, true);
+        }
+
+        document.getElementById('btn-flip').onclick = () => boardGui.flip();
+
+        document.getElementById('btn-clear').onclick = () => {
+            boardGui.clearBoard();
+            refreshFen();
+        };
+
+        document.getElementById('fen-copy-button').onclick = () => {
+            fenInput.select();
+            navigator.clipboard?.writeText(fenInput.value);
+        };
+
+        document.getElementById('btn-random-move').onclick = () => {
+            const legalMoves = boardGui.board.listAllLegalMoves();
+            if (legalMoves.length === 0) {
+                console.log('no legal moves available');
+                return;
+            }
+            const move = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+            console.log('playing random move:', move);
+            boardGui.registerOpponentMove(move, false, () => {
+                refreshFen();
+            });
+        };
+
+        document.getElementById('btn-style-romanized').onclick = () =>
+            boardGui.updatePieceStyle('ROMANIZED_ROUNDED');
+
+        document.getElementById('btn-style-traditional').onclick = () =>
+            boardGui.updatePieceStyle('TRADITIONAL');
+    });
+</script>
+</body>
+</html>

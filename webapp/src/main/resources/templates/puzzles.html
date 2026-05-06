@@ -1,0 +1,230 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Puzzles</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/puzzles.css"/>
+    {{board_js}}
+    <script defer src="/js/puzzles/puzzles-client.js"></script>
+    <script defer src="/js/puzzles/puzzles-controller.js"></script>
+    <script defer src="/js/puzzles/puzzles-dto.js"></script>
+    <script defer src="/js/puzzles/puzzles-move-tree.js"></script>
+    <script defer src="/js/puzzles/puzzles-state.js"></script>
+    <script defer src="/js/puzzles/puzzles-utils.js"></script>
+    <script defer src="/js/puzzles/puzzles.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="flex-triptych-container">
+    <div class="flex-triptych-left-container">
+        <div id="mobile-navigation-panel" class="navigation-panel mobile-navigation-panel only-mobile"></div>
+        <div class="info-box">
+            <div id="vote-up-down-container">
+                <img id="vote-thumbs-up" src="/images/icons/thumbs-up.png" alt="vote up" loading="lazy"/>
+                <img id="vote-thumbs-down" src="/images/icons/thumbs-down.png" alt="vote down" loading="lazy"/>
+            </div>
+            <table class="info-box-table">
+                <tbody>
+                <tr>
+                    <td class="icon-cell">
+                        <img src="/images/icons/puzzle-piece.png" class="less-dark-icon" alt="puzzle training"/>
+                    </td>
+                    <td class="description-cell">
+                        <table class="info-box-sub-table">
+                            <tbody>
+                            <tr>
+                                <td class="labels">Puzzle</td>
+                                <td class="values">
+                                    <span id="puzzle-id" class="action-link"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="labels">Attempts</td>
+                                <td class="values">
+                                    <span id="number-of-attempts"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="labels">Rating</td>
+                                <td class="values">
+                                    <span id="puzzle-rating" class="hidden-values">hidden</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="labels">Category</td>
+                                <td class="values">
+                                    <span id="puzzle-categories" class="hidden-values">hidden</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="game-info-box" class="info-box">
+            <table class="info-box-table">
+                <tbody>
+                <tr>
+                    <td class="icon-cell">
+                        <img src="/images/icons/servers.png" id="game-type-icon" alt="game-type"/>
+                    </td>
+                    <td class="description-cell">
+                        <div class="game-info-container">
+                            <div id="game-info" class="hidden-values">hidden</div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="puzzle-feedback-info-box" class="info-box center-content-vertical">
+            <div style="width: 100%">
+                <table id="playing-red-feedback-box" class="info-box-table feedback-info-box-table">
+                    <tbody>
+                    <tr>
+                        <td class="icon-cell">
+                            <img src="/images/pieces/traditional/red_general_char.png" alt="general"/>
+                        </td>
+                        <td class="description-cell">
+                            <div>
+                                You're playing <span class="red-color">Red</span>.
+                                <br/>Find the <b>shortest</b> path to mate.
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table id="playing-black-feedback-box" class="info-box-table feedback-info-box-table">
+                    <tbody>
+                    <tr>
+                        <td class="icon-cell">
+                            <img src="/images/pieces/traditional/black_general_char.png" alt="general"/>
+                        </td>
+                        <td class="description-cell">
+                            <div>
+                                You're playing <span class="black-color">Black</span>.
+                                <br/>Find the <b>shortest</b> path to mate.
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table id="no-solution-feedback-box" class="info-box-table feedback-info-box-table">
+                    <tbody>
+                    <tr>
+                        <td class="icon-cell">
+                            <img src="/images/icons/wrong-icon.png" alt="puzzle failed"/>
+                        </td>
+                        <td class="description-cell">
+                            <div>
+                                No solution was found in the allocated number of plies
+                                (<span id="allocated-plies">N</span>).
+                                <br/><span class="action-link next-puzzle-link">[Enter] Next Puzzle</span>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table id="mated-by-puzzle-feedback-box" class="info-box-table feedback-info-box-table">
+                    <tbody>
+                    <tr>
+                        <td class="icon-cell">
+                            <img src="/images/icons/wrong-icon.png" alt="puzzle failed"/>
+                        </td>
+                        <td class="description-cell">
+                            <div>
+                                You were mated by the puzzle.
+                                <br/><span class="action-link next-puzzle-link">[Enter] Next Puzzle</span>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table id="puzzle-solved-feedback-box" class="info-box-table feedback-info-box-table">
+                    <tbody>
+                    <tr>
+                        <td class="icon-cell">
+                            <img src="/images/icons/trophy-icon-gold-smaller.png" alt="puzzle solved"/>
+                        </td>
+                        <td class="description-cell">
+                            <div>
+                                Great! You solved the puzzle by <span id="victory-type">mate</span>!
+                                <br/><span class="action-link next-puzzle-link">[Enter] Next Puzzle</span>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table id="solution-revealed-feedback-box" class="info-box-table feedback-info-box-table">
+                    <tbody>
+                    <tr>
+                        <td class="icon-cell">
+                            <img src="/images/icons/open-book.png" class="less-dark-icons" alt="puzzle solved"/>
+                        </td>
+                        <td class="description-cell">
+                            <div>
+                                Solution revealed.
+                                <br/><span class="action-link next-puzzle-link">[Enter] Next Puzzle</span>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="info-box">
+            <table class="info-box-table">
+                <tbody>
+                <tr id="skip-puzzle-button" class="enabled-button">
+                    <td class="icon-cell">
+                        <img src="/images/icons/navigation-beginning.png"
+                             style="width:58%; transform: rotate(180deg)" class="less-dark-icons"
+                             alt="skip"/>
+                    </td>
+                    <td class="description-cell">
+                        Skip puzzle
+                    </td>
+                </tr>
+                <tr id="reveal-solution-button" class="enabled-button">
+                    <td class="icon-cell">
+                        <img src="/images/icons/open-book.png" class="less-dark-icons" alt="skip"/>
+                    </td>
+                    <td class="description-cell">
+                        Reveal solution
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="user-rating-info-box" class="info-box">
+            <table class="info-box-table">
+                <tbody>
+                <tr>
+                    <td class="icon-cell">
+                        <img src="/images/icons/stats.png" class="less-dark-icons" alt="rating"/>
+                    </td>
+                    <td class="description-cell">
+                        Your rating
+                        <br/>
+                        <div id="user-rating-value-box" class="user-rating-value-box"></div>
+                        <div id="user-rating-delta-value-box" class="user-rating-delta-value-box"></div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="flex-triptych-board-container">
+        <div id="board-container" class="board-container"></div>
+    </div>
+    <div class="flex-triptych-right-container">
+        {{settings_info_box}}
+        <div id="move-tree-container" class="move-tree-container"></div>
+        <div id="move-history-navigation-panel" class="navigation-panel only-desktop"></div>
+    </div>
+</div>
+{{logged_as_guest_message}}
+</body>
+</html>

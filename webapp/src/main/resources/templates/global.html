@@ -1,0 +1,220 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Global Stats</title>
+    <meta name="description"
+          content="elephantchess.io leaderboard (PvP and Puzzles) and global statistics. Do you want to claim your spot at the top?">
+    <link rel="stylesheet" href="/css/global.css"/>
+    <script defer src="/js/modules/countries.js"></script>
+    <script defer src="/js/widgets/bar-indicator.js"></script>
+    <script defer src="/js/global/global-dto.js"></script>
+    <script defer src="/js/global/global.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>Player-vs-Player Leaderboard</h1>
+    <hr/>
+    <div class="pvp-leaderboard-container center-content-div">
+        <div class="time-category-icon-holder">
+            <img id="rating-icon" src="/images/icons/shuttle.png" class="time-control-icons time-control-icons-larger"
+                 alt="bullet">
+        </div>
+        <table id="bullet-leaderboard" class="pvp-leaderboard">
+            <thead>
+            <tr>
+                <th class="rank-cell">rank</th>
+                <th class="user-cell">user</th>
+                <th class="small-cell">rating</th>
+                <th class="small-cell">played</th>
+                <th class="date-cell">last played</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div class="pvp-leaderboard-container center-content-div">
+        <div class="time-category-icon-holder">
+            <img id="blitz-icon" src="/images/icons/flash-squared.png"
+                 class="time-control-icons time-control-icons-larger" alt="blitz">
+        </div>
+        <table id="blitz-leaderboard" class="pvp-leaderboard">
+            <thead>
+            <tr>
+                <th class="rank-cell">rank</th>
+                <th class="user-cell">user</th>
+                <th class="small-cell">rating</th>
+                <th class="small-cell">played</th>
+                <th class="date-cell">last played</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div class="pvp-leaderboard-container center-content-div">
+        <div class="time-category-icon-holder">
+            <img id="rapid-icon" src="/images/icons/run.png" class="time-control-icons time-control-icons-larger"
+                 alt="rapid">
+        </div>
+        <table id="rapid-leaderboard" class="pvp-leaderboard">
+            <thead>
+            <tr>
+                <th class="rank-cell">rank</th>
+                <th class="user-cell">user</th>
+                <th class="small-cell">rating</th>
+                <th class="small-cell">played</th>
+                <th class="date-cell">last played</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div class="pvp-leaderboard-container center-content-div">
+        <div class="time-category-icon-holder">
+            <img id="classical-icon" src="/images/icons/museum.png" class="time-control-icons time-control-icons-larger"
+                 alt="rapid">
+        </div>
+        <table id="classical-leaderboard" class="pvp-leaderboard">
+            <thead>
+            <tr>
+                <th class="rank-cell">rank</th>
+                <th class="user-cell">user</th>
+                <th class="small-cell">rating</th>
+                <th class="small-cell">played</th>
+                <th class="date-cell">last played</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div class="pvp-leaderboard-container center-content-div">
+        <div class="time-category-icon-holder">
+            <img id="correspondence-icon" src="/images/icons/email.png"
+                 class="time-control-icons time-control-icons-larger" alt="rapid">
+        </div>
+        <table id="correspondence-leaderboard" class="pvp-leaderboard">
+            <thead>
+            <tr>
+                <th class="rank-cell">rank</th>
+                <th class="user-cell">user</th>
+                <th class="small-cell">rating</th>
+                <th class="small-cell">played</th>
+                <th class="date-cell">last played</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <h1>Puzzles Leaderboard Last 12 Months</h1>
+    <hr/>
+    <div class="center-content-div">
+        <table id="leaderboard-last-12-months" class="puzzle-leaderboard">
+            <thead>
+            <tr>
+                <th class="rank-cell">rank</th>
+                <th class="user-cell">user</th>
+                <th class="small-cell">rating</th>
+                <th class="small-cell">max</th>
+                <th class="small-cell">played</th>
+                <th class="date-cell">last played</th>
+                <th class="success-cell">success</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <h1>Puzzles Leaderboard</h1>
+    <hr/>
+    <div class="center-content-div">
+        <table id="leaderboard" class="puzzle-leaderboard">
+            <thead>
+            <tr>
+                <th class="rank-cell">rank</th>
+                <th class="user-cell">user</th>
+                <th class="small-cell">rating</th>
+                <th class="small-cell">max</th>
+                <th class="small-cell">played</th>
+                <th class="date-cell">last played</th>
+                <th class="success-cell">success</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <h1>Global Puzzle Stats</h1>
+    <hr/>
+    <table class="global-stats">
+        <tr>
+            <th>Total puzzles</th>
+            <td id="total-puzzles"></td>
+        </tr>
+        <tr>
+            <th>Total played</th>
+            <td id="total-puzzles-played"></td>
+        </tr>
+        <tr>
+            <th>Played at least 10x</th>
+            <td id="puzzles-played-at-least-10x"></td>
+        </tr>
+        <tr>
+            <th>Played at least 20x</th>
+            <td id="puzzles-played-at-least-20x"></td>
+        </tr>
+    </table>
+    <h1>Global Game Stats</h1>
+    <hr/>
+    <table class="global-stats">
+        <tr>
+            <th>Total games</th>
+            <td id="total-games"></td>
+        </tr>
+        <tr>
+            <th>Total in-app games</th>
+            <td id="total-in-app-games"></td>
+        </tr>
+        <tr>
+            <th>Total moves</th>
+            <td id="total-moves"></td>
+        </tr>
+        <tr>
+            <th>Total in-app moves</th>
+            <td id="total-in-app-moves"></td>
+        </tr>
+
+    </table>
+    <h1>Global User Stats</h1>
+    <hr/>
+    <table class="global-stats">
+        <tr>
+            <th>Total users</th>
+            <td id="total-users"></td>
+        </tr>
+        <tr>
+            <th>Recently active</th>
+            <td id="recently-active-users"></td>
+        </tr>
+        <tr>
+            <th>Online</th>
+            <td id="online-users"></td>
+        </tr>
+    </table>
+    <h1>Global App Data</h1>
+    <hr/>
+    <table class="global-stats">
+        <tr>
+            <th>Last Deploy</th>
+            <td id="last-deploy"></td>
+        </tr>
+    </table>
+</div>
+{{footer}}
+{{kofi_floating_widget}}
+</body>
+</html>

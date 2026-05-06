@@ -1,0 +1,25 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Daily Page Views</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    {{apex_charts}}
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/widgets/daily-page-views-chart.js"></script>
+    <script defer src="/js/admin/admin-daily-page-views.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended">
+    {{admin_submenu}}
+    <h1>Daily Page Views</h1>
+    <hr/>
+    <div id="loading-status" style="text-align: center; margin: 20px 0; font-size: 18px;">
+        Loading...
+    </div>
+    <div style="width: 98%; margin: 0 auto;">
+        <div id="chart-container"></div>
+    </div>
+</div>
+</body>
+</html>

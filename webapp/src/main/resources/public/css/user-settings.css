@@ -1,0 +1,94 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#notifications-settings-table {
+    margin-bottom: 5px;
+    margin-left: 8px;
+    font-size: 17px;
+    border-spacing: 0 4px;
+}
+
+#notifications-settings-table .checkbox-cell {
+    width: 26px;
+}
+
+.notifications-hit-box {
+    cursor: pointer;
+    padding: 6px 16px;
+    width: 500px;
+}
+
+.notifications-hit-box:hover {
+    background-color: #d7d3ce;
+}
+
+.little-message {
+    font-size: 17px;
+    margin-left: 15px;
+}
+
+#email-address-container {
+    margin: 15px;
+    margin-left: 13px;
+}
+
+#email-address {
+    font-size: 18px;
+    height: 30px;
+    width: 500px;
+    min-width: 500px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.hidden {
+    display: none;
+}
+
+@media (max-width: 1000px) {
+    .character-counter {
+        font-size: 24px;
+    }
+
+    .notifications-hit-box {
+        width: 90%;
+    }
+
+    .little-message {
+        font-size: 30px;
+        margin-left: 20px;
+    }
+
+    #notifications-settings-table {
+        margin-bottom: 5px;
+        margin-left: 8px;
+        font-size: 30px;
+        border-spacing: 0 8px;
+        width: 100%;
+    }
+
+    #email-address,
+    #countries {
+        font-size: 30px;
+        height: 54px;
+        width: 90%;
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+}

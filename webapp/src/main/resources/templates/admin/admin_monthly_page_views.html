@@ -1,0 +1,26 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Monthly Page Views</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    {{apex_charts}}
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/widgets/monthly-page-views-line-chart.js"></script>
+    <script defer src="/js/admin/admin-analytics-dto.js"></script>
+    <script defer src="/js/admin/admin-monthly-page-views.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended">
+    {{admin_submenu}}
+    <h1>Monthly Page Views</h1>
+    <hr/>
+    <div id="loading-status" style="text-align: center; margin: 20px 0; font-size: 18px;">
+        Loading: <span id="completed-requests-display">0</span> / <span id="total-requests-display">0</span>
+    </div>
+    <div style="width: 70%; margin: 0 auto;">
+        <div id="charts-container"></div>
+    </div>
+</div>
+</body>
+</html>

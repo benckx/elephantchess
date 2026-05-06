@@ -1,0 +1,30 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>{{page_title}}</title>
+    {{description_meta}}
+    <link rel="stylesheet" href="/css/database/database.css"/>
+    <link rel="stylesheet" href="/css/database/database-event.css"/>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/game-thumb.js"></script>
+    <script defer src="/js/database/database-event.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>{{page_title}}</h1>
+    <hr/>
+    <div class="center-content-div-column">
+        <div class="warning-explanation">
+            <p>
+                The following results may be incomplete. The "standings" listed below are calculated based on the games
+                that are in our Database, and may not reflect the actual event results.
+            </p>
+        </div>
+        {{event_games_list}}
+    </div>
+</div>
+{{footer}}
+</body>
+</html>

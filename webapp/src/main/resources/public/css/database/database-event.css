@@ -1,0 +1,198 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/* move the bottom margin of the table to the browse links */
+.game-round-table {
+    margin-bottom: 10px;
+}
+
+/* move the bottom margin of the table to the browse links */
+.browse-links {
+    margin-bottom: 44px;
+}
+
+.game-row-hoverable {
+    cursor: pointer;
+}
+
+.outcome-game-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+}
+
+.outcome-game-link.red-color,
+.outcome-game-link.red-color:visited {
+    color: rgba(222, 7, 7);
+}
+
+.outcome-game-link.black-color,
+.outcome-game-link.black-color:visited {
+    color: rgba(0, 0, 0);
+}
+
+.outcome-game-link.any-color,
+.outcome-game-link.any-color:visited {
+    color: rgb(71, 71, 71);
+}
+
+.game-round-table tr:hover {
+    background-color: #e8e3de;
+}
+
+.game-round-table td:nth-child(1),
+.game-round-table td:nth-child(3) {
+    width: 250px !important;
+    text-align: left !important;
+}
+
+.game-round-table th:nth-child(1),
+.game-round-table th:nth-child(3) {
+    width: 250px !important;
+    text-align: center !important;
+}
+
+.game-round-table td:nth-child(2),
+.game-round-table th:nth-child(2) {
+    width: 80px !important;
+    text-align: center !important;
+    font-weight: bold;
+}
+
+/* # (ranking) */
+.scores-table td:nth-child(1),
+.scores-table th:nth-child(1) {
+    width: 40px;
+    text-align: center;
+}
+
+/* Player */
+.scores-table td:nth-child(2) {
+    width: 300px;
+    text-align: left;
+}
+
+.scores-table th:nth-child(2) {
+    width: 300px;
+    text-align: center;
+}
+
+/* W, D, L, Score */
+.scores-table td:nth-child(3),
+.scores-table th:nth-child(3),
+.scores-table td:nth-child(4),
+.scores-table th:nth-child(4),
+.scores-table td:nth-child(5),
+.scores-table th:nth-child(5),
+.scores-table td:nth-child(6),
+.scores-table th:nth-child(6) {
+    width: 60px;
+    text-align: center;
+}
+
+/* W */
+.scores-table td:nth-child(3) {
+    color: #19681d;
+}
+
+/* D */
+.scores-table td:nth-child(4) {
+    color: #535252;
+}
+
+/* L */
+.scores-table td:nth-child(5) {
+    color: #b5180d;
+}
+
+/* score */
+.scores-table td:nth-child(6) {
+    font-weight: bold;
+}
+
+.round-date {
+    font-size: 15px;
+    font-style: italic;
+    color: #555555;
+}
+
+.warning-explanation {
+    color: #3e3d3d;
+    margin-top: -8px;
+    margin-bottom: 20px;
+    font-size: 17px;
+}
+
+@media (max-width: 1000px) {
+    .game-round-table td:nth-child(1),
+    .game-round-table td:nth-child(3) {
+        width: auto !important;
+    }
+
+    .game-round-table th:nth-child(1),
+    .game-round-table th:nth-child(3) {
+        width: auto !important;
+    }
+
+    .game-round-table td:nth-child(2),
+    .game-round-table th:nth-child(2) {
+        width: 100px !important;
+    }
+
+    /* # (ranking) */
+    .scores-table td:nth-child(1),
+    .scores-table th:nth-child(1) {
+        width: 50px;
+    }
+
+    /* Player */
+    .scores-table td:nth-child(2),
+    .scores-table th:nth-child(2) {
+        width: auto;
+    }
+
+    /* W, D, L, Score */
+    .scores-table td:nth-child(3),
+    .scores-table th:nth-child(3),
+    .scores-table td:nth-child(4),
+    .scores-table th:nth-child(4),
+    .scores-table td:nth-child(5),
+    .scores-table th:nth-child(5),
+    .scores-table td:nth-child(6),
+    .scores-table th:nth-child(6) {
+        width: 70px;
+    }
+
+    .round-date {
+        font-size: 28px;
+    }
+
+    h2 {
+        font-size: 42px;
+    }
+
+    .browse-links {
+        margin-bottom: 60px;
+    }
+
+    .warning-explanation {
+        font-size: 36px;
+    }
+}

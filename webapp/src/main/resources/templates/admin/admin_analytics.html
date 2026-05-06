@@ -1,0 +1,119 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Analytics</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <link rel="stylesheet" href="/css/admin/admin-analytics.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-analytics-dto.js"></script>
+    <script defer src="/js/admin/admin-analytics.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <div id="metrics-filter">
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-new-users" value="new users" checked></span>
+            <span class="label-span"><label for="filter-new-users">new users</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-new-guests" value="new guests" checked></span>
+            <span class="label-span"><label for="filter-new-guests">new guests</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-puzzles" value="puzzles" checked></span>
+            <span class="label-span"><label for="filter-puzzles">puzzles</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-puzzle-votes" value="puzzle votes"></span>
+            <span class="label-span"><label for="filter-puzzle-votes">puzzle votes</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-pvp" value="PvP" checked></span>
+            <span class="label-span"><label for="filter-pvp">PvP</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-pvp-3" value="PvP > 3" checked></span>
+            <span class="label-span"><label for="filter-pvp-3">PvP &gt; 3</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-pvb" value="PvB" checked></span>
+            <span class="label-span"><label for="filter-pvb">PvB</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-pvb-3" value="PvB > 3" checked></span>
+            <span class="label-span"><label for="filter-pvb-3">PvB &gt; 3</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-newsletters" value="newsletters"></span>
+            <span class="label-span"><label for="filter-newsletters">newsletters</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-chat-msg" value="chat msg" checked></span>
+            <span class="label-span"><label for="filter-chat-msg">chat msg</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-db-searches" value="db searches"></span>
+            <span class="label-span"><label for="filter-db-searches">db searches</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-pw-recoveries" value="pw recoveries"></span>
+            <span class="label-span"><label for="filter-pw-recoveries">pw recoveries</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-ads-cost" value="ads cost" checked></span>
+            <span class="label-span"><label for="filter-ads-cost">ads cost</label></span>
+        </div>
+        <div class="standard-checkbox">
+            <span><input type="checkbox" id="filter-ads-clicks" value="ads clicks"></span>
+            <span class="label-span"><label for="filter-ads-clicks">ads clicks</label></span>
+        </div>
+    </div>
+
+    <h1>Hourly stats</h1>
+    <hr/>
+    <table id="hourly-stats" class="stats-table">
+    </table>
+
+    <h1>Daily stats</h1>
+    <hr/>
+    <table id="daily-stats" class="stats-table">
+    </table>
+
+    <h1>Monthly stats</h1>
+    <hr/>
+    <table id="monthly-stats" class="stats-table">
+    </table>
+
+    <h1>Yearly stats</h1>
+    <hr/>
+    <table id="yearly-stats" class="stats-table">
+    </table>
+
+    <h1>Total stats</h1>
+    <hr/>
+    <table id="total-stats" class="stats-table">
+    </table>
+
+    <h1>Daily average per month stats</h1>
+    <hr/>
+    <table id="daily-avg-by-month-stats" class="stats-table">
+    </table>
+
+    <h1>Analysis per users</h1>
+    <hr/>
+    <table id="analysis-per-user" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">user</th>
+            <th class="value-cell">count</th>
+            <th class="label-cell">last updated</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

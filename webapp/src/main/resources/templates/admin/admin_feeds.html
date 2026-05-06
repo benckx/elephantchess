@@ -1,0 +1,92 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Feeds</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-feeds-dto.js"></script>
+    <script defer src="/js/admin/admin-feeds.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Last Game Updates</h1>
+    <hr/>
+    <table id="list-games" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">game id</th>
+            <th class="label-cell">inviter</th>
+            <th class="label-cell">invitee</th>
+            <th class="label-cell">mode</th>
+            <th class="value-cell">allow guests</th>
+            <th class="value-cell">always visible</th>
+            <th class="value-cell">private</th>
+            <th class="value-cell">time</th>
+            <th class="label-cell">status</th>
+            <th>index</th>
+            <th class="label-cell">created</th>
+            <th class="label-cell">updated</th>
+            <th class="label-cell">source</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <h1>Last Bot Game Updates</h1>
+    <hr/>
+    <table id="list-bot-games" class="stats-table">
+        <thead>
+        <tr>
+            <th>game id</th>
+            <th>user</th>
+            <th>engine</th>
+            <th>depth</th>
+            <th>position</th>
+            <th>color</th>
+            <th>status</th>
+            <th>outcome</th>
+            <th>index</th>
+            <th>created</th>
+            <th>updated</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <h1>Last Played Puzzles</h1>
+    <hr/>
+    <table id="last-played-puzzles" class="stats-table">
+        <thead>
+        <tr>
+            <th>user</th>
+            <th>puzzle</th>
+            <th>outcome</th>
+            <th>date</th>
+            <th>vote</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <h1>Users' Game Analysis</h1>
+    <hr/>
+    <table id="users-analysis" class="stats-table">
+        <thead>
+        <tr>
+            <th>user</th>
+            <th class="long-label-cell">name</th>
+            <th>version</th>
+            <th>last updated</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

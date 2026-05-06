@@ -1,0 +1,207 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.flex-triptych-left-container,
+.flex-triptych-right-container {
+    width: 23%;
+}
+
+.flex-triptych-board-container {
+    width: 44%;
+}
+
+.board-container-7k {
+    margin: auto;
+    aspect-ratio: 1;
+    background-color: #876e59;
+    padding: 1%;
+    text-align: initial;
+    touch-action: manipulation;
+    position: relative;
+    box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0px 0.25em 1em;
+    border: 2px solid #323232;
+    border-radius: 3px;
+}
+
+.board-container-7k .rows {
+    height: 5.25%; /* more or less 100/19 */
+    width: 100%;
+}
+
+.board-container-7k .piece-holder {
+    float: left;
+    position: relative;
+    height: 100%;
+    aspect-ratio: 1;
+}
+
+.board-container-7k .piece-circle {
+    position: absolute;
+    width: 95%;
+    height: 95%;
+    margin: 2.5%;
+    aspect-ratio: 1;
+    border-radius: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: rgba(0, 0, 0, 0.24) 0 2px 2px;
+    border: 1px solid black;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    z-index: 100;
+}
+
+.board-container-7k .piece-circle img {
+    width: 65%;
+    height: 65%;
+}
+
+.board-container-7k .piece-circle img.purple-color,
+.board-container-7k .piece-circle img.red-color,
+.board-container-7k .piece-circle img.blue-color,
+.board-container-7k .piece-circle img.green-color {
+    opacity: 90%;
+}
+
+.board-container-7k .piece-circle img.orange-color {
+    opacity: 85%;
+}
+
+.board-container-7k .piece-label {
+    user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    font-size: 90%;
+}
+
+.board-container-7k .visible-square {
+    background-color: #ead1af;
+    height: 100%;
+    margin: 50%;
+    aspect-ratio: 1;
+    border: 1px solid rgba(10, 10, 10, 0.8);
+    border-right-width: 0;
+    border-bottom-width: 0;
+    position: absolute;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.board-container-7k .piece-holder:nth-last-child(2) .visible-square {
+    border-right-width: 1px;
+}
+
+.board-container-7k .rows:last-child .visible-square {
+    border-bottom-width: 1px;
+}
+
+.board-container-7k .selected-piece-highlight,
+.board-container-7k .possible-capture-highlight,
+.board-container-7k .legal-move-highlight,
+.board-container-7k .all-players-move-highlight {
+    position: absolute;
+    border-radius: 100%;
+    z-index: 10;
+}
+
+.board-container-7k .selected-piece-highlight {
+    width: 110%;
+    height: 110%;
+    margin: -5%;
+    background-color: rgba(40, 229, 27, 0.7);
+}
+
+.board-container-7k .possible-capture-highlight {
+    width: 130%;
+    height: 130%;
+    margin: -15%;
+    background-color: red;
+}
+
+.board-container-7k .legal-move-highlight {
+    width: 90%;
+    height: 90%;
+    margin: 5%;
+    background-color: rgba(0, 64, 255, 0.4);
+}
+
+.board-container-7k .all-players-move-highlight {
+    width: 70%;
+    height: 70%;
+    margin: 15%;
+    opacity: 75%;
+}
+
+.safari-board-container-7k {
+    display: flex;
+}
+
+.safari-board-container-7k .rows {
+    height: 5.10%;
+}
+
+.kingdom-color-indicator {
+    border: 1px solid black;
+    width: 12px;
+    height: 12px;
+    margin-left: 6px;
+}
+
+.kingdom-color-indicator-white {
+    background-color: #FFFFFF;
+}
+
+.kingdom-color-indicator-red {
+    background-color: #c44a4a;
+}
+
+.kingdom-color-indicator-orange {
+    background-color: rgb(253, 189, 71);
+}
+
+.kingdom-color-indicator-blue {
+    background-color: rgb(74, 101, 206);
+}
+
+.kingdom-color-indicator-green {
+    background-color: rgb(11, 187, 11);
+}
+
+.kingdom-color-indicator-purple {
+    background-color: rgb(194, 36, 194);
+}
+
+.kingdom-color-indicator-black {
+    background-color: #000000;
+}
+
+/* copy-pasted from style-reactive */
+/* so this doesn't get overridden by the above triptych configuration */
+@media (max-width: 1000px) {
+    .flex-triptych-left-container,
+    .flex-triptych-board-container,
+    .flex-triptych-right-container {
+        width: 100%;
+        min-width: auto;
+        max-width: 100%;
+    }
+}

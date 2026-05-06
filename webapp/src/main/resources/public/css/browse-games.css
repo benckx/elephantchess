@@ -1,0 +1,78 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.description {
+    font-size: 16px;
+    color: #434343;
+    margin-bottom: 20px;
+    margin-top: -10px;
+}
+
+#pvp-games-container,
+#pvb-games-container,
+#db-games-container {
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#pvp-games-container .pvp-game-thumb,
+#pvb-games-container .pvb-game-thumb,
+#db-games-container .db-game-thumb {
+    margin: 10px;
+}
+
+#is-loading-message,
+#end-of-pagination-message {
+    text-align: center;
+    padding: 20px;
+    font-size: 16px;
+    color: #434343;
+    font-style: italic;
+}
+
+#no-games-message {
+    margin-top: 40px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1000px) {
+    .description {
+        font-size: 32px;
+        margin-bottom: 30px;
+    }
+
+    #pvp-games-container,
+    #pvb-games-container,
+    #db-games-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #is-loading-message,
+    #end-of-pagination-message {
+        font-size: 32px;
+        padding: 40px;
+    }
+}
+

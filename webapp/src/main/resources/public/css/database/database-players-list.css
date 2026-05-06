@@ -1,0 +1,78 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/* Shared standings/scores table styles */
+
+/* Player */
+.standings-table td:nth-child(1) {
+    width: 300px;
+    text-align: left;
+}
+
+.standings-table th:nth-child(1) {
+    width: 300px;
+    text-align: center;
+}
+
+/* W, D, L, Games */
+.standings-table td:nth-child(2),
+.standings-table th:nth-child(2),
+.standings-table td:nth-child(3),
+.standings-table th:nth-child(3),
+.standings-table td:nth-child(4),
+.standings-table th:nth-child(4),
+.standings-table td:nth-child(5),
+.standings-table th:nth-child(5) {
+    width: 60px;
+    text-align: center;
+}
+
+/* W - green */
+.standings-table td:nth-child(2) {
+    color: #19681d;
+}
+
+/* D - gray */
+.standings-table td:nth-child(3) {
+    color: #535252;
+}
+
+/* L - red */
+.standings-table td:nth-child(4) {
+    color: #b5180d;
+}
+
+/* Games - bold */
+.standings-table td:nth-child(5) {
+    font-weight: bold;
+}
+
+@media (max-width: 1000px) {
+    /* W, D, L, Games */
+    .standings-table td:nth-child(2),
+    .standings-table th:nth-child(2),
+    .standings-table td:nth-child(3),
+    .standings-table th:nth-child(3),
+    .standings-table td:nth-child(4),
+    .standings-table th:nth-child(4),
+    .standings-table td:nth-child(5),
+    .standings-table th:nth-child(5) {
+        width: 70px;
+    }
+}

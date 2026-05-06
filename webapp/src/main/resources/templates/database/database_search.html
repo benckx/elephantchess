@@ -1,0 +1,121 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Database Search</title>
+    <meta name="description"
+          content="Search among 100,000 Chinese chess (Xiangqi) games from the best players world-wide. Statistics, openings, and more."/>
+    <link rel="stylesheet" href="/css/my-user-data-items.css"/>
+    <link rel="stylesheet" href="/css/database/database-search.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker.min.css">
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/widgets/database-autocompletion.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/database/database-search.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>Database Search</h1>
+    <hr/>
+    <div class="database-search-layout">
+        <div class="database-search-left">
+            <p style="margin-block-start: 0;">
+                Search among <span id="total-games">--</span> games in the database.
+            </p>
+            <p>
+                Games in this database only include games from tournaments. Games played on elephantchess.io itself are
+                not included and can not be searched at the moment.
+            </p>
+            <div class="search-container">
+                <label class="search-label">
+                    <span>Player</span>
+                    <span class="list-of-entities-link">
+                        <a href="/database/players?medium=database-search">list all players</a>
+                    </span>
+                    <input id="player-search" type="text"/>
+                </label>
+                <div class="suggestions-box">
+                    <div class="suggestions-box-content"></div>
+                </div>
+                <div id="player-color-options" class="player-color-options player-color-options-disabled">
+                    <label id="player-color-red-label">
+                        <input id="player-color-red-input" type="radio" name="player-color" value="red" disabled/>
+                        Playing Red
+                    </label>
+                    <label id="player-color-black-label">
+                        <input id="player-color-black-input" type="radio" name="player-color" value="black" disabled/>
+                        Playing Black
+                    </label>
+                    <label id="player-color-any-label">
+                        <input id="player-color-any-input" type="radio" name="player-color" value="both" disabled
+                               checked/>
+                        Playing Any Color
+                    </label>
+                </div>
+            </div>
+            <div class="search-container">
+                <label class="search-label">
+                    <span>Event</span>
+                    <span class="list-of-entities-link">
+                        <a href="/database/events?medium=database-search">list all events</a>
+                    </span>
+                    <input id="event-search" type="text"/>
+                </label>
+                <div class="suggestions-box">
+                    <div class="suggestions-box-content"></div>
+                </div>
+            </div>
+            <div id="date-range-search" class="search-container">
+                <div>
+                    <span class="search-label">Date</span>
+                </div>
+                <div id="date-range-search-inputs">
+                    <div>
+                        <label><input type="text" name="start" class="datepicker-field"></label>
+                        <span>to</span>
+                        <label><input type="text" name="end" class="datepicker-field"></label>
+                    </div>
+                    <div id="relative-time-options-block">
+                        <a href="#" class="action-link" id="range-selector-ytd">YTD</a>
+                        <span> </span>
+                        <a href="#" class="action-link" id="range-selector-12m">12M</a>
+                        <span> </span>
+                        <a href="#" class="action-link" id="range-selector-mtd">MTD</a>
+                        <span> </span>
+                        <a href="#" class="action-link" id="range-selector-30d">30D</a>
+                    </div>
+                </div>
+            </div>
+            <div class="search-container">
+                <div>
+                    <span class="search-label">Position (FEN)</span>
+                </div>
+                <input id="fen-search" type="text"/>
+            </div>
+            <div id="buttons-container">
+                <input type="button" value="Search" id="search-button" class="app-buttons-bigger"/>
+                <input type="button" value="Clear" id="clear-button" class="app-buttons-bigger"/>
+            </div>
+        </div>
+        <div class="database-search-right">
+            <h2>Featured Players</h2>
+            <div id="featured-players-list">
+                Loading...
+            </div>
+        </div>
+    </div>
+    <div>
+        <div id="search-results">
+        </div>
+        <div id="is-loading-message">
+            Loading more games...
+        </div>
+        <div id="end-of-pagination-message">
+            No more games to load.
+        </div>
+    </div>
+</div>
+</body>
+</html>

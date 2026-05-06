@@ -1,0 +1,50 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Pre-Analysis</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-pre-analysis-dto.js"></script>
+    <script defer src="/js/admin/admin-pre-analysis.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Latest Analyzed Games</h1>
+    <hr/>
+    <table id="latest-analyzed-games" class="stats-table">
+        <thead>
+        <tr>
+            <th>game type</th>
+            <th>id</th>
+            <th class="label-cell">first</th>
+            <th class="label-cell">last</th>
+            <th>analyzed positions</th>
+            <th>status</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <h1>Pre-Analysis Completion Per Year</h1>
+    <hr/>
+    <table id="pre-analysis-per-year-table" class="stats-table">
+        <thead>
+        <tr>
+            <th>year</th>
+            <th>not started</th>
+            <th>partial</th>
+            <th>completed</th>
+            <th>canceled</th>
+            <th>started</th>
+            <th>total</th>
+            <th>completion</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

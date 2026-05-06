@@ -1,0 +1,58 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>{{page_title}}</title>
+    {{meta_no_index_conditional}}
+    {{description_meta}}
+    {{author_meta}}
+    <link rel="stylesheet" href="/css/database/database-player.css"/>
+    {{player_profile_description_style}}
+    {{apex_charts}}
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/game-thumb.js"></script>
+    <script defer src="/js/database/widgets/player-stats-chart.js"></script>
+    <script defer src="/js/database/database-player-utils.js"></script>
+    <script defer src="/js/database/database-player.js"></script>
+</head>
+<body data-player-id="{{player_id}}">
+{{body_init}}
+<div class="main-container-text">
+    <h1>{{page_title}}</h1>
+    <hr/>
+    <div id="player-profile-description">
+        {{player_profile_description}}
+        <div class="profile-sources">
+            <h3>Sources</h3>
+            <ul>{{player_profile_sources}}</ul>
+        </div>
+    </div>
+    <div id="profile-actions">
+        <a id="view-current-version-link" href="/database/player/{{player_name_encoded}}">view current version</a>
+        <a href="/database/player/{{player_name_encoded}}/edit-history">view edit history</a>
+        <a href="/database/player/{{player_name_encoded}}/edit">edit profile</a>
+    </div>
+    <h1>Statistics</h1>
+    <div class="center-content-div">
+        <div id="player-stats-chart"></div>
+    </div>
+    <div id="include-possible-duplicates-data-warning">
+        <div>
+            (*) Includes data from "Possible Duplicates" (see below)
+        </div>
+    </div>
+    <h1>Latest Games</h1>
+    <div class="latest-games-container">
+        {{game_thumb}}[[iterations:4; {gameType: 'db', parentClass: 'latest-game-thumb'}]]
+    </div>
+    <div class="center-content-div browse-more-link-container">
+        <a href="/database/player/{{player_name_encoded}}/games" class="browse-more-link">Browse Games</a>
+    </div>
+    <div id="possible-duplicate-block" style="display: none;">
+        <h1>Possible Duplicates</h1>
+        <ul></ul>
+    </div>
+</div>
+{{footer}}
+</body>
+</html>

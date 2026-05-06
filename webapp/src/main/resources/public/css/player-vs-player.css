@@ -1,0 +1,211 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#red-player-info,
+#black-player-info,
+#red-player-info-placeholder,
+#black-player-info-placeholder,
+#inviter-player-info,
+tr#inviter-row,
+tr#outcome-row {
+    display: none;
+}
+
+#red-player-info-placeholder,
+#black-player-info-placeholder {
+    font-weight: lighter;
+    color: #515151;
+}
+
+#game-info-info-box {
+    height: 200px;
+    display: flex;
+}
+
+#perpetual-checking-tracker-info-box {
+    margin-top: 12px;
+}
+
+#rating-update-box {
+    display: none;
+}
+
+#game-actions-buttons-info-box {
+    display: none;
+}
+
+#counter-box {
+    margin-top: 18px;
+    width: 70%;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.time-counter {
+    width: 100%;
+    font-size: 30px;
+    font-weight: bold;
+    font-family: Courier New, Courier, Lucida Sans Typewriter, Lucida Typewriter, monospace;
+    text-align: center;
+    padding-top: 8px;
+    padding-bottom: 4px;
+    border: 4px solid transparent;
+}
+
+.red-counter {
+    border-color: rgb(138 0 0);
+    color: rgb(138 0 0);
+    background-color: rgb(255 0 0 / 34%);
+}
+
+.black-counter {
+    color: rgba(0, 0, 0);
+    border-color: rgba(0, 0, 0);
+    background-color: rgb(111 111 111 / 58%);
+}
+
+.top-counter {
+    border-bottom-width: 0;
+}
+
+.bottom-counter {
+    border-top-width: 1px;
+    border-top-style: dashed;
+    border-top-color: #4d4d4d;
+}
+
+.move-tree-container-smaller {
+    height: 270px;
+}
+
+#join-game-modal-table {
+    border-spacing: 10px 0;
+    width: 100%;
+}
+
+#join-game-modal-table td.left-side {
+    text-align: right;
+    width: 45%;
+}
+
+#join-game-modal-table td.right-side {
+    text-align: left;
+    width: 45%;
+}
+
+#board-and-masks-container {
+    position: relative;
+}
+
+.message-board-mask {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    aspect-ratio: 0.9;
+    z-index: 150;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.message-board-mask .message-content {
+    margin: 30px;
+    font-size: 25px;
+    font-style: italic;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgb(43, 106, 16);
+    padding: 46px 30px;
+    border-radius: 9px;
+    background-color: rgba(180, 234, 156);
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
+}
+
+@media (max-width: 1000px) {
+    .time-counter {
+        font-size: 46px;
+    }
+
+    #analysis-button-container-right-side {
+        margin-top: 36px;
+    }
+
+    #game-info-info-box {
+        height: 420px;
+    }
+
+    #perpetual-checking-tracker-info-box {
+        margin-top: 20px;
+        font-size: 32px;
+    }
+
+    #perpetual-checking-tracker-info-box .color-header {
+        font-size: 26px;
+    }
+
+    #share-link-to-invite-friend-message {
+        margin-top: 26px;
+        margin-bottom: 26px;
+        font-size: 32px;
+    }
+
+    .little-message {
+        width: 94%;
+    }
+
+    .little-message .icon-container {
+        min-width: 46px;
+    }
+
+    .little-message .icon-container img {
+        width: 30px;
+    }
+
+    #join-game-modal-table td {
+        font-size: 40px;
+    }
+
+    #join-game-container {
+        margin-top: 34px;
+        margin-bottom: 34px;
+    }
+
+    #chat-box-container {
+        order: 1;
+    }
+
+    #game-actions-buttons-info-box {
+        order: 2;
+    }
+
+    #game-info-info-box {
+        order: 3;
+    }
+
+    .message-board-mask .message-content {
+        margin: 40px;
+        font-size: 40px;
+        border-width: 3px;
+        padding: 50px 40px;
+    }
+
+    .message-board-mask .message-content .action-link {
+        font-size: 40px;
+    }
+}

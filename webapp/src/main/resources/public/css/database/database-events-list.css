@@ -1,0 +1,40 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/* name */
+.events-list-table th:first-child,
+.events-list-table td:first-child {
+    width: 600px;
+}
+
+/* date */
+.events-list-table th:nth-child(2),
+.events-list-table td:nth-child(2) {
+    width: 120px;
+    text-align: center;
+}
+
+/* #rounds and #games */
+.events-list-table th:nth-child(3),
+.events-list-table td:nth-child(3),
+.events-list-table th:nth-child(4),
+.events-list-table td:nth-child(4) {
+    width: 50px;
+    text-align: center;
+}

@@ -1,0 +1,184 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>The Game of the Seven Kingdoms - Game</title>
+    <meta name="description" content="{{seven_kingdoms_description}}">
+    <meta name="keywords" content="{{seven_kingdoms_keywords}}"/>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/seven-kingdoms/seven-kingdoms-module.css"/>
+    <link rel="stylesheet" href="/css/seven-kingdoms/seven-kingdoms-game.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/modules/seven-kingdoms-module.js"></script>
+    <script defer src="/js/widgets/seven-kingdoms-board-widget.js"></script>
+    <script defer src="/js/seven-kingdoms-game/seven-kingdoms-dto.js"></script>
+    <script defer src="/js/seven-kingdoms-game/seven-kingdoms-client.js"></script>
+    <script defer src="/js/seven-kingdoms-game/seven-kingdoms-controller.js"></script>
+    <script defer src="/js/seven-kingdoms-game/seven-kingdoms-widgets.js"></script>
+    <script defer src="/js/seven-kingdoms-game/seven-kingdoms-game-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="flex-triptych-container">
+    <div class="flex-triptych-left-container">
+        <div class="info-box">
+            {{seven_kingdoms_player_info}}[[iterations:7]]
+        </div>
+    </div>
+    <div class="flex-triptych-board-container">
+        <div id="board-container" class="board-container-7k">
+        </div>
+    </div>
+    <div class="flex-triptych-right-container">
+        <div class="info-box">
+            Placeholder for the right container
+        </div>
+        <div class="move-history-container basic-box"></div>
+        <div class="info-box">
+            <table id="kingdoms-data-table">
+                <tr id="row-white">
+                    <td class="indicator-cell">
+                        <div class="kingdom-color-indicator kingdom-color-indicator-white"></div>
+                    </td>
+                    <td class="kingdom-name-cell">
+                        Qin (秦)
+                    </td>
+                    <td class="captures-counter-cell">
+                        0/30
+                    </td>
+                    <td class="losses-counter-cell">
+                        0/10
+                    </td>
+                    <td class="captured-kingdoms-indicator-cell">
+                        <div class="center-content-div">
+                            <div class="kingdom-color-indicator"></div>
+                            <div class="kingdom-color-indicator"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="row-red">
+                    <td class="indicator-cell">
+                        <div class="kingdom-color-indicator kingdom-color-indicator-red"></div>
+                    </td>
+                    <td class="kingdom-name-cell">
+                        Chu (楚)
+                    </td>
+                    <td class="captures-counter-cell">
+                        0/30
+                    </td>
+                    <td class="losses-counter-cell">
+                        0/10
+                    </td>
+                    <td class="captured-kingdoms-indicator-cell">
+                        <div class="center-content-div">
+                            <div class="kingdom-color-indicator"></div>
+                            <div class="kingdom-color-indicator"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="row-orange">
+                    <td class="indicator-cell">
+                        <div class="kingdom-color-indicator kingdom-color-indicator-orange"></div>
+                    </td>
+                    <td class="kingdom-name-cell">
+                        Han (韓)
+                    </td>
+                    <td class="captures-counter-cell">
+                        0/30
+                    </td>
+                    <td class="losses-counter-cell">
+                        0/10
+                    </td>
+                    <td class="captured-kingdoms-indicator-cell">
+                        <div class="center-content-div">
+                            <div class="kingdom-color-indicator"></div>
+                            <div class="kingdom-color-indicator"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="row-blue">
+                    <td class="indicator-cell">
+                        <div class="kingdom-color-indicator kingdom-color-indicator-blue"></div>
+                    </td>
+                    <td class="kingdom-name-cell">
+                        Qi (齊)
+                    </td>
+                    <td class="captures-counter-cell">
+                        0/30
+                    </td>
+                    <td class="losses-counter-cell">
+                        0/10
+                    </td>
+                    <td class="captured-kingdoms-indicator-cell">
+                        <div class="center-content-div">
+                            <div class="kingdom-color-indicator"></div>
+                            <div class="kingdom-color-indicator"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="row-green">
+                    <td class="indicator-cell">
+                        <div class="kingdom-color-indicator kingdom-color-indicator-green"></div>
+                    </td>
+                    <td class="kingdom-name-cell">
+                        Wei (魏)
+                    </td>
+                    <td class="captures-counter-cell">
+                        0/30
+                    </td>
+                    <td class="losses-counter-cell">
+                        0/10
+                    </td>
+                    <td class="captured-kingdoms-indicator-cell">
+                        <div class="center-content-div">
+                            <div class="kingdom-color-indicator"></div>
+                            <div class="kingdom-color-indicator"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="row-purple">
+                    <td class="indicator-cell">
+                        <div class="kingdom-color-indicator kingdom-color-indicator-purple"></div>
+                    </td>
+                    <td class="kingdom-name-cell">
+                        Zhao (趙)
+                    </td>
+                    <td class="captures-counter-cell">
+                        0/30
+                    </td>
+                    <td class="losses-counter-cell">
+                        0/10
+                    </td>
+                    <td class="captured-kingdoms-indicator-cell">
+                        <div class="center-content-div">
+                            <div class="kingdom-color-indicator"></div>
+                            <div class="kingdom-color-indicator"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="row-black">
+                    <td class="indicator-cell">
+                        <div class="kingdom-color-indicator kingdom-color-indicator-black"></div>
+                    </td>
+                    <td class="kingdom-name-cell">
+                        Yan (燕)
+                    </td>
+                    <td class="captures-counter-cell">
+                        0/30
+                    </td>
+                    <td class="losses-counter-cell">
+                        0/10
+                    </td>
+                    <td class="captured-kingdoms-indicator-cell">
+                        <div class="center-content-div">
+                            <div class="kingdom-color-indicator"></div>
+                            <div class="kingdom-color-indicator"></div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+{{logged_as_guest_message}}
+</body>
+</html>

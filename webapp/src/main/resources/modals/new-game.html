@@ -1,0 +1,229 @@
+<div id="create-new-game-modal" class="modal-content" data-nosnippet>
+    <h2>New Game</h2>
+    <div class="new-game-main-container">
+        <div class="container-with-margin">
+            <div class="small-text-explanation">
+                Create a new game that other players will be able to join. You can wait for another player to join your
+                or share the link with a friend.
+            </div>
+            <table class="new-game-option-table">
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/contrast-circle-symbol.png"
+                                 class="time-control-icons"
+                                 alt="color">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="option-red" class="option-button-div color-option-button-div red-color">
+                            Red
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="option-black" class="option-button-div color-option-button-div black-color">
+                            Black
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="option-any-color"
+                             class="option-button-div color-option-button-div option-button-div-selected">
+                            Any
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div class="small-text-explanation">
+                Times indicated below represent <b>total game time</b> given to each player.
+            </div>
+            <table class="new-game-option-table">
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/shuttle.png"
+                                 class="time-control-icons"
+                                 alt="bullet">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-60" class="option-button-div tc-option-button-div">
+                            1m
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-60-1" class="option-button-div tc-option-button-div">
+                            1m +1s
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-120-1" class="option-button-div tc-option-button-div">
+                            2m +1s
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/flash.png"
+                                 class="time-control-icons blitz-time-control-icons"
+                                 alt="blitz">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-180" class="option-button-div tc-option-button-div">
+                            3m
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-180-2" class="option-button-div tc-option-button-div">
+                            3m +2s
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-300" class="option-button-div tc-option-button-div">
+                            5m
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/run.png"
+                                 class="time-control-icons"
+                                 alt="rapid">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-600" class="option-button-div tc-option-button-div">
+                            10m
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-900-10" class="option-button-div tc-option-button-div">
+                            15m +10s
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-1800" class="option-button-div tc-option-button-div option-button-div-selected">
+                            30m
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/museum.png"
+                                 class="time-control-icons"
+                                 alt="classical">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-3600" class="option-button-div tc-option-button-div">
+                            1h
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id=tc-3600-60" class="option-button-div tc-option-button-div">
+                            1h +1m
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-7200" class="option-button-div tc-option-button-div">
+                            2h
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div class="small-text-explanation">
+                Times indicated below represent <b>move time</b>. The counter will reset to the initial time on each
+                move.
+            </div>
+            <table class="new-game-option-table">
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/email.png"
+                                 class="time-control-icons"
+                                 alt="correspondence">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-86400" class="option-button-div option-button-div-disabled tc-option-button-div">
+                            1d
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-259200" class="option-button-div option-button-div-disabled tc-option-button-div">
+                            3d
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="tc-604800" class="option-button-div option-button-div-disabled tc-option-button-div">
+                            7d
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div id="additional-options-box">
+                <div id="additional-options-title">
+                    Additional Options
+                </div>
+                <div id="additional-options-checkboxes">
+                    <!-- rated/casual option -->
+                    <div id="is-rated-container" class="standard-checkbox">
+                        <span>
+                            <input id="is-rated" type="checkbox" checked/>
+                        </span>
+                        <span class="label-span">
+                            <label for="is-rated">
+                                Rated
+                            </label>
+                        </span>
+                    </div>
+
+                    <!-- allow guests option -->
+                    <div id="allow-guests-container" class="standard-checkbox standard-checkbox-disabled">
+                        <span>
+                            <input id="allow-guests" type="checkbox" disabled checked/>
+                        </span>
+                        <span class="label-span">
+                            <label for="allow-guests">
+                                Allow guests to join
+                            </label>
+                        </span>
+                    </div>
+
+                    <!-- always visible in lobby option -->
+                    <div id="always-visible-in-lobby-container" class="standard-checkbox">
+                        <span>
+                            <input id="always-visible-in-lobby" type="checkbox"/>
+                        </span>
+                        <span class="label-span">
+                            <label for="always-visible-in-lobby">
+                                Always show in lobby (also when I'm offline)
+                            </label>
+                        </span>
+                    </div>
+
+                    <!-- private game option -->
+                    <div id="is-private-container" class="standard-checkbox">
+                        <span>
+                            <input id="private-invite" type="checkbox"/>
+                        </span>
+                        <span class="label-span">
+                            <label for="private-invite">
+                                Private game invite (only players with the link can join)
+                            </label>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-buttons-panel" style="margin-top: 12px">
+        <input type="button"
+               id="create-new-game-button-modal"
+               class="app-buttons app-buttons-bigger create-game-buttons"
+               value="create game">
+    </div>
+</div>

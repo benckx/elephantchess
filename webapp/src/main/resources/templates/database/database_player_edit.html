@@ -1,0 +1,125 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Edit Database Player</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/database/database-player-edit.css">
+    <script defer src="/js/database/database-player-profile-dto.js"></script>
+    <script defer src="/js/database/database-player-utils.js"></script>
+    <script defer src="/js/database/database-player-edit.js"></script>
+</head>
+<body data-player-id="{{player_id}}">
+{{body_init}}
+<div class="main-container-text-extended">
+    <p>
+        <a id="view-player-profile-link" href="#">view current player page version</a>
+    </p>
+    <h1>Edit History</h1>
+    <hr/>
+    <div id="version-history-container"></div>
+    <h1>Edit Database Player</h1>
+    <hr/>
+    <p>
+        If you need to discuss with other editors, the best place to do so is the <b><a
+            href="https://discord.com/channels/1084084469813747712/1457395719500726297" target="_blank">#editors</a></b>
+        channel on the <b><a href="https://discord.gg/WEGDqnWXNg" target="_blank">Discord</a></b>.
+    </p>
+    <div id="loading-message" style="display: block;">
+        <p>Loading player data...</p>
+    </div>
+    <div id="player-edit-form" style="display: none;">
+        <form id="edit-form">
+            <!-- canonical name section -->
+            <h4>Canonical Name</h4>
+            <ul>
+                <li>
+                    <i>Canonical Name</i> means a "clean" and standardized reference name that can be re-used across the
+                    Database. There are used for URL permalink, so avoid changing it too often. For that reason, we'll
+                    also avoid accentuated transliterations (e.g. "Fù Guāngmíng").
+                </li>
+                <li>
+                    In Chinese names, the surname (i.e. family name) comes first, followed by the given name. Standard
+                    Hanyu Pinyin rules dictate that the given name should be written as a single word with only the
+                    first letter capitalized. <b>For example: "Wang Tianyi"</b> instead of "Wang TianYi".
+                </li>
+                <li>
+                    For Western names, please follow the standard English naming conventions, with the given name first
+                    and the surname last. <b>For example: "John Smith"</b>.
+                </li>
+            </ul>
+            <input type="text" id="canonical-name" name="canonicalName" required/>
+
+            <!-- Chinese name section -->
+            <h4>Chinese Name</h4>
+            <input type="text" id="chinese-name" name="chineseName"/>
+
+            <!-- gender section -->
+            <h4>Gender</h4>
+            <select id="gender" name="gender">
+                <option value="">Not specified</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+            </select>
+
+            <!-- profile text section -->
+            <h4>Profile Text</h4>
+            <ul>
+                <li>
+                    If you use AI to edit the profile, please check the text is still factually correct and consistent
+                    with the sources, and indicate it in the Edit Comment section.
+                </li>
+                <li>
+                    Do not copy-paste copyrighted text from other websites. Write original text based on the sources you
+                    have, otherwise those edits will be disabled.
+                </li>
+                <li>
+                    To reference another player, add a HTML anchor in this format: <code>&lt;a
+                    href="/database/player/Wang_Tianyi"&gt;Wang Yuefei&lt;/a&gt;</code>
+                </li>
+            </ul>
+            <textarea id="profile-text" name="profileText" rows="20"
+                      placeholder="Enter player profile description..."></textarea>
+
+            <!-- sources section -->
+            <h4>Sources</h4>
+            <ul>
+                <li>
+                    At least one source is required, if possible in English. Ideally multiple.
+                </li>
+                <li>
+                    If not in English, please specify language in brackets (e.g. (zh) for Chinese, (vi) for Vietnamese,
+                    etc.). Check the
+                    <a href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes" target="_blank">ISO</a>
+                    convention of language codes (use two letters codes). If necessary, I will later develop a drop-down
+                    list.
+                </li>
+                <li>
+                    Just because you mentioned the source doesn't mean you can reproduce the entire page. Please
+                    re-phrase and re-write.
+                </li>
+            </ul>
+
+            <div id="sources-container">
+            </div>
+            <div class="center-content-div">
+                <div>
+                    <input type="button" id="add-source-btn" class="app-buttons" value="add Source"/>
+                </div>
+            </div>
+
+            <h4>Edit Comment</h4>
+            <textarea id="edit-comment" name="editComment" rows="3"
+                      placeholder="Describe the changes you made. Specify if you used AI."></textarea>
+
+            <div class="center-content-div" style="margin-top: 20px">
+                <div>
+                    <input type="button" id="save-changes-btn" class="app-buttons-bigger" value="Save Changes"/>
+                    <input type="button" id="cancel-btn" class="app-buttons-bigger app-buttons-red"
+                           value="Cancel"/>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

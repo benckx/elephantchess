@@ -1,0 +1,386 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.character-counter {
+    margin-top: 24px;
+    width: 98%;
+}
+
+#game-info-box {
+    display: none;
+}
+
+.bar-indicator-container {
+    width: 100%;
+    height: 16px;
+    margin-right: 8px;
+}
+
+.bar-indicator div {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#engine-eval-info-box {
+    position: relative;
+    min-height: 280px;
+    font-size: 16px;
+    padding-top: 14px;
+    padding-bottom: 8px;
+}
+
+#eval-bar-container {
+    margin-bottom: 4px;
+}
+
+#eval-bar-container #indicator-values {
+    margin-top: 3px;
+    margin-left: 12px;
+    font-size: 15px;
+    color: whitesmoke;
+    position: absolute;
+    text-align: center;
+}
+
+#eval-bar-container .bar-indicator-container {
+    height: 23px;
+}
+
+#analysis-progress-bar-box {
+    display: none;
+    font-size: 14px;
+    margin-top: 14px;
+    margin-bottom: 26px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+#analysis-progress-bar-box .bar-indicator-container {
+    height: 19px;
+}
+
+#analysis-progress-bar-box .bar-indicator-container div {
+    margin-top: 3px;
+}
+
+#engine-eval-info-box #engine-pv {
+    position: absolute;
+    margin-top: 7px;
+    width: 90%;
+}
+
+/*noinspection CssReplaceWithShorthandSafely*/
+#engine-eval-info-box .engine-pv-move {
+    float: left;
+    padding-left: 0;
+    padding-right: 6px;
+    padding-top: 0;
+    padding-bottom: 1px;
+}
+
+.engine-pv-move-hovered {
+    cursor: pointer;
+    color: #17920f;
+}
+
+#engine-eval-info-box span#engine-depth {
+    position: absolute;
+    bottom: 10px;
+    right: 14px;
+    font-style: italic;
+    font-size: 14px;
+}
+
+#engine-eval-info-box #engine-raw-line {
+    position: absolute;
+    bottom: 30px;
+    width: 90%;
+    font-family: Courier New, Courier, Lucida Sans Typewriter, Lucida Typewriter, monospace;
+    font-size: 12px;
+    color: #2a2929;
+}
+
+#opening-repository-container {
+    position: relative;
+    height: 180px;
+    margin-bottom: 15px;
+}
+
+#opening-repository-container-loading-mask {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #c7baa6;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#opening-repository-container-loading-mask #opening-repository-mask-label-indicator {
+    font-size: 28px;
+    font-style: italic;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+#persist-options {
+    display: none;
+    padding: 15px;
+}
+
+#analysis-name-block {
+    display: flex;
+}
+
+#persist-options input#analysis-name {
+    width: 100%;
+}
+
+#persist-options input#rename-analysis-button {
+    height: 26px;
+    margin: 0 0 0 5px;
+}
+
+#persist-options span#save-status {
+    font-size: 13px;
+}
+
+#info-about-analysis {
+    display: none;
+    padding: 15px;
+}
+
+#info-about-analysis span.info-about-analysis-parts {
+    float: left;
+}
+
+/* annotations */
+
+.analysis-annotation {
+    position: absolute;
+    z-index: 115;
+    background-color: #f1f1f1;
+    border: 1px solid #4a4a4a;
+    border-radius: 1px;
+    text-align: center;
+    left: 300px;
+    top: 300px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+    width: 360px;
+    height: 296px;
+}
+
+.text-area-container textarea {
+    width: 350px;
+    height: 220px;
+}
+
+.analysis-annotation .text-area-container {
+    height: 200px;
+    padding: 5px;
+}
+
+.analysis-annotation-header {
+    cursor: move;
+    z-index: 115;
+    background-color: #2196F3;
+    color: #fff;
+    height: 40px;
+    font-size: 16px;
+}
+
+.analysis-annotation-close {
+    float: right;
+    padding-right: 10px;
+    padding-top: 6px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    background-color: #2196F3;
+    color: #fff;
+    height: 34px;
+}
+
+.analysis-annotation-close:hover {
+    color: red;
+}
+
+.analysis-annotation-dragged {
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+}
+
+.analysis-annotation-hidden {
+    display: none;
+}
+
+#annotation-move-placeholder {
+    margin-left: 5px;
+}
+
+#fen-export-info-box {
+    margin-top: 10px;
+    font-size: 15px;
+    padding: 8px 8px;
+}
+
+#fen-export-info-box img.icons {
+    width: 16px;
+    cursor: pointer;
+    opacity: 80%;
+}
+
+input[type='text']#fen-export-input {
+    width: 100%;
+    font-size: 14px;
+    margin-right: 5px;
+    text-align: center;
+}
+
+#parse-pgn-modal {
+    width: 550px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#moves-to-import-text-area {
+    width: 100%;
+    height: 350px;
+    font-size: 14px;
+    margin-right: 5px;
+    text-align: left;
+}
+
+
+#move-history-drop-down-menu {
+    position: absolute;
+    float: left;
+    left: -120px;
+    top: 60px;
+    width: 140px;
+    display: none;
+}
+
+#move-history-drop-down-menu-3-dots-button {
+    position: absolute;
+    top: 74px;
+    left: 100%;
+}
+
+#move-history-drop-down-menu-3-dots-button img {
+    height: 38px;
+    opacity: 84%;
+    padding: 10px 6px;
+    cursor: pointer;
+}
+
+#move-history-drop-down-menu-3-dots-button img:hover {
+    background-color: #d7d3ce;
+}
+
+#move-history-loading-icon {
+    position: absolute;
+    top: 467px;
+    left: 100%;
+    width: 50px;
+    height: 50px;
+    visibility: hidden;
+}
+
+#move-history-loading-icon img {
+    padding: 3px;
+    width: 44px;
+    height: 44px;
+}
+
+@media (max-width: 1000px) {
+    /* disabled stuff */
+    #move-history-drop-down-menu-3-dots-button {
+        display: none;
+    }
+
+    #move-history-loading-icon {
+        display: none;
+    }
+
+    /* persist */
+    #persist-options input#rename-analysis-button {
+        height: 50px;
+        margin-left: 10px;
+    }
+
+    /* FEN */
+    #fen-export-info-box {
+        margin-bottom: 0;
+    }
+
+    input[type='text']#fen-export-input {
+        font-size: 24px;
+        margin-right: 15px;
+    }
+
+    #fen-export-info-box img.icons {
+        width: 30px;
+        margin-right: 10px;
+    }
+
+    /* opening repertoire */
+    #opening-repository-container {
+        height: 250px;
+    }
+
+    table#opening-repository-table td {
+        font-size: 28px;
+    }
+
+    .bar-indicator-container {
+        height: 26px;
+    }
+
+    /* engine box */
+    #engine-eval-info-box {
+        min-height: 320px;
+    }
+
+    #eval-bar-container .bar-indicator-container {
+        height: 37px;
+    }
+
+    #eval-bar-container #indicator-values {
+        font-size: 24px;
+    }
+
+    #engine-eval-info-box {
+        font-size: 28px;
+    }
+
+    #engine-eval-info-box #engine-raw-line {
+        font-size: 20px;
+    }
+
+    #engine-eval-info-box span#engine-depth {
+        font-size: 22px;
+    }
+
+    /* analysis reports */
+    #analysis-summary {
+        margin-top: 20px;
+    }
+}

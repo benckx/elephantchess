@@ -1,0 +1,156 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.main-container-text {
+    width: 80%;
+    min-width: 800px;
+    max-width: 1000px;
+    margin-bottom: 60px;
+}
+
+.pvp-leaderboard-container {
+    margin-bottom: 35px;
+}
+
+.pvp-leaderboard td,
+.puzzle-leaderboard td,
+.global-stats td {
+    text-align: center;
+    font-size: 16px;
+}
+
+.pvp-leaderboard th,
+.puzzle-leaderboard th,
+.global-stats th {
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.bar-indicator-container {
+    width: 106px;
+    height: 24px;
+    margin: 0 22px;
+}
+
+.bar-indicator div {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.pvp-leaderboard {
+    border-spacing: 23px 11px;
+}
+
+.puzzle-leaderboard {
+    border-spacing: 20px 8px;
+}
+
+.rank-cell {
+    width: 50px;
+}
+
+.small-cell {
+    width: 80px;
+}
+
+.user-cell {
+    width: 146px;
+}
+
+.puzzle-leaderboard th.date-cell,
+.puzzle-leaderboard td.date-cell {
+    width: 190px;
+}
+
+.puzzle-leaderboard th.success-cell,
+.puzzle-leaderboard td.success-cell {
+    width: 100px;
+}
+
+.global-stats {
+    margin-top: 12px;
+    margin-left: 64px;
+    border-spacing: 0 8px;
+}
+
+.global-stats th {
+    width: 184px;
+    text-align: left;
+}
+
+.global-stats td {
+    text-align: right;
+    width: 78px;
+}
+
+.username-sub-panel {
+    float: left;
+    padding: 0;
+    margin-right: 10px;
+}
+
+.time-category-icon-holder {
+    width: 44px;
+    height: 44px;
+    margin-right: 20px;
+}
+
+.time-category-icon-holder img {
+    width: 100%;
+    height: 100%;
+}
+
+/* TODO: icon should just be squared */
+#correspondence-icon {
+    width: 100%;
+    height: 65%;
+}
+
+@media (max-width: 1000px) {
+    .main-container-text {
+        width: 96%;
+    }
+
+    .pvp-leaderboard th,
+    .pvp-leaderboard td {
+        font-size: 28px;
+    }
+
+    .puzzle-leaderboard th,
+    .puzzle-leaderboard td {
+        font-size: 22px;
+    }
+
+    .global-stats th,
+    .global-stats td {
+        font-size: 36px;
+    }
+
+    .global-stats th {
+        width: 480px;
+    }
+
+    .time-category-icon-holder {
+        width: 58px;
+        height: 58px;
+        margin-right: 26px;
+    }
+}

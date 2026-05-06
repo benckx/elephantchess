@@ -1,0 +1,31 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>My Played Puzzles</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/my-user-data-items.css"/>
+    <link rel="stylesheet" href="/css/my-played-puzzles.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/puzzles/puzzles-utils.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/userdata/my-played-puzzles-dto.js"></script>
+    <script defer src="/js/userdata/my-played-puzzles.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>My Played Puzzles</h1>
+    <hr class="only-desktop"/>
+    <div id="my-game-items">
+    </div>
+    <div id="is-loading-message">
+        Loading more puzzles...
+    </div>
+    <div id="no-puzzle-played-message" class="empty-list-message-user-data">
+        You didn't play any puzzle yet. Go to <a href="/puzzles">puzzles</a> to play some.
+    </div>
+    {{logged_as_guest_message}}
+</div>
+</body>
+</html>

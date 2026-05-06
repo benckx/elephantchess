@@ -1,0 +1,3449 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Changelog</title>
+    <meta name="description"
+          content="Latest updates on elephantchess.io. The website is updated weekly. Last updated May 2026.">
+    <script defer src="/js/default-base-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>Changelog</h1>
+    <hr/>
+    <h4>2026-05-04</h4>
+    <ul>
+        <li>
+            Technical changes (use UTC everywhere, addressed some warnings, libraries upgrades).
+        </li>
+    </ul>
+    <h4>2026-05-03</h4>
+    <ul>
+        <li>
+            Refactoring of board-gui.js functions loadFen() and drawHistoricalPosition(). drawHistoricalPosition() had
+            become redundant API-wise with loadFen() so it has been removed.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/550" target="_blank">issue #550</a>)
+        </li>
+        <li>
+            Fix bug where when flipping the board, mate indicator and "draggable" cursor would not be rendered. They are
+            now properly re-rendered when flipping the board.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/31" target="_blank">issue #31</a> and <a
+                href="https://github.com/benckx/elephantchess.io/issues/157" target="_blank">issue #157</a>)
+        </li>
+        <li>
+            Given the 3 changes described above, distribution of <a href="/about/developers/board-gui-example">Board
+            GUI</a> is bumped to 0.0.2.
+        </li>
+        <li>
+            Technical changes (refactoring of lobby live viewer and game thumb).
+        </li>
+    </ul>
+    <h4>2026-05-02</h4>
+    <ul>
+        <li>
+            Latest Games in the lobby are updated live, with animation, without being reshuffled as much.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/451" target="_blank">issue #451</a>)
+        </li>
+        <li>
+            Made minified files (JavaScript and CSS) open source under GPL or LGPL license and accessible.
+        </li>
+    </ul>
+    <h4>2026-05-01</h4>
+    <ul>
+        <li>
+            Strengthen the parsing of PGN moves
+            (<a href="https://github.com/benckx/elephantchess.io/issues/545" target="_blank">issue #545</a>)
+        </li>
+        <li>
+            Add documentation for the different types of <a href="/about/faq#supported-import-formats">move formats</a>
+            in the FAQ
+        </li>
+        <li>
+            Improve documentation of the <a href="/about/developers/board-gui-example">Board GUI</a>
+        </li>
+        <li>
+            Technical changes: Noticed some errors in logs related to WebSocket. According to LLM, that would be due to
+            requests being stripped of their <code>Upgrade: websocket</code> header (due to users being behind
+            corporates proxies or using browser extensions). As I understand it, there is no quick fix. Only change for
+            now is to add exponential backoff to the WS connection attempts and send a notification to the user when WS
+            connection fails, so they know that they might not receive real-time updates and can try to fix it on their
+            end (e.g. by disabling browser extensions or using a different network).
+        </li>
+    </ul>
+    <h4>2026-04-30</h4>
+    <ul>
+        <li>
+            Improve documentation of the <a href="/about/developers/board-gui-example">Board GUI</a>
+        </li>
+    </ul>
+    <h4>2026-04-29</h4>
+    <ul>
+        <li>
+            Publish the Board GUI code so it can re-used
+            (<a href="https://github.com/benckx/elephantchess.io/issues/383" target="_blank">issue #383</a>)
+        </li>
+    </ul>
+    <h4>2026-04-27</h4>
+    <ul>
+        <li>
+            Technical changes (refactor BoardGui constructor)
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/383" target="_blank">issue #383</a>)
+        </li>
+    </ul>
+    <h4>2026-04-24</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-04-22</h4>
+    <ul>
+        <li>
+            Split board-related CSS to a separate file
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/383" target="_blank">issue #383</a>)
+        </li>
+        <li>
+            Improve play bot modal layout on mobile (some left/right padding)
+        </li>
+    </ul>
+    <h4>2026-04-21</h4>
+    <ul>
+        <li>
+            Animate any position change (not just 1 move forward)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/48" target="_blank">issue #48</a>)
+        </li>
+    </ul>
+    <h4>2026-04-20</h4>
+    <ul>
+        <li>
+            Improve Position Editor
+            (<a href="https://github.com/benckx/elephantchess.io/issues/326" target="_blank">issue #326</a>)
+        </li>
+        <li>
+            Technical changes (libraries upgrades and scripts)
+        </li>
+    </ul>
+    <h4>2026-04-19</h4>
+    <ul>
+        <li>Technical changes (libraries upgrades and scripts)</li>
+    </ul>
+    <h4>2026-04-16</h4>
+    <ul>
+        <li>Fix bug in email template rendering</li>
+    </ul>
+    <h4>2026-04-15</h4>
+    <ul>
+        <li>
+            Fix the Position Editor in the <a href="/analysis">Analysis Board</a>. It's now functional again even though
+            it's still pretty much in beta.
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/326" target="_blank">issue #326</a>)
+        </li>
+        <li>
+            Add an offset limit to <a href="/database?medium=changelog">Database</a> search result
+        </li>
+        <li>
+            Technical changes (handle warning in logs due to libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-04-13</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-04-12</h4>
+    <ul>
+        <li>
+            Sometimes it seems some engine process is getting stuck and the backend keeps respond with "No result from
+            engine" until the pod is killed manually. So added a liveness check on the engine process so it can restart
+            automatically when it happens.
+        </li>
+    </ul>
+    <h4>2026-03-23</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-03-17</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-03-07</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-03-04</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-02-23</h4>
+    <ul>
+        <li>
+            E-mail format validation fix
+        </li>
+    </ul>
+    <h4>2026-01-30</h4>
+    <ul>
+        <li>
+            Clarify that "private game" means that it's the invite that is private (game doesn't appear in lobby)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/536" target="_blank">issue #536</a>)
+        </li>
+        <li>
+            Technical changes (admin console, libraries upgrades, CSS)
+        </li>
+    </ul>
+    <h4>2026-01-29</h4>
+    <ul>
+        <li>
+            Technical changes (admin console, CSS, templating)
+        </li>
+    </ul>
+    <h4>2026-01-28</h4>
+    <ul>
+        <li>
+            Info label for "Swag" top menu item
+            (<a href="https://github.com/benckx/elephantchess.io/issues/534" target="_blank">issue #534</a>)
+        </li>
+        <li>
+            Strip HTML and quotes from description meta tags
+            (<a href="https://github.com/benckx/elephantchess.io/issues/539" target="_blank">issue #539</a>)
+        </li>
+        <li>
+            User profile SEO improvements
+            (<a href="https://github.com/benckx/elephantchess.io/issues/304" target="_blank">issue #304</a>)
+        </li>
+        <li>
+            User profile formatting
+        </li>
+        <li>
+            Add info label on country flag on user profile
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/544" target="_blank">issue #544</a>)
+        </li>
+        <li>
+            Technical changes (analytics)
+        </li>
+    </ul>
+    <h4>2026-01-27</h4>
+    <ul>
+        <li>
+            Limit event description meta tag to top 10 players of the event
+            (<a href="https://github.com/benckx/elephantchess.io/issues/537" target="_blank">issue #537</a>)
+        </li>
+        <li>
+            Fix non-canonical name in site map
+            (<a href="https://github.com/benckx/elephantchess.io/issues/538" target="_blank">issue #538</a>)
+        </li>
+        <li>
+            Add indication that event results may be incomplete and "standings" are just indicative
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/493" target="_blank">issue #493</a>)
+        </li>
+        <li>
+            Add DOCTYPE on top of HTML pages
+            (<a href="https://github.com/benckx/elephantchess.io/issues/173" target="_blank">issue #173</a>)
+        </li>
+        <li>
+            Small CSS fixes (like increased height of chat box)
+        </li>
+        <li>
+            Footer link fix
+        </li>
+        <li>
+            Technical changes (db indexes, analytics)
+        </li>
+    </ul>
+    <h4>2026-01-26</h4>
+    <ul>
+        <li>
+            Allow admins to add/edit upcoming events
+            (<a href="https://github.com/benckx/elephantchess.io/issues/530" target="_blank">issue #530</a>)
+        </li>
+        <li>
+            Update footer so Database has its own section
+            (<a href="https://github.com/benckx/elephantchess.io/issues/532" target="_blank">issue #532</a>)
+        </li>
+        <li>
+            Infinite scroll for <a href="/database/events?medium=changelog">events list</a> and
+            <a href="/database/players?medium=changelog">players list</a> pages initiated with 250 elements
+        </li>
+        <li>
+            Make game rows clickable in event pages
+        </li>
+        <li>
+            Add "browse event games" and "browse round games" links on the event pages
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/493" target="_blank">issue #493</a>)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2026-01-25</h4>
+    <ul>
+        <li>
+            Page for individual Database events, e.g. for the <a href="/database/event?id=zyxLzoIl&medium=changelog">2011
+            9th YiTai Cup China National Xiangqi League</a>, as well as the <a href="/database/events?medium=changelog">events
+            list</a> and <a href="/database/players?medium=changelog">players list</a>
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/493" target="_blank">issue #493</a>)
+        </li>
+        <li>
+            Infinite scroll for <a href="/database/events?medium=changelog">events list</a> and
+            <a href="/database/players?medium=changelog">players list</a> pages
+            (first 500 items loaded statically, then loaded dynamically as user scrolls)
+        </li>
+        <li>
+            Technical changes (admin console, charts, HTML templating, simplified sitemap)
+        </li>
+    </ul>
+    <h4>2026-01-24</h4>
+    <ul>
+        <li>
+            Private games (don't appear in lobby but the link can be shared)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/489" target="_blank">issue #489</a>)
+        </li>
+        <li>
+            While working on the aforementioned issue, noticed the game status message masks showing on top of the board
+            were not properly displayed when selecting Black to play
+        </li>
+        <li>
+            When pressing "previous" button on mobile while on "new game" modal, previous page would get loaded (instead
+            of closing the modal)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/484" target="_blank">issue #484</a>)
+        </li>
+        <li>
+            When the board is in placeholder mode, pieces are greyed out too
+            (<a href="https://github.com/benckx/elephantchess.io/issues/529" target="_blank">issue #529</a>)
+        </li>
+        <li>
+            Improve mobile CSS styling ("guest banner", top bar menu)
+        </li>
+        <li>
+            Technical changes (admin console, HTML templating, libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-01-19</h4>
+    <ul>
+        <li>
+            Formatting of user profile (especially charts)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/524" target="_blank">issue #524</a>)
+        </li>
+        <li>
+            Add <a href="https://ko-fi.com/elephantchess" target="_blank">Ko-fi</a> "Support Us" button on a couple of
+            pages
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-01-18</h4>
+    <ul>
+        <li>
+            Attempt to fix issue where the winner indicator on the game thumb (the blue star) appear where it shouldn't
+            (<a href="https://github.com/benckx/elephantchess.io/issues/526" target="_blank">issue #526</a>)
+        </li>
+        <li>
+            Automatically show supporters in the banners with the Ko-fi integration. Added a banner in PvB screen.
+        </li>
+        <li>
+            Technical changes (admin console, <a href="https://ko-fi.com/elephantchess" target="_blank">Ko-fi</a>
+            webhook, SEO improvements)
+        </li>
+    </ul>
+    <h4>2026-01-17</h4>
+    <ul>
+        <li>
+            Improved SEO and sitemap
+            (<a href="https://github.com/benckx/elephantchess.io/issues/522" target="_blank">issue #522</a>)
+        </li>
+        <li>
+            Technical changes (<a href="https://ko-fi.com/elephantchess" target="_blank">Ko-fi</a> webhook)
+        </li>
+    </ul>
+    <h4>2026-01-16</h4>
+    <ul>
+        <li>
+            Additional role check in backend
+            (<a href="https://github.com/benckx/elephantchess.io/issues/508" target="_blank">issue #508</a>)
+        </li>
+        <li>
+            Add "My Edits" menu items for Editors of the <a href="/database?medium=changelog">Database</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/514" target="_blank">issue #514</a>)
+        </li>
+        <li>
+            Refactor <a href="/database?medium=changelog">Database</a> player pages (keep disabled version
+            accessible, but not indexed)
+        </li>
+    </ul>
+    <h4>2026-01-15</h4>
+    <ul>
+        <li>
+            Add "My Database Edits" view to see the edits a user has made to <a href="/database?medium=changelog">Database</a>
+            player profiles (only available to users with "Editor" role)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/514" target="_blank">issue #514</a>)
+        </li>
+        <li>
+            Add option to disable specific edits in <a href="/database?medium=changelog">Database</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/503" target="_blank">issue #503</a>)
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2026-01-14</h4>
+    <ul>
+        <li>
+            Add "diff" page to visualize the differences between versions of <a href="/database?medium=changelog">Database</a>
+            player profiles
+            (<a href="https://github.com/benckx/elephantchess.io/issues/501" target="_blank">issue #501</a>)
+        </li>
+        <li>
+            Redirect alternative names of <a href="/database?medium=changelog">Database</a> players to their
+            canonical name-based url
+            (<a href="https://github.com/benckx/elephantchess.io/issues/512" target="_blank">issue #512</a>)
+        </li>
+        <li>
+            Technical changes (<a href="https://ko-fi.com/elephantchess" target="_blank">Ko-fi</a> webhook)
+        </li>
+    </ul>
+    <h4>2026-01-13</h4>
+    <ul>
+        <li>
+            Ensure <a href="/database?medium=changelog">Database</a> player pages with "version" are not indexed by
+            search
+            (<a href="https://github.com/benckx/elephantchess.io/issues/505" target="_blank">issue #505</a>)
+        </li>
+        <li>
+            Update the HTML meta "author" to be the actual editors of the DB player profile
+        </li>
+        <li>
+            List front-end libraries on the <a href="/about?medium=changelog">About</a> page
+        </li>
+    </ul>
+    <h4>2026-01-12</h4>
+    <ul>
+        <li>
+            Add Wins/Draws/Losses stats on <a href="/database?medium=changelog">Database</a> player pages
+            (<a href="https://github.com/benckx/elephantchess.io/issues/500" target="_blank">issue #500</a>)
+        </li>
+        <li>
+            Ensure uniqueness of <a href="/database?medium=changelog">Database</a> players canonical name
+            (<a href="https://github.com/benckx/elephantchess.io/issues/498" target="_blank">issue #498</a>)
+        </li>
+        <li>
+            Re-add games without a date when browsing <a href="/database?medium=changelog">Database</a> games
+            (<a href="https://github.com/benckx/elephantchess.io/issues/495" target="_blank">issue #495</a>)
+        </li>
+        <li>
+            Add more "Featured Players" on the <a href="/database?medium=changelog">Database</a>
+        </li>
+        <li>
+            Crop long guest ids in the game thumbs
+        </li>
+        <li>
+            Technical changes (DB field names, admin console)
+        </li>
+    </ul>
+    <h4>2026-01-11</h4>
+    <ul>
+        <li>
+            Show "Possible Duplicates" on the <a href="/database?medium=changelog">Database</a> player pages,
+            e.g. <a href="/database/player/Gao_Fei?medium=changelog">Gao Fei</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/499" target="_blank">issue #499</a>).
+            We should later add a system for users to vote on whether they think this is indeed a duplicate, and then
+            later merge the data in the backend somehow; in such a way that it appears as one single profile.
+        </li>
+    </ul>
+    <h4>2026-01-10</h4>
+    <ul>
+        <li>
+            Align redundant game metadata DTO
+            (<a href="https://github.com/benckx/elephantchess.io/issues/491" target="_blank">issue #491</a>)
+        </li>
+        <li>
+            Technical changes (libraries upgrades, increase max guest id length to 8 characters)
+        </li>
+    </ul>
+    <h4>2026-01-09</h4>
+    <ul>
+        <li>
+            Auto-resign player-vs-bot ongoing games after 24h of inactivity
+            (<a href="https://github.com/benckx/elephantchess.io/issues/354" target="_blank">issue #354</a>)
+        </li>
+    </ul>
+    <h4>2026-01-07</h4>
+    <ul>
+        <li>
+            Technical changes (HTML templating)
+        </li>
+    </ul>
+    <h4>2026-01-05</h4>
+    <ul>
+        <li>
+            Added feature to make a profile page for <a href="/database?medium=changelog">Database</a> players.
+            For example, there is now a profile page for <a href="/database/player/Wang_Tianyi?medium=changelog">Wang
+            Tianyi</a>. Users are able to make edits to those profiles (with a sort of Wiki system), but only users who
+            have the "Editor" role.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/60" target="_blank">issue #60</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/490" target="_blank">issue #490</a>)
+        </li>
+        <li>
+            Technical changes (dynamic sitemap)
+        </li>
+    </ul>
+    <h4>2025-12-29</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades, etc.)
+        </li>
+    </ul>
+    <h4>2025-12-27</h4>
+    <ul>
+        <li>
+            Technical changes (admin console, embed images in newsletters)
+        </li>
+    </ul>
+    <h4>2025-12-25</h4>
+    <ul>
+        <li>
+            Accept dash and underscore characters in usernames
+            (<a href="https://github.com/benckx/elephantchess.io/issues/446" target="_blank">issue #446</a>)
+        </li>
+        <li>
+            Sign up form with live validation (username, email, etc.)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/447" target="_blank">issue #447</a>)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2025-12-17</h4>
+    <ul>
+        <li>
+            Technical changes (DB indexes)
+        </li>
+    </ul>
+    <h4>2025-12-15</h4>
+    <ul>
+        <li>
+            Technical changes (admin console, page view analytics)
+        </li>
+    </ul>
+    <h4>2025-12-14</h4>
+    <ul>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2025-12-13</h4>
+    <ul>
+        <li>
+            Technical changes (exception handling, admin console)
+        </li>
+    </ul>
+    <h4>2025-12-10</h4>
+    <ul>
+        <li>
+            Fix issue where move annotation symbols wouldn't render when opening a game with analysis data in <a
+                href="/analysis">Analysis Board</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/482" target="_blank">issue #482</a>)
+        </li>
+        <li>
+            Users stats on <a href="/global">Global</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/483" target="_blank">issue #483</a>)
+        </li>
+    </ul>
+    <h4>2025-12-09</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-12-08</h4>
+    <ul>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2025-12-06</h4>
+    <ul>
+        <li>
+            Overhaul of the "move annotation symbols" system and the game analysis data. We now compare engine best move
+            to the actually played move (which is actually what is required for proper Centipawn Loss (CPL)
+            calculation), instead of comparing the previous position to the current position. We need to collect more
+            analysis data for this to work and therefore, all games previously considered "analyzed" are now flagged as
+            "partially analyzed". "Partially analyzed" games can be completed (so if you re-start analysis from there,
+            it will start at around 50% completion).
+        </li>
+    </ul>
+    <h4>2025-12-02</h4>
+    <ul>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2025-11-19</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-11-18</h4>
+    <ul>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2025-11-17</h4>
+    <ul>
+        <li>
+            Fix issue where analysis couldn't be started anymore
+        </li>
+        <li>
+            Store exceptions in the database so it's easier to detect issues
+        </li>
+    </ul>
+    <h4>2025-11-15</h4>
+    <ul>
+        <li>
+            Fix issue where user profiles would get redirected to the 404 page when they didn't have any puzzle history
+            (<a href="https://github.com/benckx/elephantchess.io/issues/474" target="_blank">issue #474</a>)
+        </li>
+        <li>
+            Fix position of "analyze" button on the PvP page
+            (<a href="https://github.com/benckx/elephantchess.io/issues/473" target="_blank">issue #473</a>)
+        </li>
+        <li>
+            Technical changes (libraries upgrades, refactoring, coroutines scope configuration, logging, etc.)
+        </li>
+    </ul>
+    <h4>2025-11-05</h4>
+    <ul>
+        <li>
+            Technical changes (top level functions, db script)
+        </li>
+    </ul>
+    <h4>2025-11-03</h4>
+    <ul>
+        <li>
+            Fix relative time display to ensure we don't show things like "60 seconds ago" which doesn't really make
+            sense
+            (<a href="https://github.com/benckx/elephantchess.io/issues/470" target="_blank">issue #470</a>)
+        </li>
+        <li>
+            "My Played Puzzles" view CSS
+        </li>
+        <li>
+            Technical changes (admin console, top level functions)
+        </li>
+    </ul>
+    <h4>2025-11-02</h4>
+    <ul>
+        <li>
+            New pages to browse latest Player-vs-Player and Player-vs-Bot games with infinite scroll
+            (<a href="https://github.com/benckx/elephantchess.io/issues/321" target="_blank">issue #321</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/468" target="_blank">issue #468</a>)
+        </li>
+        <li>
+            Fix browser back button behavior when UTM tracking parameters are removed from URL
+            (<a href="https://github.com/benckx/elephantchess.io/issues/467" target="_blank">issue #467</a>)
+        </li>
+        <li>
+            Technical changes (top level functions)
+        </li>
+        <li>
+            Footer CSS
+        </li>
+    </ul>
+    <h4>2025-11-01</h4>
+    <ul>
+        <li>
+            Technical changes (routing utils refactoring, libraries upgrades,
+            <a href="https://github.com/benckx/elephantchess.io/issues/464" target="_blank">issue #464</a>)
+        </li>
+    </ul>
+    <h4>2025-10-28</h4>
+    <ul>
+        <li>
+            Footer
+            (<a href="https://github.com/benckx/elephantchess.io/issues/406" target="_blank">issue #406</a>)
+        </li>
+    </ul>
+    <h4>2025-10-27</h4>
+    <ul>
+        <li>
+            Technical changes (analytics, minor changes, memory management)
+        </li>
+    </ul>
+    <h4>2025-10-26</h4>
+    <ul>
+        <li>
+            Display email address verification status on user profile page on mobile
+            (<a href="https://github.com/benckx/elephantchess.io/issues/453" target="_blank">issue #453</a>)
+        </li>
+        <li>
+            Enable CDN for Javascript, CSS and static images. It should improve loading time for users outside of
+            Europe.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/298" target="_blank">issue #298</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/460" target="_blank">issue #460</a>)
+        </li>
+    </ul>
+    <h4>2025-10-25</h4>
+    <ul>
+        <li>
+            Technical changes (admin console, graceful termination, analytics)
+        </li>
+    </ul>
+    <h4>2025-10-24</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-10-21</h4>
+    <ul>
+        <li>
+            Ping via WS instead of polling
+            (<a href="https://github.com/benckx/elephantchess.io/issues/391" target="_blank">issue #391</a>)
+        </li>
+        <li>
+            User authentication in PVP WS session
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/436" target="_blank">issue #436</a>)
+        </li>
+    </ul>
+    <h4>2025-10-19</h4>
+    <ul>
+        <li>
+            Technical changes (move DB access to asynchronous programming, which is better for scalability)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/452" target="_blank">issue #452</a>)
+        </li>
+    </ul>
+    <h4>2025-10-14</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-10-12</h4>
+    <ul>
+        <li>
+            Specify the color of the player when searching games from a specific player on the
+            <a href="/database?medium=changelog">Database search page</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/448" target="_blank">issue #448</a>)
+        </li>
+        <li>
+            Technical changes (admin console, make email address comparisons case-insensitive)
+        </li>
+    </ul>
+    <h4>2025-10-06</h4>
+    <ul>
+        <li>
+            Add information text on the <a href="/database?medium=changelog">database</a> to inform games from app
+            users are not
+            included
+            (<a href="https://github.com/benckx/elephantchess.io/issues/450" target="_blank">issue #450</a>)
+        </li>
+        <li>
+            Improve user profile on mobile
+            (<a href="https://github.com/benckx/elephantchess.io/issues/190" target="_blank">issue #190</a>)
+        </li>
+        <li>
+            Improve mobile layout on different pages (global, lobby, user settings)
+        </li>
+    </ul>
+    <h4>2025-10-04</h4>
+    <ul>
+        <li>
+            Minor technical changes (div utils, mini board overview console error, libraries upgrades)
+        </li>
+        <li>
+            DB engine version upgrade
+        </li>
+    </ul>
+    <h4>2025-09-11</h4>
+    <ul>
+        <li>
+            Search <a href="/database?medium=changelog">database</a> games from FEN
+            (<a href="https://github.com/benckx/elephantchess.io/issues/443" target="_blank">issue #443</a>)
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-09-09</h4>
+    <ul>
+        <li>
+            <a href="/database?medium=changelog">Database</a> search results formatting
+            (<a href="https://github.com/benckx/elephantchess.io/issues/445" target="_blank">issue #445</a>)
+        </li>
+        <li>
+            Persist <a href="/database?medium=changelog">database</a> search queries
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+        <li>
+            Change wording from "last games" to "latest games" in the Lobby
+        </li>
+    </ul>
+    <h4>2025-09-08</h4>
+    <ul>
+        <li>
+            Infinite scrolling on <a href="/database?medium=changelog">database</a> search results
+            (<a href="https://github.com/benckx/elephantchess.io/issues/167" target="_blank">issue #167</a>)
+        </li>
+    </ul>
+    <h4>2025-08-25</h4>
+    <ul>
+        <li>
+            Fix issue where using arrow keys when the chat box is focused would trigger board navigation events and
+            where navigation is enabled when the board is still in "placeholder" mode
+            (<a href="https://github.com/benckx/elephantchess.io/issues/417" target="_blank">issue #417</a>)
+        </li>
+        <li>
+            Disable correspondence games for guest users
+            (<a href="https://github.com/benckx/elephantchess.io/issues/433" target="_blank">issue #433</a>)
+        </li>
+    </ul>
+    <h4>2025-08-23</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-08-17</h4>
+    <ul>
+        <li>
+            Update <a href="/database?medium=changelog">database games</a>
+        </li>
+    </ul>
+    <h4>2025-08-11</h4>
+    <ul>
+        <li>
+            Fix formatting of upcoming event URL on mobile
+        </li>
+    </ul>
+    <h4>2025-08-09</h4>
+    <ul>
+        <li>
+            Fix the error on <a href="/global">Global</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/438" target="_blank">issue #438</a>)
+        </li>
+    </ul>
+    <h4>2025-08-03</h4>
+    <ul>
+        <li>
+            Do not show the "share this game" message when the game is canceled
+            (<a href="https://github.com/benckx/elephantchess.io/issues/432" target="_blank">issue #432</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/433" target="_blank">issue #433</a>)
+        </li>
+    </ul>
+    <h4>2025-08-03</h4>
+    <ul>
+        <li>
+            Safari-specific render workarounds for the board and rendering of board cosmetic features (crosshairs,
+            palaces, <i>River of the Chu</i> 楚河, <i>Border of the Han</i> 漢界) on Safari and iPhone
+            (<a href="https://github.com/benckx/elephantchess.io/issues/434" target="_blank">issue #434</a>)
+        </li>
+        <li>
+            Configuration of data caching in <a href="/global">Global</a> page
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/101" target="_blank">issue
+            #101</a>)
+        </li>
+    </ul>
+    <h4>2025-08-02</h4>
+    <ul>
+        <li>
+            Draw board with little "crosshairs" at the positions of the pawns and cannons, so it looks more like a
+            typical xiangqi board. However, it doesn't work on Safari or iPhone yet, because Safari does everything
+            differently.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/150" target="_blank">issue #150</a>)
+        </li>
+        <li>
+            Small bug fix in the lobby where we would display some placeholder boards on mobile
+            (<a href="https://github.com/benckx/elephantchess.io/issues/435" target="_blank">issue #435</a>)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2025-07-31</h4>
+    <ul>
+        <li>
+            Technical changes (better HTML ACL)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/430" target="_blank">issue #430</a>)
+        </li>
+    </ul>
+    <h4>2025-07-30</h4>
+    <ul>
+        <li>
+            Highlight ongoing games in "My Games" view
+            (<a href="https://github.com/benckx/elephantchess.io/issues/121" target="_blank">issue #121</a>)
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-07-28</h4>
+    <ul>
+        <li>
+            Improve "My Analysis" view, especially for mobile
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/121" target="_blank">issue #121</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/170" target="_blank">issue #170</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/191" target="_blank">issue #191</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/394" target="_blank">issue #394</a>)
+        </li>
+        <li>
+            Indicate number of chat messages in "My Games" view
+            (<a href="https://github.com/benckx/elephantchess.io/issues/421" target="_blank">issue #421</a>)
+        </li>
+        <li>
+            Indicate number of variations in "My Analysis" view
+            (<a href="https://github.com/benckx/elephantchess.io/issues/423" target="_blank">issue #423</a>)
+        </li>
+        <li>
+            Indicate number of annotations in "My Analysis" view
+            (<a href="https://github.com/benckx/elephantchess.io/issues/425" target="_blank">issue #425</a>)
+        </li>
+        <li>
+            Mini board overview on mouse over for "My Analysis" view. Backfilling has been executed on existing
+            analysis.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/426" target="_blank">issue #426</a>)
+        </li>
+        <li>
+            Indicate whether next page is loading in the "my items" views
+            (<a href="https://github.com/benckx/elephantchess.io/issues/427" target="_blank">issue #427</a>)
+        </li>
+    </ul>
+    <h4>2025-07-27</h4>
+    <ul>
+        <li>
+            Improve "My Bot Games" view, especially for mobile
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/121" target="_blank">issue #121</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/170" target="_blank">issue #170</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/394" target="_blank">issue #394</a>)
+        </li>
+        <li>
+            Mini board overview on mouse over for "My Games", "My Bot Games" and "My Played Puzzles" views
+            (<a href="https://github.com/benckx/elephantchess.io/issues/422" target="_blank">issue #422</a>)
+        </li>
+        <li>
+            Configuration of data caching in <a href="/global">Global</a> page
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/101" target="_blank">issue
+            #101</a>)
+        </li>
+    </ul>
+    <h4>2025-07-26</h4>
+    <ul>
+        <li>
+            Improve "My Games" and "My Played Puzzles" views, especially for mobile. "My Bot Games" and "My Analysis"
+            soon to follow.
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/121" target="_blank">issue #121</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/170" target="_blank">issue #170</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/394" target="_blank">issue #394</a>)
+        </li>
+    </ul>
+    <h4>2025-07-25</h4>
+    <ul>
+        <li>
+            Make "share link" text clickable on PvP page
+            (<a href="https://github.com/benckx/elephantchess.io/issues/416" target="_blank">issue #416</a>)
+        </li>
+        <li>
+            Configuration of data caching in <a href="/global">Global</a> page
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/101" target="_blank">issue
+            #101</a>)
+        </li>
+        <li>
+            Technical changes (admin console)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/415" target="_blank">issue #415</a>)
+        </li>
+    </ul>
+    <h4>2025-07-24</h4>
+    <ul>
+        <li>
+            Clarify visually whether a game has been joined yet
+            (<a href="https://github.com/benckx/elephantchess.io/issues/400" target="_blank">issue #400</a>)
+        </li>
+        <li>
+            Make the "join" modal appear when opening the game link as a new guest user (if the game can be joined). It
+            was supposed to be the case already, but it probably hasn't been working for a while (since we disabled that
+            count down on guest sessions).
+        </li>
+        <li>
+            Technical changes (re-organize)
+        </li>
+    </ul>
+    <h4>2025-07-21</h4>
+    <ul>
+        <li>
+            Let guests complete puzzles as identified users (i.e. with rating and more customized challenges)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/344" target="_blank">issue #344</a>)
+        </li>
+        <li>
+            Add "last app deploy" to <a href="/global">Global</a> page
+            (<a href="https://github.com/benckx/elephantchess.io/issues/408" target="_blank">issue #408</a>)
+        </li>
+        <li>
+            Adjust size of "show arrows" icon on <a href="/analysis">Analysis Board</a> on mobile
+            (<a href="https://github.com/benckx/elephantchess.io/issues/411" target="_blank">issue #411</a>)
+        </li>
+        <li>
+            Add message in "My Played Puzzles" page when on puzzle have been played yet
+            (<a href="https://github.com/benckx/elephantchess.io/issues/105" target="_blank">issue #105</a>)
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-07-20</h4>
+    <ul>
+        <li>
+            Fix configuration of data caching in <a href="/global">Global</a> page
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/101" target="_blank">issue
+            #101</a>)
+        </li>
+    </ul>
+    <h4>2025-07-14</h4>
+    <ul>
+        <li>
+            Make chat author black or red depending on what they play
+            <a href="https://github.com/benckx/elephantchess.io/issues/399" target="_blank">issue #399</a>
+        </li>
+        <li>
+            Technical changes (pod monitoring)
+        </li>
+    </ul>
+    <h4>2025-07-13</h4>
+    <ul>
+        <li>
+            Small fixes on <a href="/global">Global</a> page: fix the number of users and speed up loading of number
+            of moves. Also improve mobile layout of the page. Re-added the flags next to users' name.
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/101" target="_blank">issue #101</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/407" target="_blank">issue #407</a>)
+        </li>
+    </ul>
+    <h4>2025-07-12</h4>
+    <ul>
+        <li>
+            Add more data to <a href="/global">Global</a> page. Stats about best PvP players yet to come.
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/101" target="_blank">issue
+            #101</a>)
+        </li>
+        <li>
+            Prevent PvP chat to exceeds 200 characters
+        </li>
+        <li>
+            Attempt to debug why number of online users seems to flicker a bit from e.g. 0 to 3
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/405" target="_blank">issue
+            #405</a>)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2025-07-07</h4>
+    <ul>
+        <li>
+            Render greyed out game thumbs when not enough games are loaded
+            (<a href="https://github.com/benckx/elephantchess.io/issues/403" target="_blank">issue #403</a>)
+        </li>
+    </ul>
+    <h4>2025-07-06</h4>
+    <ul>
+        <li>
+            Technical changes (Google Ads conversion to increase PvP matching)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/401" target="_blank">issue #401</a>)
+        </li>
+    </ul>
+    <h4>2025-06-29</h4>
+    <ul>
+        <li>
+            Workaround for Safari so game thumbs in the lobby render somewhat correctly.
+        </li>
+    </ul>
+    <h4>2025-06-24</h4>
+    <ul>
+        <li>
+            Technical changes (quick fix around something minor to investigate a crash)
+        </li>
+    </ul>
+    <h4>2025-06-23</h4>
+    <ul>
+        <li>
+            Shorten delay of game auto-cancel when user has been offline for while (48h for guests, 7 days for
+            authenticated users - instead of 14 days previously)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/395" target="_blank">issue #395</a>)
+        </li>
+        <li>
+            Make the render of the arrows optional on <a href="/analysis">Analysis Board</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/398" target="_blank">issue #398</a>)
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-06-22</h4>
+    <ul>
+        <li>
+            Fix batch that processes flagged games
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-05-19</h4>
+    <ul>
+        <li>
+            Add some checks to the <a href="/">Player-vs-Player</a> controller as a workaround to possibly buggy game
+            states
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/397" target="_blank">issue #397</a>)
+        </li>
+        <li>
+            Technical change (simplify "games to play" WS sessions refresh to avoid co-modification issues)
+        </li>
+    </ul>
+    <h4>2025-05-12</h4>
+    <ul>
+        <li>
+            Show fewer "latest games" in the lobby on mobile (2x2 instead of 2x6)
+        </li>
+    </ul>
+    <h4>2025-05-10</h4>
+    <ul>
+        <li>
+            Fix inconsistent font size on mobile
+            (<a href="https://github.com/benckx/elephantchess.io/issues/396" target="_blank">issue #396</a>)
+        </li>
+    </ul>
+    <h4>2025-05-05</h4>
+    <ul>
+        <li>
+            Remove the 3 retries when creating a guest session. It's a system I tested because on Brave, it seems that I
+            often have to login and I'm not sure why. But that 3 retries system didn't help and it's weird, so I'll just
+            drop it for now.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/393" target="_blank">issue #393</a>)
+        </li>
+        <li>
+            Add upcoming events on <a href="/">home page</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/388" target="_blank">issue #388</a>)
+        </li>
+        <li>
+            Improve "games turn to play" widget mobile layout
+            (<a href="https://github.com/benckx/elephantchess.io/issues/243" target="_blank">issue #243</a>)
+        </li>
+    </ul>
+    <h4>2025-05-04</h4>
+    <ul>
+        <li>
+            Avoid matching with offline users when creating a new game
+            (<a href="https://github.com/benckx/elephantchess.io/issues/387" target="_blank">issue #387</a>)
+        </li>
+        <li>
+            Add space between piece character and move in algebraic notation
+            (<a href="https://github.com/benckx/elephantchess.io/issues/389" target="_blank">issue #389</a>)
+        </li>
+        <li>
+            Technical changes (admin console to monitor chat messages)
+        </li>
+    </ul>
+    <h4>2025-05-03</h4>
+    <ul>
+        <li>
+            Chat box for <a href="/">Player-vs-Player</a> games
+            (<a href="https://github.com/benckx/elephantchess.io/issues/57" target="_blank">issue #57</a>)
+        </li>
+    </ul>
+    <h4>2025-04-28</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-04-27</h4>
+    <ul>
+        <li>
+            Update the layout of <a href="/">Player-vs-Player</a> to improve how it renders on mobile and gain some
+            space on the left for the upcoming chat box
+        </li>
+        <li>
+            Technical changes (User Agent parser client)
+        </li>
+        <li>
+            Technical changes (JavaScript and CSS files naming)
+        </li>
+    </ul>
+    <h4>2025-04-26</h4>
+    <ul>
+        <li>
+            Migrate <a href="/">Player-vs-Player</a> from REST to WebSocket. No visible changes for user, but this will
+            allow to implement the chat.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/213" target="_blank">issue #213</a>)
+        </li>
+        <li>
+            Technical changes (User Agent parser client)
+        </li>
+    </ul>
+    <h4>2025-04-19</h4>
+    <ul>
+        <li>
+            Fix small JavaScript error related to the guest banner message
+            (<a href="https://github.com/benckx/elephantchess.io/issues/386" target="_blank">issue #386</a>)
+        </li>
+        <li>
+            Fix issue where "Cancel Game" button wasn't shown
+        </li>
+    </ul>
+    <h4>2025-03-24</h4>
+    <ul>
+        <li>
+            March 2025 newsletter
+        </li>
+        <li>
+            Formatting
+        </li>
+    </ul>
+    <h4>2025-03-22</h4>
+    <ul>
+        <li>
+            Improve email verification
+            (<a href="https://github.com/benckx/elephantchess.io/issues/385" target="_blank">issue #385</a>)
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-03-19</h4>
+    <ul>
+        <li>
+            Technical changes (simplify Main class)
+        </li>
+    </ul>
+    <h4>2025-03-16</h4>
+    <ul>
+        <li>
+            Open source release of the engine-api package on the
+            <a href="https://github.com/benckx/elephantchess" target="_blank">GitHub</a>
+        </li>
+        <li>
+            Technical changes (remove Guava dependency, refactor of the engine pool before publication on
+            <a href="https://github.com/benckx/elephantchess" target="_blank">GitHub</a>)
+        </li>
+    </ul>
+    <h4>2025-03-15</h4>
+    <ul>
+        <li>
+            Fix bug in perpetual checking detection
+            (<a href="https://github.com/benckx/elephantchess.io/issues/379" target="_blank">issue #379</a>)
+        </li>
+    </ul>
+    <h4>2025-03-12</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2025-03-10</h4>
+    <ul>
+        <li>
+            Open source release of the xiangqi-core package on the
+            <a href="https://github.com/benckx/elephantchess" target="_blank">GitHub</a>
+        </li>
+    </ul>
+    <h4>2025-03-09</h4>
+    <ul>
+        <li>
+            Remove some unused JavaScript files from the <a href="/">Lobby</a> to improve performances
+            (<a href="https://github.com/benckx/elephantchess.io/issues/375" target="_blank">issue #375</a>)
+        </li>
+        <li>
+            Technical changes (performances: resize icons)
+        </li>
+    </ul>
+    <h4>2025-03-08</h4>
+    <ul>
+        <li>
+            Remove tracking params from URL upon loading the page (so they are not in the sharing links)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/374" target="_blank">issue #374</a>)
+        </li>
+        <li>
+            Load YouTube embedded video on the landing page lazily (when coming into viewport) to improve performances
+            (<a href="https://github.com/benckx/elephantchess.io/issues/377" target="_blank">issue #377</a>)
+        </li>
+        <li>
+            Exclude game and puzzle pages from indexing to avoid SEO issues like "Duplicate without user-selected
+            canonical"
+            (<a href="https://github.com/benckx/elephantchess.io/issues/373" target="_blank">issue #373</a>)
+        </li>
+        <li>
+            Technical changes (analytics; performances: defer non-critical CSS, resize icons)
+        </li>
+    </ul>
+    <h4>2025-03-04</h4>
+    <ul>
+        <li>
+            Technical changes (performances: add Gzip compression to static assets, increase cache duration, lazy
+            loading of images)
+        </li>
+    </ul>
+    <h4>2025-03-03</h4>
+    <ul>
+        <li>
+            Add number labels on <a href="/analysis">Analysis Board</a> arrows
+            (<a href="https://github.com/benckx/elephantchess.io/issues/372" target="_blank">issue #372</a>)
+        </li>
+        <li>
+            Technical changes (analytics)
+        </li>
+    </ul>
+    <h4>2025-03-01</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (integration with frontend, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-02-24</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (integration with frontend, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-02-19</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (manage tiebreak situations, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-02-17</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (integration with frontend, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-02-16</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (improve About page, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-02-15</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (backend logic,
+            related to <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-02-08</h4>
+    <ul>
+        <li>
+            <a href="/analysis">Analysis Board</a> mobile layout improvements
+            (<a href="https://github.com/benckx/elephantchess.io/issues/185" target="_blank">issue #185</a>)
+        </li>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (backend library, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+        <li>
+            Technical changes (logging library, libraries upgrades, naming)
+        </li>
+    </ul>
+    <h4>2025-01-29</h4>
+    <ul>
+        <li>
+            Technical changes (package name)
+        </li>
+    </ul>
+    <h4>2025-01-27</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (fix FEN sharing link, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-01-26</h4>
+    <ul>
+        <li>
+            Technical changes (HTML rendering)
+        </li>
+    </ul>
+    <h4>2025-01-23</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (added <a href="/7k/rules">rules page</a>, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-01-20</h4>
+    <ul>
+        <li>
+            Fix analysis summary report to PvP game page
+            (<a href="https://github.com/benckx/elephantchess.io/issues/367" target="_blank">issue #367</a>)
+        </li>
+        <li>
+            Add analysis summary report to DB game page
+            (<a href="https://github.com/benckx/elephantchess.io/issues/313" target="_blank">issue #313</a>)
+        </li>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (indicate and share current FEN, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+        <li>
+            Technical changes (build config - DAO code gen)
+        </li>
+    </ul>
+    <h4>2025-01-19</h4>
+    <ul>
+        <li>
+            Fix issue where analysis buttons were not enabled on PvB games
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/271" target="_blank">issue
+            #271</a>)
+        </li>
+        <li>
+            <a href="/analysis">Analysis Board</a> mobile layout improvements
+            (<a href="https://github.com/benckx/elephantchess.io/issues/185" target="_blank">issue #185</a>)
+        </li>
+        <li>
+            Add analysis summary report to PvP game page
+            (<a href="https://github.com/benckx/elephantchess.io/issues/311" target="_blank">issue #311</a>)
+        </li>
+        <li>
+            Add analysis summary report to PvB game page
+            (<a href="https://github.com/benckx/elephantchess.io/issues/312" target="_blank">issue #312</a>)
+        </li>
+    </ul>
+    <h4>2025-01-18</h4>
+    <ul>
+        <li>
+            Text formatting
+        </li>
+        <li>
+            Technical changes (build config)
+        </li>
+        <li>
+            Attempt to address a bug where users seem to get logged out and re-logged as guest, added retries and
+            notifications
+            (<a href="https://github.com/benckx/elephantchess.io/issues/280" target="_blank">issue #280</a>)
+        </li>
+        <li>
+            Fix issue where in cases where a new user joined via a link they were sometimes unable to play (if
+            playing
+            as red) and had to refresh the page
+        </li>
+        <li>
+            In PvB, the box containing the "Cancel" and "Resign" buttons should not be visible to other users (other
+            than the owner of the game)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/271" target="_blank">issue #271</a>)
+        </li>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant (add highlight of legal moves of all
+            players on mouseover, easier when users are not familiar with the game
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue
+            #283</a>)
+        </li>
+    </ul>
+    <h4>2025-01-17</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (change piece style, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+        <li>
+            For Discord bot, remove auto-cancelled reaction, add reaction when reaching move 3
+            (<a href="https://github.com/benckx/elephantchess.io/issues/308" target="_blank">issue #308</a>)
+        </li>
+        <li>
+            Technical changes (naming)
+        </li>
+    </ul>
+    <h4>2025-01-16</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (westernized icons, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-01-15</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (adapt board to Safari, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-01-12</h4>
+    <ul>
+        <li>
+            Lobby CSS (improve "Our Supporters" block)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/310" target="_blank">issue #310</a>)
+        </li>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (added moves, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-01-11</h4>
+    <ul>
+        <li>
+            Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
+            (render of the board, related to
+            <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
+        </li>
+    </ul>
+    <h4>2025-01-09</h4>
+    <ul>
+        <li>
+            Indicate the best engine moves with arrows in the <a href="/analysis">Analysis Board</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/279" target="_blank">issue #279</a>)
+        </li>
+    </ul>
+    <h4>2025-01-08</h4>
+    <ul>
+        <li>
+            Formatting of supporters in the <a href="/">Home page</a>
+        </li>
+    </ul>
+    <h4>2025-01-05</h4>
+    <ul>
+        <li>
+            Refactor the settings box HTML fragment and remove the gap that would appear when rendered without a
+            move
+            tree widget
+        </li>
+        <li>
+            Re-enable caching for JavaScript and CSS files (better performances)
+        </li>
+        <li>
+            Add loading animation when positions are being analyzed in the background on the
+            <a href="/analysis">Analysis Board</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/278" target="_blank">issue #278</a>)
+        </li>
+    </ul>
+    <h4>2025-01-04</h4>
+    <ul>
+        <li>
+            Add table comparing 2 players number of blunders, etc. in the <a href="/analysis">Analysis Board</a>
+            (still
+            requires improvements, but it's in a good enough beta version)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/168" target="_blank">issue #168</a>)
+        </li>
+    </ul>
+    <h4>2025-01-02</h4>
+    <ul>
+        <li>
+            Refactor the css of the settings box
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/276" target="_blank">issue
+            #276</a>)
+        </li>
+        <li>
+            Show expiration date of guest session in the banner
+            (<a href="https://github.com/benckx/elephantchess.io/issues/277" target="_blank">issue #277</a>)
+        </li>
+        <li>
+            On PvP game, hide the game actions block (e.g. resign, draw, cancel) when the game has ended
+            (<a href="https://github.com/benckx/elephantchess.io/issues/168" target="_blank">issue #168</a>)
+        </li>
+    </ul>
+    <h4>2024-12-31</h4>
+    <ul>
+        <li>
+            Remove "confirm password" field from the sign-up and recovery forms
+            (<a href="https://github.com/benckx/elephantchess.io/issues/274" target="_blank">issue #274</a>)
+        </li>
+        <li>
+            Scroll to the selected element in move history
+            (<a href="https://github.com/benckx/elephantchess.io/issues/123" target="_blank">issue #123</a>)
+        </li>
+        <li>
+            Add simple <a href="/contact">contact form</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/275" target="_blank">issue #275</a>)
+        </li>
+        <li>
+            Technical changes (email formatting)
+        </li>
+    </ul>
+    <h4>2024-12-30</h4>
+    <ul>
+        <li>
+            Decrease password length requirement from 8 to 6 characters
+            (<a href="https://github.com/benckx/elephantchess.io/issues/272" target="_blank">issue #272</a>)
+        </li>
+        <li>
+            Make settings box a HTML fragment
+            (<a href="https://github.com/benckx/elephantchess.io/issues/273" target="_blank">issue #273</a>)
+        </li>
+        <li>
+            Technical changes (error handling in scheduled tasks, libraries upgrades, admin console, etc.)
+        </li>
+    </ul>
+    <h4>2024-12-29</h4>
+    <ul>
+        <li>
+            Overhaul of the newsletter processing system (with unsubscription links)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/269" target="_blank">issue #269</a>)
+        </li>
+    </ul>
+    <h4>2024-12-28</h4>
+    <ul>
+        <li>
+            Automated email verification
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/269" target="_blank">issue
+            #269</a>)
+        </li>
+        <li>
+            Email notification templating
+            (related to <a href="https://github.com/benckx/elephantchess.io/issues/269" target="_blank">issue
+            #269</a>)
+        </li>
+    </ul>
+    <h4>2024-12-27</h4>
+    <ul>
+        <li>
+            Fix issue where when puzzle got solved on mobile, the animation was lagging a little,
+            the rendering function for solved puzzle has been delayed. The actual source of the lag is still
+            unclear.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/265" target="_blank">issue #265</a>)
+        </li>
+        <li>
+            Shorten "perpetual checking" in game thumb elements (renamed from game item)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/266" target="_blank">issue #266</a>)
+        </li>
+        <li>
+            Technical changes (analytics)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/267" target="_blank">issue #267</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/268" target="_blank">issue #268</a>)
+        </li>
+        <li>
+            Fix relative time
+            (<a href="https://github.com/benckx/elephantchess.io/issues/270" target="_blank">issue #270</a>)
+        </li>
+        <li>
+            Added some checks on PvB played moves to avoid registering illegal moves
+        </li>
+        <li>
+            Remove annoying little messages about chasing rules not being implemented and such,
+            kind of an eyesore
+        </li>
+    </ul>
+    <h4>2024-12-26</h4>
+    <ul>
+        <li>
+            Simplify Discord notifications even further: do not respond when a user joins or cancels a game,
+            only add the reaction to the original message
+        </li>
+        <li>
+            Refactor the join game confirmation modal (clean up the logic)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/259" target="_blank">issue #259</a>)
+        </li>
+        <li>
+            Track where games are joined from (e.g. from a link, lobby, Discord, etc.)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/262" target="_blank">issue #262</a>)
+        </li>
+        <li>
+            Attempt to fix style issue
+            (<a href="https://github.com/benckx/elephantchess.io/issues/263" target="_blank">issue #263</a>)
+        </li>
+        <li>
+            Check whether game is allowed to guests before showing the "join game" modal to a guest user
+            (<a href="https://github.com/benckx/elephantchess.io/issues/264" target="_blank">issue #264</a>)
+        </li>
+        <li>
+            Technical changes (debug sessions)
+        </li>
+        <li>
+            Minor style changes (width of "join game" modal)
+        </li>
+    </ul>
+    <h4>2024-12-25</h4>
+    <ul>
+        <li>
+            Fix the red app button on confirmation modal on mobile layout
+            (<a href="https://github.com/benckx/elephantchess.io/issues/258" target="_blank">issue #258</a>)
+        </li>
+        <li>
+            Refactor the join game confirmation modal (and add whether inviter is online)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/259" target="_blank">issue #259</a>)
+        </li>
+        <li>
+            Ensure new guests user will get modal to join game when accessing a link
+            (<a href="https://github.com/benckx/elephantchess.io/issues/261" target="_blank">issue #261</a>)
+        </li>
+        <li>
+            Fix bug where username would appear twice when another user would join the game
+        </li>
+    </ul>
+    <h4>2024-12-24</h4>
+    <ul>
+        <li>
+            Simplify Discord notifications
+        </li>
+        <li>
+            Add "inviter" field to PvP game page (so we know who the inviter is, even when colors have been
+            chosen yet)
+        </li>
+        <li>
+            On PvP game page, only show outcome when the outcome is known (resulting in a cleaner interface)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/260" target="_blank">issue #260</a>)
+        </li>
+        <li>
+            On the <a href="/global">Global</a> page, only count as "users" in the global stats users who spend more
+            than 1h with the session
+        </li>
+        <li>
+            Technical changes (backend for the <a href="/global">Global</a> page)
+        </li>
+        <li>
+            Technical changes (prevent Discord notifications by default to avoid spamming the channel while
+            developing)
+        </li>
+    </ul>
+    <h4>2024-12-23</h4>
+    <ul>
+        <li>
+            Disable zoom when double tapping on board on mobile
+            (<a href="https://github.com/benckx/elephantchess.io/issues/255" target="_blank">issue #255</a>)
+        </li>
+        <li>
+            Make top notifications more visible on mobile
+            (<a href="https://github.com/benckx/elephantchess.io/issues/218" target="_blank">issue #218</a>)
+        </li>
+        <li>
+            Add Discord bot that sends notifications when a new game is available
+            (<a href="https://github.com/benckx/elephantchess.io/issues/109" target="_blank">issue #109</a>)
+        </li>
+        <li>
+            Technical changes (DB)
+        </li>
+    </ul>
+    <h4>2024-12-22</h4>
+    <ul>
+        <li>
+            Replace the short polling implementation that fetches the games list for the Lobby with a WebSocket
+            session.
+            The same session information is used for a new counter on the Lobby menu item that shows the number of
+            games
+            user can join (it only shows the ones where the other user is online) (prerequisite for <a
+                href="https://github.com/benckx/elephantchess.io/issues/135" target="_blank">issue #135</a>). The
+            goal
+            being to increase the PvP player pool (and likelihood to find a partner to play with).
+        </li>
+        <li>
+            Re-use that new WebSocket session to update the "turn to play" widget, instead of relying on short
+            polling
+        </li>
+        <li>
+            Fix issue where spectator of a PvP game would get a crash instead of properly rendering end of game
+            event
+            (<a href="https://github.com/benckx/elephantchess.io/issues/256" target="_blank">issue #256</a>)
+        </li>
+        <li>
+            Fix issue where "turn to play" widget would not automatically close when opening another drop down menu
+            (<a href="https://github.com/benckx/elephantchess.io/issues/251" target="_blank">issue #251</a>)
+        </li>
+        <li>
+            Technical changes (move some things generated dynamically in JavaScript to be directly rendered in
+            the HTML)
+        </li>
+        <li>
+            Technical changes (remove HTML comments from rendering)
+        </li>
+    </ul>
+    <h4>2024-12-19</h4>
+    <ul>
+        <li>
+            Improve style of "turn to play" notification indicator (especially on mobile)
+        </li>
+    </ul>
+    <h4>2024-12-17</h4>
+    <ul>
+        <li>
+            Fix issue in game match: prevent users from matching with a game they created
+        </li>
+        <li>
+            Fix issue where some users had no puzzle rating, so profile would show an error
+        </li>
+    </ul>
+    <h4>2024-12-16</h4>
+    <ul>
+        <li>
+            When users create a game, first check if they can join an existing game that matches, instead of
+            creating a
+            duplicate (match making)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/246" target="_blank">issue #246</a>)
+        </li>
+        <li>
+            Attempt to fix issue where authenticated users get logged out and logged as guest instead
+        </li>
+        <li>
+            Make guest ids vary between 3 and 6 chars included
+        </li>
+    </ul>
+    <h4>2024-12-15</h4>
+    <ul>
+        <li>
+            Add an option to the New Game modal, to allow to keep games always visible in the lobby, even when the
+            user
+            is offline. This used to be determined by game time (correspondence games being always visible).
+            (<a href="https://github.com/benckx/elephantchess.io/issues/176" target="_blank">issue #176</a>,
+            <a href="https://github.com/benckx/elephantchess.io/issues/220" target="_blank">issue #220</a>)
+        </li>
+        <li>
+            Add an option to the New Game modal, to allow authenticated users to allow/disallow guest users to join
+            their games
+            (<a href="https://github.com/benckx/elephantchess.io/issues/238" target="_blank">issue #238</a>)
+        </li>
+        <li>
+            On mobile layout, move the up/down votes button away from the navigation buttons (in order to avoid up
+            vote
+            by accident)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/248" target="_blank">issue #248</a>)
+        </li>
+        <li>
+            Play a sound and show notification when somebody joined a PvP game; and when there are new games where
+            it's
+            user's turn to play
+            (<a href="https://github.com/benckx/elephantchess.io/issues/245" target="_blank">issue #245</a>)
+        </li>
+        <li>
+            Let guest ids vary between 2 and 6 chars included (instead of 3 to 5 previously)
+        </li>
+        <li>
+            For some reason, some game contained illegal moves in their history (could be that a move wasn't
+            properly
+            sent but was registered in the UI?) Added some checks on PvP played moves to avoid registering illegal
+            moves.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/252" target="_blank">issue #252</a>)
+        </li>
+        <li>
+            Technical changes (move some things generated dynamically in JavaScript to be directly rendered in
+            the HTML)
+        </li>
+    </ul>
+    <h4>2024-12-14</h4>
+    <ul>
+        <li>
+            Fix New Game modal which changed size a bit when selecting a time option
+            (<a href="https://github.com/benckx/elephantchess.io/issues/247" target="_blank">issue #247</a>)
+        </li>
+    </ul>
+    <h4>2024-12-12</h4>
+    <ul>
+        <li>
+            Improve list of game to join on the lobby page for mobile layout
+            (<a href="https://github.com/benckx/elephantchess.io/issues/224" target="_blank">issue #224</a>)
+        </li>
+        <li>
+            Technical changes (WebSocket)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2024-12-11</h4>
+    <ul>
+        <li>
+            Only mark a game as "live" if it was updated < 3 min ago.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/242" target="_blank">issue #242</a>)
+        </li>
+        <li>
+            Technical changes (caching)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2024-12-10</h4>
+    <ul>
+        <li>
+            Fix issue where guest couldn't cancel their own games or join via link
+            (<a href="https://github.com/benckx/elephantchess.io/issues/241" target="_blank">issue #241</a>)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2024-12-09</h4>
+    <ul>
+        <li>
+            Adjust <a href="/global">Global</a> page numbers to take guests into account
+            (<a href="https://github.com/benckx/elephantchess.io/issues/237" target="_blank">issue #237</a>)
+        </li>
+        <li>
+            Improve top bar menu in mobile layout (making icons larger and hiding less relevant features)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/229" target="_blank">issue #229</a>)
+        </li>
+        <li>
+            Indicate live games on the home page
+            (<a href="https://github.com/benckx/elephantchess.io/issues/239" target="_blank">issue #239</a>)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2024-12-08</h4>
+    <ul>
+        <li>
+            Support guest users, allow non-authenticated users to play PvP games
+            (<a href="https://github.com/benckx/elephantchess.io/issues/231" target="_blank">issue #231</a> and
+            <a href="https://github.com/benckx/elephantchess.io/issues/230" target="_blank">issue #230</a>)
+        </li>
+        <li>
+            Improve the "turn to play" notification number layout
+            (<a href="https://github.com/benckx/elephantchess.io/issues/194" target="_blank">issue #194</a>),
+        </li>
+        <li>
+            Avoid possible offensive words when generating random user ids
+            (<a href="https://github.com/benckx/elephantchess.io/issues/235" target="_blank">issue #235</a>)
+        </li>
+        <li>
+            Improve mobile layout (menu to access "My Games", etc.)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2024-12-07</h4>
+    <ul>
+        <li>
+            Fix tool tip issue on the top bar
+            (<a href="https://github.com/benckx/elephantchess.io/issues/232" target="_blank">issue #232</a>)
+        </li>
+        <li>
+            Show the winner of games on the game items on the lobby
+            (<a href="https://github.com/benckx/elephantchess.io/issues/215" target="_blank">issue #215</a>)
+        </li>
+    </ul>
+    <h4>2024-12-06</h4>
+    <ul>
+        <li>
+            Fix issue where we wouldn't fill all "Last Bot Games" on the home page
+        </li>
+    </ul>
+    <h4>2024-12-02</h4>
+    <ul>
+        <li>
+            Fix issue where disabled green buttons would appear as green instead of grey on mobile
+        </li>
+        <li>
+            Fix issue where engine name listed on the <a href="/">Lobby page</a> would link to a user profile
+        </li>
+        <li>
+            Add top bar button to directly create a PvP game
+            (<a href="https://github.com/benckx/elephantchess.io/issues/222" target="_blank">issue #222</a>)
+        </li>
+        <li>
+            Technical changes (resources naming)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/221" target="_blank">issue #221</a>)
+        </li>
+    </ul>
+    <h4>2024-12-01</h4>
+    <ul>
+        <li>
+            Improve "New Game" modal
+            (<a href="https://github.com/benckx/elephantchess.io/issues/117" target="_blank">issue #117</a>)
+        </li>
+        <li>
+            Improve modal windows on mobile
+            (<a href="https://github.com/benckx/elephantchess.io/issues/184" target="_blank">issue #184</a>)
+        </li>
+        <li>
+            Minor CSS changes
+        </li>
+        <li>
+            Technical changes (dependency injection with batches)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/216" target="_blank">issue #216</a>)
+        </li>
+        <li>
+            Technical changes (prevent iframing)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/217" target="_blank">issue #217</a>)
+        </li>
+        <li>
+            Technical changes (HTML rendering)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2024-11-30</h4>
+    <ul>
+        <li>
+            Introduce WebSocket to add the ability to watch PvB games as spectator
+            (<a href="https://github.com/benckx/elephantchess.io/issues/205" target="_blank">issue #205</a>)
+        </li>
+        <li>
+            List last PvB games on the <a href="/">Lobby page</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/211" target="_blank">issue #211</a>)
+        </li>
+        <li>
+            Technical changes (additional features for HTML rendering)
+        </li>
+        <li>
+            Technical changes (Docker image building and engine processes management)
+        </li>
+    </ul>
+    <h4>2024-11-29</h4>
+    <ul>
+        <li>
+            List last PvP games on the <a href="/">Lobby page</a>
+        </li>
+        <li>
+            Also count anonymous puzzle attempts in the <a href="/global">Global page</a>
+            (<a href="https://github.com/benckx/elephantchess.io/issues/199" target="_blank">issue #199</a>)
+        </li>
+        <li>
+            Add a <a href="https://www.paypal.com/paypalme/benckx/4" target="_blank">PayPal</a> link for donations
+        </li>
+        <li>
+            Mention PVB on the <a href="/about">About page</a>
+        </li>
+        <li>
+            Allow FEN parsing in format R1bk5/4a4/N4a3/9/7r1/9/9/6p2/4AK3/3A5 r (i.e. without the full moves count
+            at
+            the end and with 'r' instead of 'w' for red)
+            (<a href="https://github.com/benckx/elephantchess.io/issues/203" target="_blank">issue #203</a>)
+        </li>
+        <li>
+            Add number of attempts to the <a href="/puzzles">Puzzles page</a>
+        </li>
+        <li>
+            Technical changes (use CDN for <a href="https://github.com/mymth/vanillajs-datepicker" target="_blank">vanillajs-datepicker</a>,
+            to be consistent with other libs we use)
+        </li>
+        <li>
+            Technical changes (refactor of the HTML rendering)
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2024-11-24</h4>
+    <ul>
+        <li>
+            Add puzzle vote (thumb up / thumb down) to the <a href="/puzzles">Puzzles page</a>
+        </li>
+        <li>
+            Update title html tag on user profile page
+        </li>
+        <li>
+            Technical changes (modularization of the service layer)
+        </li>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2024-11-23</h4>
+    <ul>
+        <li>
+            Technical changes (dependency injection)
+        </li>
+    </ul>
+    <h4>2024-11-04</h4>
+    <ul>
+        <li>
+            Minor technical changes related to HTML rendering
+        </li>
+    </ul>
+    <h4>2024-11-03</h4>
+    <ul>
+        <li>
+            Attempt to fix SEO-related issue, i.e. by rendering user profile HTML with username already resolved
+            (<a href="https://github.com/benckx/elephantchess.io/issues/195" target="_blank">issue #195</a>)
+        </li>
+        <li>
+            Also added user profile description to the HTML rendering, so it can be indexed by search engines
+        </li>
+    </ul>
+    <h4>2024-11-02</h4>
+    <ul>
+        <li>
+            Fix issue where incomplete analysis status would not update (making it impossible to restart the
+            analysis
+            later)
+        </li>
+        <li>
+            Move navigation buttons (beginning, previous, next, end) just below the board on mobile
+        </li>
+        <li>
+            Fix clock orientation to be consistent with board orientation
+            (<a href="https://github.com/benckx/elephantchess.io/issues/73" target="_blank">issue #73</a>)
+        </li>
+        <li>
+            Minor CSS changes
+        </li>
+    </ul>
+    <h4>2024-10-12</h4>
+    <ul>
+        <li>
+            Technical changes (libraries upgrades)
+        </li>
+    </ul>
+    <h4>2024-09-04</h4>
+    <ul>
+        <li>
+            Fix CSS issue where the mask covering the miniboard would overflow its parent div
+        </li>
+        <li>
+            Re-add the 3 dots menu on <a href="/analysis">Analysis Board</a> (not visible on mobile yet though)
+        </li>
+    </ul>
+    <h4>2024-09-02</h4>
+    <ul>
+        <li>
+            Fix CSS issue where the 2 Analyze buttons would be visible
+        </li>
+    </ul>
+    <h4>2024-08-31</h4>
+    <ul>
+        <li>
+            Make the website more mobile-friendly. The triptych layout (used in puzzles, games, etc.) has been
+            refactored to be more reactive, as well as the lobby page. There are still a few things to improve to be
+            perfectly usable on mobile devices, but it is already great improvement compared to what it was.
+        </li>
+    </ul>
+    <h4>2024-08-24</h4>
+    <ul>
+        <li>
+            Technical changes (removal of un-used template)
+        </li>
+        <li>
+            HTML minification (resulting in small performance improvements for end users)
+        </li>
+        <li>
+            Bug fix on username menu (it would not open when clicking on the username itself)
+        </li>
+    </ul>
+    <h4>2024-08-21</h4>
+    <ul>
+        <li>
+            Make the top bar reactive, i.e. automatically adapted to narrower screen resolutions. This is the first
+            step
+            in the process of making the whole platform look better on mobile devices.
+        </li>
+    </ul>
+    <h4>2024-08-06</h4>
+    <ul>
+        <li>
+            Technical changes (HTML id of elements on the squares (image, highlight, etc.))
+        </li>
+    </ul>
+    <h4>2024-08-03</h4>
+    <ul>
+        <li>
+            Position Editor to create custom positions without playing the moves. Currently only available in the <a
+                href="/analysis">Analysis Board</a>. Still in beta.
+        </li>
+    </ul>
+    <h4>2024-06-14</h4>
+    <ul>
+        <li>
+            Technical changes (Google Tag Manager)
+        </li>
+        <li>
+            Number formatting on the <a href="/global">Global</a> page
+        </li>
+    </ul>
+    <h4>2024-06-14</h4>
+    <ul>
+        <li>
+            Add empty block in Move History Tree Widget when a custom start FEN starts with black
+        </li>
+    </ul>
+    <h4>2024-06-05</h4>
+    <ul>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2024-05-25</h4>
+    <ul>
+        <li>
+            Display e.g. "m10" instead of "100" in the Analysis Board when the result from the engine contains a
+            "mate
+            in N" rather than a centipawn value. The idea would be to later smooth out and "integrate" cp and "mate
+            in
+            N" results in order to display consistent line charts and eval bar changes.
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2024-05-12</h4>
+    <ul>
+        <li>
+            Add original game link on the Puzzle app (after puzzle is resolved)
+        </li>
+        <li>
+            Add color field to "My Played Puzzles" screen
+        </li>
+        <li>
+            Add orientation url param to Database game viewer (so game links related to puzzles can be oriented
+            according to the color of the puzzle)
+        </li>
+    </ul>
+    <h4>2024-05-09</h4>
+    <ul>
+        <li>
+            Add original game in "My Played Puzzles" screen
+        </li>
+        <li>
+            Minor technical changes
+        </li>
+    </ul>
+    <h4>2024-05-05</h4>
+    <ul>
+        <li>
+            Add 3 dots menu on the side of the Move History Tree Widget in the <a href="/analysis">Analysis Board</a> to
+            access more actions (right now the only menu item is Import Moves, but we should add export too or "delete
+            all")
+        </li>
+        <li>
+            Refactor HTML templating
+        </li>
+        <li>
+            Move remaining scripts tags to headers (HTML rendering)
+        </li>
+        <li>
+            Threads configuration (internal)
+        </li>
+        <li>
+            Minor improvements in the client-server communication framework (internal)
+        </li>
+        <li>
+            Minify CSS (resulting in small performance improvements for end users)
+        </li>
+    </ul>
+    <h4>2024-05-04</h4>
+    <ul>
+        <li>
+            Move scripts tags to headers (HTML rendering)
+        </li>
+        <li>
+            Document the elephantchess-specific cookies in the cookie consent banner (under category
+            "Necessary")
+        </li>
+    </ul>
+    <h4>2024-05-01</h4>
+    <ul>
+        <li>
+            Reduce threads overhead by using more coroutines (internal)
+        </li>
+        <li>
+            EnginesPool improvements (internal)
+        </li>
+        <li>
+            Cookie consent banner and related information in the <a href="/about/faq">FAQ page</a>
+        </li>
+    </ul>
+    <h4>2024-04-29</h4>
+    <ul>
+        <li>
+            EnginesPool improvements (internal)
+        </li>
+    </ul>
+    <h4>2024-04-28</h4>
+    <ul>
+        <li>
+            Forward exotic positions (e.g. more than 2 chariots) queries to Fairy Stockfish (illegal positions are
+            not
+            supported by Pikafish)
+        </li>
+        <li>
+            Upgrade Pikafish engine version from
+            <a href="https://github.com/official-pikafish/Pikafish/releases/tag/Pikafish-2022-12-26"
+               target="_blank">2022-12-26</a>
+            to <a href="https://github.com/official-pikafish/Pikafish/releases/tag/Pikafish-2023-03-05"
+                  target="_blank">2023-03-05</a>
+        </li>
+        <li>
+            Engine health check (technical)
+        </li>
+    </ul>
+    <h4>2024-04-27</h4>
+    <ul>
+        <li>
+            Modals refactoring (no significant change for end users)
+        </li>
+        <li>
+            Admin console refactoring (no significant change for end users)
+        </li>
+        <li>
+            Metrics logging (no significant change for end users)
+        </li>
+    </ul>
+    <h4>2024-04-21</h4>
+    <ul>
+        <li>
+            Added the <i>River of the Chu</i> 楚河 and the <i>Border of the Han</i> 漢界 decoration texts inside the
+            river. Of course, it doesn't work on Safari.
+        </li>
+        <li>
+            Display dates in relative time (e.g. 2 months ago) in "userdata" pages (i.e. "my played puzzles", "my
+            games", etc.)
+        </li>
+        <li>
+            Add game creation date on PvP game page
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2024-04-20</h4>
+    <ul>
+        <li>
+            Fix bug where it looks like Elo calculation happened twice
+            (<a href="https://github.com/benckx/elephantchess.io/issues/142" target="_blank">issue #142</a>)
+        </li>
+        <li>
+            Render top bar menu directly in HTML (instead of dynamically in JavaScript), which should improve
+            performance a little. Also made menu items proper anchor (which means it can be opened in a new tab
+            by right
+            click).
+        </li>
+        <li>
+            Auto-cancel created games after 14 days of inactivity (previously 7 days)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+        <li>
+            User sessions expiration after 60 days (internal)
+        </li>
+    </ul>
+    <h4>2024-04-18</h4>
+    <ul>
+        <li>
+            Update opening repertoire in the <a href="/analysis">Analysis Board</a> (to move 20)
+        </li>
+    </ul>
+    <h4>2024-04-15</h4>
+    <ul>
+        <li>
+            Board coordinates for WXF move format
+        </li>
+        <li>
+            Add some information and tips on the main page
+        </li>
+        <li>
+            Add tooltip on top menu items
+        </li>
+        <li>
+            Fix bug in <a href="/analysis">Analysis Board</a> related to annotation box
+            (<a href="https://github.com/benckx/elephantchess.io/issues/140" target="_blank">issue #140</a>)
+        </li>
+    </ul>
+    <h4>2024-04-14</h4>
+    <ul>
+        <li>
+            Re-enable analysis for games custom start FENs. It seems the most exotic positions are not well
+            supported by
+            the engine though, so nothing is guaranteed.
+        </li>
+        <li>
+            Avoid requesting engine data that is already available in the <a href="/analysis">Analysis Board</a>
+        </li>
+        <li>
+            Indicate which move format is currently selected in the settings drop down menu
+        </li>
+        <li>
+            Refactor drop down menu rendering management, to ensure they all behave consistently
+        </li>
+        <li>
+            Add tooltips on icons in "My Analysis" page
+        </li>
+        <li>
+            Upgrade a few libraries versions
+        </li>
+        <li>
+            Refactor "Import Moves" modal in the <a href="/analysis">Analysis Board</a>
+        </li>
+    </ul>
+    <h4>2024-04-08</h4>
+    <ul>
+        <li>
+            Temporarily disable game analysis for bot games with custom start FENs, since it doesn't work in the
+            <a href="/analysis">Analysis Board</a> yet.
+        </li>
+    </ul>
+    <h4>2024-04-07</h4>
+    <ul>
+        <li>
+            Add ambiguous file notation (+ or - instead of file number when 2 similar pieces are on the same file)
+            for
+            WXF move format
+        </li>
+        <li>
+            Render widgets with selected move format in the <a href="/analysis">Analysis Board</a>
+        </li>
+    </ul>
+    <h4>2024-04-06</h4>
+    <ul>
+        <li>
+            Refactor board settings management (piece style, show coordinates, move notation format)
+        </li>
+        <li>
+            Add setting to change move format (WXF, PGN or algebraic). There is still some work to do to update
+            opening
+            and engine widgets in the <a href="/analysis">Analysis Board</a> (those are still in UCI); as well as
+            the
+            horizontal axis coordinates while using WXF move format.
+        </li>
+        <li>
+            Add tool tip text to settings buttons
+        </li>
+    </ul>
+    <h4>2024-04-04</h4>
+    <ul>
+        <li>
+            Fix small issue in the <a href="/analysis">Analysis Board</a> (prevent querying engine when game is
+            already
+            being analyzed)
+        </li>
+    </ul>
+    <h4>2024-04-01</h4>
+    <ul>
+        <li>
+            Add UI tooltips (i.e. the feature, it's currently not enabled on many elements)
+        </li>
+        <li>
+            Enable bot games up to depth 14 (previously limited to 10). Only logged-in users can play depth higher
+            than
+            6 (previously there was no difference).
+        </li>
+    </ul>
+    <h4>2024-03-31</h4>
+    <ul>
+        <li>
+            Automatically persist requested engine data while viewing an analysis in the <a href="/analysis">Analysis
+            Board</a> (even if requested by another user than the analysis owner)
+        </li>
+        <li>
+            Automatically analyze un-selected moves in the <a href="/analysis">Analysis Board</a>. It used to only
+            query
+            engine for the selected move, which would force user to select each move one by one after importing a
+            game
+            in WXF for example.
+        </li>
+    </ul>
+    <h4>2024-03-24</h4>
+    <ul>
+        <li>
+            Fix bug where trying to analyzed an anonymous game against a bot would crash the <a href="/analysis">Analysis
+            Board</a>
+        </li>
+        <li>
+            Refactored the <a href="/analysis">Analysis Board</a> (<a
+                href="https://github.com/benckx/elephantchess.io/issues/106" target="_blank">issue #106</a>)
+            (move API
+            calls to separate client class)
+        </li>
+    </ul>
+    <h4>2024-03-23</h4>
+    <ul>
+        <li>
+            Fix the <a href="https://github.com/benckx/elephantchess.io/issues/131" target="_blank">bug</a> where
+            the
+            wrong PV would be associated to FENs. Clean up existing analysis data. Not super clear how it happens
+            though, but we now ensure incorrect data doesn't get persisted.
+        </li>
+    </ul>
+    <h4>2024-03-18</h4>
+    <ul>
+        <li>
+            Fix the bug where after clicking on PV line in the <a href="/analysis">Analysis Board</a>, clicking
+            again on
+            the PV line would result in error message <i>Can not create branch when no move is selected</i>. The
+            selected node was not correctly updated after selecting a PV line.
+            (<a href="https://github.com/benckx/elephantchess.io/issues/103" target="_blank">issue #103</a>)
+        </li>
+    </ul>
+    <h4>2024-03-17</h4>
+    <ul>
+        <li>
+            Some refactoring about last changes (remove old table and refresh materialized views)
+        </li>
+    </ul>
+    <h4>2024-03-16</h4>
+    <ul>
+        <li>
+            Some refactoring about last changes (deletion of some deprecated code)
+        </li>
+        <li>
+            Admin console page to monitor latest analyzed games
+        </li>
+    </ul>
+    <h4>2024-02-25</h4>
+    <ul>
+        <li>
+            Add option to analyze in-app games to the <a href="/analysis">Analysis Board</a>
+        </li>
+    </ul>
+    <h4>2024-02-11</h4>
+    <ul>
+        <li>
+            Fix issue in the moves import function in the <a href="/analysis">Analysis Board</a>. The bug had been
+            introduced by the last update.
+        </li>
+    </ul>
+    <h4>2024-02-10</h4>
+    <ul>
+        <li>
+            Perpetual checking rule enforcement in PvP games
+        </li>
+        <li>
+            Technical bugfix (user session IP in the wrong format)
+        </li>
+    </ul>
+    <h4>2024-01-02</h4>
+    <ul>
+        <li>
+            Fix to the admin UI
+        </li>
+        <li>
+            Technical changes (split board UI from board logic, pre-requisite for perpetual checks implementation in
+            the
+            UI)
+        </li>
+        <li>
+            Minor style changes (remove bold style on table row hovering, 2 digits year format)
+        </li>
+    </ul>
+    <h4>2023-12-29</h4>
+    <ul>
+        <li>
+            Play bot games with custom starting position
+        </li>
+    </ul>
+    <h4>2023-12-17</h4>
+    <ul>
+        <li>
+            Technical changes (JDK upgrade, HTTP routing refactor)
+        </li>
+    </ul>
+    <h4>2023-12-11</h4>
+    <ul>
+        <li>
+            Working on perpetual checks, fixed small bugs in the board core library
+        </li>
+        <li>
+            Re-designed home page
+        </li>
+    </ul>
+    <h4>2023-12-04</h4>
+    <ul>
+        <li>
+            Refactored user profile page (and hide puzzle stats panel by default)
+        </li>
+    </ul>
+    <h4>2023-12-03</h4>
+    <ul>
+        <li>
+            In profile settings, indicate characters limit on the description field
+        </li>
+        <li>
+            Users can see their own games in the lobby. I thought it might be less confusing for users. Of course,
+            they
+            can not join their own games.
+        </li>
+        <li>
+            Automatically cancel un-joined games when user has been offline for more than 7 days (it could later
+            become
+            user setting)
+        </li>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2023-11-27</h4>
+    <ul>
+        <li>
+            Add engine caching in the <a href="/analysis">Analysis Board</a>, resulting in faster response time when
+            position has already been analyzed. It's noticeable for early positions (that are more likely to have
+            been
+            analyzed before).
+        </li>
+        <li>
+            Pre-Analyze <a href="/database?medium=changelog">database games</a> (about 3% of the db is now
+            pre-analyzed)
+        </li>
+        <li>
+            Fix issue where bot repetitions avoidance would not work if user played black
+        </li>
+        <li>
+            Add move number on "my games" and "my bot games" pages
+        </li>
+    </ul>
+    <h4>2023-11-25</h4>
+    <ul>
+        <li>
+            Increase <a href="/global">puzzle leaderboard</a> to 50 entries and added user country flag
+        </li>
+        <li>
+            Technical changes (Kotlin version, refactored HTML rendering cache)
+        </li>
+    </ul>
+    <h4>2023-11-24</h4>
+    <ul>
+        <li>
+            Ad-hoc / experimental solution to avoid that the bot gets stuck in a loop where it checks
+            perpetually
+        </li>
+    </ul>
+    <h4>2023-11-20</h4>
+    <ul>
+        <li>
+            Add a function to Cancel and Resign bot games
+        </li>
+    </ul>
+    <h4>2023-11-19</h4>
+    <ul>
+        <li>
+            Add option to select depth 1 when playing against bot
+        </li>
+        <li>
+            Technical changes (admin UI, HTML rending, re-organization of JS files)
+        </li>
+    </ul>
+    <h4>2023-11-18</h4>
+    <ul>
+        <li>
+            Persist games played against bots
+        </li>
+        <li>
+            Technical changes (no significant change for end users; changed related to routing, configuration
+            management, JS minification management)
+        </li>
+    </ul>
+    <h4>2023-11-01</h4>
+    <ul>
+        <li>
+            Fix issue where password recovery wouldn't show any feedback when providing valid email
+        </li>
+    </ul>
+    <h4>2023-10-29</h4>
+    <ul>
+        <li>
+            Password recovery now shows an error message if the provided email doesn't match any known user (to
+            avoid
+            confusion, because it used to be a positive message no matter what the user input)
+        </li>
+    </ul>
+    <h4>2023-10-09</h4>
+    <ul>
+        <li>
+            Improve design for smaller board (pre-requisite to add mini-board overview widget in the future)
+        </li>
+    </ul>
+    <h4>2023-10-07</h4>
+    <ul>
+        <li>
+            Ensure username doesn't overflow in the top bar
+        </li>
+    </ul>
+    <h4>2023-10-02</h4>
+    <ul>
+        <li>
+            Add a time limit to all games. Correspondence games will be "move time based", meaning the counter will
+            reset to e.g. 1 day on each move. Games shorted than 1 day remain "game time based".
+        </li>
+        <li>
+            Fix bug where the "games where it's your turn to play" indicator would show "casual" when the game was
+            rated.
+        </li>
+    </ul>
+    <h4>2023-10-01</h4>
+    <ul>
+        <li>
+            Technical changes regarding the batch jobs (no significant change for end users)
+        </li>
+    </ul>
+    <h4>2023-09-24</h4>
+    <ul>
+        <li>
+            Add option to play <a href="/puzzles?category=MATE_IN_1">puzzles from a certain category</a>
+        </li>
+    </ul>
+    <h4>2023-09-23</h4>
+    <ul>
+        <li>
+            Refactor the <a href="/puzzles">puzzles screen</a> code (no significant change for user, it is mainly to
+            make future changes easier to develop)
+        </li>
+        <li>
+            Add a page to view played puzzles
+        </li>
+        <li>
+            Puzzle re-playability: save results of puzzles, even for those you had already played recently (but with a
+            smaller k value when you solve it correctly - depending on how long ago you last played it, spread linearly
+            on 90 days, i.e. the k value is 8 instead of 16 if you solved it 45 days ago)
+        </li>
+    </ul>
+    <h4>2023-09-10</h4>
+    <ul>
+        <li>
+            Import moves in WXF format in the <a href="/analysis">Analysis Board</a> (fixes)
+        </li>
+        <li>
+            Always update to puzzle URL in the <a href="/puzzles">puzzles screen</a>
+        </li>
+        <li>
+            Update of backend libs
+        </li>
+    </ul>
+    <h4>2023-09-09</h4>
+    <ul>
+        <li>
+            Import moves in WXF format in the <a href="/analysis">Analysis Board</a> (fixes)
+        </li>
+    </ul>
+    <h4>2023-09-04</h4>
+    <ul>
+        <li>
+            Import moves in WXF format in the <a href="/analysis">Analysis Board</a>
+        </li>
+    </ul>
+    <h4>2023-09-03</h4>
+    <ul>
+        <li>
+            Import moves in UCI and algebraic format in the <a href="/analysis">Analysis Board</a>
+        </li>
+    </ul>
+    <h4>2023-09-02</h4>
+    <ul>
+        <li>
+            Fix bug when updating analysis in the <a href="/analysis">Analysis Board</a>
+        </li>
+    </ul>
+    <h4>2023-08-28</h4>
+    <ul>
+        <li>
+            Ensure parser can handle both 0-based and 1-based PGN in the <a href="/analysis">Analysis Board</a>
+        </li>
+    </ul>
+    <h4>2023-08-25</h4>
+    <ul>
+        <li>
+            Fix to the admin UI
+        </li>
+    </ul>
+    <h4>2023-08-22</h4>
+    <ul>
+        <li>
+            User session management
+        </li>
+    </ul>
+    <h4>2023-08-21</h4>
+    <ul>
+        <li>
+            Fix to the admin UI
+        </li>
+        <li>
+            Technical changes (config refactoring)
+        </li>
+    </ul>
+    <h4>2023-08-20</h4>
+    <ul>
+        <li>
+            Date format in <a href="/database?medium=changelog">Database</a> and in the
+            <a href="/global?medium=changelog">Leaderboard</a>
+        </li>
+        <li>
+            Game URL format in <a href="/database?medium=changelog">Database</a>
+        </li>
+        <li>
+            Backend pre-analysis management batch
+        </li>
+        <li>
+            User session management
+        </li>
+    </ul>
+    <h4>2023-08-19</h4>
+    <ul>
+        <li>
+            Minor UI changes to the admin UI
+        </li>
+    </ul>
+    <h4>2023-08-16</h4>
+    <ul>
+        <li>
+            Automatically fetch new games to the <a href="/database?medium=changelog">Database</a>
+        </li>
+    </ul>
+    <h4>2023-08-15</h4>
+    <ul>
+        <li>
+            Persist and display more comprehensive engine data in the <a href="/analysis">Analysis Board</a> and
+            the <a
+                href="/database?medium=changelog">Database</a> (mate in N and the raw string data from the engine)
+        </li>
+        <li>
+            Fix some database data errors
+        </li>
+    </ul>
+    <h4>2023-08-13</h4>
+    <ul>
+        <li>
+            Minor UI changes
+        </li>
+    </ul>
+    <h4>2023-08-12</h4>
+    <ul>
+        <li>
+            Add drag and drop moves
+        </li>
+    </ul>
+    <h4>2023-08-07</h4>
+    <ul>
+        <li>
+            Minor UI changes to the admin UI
+        </li>
+    </ul>
+    <h4>2023-08-06</h4>
+    <ul>
+        <li>
+            Fix the copying to the clipboard of puzzle link when clicking on puzzle id
+        </li>
+        <li>
+            Fix small issue in PGN import in the <a href="/analysis">Analysis Board</a>
+        </li>
+        <li>
+            Technical change for flagging detection
+        </li>
+        <li>
+            Hide canceled games by default in "my games" view
+        </li>
+        <li>
+            Minor UI improvements (hide clocks by default)
+        </li>
+        <li>
+            Modal to sign up if you open a game link when you're not logged in
+        </li>
+    </ul>
+    <h4>2023-08-05</h4>
+    <ul>
+        <li>
+            Split "outcome" and "status" on the Play Game page, for clarity
+        </li>
+        <li>
+            Import PGN moves to the <a href="/analysis">Analysis Board</a> (still in beta)
+        </li>
+        <li>
+            Fix wrongly proportioned icons in Safari
+        </li>
+    </ul>
+    <h4>2023-08-04</h4>
+    <ul>
+        <li>
+            Re-design of the "New Game" modal in the <a href="/">lobby</a>
+        </li>
+        <li>
+            Filter out short games (<1d) if inviter is offline, as to avoid most games being won on time if the
+            other
+            user is simply offline
+        </li>
+        <li>
+            Add FEN export below the board in the <a href="/analysis?medium=changelog">Analysis Board</a>
+        </li>
+    </ul>
+    <h4>2023-08-03</h4>
+    <ul>
+        <li>
+            Minor UI improvements (standardize data tables)
+        </li>
+        <li>
+            Fix <a href="/database?medium=changelog">database game search</a> UX issues
+        </li>
+    </ul>
+    <h4>2023-08-02</h4>
+    <ul>
+        <li>
+            Minor UI improvements (users with longer name)
+        </li>
+        <li>
+            Email validation basics
+        </li>
+        <li>
+            Change default time control to Correspondence
+        </li>
+    </ul>
+    <h4>2023-08-01</h4>
+    <ul>
+        <li>
+            Fix date metadata when downloading PGN from a game
+        </li>
+        <li>
+            Minor UI improvements
+        </li>
+    </ul>
+    <h4>2023-07-31</h4>
+    <ul>
+        <li>
+            Minor UI improvements
+        </li>
+        <li>
+            Ensure email login is case-insensitive
+        </li>
+        <li>
+            Update technical id format
+        </li>
+        <li>
+            Some technical changes (libs)
+        </li>
+        <li>
+            Add metadata to PGN in <a href="/">Player-vs-Player</a>
+        </li>
+        <li>
+            Highlight last opponent move when re-opening a game
+        </li>
+    </ul>
+    <h4>2023-07-30</h4>
+    <ul>
+        <li>
+            Add Time Control to <a href="/">Player-vs-Player</a>
+        </li>
+        <li>
+            Clean up user profile page layout
+        </li>
+        <li>
+            Minor UI improvements
+        </li>
+    </ul>
+    <h4>2023-07-29</h4>
+    <ul>
+        <li>
+            Minor UI improvements
+        </li>
+    </ul>
+    <h4>2023-07-28</h4>
+    <ul>
+        <li>
+            UI fix in the "is online" indicator in the Play Game screen.
+        </li>
+    </ul>
+    <h4>2023-07-27</h4>
+    <ul>
+        <li>
+            Add a Cancel button after creating a game, to cancel a game before anyone can join.
+        </li>
+        <li>
+            Indicate if opponent is online with a grey/green dot (in the Game page as well as in the "turn to play"
+            notification widget thingy).
+        </li>
+        <li>
+            Minor UI changes.
+        </li>
+        <li>
+            Fix bug that prevented analysis deletion.
+        </li>
+    </ul>
+    <h4>2023-07-26</h4>
+    <ul>
+        <li>
+            Indicate the games where it's user's turn to play, with a kind of notification panel
+        </li>
+        <li>
+            Minor technical changes
+        </li>
+    </ul>
+    <h4>2023-07-25</h4>
+    <ul>
+        <li>
+            Some UX bug fixes in <a href="/">Player-vs-Player</a>
+        </li>
+        <li>
+            Send email notifications when opponent joins, plays a move, resigns, send draws, accept/decline draws,
+            etc.
+            but you're offline. You can disable/enable this in your <a href="/user/settings">Settings</a>.
+        </li>
+    </ul>
+    <h4>2023-07-24</h4>
+    <ul>
+        <li>
+            Add <a href="/">Player-vs-Player</a> in beta. Time Control is still missing, as well as a couple
+            functionalities that should be added soon.
+        </li>
+    </ul>
+    <h4>2023-07-21</h4>
+    <ul>
+        <li>
+            Make annotation max. length more explicit in the <a href="/analysis?medium=changelog">Analysis Board</a>.
+            Increase the max length to 2000.
+        </li>
+    </ul>
+    <h4>2023-06-17</h4>
+    <ul>
+        <li>
+            Some technical changes
+        </li>
+    </ul>
+    <h4>2023-06-10</h4>
+    <ul>
+        <li>
+            New opening cache for the <a href="/analysis?medium=changelog">Analysis Board</a>. The experience isn't much
+            different for end users, except that the cache itself has been updated.
+        </li>
+        <li>
+            Indicate if user is online on their profile
+        </li>
+    </ul>
+    <h4>2023-06-04</h4>
+    <ul>
+        <li>
+            Add an option to Settings to enable/disable email notifications. Right now it's only for the newsletter
+            we
+            might send later.
+        </li>
+        <li>
+            Refactor of the pre-calculated opening data (not yet visible to end users)
+        </li>
+        <li>
+            Upload more games to the <a href="/database?medium=changelog">Database</a>, totaling 92,000.
+        </li>
+    </ul>
+    <h4>2023-06-03</h4>
+    <ul>
+        <li>
+            Replace logarithmic eval calculation by a more simple linear calculation in <a href="/analysis">Analysis
+            Board</a>. The new calculation caps cp at 7,706 which seems to be the actual maximum (except for 31,753 but
+            there is nothing in-between). cp is then normalize to a 0-100 scale.
+        </li>
+        <li>
+            Make the engine result data more understandable in the <a href="/analysis">Analysis Board</a>. It would only
+            show data for evaluation that had a cp value, and nothing for "mate in N" results. Sometimes it would also
+            show the data for the previously selected move, which didn't make sense. In the future, it would be
+            interesting to persist engine result data that don't contain a cp value.
+        </li>
+    </ul>
+    <h4>2023-05-29</h4>
+    <ul>
+        <li>
+            Add text annotation to the <a href="/analysis">Analysis Board</a>
+        </li>
+    </ul>
+    <h4>2023-05-22</h4>
+    <ul>
+        <li>
+            Fixed download PGN button on the Move Tree Widget
+        </li>
+        <li>
+            Style improvement for the branches on the Move Tree Widget
+        </li>
+        <li>
+            Pre-calculate openings to improve responsiveness of the Opening Widget in the <a href="/analysis">Analysis
+            Board</a>
+        </li>
+    </ul>
+    <h4>2023-05-21</h4>
+    <ul>
+        <li>
+            Integrate the new Move Tree Widget into the <a href="/puzzles">puzzles screen</a>
+        </li>
+        <li>
+            Integrate the new Move Tree Widget into the <a href="/database?medium=changelog">database viewer
+            screen</a>
+        </li>
+        <li>
+            The old Move History Widget is no more
+        </li>
+        <li>
+            Enable/Disable download PGN button in the Move Tree Widget depending on its content (i.e. disabled when
+            empty)
+        </li>
+        <li>
+            Add some texts visible only by unauthenticated users, to inform them about the benefits of creating an
+            account
+        </li>
+        <li>
+            Upload more games to the <a href="/database?medium=changelog">Database</a>, reaching about 60,000.
+            The Opening Widget in the <a href="/analysis?medium=changelog">Analysis Board</a> is now a bit unresponsive,
+            so we need to pre-calculate opening data.
+        </li>
+    </ul>
+    <h4>2023-05-20</h4>
+    <ul>
+        <li>
+            Export PGN with variations with a nested structure instead of a flat list of lines/variations. However, we
+            might keep both types of exports later.
+        </li>
+        <li>
+            Some refactoring around the Move Tree Widget in the <a href="/analysis?medium=changelog">Analysis Board</a>,
+            before integrating to the other screens
+        </li>
+    </ul>
+    <h4>2023-05-19</h4>
+    <ul>
+        <li>
+            Add a button to the <a href="/analysis?medium=changelog">Analysis Board</a> to download the PGN of your
+            analysis
+        </li>
+        <li>
+            Technical re-organization of files
+        </li>
+    </ul>
+    <h4>2023-05-18</h4>
+    <ul>
+        <li>
+            Improve "My Analysis" view with buttons to load an older version of your analysis and to delete your
+            analysis. It will only keep maximum 10 versions.
+        </li>
+    </ul>
+    <h4>2023-05-14</h4>
+    <ul>
+        <li>
+            Add save and reload user's analysis feature in the <a href="/analysis?medium=changelog">Analysis Board</a>
+        </li>
+        <li>
+            Optimize response time for the Opening Repository Widget on the <a href="/analysis?medium=changelog">Analysis
+            Board</a>
+        </li>
+    </ul>
+    <h4>2023-05-12</h4>
+    <ul>
+        <li>
+            Fix the bug where you had to click twice to open the user drop down menu
+        </li>
+    </ul>
+    <h4>2023-05-11</h4>
+    <ul>
+        <li>
+            Add right click menu in the Move History Tree Widget in the <a href="/analysis?medium=changelog">Analysis
+            Board</a> to edit the history (e.g. delete branch, etc.)
+        </li>
+    </ul>
+    <h4>2023-05-09</h4>
+    <ul>
+        <li>
+            Allow multiple variations in the Move History Tree Widget in the <a href="/analysis?medium=changelog">Analysis
+            Board</a>
+        </li>
+    </ul>
+    <h4>2023-05-08</h4>
+    <ul>
+        <li>
+            Re-add the navigation arrows below the new Move History Tree Widget in <a href="/analysis">Analysis
+            Board</a>.
+        </li>
+    </ul>
+    <h4>2023-05-07</h4>
+    <ul>
+        <li>
+            Add the Move History Tree Widget to <a href="/analysis?medium=changelog">Analysis Board</a>. Still a test
+            version.
+        </li>
+    </ul>
+    <h4>2023-04-29 / 2023-04-30</h4>
+    <ul>
+        <li>
+            Improve the <a href="/analysis?medium=changelog">Analysis Board</a> UI
+        </li>
+    </ul>
+    <h4>2023-04-28</h4>
+    <ul>
+        <li>
+            Allow to solve puzzles by stalemate
+        </li>
+    </ul>
+    <h4>2023-04-25</h4>
+    <ul>
+        <li>
+            Avoid to show players and events that don't have any game uploaded yet
+        </li>
+        <li>
+            Increased font size
+        </li>
+        <li>
+            Uploaded additional game data to the <a href="/database?medium=changelog">Database</a>, reaching 15,000
+        </li>
+    </ul>
+    <h4>2023-04-24</h4>
+    <ul>
+        <li>
+            Couple of fixes on the new features
+        </li>
+    </ul>
+    <h4>2023-04-23</h4>
+    <ul>
+        <li>
+            First version of the <a href="/database?medium=changelog">Database</a> and <a
+                href="/analysis?medium=changelog">Analysis Board</a> features
+        </li>
+    </ul>
+    <h4>2023-04-09</h4>
+    <ul>
+        <li>
+            Exclude coordinate texts from automated Google translation
+        </li>
+    </ul>
+    <h4>2023-04-07</h4>
+    <ul>
+        <li>
+            Add a setting option to show/hide coordinates
+        </li>
+    </ul>
+    <h4>2023-04-03 / 2023-04-04</h4>
+    <ul>
+        <li>
+            Simplifying the UI, so it's more stable on more devices
+        </li>
+    </ul>
+    <h4>2023-04-02</h4>
+    <ul>
+        <li>
+            Password recovery procedure via email
+        </li>
+        <li>
+            Indicate number of users online on Global page
+        </li>
+        <li>
+            Add success rate bar indicator in Global page
+        </li>
+    </ul>
+    <h4>2023-04-01</h4>
+    <ul>
+        <li>
+            Fix profiles with username with Chinese characters (NB: it's currently not possible to sign up with a
+            username containing Chinese characters, but this was done manually for some users)
+        </li>
+        <li>
+            Improved security
+        </li>
+        <li>
+            Key shortcut to go to next puzzle (Enter)
+        </li>
+    </ul>
+    <h4>2023-03-31</h4>
+    <ul>
+        <li>
+            Additional information on the global stats page
+        </li>
+        <li>
+            Charts style on user profile
+        </li>
+    </ul>
+    <h4>2023-03-30</h4>
+    <ul>
+        <li>
+            Only show the 20 players with the highest rating on the leaderboard
+        </li>
+        <li>
+            Display solved rate on the leaderboard
+        </li>
+    </ul>
+    <h4>2023-03-27</h4>
+    <ul>
+        <li>
+            Add quick fix for render on Safari (still doesn't look perfect but at least it's playable)
+        </li>
+        <li>
+            Only hide category and rating for the easiest puzzles (below mate in 5)
+        </li>
+        <li>
+            Improve puzzle caching in the backend (should improve performance a little)
+        </li>
+        <li>
+            Move the changelog on a separate page
+        </li>
+    </ul>
+    <h4>2023-03-26</h4>
+    <ul>
+        <li>
+            Add option to play with romanized pieces
+        </li>
+        <li>
+            Add option to rotate the board
+        </li>
+        <li>
+            Add link to the simple board tool
+        </li>
+        <li>
+            Bug fix on the new puzzle system (mated by puzzle was not rendered)
+        </li>
+        <li>
+            Minor UI improvements
+        </li>
+        <li>
+            Round up elo transfer towards winner
+            (<a href="https://github.com/benckx/elephantchess.io/issues/25" target="_blank">issue #25</a>)
+        </li>
+        <li>
+            Hide puzzle metadata (category and rating) until the puzzle is done
+        </li>
+    </ul>
+    <h4>2023-03-25</h4>
+    <ul>
+        <li>
+            Refactor puzzles so it can accept alternative paths to checkmate
+        </li>
+        <li>
+            Uploaded remaining puzzles, to reach just a bit less of 18,000 puzzles total
+        </li>
+    </ul>
+    <h4>2023-03-24</h4>
+    <ul>
+        <li>
+            Additional data in Global stats page + Top menu item to access it
+        </li>
+    </ul>
+    <h4>2023-03-23</h4>
+    <ul>
+        <li>
+            Drop down menu for users to update their profile and logout
+        </li>
+        <li>
+            Caching on HTML files for better performance
+        </li>
+    </ul>
+    <h4>2023-03-20</h4>
+    <ul>
+        <li>
+            Fix UI issue on mobiles
+        </li>
+        <li>
+            Add user profile with stats
+        </li>
+    </ul>
+    <h4>2023-03-19</h4>
+    <ul>
+        <li>
+            UI improvements and fixes (align Puzzles and Play Bot screens with top menu, make Play Bot screen
+            consistent
+            with Puzzle screen, center modals in the middle of the screen, submit modals form with Enter key, etc.)
+        </li>
+    </ul>
+    <h4>2023-03-18</h4>
+    <ul>
+        <li>
+            Play against Fairy Stockfish
+        </li>
+        <li>
+            Click sound on opponent move
+        </li>
+        <li>
+            Highlight last opponent move (with a dashed green circle)
+        </li>
+        <li>
+            UI adjustments
+        </li>
+    </ul>
+    <h4>2023-03-17</h4>
+    <ul>
+        <li>
+            Select playing color and level when playing bot
+        </li>
+    </ul>
+    <h4>2023-03-16</h4>
+    <ul>
+        <li>
+            Add links to the <a href="https://github.com/benckx/elephantchess.io/issues" target="_blank">GitHub</a>
+            and the <a href="https://ko-fi.com/elephantchess" target="_blank">support page</a>
+        </li>
+    </ul>
+    <h4>2023-03-13</h4>
+    <ul>
+        <li>
+            Increase Pikafish bot depth to 10
+        </li>
+        <li>
+            Sign Up form
+        </li>
+    </ul>
+    <h4>2023-03-12</h4>
+    <ul>
+        <li>
+            Basic UI to play against the Pikafish engine (i.e. games are not saved and there is no option to select the
+            level at the moment). Depth has been set to 4 for now.
+        </li>
+    </ul>
+    <h4>2023-03-11</h4>
+    <ul>
+        <li>
+            Added link to <a href="https://discord.gg/WEGDqnWXNg" target="_blank">Discord server</a>
+        </li>
+    </ul>
+    <h4>2023-03-09</h4>
+    <ul>
+        <li>
+            Migrate backend to a different framework
+        </li>
+        <li>
+            Increase piece size (feedback from test users)
+        </li>
+        <li>
+            Persist anonymous puzzle results
+        </li>
+        <li>
+            First registered <a href="/@/BeVegan">user</a> added, official birthday of the platform 🎂
+        </li>
+    </ul>
+    <h4>2023-03-07</h4>
+    <ul>
+        <li>
+            Minor UX changes
+        </li>
+        <li>
+            HTML metadata
+        </li>
+    </ul>
+    <h4>2023-03-06</h4>
+    <ul>
+        <li>
+            Top menu and "About" page
+        </li>
+        <li>
+            Permalink to individual puzzles (copy-paste doesn't seem to work on macOS though)
+        </li>
+        <li>
+            Better indications for checks and check mates (orange and red circles)
+        </li>
+        <li>
+            Accept other moves leading to check mate (rather than just the one pre-calculated in the solution of the
+            puzzle)
+        </li>
+        <li>
+            Display user puzzle rating, and increase or decrease depending on whether the puzzle was solved or not
+            (available only to logged users)
+        </li>
+    </ul>
+    <h4>2023-02-11</h4>
+    <ul>
+        <li>
+            The domain name was acquired
+        </li>
+        <li>
+            Configuration of the server
+        </li>
+    </ul>
+    <h4>2023-01-23</h4>
+    <ul>
+        <li>
+            First commit to the Git repository
+        </li>
+    </ul>
+</div>
+{{footer}}
+{{kofi_floating_widget}}
+</body>
+</html>

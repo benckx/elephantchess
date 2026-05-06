@@ -1,0 +1,119 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>{{username}} on elephantchess.io</title>
+    {{meta_no_index_conditional}}
+    {{description_meta}}
+    <link rel="stylesheet" href="/css/user-profile.css"/>
+    {{apex_charts}}
+    <script defer src="/js/modules/countries.js"></script>
+    <script defer src="/js/user-profile/user-profile-client.js"></script>
+    <script defer src="/js/user-profile/puzzle-rating-history-line-chart.js"></script>
+    <script defer src="/js/user-profile/puzzle-numbers-bar-chart.js"></script>
+    <script defer src="/js/user-profile/user-profile-dto.js"></script>
+    <script defer src="/js/user-profile/user-profile.js"></script>
+</head>
+<body data-user-id="{{user_id}}">
+{{body_init}}
+<div class="main-container-text">
+    <div id="profile-header">
+        <div class="profile-header-panel">
+            <div id="status-indicator" class="online-status-indicator"></div>
+        </div>
+        <div class="profile-header-panel">
+            <h1 id="profile-username">{{username}}</h1>
+        </div>
+        {{flag_header_panel}}
+    </div>
+    <hr/>
+    {{user_profile_description}}
+    <br/>
+    <h1>Game Stats</h1>
+    <hr/>
+    <div class="center-content-div">
+        <table id="ratings-table">
+            <tr>
+                <th>
+                    category
+                </th>
+                <td>
+                    <img id="rating-bullet-icon" src="/images/icons/shuttle.png"
+                         class="time-control-icons time-control-icons-larger" alt="bullet">
+                </td>
+                <td>
+                    <img id="rating-blitz-icon" src="/images/icons/flash-squared.png"
+                         class="time-control-icons time-control-icons-larger" alt="blitz">
+                </td>
+                <td>
+                    <img id="rating-rapid-icon" src="/images/icons/run.png"
+                         class="time-control-icons time-control-icons-larger" alt="rapid">
+                </td>
+                <td>
+                    <img id="rating-classical-icon" src="/images/icons/museum.png"
+                         class="time-control-icons time-control-icons-larger" alt="classical">
+                </td>
+                <td>
+                    <img id="rating-correspondence-icon" src="/images/icons/email.png"
+                         class="time-control-icons time-control-icons-larger" alt="correspondence">
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    rating
+                </th>
+                <td>
+                    <span id="rating-bullet"></span>
+                </td>
+                <td>
+                    <span id="rating-blitz"></span>
+                </td>
+                <td>
+                    <span id="rating-rapid"></span>
+                </td>
+                <td>
+                    <span id="rating-classical"></span>
+                </td>
+                <td>
+                    <span id="rating-correspondence"></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="puzzle-stats-section">
+        <br/>
+        <h1>Puzzle Stats</h1>
+        <hr/>
+        <div id="profile-puzzle-stats-placeholder" class="empty-block-placeholder">
+            <span class="loading">Loading...</span>
+        </div>
+        <div id="profile-puzzle-stats-data">
+            <table id="summary-data-table">
+                <tr>
+                    <td class="header-cell">Rating</td>
+                    <td class="value-cell"><span id="summary-data-rating"></span></td>
+                </tr>
+                <tr>
+                    <td class="header-cell">Max rating</td>
+                    <td class="value-cell"><span id="summary-data-max-rating"></span></td>
+                </tr>
+                <tr>
+                    <td class="header-cell">Total played</td>
+                    <td class="value-cell"><span id="summary-data-total-played"></span></td>
+                </tr>
+            </table>
+            <div class="center-content-div" style="flex-flow: column">
+                <div class="puzzle-chart-container center-content-div">
+                    <h2>Rating History</h2>
+                    <div id="rating-line-chart"></div>
+                </div>
+                <div class="puzzle-chart-container center-content-div" style="margin-top: 20px;">
+                    <h2>Latest Activity</h2>
+                    <div id="number-bar-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{footer}}
+</body>
+</html>

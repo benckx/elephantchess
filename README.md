@@ -5,16 +5,298 @@
 Feel free to create issues in this repo to report bugs or request feature changes. The
 current [roadmap](https://github.com/users/benckx/projects/2/views/1) is also available on this repo.
 
-As of now, the public repository only contains a couple of libraries developed for the backend. Those are under LGPL-3.0
-license. The rest of the webapp code is not open source yet.
+By default, the code is under GPL-3.0 license. Some libraries are under LGPL-3.0 license to allow for a more permissive
+use.
 
-# JavaScript Libraries
+## Features
 
-Those are managed and documented separately at https://elephantchess.io/about/developers/board-gui-example
+The webapp offers the following features:
 
-# Libraries
+- Play against other players (PvP), where users can play against each other in real-time and chat. Users can find each
+  other in the Lobby.
+- Play against the bot (PvB), where user can play against the computer.
+- Puzzles (or tactics), where users have to find the best moves from a given position.
+- Database of tournaments games, events, players and statistic. To avoid confusion with the PostgreSQL database, we'll
+  try to specify when we talk about the "PostgreSQL database" or the "Database" as a feature.
+- Analysis board, where users can create complex analysis, with engine evaluation, multiple embedded variations,
+  annotations (i.e. `??`, `?!` symbols) and comments.
 
-## engine-api
+The overall philosophy is to keep the webapp free of ads and annoying banners and keep the GUI simple and intuitive, to
+be transparent on how user data is used.
+
+## Glossary
+
+- The Forsyth–Edwards Notation (or FEN) is a standard notation to represent chess positions as a single line of text. In
+  Chinese chess, the starting position is encoded as
+  `rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0`. It is convenient for data transfer and
+  indexing.
+- The algebraic notation is a standard notation to represent chess moves. The "columns" or the board are called "files"
+  and the "rows" are named "ranks". In the algebraic notation, the files are numbered from a to i and the ranks are
+  numbered from 1 to 10. So the move "C2=5" is represented in algebraic notation as "h3e3" (i.e. move the piece from
+  file h, rank 2 to file e, rank 2).
+- The UCI (Universal Chess Interface) is a standard protocol to communicate with chess engines. It defines a set of
+  commands and responses that allow a chess engine to be controlled by a user interface. For example, the command
+  `position fen rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0` tells the engine to set up the
+  board with the given FEN position; and the command `go depth 10` tells the engine to start calculating the best move
+  from that position with a search depth of 10.
+- The UCI move notation is similar to the algebraic notation, except that the ranks are 0-based. Therefore, any
+  move can be encoded as 4 characters. For example, move h3e3 is encoded in UCI as h2e2.
+
+## Contribute
+
+So far I'm the only one working on this project. It was just recently made public. So I'm not sure yet how the
+contribution process might look like.
+
+Best is to join our [Discord server](https://discord.gg/WEGDqnWXNg) to discuss first how you would like to contribute,
+or to open or comment on the GitHub issues.
+
+# Run Locally
+
+This section describes how to run the back-end and front-end of [elephantchess.io](https://elephantchess.io) locally for
+development or learning purposes.
+
+## Pre-requisites
+
+### Java 21
+
+You need a JDK installed to run the back-end, version 21 or higher.
+
+### Docker
+
+You need Docker to run a local PostgreSQL instance. To check if you have Docker installed, you can run the following
+command in your terminal:
+
+```shell
+➜  ~ docker --version
+Docker version 29.4.2, build 055a478
+```
+
+## Set-up
+
+### Engines
+
+The engines are AI (or bots) used for the Play-against-bot (PvB) or Analysis Board features
+of [elephantchess.io](https://elephantchess.io).
+
+The webapp assumes engine binaries can be found locally. So you need to create folder `engines` at the root of this
+repository, download the binaries from their repositories and copying them in this format:
+
+```
+$ tree engines
+engines
+├── fairy-stockfish
+└── pikafish
+    └── 2023-03-05
+        ├── pikafish-modern
+        └── pikafish.nnue
+```
+
+Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. Versions posterior to
+2023-03-05 contain a number of binaries that I don't know how to use, so as of
+now [elephantchess](https://elephantchess.io) uses Pikafish 2023-03-05.
+
+Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now we only
+use version 11.2; so it's not versioned in the `engines` folder.
+
+You can run the webapp locally without the engines by setting `engines=false` in the properties file, but of course you
+won't be able to play against the bot or run analysis.
+
+### PostgreSQL Docker container
+
+You need to run a local PostgreSQL instance:
+
+```shell
+docker run -d --rm --name xiangqi-db -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=xiangqi postgres:17.6
+```
+
+Once the container is running, you should see it in the list of running containers:
+
+```shell
+➜  ~ docker ps
+CONTAINER ID   IMAGE           COMMAND                  CREATED         STATUS         PORTS                                         NAMES
+c4e5aa14100b   postgres:17.6   "docker-entrypoint.s…"   9 seconds ago   Up 8 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   xiangqi-db
+```
+
+You can then import the dev database (which contains a few games, puzzles and test users):
+
+```shell
+docker exec -i xiangqi-db pg_restore --no-privileges --no-owner --verbose -U postgres -d xiangqi -1 < dev_dataset.pgsql
+```
+
+## Build and Run
+
+To build (we can skip unit tests to speed it up):
+
+```shell
+./gradlew clean build -x test
+```
+
+To run:
+
+```shell
+java -jar webapp/build/libs/webapp.jar
+```
+
+Then you should be able to access the webapp at http://localhost:8080.
+
+Alternatively, you can launch the `Main` from your IDE of choice.
+
+## Common Issues
+
+### Port 8080 blocked
+
+If you stop the process, it's possible that the 8080 port remains blocked when you try to re-start it later. You need to
+check how to kill the zombie process still blocking the port.
+
+On macOS, you can run the following command to kill the process blocking the port:
+
+```shell
+lsof -ti :8080 | xargs kill -9             
+```
+
+On Linux (on Mint):
+
+```shell
+fuser -k 8080/tcp
+```
+
+### Invalid guest session
+
+If you run the webapp locally with a new database instance, you might see an error in the browser and in the console
+that the guest user is invalid. This is perfectly normal since the token lives in the browser and on a new database
+instance, that guest user will not be found. A new guest session will be created automatically and the page will
+refresh.
+
+# Back-End (Kotlin)
+
+The back-end is written in Kotlin and based on KTor to serve REST and WebSocket endpoints for the front-end, as well
+as HTML pages. It also uses Koin for dependency injection.
+
+Therefore, the Main class is pretty straightforward:
+
+```kotlin
+fun main(args: Array<String>) {
+    val argsConfig = parseArgs(args)
+    logger.info { "args: ${args.joinToString(" ")}" }
+    logger.info { "starting with $argsConfig" }
+
+    // dependency injection with Koin
+    startKoin {
+        modules(
+            // one module for services (independent of any endpoint)
+            serviceLayerModule(
+                argConfig = argsConfig,
+                eagerAllowed = true
+            ),
+            // one module for webapp (routes, endpoints, JavaScript and CSS assets, etc.)
+            webAppKoinModule(eagerAllowed = true)
+        )
+    }
+
+    // Ktor server
+    embeddedServer(factory = Netty, port = 8080, module = Application::kTorModule)
+        .start(wait = true)
+}
+
+// different KTor submodules for different purposes
+private fun Application.kTorModule() {
+    configureDefaultHeaders()
+    exceptionHandler()
+    cachingModule()
+    staticAssetsModule()
+    apiServiceModule()
+    htmlRoutingModule()
+    sitemapRoutingModule()
+    shutdownModule()
+    healthCheckModule()
+}
+```
+
+## Modules
+
+### utils
+
+Small module with a couple of utility functions.
+
+### webapp-model-common
+
+Small module with mostly enum which can be re-use by both DAO (i.e. for PostgreSQL database) and DTO.
+
+### webapp-config
+
+Small module to parse and load configuration properties files. Properties files names use the format
+`app_<profile>.properties` where profile can be e.g. `local` or `prod`. This profile is passed to Main which resolves
+the correct file.
+
+This repository provides `app_local.properties` with default values for local development.
+
+### webapp-dao
+
+Contains "DAO services" like `PlayerVsPlayerGameDaoService` or `UserDaoService` that contains SQL queries.
+
+Those services rely on the generated code by jOOQ. The POJO and fields are generated. The generation happens
+automatically during the build.
+
+For example, in the following function, table and columns `USER`, `USER.EMAIL`, etc. are generated by jOOQ codegen tool.
+
+```kotlin
+suspend fun fetchEmail(userId: String): String? {
+    return dslContext
+        .select(USER.EMAIL)
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .and(USER.USER_TYPE.eq(AUTHENTICATED))
+        .awaitSingleValue()
+}
+
+```
+
+In order to generate the dao code, jOOQ needs the latest DDL. To do this, it loads the Liquibase migrations on a
+in-memory H2 database to access tables definitions.
+
+One quirk about this is that this H2 instance doesn't support some changes, so there is another version of the
+`liquibase-changelog.xml` file (`liquibase-changelog-generation.xml`) which is generated from a script. So any change to
+`liquibase-changelog.xml` should be followed by an execution of `LiquibaseGeneration` script before re-building, in
+order to get the updated generated code.
+
+Check the Gradle task `dao-code-gen` in the build file for more details.
+
+The underlying driver is R2DBC which is a reactive driver, so queries are non-blocking and can be used in a coroutine
+context.
+
+### webapp-dao-migration
+
+Tiny module to manage the Liquibase migration. The reason it's separated from `webapp-dao` is because it uses JDBC
+driver which shouldn't be exposed to the rest of the app.
+
+### webapp-html-renderer
+
+Custom HTML renderer with custom template management. It's a bit of a weird design choice. I had experimented with
+frameworks like Thymeleaf or Velocity, and I wasn't very fond of them. Furthermore, at the beginning of the project, the
+HTML from the backend were very empty and the JavaScript was filling the data in (which is still the case for games
+pages (PvP, PvB, puzzles)). So there was little need to introduce a fancy framework.
+
+Nowadays, the back-end produces a bit more dynamic HTML in a somewhat ad-hoc manner. In the end, it's easy to build and
+maintain and allows quite some flexibility.
+
+For example, it has the ability to fetch JavaScript and CSS assets from either the JAR or the CDN; as well as either the
+minified or plain versions; remove HTML comments, cache the rendered HTML, etc.
+
+### webapp-service-layer
+
+Probably the largest module, since it contains the main business logic of the app, for example all the CRUD services to
+manage games (create, play move, browse, analyze, etc.).
+
+This module should not contain a dependency to KTor.
+
+### webapp
+
+KTor-based modules that links the service layer to the REST and WebSocket endpoints, as well as the HTML pages. It also
+contains the JavaScript, CSS, images, etc. assets.
+
+## Libraries
+
+### engine-api
 
 Kotlin API to launch and communicate with chess engines running as system processes.
 
@@ -31,7 +313,7 @@ with more threads for each instance if you want to optimize for responsiveness.
 On [elephantchess](https://elephantchess.io) for example, each Kubernetes pod has an `EnginePool` with one instance of
 Pikafish and one instance of Fairy Stockfish, with one thread each (so the engine processes don't use more than one CPU
 core and the rest of the app remains responsive, as each pod only has 2 CPU cores at the moment). It would probably be
-sensible to use a similar setup on an Android app, given not all mobile devices have a lot of CPU cores.
+sensible to use a similar setup on an Android app, given that not all mobile devices have a lot of CPU cores.
 
 The `numberOfThreads` option is not used in the `EnginePool` itself, but is simply passed along to the engine process.
 In Pikafish for example, it's passed to the engine process with command `setoption name Threads value 8` (you don't need
@@ -83,7 +365,7 @@ one version:
 ```
 engines
 └── pikafish
-    └── 2023-02-16
+    └── 2023-03-05
         ├── pikafish-modern
         └── pikafish.nnue
 ```
@@ -101,7 +383,7 @@ object DockerizedProcessLocator : EngineProcessLocator {
 ```
 
 Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. Versions posterior to
-2023-03-05 contains a number of binaries that I don't know how to use, so as of
+2023-03-05 contain a number of binaries that I don't know how to use, so as of
 now [elephantchess](https://elephantchess.io) uses Pikafish 2023-03-05.
 
 Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now we only
@@ -120,7 +402,7 @@ import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors.newFixedThreadPool
 
 fun main() {
-    val engineConfig = EngineConfig("2022-12-26", poolSize = 1, numberOfThreads = 8)
+    val engineConfig = EngineConfig("2023-03-05", poolSize = 1, numberOfThreads = 8)
     val enginePool = EnginePool(mapOf(PikafishEngineId to engineConfig), newFixedThreadPool(2))
 
     runBlocking {
@@ -138,9 +420,9 @@ fun main() {
 outputs
 
 ```
-10:21:17.168 [pool-1-thread-1] INFO  i.e.e.process.PikafishEngineProcess - running Pikafish engine, launching ./engines/pikafish/2022-12-26/pikafish-modern
+10:21:17.168 [pool-1-thread-1] INFO  i.e.e.process.PikafishEngineProcess - running Pikafish engine, launching ./engines/pikafish/2023-03-05/pikafish-modern
 10:21:17.199 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: setoption name Threads value 8
-10:21:17.200 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - Pikafish 2022-12-26 by the Pikafish developers (see AUTHORS file)
+10:21:17.200 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - Pikafish 2023-03-05 by the Pikafish developers (see AUTHORS file)
 10:21:17.222 [main] INFO  i.e.e.process.PikafishEngineProcess - Pikafish process has started
 10:21:17.224 [main] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: isready
 10:21:17.641 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - readyok
@@ -165,11 +447,11 @@ best move: h2e2
 10:21:17.868 [main] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: quit
 ```
 
-## xiangqi-core
+### xiangqi-core
 
 Kotlin library providing a representation of a Chinese chess board.
 
-### Example 1
+#### Example 1
 
 ```kotlin
 import io.elephantchess.xiangqi.Board
@@ -226,11 +508,11 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
 0  R N B A K A B N R
 ```
 
-## xiangqi-core-test-utils
+### xiangqi-core-test-utils
 
 Test data for unit tests of `xiangqi-core`.
 
-# Libraries Usage
+## Libraries Usage
 
 [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
 
@@ -249,3 +531,26 @@ Then you can use the dependencies:
 implementation "com.github.benckx.elephantchess:xiangqi-core:1.1.3"
 implementation "com.github.benckx.elephantchess:engine-api:1.1.3"
 ```
+
+# Front-End (JavaScript)
+
+The front-end doesn't use any framework. It's only vanilla JavaScript with a few libraries (dayjs, ApexCharts,
+vanillajs-datepicker, jsdiff).
+
+Under `webapp/src/main/resources/public/js` there's usually a sub-folder for each "app", i.e.:
+
+- `analysis-board`
+- `player-vs-player`
+- `player-vs-bot`
+- `puzzles`
+- etc.
+
+Complex app like PvP is usually organized with a "page" which updates the GUI, a "controller" which connect to
+WebSockets or calls REST endpoint, sometimes a DTO file, sometimes a file with a REST client.
+
+## JavaScript Libraries
+
+Some widgets from the [https://elephantchess.io](https://elephantchess.io) front-end are available as JavaScript
+libraries:
+
+- https://elephantchess.io/about/developers/board-gui-example

@@ -1,0 +1,120 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#player-profile-description {
+    font-size: 15px;
+    margin-bottom: 12px;
+}
+
+#player-profile-description .profile-sources {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f3f2f1;
+    border-radius: 12px;
+}
+
+#player-profile-description .profile-sources h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#player-profile-description .profile-sources ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+#player-profile-description .profile-sources li {
+    margin-bottom: 8px;
+}
+
+#player-profile-description .profile-sources a:hover {
+    text-decoration: underline;
+}
+
+#profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 14px;
+    gap: 18px;
+    margin-right: 16px;
+}
+
+#profile-actions a {
+    font-size: 14px;
+}
+
+.latest-games-container {
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#view-current-version-link {
+    display: none;
+}
+
+#include-possible-duplicates-data-warning {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
+    color: #2a2620;
+}
+
+#possible-duplicate-block {
+    margin-top: 58px;
+}
+
+#possible-duplicate-block h1 {
+    margin-top: 0;
+}
+
+#possible-duplicate-block ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+@media (max-width: 1000px) {
+    #player-profile-description {
+        font-size: 34px;
+        margin-bottom: 20px;
+    }
+
+    #player-profile-description .profile-sources h3 {
+        font-size: 38px;
+    }
+
+    #profile-actions a {
+        font-size: 28px;
+    }
+
+    #possible-duplicate-block {
+        margin-top: 100px;
+    }
+}

@@ -1,0 +1,30 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>My Analysis</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/my-user-data-items.css"/>
+    <link rel="stylesheet" href="/css/my-analysis.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/userdata/my-analysis-dto.js"></script>
+    <script defer src="/js/userdata/my-analysis.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>My Analysis</h1>
+    <hr class="only-desktop"/>
+    <div id="my-game-items">
+    </div>
+    <div id="is-loading-message">
+        Loading more analysis...
+    </div>
+    <div id="no-analysis-message" class="empty-list-message-user-data">
+        You didn't create any analysis yet. You can create your own analysis in the <a href="/analysis">Analysis
+        Board</a>. Once you saved an analysis, it will appear in this list.
+    </div>
+</div>
+</body>
+</html>

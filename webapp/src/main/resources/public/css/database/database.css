@@ -1,0 +1,75 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.database-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid #d0d0d0;
+    background-color: #f5f0eb;
+    border-radius: 10px;
+    margin-top: 10px;
+    margin-bottom: 44px;
+    overflow: hidden;
+}
+
+.database-table td,
+.database-table th {
+    display: table-cell;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e0dcd8;
+    border-right: 1px solid #e0dcd8;
+}
+
+.database-table td:last-child,
+.database-table th:last-child {
+    border-right: none;
+}
+
+.database-table tr:last-child td {
+    border-bottom: none;
+}
+
+.database-table th {
+    background-color: #d5d5d5;
+    font-weight: bold;
+    padding: 10px 12px;
+}
+
+.database-table tr:nth-child(even) {
+    background-color: #f0ebe6;
+}
+
+
+@media (max-width: 1000px) {
+    .database-table {
+        max-width: 100%;
+        border-radius: 0;
+        margin-top: 20px;
+        margin-bottom: 60px;
+    }
+
+    .database-table td,
+    .database-table th {
+        padding: 14px 10px;
+        font-size: 30px;
+    }
+}

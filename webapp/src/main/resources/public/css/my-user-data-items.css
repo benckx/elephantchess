@@ -1,0 +1,266 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.guest-message-box {
+    margin-top: 100px;
+}
+
+#my-game-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.my-game-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 78px;
+    background-color: #e0d2bd;
+    margin-bottom: 8px;
+    margin-top: 8px;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+    border-radius: 3px;
+    border: 1px solid #343434;
+    width: 90%;
+}
+
+.my-game-item:hover {
+    background-color: #f1ddbc;
+}
+
+.canceled-item,
+.below-move-3-item {
+    display: none;
+}
+
+.time-control-icons {
+    width: 30px;
+}
+
+.my-game-item .icon {
+    width: 30px;
+    /*height: 30px;*/
+    opacity: 80%;
+}
+
+.my-game-item .ongoing-game-icon {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+}
+
+.my-game-item .ongoing-game-icon img {
+    width: 20px;
+    height: 20px;
+}
+
+.my-game-item .action-icon:hover {
+    cursor: pointer;
+    background-color: #d7d3ce;
+    opacity: 95%;
+}
+
+.my-game-item .icon-disabled,
+.my-game-item .icon-disabled:hover {
+    cursor: default;
+    opacity: 30%;
+    background-color: transparent;
+}
+
+.my-game-item .left-pane,
+.my-game-item .middle-pane,
+.my-game-item .right-pane {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.my-game-item .left-pane {
+    width: 12%;
+}
+
+.my-game-item .middle-pane {
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    width: auto;
+}
+
+.my-game-item .middle-pane div {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.my-game-item .right-pane {
+    width: 16%;
+    flex-direction: column;
+}
+
+.my-game-item .indicator-pane {
+    width: 9%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.my-game-item .default-text {
+    color: #3c3a3a;
+    font-size: 14px;
+}
+
+.my-game-item .rating-from {
+    color: #3c3a3a;
+}
+
+.my-game-item .not-joined {
+    font-style: italic;
+    color: #626161;
+}
+
+.my-game-item .rating-mode {
+    color: #3c3a3a;
+    font-size: 13px;
+}
+
+.my-game-item .game-status {
+    color: #3c3a3a;
+    font-size: 14px;
+}
+
+.my-game-item .last-modified {
+    color: #3c3a3a;
+    font-size: 14px;
+}
+
+.my-game-item .move-index {
+    color: #626161;
+    font-size: 13px;
+}
+
+.my-game-item .outcome-label-holder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #4f4c4c;
+    color: whitesmoke;
+    border-radius: 4px;
+    height: 24px;
+    width: 40px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+    box-shadow: rgba(0, 0, 0, 0.6) 0 1px 1px;
+}
+
+.my-game-item .outcome-label-win {
+    background-color: #19681d;
+    color: white;
+}
+
+.my-game-item .outcome-label-loss {
+    background-color: #b5180d;
+    color: white;
+}
+
+/* TODO: make those color a var */
+.my-game-item .outcome-label-red-wins {
+    background-color: #b5180d;
+    color: white;
+}
+
+.my-game-item .outcome-label-black-wins {
+    background-color: #000000;
+    color: white;
+}
+
+.my-game-item .outcome-label-draw {
+    background-color: #535252;
+    color: white;
+}
+
+#is-loading-message,
+#end-of-pagination-message {
+    display: none;
+    width: 100%;
+    margin-top: 30px;
+    font-size: 19px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#is-loading-message {
+    font-style: italic;
+}
+
+@media (max-width: 1000px) {
+    .my-game-item {
+        height: 120px;
+        border-radius: 0;
+        width: 102%;
+        font-size: 26px;
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+
+    .time-control-icons {
+        width: 45px;
+    }
+
+    .my-game-item .icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .my-game-item .indicator-pane {
+        width: 16%;
+    }
+
+    .my-game-item .outcome-label-holder {
+        height: 40px;
+        width: 60px;
+        font-size: 15px;
+    }
+
+    .my-game-item .right-pane {
+        width: 19%;
+    }
+
+    .my-game-item .rating-mode {
+        font-size: 22px;
+    }
+
+    .my-game-item .game-status {
+        font-size: 24px;
+    }
+
+    .my-game-item .last-modified {
+        font-size: 24px;
+    }
+
+    .my-game-item .move-index {
+        font-size: 22px;
+    }
+
+    #is-loading-message {
+        font-size: 30px;
+        margin-top: 40px;
+    }
+}

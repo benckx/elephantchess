@@ -1,0 +1,11 @@
+package io.elephantchess.db.model
+
+data class NotificationsSettingsRecord(
+    val newsletter: Boolean,
+    val opponentJoinedGame: Boolean,
+    val opponentPlayedMove: Boolean,
+    val opponentResigned: Boolean,
+    val opponentProposedDraw: Boolean,
+    val opponentAcceptedDraw: Boolean,
+    val opponentDeclinedDraw: Boolean,
+)
