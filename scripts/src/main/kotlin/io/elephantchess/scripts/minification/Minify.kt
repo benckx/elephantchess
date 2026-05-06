@@ -1,6 +1,5 @@
 package io.elephantchess.scripts.minification
 
-import io.elephantchess.db.utils.toUtcInstant
 import io.elephantchess.scripts.listAllCssFiles
 import io.elephantchess.scripts.listAllJsFiles
 import java.io.File
@@ -11,7 +10,6 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URLEncoder
 import java.security.MessageDigest
-import java.time.LocalDateTime
 import kotlin.system.exitProcess
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -103,7 +101,7 @@ private fun loadCsv(): List<MinificationCsvEntry> {
     if (csvFile.exists()) {
         csvFile.readLines().forEach { line ->
             val (filePath, checksum, dateTime) = line.split(",")
-            entries.add(MinificationCsvEntry(filePath, checksum, LocalDateTime.parse(dateTime).toUtcInstant()))
+            entries.add(MinificationCsvEntry(filePath, checksum, Instant.parse(dateTime)))
         }
     }
     return entries.toList()
@@ -185,7 +183,7 @@ fun minifyIfNeeded(files: List<File>) {
             }
             if (chunk.size == chunkSize) {
                 writeCsv(csvEntries)
-                val toWait = 120_000L
+                val toWait = 90_000L
                 println("sleeping rate limit for $toWait ms., remaining ${filesToMinify.size - processed}")
                 Thread.sleep(toWait)
             }
