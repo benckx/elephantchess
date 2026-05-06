@@ -561,3 +561,12 @@ Some widgets from the [https://elephantchess.io](https://elephantchess.io) front
 libraries:
 
 - https://elephantchess.io/about/developers/board-gui-example
+
+## Minification
+
+The minification of JavaScript and CSS assets is done via a REST call to https://www.toptal.com. To avoid reminify the
+same files, we keep track of the checksum of the input files in a local `minified_files.csv` file. The endpoint we use
+is rate limited, so we minify chuck of 20 files every 90 seconds.
+
+It's a bit of a funny approach but Gradle plugins I tried wouldn't support the JavaScript files since they contained
+private class fields (i.e. ES6).
