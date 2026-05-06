@@ -106,7 +106,12 @@ won't be able to play against the bot or run analysis.
 You need to run a local PostgreSQL instance:
 
 ```shell
-docker run -d --rm --name xiangqi-db -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=xiangqi postgres:17.6
+docker run -d --rm \
+    --name xiangqi-db \
+    -p 5432:5432 \
+    -e POSTGRES_PASSWORD=postgres \
+    -e POSTGRES_DB=xiangqi \
+    postgres:17.6
 ```
 
 Once the container is running, you should see it in the list of running containers:
@@ -120,7 +125,9 @@ c4e5aa14100b   postgres:17.6   "docker-entrypoint.s…"   9 seconds ago   Up 8 s
 You can then import the dev database (which contains a few games, puzzles and test users):
 
 ```shell
-docker exec -i xiangqi-db pg_restore --no-privileges --no-owner --verbose -U postgres -d xiangqi -1 < dev_dataset.pgsql
+docker exec -i xiangqi-db \
+    pg_restore --no-privileges --no-owner --verbose \
+    -U postgres -d xiangqi -1 < dev_dataset.pgsql
 ```
 
 ## Build and Run
