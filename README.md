@@ -219,6 +219,8 @@ private fun Application.kTorModule() {
 }
 ```
 
+Except for KTor, Koin, a Kubernetes client, Apache Commons, the project has few dependencies.
+
 ## Modules
 
 ### utils
