@@ -28,3 +28,7 @@ chinese openings
 chinese chess strategies
 chinese chess tactics
 chinese chess rules
+xiangqi library
+chinese chess library
+xiangqi board library
+chinese chess board library
