@@ -95,6 +95,10 @@ fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
             val numberOfDays = floor(dto.amount / COST_IN_EUR_PER_DAY).toInt()
             if (numberOfDays < 1) {
                 "Their $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform for a few hours${recurringStr}!"
+            } else if (dto.recurring && numberOfDays >= 30) {
+                // recurring pledges large enough to cover an entire month (or more):
+                // avoid the misleading "43 entire days every month" phrasing.
+                "Their incredibly generous $typeOfEventStr on $formattedDate $allowUsToTenseStr <b>the entire platform every month!</b>"
             } else {
                 val nbrOfDaysStr =
                     if (numberOfDays == 1) "an entire day!" else "$numberOfDays entire days${recurringStr}!"

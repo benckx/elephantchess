@@ -113,6 +113,37 @@ class TagResolversTest {
     }
 
     @Test
+    fun `recurring pledge covering 30 days or more uses entire-platform message`() = runTest {
+        val out = render(lastSupporter(amount = 200.0, currency = "EUR", recurring = true))
+        assertTrue(
+            out.contains("Their incredibly generous 200€ pledge on $pastDateStr allows us to finance <b>the entire platform every month!</b>"),
+            "Unexpected output: $out"
+        )
+        // Must NOT contain the misleading raw day count phrasing.
+        assertTrue(!out.contains("entire days every month"), "Should not include raw day count: $out")
+        assertTrue(!Regex("\\d+ entire days").containsMatchIn(out.substringBefore(" Many thanks")), "Should not include raw day count: $out")
+    }
+
+    @Test
+    fun `one-time tip covering 30 days or more still shows raw day count`() = runTest {
+        val out = render(lastSupporter(amount = 200.0, currency = "EUR", recurring = false))
+        assertTrue(
+            out.contains("Their generous 200€ tip on $pastDateStr allowed us to finance the platform for <b>50 entire days!</b>"),
+            "Unexpected output: $out"
+        )
+    }
+
+    @Test
+    fun `recurring pledge just below 30 days still shows day count`() = runTest {
+        // 29 days * 4 EUR/day = 116 EUR -> still under 30-days threshold
+        val out = render(lastSupporter(amount = 116.0, currency = "EUR", recurring = true))
+        assertTrue(
+            out.contains("Their generous 116€ pledge on $pastDateStr allows us to finance the platform for <b>29 entire days every month!</b>"),
+            "Unexpected output: $out"
+        )
+    }
+
+    @Test
     fun `unsupported currency falls back to generic message`() = runTest {
         val out = render(lastSupporter(amount = 1500.0, currency = "JPY"))
         // Look at only the dynamic first paragraph (the second one has static promo text).
