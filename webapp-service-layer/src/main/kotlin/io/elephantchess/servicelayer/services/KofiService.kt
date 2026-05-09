@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.KofiEvent
 import io.elephantchess.db.services.KofiEventDaoService
 import io.elephantchess.db.services.KofiEventDaoService.Companion.EXAMPLE_EMAIL
@@ -8,10 +9,12 @@ import io.elephantchess.db.utils.toUtcInstant
 import io.elephantchess.servicelayer.dto.kofi.KofiEventDto
 import io.elephantchess.servicelayer.dto.kofi.LatestSupporter
 import io.elephantchess.servicelayer.dto.lobby.GetSupportersResponse
+import io.elephantchess.servicelayer.exceptions.ForbiddenException
 import io.github.oshai.kotlinlogging.KLogger
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import java.util.*
 import kotlin.time.Instant
 
@@ -19,11 +22,19 @@ class KofiService(
     private val kofiEventDaoService: KofiEventDaoService,
     private val userDaoService: UserDaoService,
     private val userCache: UserCache,
+    appConfig: AppConfig,
     private val logger: KLogger
 ) {
 
+    private val verificationToken by lazy { appConfig.loadString("kofi.verification.token") }
+
     suspend fun processEvent(kofiEvent: KofiEventDto) {
-        logger.info { "processing Ko-fi event: $kofiEvent" }
+        logger.info { "processing Ko-fi event: transactionId=${kofiEvent.kofiTransactionId}, messageId=${kofiEvent.messageId}" }
+
+        if (kofiEvent.verificationToken != verificationToken) {
+            logger.warn { "invalid verification token for Ko-fi event" }
+            throw ForbiddenException("invalid verification token for Ko-fi event")
+        }
 
         if (kofiEvent.email == EXAMPLE_EMAIL) {
             logger.info { "this is a test event with email $EXAMPLE_EMAIL" }
@@ -50,7 +61,7 @@ class KofiService(
             } else if (matchedByUsernames.size > 1) {
                 logger.info { "multiple user matches found for Ko-fi event: $matchedByUsernames for search $searchUsernamesStr" }
             } else {
-                logger.info { "no user match found for email ${kofiEvent.email}" }
+                logger.info { "no user match found for Ko-fi event transactionId=${kofiEvent.kofiTransactionId}" }
             }
         }
 
@@ -122,7 +133,7 @@ class KofiService(
             val record = KofiEvent()
             record.kofiTransactionId = UUID.fromString(dto.kofiTransactionId)
             record.messageId = UUID.fromString(dto.messageId)
-            record.timestamp = java.time.LocalDateTime.parse(dto.timestamp, DateTimeFormatter.ISO_DATE_TIME).toUtcInstant()
+            record.timestamp = LocalDateTime.parse(dto.timestamp, ISO_DATE_TIME).toUtcInstant()
             record.transactionType = dto.type
             record.isPublic = dto.isPublic
             record.fromName = dto.fromName
