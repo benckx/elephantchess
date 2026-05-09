@@ -547,8 +547,8 @@ implementation "com.github.benckx.elephantchess:engine-api:1.1.3"
 
 ## HTML
 
-As mentioned earlier in the webapp-html-renderer section [webapp-html-renderer](#webapp-html-renderer), HTML rendering
-relies on a custom system of templating, based on tags `{{tag_name}}`.
+As mentioned earlier in the [webapp-html-renderer](#webapp-html-renderer) section, HTML rendering relies on a custom
+system of templating, based on tags `{{tag_name}}`.
 
 Tags can be resolved from static fragments of HTML, simple values, dynamic renderers or something custom.
 
