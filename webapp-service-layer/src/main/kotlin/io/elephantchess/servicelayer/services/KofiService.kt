@@ -29,7 +29,7 @@ class KofiService(
     private val verificationToken by lazy { appConfig.loadString("kofi.verification.token") }
 
     suspend fun processEvent(kofiEvent: KofiEventDto) {
-        logger.info { "processing Ko-fi event: $kofiEvent" }
+        logger.info { "processing Ko-fi event: transactionId=${kofiEvent.kofiTransactionId}, messageId=${kofiEvent.messageId}" }
 
         if (kofiEvent.verificationToken != verificationToken) {
             logger.warn { "invalid verification token for Ko-fi event" }
@@ -61,7 +61,7 @@ class KofiService(
             } else if (matchedByUsernames.size > 1) {
                 logger.info { "multiple user matches found for Ko-fi event: $matchedByUsernames for search $searchUsernamesStr" }
             } else {
-                logger.info { "no user match found for email ${kofiEvent.email}" }
+                logger.info { "no user match found for Ko-fi event transactionId=${kofiEvent.kofiTransactionId}" }
             }
         }
 
