@@ -9,7 +9,8 @@ import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter.ofPattern
 import kotlin.math.floor
 
-private const val COST_PER_DAY = 4
+private const val COST_IN_EUR_PER_DAY = 4
+private val supportedCurrencies = setOf("USD", "EUR", "GBP")
 
 fun formatNewLinesToHtmlParagraphs(str: String): String {
     return str
@@ -75,22 +76,30 @@ fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
         val formattedDate = formatDate(dto)
 
         val typeOfEventStr =
-            if (dto.recurring) "$formattedAmount per month pledge" else "$formattedAmount tip"
+            if (dto.recurring) "$formattedAmount pledge" else "$formattedAmount tip"
 
         val recurringStr =
             if (dto.recurring) " every month" else ""
 
-        val financeTenseStr =
+        val allowUsToTenseStr =
             if (dto.recurring) "allows us to finance" else "allowed us to finance"
 
-        // format amount
-        val numberOfDays = floor(dto.amount / COST_PER_DAY).toInt()
+        // only compute the number-of-days message for currencies whose value is
+        // close enough to the EUR-based COST_IN_EUR_PER_DAY for the estimate to make sense
+        val isCurrencySupported = dto.currency.uppercase() in supportedCurrencies
 
-        return if (numberOfDays < 1) {
-            "Their $typeOfEventStr on $formattedDate $financeTenseStr the platform for a few hours${recurringStr}!"
+        return if (!isCurrencySupported) {
+            "Their $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform${recurringStr} for a little bit!"
         } else {
-            val nbrOfDaysStr = if (numberOfDays == 1) "an entire day!" else "$numberOfDays entire days${recurringStr}!"
-            "Their generous $typeOfEventStr on $formattedDate $financeTenseStr the platform for <b>$nbrOfDaysStr</b>"
+            // format amount
+            val numberOfDays = floor(dto.amount / COST_IN_EUR_PER_DAY).toInt()
+            if (numberOfDays < 1) {
+                "Their $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform for a few hours${recurringStr}!"
+            } else {
+                val nbrOfDaysStr =
+                    if (numberOfDays == 1) "an entire day!" else "$numberOfDays entire days${recurringStr}!"
+                "Their generous $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform for <b>$nbrOfDaysStr</b>"
+            }
         }
     }
 
