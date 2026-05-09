@@ -7,6 +7,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter.ofPattern
+import java.util.Locale
 import kotlin.math.floor
 
 private const val COST_IN_EUR_PER_DAY = 4
@@ -65,9 +66,9 @@ fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
         val year = date.year
         val currentYear = LocalDate.now(UTC).year
         return if (year == currentYear) {
-            date.format(ofPattern("MMM. d"))
+            date.format(ofPattern("MMM. d").withLocale(Locale.ENGLISH))
         } else {
-            date.format(ofPattern("MMM. d yyyy"))
+            date.format(ofPattern("MMM. d yyyy").withLocale(Locale.ENGLISH))
         }
     }
 
