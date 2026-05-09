@@ -1,4 +1,4 @@
-package io.elephantchess.webapp.routing
+package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.utils.ops.koin

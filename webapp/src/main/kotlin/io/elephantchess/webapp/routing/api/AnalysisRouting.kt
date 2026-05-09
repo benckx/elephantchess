@@ -1,4 +1,4 @@
-package io.elephantchess.webapp.routing
+package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.dto.analysis.*
 import io.elephantchess.servicelayer.dto.engines.EngineRequest
@@ -16,10 +16,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.apache.commons.lang3.StringUtils.isNumeric
 
-private val analysisService by koin<AnalysisService>()
-private val openingService by koin<OpeningService>()
-
 fun Route.analysisRoutes() {
+    val analysisService by koin<AnalysisService>()
+    val openingService by koin<OpeningService>()
+
     route("/api/analysis") {
         post("/openings/next-moves-info") {
             val request = call.receive<OpeningNextMovesRequest>()
