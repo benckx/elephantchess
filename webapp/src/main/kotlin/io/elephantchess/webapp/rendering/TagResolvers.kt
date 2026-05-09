@@ -101,7 +101,7 @@ fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
                 "Their incredibly generous $typeOfEventStr on $formattedDate $allowUsToTenseStr <b>the entire platform every month!</b>"
             } else {
                 val nbrOfDaysStr =
-                    if (numberOfDays == 1) "an entire day!" else "$numberOfDays entire days${recurringStr}!"
+                    if (numberOfDays == 1) "an entire day${recurringStr}!" else "$numberOfDays entire days${recurringStr}!"
                 "Their generous $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform for <b>$nbrOfDaysStr</b>"
             }
         }
