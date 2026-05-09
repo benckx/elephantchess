@@ -1,4 +1,4 @@
-package io.elephantchess.webapp.routing
+package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.dto.ContactFormRequest
 import io.elephantchess.servicelayer.dto.user.*

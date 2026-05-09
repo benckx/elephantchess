@@ -280,13 +280,15 @@ driver which shouldn't be exposed to the rest of the app.
 
 ### webapp-html-renderer
 
-Custom HTML renderer with custom template management. It's a bit of a weird design choice. I had experimented with
-frameworks like Thymeleaf or Velocity, and I wasn't very fond of them. Furthermore, at the beginning of the project, the
-HTML from the backend were very empty and the JavaScript was filling the data in (which is still the case for games
-pages (PvP, PvB, puzzles)). So there was little need to introduce a fancy framework.
+Custom HTML renderer with custom template management.
 
-Nowadays, the back-end produces a bit more dynamic HTML in a somewhat ad-hoc manner. In the end, it's easy to build and
-maintain and allows quite some flexibility.
+It's a bit of a weird design choice. I had experimented with frameworks like Thymeleaf or Velocity, and I wasn't very
+fond of them. Furthermore, at the beginning of the project, the HTML from the backend were very empty and the JavaScript
+was filling the data in (which is still the case for games pages (PvP, PvB, puzzles)). So there was little need to
+introduce a fancy framework.
+
+Nowadays, the back-end produces a bit more dynamic HTML in a somewhat ad-hoc manner. But at the end of the day, it is
+easy to maintain and allows quite some flexibility.
 
 For example, it has the ability to fetch JavaScript and CSS assets from either the JAR or the CDN; as well as either the
 minified or plain versions; remove HTML comments, cache the rendered HTML, etc.
@@ -541,7 +543,79 @@ implementation "com.github.benckx.elephantchess:xiangqi-core:1.1.3"
 implementation "com.github.benckx.elephantchess:engine-api:1.1.3"
 ```
 
-# Front-End (JavaScript)
+# Front-End
+
+## HTML
+
+As mentioned earlier in the webapp-html-renderer section [webapp-html-renderer](#webapp-html-renderer), HTML rendering
+relies on a custom system of templating, based on tags `{{tag_name}}`.
+
+Tags can be resolved from static fragments of HTML, simple values, dynamic renderers or something custom.
+
+### Static HTML fragments
+
+For example, the `base_css.html` file contains all the CSS files we want to link in basically all the HTML pages:
+
+```html
+
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/board.css">
+<link rel="stylesheet" href="/css/style-reactive.css">
+<link rel="preload" href="/css/play-bot-modal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="/css/new-game-modal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+```
+
+It can be referred from another HTML fragment, in this case `header_init.html`, which the header bits we need in each
+page:
+
+```html
+{{google_tag_manager_head}}
+{{base_js}}
+{{base_css}}
+{{google_analytics}}
+```
+
+... which in turn can be resolved from a page:
+
+```html
+
+<head>
+    {{header_init}}
+    <title>About elephantchess.io</title>
+    <link rel="stylesheet" href="/css/about.css"/>
+    <script defer src="/js/default-base-page.js"></script>
+</head>
+```
+
+... rendering the final HTML page with - among other things - all the CSS and JavaScript assets we need:
+
+### Iterations
+
+There is also the ability to inject key, values pairs and to repeat the pattern, like what we do for game thumbs:
+
+```html
+{{game_thumb}}[[iterations:3; {gameType: 'pvp', parentClass: 'latest-pvp-game-thumb'}]]
+```
+
+Where `i` is the iterated value (0, 1, 2), and the key, value pairs (`gameType` and `parentClass`) are injected into the
+resolved content:
+
+```html
+
+<div class="game-thumb ${parentClass} game-thumb-placeholder">
+    <div class="board-outer-container">
+        <div class="board-inner-container">
+            <a class="board-outer-container-link-mask"></a>
+            <div id="last-${gameType}-game-board-${i}"
+                 class="board-container mini-board-container board-container-placeholder">
+            </div>
+        </div>
+        <!-- [...] -->
+    </div>
+</div>
+```
+
+## JavaScript
 
 The front-end doesn't use any framework. It's only vanilla JavaScript with a few libraries (dayjs, ApexCharts,
 vanillajs-datepicker, jsdiff).
@@ -554,13 +628,13 @@ Under `webapp/src/main/resources/public/js` there's usually a sub-folder for eac
 - `puzzles`
 - etc.
 
-Complex app like PvP is usually organized with a "page" which updates the GUI, a "controller" which connect to
-WebSockets or calls REST endpoint, sometimes a DTO file, sometimes a file with a REST client.
+Complex app like PvP is usually organized with a **page** which updates the GUI, a **controller** which connects to
+WebSockets and/or calls REST endpoints, and sometimes a DTO file
 
 ## JavaScript Libraries
 
 Some widgets from the [https://elephantchess.io](https://elephantchess.io) front-end are available as JavaScript
-libraries:
+libraries. At the moment only board-gui is available. The plan would be to make the move-tree also available.
 
 - https://elephantchess.io/about/developers/board-gui-example
 

@@ -1,4 +1,4 @@
-package io.elephantchess.webapp.routing
+package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.dto.admin.CreateUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.ToggleUpcomingEventRequest
@@ -8,6 +8,7 @@ import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.requireAdminRole
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
+import java.net.URLDecoder
 
 fun Route.adminConsoleRoutes() {
     route("/api/admin/analytics") {
@@ -124,7 +125,7 @@ private fun Route.adminAnalyticsRoutes() {
     get("/page-view-stats-by-event-path") {
         requireAdminRole { _ ->
             val encodedPath = call.parameters["path"] ?: "/"
-            val eventPath = java.net.URLDecoder.decode(encodedPath, "UTF-8")
+            val eventPath = URLDecoder.decode(encodedPath, "UTF-8")
 
             adminAnalyticsService.fetchPageViewStatsByEventPath(eventPath)
         }

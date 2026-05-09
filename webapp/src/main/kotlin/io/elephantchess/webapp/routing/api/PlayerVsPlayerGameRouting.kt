@@ -1,4 +1,4 @@
-package io.elephantchess.webapp.routing
+package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.game.*
