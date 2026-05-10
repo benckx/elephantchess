@@ -58,16 +58,6 @@ jobs:
           updateComment: true
           job_summary: true
 
-      - name: Publish detailed test results
-        if: always()
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          check_name: 'Test results (detailed)'
-          junit_files: '**/build/test-results/test/TEST-*.xml'
-          comment_mode: always
-          report_individual_runs: true
-          deduplicate_classes_by_file_name: false
-
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v7
