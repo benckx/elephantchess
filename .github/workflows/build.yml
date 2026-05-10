@@ -51,8 +51,12 @@ jobs:
           report_paths: '**/build/test-results/test/TEST-*.xml'
           check_name: 'Test results'
           detailed_summary: true
-          include_passed: false
+          include_passed: true
+          flaky_summary: true
           require_tests: false
+          annotate_notice: false
+          updateComment: true
+          job_summary: true
 
       - name: Upload test reports
         if: always()
