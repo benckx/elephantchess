@@ -78,6 +78,9 @@ Docker version 29.4.2, build 055a478
 The engines are AI (or bots) used for the Play-against-bot (PvB) or Analysis Board features
 of [elephantchess.io](https://elephantchess.io).
 
+_Note: for the sake of simplicity, the engine binaries have been added to the repo, so you have nothing to do to run the
+webapp locally with the engines. You can nevertheless find the comprehensive engine set-up explanation below._
+
 The webapp assumes engine binaries can be found locally. So you need to create folder `engines` at the root of this
 repository, download the binaries from their repositories and copying them in this format:
 
@@ -103,7 +106,8 @@ won't be able to play against the bot or run analysis.
 
 ### PostgreSQL Docker container
 
-You need to run a local PostgreSQL instance:
+You need to run a local PostgreSQL instance to run the webapp locally. The easiest way to do that is to run a PostgreSQL
+Docker container with the following command:
 
 ```shell
 docker run -d --rm \
