@@ -83,7 +83,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 styleResolver,
                 authorMeta,
                 noIndexMeta
-            )
+            ),
+            canonicalPath = "/database/player/${databasePlayer.urlName}"
         )
     }
 
@@ -94,7 +95,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             templatePath = "/templates/database/database_player_edit.html",
             specificTagResolvers = listOf(
                 playerIdResolver
-            )
+            ),
+            canonicalPath = "/database/player/${databasePlayer.urlName}/edit"
         )
     }
 
@@ -105,7 +107,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             templatePath = "/templates/database/database_player_edit_history.html",
             specificTagResolvers = listOf(
                 playerIdResolver
-            )
+            ),
+            canonicalPath = "/database/player/${databasePlayer.urlName}/edit-history"
         )
     }
 
@@ -180,20 +183,31 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             specificTagResolvers = listOf(
                 databasePlayerTitle(databasePlayer),
                 playerNameResolver
-            )
+            ),
+            canonicalPath = "/database/player/${databasePlayer.urlName}/games"
         )
     }
 
     suspend fun renderBrowseEventGamesPage(
         eventId: String,
         eventName: String,
+        round: Int? = null,
     ): String {
+        val canonicalPath = buildString {
+            append("/browse/event?id=")
+            append(eventId)
+            if (round != null) {
+                append("&round=")
+                append(round)
+            }
+        }
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/browse_db_event_games.html",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("page_title", eventName),
                 SimpleValueTagResolver("event_id", eventId)
-            )
+            ),
+            canonicalPath = canonicalPath
         )
     }
 
@@ -215,17 +229,18 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                     SimpleValueTagResolver("page_title", event.name),
                     SimpleValueTagResolver("description_meta", descriptionMeta(description)),
                     eventGamesListTagResolver(event)
-                )
+                ),
+                canonicalPath = "/database/event?id=${event.id}"
             )
         }
-
     }
 
     suspend fun renderEventsListPage(eventsList: EventsListResponse): String {
         return pageOfListCache.get("events") {
             htmlRenderer.renderHtml(
                 templatePath = "/templates/database/database_events_list.html",
-                specificTagResolvers = listOf(eventsTableTagResolver(eventsList))
+                specificTagResolvers = listOf(eventsTableTagResolver(eventsList)),
+                canonicalPath = "/database/events"
             )
         }
     }
@@ -234,7 +249,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         return pageOfListCache.get("players") {
             htmlRenderer.renderHtml(
                 templatePath = "/templates/database/database_players_list.html",
-                specificTagResolvers = listOf(playersTableTagResolver(playersList))
+                specificTagResolvers = listOf(playersTableTagResolver(playersList)),
+                canonicalPath = "/database/players"
             )
         }
     }

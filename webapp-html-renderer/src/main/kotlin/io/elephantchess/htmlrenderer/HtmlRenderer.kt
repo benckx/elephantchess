@@ -28,7 +28,8 @@ class HtmlRenderer(
     suspend fun renderHtml(
         templatePath: String,
         specificTagResolvers: List<TagResolver>,
-        skipDocType: Boolean = false
+        skipDocType: Boolean = false,
+        canonicalPath: String? = null,
     ): String {
         logger.debug {
             if (specificTagResolvers.isEmpty()) {
@@ -40,7 +41,7 @@ class HtmlRenderer(
 
         val rendered = resourceAsString(templatePath)
             ?.let { htmlTemplate -> webTemplateRenderer.render(htmlTemplate, specificTagResolvers) }
-            ?.let { html -> renderHead(html) }
+            ?.let { html -> renderHead(html, canonicalPath) }
             ?.let { html -> updateCssAssetLocations(html) }
             ?.let { html -> updateJsAssetLocations(html) }
             ?.let { html -> updateImageAssetLocations(html) }
@@ -58,7 +59,7 @@ class HtmlRenderer(
     /**
      * Add missing meta tags and base CSS files to the head of the HTML content
      */
-    private fun renderHead(htmlContent: String): String {
+    private fun renderHead(htmlContent: String, canonicalPath: String?): String {
         fun sortElements(head: Element): Element {
             val elements = head.allElements.toList()
             val output = mutableListOf<Element>()
@@ -101,6 +102,22 @@ class HtmlRenderer(
         val metas = head.getElementsByTag("meta").toList()
         val elementsToAdd = mutableListOf<Element>()
 
+        val pageTitle = head.getElementsByTag("title").firstOrNull()?.text()?.takeIf { it.isNotBlank() } ?: "Elephant Chess"
+
+        val ogTitle = if (pageTitle.contains("Elephant Chess", ignoreCase = true)) {
+            pageTitle
+        } else {
+            "$pageTitle – Elephant Chess"
+        }
+
+        val ogDescription = metas
+            .firstOrNull { it.attr("name") == "description" }
+            ?.attr("content")
+            ?.takeIf { it.isNotBlank() }
+            ?: description
+
+        val logo = "https://elephantchess.io/images/logo-smaller.png"
+
         if (!links.hasAttribute("rel", "icon")) {
             val link = document.createElement("link")
             link.attr("rel", "icon")
@@ -125,6 +142,46 @@ class HtmlRenderer(
             val meta = document.createElement("meta")
             meta.attr("charset", "UTF-8")
             elementsToAdd.add(meta)
+        }
+
+        if (!metas.hasAttribute("property", "og:type")) {
+            elementsToAdd.add(document.createPropertyMetaElement("og:type", "website"))
+        }
+        if (!metas.hasAttribute("property", "og:site_name")) {
+            elementsToAdd.add(document.createPropertyMetaElement("og:site_name", "Elephant Chess"))
+        }
+        if (!metas.hasAttribute("property", "og:title")) {
+            elementsToAdd.add(document.createPropertyMetaElement("og:title", ogTitle))
+        }
+        if (!metas.hasAttribute("property", "og:description")) {
+            elementsToAdd.add(document.createPropertyMetaElement("og:description", ogDescription))
+        }
+        if (!metas.hasAttribute("property", "og:image")) {
+            elementsToAdd.add(document.createPropertyMetaElement("og:image", logo))
+        }
+        if (!metas.hasAttribute("name", "twitter:card")) {
+            elementsToAdd.add(document.createNameMetaElement("twitter:card", "summary"))
+        }
+        if (!metas.hasAttribute("name", "twitter:title")) {
+            elementsToAdd.add(document.createNameMetaElement("twitter:title", ogTitle))
+        }
+        if (!metas.hasAttribute("name", "twitter:description")) {
+            elementsToAdd.add(document.createNameMetaElement("twitter:description", ogDescription))
+        }
+        if (!metas.hasAttribute("name", "twitter:image")) {
+            elementsToAdd.add(document.createNameMetaElement("twitter:image", logo))
+        }
+        if (canonicalPath != null) {
+            val canonicalUrl = "$SITE_BASE_URL${canonicalPath.ensureLeadingSlash()}"
+            if (!links.hasAttribute("rel", "canonical")) {
+                val link = document.createElement("link")
+                link.attr("rel", "canonical")
+                link.attr("href", canonicalUrl)
+                elementsToAdd.add(link)
+            }
+            if (!metas.hasAttribute("property", "og:url")) {
+                elementsToAdd.add(document.createPropertyMetaElement("og:url", canonicalUrl))
+            }
         }
 
         head.prependChildren(elementsToAdd)
@@ -229,6 +286,9 @@ class HtmlRenderer(
     companion object {
 
         const val CDN_BASE = "https://cdn.elephantchess.io"
+        const val SITE_BASE_URL = "https://elephantchess.io"
+
+        private fun String.ensureLeadingSlash(): String = if (startsWith("/")) this else "/$this"
 
         private fun List<Element>.hasAttribute(attrName: String): Boolean {
             return this.find { it.hasAttr(attrName) } != null
@@ -241,6 +301,13 @@ class HtmlRenderer(
         private fun Document.createNameMetaElement(name: String, content: String): Element {
             val meta = createElement("meta")
             meta.attr("name", name)
+            meta.attr("content", content)
+            return meta
+        }
+
+        private fun Document.createPropertyMetaElement(property: String, content: String): Element {
+            val meta = createElement("meta")
+            meta.attr("property", property)
             meta.attr("content", content)
             return meta
         }
