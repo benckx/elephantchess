@@ -291,7 +291,7 @@ project(":webapp-service-layer") {
         implementation "io.ktor:ktor-serialization-kotlinx-json:$kTorVersion"
         testImplementation project(":xiangqi-core-test-utils")
         testImplementation project(":seven-kingdoms-core-test-utils")
-        testImplementation "org.apache.commons:commons-rng-simple:1.6"
+        testImplementation "org.apache.commons:commons-rng-simple:1.7"
         testImplementation "org.apache.commons:commons-text:1.15.0"
         testImplementation "com.h2database:h2:$h2Version"
         testImplementation "org.liquibase:liquibase-core:$liquibaseVersion"
