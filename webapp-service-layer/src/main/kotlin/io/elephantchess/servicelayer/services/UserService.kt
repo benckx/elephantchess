@@ -48,7 +48,7 @@ class UserService(
 
     private val refreshJob = launchAtFixedRateStartImmediately(
         scope = refresherScope,
-        period = 4.seconds,
+        period = 2.seconds,
         action = { refreshIsOnlineCache() }
     )
 
@@ -63,7 +63,7 @@ class UserService(
         onlineUserIds.clear()
         onlineUserIds.addAll(
             userDaoService
-                .listRecentlyActiveSeconds(20)
+                .listRecentlyActiveSeconds(30)
                 .map { user -> user.id }
         )
     }
