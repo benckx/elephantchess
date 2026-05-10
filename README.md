@@ -180,13 +180,14 @@ refresh.
 
 # Back-End (Kotlin)
 
-The back-end is written in Kotlin and based on KTor to serve REST and WebSocket endpoints for the front-end, as well
-as HTML pages. It also uses Koin for dependency injection.
+The back-end is written in Kotlin and based on KTor to serve REST and WebSocket endpoints for the front-end, as well as
+HTML pages. The back-end also uses Koin for dependency injection.
 
-Therefore, the Main class is pretty straightforward:
+The Main class is pretty straightforward:
 
 ```kotlin
 fun main(args: Array<String>) {
+    // read args, to know how to fetch the app_<profile>.properties
     val argsConfig = parseArgs(args)
     logger.info { "args: ${args.joinToString(" ")}" }
     logger.info { "starting with $argsConfig" }
@@ -194,12 +195,12 @@ fun main(args: Array<String>) {
     // dependency injection with Koin
     startKoin {
         modules(
-            // one module for services (independent of any endpoint)
+            // one module for services (independent of any routing)
             serviceLayerModule(
                 argConfig = argsConfig,
                 eagerAllowed = true
             ),
-            // one module for webapp (routes, endpoints, JavaScript and CSS assets, etc.)
+            // one module for webapp (KTor, routes, endpoints, JavaScript and CSS assets, etc.)
             webAppKoinModule(eagerAllowed = true)
         )
     }
@@ -226,6 +227,24 @@ private fun Application.kTorModule() {
 Except for KTor, Koin, a Kubernetes client, Apache Commons, the project has few dependencies.
 
 ## Modules
+
+If you check the `settings.gradle` file, you will see that the project is made of several modules:
+
+```
+include('utils')
+include('engine-api')
+include('xiangqi-core')
+include('xiangqi-core-test-utils')
+include('seven-kingdoms-core')
+include('seven-kingdoms-core-test-utils')
+include('webapp-config')
+include('webapp-dao')
+include('webapp-dao-migration')
+include('webapp-html-renderer')
+include('webapp-model-common')
+include('webapp-service-layer')
+include('webapp')
+```
 
 ### utils
 
@@ -310,6 +329,8 @@ KTor-based modules that links the service layer to the REST and WebSocket endpoi
 contains the JavaScript, CSS, images, etc. assets.
 
 ## Libraries
+
+Below are the Gradle modules designed to be used as libraries and are published on JitPack.
 
 ### engine-api
 
@@ -526,6 +547,11 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
 ### xiangqi-core-test-utils
 
 Test data for unit tests of `xiangqi-core`.
+
+### seven-kingdoms-core
+
+This is the logic for the [Seven Kingdoms](https://elephantchess.io/7k/about) xiangqi variant, which is still in
+development.
 
 ## Libraries Usage
 
