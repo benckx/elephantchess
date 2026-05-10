@@ -10,10 +10,20 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Opt in to Node.js 24 for JavaScript-based actions
+  # (silences the Node.js 20 deprecation warning until all actions ship Node 24 builds).
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -33,6 +43,16 @@ jobs:
 
       - name: Clean build
         run: ./gradlew clean build --no-daemon --stacktrace
+
+      - name: Publish test report
+        if: always()
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          check_name: 'Test results'
+          detailed_summary: true
+          include_passed: false
+          require_tests: false
 
       - name: Upload test reports
         if: always()
