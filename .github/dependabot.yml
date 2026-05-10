@@ -7,6 +7,10 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
+    ignore:
+      # Netty version is pinned to match io.ktor:ktor-server-netty in build.gradle.
+      # Bump it manually when upgrading Ktor.
+      - dependency-name: "io.netty:*"
     groups:
       all-minor-and-patch:
         patterns:
