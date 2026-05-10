@@ -8,22 +8,17 @@ updates:
     labels:
       - "dependencies"
     groups:
-      kotlin:
+      all-minor-and-patch:
         patterns:
-          - "org.jetbrains.kotlin:*"
-          - "org.jetbrains.kotlinx:*"
-      ktor:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      all-major:
         patterns:
-          - "io.ktor:*"
-      jackson:
-        patterns:
-          - "com.fasterxml.jackson*:*"
-      netty:
-        patterns:
-          - "io.netty:*"
-      jooq:
-        patterns:
-          - "org.jooq:*"
+          - "*"
+        update-types:
+          - "major"
 
   - package-ecosystem: "github-actions"
     directory: "/"
