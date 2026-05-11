@@ -26,6 +26,9 @@ class UserServiceOnlineCacheTest {
         whenever(appConfig.loadString("salt")).thenReturn("testsalt1234")
 
         // A pre-cancelled scope prevents the background refresh job from ever running.
+        // In Kotlin structured concurrency, launching a coroutine into an already-cancelled
+        // scope produces a Job that is immediately in the Cancelled state; its body never
+        // executes.  This is deterministic and race-free.
         val cancelledScope = CoroutineScope(Job().also { it.cancel() })
 
         return UserService(
