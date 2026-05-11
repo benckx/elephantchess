@@ -78,8 +78,8 @@ Docker version 29.4.2, build 055a478
 The engines are AI (or bots) used for the Play-against-bot (PvB) or Analysis Board features
 of [elephantchess.io](https://elephantchess.io).
 
-_Note: for the sake of simplicity, the engine binaries have been added to the repo, so you have nothing more to do to be
-able to run the webapp locally with the engines. Nevertheless, this section covers engine set-up._
+_Note: for the sake of simplicity, the engine binaries have been added to this repo, so you don't have anything else to
+do to be able to run the webapp locally with the engines features. Nevertheless, this section covers engine set-up._
 
 The webapp assumes engine binaries can be found locally. So you need to create folder `engines` at the root of this
 repository, download the binaries from their repositories and copying them in this format:
@@ -226,7 +226,7 @@ private fun Application.kTorModule() {
 
 Except for KTor, Koin, a Kubernetes client, Apache Commons, the project has few dependencies.
 
-## Modules
+## Gradle Modules
 
 If you check the `settings.gradle` file, you will see that the project is made of several modules:
 
