@@ -40,7 +40,8 @@ class UserService(
     private val logger: KLogger,
 ) {
 
-    private val onlineUserIds: MutableList<String> = mutableListOf()
+    @Volatile
+    private var onlineUserIds: Set<String> = emptySet()
 
     // password hashing
     private val salt: ByteArray = appConfig.loadString("salt").toByteArray()
@@ -60,12 +61,15 @@ class UserService(
      * Visible for tests, maybe move the isOnline logic to a separate class that we could mock
      */
     suspend fun refreshIsOnlineCache() {
-        onlineUserIds.clear()
-        onlineUserIds.addAll(
-            userDaoService
+        try {
+            val refreshed = userDaoService
                 .listRecentlyActiveSeconds(30)
                 .map { user -> user.id }
-        )
+                .toHashSet()
+            onlineUserIds = refreshed
+        } catch (e: Exception) {
+            logger.warn(e) { "failed to refresh online users cache, keeping previous snapshot" }
+        }
     }
 
     suspend fun validateSignUp(request: SignUpRequest): ValidatedResponse<Unit> {
@@ -323,8 +327,7 @@ class UserService(
     }
 
     fun areOnline(userIds: List<String>): AreUsersOnlineResponse {
-        val onlineUserIds = onlineUserIds.toSet()
-        return AreUsersOnlineResponse(userIds.intersect(onlineUserIds))
+        return AreUsersOnlineResponse(userIds.toSet().intersect(onlineUserIds))
     }
 
     fun countOnline(): Int {
