@@ -89,11 +89,12 @@ class PlayerVsPlayerGameService(
     }
 
     private suspend fun refreshGamesToPlaySessions() {
+        val onlineUserIds = userService.onlineUserIds()
+
         // refresh games to play sessions
-        if (gamesToPlaySessions.isNotEmpty()) {
-            val allGamesToJoin = fetchAllGamesOpenToJoin()
-            val allActiveGames = fetchAllActiveGames()
-            val totalOnline = userService.countOnline()
+        if (gamesToPlaySessions.isNotEmpty() && onlineUserIds.isNotEmpty()) {
+            val allGamesToJoin = fetchAllGamesOpenToJoin(onlineUserIds)
+            val allActiveGames = fetchAllActiveGames(onlineUserIds)
 
             gamesToPlaySessions.forEach { session ->
                 val gamesCanJoin = when (session.userType) {
@@ -107,7 +108,8 @@ class PlayerVsPlayerGameService(
                             .map { game ->
                                 mapToGameToPlayDto(
                                     game = game,
-                                    userId = game.inviter
+                                    userId = game.inviter,
+                                    onlineUserIds = onlineUserIds
                                 )
                             },
                         turnToPlayGames = allActiveGames
@@ -116,10 +118,11 @@ class PlayerVsPlayerGameService(
                             .map { game ->
                                 mapToGameToPlayDto(
                                     game = game,
-                                    userId = game.opponentOf(session.userId)!!
+                                    userId = game.opponentOf(session.userId)!!,
+                                    onlineUserIds = onlineUserIds
                                 )
                             },
-                        totalOnline = totalOnline
+                        totalOnline = onlineUserIds.size
                     )
                 )
             }
@@ -223,18 +226,20 @@ class PlayerVsPlayerGameService(
         }
     }
 
-    private suspend fun fetchAllGamesOpenToJoin() =
+    private suspend fun fetchAllGamesOpenToJoin(onlineUserIds: Set<String>) =
         pvpGameDaoService
             .listGamesOpenToJoin()
             .filter { gameRecord ->
-                gameRecord.alwaysVisibleInLobby || isOnline(gameRecord.inviter)
+                gameRecord.alwaysVisibleInLobby ||
+                        onlineUserIds.contains(gameRecord.inviter)
             }
 
-    private suspend fun fetchAllActiveGames() =
+    private suspend fun fetchAllActiveGames(onlineUserIds: Set<String>) =
         pvpGameDaoService
             .listAllActiveGames()
             .filter { gameRecord ->
-                isOnline(gameRecord.inviter) || isOnline(gameRecord.invitee)
+                onlineUserIds.contains(gameRecord.inviter) ||
+                        onlineUserIds.contains(gameRecord.invitee)
             }
 
     suspend fun createGame(userId: UserId, request: CreateGameRequest): CreateGameResponse {
@@ -540,7 +545,8 @@ class PlayerVsPlayerGameService(
                     val moves = pvpGameDaoService.fetchTimedMoveHistory(gameId)
 
                     moves.forEach { move ->
-                        val timeElapsed = move.eventTime.toEpochMilliseconds() - previousTimestamp!!.toEpochMilliseconds()
+                        val timeElapsed =
+                            move.eventTime.toEpochMilliseconds() - previousTimestamp!!.toEpochMilliseconds()
                         if (move.position % 2 == 0) {
                             redTimeRemainingMs -= timeElapsed
                             redTimeRemainingMs += incrementMs
@@ -1017,7 +1023,8 @@ class PlayerVsPlayerGameService(
 
     private suspend fun mapToGameToPlayDto(
         game: Game,
-        userId: String
+        userId: String,
+        onlineUserIds: Set<String>
     ): GameToPlay {
         return GameToPlay(
             gameId = game.id,
@@ -1027,7 +1034,7 @@ class PlayerVsPlayerGameService(
             opponentUsername = userCache.fetchUsernameOrDefault(userId),
             opponentColor = game.userColor(userId),
             opponentRating = game.inviterRatingFrom,
-            isOpponentOnline = isOnline(userId),
+            isOpponentOnline = onlineUserIds.contains(userId),
             timeControlCategory = game.timeControlCategory,
             timeControlBase = game.timeControlBase,
             timeControlIncrement = game.timeControlIncrement,
