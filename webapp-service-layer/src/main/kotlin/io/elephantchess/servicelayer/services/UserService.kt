@@ -65,7 +65,7 @@ class UserService(
             val refreshed = userDaoService
                 .listRecentlyActiveSeconds(30)
                 .map { it.id }
-                .toHashSet()
+                .toSet()
             onlineUserIds = refreshed // atomic reference swap
         } catch (e: Exception) {
             logger.warn(e) { "failed to refresh online users cache, keeping previous snapshot" }
@@ -326,7 +326,7 @@ class UserService(
         onlineUserIds.contains(userId)
 
     fun areOnline(userIds: List<String>): AreUsersOnlineResponse =
-        AreUsersOnlineResponse(userIds.toSet().intersect(onlineUserIds))
+        AreUsersOnlineResponse(userIds.filter { it in onlineUserIds }.toSet())
 
     fun countOnline(): Int =
         onlineUserIds.size
