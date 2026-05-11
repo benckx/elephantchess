@@ -218,4 +218,17 @@ class UserServiceTest : ServiceTest() {
         }
     }
 
+    @Test
+    fun `online users cache correctly reflects recently active users`() = runTest {
+        val (_, userId) = signUpTestUser()
+
+        userService.refreshIsOnlineCache()
+
+        assertTrue(userService.isOnline(userId), "user should appear online after cache refresh")
+        assertTrue(userService.countOnline() >= 1, "at least one user should be online")
+
+        val response = userService.areOnline(listOf(userId))
+        assertTrue(userId in response.onlineUserIds, "user should be in areOnline response")
+    }
+
 }
