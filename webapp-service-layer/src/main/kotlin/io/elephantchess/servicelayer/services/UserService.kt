@@ -62,9 +62,10 @@ class UserService(
      */
     suspend fun refreshIsOnlineCache() {
         val refreshed = userDaoService
-            .listRecentlyActiveSeconds(30)
+            .listRecentlyActiveSeconds(15)
             .map { user -> user.id }
             .toHashSet()
+
         onlineUserIds = refreshed
     }
 
