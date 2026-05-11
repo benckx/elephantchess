@@ -31,11 +31,11 @@ The webapp offers the following features:
 - Keep the webapp ads free (although we sometimes cross-promote with other projects, and we use Google Ads to increase
   traffic)
 - Minimize overall annoyances (banners, emails, notifications, etc.)
-- Keep the GUI simple and intuitive, and working properly even on older or cheaper devices
+- Keep the GUI simple and intuitive, and that works properly even on older or cheaper devices
 - Be transparent on how user data is used
 - Keep the user in control
 - We're trying to reach a financially self-sustained platform, based on users donations and merch, with the quality of
-  the service as a priority
+  the service as the priority
 
 We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
 
