@@ -62,7 +62,7 @@ class UserService(
      */
     suspend fun refreshIsOnlineCache() {
         val refreshed = userDaoService
-            .listRecentlyActiveSeconds(15)
+            .listRecentlyActiveSeconds(10)
             .map { user -> user.id }
             .toHashSet()
 
@@ -330,6 +330,9 @@ class UserService(
     fun countOnline(): Int {
         return onlineUserIds.size
     }
+
+    fun onlineUserIds() =
+        onlineUserIds.toSet()
 
     suspend fun submitContact(request: ContactFormRequest, userId: UserId) {
         logger.info { "contact form submitted $request" }
