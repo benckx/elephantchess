@@ -61,15 +61,11 @@ class UserService(
      * Visible for tests, maybe move the isOnline logic to a separate class that we could mock
      */
     suspend fun refreshIsOnlineCache() {
-        try {
-            val refreshed = userDaoService
-                .listRecentlyActiveSeconds(30)
-                .map { user -> user.id }
-                .toHashSet()
-            onlineUserIds = refreshed
-        } catch (e: Exception) {
-            logger.warn(e) { "failed to refresh online users cache, keeping previous snapshot" }
-        }
+        val refreshed = userDaoService
+            .listRecentlyActiveSeconds(30)
+            .map { user -> user.id }
+            .toHashSet()
+        onlineUserIds = refreshed
     }
 
     suspend fun validateSignUp(request: SignUpRequest): ValidatedResponse<Unit> {

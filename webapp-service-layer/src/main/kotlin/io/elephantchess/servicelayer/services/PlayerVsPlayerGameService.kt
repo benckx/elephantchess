@@ -89,11 +89,12 @@ class PlayerVsPlayerGameService(
     }
 
     private suspend fun refreshGamesToPlaySessions() {
+        val totalOnline = userService.countOnline()
+
         // refresh games to play sessions
-        if (gamesToPlaySessions.isNotEmpty()) {
+        if (gamesToPlaySessions.isNotEmpty() && totalOnline > 0) {
             val allGamesToJoin = fetchAllGamesOpenToJoin()
             val allActiveGames = fetchAllActiveGames()
-            val totalOnline = userService.countOnline()
 
             gamesToPlaySessions.forEach { session ->
                 val gamesCanJoin = when (session.userType) {
@@ -540,7 +541,8 @@ class PlayerVsPlayerGameService(
                     val moves = pvpGameDaoService.fetchTimedMoveHistory(gameId)
 
                     moves.forEach { move ->
-                        val timeElapsed = move.eventTime.toEpochMilliseconds() - previousTimestamp!!.toEpochMilliseconds()
+                        val timeElapsed =
+                            move.eventTime.toEpochMilliseconds() - previousTimestamp!!.toEpochMilliseconds()
                         if (move.position % 2 == 0) {
                             redTimeRemainingMs -= timeElapsed
                             redTimeRemainingMs += incrementMs
