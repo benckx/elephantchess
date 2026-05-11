@@ -2,27 +2,42 @@
 
 [elephantchess.io](https://elephantchess.io) is a web application to play and study Chinese chess (or xiangqi 象棋).
 
-Feel free to create issues in this repo to report bugs or request feature changes. The
-current [roadmap](https://github.com/users/benckx/projects/2/views/1) is also available on this repo.
+Feel free to create issues to report bugs or request feature changes. The
+current [roadmap](https://github.com/users/benckx/projects/2/views/1) on this repo reflects the current priorities of
+the project. Feel free to comment and give your opinion the existing issues.
 
-By default, the code is under GPL-3.0 license. Some libraries are under LGPL-3.0 license to allow for a more permissive
-use.
+By default, the project is under GPL-3.0 license. Libraries (like the Kotlin xiangqi-core or the
+JavaScript [board-gui](https://elephantchess.io/about/developers/board-gui-example)) are under LGPL-3.0 license to allow
+for a more permissive use (i.e. to re-use the libraries in a commercial application).
 
 ## Features
 
 The webapp offers the following features:
 
-- Play against other players (PvP), where users can play against each other in real-time and chat. Users can find each
-  other in the Lobby.
+- Play against other players (or PvP), where users can play against each other in real-time and chat. Users can find
+  each other in the Lobby or create a game and share the link with friends.
 - Play against the bot (PvB), where user can play against the computer.
 - Puzzles (or tactics), where users have to find the best moves from a given position.
 - Database of tournaments games, events, players and statistic. To avoid confusion with the PostgreSQL database, we'll
   try to specify when we talk about the "PostgreSQL database" or the "Database" as a feature.
 - Analysis board, where users can create complex analysis, with engine evaluation, multiple embedded variations,
   annotations (i.e. `??`, `?!` symbols) and comments.
+- By default, users are assigned a temporary guest user id. They can also sign up with an email and password to keep
+  their data across devices and access all features.
 
-The overall philosophy is to keep the webapp free of ads and annoying banners and keep the GUI simple and intuitive, to
-be transparent on how user data is used.
+## Principles
+
+- Keep the webapp free to use
+- Keep the webapp ads free (although we sometimes cross-promote with other projects, and we use Google Ads to increase
+  traffic)
+- Minimize overall annoyances (banners, emails, notifications, etc.)
+- Keep the GUI simple and intuitive, and working properly even on older or cheaper devices
+- Be transparent on how user data is used
+- Keep the user in control
+- We're trying to reach a financially self-sustained platform, based on users donations and merch, with the quality of
+  the service as a priority
+
+We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
 
 ## Glossary
 
@@ -666,7 +681,7 @@ WebSockets and/or calls REST endpoints, and sometimes a DTO file
 Some widgets from the [https://elephantchess.io](https://elephantchess.io) front-end are available as JavaScript
 libraries. At the moment only board-gui is available. The plan would be to make the move-tree also available.
 
-- https://elephantchess.io/about/developers/board-gui-example
+https://elephantchess.io/about/developers/board-gui-example
 
 ## Minification
 
