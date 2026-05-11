@@ -198,7 +198,7 @@ refresh.
 The back-end is written in Kotlin and based on KTor to serve REST and WebSocket endpoints for the front-end, as well as
 HTML pages. The back-end also uses Koin for dependency injection.
 
-The Main class is pretty straightforward:
+The Main class is pretty concise:
 
 ```kotlin
 fun main(args: Array<String>) {
@@ -220,7 +220,7 @@ fun main(args: Array<String>) {
         )
     }
 
-    // Ktor server
+    // start the Ktor server
     embeddedServer(factory = Netty, port = 8080, module = Application::kTorModule)
         .start(wait = true)
 }
@@ -231,8 +231,8 @@ private fun Application.kTorModule() {
     exceptionHandler()
     cachingModule()
     staticAssetsModule()
-    apiServiceModule()
-    htmlRoutingModule()
+    apiServiceModule() // all the routes defining the endpoints used by the front-end
+    htmlRoutingModule() // all the routes to access the HTML pages
     sitemapRoutingModule()
     shutdownModule()
     healthCheckModule()
@@ -587,6 +587,8 @@ Then you can use the dependencies:
 implementation "com.github.benckx.elephantchess:xiangqi-core:1.1.3"
 implementation "com.github.benckx.elephantchess:engine-api:1.1.3"
 ```
+
+_Note: I still have to check that it still works with the updated Gradle project._
 
 # Front-End
 
