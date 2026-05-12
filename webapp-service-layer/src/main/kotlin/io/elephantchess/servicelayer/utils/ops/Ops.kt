@@ -27,31 +27,31 @@ fun Game.ratingUpdate(): RatingUpdate? {
     }
 }
 
+fun isNonStandardFen(fen: String): Boolean {
+    try {
+        val board = Board(fen)
+        Color.entries.forEach { color ->
+            val allPieces = board.listAllPieces(color)
+            AbstractPieceType.entries.forEach { pieceType ->
+                val countPerType = allPieces.count { it.abstractPieceType() == pieceType }
+                if (countPerType > pieceType.maxLegal) {
+                    return true
+                }
+            }
+        }
+
+        return false
+    } catch (_: Exception) {
+        return true
+    }
+}
+
 suspend fun EnginePool.safeQueryForDepth(
     fen: String,
     engineId: EngineId,
     depth: Int,
     timeout: Long = 60_000,
 ): InfoLinesResult? {
-    fun isNonStandardFen(fen: String): Boolean {
-        try {
-            val board = Board(fen)
-            Color.entries.forEach { color ->
-                val allPieces = board.listAllPieces(color)
-                AbstractPieceType.entries.forEach { pieceType ->
-                    val countPerType = allPieces.count { it.abstractPieceType() == pieceType }
-                    if (countPerType > pieceType.maxLegal) {
-                        return true
-                    }
-                }
-            }
-
-            return false
-        } catch (_: Exception) {
-            return true
-        }
-    }
-
     var safeEngineId = engineId
     if (engineId == PikafishEngineId && isNonStandardFen(fen)) {
         logger.warn { "non-standard FEN detected, forcing use of Fairy Stockfish instead of Pikafish $fen" }

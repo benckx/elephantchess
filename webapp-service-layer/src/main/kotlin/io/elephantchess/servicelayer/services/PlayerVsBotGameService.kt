@@ -29,6 +29,7 @@ import io.elephantchess.servicelayer.exceptions.RequestTimeoutException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.ws.PvbWebSocketSession
 import io.elephantchess.servicelayer.utils.modelToProcess
+import io.elephantchess.servicelayer.utils.ops.isNonStandardFen
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.utils.selectByProbability
@@ -143,7 +144,15 @@ class PlayerVsBotGameService(
         val actualStartFen = request.startFen ?: DEFAULT_START_FEN
         val usesDefaultStartFen = actualStartFen == DEFAULT_START_FEN
 
-        val engineVersion = when (request.engine) {
+        // If Pikafish is requested but the start FEN is non-standard, safeQueryForDepth will
+        // use Fairy Stockfish instead, so we persist the effective engine/version that will be used.
+        val effectiveEngine = if (request.engine == Engine.PIKAFISH && isNonStandardFen(actualStartFen)) {
+            Engine.FAIRYSTOCKFISH
+        } else {
+            request.engine
+        }
+
+        val engineVersion = when (effectiveEngine) {
             Engine.PIKAFISH -> pikafishVersion
             Engine.FAIRYSTOCKFISH -> fairyStockfishVersion
         }
@@ -152,7 +161,7 @@ class PlayerVsBotGameService(
         gameRecord.id = gameId
         gameRecord.userId = userId.id
         gameRecord.userColor = request.color
-        gameRecord.engine = request.engine
+        gameRecord.engine = effectiveEngine
         gameRecord.engineVersion = engineVersion
         gameRecord.depth = request.depth
         gameRecord.startFen = if (usesDefaultStartFen) null else actualStartFen
@@ -177,7 +186,7 @@ class PlayerVsBotGameService(
                 fen = actualStartFen,
                 startFen = actualStartFen,
                 position = 0,
-                engine = request.engine,
+                engine = effectiveEngine,
                 depth = request.depth,
                 usesDefaultStartFen = usesDefaultStartFen
             )
