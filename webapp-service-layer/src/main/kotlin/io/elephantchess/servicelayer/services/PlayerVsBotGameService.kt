@@ -56,7 +56,7 @@ class PlayerVsBotGameService(
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     private val openingRepositoryDaoService: OpeningRepositoryCacheDaoService,
     private val userCache: UserCache,
-    appConfig : AppConfig,
+    appConfig: AppConfig,
     refresherScope: CoroutineScope,
     private val logger: KLogger,
 ) {
@@ -143,11 +143,17 @@ class PlayerVsBotGameService(
         val actualStartFen = request.startFen ?: DEFAULT_START_FEN
         val usesDefaultStartFen = actualStartFen == DEFAULT_START_FEN
 
+        val engineVersion = when (request.engine) {
+            Engine.PIKAFISH -> pikafishVersion
+            Engine.FAIRYSTOCKFISH -> fairyStockfishVersion
+        }
+
         val gameRecord = BotGame()
         gameRecord.id = gameId
         gameRecord.userId = userId.id
         gameRecord.userColor = request.color
         gameRecord.engine = request.engine
+        gameRecord.engineVersion = engineVersion
         gameRecord.depth = request.depth
         gameRecord.startFen = if (usesDefaultStartFen) null else actualStartFen
         gameRecord.gameStatus = CREATED
