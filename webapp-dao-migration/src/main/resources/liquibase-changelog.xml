@@ -2360,37 +2360,5 @@
         <addColumn tableName="bot_game">
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
-        <sql>
-            -- Backfill engine_version on existing PVB games (bot_game).
-            --
-            -- Fairy-Stockfish: we have always shipped version 11.2.
-            -- Pikafish: the engine binary was upgraded on 2024-04-28.
-            -- * Games created strictly before 2024-04-28 used Pikafish 2022-12-26.
-            -- * Games created strictly after 2024-04-28 used Pikafish 2023-03-05.
-            -- * Games created on the upgrade day itself are ambiguous (could have run
-            -- against either binary depending on the exact moment of the rollout),
-            -- so we leave engine_version NULL to mark it as unknown.
-
-            -- Fairy-Stockfish: always 11.2
-            UPDATE bot_game
-            SET engine_version = '11.2'
-            WHERE engine = 'FAIRYSTOCKFISH';
-
-            -- Pikafish before the 2024-04-28 upgrade
-            UPDATE bot_game
-            SET engine_version = '2022-12-26'
-            WHERE engine = 'PIKAFISH'
-            AND (created AT TIME ZONE 'UTC')::date
-            < DATE
-            '2024-04-28';
-
-            -- Pikafish after the 2024-04-28 upgrade
-            UPDATE bot_game
-            SET engine_version = '2023-03-05'
-            WHERE engine = 'PIKAFISH'
-            AND (created AT TIME ZONE 'UTC')::date > DATE '2024-04-28';
-
-            -- Pikafish games created on 2024-04-28 keep engine_version = NULL (unknown).
-        </sql>
     </changeSet>
 </databaseChangeLog>
