@@ -100,6 +100,10 @@ Docker version 29.4.2, build 055a478
 _Note: for the sake of simplicity, the engine binaries have been added to this repo, so you don't have anything else to
 do to be able to run the webapp locally with the engines features. Nevertheless, this section covers engine set-up._
 
+_Note: Those binaries (at least for Pikafish, not sure for Fairy Stockfish) don't work with ARM64 machines, but most
+recent releases of Pikafish have multiple binaries that I don't fully understand yet, but I assume some of them may be
+ARM64 compatible. But on my older Linux Mint laptop at least, that's the binaries I used._
+
 The webapp assumes engine binaries can be found locally. So you need to create folder `engines` at the root of this
 repository, download the binaries from their repositories and copying them in this format:
 
