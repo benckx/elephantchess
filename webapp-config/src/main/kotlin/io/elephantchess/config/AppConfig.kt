@@ -12,6 +12,7 @@ data class AppConfig(
     val isEnginePoolEnabled: Boolean,
     val enginesThreads: Int,
     val pikafishVersion: String,
+    val fairyStockfishVersion: String,
     val dbConfig: DbConfig,
     val parseUserAgent: Boolean,
     val disabledBatches: List<String>,
@@ -31,6 +32,7 @@ data class AppConfig(
         lines += "engines -> $isEnginePoolEnabled"
         lines += "enginesThreads -> $enginesThreads"
         lines += "pikafishVersion -> $pikafishVersion"
+        lines += "fairyStockfishVersion -> $fairyStockfishVersion"
         lines += "db name -> ${dbConfig.dbName}"
         lines += "db url -> ${dbConfig.url}"
         lines += "parseUserAgent -> $parseUserAgent"

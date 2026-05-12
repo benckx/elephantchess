@@ -211,7 +211,7 @@ private fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
                 numberOfThreads = appConfig.enginesThreads
             ),
             FairyStockfishEngineId to EngineConfig(
-                version = null,
+                version = appConfig.fairyStockfishVersion,
                 poolSize = 1,
                 numberOfThreads = appConfig.enginesThreads
             )

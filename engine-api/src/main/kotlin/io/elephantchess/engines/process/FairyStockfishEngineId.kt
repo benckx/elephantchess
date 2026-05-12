@@ -8,7 +8,7 @@ object FairyStockfishEngineId : EngineId() {
     override val displayName = "Fairy Stockfish"
     override val supportsNonStandardFens = true
 
-    override fun pathOfExecutable(version: String?) = "fairy-stockfish"
+    override fun pathOfExecutable(version: String?) = "fairy/$version/fairy-stockfish"
 
     override fun makeProcess(
         config: EngineConfig,
