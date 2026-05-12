@@ -26,6 +26,7 @@ fun loadAppConfig(argConfig: ArgConfig): AppConfig {
         isEnginePoolEnabled = properties.loadBoolean("engines"),
         enginesThreads = properties.loadInt("enginesThreads"),
         pikafishVersion = properties.loadString("pikafishVersion"),
+        fairyStockfishVersion = properties.loadString("fairyStockfishVersion"),
         dbConfig = dbConfig,
         parseUserAgent = properties.loadBoolean("parseUserAgent"),
         disabledBatches = properties.loadList("disabled.batches"),

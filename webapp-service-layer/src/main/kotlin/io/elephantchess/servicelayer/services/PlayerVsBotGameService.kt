@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.config.AppConfig
 import io.elephantchess.db.callback.BotMove
 import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult
 import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult.ErrorType.BOT_MOVE_NOT_FOUND
@@ -55,9 +56,13 @@ class PlayerVsBotGameService(
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     private val openingRepositoryDaoService: OpeningRepositoryCacheDaoService,
     private val userCache: UserCache,
+    appConfig : AppConfig,
     refresherScope: CoroutineScope,
     private val logger: KLogger,
 ) {
+
+    private val pikafishVersion = appConfig.pikafishVersion
+    private val fairyStockfishVersion = appConfig.fairyStockfishVersion
 
     private val sessionsRefresh = 4.seconds
     private val wsSessions = mutableListOf<PvbWebSocketSession>()
