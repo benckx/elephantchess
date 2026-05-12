@@ -36,7 +36,7 @@ private val publicPageMapping = mapOf(
     "/global" to "global",
     "/recovery" to "password_recovery1",
     "/recovery/finalize" to "password_recovery2",
-    "/about" to "about",
+    "/about" to "about/about",
     "/about/changelog" to "about/changelog",
     "/about/faq" to "about/faq",
     "/contact" to "contact_form",

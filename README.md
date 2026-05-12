@@ -2,27 +2,42 @@
 
 [elephantchess.io](https://elephantchess.io) is a web application to play and study Chinese chess (or xiangqi 象棋).
 
-Feel free to create issues in this repo to report bugs or request feature changes. The
-current [roadmap](https://github.com/users/benckx/projects/2/views/1) is also available on this repo.
+Feel free to create issues to report bugs or request feature changes. The
+current [roadmap](https://github.com/users/benckx/projects/2/views/1) on this repo reflects the current priorities of
+the project. Feel free to comment and give your opinion the existing issues.
 
-By default, the code is under GPL-3.0 license. Some libraries are under LGPL-3.0 license to allow for a more permissive
-use.
+By default, the project is under GPL-3.0 license. Libraries (like the Kotlin xiangqi-core or the
+JavaScript [board-gui](https://elephantchess.io/about/developers/board-gui-example)) are under LGPL-3.0 license to allow
+for a more permissive use (i.e. to re-use the libraries in a commercial application).
 
 ## Features
 
 The webapp offers the following features:
 
-- Play against other players (PvP), where users can play against each other in real-time and chat. Users can find each
-  other in the Lobby.
+- Play against other players (or PvP), where users can play against each other in real-time and chat. Users can find
+  each other in the Lobby or create a game and share the link with friends.
 - Play against the bot (PvB), where user can play against the computer.
 - Puzzles (or tactics), where users have to find the best moves from a given position.
 - Database of tournaments games, events, players and statistic. To avoid confusion with the PostgreSQL database, we'll
   try to specify when we talk about the "PostgreSQL database" or the "Database" as a feature.
 - Analysis board, where users can create complex analysis, with engine evaluation, multiple embedded variations,
   annotations (i.e. `??`, `?!` symbols) and comments.
+- By default, users are assigned a temporary guest user id. They can also sign up with an email and password to keep
+  their data across devices and access all features.
 
-The overall philosophy is to keep the webapp free of ads and annoying banners and keep the GUI simple and intuitive, to
-be transparent on how user data is used.
+## Principles
+
+- Keep the webapp free to use
+- Keep the webapp ads free (although we sometimes cross-promote with other projects, and we use Google Ads to increase
+  traffic)
+- Minimize overall annoyances (banners, emails, notifications, etc.)
+- Keep the GUI simple and intuitive, and that works properly even on older or cheaper devices
+- Be transparent on how user data is used
+- Keep the user in control
+- We're trying to reach a financially self-sustained platform, based on users donations and merch, with the quality of
+  the service as the priority
+
+We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
 
 ## Glossary
 
@@ -78,6 +93,9 @@ Docker version 29.4.2, build 055a478
 The engines are AI (or bots) used for the Play-against-bot (PvB) or Analysis Board features
 of [elephantchess.io](https://elephantchess.io).
 
+_Note: for the sake of simplicity, the engine binaries have been added to this repo, so you don't have anything else to
+do to be able to run the webapp locally with the engines features. Nevertheless, this section covers engine set-up._
+
 The webapp assumes engine binaries can be found locally. So you need to create folder `engines` at the root of this
 repository, download the binaries from their repositories and copying them in this format:
 
@@ -103,7 +121,8 @@ won't be able to play against the bot or run analysis.
 
 ### PostgreSQL Docker container
 
-You need to run a local PostgreSQL instance:
+You need to run a local PostgreSQL instance to run the webapp locally. The easiest way to do that is to run a PostgreSQL
+Docker container with the following command:
 
 ```shell
 docker run -d --rm \
@@ -176,13 +195,14 @@ refresh.
 
 # Back-End (Kotlin)
 
-The back-end is written in Kotlin and based on KTor to serve REST and WebSocket endpoints for the front-end, as well
-as HTML pages. It also uses Koin for dependency injection.
+The back-end is written in Kotlin and based on KTor to serve REST and WebSocket endpoints for the front-end, as well as
+HTML pages. The back-end also uses Koin for dependency injection.
 
-Therefore, the Main class is pretty straightforward:
+The Main class is pretty concise:
 
 ```kotlin
 fun main(args: Array<String>) {
+    // read args, to know how to fetch the app_<profile>.properties
     val argsConfig = parseArgs(args)
     logger.info { "args: ${args.joinToString(" ")}" }
     logger.info { "starting with $argsConfig" }
@@ -190,17 +210,17 @@ fun main(args: Array<String>) {
     // dependency injection with Koin
     startKoin {
         modules(
-            // one module for services (independent of any endpoint)
+            // one module for services (independent of any routing)
             serviceLayerModule(
                 argConfig = argsConfig,
                 eagerAllowed = true
             ),
-            // one module for webapp (routes, endpoints, JavaScript and CSS assets, etc.)
+            // one module for webapp (KTor, routes, endpoints, JavaScript and CSS assets, etc.)
             webAppKoinModule(eagerAllowed = true)
         )
     }
 
-    // Ktor server
+    // start the Ktor server
     embeddedServer(factory = Netty, port = 8080, module = Application::kTorModule)
         .start(wait = true)
 }
@@ -211,8 +231,8 @@ private fun Application.kTorModule() {
     exceptionHandler()
     cachingModule()
     staticAssetsModule()
-    apiServiceModule()
-    htmlRoutingModule()
+    apiServiceModule() // all the routes defining the endpoints used by the front-end
+    htmlRoutingModule() // all the routes to access the HTML pages
     sitemapRoutingModule()
     shutdownModule()
     healthCheckModule()
@@ -221,7 +241,25 @@ private fun Application.kTorModule() {
 
 Except for KTor, Koin, a Kubernetes client, Apache Commons, the project has few dependencies.
 
-## Modules
+## Gradle Modules
+
+If you check the `settings.gradle` file, you will see that the project is made of several modules:
+
+```
+include('utils')
+include('engine-api')
+include('xiangqi-core')
+include('xiangqi-core-test-utils')
+include('seven-kingdoms-core')
+include('seven-kingdoms-core-test-utils')
+include('webapp-config')
+include('webapp-dao')
+include('webapp-dao-migration')
+include('webapp-html-renderer')
+include('webapp-model-common')
+include('webapp-service-layer')
+include('webapp')
+```
 
 ### utils
 
@@ -306,6 +344,8 @@ KTor-based modules that links the service layer to the REST and WebSocket endpoi
 contains the JavaScript, CSS, images, etc. assets.
 
 ## Libraries
+
+Below are the Gradle modules designed to be used as libraries and are published on JitPack.
 
 ### engine-api
 
@@ -523,6 +563,11 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
 
 Test data for unit tests of `xiangqi-core`.
 
+### seven-kingdoms-core
+
+This is the logic for the [Seven Kingdoms](https://elephantchess.io/7k/about) xiangqi variant, which is still in
+development.
+
 ## Libraries Usage
 
 [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
@@ -542,6 +587,8 @@ Then you can use the dependencies:
 implementation "com.github.benckx.elephantchess:xiangqi-core:1.1.3"
 implementation "com.github.benckx.elephantchess:engine-api:1.1.3"
 ```
+
+_Note: I still have to check that it still works with the updated Gradle project._
 
 # Front-End
 
@@ -636,7 +683,7 @@ WebSockets and/or calls REST endpoints, and sometimes a DTO file
 Some widgets from the [https://elephantchess.io](https://elephantchess.io) front-end are available as JavaScript
 libraries. At the moment only board-gui is available. The plan would be to make the move-tree also available.
 
-- https://elephantchess.io/about/developers/board-gui-example
+https://elephantchess.io/about/developers/board-gui-example
 
 ## Minification
 

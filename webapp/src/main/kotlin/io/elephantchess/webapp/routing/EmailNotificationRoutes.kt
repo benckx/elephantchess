@@ -14,6 +14,8 @@ import io.ktor.server.routing.*
 private val simplePageRenderer by koin<SimplePageRenderer>()
 private val mailService by koin<MailService>()
 
+// when sending the newsletter, there is a link to unsubscribe, which contains a unique code that identifies
+// the user and the type of unsubscription (newsletter only or all notifications).
 fun Application.newsletterUnsubscriptionRoutes() {
     routing {
         get("/unsubscribe") {

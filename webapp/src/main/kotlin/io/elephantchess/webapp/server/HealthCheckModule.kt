@@ -56,6 +56,9 @@ fun Application.healthCheckModule() {
                 return@get
             }
 
+            // sometimes the engine process seems to get stuck and stop respond,
+            // so the health check will try to run a quick search on both engines
+            // and see if they respond in a reasonable time.
             val errors = mutableListOf<String>()
             val elapsedTime = measureTimeMillis {
                 listOf(PikafishEngineId, FairyStockfishEngineId).forEach { engineId ->

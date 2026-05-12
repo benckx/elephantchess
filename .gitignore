@@ -13,5 +13,3 @@ formatter.json
 .kotlin
 rendered_email.html
 **/out/
-dev_dataset.json
-engines

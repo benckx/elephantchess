@@ -13,8 +13,7 @@ class GamesToPlayWebSocketSession(
     private val currentGameIdsToJoin = mutableSetOf<String>()
     private val currentTurnToPlayGames = mutableSetOf<String>()
     private var totalOnline = 0
-
-    private var hasBeenRefreshedOnce = false
+    private var lastSentAt = 0L
 
     val userType: UserType
         get() = subscriber.userType
@@ -25,12 +24,13 @@ class GamesToPlayWebSocketSession(
     override fun update(update: GamesToPlayUpdate) {
         val gameToJoinIds = update.gamesToJoin.map { it.gameId }.toSet()
         val turnToPlayGames = update.turnToPlayGames.map { it.gameId }.toSet()
+        val now = System.currentTimeMillis()
 
         if (
-            !hasBeenRefreshedOnce ||
             totalOnline != update.totalOnline ||
             gameToJoinIds != currentGameIdsToJoin ||
-            turnToPlayGames != currentTurnToPlayGames
+            turnToPlayGames != currentTurnToPlayGames ||
+            now - lastSentAt >= FORCE_REFRESH_INTERVAL_MS
         ) {
             val result = sendCb(update)
             if (result.isClosed) {
@@ -44,11 +44,15 @@ class GamesToPlayWebSocketSession(
             currentTurnToPlayGames.clear()
             currentTurnToPlayGames.addAll(turnToPlayGames)
             totalOnline = update.totalOnline
-            hasBeenRefreshedOnce = true
+            lastSentAt = now
         }
     }
 
     override fun toString() =
         "${javaClass.simpleName}{sessionId=$sessionId, subscriber=$subscriber}"
+
+    companion object {
+        private const val FORCE_REFRESH_INTERVAL_MS = 30_000L
+    }
 
 }

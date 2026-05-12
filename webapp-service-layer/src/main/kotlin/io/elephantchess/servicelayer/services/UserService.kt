@@ -40,7 +40,8 @@ class UserService(
     private val logger: KLogger,
 ) {
 
-    private val onlineUserIds: MutableList<String> = mutableListOf()
+    @Volatile
+    private var onlineUserIds: Set<String> = emptySet()
 
     // password hashing
     private val salt: ByteArray = appConfig.loadString("salt").toByteArray()
@@ -48,7 +49,7 @@ class UserService(
 
     private val refreshJob = launchAtFixedRateStartImmediately(
         scope = refresherScope,
-        period = 4.seconds,
+        period = 2.seconds,
         action = { refreshIsOnlineCache() }
     )
 
@@ -60,12 +61,12 @@ class UserService(
      * Visible for tests, maybe move the isOnline logic to a separate class that we could mock
      */
     suspend fun refreshIsOnlineCache() {
-        onlineUserIds.clear()
-        onlineUserIds.addAll(
-            userDaoService
-                .listRecentlyActiveSeconds(20)
-                .map { user -> user.id }
-        )
+        val refreshed = userDaoService
+            .listRecentlyActiveSeconds(10)
+            .map { user -> user.id }
+            .toHashSet()
+
+        onlineUserIds = refreshed
     }
 
     suspend fun validateSignUp(request: SignUpRequest): ValidatedResponse<Unit> {
@@ -323,13 +324,15 @@ class UserService(
     }
 
     fun areOnline(userIds: List<String>): AreUsersOnlineResponse {
-        val onlineUserIds = onlineUserIds.toSet()
-        return AreUsersOnlineResponse(userIds.intersect(onlineUserIds))
+        return AreUsersOnlineResponse(userIds.toSet().intersect(onlineUserIds))
     }
 
     fun countOnline(): Int {
         return onlineUserIds.size
     }
+
+    fun onlineUserIds() =
+        onlineUserIds.toSet()
 
     suspend fun submitContact(request: ContactFormRequest, userId: UserId) {
         logger.info { "contact form submitted $request" }

@@ -32,3 +32,7 @@ xiangqi library
 chinese chess library
 xiangqi board library
 chinese chess board library
+xiangqi online with friend
+xiangqi online 2 players with friend
+chinese chess online with friend
+chinese chess online 2 players with friend
