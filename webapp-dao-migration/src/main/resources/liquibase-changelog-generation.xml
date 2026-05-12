@@ -2203,4 +2203,9 @@
     <changeSet id="0092" author="benckx">
         <comment>Recreate move_analysis_coalesced view dropped in 0090 for the timestamptz migration</comment>
     </changeSet>
+    <changeSet id="0093" author="benckx">
+        <addColumn tableName="bot_game">
+            <column name="engine_version" type="varchar(12)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
