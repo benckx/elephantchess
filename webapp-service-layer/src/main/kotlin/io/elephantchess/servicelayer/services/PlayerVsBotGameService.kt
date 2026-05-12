@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.config.AppConfig
 import io.elephantchess.db.callback.BotMove
 import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult
 import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult.ErrorType.BOT_MOVE_NOT_FOUND
@@ -28,6 +29,7 @@ import io.elephantchess.servicelayer.exceptions.RequestTimeoutException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.ws.PvbWebSocketSession
 import io.elephantchess.servicelayer.utils.modelToProcess
+import io.elephantchess.servicelayer.utils.ops.isNonStandardFen
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.utils.selectByProbability
@@ -55,9 +57,13 @@ class PlayerVsBotGameService(
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     private val openingRepositoryDaoService: OpeningRepositoryCacheDaoService,
     private val userCache: UserCache,
+    appConfig: AppConfig,
     refresherScope: CoroutineScope,
     private val logger: KLogger,
 ) {
+
+    private val pikafishVersion = appConfig.pikafishVersion
+    private val fairyStockfishVersion = appConfig.fairyStockfishVersion
 
     private val sessionsRefresh = 4.seconds
     private val wsSessions = mutableListOf<PvbWebSocketSession>()
@@ -138,11 +144,25 @@ class PlayerVsBotGameService(
         val actualStartFen = request.startFen ?: DEFAULT_START_FEN
         val usesDefaultStartFen = actualStartFen == DEFAULT_START_FEN
 
+        // If Pikafish is requested but the start FEN is non-standard, safeQueryForDepth will
+        // use Fairy Stockfish instead, so we persist the effective engine/version that will be used.
+        val effectiveEngine = if (request.engine == Engine.PIKAFISH && isNonStandardFen(actualStartFen)) {
+            Engine.FAIRYSTOCKFISH
+        } else {
+            request.engine
+        }
+
+        val engineVersion = when (effectiveEngine) {
+            Engine.PIKAFISH -> pikafishVersion
+            Engine.FAIRYSTOCKFISH -> fairyStockfishVersion
+        }
+
         val gameRecord = BotGame()
         gameRecord.id = gameId
         gameRecord.userId = userId.id
         gameRecord.userColor = request.color
-        gameRecord.engine = request.engine
+        gameRecord.engine = effectiveEngine
+        gameRecord.engineVersion = engineVersion
         gameRecord.depth = request.depth
         gameRecord.startFen = if (usesDefaultStartFen) null else actualStartFen
         gameRecord.gameStatus = CREATED
@@ -166,7 +186,7 @@ class PlayerVsBotGameService(
                 fen = actualStartFen,
                 startFen = actualStartFen,
                 position = 0,
-                engine = request.engine,
+                engine = effectiveEngine,
                 depth = request.depth,
                 usesDefaultStartFen = usesDefaultStartFen
             )

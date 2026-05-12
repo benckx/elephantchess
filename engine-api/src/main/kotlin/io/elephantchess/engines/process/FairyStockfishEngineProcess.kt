@@ -6,9 +6,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class FairyStockfishEngineProcess(
     locator: EngineProcessLocator = LocalProcessLocator,
+    version: String?,
     private val numberOfThreads: Int,
 ) :
-    EngineProcess(locator, FairyStockfishEngineId, null) {
+    EngineProcess(locator, FairyStockfishEngineId, version) {
 
     override val logger = KotlinLogging.logger {}
 

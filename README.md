@@ -110,7 +110,11 @@ repository, download the binaries from their repositories and copying them in th
 ```
 $ tree engines
 engines
-├── fairy-stockfish
+├── fairy
+│   ├── 11.2
+│   │   └── fairy-stockfish
+│   └── 14.0.1
+│       └── fairy-stockfish
 └── pikafish
     └── 2023-03-05
         ├── pikafish-modern
@@ -121,8 +125,8 @@ Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/
 2023-03-05 contain a number of binaries that I don't know how to use, so as of
 now [elephantchess](https://elephantchess.io) uses Pikafish 2023-03-05.
 
-Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now we only
-use version 11.2; so it's not versioned in the `engines` folder.
+Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now
+[elephantchess](https://elephantchess.io) uses 11.2 but is planning to upgrade to 14.0.1.
 
 You can run the webapp locally without the engines by setting `engines=false` in the properties file, but of course you
 won't be able to play against the bot or run analysis.
@@ -403,7 +407,11 @@ It assumes folder `engines` is structured as follows:
 ```
 $ tree engines
 engines
-├── fairy-stockfish
+├── fairy
+│   ├── 11.2
+│   │   └── fairy-stockfish
+│   └── 14.0.1
+│       └── fairy-stockfish
 └── pikafish
     ├── 2022-12-26
     │   ├── pikafish-modern
@@ -415,7 +423,7 @@ engines
         ├── pikafish-modern
         └── pikafish.nnue
 
-4 directories, 7 files
+7 directories, 8 files
 ```
 
 In the above example, multiple binaries and versions are available, but you can use the `engine-api` library with just
@@ -445,8 +453,8 @@ Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/
 2023-03-05 contain a number of binaries that I don't know how to use, so as of
 now [elephantchess](https://elephantchess.io) uses Pikafish 2023-03-05.
 
-Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now we only
-use version 11.2; so it's not versioned in the `engines` folder.
+Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now
+[elephantchess](https://elephantchess.io) supports versions 11.2 and 14.0.1, stored under the `fairy/<version>` folder.
 
 ### Example 1
 
