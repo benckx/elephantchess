@@ -423,7 +423,7 @@ engines
         ├── pikafish-modern
         └── pikafish.nnue
 
-6 directories, 8 files
+7 directories, 8 files
 ```
 
 In the above example, multiple binaries and versions are available, but you can use the `engine-api` library with just
