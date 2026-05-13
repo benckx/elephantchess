@@ -38,6 +38,8 @@ class DatabasePageRendererTest {
 
         assertTrue(output.contains("<b>Contributors:</b> &lt;script&gt;, Alice, Bob"))
         assertTrue(output.contains("<b>Last edit:</b> 1 Jan 2024"))
+        assertTrue(output.contains("""<meta name="author" content="&lt;script&gt;, Alice, Bob">"""))
+        assertFalse(output.contains("<script>"))
     }
 
     @Test

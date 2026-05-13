@@ -106,11 +106,6 @@
 }
 
 @media (max-width: 1000px) {
-    #profile-meta-info {
-        font-size: 24px;
-        margin-bottom: 22px;
-    }
-
     #player-profile-description {
         font-size: 34px;
         margin-bottom: 20px;
