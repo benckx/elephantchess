@@ -496,6 +496,65 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(PERPETUAL_CHECKING, response.gameEventType)
     }
 
+    /**
+     * User should not be able to create more than 3 CREATED PvP games with the same settings.
+     */
+    @Test
+    fun createGameLimitTest01() = runTest {
+        val request = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = false,
+            alwaysVisibleInLobby = false,
+            privateInvite = true
+        )
+
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+
+        assertEquals(3, countGameByStatus(CREATED))
+
+        val e = assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, request)
+        }
+        assertEquals("You already have 3 pending games with the same settings", e.message)
+
+        assertEquals(3, countGameByStatus(CREATED))
+    }
+
+    /**
+     * Limit is per (time settings, color): different settings or color should allow new games.
+     */
+    @Test
+    fun createGameLimitTest02() = runTest {
+        val request = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = false,
+            alwaysVisibleInLobby = false,
+            privateInvite = true
+        )
+
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+
+        // different color: should succeed
+        pvpGameService.createGame(userId1, request.copy(inviterColor = BLACK))
+
+        // different time setting: should succeed
+        pvpGameService.createGame(userId1, request.copy(timeControlBase = 15.minutes.inWholeSeconds.toInt()))
+
+        assertEquals(5, countGameByStatus(CREATED))
+    }
+
     private suspend fun createGame(inviterColor: Color): String {
         val request = CreateGameRequest(
             inviterColor = inviterColor,

@@ -261,6 +261,18 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to create correspondence games")
         }
 
+        // limit the number of CREATED games a user can have with the same settings
+        val createdGamesCount = pvpGameDaoService.countCreatedGamesByUser(
+            userId.id,
+            request.inviterColor,
+            request.timeControlMode,
+            request.timeControlBase,
+            request.timeControlIncrement,
+        )
+        if (createdGamesCount >= MAX_CREATED_GAMES_PER_SETTINGS) {
+            throw BadRequestException("You already have $MAX_CREATED_GAMES_PER_SETTINGS pending games with the same settings")
+        }
+
         // if user is a guest, always allow guests to join
         // it should be disabled by UI already, so it's additional backend validation
         val allowGuests = userId.userType == UserType.GUEST || request.allowGuests
@@ -1060,6 +1072,7 @@ class PlayerVsPlayerGameService(
 
         val NOTIFICATIONS_OFFLINE_FOR = 2.minutes
         const val MESSAGE_LENGTH_LIMIT = 200
+        const val MAX_CREATED_GAMES_PER_SETTINGS = 3
 
         fun formatMillis(millis: Long): String {
             val hours = TimeUnit.MILLISECONDS.toHours(millis).toInt()

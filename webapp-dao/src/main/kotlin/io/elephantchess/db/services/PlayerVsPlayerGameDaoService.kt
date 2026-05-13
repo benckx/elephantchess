@@ -251,6 +251,34 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
+    suspend fun countCreatedGamesByUser(
+        userId: String,
+        inviterColor: Color?,
+        timeControlMode: TimeControlMode,
+        timeControlBase: Int,
+        timeControlIncrement: Int?,
+    ): Int {
+        var query = dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.INVITER.eq(userId))
+            .and(GAME.GAME_STATUS.eq(CREATED))
+            .and(GAME.TIME_CONTROL_MODE.eq(timeControlMode))
+            .and(GAME.TIME_CONTROL_BASE.eq(timeControlBase))
+
+        query = when (timeControlIncrement) {
+            null -> query.and(GAME.TIME_CONTROL_INCREMENT.isNull)
+            else -> query.and(GAME.TIME_CONTROL_INCREMENT.eq(timeControlIncrement))
+        }
+
+        query = when (inviterColor) {
+            null -> query.and(GAME.INVITER_COLOR.isNull)
+            else -> query.and(GAME.INVITER_COLOR.eq(inviterColor))
+        }
+
+        return query.awaitSingleValue() ?: 0
+    }
+
     suspend fun countLiveGames(duration: Duration): Int {
         return dslContext
             .selectCount()
