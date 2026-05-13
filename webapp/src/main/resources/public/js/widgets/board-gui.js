@@ -1436,6 +1436,15 @@ class BoardGui {
         }
     }
 
+    /**
+     * Returns the color currently shown at the bottom of the board.
+     *
+     * @return {string}
+     */
+    get bottomColor() {
+        return this.#flippedRed ? Color.RED : Color.BLACK;
+    }
+
     flip() {
         this.#boardContainer.innerHTML = '';
         this.#flippedRed = !this.#flippedRed;
