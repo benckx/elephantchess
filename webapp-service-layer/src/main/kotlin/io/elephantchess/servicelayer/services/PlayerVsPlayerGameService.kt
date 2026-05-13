@@ -27,6 +27,7 @@ import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.ws.GamesToPlayWebSocketSession
 import io.elephantchess.servicelayer.services.ws.PlayerVsPlayerWebSocketSession
+import io.elephantchess.servicelayer.utils.ops.isPreAnalyzed
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
@@ -386,10 +387,6 @@ class PlayerVsPlayerGameService(
             .let { entries ->
                 ListUserGamesResponse(entries)
             }
-    }
-
-    private fun AnalysisStatus.isPreAnalyzed(): Boolean {
-        return this == AnalysisStatus.PARTIALLY_COMPLETED || this == AnalysisStatus.COMPLETED
     }
 
     suspend fun startGamesToPlaySession(

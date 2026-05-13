@@ -7,7 +7,6 @@ import io.elephantchess.db.services.AnalysisDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
-import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.db.utils.winnerUserId
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
 import io.elephantchess.servicelayer.dto.admin.ListBotGamesResponse
@@ -15,6 +14,7 @@ import io.elephantchess.servicelayer.dto.admin.ListGamesResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastPuzzleByLoggedInUsersResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastUserAnalysisResponse
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.servicelayer.utils.ops.isPreAnalyzed
 
 class AdminFeedService(
     private val analysisDaoService: AnalysisDaoService,
@@ -126,10 +126,6 @@ class AdminFeedService(
             created = record.created.toEpochMilliseconds(),
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
         )
-    }
-
-    private fun AnalysisStatus.isPreAnalyzed(): Boolean {
-        return this == AnalysisStatus.PARTIALLY_COMPLETED || this == AnalysisStatus.COMPLETED
     }
 
 }

@@ -15,7 +15,6 @@ import io.elephantchess.db.utils.nextMove
 import io.elephantchess.db.utils.plusSeconds
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.engines.protocol.model.InfoLinesResult
-import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.BotGameMoveType
 import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType.*
@@ -29,6 +28,7 @@ import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.exceptions.RequestTimeoutException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.ws.PvbWebSocketSession
+import io.elephantchess.servicelayer.utils.ops.isPreAnalyzed
 import io.elephantchess.servicelayer.utils.modelToProcess
 import io.elephantchess.servicelayer.utils.ops.isNonStandardFen
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
@@ -225,10 +225,6 @@ class PlayerVsBotGameService(
             .let { entries ->
                 ListUserBotGamesDto(entries)
             }
-    }
-
-    private fun AnalysisStatus.isPreAnalyzed(): Boolean {
-        return this == AnalysisStatus.PARTIALLY_COMPLETED || this == AnalysisStatus.COMPLETED
     }
 
     suspend fun fetchGameData(gameId: String): GetBotGameDataResponse {
