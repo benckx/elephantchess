@@ -48,6 +48,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
     #currentEventIds = [];
     #currentInterval = null;
     #currentFen = null;
+    #currentPlayerColor = null;
 
     constructor() {
         super();
@@ -72,6 +73,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             this.#currentEventIds = this.#eventSearchField.getSelectedId() != null ? [this.#eventSearchField.getSelectedId()] : [];
             this.#currentInterval = this.#dateRangePicker.getDates(DATE_FORMAT);
             this.#currentFen = this.#fenSearchField.value.trim() !== '' ? this.#fenSearchField.value.trim() : null;
+            this.#currentPlayerColor = document.querySelector('input[name="player-color"]:checked')?.value ?? 'both';
             this.fetchItems();
         });
 
@@ -198,9 +200,8 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         if (this.#currentPlayerIds.length > 0) {
             params.set('playerIds', this.#currentPlayerIds.join(','));
         }
-        const selectedPlayerColor = document.querySelector('input[name="player-color"]:checked')?.value;
-        if (selectedPlayerColor && selectedPlayerColor !== 'both') {
-            params.set('playerColor', selectedPlayerColor.toUpperCase());
+        if (this.#currentPlayerColor && this.#currentPlayerColor !== 'both') {
+            params.set('playerColor', this.#currentPlayerColor.toUpperCase());
         }
         if (this.#currentEventName != null) {
             params.set('eventName', this.#currentEventName);
@@ -336,15 +337,17 @@ class DatabaseSearchPage extends InfiniteScrollPage {
     }
 
     /**
+     * Checks whether the current query targets one specific player.
      * @returns {boolean}
      */
     #isSearchingSpecificPlayer() {
-        return this.#currentPlayerName != null && this.#currentPlayerName.trim() !== '';
+        return this.#normalizedCurrentPlayerName() != null;
     }
 
     /**
+     * Resolves the searched player's color for this game entry.
      * @param entry {GameMetadataDto}
-     * @returns {string|null}
+     * @returns {Color|null}
      */
     #resolveSearchedPlayerColor(entry) {
         if (!this.#isSearchingSpecificPlayer()) {
@@ -364,22 +367,42 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             }
         }
 
-        const searchedPlayerName = this.#currentPlayerName.trim().toLowerCase();
-        if (entry.redPlayerName != null && entry.redPlayerName.trim().toLowerCase() === searchedPlayerName) {
+        const searchedPlayerName = this.#normalizedCurrentPlayerName();
+        const redPlayerName = this.#normalizePlayerName(entry.redPlayerName);
+        const blackPlayerName = this.#normalizePlayerName(entry.blackPlayerName);
+        if (redPlayerName === searchedPlayerName) {
             return Color.RED;
         }
-        if (entry.blackPlayerName != null && entry.blackPlayerName.trim().toLowerCase() === searchedPlayerName) {
+        if (blackPlayerName === searchedPlayerName) {
             return Color.BLACK;
         }
 
-        const selectedPlayerColor = document.querySelector('input[name="player-color"]:checked')?.value;
-        if (selectedPlayerColor === 'red') {
+        if (this.#currentPlayerColor === 'red') {
             return Color.RED;
         }
-        if (selectedPlayerColor === 'black') {
+        if (this.#currentPlayerColor === 'black') {
             return Color.BLACK;
         }
         return null;
+    }
+
+    /**
+     * @returns {string|null}
+     */
+    #normalizedCurrentPlayerName() {
+        return this.#normalizePlayerName(this.#currentPlayerName);
+    }
+
+    /**
+     * @param playerName {string|null}
+     * @returns {string|null}
+     */
+    #normalizePlayerName(playerName) {
+        if (playerName == null) {
+            return null;
+        }
+        const trimmedName = playerName.trim();
+        return trimmedName === '' ? null : trimmedName.toLowerCase();
     }
 
     #clearResults() {
@@ -394,6 +417,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         this.#currentEventIds = [];
         this.#currentInterval = null;
         this.#currentFen = null;
+        this.#currentPlayerColor = null;
 
         // remove all the existing mini-boards overview from the DOM
         getElementsByClassNameArray('mini-board-overview')
