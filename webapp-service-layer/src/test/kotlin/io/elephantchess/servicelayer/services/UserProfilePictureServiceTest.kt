@@ -26,6 +26,7 @@ class UserProfilePictureServiceTest {
 
     private val spacesClient = mock<DigitalOceanSpacesClient>()
     private val userDaoService = mock<UserDaoService>()
+    private val propertiesFile = mock<PropertiesFile>()
     private val appConfig = AppConfig(
         profile = "local-backup",
         webHost = "localhost",
@@ -43,7 +44,7 @@ class UserProfilePictureServiceTest {
         parseUserAgent = false,
         disabledBatches = emptyList(),
         cdnEnabled = true,
-        properties = PropertiesFile("local", null),
+        properties = propertiesFile,
     )
     private val service = UserProfilePictureService(appConfig, spacesClient, userDaoService)
 
