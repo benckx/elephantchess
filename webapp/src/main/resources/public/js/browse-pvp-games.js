@@ -17,4 +17,34 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-window.onload = () => new BrowseGamesPage('pvp');
+class UserGamesBrowsePage extends BrowseGamesPage {
+    #userId;
+
+    /**
+     * @param userId {string}
+     */
+    constructor(userId) {
+        super('pvp');
+        this.#userId = userId;
+    }
+
+    baseUrl() {
+        return '/api/game-data/list-latest-pvp-games-by-user';
+    }
+
+    additionalParameters() {
+        const params = super.additionalParameters();
+        params.set('userId', this.#userId);
+        params.set('distinctByUsers', 'false');
+        return params;
+    }
+}
+
+window.onload = () => {
+    const userId = new URLSearchParams(window.location.search).get('userId');
+    if (userId) {
+        new UserGamesBrowsePage(userId);
+    } else {
+        new BrowseGamesPage('pvp');
+    }
+};

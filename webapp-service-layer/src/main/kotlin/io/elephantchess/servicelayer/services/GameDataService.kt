@@ -541,8 +541,9 @@ class GameDataService(
             beforeTs = beforeTs
         )
 
+        val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
+        val lastOnlineByUserId = userDaoService.fetchLastOnline(userIds)
         val isOnlineLimit = Clock.System.now().minusSeconds(15L)
-        val isUserOnline = userDaoService.fetchLastOnline(listOf(userId))[userId]?.isAfter(isOnlineLimit) == true
 
         return games
             .map { gameRecord ->
@@ -555,12 +556,12 @@ class GameDataService(
                     redPlayerName = fetchUserName(redUserId),
                     redPlayerRating = gameRecord.redPlayerRating(),
                     redUserType = userCache.fetchUserType(redUserId),
-                    isRedOnline = redUserId == userId && isUserOnline,
+                    isRedOnline = lastOnlineByUserId[redUserId]?.isAfter(isOnlineLimit) == true,
                     blackPlayerId = blackUserId,
                     blackPlayerName = fetchUserName(blackUserId),
                     blackPlayerRating = gameRecord.blackPlayerRating(),
                     blackUserType = userCache.fetchUserType(blackUserId),
-                    isBlackOnline = blackUserId == userId && isUserOnline,
+                    isBlackOnline = lastOnlineByUserId[blackUserId]?.isAfter(isOnlineLimit) == true,
                     userColor = null,
                     finalFen = gameRecord.currentFen,
                     status = gameRecord.gameStatus,
