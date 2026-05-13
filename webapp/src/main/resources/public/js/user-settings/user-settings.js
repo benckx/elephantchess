@@ -27,6 +27,8 @@ const EMAIL_SETTINGS_URL = USER_SETTINGS_API + '/email-address';
 const USERNAME_MAX_DESCRIPTION_LENGTH = 1_000;
 const PROFILE_PICTURE_MAX_BYTES = 500 * 1024;
 const PROFILE_PICTURE_SIZE_PX = 100;
+// Keep JPEG uploads visually crisp while staying comfortably under the 500KB limit.
+const PROFILE_PICTURE_JPEG_QUALITY = 0.92;
 const DEFAULT_PROFILE_PICTURE_URL = '/images/icons/user_profile_smaller.png';
 
 class UserSettingsPage extends BasePage {
@@ -168,12 +170,12 @@ class UserSettingsPage extends BasePage {
     }
 
     #resolveProfilePictureFormat(fileName) {
-        const extension = fileName.split('.').pop()?.toLowerCase();
-        if (extension === 'png') {
+        const fileExtension = fileName.split('.').pop()?.toLowerCase();
+        if (fileExtension === 'png') {
             return {extension: 'png', mimeType: 'image/png'};
         }
-        if (extension === 'jpg' || extension === 'jpeg') {
-            return {extension, mimeType: 'image/jpeg'};
+        if (fileExtension === 'jpg' || fileExtension === 'jpeg') {
+            return {extension: fileExtension, mimeType: 'image/jpeg'};
         }
         return null;
     }
@@ -354,7 +356,7 @@ class UserSettingsPage extends BasePage {
             })
                 .then(response => handler.handle(response))
                 .catch(error => handler.handleCatchError(error));
-        }, this.#profilePictureMimeType, 0.92);
+        }, this.#profilePictureMimeType, PROFILE_PICTURE_JPEG_QUALITY);
     }
 
     #fetchEmailAddressSettings() {

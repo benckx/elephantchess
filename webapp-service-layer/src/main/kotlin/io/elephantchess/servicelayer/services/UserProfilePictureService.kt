@@ -97,7 +97,7 @@ class UserProfilePictureService(
         return when (extension) {
             "png" -> "image/png"
             "jpg", "jpeg" -> "image/jpeg"
-            else -> error("unsupported extension $extension")
+            else -> error("Unsupported file extension for profile picture: $extension")
         }
     }
 
