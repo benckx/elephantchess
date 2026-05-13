@@ -80,6 +80,7 @@ class UserSettingsPage extends BasePage {
         this.#profilePictureEditorCanvas.addEventListener('pointermove', event => this.#dragProfilePicture(event));
         this.#profilePictureEditorCanvas.addEventListener('pointerup', event => this.#stopDraggingProfilePicture(event));
         this.#profilePictureEditorCanvas.addEventListener('pointerleave', event => this.#stopDraggingProfilePicture(event));
+        window.addEventListener('beforeunload', () => this.#revokeProfilePictureObjectUrl());
 
         // notifications section
         let notificationsSettingsTable = document.getElementById('notifications-settings-table');
@@ -146,9 +147,7 @@ class UserSettingsPage extends BasePage {
             return;
         }
 
-        if (this.#profilePictureObjectUrl != null) {
-            URL.revokeObjectURL(this.#profilePictureObjectUrl);
-        }
+        this.#revokeProfilePictureObjectUrl();
 
         this.#profilePictureExtension = fileFormat.extension;
         this.#profilePictureMimeType = fileFormat.mimeType;
@@ -168,6 +167,13 @@ class UserSettingsPage extends BasePage {
             this.#renderProfilePictureEditor();
         };
         image.src = this.#profilePictureObjectUrl;
+    }
+
+    #revokeProfilePictureObjectUrl() {
+        if (this.#profilePictureObjectUrl != null) {
+            URL.revokeObjectURL(this.#profilePictureObjectUrl);
+            this.#profilePictureObjectUrl = null;
+        }
     }
 
     #resolveProfilePictureFormat(fileName) {
@@ -327,7 +333,7 @@ class UserSettingsPage extends BasePage {
 
         cropCanvas.toBlob(blob => {
             if (blob == null) {
-                UI.pushErrorNotification('Unable to prepare the profile picture', 3_000);
+                UI.pushErrorNotification('Failed to convert image to the required format', 3_000);
                 return;
             }
 

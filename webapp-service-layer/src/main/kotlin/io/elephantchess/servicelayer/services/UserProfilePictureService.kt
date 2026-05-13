@@ -14,6 +14,13 @@ class UserProfilePictureService(
     private val userDaoService: UserDaoService,
 ) {
 
+    /**
+     * Validate and normalize a profile picture upload, store it on the CDN-backed object storage,
+     * persist the chosen file extension for the user, and return the public CDN URL.
+     *
+     * @throws NotAcceptableException when the file is too large, has an unsupported extension,
+     * or cannot be decoded into a supported image format.
+     */
     suspend fun uploadProfilePicture(userId: String, originalFileName: String, bytes: ByteArray): String {
         if (bytes.size > PROFILE_PICTURE_MAX_BYTES) {
             throw NotAcceptableException("Profile picture limited to ${PROFILE_PICTURE_MAX_BYTES / 1024}KB")
