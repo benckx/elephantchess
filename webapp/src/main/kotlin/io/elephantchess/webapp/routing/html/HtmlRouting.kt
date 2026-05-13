@@ -8,6 +8,7 @@ import io.elephantchess.webapp.ops.*
 import io.elephantchess.webapp.rendering.ModalRenderer
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.elephantchess.webapp.rendering.UserProfilePageRenderer
+import io.elephantchess.webapp.rendering.faqTocTagResolver
 import io.elephantchess.webapp.rendering.latestSupporterTagResolver
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -105,7 +106,12 @@ private fun Routing.simpleMappings() {
     publicPageMapping.forEach { (path, templateName) ->
         logger.info { "[public] mapping html file $templateName to path $path" }
         get(path) {
-            call.respond(simplePageRenderer.renderTemplateHtml(templateName))
+            val resolvers = if (templateName == "about/faq") {
+                listOf(faqTocTagResolver())
+            } else {
+                emptyList()
+            }
+            call.respond(simplePageRenderer.renderTemplateHtml(templateName, resolvers))
         }
     }
     publicPageRedirection.forEach { (fromPath, toPath) ->
