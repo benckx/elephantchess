@@ -35,7 +35,6 @@ class UserGamesBrowsePage extends BrowseGamesPage {
     additionalParameters() {
         const params = super.additionalParameters();
         params.set('username', this.#username);
-        params.set('distinctByUsers', 'false');
         return params;
     }
 }
