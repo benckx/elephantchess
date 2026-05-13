@@ -5,11 +5,7 @@ import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
-import io.elephantchess.webapp.rendering.FaqPageRenderer
-import io.elephantchess.webapp.rendering.ModalRenderer
-import io.elephantchess.webapp.rendering.SimplePageRenderer
-import io.elephantchess.webapp.rendering.UserProfilePageRenderer
-import io.elephantchess.webapp.rendering.latestSupporterTagResolver
+import io.elephantchess.webapp.rendering.*
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -168,6 +164,13 @@ private fun Route.userProfile() {
 
         val userProfileResponse = userService.fetchProfile(username)
         call.respondHtml(renderer.renderUserProfile(userProfileResponse))
+    }
+    get("/@/{username}/browse-pvp-games") {
+        val username = call.parameters["username"]
+            ?: throw BadRequestException("username not provided")
+
+        userService.validateUserExists(username)
+        call.respondHtml(renderer.renderUserBrowsePvpGames(username))
     }
 }
 
