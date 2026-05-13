@@ -793,6 +793,12 @@ class BoardGui {
                 (move.isHorizontal() && Math.abs(move.to.x - move.from.x) <= 1)
         }
 
+        function isKnightMove(move) {
+            const dx = Math.abs(move.to.x - move.from.x);
+            const dy = Math.abs(move.to.y - move.from.y);
+            return (dx === 1 && dy === 2) || (dx === 2 && dy === 1);
+        }
+
         const boardBounds = this.#boardContainer.getBoundingClientRect();
 
         const square1 = document.getElementById(this.#positionToElementId('square', move.from));
@@ -804,36 +810,72 @@ class BoardGui {
         const y1 = (bound1.top + bound1.height / 2) - boardBounds.top;
         const x2 = (bound2.left + bound2.width / 2) - boardBounds.left;
         const y2 = (bound2.top + bound2.height / 2) - boardBounds.top;
-        const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 
-        // we reduce the distance, otherwise the arrow goes from the middle of a square to the other (with the arrow tip on top)
-        let reduction;
+        let pathD, midpointX, midpointY;
 
-        // we can not reduce by as much when the arrow is already very small
-        // otherwise, the direction of the arrow flips and points the wrong way
-        if (isSmallMove(move)) {
-            // we remove 40% a square length
-            reduction = bound1.width * 0.40;
+        if (isKnightMove(move)) {
+            // draw an elbowed (L-shaped) arrow for the knight's non-linear movement
+            const reduction = bound1.width * 0.40;
+            const dxPx = x2 - x1;
+            const dyPx = y2 - y1;
+
+            let x1Prime, y1Prime, x2Prime, y2Prime, elbowX, elbowY;
+
+            if (Math.abs(dyPx) > Math.abs(dxPx)) {
+                // vertical-dominant: corner at (x1, y2) — go vertically first, then horizontally
+                elbowX = x1;
+                elbowY = y2;
+                x1Prime = x1;
+                y1Prime = y1 + Math.sign(dyPx) * reduction;
+                x2Prime = x2 - Math.sign(dxPx) * reduction;
+                y2Prime = y2;
+            } else {
+                // horizontal-dominant: corner at (x2, y1) — go horizontally first, then vertically
+                elbowX = x2;
+                elbowY = y1;
+                x1Prime = x1 + Math.sign(dxPx) * reduction;
+                y1Prime = y1;
+                x2Prime = x2;
+                y2Prime = y2 - Math.sign(dyPx) * reduction;
+            }
+
+            pathD = `M${Math.round(x1Prime)},${Math.round(y1Prime)} L${Math.round(elbowX)},${Math.round(elbowY)} L${Math.round(x2Prime)},${Math.round(y2Prime)}`;
+            midpointX = elbowX;
+            midpointY = elbowY;
         } else {
-            // we remove 50% a square length
-            reduction = bound1.width * 0.50;
+            const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+
+            // we reduce the distance, otherwise the arrow goes from the middle of a square to the other (with the arrow tip on top)
+            let reduction;
+
+            // we can not reduce by as much when the arrow is already very small
+            // otherwise, the direction of the arrow flips and points the wrong way
+            if (isSmallMove(move)) {
+                // we remove 40% a square length
+                reduction = bound1.width * 0.40;
+            } else {
+                // we remove 50% a square length
+                reduction = bound1.width * 0.50;
+            }
+
+            const reducedDist = dist - reduction;
+            const ratio = reducedDist / dist;
+
+            const x1Prime = x2 + ratio * (x1 - x2);
+            const y1Prime = y2 + ratio * (y1 - y2);
+            const x2Prime = x1 + ratio * (x2 - x1);
+            const y2Prime = y1 + ratio * (y2 - y1);
+
+            pathD = `M${Math.round(x1Prime)},${Math.round(y1Prime)} L${Math.round(x2Prime)},${Math.round(y2Prime)}`;
+            midpointX = (x1Prime + x2Prime) / 2;
+            midpointY = (y1Prime + y2Prime) / 2;
         }
 
-        const reducedDist = dist - reduction;
-        const ratio = reducedDist / dist;
-
-        const x1Prime = x2 + ratio * (x1 - x2);
-        const y1Prime = y2 + ratio * (y1 - y2);
-        const x2Prime = x1 + ratio * (x2 - x1);
-        const y2Prime = y1 + ratio * (y2 - y1);
-
-        const p1 = `M${Math.round(x1Prime)},${Math.round(y1Prime)}`;
-        const p2 = `L${Math.round(x2Prime)},${Math.round(y2Prime)}`;
-
         const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        arrowPath.setAttribute('d', `${p1} ${p2}`);
+        arrowPath.setAttribute('d', pathD);
         arrowPath.style.strokeWidth = `13px`;
         arrowPath.style.fill = 'none';
+        arrowPath.style.strokeLinejoin = 'round';
 
         switch (type) {
             case EngineArrowType.PRIMARY:
@@ -847,8 +889,6 @@ class BoardGui {
         }
 
         // draw number circle
-        const midpointX = (x1Prime + x2Prime) / 2;
-        const midpointY = (y1Prime + y2Prime) / 2;
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute('r', (bound1.width * 0.20).toString());
         circle.setAttribute('cx', midpointX.toString());
