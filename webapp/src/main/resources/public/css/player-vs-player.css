@@ -47,70 +47,16 @@ tr#outcome-row {
 .clock-player-info {
     width: 100%;
     box-sizing: border-box;
-    padding: 4px 10px;
-    font-size: 15px;
-    font-weight: bold;
-    min-height: 28px;
+    padding: 4px 8px;
+    font-size: 14px;
+    min-height: 22px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    border: 4px solid transparent;
+    gap: 4px;
 }
 
 .clock-player-info:empty {
     display: none;
-}
-
-.clock-player-info .clock-player-info-left {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-.clock-player-info .clock-player-info-left a,
-.clock-player-info .clock-player-info-left a:hover {
-    color: inherit;
-    text-decoration: none;
-}
-
-.clock-player-info.red-counter {
-    color: #ffe2e2;
-    border-color: rgb(138 0 0);
-    background-color: rgb(255 0 0 / 34%);
-}
-
-.clock-player-info.black-counter {
-    color: #ffffff;
-    border-color: rgba(0, 0, 0);
-    background-color: rgb(111 111 111 / 58%);
-}
-
-#top-player-info.clock-player-info {
-    border-bottom-width: 0;
-}
-
-#bottom-player-info.clock-player-info {
-    border-top-width: 0;
-}
-
-#counter-box:has(#top-player-info:not(:empty)) #top-counter {
-    border-top-width: 0;
-}
-
-#counter-box:has(#bottom-player-info:not(:empty)) #bottom-counter {
-    border-bottom-width: 0;
-}
-
-.clock-player-info .user-rating-delta-value-box-positive {
-    color: #b6ffb6;
-}
-
-.clock-player-info .user-rating-delta-value-box-negative {
-    color: #ffd2d2;
 }
 
 .time-counter {
