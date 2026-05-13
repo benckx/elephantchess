@@ -138,6 +138,7 @@ class UserServiceTest : ServiceTest() {
             "user@name",       // @ symbol
             "user.name",       // dot
             "user!name",       // exclamation mark
+            "用户名称",          // Chinese characters
             "user🙂name",      // emoji
         )
 
