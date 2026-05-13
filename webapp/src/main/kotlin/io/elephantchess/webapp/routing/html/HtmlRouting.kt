@@ -175,13 +175,7 @@ private fun Route.userProfile() {
             ?: throw BadRequestException("username not provided")
 
         userService.validateUserExists(username)
-
-        call.respondHtml(
-            simplePageRenderer.renderTemplateNoCache(
-                "user_browse_pvp_games",
-                specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
-            )
-        )
+        call.respondHtml(renderer.renderUserBrowsePvpGames(username))
     }
 }
 
