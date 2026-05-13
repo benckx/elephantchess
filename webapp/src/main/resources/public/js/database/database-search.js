@@ -181,8 +181,9 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             this.#eventSearchField.setInputFieldValue(eventName);
         }
         if (dateStart || dateEnd) {
-            const startDate = dateStart ? new Date(dateStart) : null;
-            const endDate = dateEnd ? new Date(dateEnd) : null;
+            const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+            const startDate = (dateStart && datePattern.test(dateStart)) ? new Date(dateStart) : null;
+            const endDate = (dateEnd && datePattern.test(dateEnd)) ? new Date(dateEnd) : null;
             const startValid = startDate && !isNaN(startDate.getTime());
             const endValid = endDate && !isNaN(endDate.getTime());
             if (startValid && endValid) {

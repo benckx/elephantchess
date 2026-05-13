@@ -470,14 +470,14 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             )
             .from(REFERENCE_GAME_SEARCH_QUERY)
             .where(condition)
-            .orderBy(DSL.coalesce(updateField, REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME).desc())
+            .orderBy(updateField.desc())
             .limit(limit)
             .awaitRecords()
             .map { record ->
                 UserDbSearchEntry(
                     queryId = record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID),
                     queryTime = record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME),
-                    updateTime = record.get(updateField) ?: record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME),
+                    updateTime = record.get(updateField)!!,
                     playerName = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME),
                     playerId = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID),
                     playerColor = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR),
