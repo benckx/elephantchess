@@ -5,6 +5,8 @@ import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.services.UserService
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 object CreateVietnameseTestUsers : KoinScriptInit() {
@@ -36,19 +38,24 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
                     val either = userService.signUp(SignUpRequest(user.username, user.email, randomPassword))
                     if (either.isRight()) {
                         println("Created user ${user.username}")
-                        println("$LOCALHOST_BASE_URL/@/${user.username}")
+                        println(profileUrl(user.username))
                     } else {
                         val errorMessage = either.left().errors
-                            .ifEmpty { listOf("User creation failed with no specific validation errors") }
+                            .ifEmpty { listOf("No specific validation errors were returned") }
                             .joinToString("; ")
                         println("ERROR: Failed to create user ${user.username}: $errorMessage")
                     }
                 } else {
                     println("User ${user.username} already exists")
-                    println("$LOCALHOST_BASE_URL/@/${user.username}")
+                    println(profileUrl(user.username))
                 }
             }
         }
+    }
+
+    private fun profileUrl(username: String): String {
+        val encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8).replace("+", "%20")
+        return "$LOCALHOST_BASE_URL/@/$encodedUsername"
     }
 
 }
