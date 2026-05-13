@@ -272,6 +272,92 @@ class SimpleTokenParser extends TokenParser {
 }
 
 /**
+ * Tracks a single candidate game sequence (board state + move history).
+ * Multiple instances are maintained in parallel when a move is ambiguous,
+ * so that later moves can disambiguate which branch is correct.
+ */
+class ResultCandidate {
+
+    #board = new Board();
+
+    /**
+     * @type {HalfMove[]}
+     */
+    #moves = [];
+
+    #valid = true;
+
+    constructor() {
+        this.#board.loadFen(DEFAULT_START_FEN);
+    }
+
+    isValid() {
+        return this.#valid;
+    }
+
+    invalidate() {
+        this.#valid = false;
+    }
+
+    /**
+     * @return {MoveAndAnnotation[]}
+     */
+    listMoves() {
+        return this.#moves.map(move => new MoveAndAnnotation(move, null));
+    }
+
+    /**
+     * @param from {Position}
+     * @return {HalfMove[]}
+     */
+    listLegalMovesFrom(from) {
+        return this.#board.listLegalMovesFrom(from);
+    }
+
+    /**
+     * @param piece {string}
+     * @return {Position[]}
+     */
+    listPositionsForPiece(piece) {
+        return this.#board.listPositionsForPiece(piece);
+    }
+
+    attemptToAddMove(move) {
+        try {
+            this.#board.registerMove(move);
+            this.#moves.push(move);
+        } catch (e) {
+            // Move is illegal for this candidate; mark as invalid so it gets pruned
+            this.#valid = false;
+        }
+    }
+
+    /**
+     * @return {ResultCandidate}
+     */
+    copy() {
+        let copy = new ResultCandidate();
+        copy.#board = this.#board.copy();
+        copy.#moves = this.#moves.slice();
+        copy.#valid = this.#valid;
+        return copy;
+    }
+
+    /**
+     * @param moves {HalfMove[]}
+     * @return {ResultCandidate[]}
+     */
+    copyForMoves(moves) {
+        return moves.map(move => {
+            let copy = this.copy();
+            copy.attemptToAddMove(move);
+            return copy;
+        });
+    }
+
+}
+
+/**
  * Parse a raw string input, then transform {@link ParsingToken} into {@link MoveAndAnnotation}.
  * Uses a {@link TokenParser} to get the {@link ParsingToken}.
  */
