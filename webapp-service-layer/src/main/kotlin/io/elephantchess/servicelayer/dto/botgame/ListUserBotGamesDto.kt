@@ -17,6 +17,7 @@ data class ListUserBotGamesDto(val entries: List<Entry>) {
         val status: GameEventType,
         val outcome: Outcome?,
         val moveIndex: Int,
+        val isPreAnalyzed: Boolean,
         val created: Long,
         val lastUpdated: Long,
     )

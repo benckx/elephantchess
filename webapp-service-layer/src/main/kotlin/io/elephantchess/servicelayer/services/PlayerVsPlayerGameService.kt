@@ -377,6 +377,7 @@ class PlayerVsPlayerGameService(
                     outcome = gameRecord.userOutcome(userId),
                     ratingFrom = ratingFrom,
                     ratingTo = ratingTo,
+                    isPreAnalyzed = gameRecord.analysisStatus.isPreAnalyzed(),
                     created = gameRecord.created.toEpochMilliseconds(),
                     lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
                     numberOfMessages = numberOfMessages
@@ -385,6 +386,10 @@ class PlayerVsPlayerGameService(
             .let { entries ->
                 ListUserGamesResponse(entries)
             }
+    }
+
+    private fun AnalysisStatus.isPreAnalyzed(): Boolean {
+        return this == AnalysisStatus.PARTIALLY_COMPLETED || this == AnalysisStatus.COMPLETED
     }
 
     suspend fun startGamesToPlaySession(

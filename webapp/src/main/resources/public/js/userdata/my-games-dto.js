@@ -34,6 +34,7 @@ class GameEntryDto {
     #ratingFrom;
     #ratingTo;
     #numberOfMessages;
+    #isPreAnalyzed;
 
     /**
      * @type {number}
@@ -63,6 +64,7 @@ class GameEntryDto {
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
         this.#numberOfMessages = json.numberOfMessages;
+        this.#isPreAnalyzed = json.isPreAnalyzed;
     }
 
     /**
@@ -234,6 +236,13 @@ class GameEntryDto {
      */
     get numberOfMessages() {
         return Number(this.#numberOfMessages);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isPreAnalyzed() {
+        return this.#isPreAnalyzed;
     }
 
 }

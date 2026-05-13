@@ -7,6 +7,7 @@ import io.elephantchess.db.services.AnalysisDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
+import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.db.utils.winnerUserId
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
 import io.elephantchess.servicelayer.dto.admin.ListBotGamesResponse
@@ -87,6 +88,7 @@ class AdminFeedService(
                     timeControlIncrement = record.timeControlIncrement,
                     status = record.gameStatus,
                     index = record.currentHalfMoveIndex,
+                    isPreAnalyzed = record.analysisStatus.isPreAnalyzed(),
                     winnerUserId = record.winnerUserId(),
                     created = record.created.toEpochMilliseconds(),
                     lastUpdated = record.lastUpdated.toEpochMilliseconds(),
@@ -120,9 +122,14 @@ class AdminFeedService(
             status = record.gameStatus,
             outcome = record.outcome,
             index = record.currentHalfMoveIndex,
+            isPreAnalyzed = record.analysisStatus.isPreAnalyzed(),
             created = record.created.toEpochMilliseconds(),
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
         )
+    }
+
+    private fun AnalysisStatus.isPreAnalyzed(): Boolean {
+        return this == AnalysisStatus.PARTIALLY_COMPLETED || this == AnalysisStatus.COMPLETED
     }
 
 }

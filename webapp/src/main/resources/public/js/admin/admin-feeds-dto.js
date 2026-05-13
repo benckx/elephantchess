@@ -31,6 +31,7 @@ class GameAnalyticsDto {
     #timeControl;
     #status;
     #index;
+    #isPreAnalyzed;
     #winnerUserId;
     #created;
     #lastUpdated;
@@ -49,6 +50,7 @@ class GameAnalyticsDto {
         this.#timeControl = TimeControl.fromJson(json);
         this.#status = json.status;
         this.#index = json.index;
+        this.#isPreAnalyzed = json.isPreAnalyzed;
         this.#winnerUserId = json.winnerUserId;
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
@@ -151,6 +153,10 @@ class GameAnalyticsDto {
         return Number(this.#index);
     }
 
+    get isPreAnalyzed() {
+        return this.#isPreAnalyzed;
+    }
+
     /**
      * @return {string}
      */
@@ -235,6 +241,7 @@ class BotGameAnalyticsDto {
     #status;
     #outcome;
     #index;
+    #isPreAnalyzed;
     #created;
     #lastUpdated;
 
@@ -250,6 +257,7 @@ class BotGameAnalyticsDto {
         this.#status = json.status;
         this.#outcome = json.outcome;
         this.#index = Number(json.index);
+        this.#isPreAnalyzed = json.isPreAnalyzed;
         this.#created = Number(json.created);
         this.#lastUpdated = Number(json.lastUpdated);
     }
@@ -336,6 +344,10 @@ class BotGameAnalyticsDto {
      */
     get index() {
         return this.#index;
+    }
+
+    get isPreAnalyzed() {
+        return this.#isPreAnalyzed;
     }
 
     /**

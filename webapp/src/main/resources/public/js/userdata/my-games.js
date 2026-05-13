@@ -243,6 +243,25 @@ class MyGamesPage extends InfiniteScrollPage {
          * @param entry {GameEntryDto}
          * @returns {HTMLDivElement|null}
          */
+        function buildPreAnalyzedIcon(entry) {
+            if (entry.isPreAnalyzed) {
+                const iconImg = buildImg('/images/icons/database.png', 'icon');
+                iconImg.alt = 'This game is pre-analyzed';
+                iconImg.style.opacity = '75%';
+
+                const div = wrapInDiv(iconImg);
+                div.id = `pre-analyzed-${entry.gameId}`;
+                addToolTip(div, 'This game is pre-analyzed');
+                return div;
+            } else {
+                return null;
+            }
+        }
+
+        /**
+         * @param entry {GameEntryDto}
+         * @returns {HTMLDivElement|null}
+         */
         function buildIsOngoingDiv(entry) {
             const isOngoing = isStatusInProgress(entry.status);
             if (isOngoing) {
@@ -264,6 +283,7 @@ class MyGamesPage extends InfiniteScrollPage {
             const chatIndicatorPane = buildDivWithClass('indicator-pane');
             const outcomeIndicatorPane = buildDivWithClass('indicator-pane');
             const ratingDeltaIndicatorPane = buildDivWithClass('indicator-pane');
+            const preAnalyzedIndicatorPane = buildDivWithClass('indicator-pane');
             const rightPane = buildDivWithClass('right-pane');
             const item = buildAnchorWithClass(entry.gameUrl,null, 'my-game-item');
 
@@ -272,6 +292,7 @@ class MyGamesPage extends InfiniteScrollPage {
                 middlePane,
                 chatIndicatorPane,
                 ratingDeltaIndicatorPane,
+                preAnalyzedIndicatorPane,
                 outcomeIndicatorPane,
                 rightPane
             );
@@ -307,6 +328,12 @@ class MyGamesPage extends InfiniteScrollPage {
             const ratingDiv = buildRatingDiv(entry);
             if (ratingDiv != null) {
                 ratingDeltaIndicatorPane.append(ratingDiv);
+            }
+
+            // pre-analysis indicator pane
+            const preAnalyzedDiv = buildPreAnalyzedIcon(entry);
+            if (preAnalyzedDiv != null) {
+                preAnalyzedIndicatorPane.append(preAnalyzedDiv);
             }
 
             // outcome indicator pane

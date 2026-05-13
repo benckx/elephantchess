@@ -76,6 +76,23 @@ class MyBotGamesPage extends InfiniteScrollPage {
             return div;
         }
 
+        /**
+         * @param entry {BotGameEntryDto}
+         * @returns {HTMLDivElement}
+         */
+        function buildPreAnalyzedIcon(entry) {
+            const iconImg = document.createElement('img');
+            iconImg.className = 'icon';
+            iconImg.src = '/images/icons/database.png';
+            iconImg.alt = 'This game is pre-analyzed';
+            iconImg.style.opacity = '75%';
+
+            const div = wrapInDiv(iconImg);
+            div.id = `pre-analyzed-${entry.gameId}`;
+            addToolTip(div, 'This game is pre-analyzed');
+            return div;
+        }
+
         entries.forEach(entry => {
             // structure
             const leftPane = document.createElement('div');
@@ -86,6 +103,9 @@ class MyBotGamesPage extends InfiniteScrollPage {
 
             const customFenIndicatorPane = document.createElement('div');
             customFenIndicatorPane.className = 'indicator-pane';
+
+            const preAnalysisIndicatorPane = document.createElement('div');
+            preAnalysisIndicatorPane.className = 'indicator-pane';
 
             const outcomeIndicatorPane = document.createElement('div');
             outcomeIndicatorPane.className = 'indicator-pane';
@@ -101,6 +121,7 @@ class MyBotGamesPage extends InfiniteScrollPage {
                 leftPane,
                 middlePane,
                 customFenIndicatorPane,
+                preAnalysisIndicatorPane,
                 outcomeIndicatorPane,
                 rightPane
             );
@@ -122,6 +143,9 @@ class MyBotGamesPage extends InfiniteScrollPage {
 
             if (entry.hasCustomStartFen) {
                 customFenIndicatorPane.append(buildCustomFenIcon(entry));
+            }
+            if (entry.isPreAnalyzed) {
+                preAnalysisIndicatorPane.append(buildPreAnalyzedIcon(entry));
             }
 
             // outcome indicator pane

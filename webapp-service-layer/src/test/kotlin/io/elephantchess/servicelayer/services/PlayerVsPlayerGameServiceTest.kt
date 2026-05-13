@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.model.AnalysisStatus.COMPLETED
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
@@ -494,6 +495,35 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         )
 
         assertEquals(PERPETUAL_CHECKING, response.gameEventType)
+    }
+
+    @Test
+    fun listUserGamesPreAnalyzedStatusTest() = runTest {
+        val gameId = createAndJoinGame(RED)
+
+        val beforeUpdateEntry =
+            pvpGameService
+                .listUserGames(userId1.id, beforeTs = null)
+                .entries
+                .find { it.gameId == gameId }
+                ?: throw AssertionError("Expected game $gameId in list")
+
+        assertFalse(beforeUpdateEntry.isPreAnalyzed)
+
+        dslContext
+            .update(GAME)
+            .set(GAME.ANALYSIS_STATUS, COMPLETED)
+            .where(GAME.ID.eq(gameId))
+            .awaitExecute()
+
+        val afterUpdateEntry =
+            pvpGameService
+                .listUserGames(userId1.id, beforeTs = null)
+                .entries
+                .find { it.gameId == gameId }
+                ?: throw AssertionError("Expected game $gameId in list")
+
+        assertTrue(afterUpdateEntry.isPreAnalyzed)
     }
 
     private suspend fun createGame(inviterColor: Color): String {
