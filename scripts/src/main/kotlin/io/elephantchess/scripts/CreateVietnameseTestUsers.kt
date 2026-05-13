@@ -41,7 +41,7 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
                         println(profileUrl(user.username))
                     } else {
                         val errorMessage = either.left().errors
-                            .ifEmpty { listOf("No specific validation errors were returned") }
+                            .ifEmpty { listOf("User creation failed with no validation errors provided") }
                             .joinToString("; ")
                         println("ERROR: Failed to create user ${user.username}: $errorMessage")
                     }
