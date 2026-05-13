@@ -97,7 +97,6 @@ fun Application.htmlRoutingModule() {
         simpleMappingsWithSupporterBanner()
         boardGuiExample()
         userProfile()
-        userBrowsePvpGames()
         modals()
         databasePages()
         faqPage()
@@ -171,17 +170,11 @@ private fun Route.userProfile() {
         val userProfileResponse = userService.fetchProfile(username)
         call.respondHtml(renderer.renderUserProfile(userProfileResponse))
     }
-}
-
-private fun Route.userBrowsePvpGames() {
-    val userService by koin<UserService>()
-
     get("/@/{username}/browse-pvp-games") {
         val username = call.parameters["username"]
             ?: throw BadRequestException("username not provided")
 
-        // validate user exists (throws NotFoundException if not)
-        userService.fetchProfile(username)
+        userService.validateUserExists(username)
 
         call.respondHtml(
             simplePageRenderer.renderTemplateNoCache(

@@ -235,6 +235,16 @@ class UserService(
         }
     }
 
+    /**
+     * Throws NotFoundException if user with given username does not exist
+     */
+    suspend fun validateUserExists(username: String) {
+        val userExists = userDaoService.existsForUsername(username)
+        if (!userExists) {
+            throw NotFoundException("User $username could not be found")
+        }
+    }
+
     suspend fun fetchProfile(username: String): UserProfile {
         // TODO: only fetch relevant fields
         val user = userDaoService.findByUserName(username)
