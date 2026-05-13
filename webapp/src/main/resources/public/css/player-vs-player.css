@@ -17,14 +17,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#inviter-player-info,
-tr#inviter-row,
 tr#outcome-row {
     display: none;
 }
 
 #game-info-info-box {
-    height: 140px;
+    height: 110px;
     display: flex;
 }
 
@@ -212,7 +210,7 @@ tr#outcome-row {
     }
 
     #game-info-info-box {
-        height: 280px;
+        height: 220px;
     }
 
     #perpetual-checking-tracker-info-box {

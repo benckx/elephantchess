@@ -36,17 +36,12 @@ class PlayGamePage extends BasePage {
      */
     #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
 
-    #inviterPlayerInfo = document.getElementById('inviter-player-info');
-    #inviterRow = document.getElementById('inviter-row');
-
     #createdLabel = document.getElementById('created-label');
     #timeControlBase = document.getElementById('time-control-base');
     #ratingMode = document.getElementById('rating-mode');
     #gameStatusSpan = document.getElementById('game-status');
     #gameOutcomeSpan = document.getElementById('game-outcome');
     #outcomeRow = document.getElementById('outcome-row');
-
-    #inviterOnlineIndicator = document.getElementById('inviter-online-status-indicator');
 
     #gameActionsButtonsInfoBox = document.getElementById('game-actions-buttons-info-box');
     #resignButton = document.getElementById('resign-button');
@@ -439,10 +434,6 @@ class PlayGamePage extends BasePage {
         this.#playerInfoByColor = {};
 
         if (gameDto.hasInviterColor) {
-            // hide inviter only data (shown on the left panel only when color is not picked yet)
-            this.#inviterRow.style.display = 'none';
-            this.#inviterPlayerInfo.style.display = 'none';
-
             const inviterColor = gameDto.inviterColor;
             const inviteeColor = oppositeColor(inviterColor);
 
@@ -473,11 +464,6 @@ class PlayGamePage extends BasePage {
                     inviteeRatingDelta
                 );
             }
-        } else {
-            // red and black are not yet determined, so we show inviter on the left panel instead
-            this.#inviterPlayerInfo.append(buildUsernameSpan(gameDto.inviterId, gameDto.inviterUsername, gameDto.inviterUserType));
-            this.#inviterPlayerInfo.style.display = 'block';
-            this.#inviterRow.style.display = 'contents';
         }
 
         const colorAtBottom = gameDto.colorUserPlaysWith || Color.RED;
@@ -721,12 +707,6 @@ class PlayGamePage extends BasePage {
                 } else {
                     blackIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
                 }
-            }
-
-            if (onlineUserIds.includes(this.#gameController.gameDto.inviterId)) {
-                this.#inviterOnlineIndicator.classList.add(IS_ONLINE_CSS_CLASS);
-            } else {
-                this.#inviterOnlineIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
             }
         });
     }
