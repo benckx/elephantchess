@@ -39,7 +39,7 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
                         println("$LOCALHOST_BASE_URL/@/${user.username}")
                     } else {
                         val errorMessage = either.left().errors
-                            .ifEmpty { listOf("Unknown validation error") }
+                            .ifEmpty { listOf("User creation failed with no specific validation errors") }
                             .joinToString("; ")
                         println("ERROR: Failed to create user ${user.username}: $errorMessage")
                     }
