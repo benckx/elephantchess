@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const USER_PROFILE_GAMES_LIMIT = 6;
+const USER_PROFILE_GAMES_LIMIT = 3;
 
 class UserProfileGamesSection extends BrowseGamesPage {
 
