@@ -121,6 +121,24 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
+    suspend fun listLastGamesByUserId(userId: String, limit: Int, minMoveIndex: Int, beforeTs: Long?): List<Game> {
+        var sql = dslContext
+            .select()
+            .from(GAME)
+            .where(isPlaying(userId))
+            .and(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.CONTAINS_ERRORS.eq(false))
+
+        if (beforeTs != null) {
+            sql = sql.and(GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))
+        }
+
+        return sql
+            .orderBy(GAME.LAST_UPDATED.desc())
+            .limit(limit)
+            .awaitMappedRecords()
+    }
+
     suspend fun listPotentiallyFlaggedGames(): List<Game> {
         val now = Clock.System.now()
         val games = mutableListOf<Game>()

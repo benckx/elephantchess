@@ -200,3 +200,9 @@ h2 {
         width: 98%;
     }
 }
+
+.browse-more-link-container {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
