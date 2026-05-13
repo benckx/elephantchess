@@ -99,6 +99,18 @@ class PlayerVsBotPage extends BasePage {
         document.getElementById('analyze-button-right-side')
     ];
     #infoOutcomeLabel = document.getElementById('info-outcome');
+    #infoDurationLabel = document.getElementById('info-duration');
+    #infoDurationRow = document.getElementById('info-duration-row');
+
+    /**
+     * @type {number|null}
+     */
+    #createdMillis = null;
+
+    /**
+     * @type {number|null}
+     */
+    #gameEndedAtMillis = null;
 
     constructor() {
         super();
@@ -140,7 +152,12 @@ class PlayerVsBotPage extends BasePage {
                 document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
                 document.getElementById('info-depth').innerText = botGameDto.depth.toString();
                 document.getElementById('info-created').innerText = botGameDto.formattedCreated;
+                this.#createdMillis = botGameDto.createdMillis;
+                if (isStatusFinished(botGameDto.status)) {
+                    this.#gameEndedAtMillis = botGameDto.lastUpdatedMillis;
+                }
                 this.#updateOutcomeLabel();
+                this.#updateDurationLabel();
                 this.#updateButtonsEnabled();
                 this.#enablePlayerMoveIfPermitted();
                 this.#startSpectatorSessionIfNeeded(gameId, botGameDto);
@@ -183,7 +200,9 @@ class PlayerVsBotPage extends BasePage {
             if (isInfoBoxButtonEnabled(e)) {
                 this.#controller.cancel(() => {
                     this.#boardGui.disablePlayerMove();
+                    this.#gameEndedAtMillis = Date.now();
                     this.#updateOutcomeLabel();
+                    this.#updateDurationLabel();
                     this.#updateButtonsEnabled();
                 });
             }
@@ -214,7 +233,9 @@ class PlayerVsBotPage extends BasePage {
         let yesCallback = () => {
             this.#controller.resign(() => {
                 this.#boardGui.disablePlayerMove();
+                this.#gameEndedAtMillis = Date.now();
                 this.#updateOutcomeLabel();
+                this.#updateDurationLabel();
                 this.#updateButtonsEnabled();
             });
         };
@@ -235,7 +256,9 @@ class PlayerVsBotPage extends BasePage {
                 .addEventListener('click', () => UI.hideModal(null));
         });
         this.#boardGui.disablePlayerMove();
+        this.#gameEndedAtMillis = Date.now();
         this.#updateOutcomeLabel();
+        this.#updateDurationLabel();
         this.#updateButtonsEnabled();
     }
 
@@ -289,6 +312,22 @@ class PlayerVsBotPage extends BasePage {
         this.#infoOutcomeLabel.innerText = label;
     }
 
+    #updateDurationLabel() {
+        const status = this.#controller.gameStatus();
+        const shouldShow = isStatusFinished(status)
+            && status !== GameEventType.CANCELED
+            && status !== GameEventType.AUTO_CANCELED
+            && this.#createdMillis != null
+            && this.#gameEndedAtMillis != null;
+        if (shouldShow) {
+            this.#infoDurationLabel.innerText =
+                formatDurationShorthand(this.#gameEndedAtMillis - this.#createdMillis);
+            this.#infoDurationRow.style.display = '';
+        } else {
+            this.#infoDurationRow.style.display = 'none';
+        }
+    }
+
     #updateButtonsEnabled() {
         if (isStatusFinished(this.#controller.gameStatus())) {
             this.#analyzeButtons.forEach((button) => {
@@ -331,7 +370,9 @@ class PlayerVsBotPage extends BasePage {
                 (newStatus, outcome) => {
                     this.#controller.updateStatus(newStatus);
                     this.#controller.updateOutcome(outcome);
+                    this.#gameEndedAtMillis = Date.now();
                     this.#updateOutcomeLabel();
+                    this.#updateDurationLabel();
                 }
             );
         }
