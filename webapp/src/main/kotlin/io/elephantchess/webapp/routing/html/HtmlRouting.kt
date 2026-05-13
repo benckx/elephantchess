@@ -5,10 +5,10 @@ import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
+import io.elephantchess.webapp.rendering.FaqPageRenderer
 import io.elephantchess.webapp.rendering.ModalRenderer
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.elephantchess.webapp.rendering.UserProfilePageRenderer
-import io.elephantchess.webapp.rendering.faqTocTagResolver
 import io.elephantchess.webapp.rendering.latestSupporterTagResolver
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -39,7 +39,6 @@ private val publicPageMapping = mapOf(
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
     "/about/changelog" to "about/changelog",
-    "/about/faq" to "about/faq",
     "/contact" to "contact_form",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
     "/7k/playground" to "seven_kingdoms/seven_kingdoms_playground",
@@ -99,6 +98,7 @@ fun Application.htmlRoutingModule() {
         userProfile()
         modals()
         databasePages()
+        faqPage()
     }
 }
 
@@ -106,12 +106,7 @@ private fun Routing.simpleMappings() {
     publicPageMapping.forEach { (path, templateName) ->
         logger.info { "[public] mapping html file $templateName to path $path" }
         get(path) {
-            val resolvers = if (templateName == "about/faq") {
-                listOf(faqTocTagResolver())
-            } else {
-                emptyList()
-            }
-            call.respond(simplePageRenderer.renderTemplateHtml(templateName, resolvers))
+            call.respond(simplePageRenderer.renderTemplateHtml(templateName))
         }
     }
     publicPageRedirection.forEach { (fromPath, toPath) ->
@@ -173,6 +168,14 @@ private fun Route.userProfile() {
 
         val userProfileResponse = userService.fetchProfile(username)
         call.respondHtml(renderer.renderUserProfile(userProfileResponse))
+    }
+}
+
+private fun Route.faqPage() {
+    val renderer by koin<FaqPageRenderer>()
+
+    get("/about/faq") {
+        call.respondHtml(renderer.renderFaqPage())
     }
 }
 

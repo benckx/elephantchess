@@ -1,11 +1,14 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.webapp.rendering.FaqPageRenderer.Companion.extractFaqTocEntries
+import io.elephantchess.webapp.rendering.FaqPageRenderer.Companion.faqTocTagResolver
+import io.elephantchess.webapp.rendering.FaqPageRenderer.Companion.renderFaqToc
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class FaqTocTagResolverTest {
+class FaqPageRendererTest {
 
     @Test
     fun `extracts h1 entries with id`() {
