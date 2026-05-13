@@ -18,6 +18,10 @@ class UserProfilePictureService(
 
     private val profile = requireValidProfileSegment(appConfig.profile)
 
+    private fun profilePictureKey(userId: String, extension: String): String {
+        return "$profile/$PROFILE_PICTURE_FOLDER/$userId.$extension"
+    }
+
     /**
      * Validate and normalize a profile picture upload, store it on the CDN-backed object storage,
      * persist the chosen file extension for the user, and return the public CDN URL.
@@ -36,7 +40,7 @@ class UserProfilePictureService(
             throw NotAcceptableException("Profile picture limited to ${PROFILE_PICTURE_MAX_BYTES / 1024}KB")
         }
 
-        val key = profilePictureKey(profile, userId, extension)
+        val key = profilePictureKey(userId, extension)
         val uploaded = spacesClient.uploadBytes(
             bytes = normalizedBytes,
             key = key,
@@ -125,7 +129,7 @@ class UserProfilePictureService(
         const val PROFILE_PICTURE_SIZE_PX = 100
         const val PROFILE_PICTURE_MAX_BYTES = 500 * 1024
         private const val CDN_BASE = "https://cdn.elephantchess.io"
-        private val VALID_PROFILE_SEGMENT_REGEX = Regex("[A-Za-z0-9-]+")
+        private val VALID_PROFILE_SEGMENT_REGEX = Regex("^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$")
         private val SUPPORTED_EXTENSIONS = setOf("png", "jpg", "jpeg")
 
         private fun requireValidProfileSegment(profile: String): String {
@@ -142,7 +146,8 @@ class UserProfilePictureService(
 
         fun profilePictureUrl(profile: String, userId: String, extension: String?): String? {
             val sanitizedExtension = extension?.lowercase()?.takeIf { it in SUPPORTED_EXTENSIONS } ?: return null
-            return "$CDN_BASE/${profilePictureKey(profile, userId, sanitizedExtension)}"
+            val sanitizedProfile = requireValidProfileSegment(profile)
+            return "$CDN_BASE/$sanitizedProfile/$PROFILE_PICTURE_FOLDER/$userId.$sanitizedExtension"
         }
     }
 }
