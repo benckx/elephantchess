@@ -9,6 +9,8 @@ import java.util.UUID
 
 object CreateVietnameseTestUsers : KoinScriptInit() {
 
+    private const val LOCALHOST_BASE_URL = "http://localhost:8080"
+
     private val userService by inject<UserService>()
     private val userDaoService by inject<UserDaoService>()
 
@@ -35,13 +37,12 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
                     if (either.isRight()) {
                         println("Created user ${user.username}")
                     } else {
-                        val errors = either.left().errors.joinToString("; ")
-                        println("ERROR: Failed to create user ${user.username}: $errors")
+                        println("ERROR: Failed to create user ${user.username}: ${either.left()}")
                     }
                 } else {
                     println("User ${user.username} already exists")
                 }
-                println("http://localhost:8080/@/${user.username}")
+                println("$LOCALHOST_BASE_URL/@/${user.username}")
             }
         }
     }
