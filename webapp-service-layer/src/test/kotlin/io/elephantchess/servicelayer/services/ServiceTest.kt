@@ -56,7 +56,8 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
 
     suspend fun signUpTestUser(i: Int = RandomUtils.nextInt(1_000, 1_000_000)): Pair<SignUpRequest, String> {
         val password = randomAlphanumeric(10)
-        val request = SignUpRequest("test$i", "test$i@gmail.com", password)
+        val uniqueSuffix = "$i-${randomAlphanumeric(6)}"
+        val request = SignUpRequest("test$uniqueSuffix", "test$uniqueSuffix@gmail.com", password)
         val either = userService.signUp(request)
         return request to either.right().userId
     }
