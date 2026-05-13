@@ -1321,7 +1321,8 @@ table.info-box-sub-table td.values {
 }
 
 #settings-info-box img#flip-board-button,
-#settings-info-box img#show-coordinates-button {
+#settings-info-box img#show-coordinates-button,
+#settings-info-box img#play-sounds-button {
     width: 24px;
 }
 

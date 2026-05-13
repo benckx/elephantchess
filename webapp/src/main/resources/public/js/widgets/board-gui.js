@@ -153,6 +153,7 @@ const PieceStyleSetting = Object.freeze({
  * @property {boolean}     [mini]                   - whether this is a mini (thumb) board
  * @property {boolean}     [forceRenderChecks]      - render checks even on mini boards
  * @property {boolean}     [svg]                    - enable the SVG overlay (used for engine arrows)
+ * @property {boolean}     [playSounds]             - whether board sounds are enabled
  * @property {string}      [assetsBaseUrl]          - base URL prepended to every static asset path
  *                                                    (images, audio). Default: `https://elephantchess.io`.
  *                                                    Pass an empty string to use relative paths (e.g. when
@@ -169,6 +170,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     mini: false,
     forceRenderChecks: false,
     svg: false,
+    playSounds: true,
     assetsBaseUrl: 'https://cdn.elephantchess.io/static',
     pieceStyle: PieceStyleSetting.DEFAULT,
 });
@@ -391,11 +393,13 @@ class BoardGui {
             }
             this.updateHighlightedChecks();
             this.#resetDraggableCursors();
-            this.#clickSound
-                .play()
-                .catch(e => {
-                    // ignored, spam error in console in dev
-                });
+            if (this.#options.playSounds) {
+                this.#clickSound
+                    .play()
+                    .catch(e => {
+                        // ignored, spam error in console in dev
+                    });
+            }
             if (afterMoveCallback != null) {
                 afterMoveCallback()
             }
@@ -1478,6 +1482,13 @@ class BoardGui {
         }
         this.#options = Object.freeze({...this.#options, pieceStyle});
         this.reRenderPieces();
+    }
+
+    /**
+     * @param playSounds {boolean}
+     */
+    updatePlaySounds(playSounds) {
+        this.#options = Object.freeze({...this.#options, playSounds});
     }
 
     /**

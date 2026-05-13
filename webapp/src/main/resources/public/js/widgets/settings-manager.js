@@ -20,6 +20,7 @@
 const PIECE_STYLE_SETTING = 'setting.piece.style';
 const SHOW_COORDINATES_SETTING = 'setting.show.coordinates';
 const MOVE_FORMAT_SETTING = 'setting.move.format';
+const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const MOVE_NODE_EVAL_FORMAT = 'setting.move.node.eval.format';
 const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
 
@@ -78,6 +79,25 @@ class SettingsManager {
      */
     set isShowCoordinatesEnabled(value) {
         setCookie(SHOW_COORDINATES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isPlaySoundsEnabled() {
+        const cookieValue = getCookie(PLAY_SOUNDS_SETTING);
+        if (cookieValue === null) {
+            return true;
+        } else {
+            return cookieValue === "true";
+        }
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isPlaySoundsEnabled(value) {
+        setCookie(PLAY_SOUNDS_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
     }
 
     /**
@@ -172,6 +192,7 @@ function buildWebappBoardGuiOptions(overrides = {}) {
     // const isLocalHost = false;
     return {
         coordinatesOrientation: settingsManager.getCoordinatesOrientation(),
+        playSounds: settingsManager.isPlaySoundsEnabled,
         pieceStyle: settingsManager.pieceStyle,
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
@@ -284,6 +305,7 @@ class SettingsGui {
     #selectPieceStyleRomanizedRounded = document.getElementById('select-piece-style-romanized-rounded');
     #moveFormat = document.getElementById('move-format-button');
     #showCoordinates = document.getElementById('show-coordinates-button');
+    #playSounds = document.getElementById('play-sounds-button');
     #flipBoard = document.getElementById('flip-board-button');
 
     // optional
@@ -338,6 +360,14 @@ class SettingsGui {
             this.#settingsManager.isShowCoordinatesEnabled = boardGui.toggleShowCoordinates();
         }
         addToolTip(this.#showCoordinates, 'Show or hide board coordinates');
+
+        // play sounds
+        this.#playSounds.onclick = () => {
+            this.#settingsManager.isPlaySoundsEnabled = !this.#settingsManager.isPlaySoundsEnabled;
+            const playSoundsEnabled = this.#settingsManager.isPlaySoundsEnabled;
+            this.#boardGuis.forEach(boardGui => boardGui.updatePlaySounds(playSoundsEnabled));
+        }
+        addToolTip(this.#playSounds, 'Enable or disable board sounds');
 
         // flip board
         this.#flipBoard.onclick = () => {

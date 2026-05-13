@@ -511,6 +511,7 @@
 
     #settings-info-box img#flip-board-button,
     #settings-info-box img#show-coordinates-button,
+    #settings-info-box img#play-sounds-button,
     #settings-info-box img#show-analytics-arrows {
         width: 55px;
     }
