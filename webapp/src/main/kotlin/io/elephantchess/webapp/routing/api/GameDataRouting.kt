@@ -47,7 +47,7 @@ fun Route.gameDataRoutes() {
         }
         get("/list-latest-pvb-games") {
             paginationParams { limit, continuation, distinctByUsers ->
-                val excludeAutoResigned = call.parameters["excludeAutoResigned"]?.toBoolean() == true
+                val excludeAutoResigned = (call.parameters["excludeAutoResigned"] ?: "false").toBoolean()
                 gameDataService.listLastPvbGames(
                     requestedLimit = limit,
                     distinctByUsers = distinctByUsers,
