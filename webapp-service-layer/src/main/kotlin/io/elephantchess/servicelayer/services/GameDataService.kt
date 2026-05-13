@@ -533,7 +533,7 @@ class GameDataService(
         requestedLimit: Int,
         distinctByUsers: Boolean = true,
         beforeTs: Long? = null,
-        excludeAutoResigned: Boolean = false
+        excludeAutoResigned: Boolean
     ): ListLastGamesResponse {
         val actualLimit = if (distinctByUsers) requestedLimit * 20 else requestedLimit
         val gameRecords = pvbGameDaoService
