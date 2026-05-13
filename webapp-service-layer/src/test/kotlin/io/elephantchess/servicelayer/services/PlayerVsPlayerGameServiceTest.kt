@@ -14,6 +14,7 @@ import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
+import io.elephantchess.servicelayer.dto.ws.PlayerVsPlayerInput
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.xiangqi.Color
@@ -458,6 +459,25 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
         logger.info { "expected exception $e" }
         assertEquals("Move 'g4e4' is illegal", e.message)
+    }
+
+    @Test
+    fun `admin can chat in joined pvp game without playing it`() = runTest {
+        val gameId = createAndJoinGame(RED)
+        val adminUserId = UserId(AUTHENTICATED, signUpTestUser().second)
+
+        dslContext
+            .update(USER)
+            .set(USER.HAS_ROLE_ADMIN, true)
+            .where(USER.ID.eq(adminUserId.id))
+            .awaitExecute()
+
+        pvpGameService.handlePlayerVsPlayerInput(adminUserId, gameId, PlayerVsPlayerInput("hello from admin"))
+
+        val messages = pvpGameService.fetchChatHistory(gameId).messages
+        assertEquals(1, messages.size)
+        assertEquals(adminUserId.id, messages.single().author.userId)
+        assertEquals("hello from admin", messages.single().content)
     }
 
     /**

@@ -431,7 +431,10 @@ class PlayerVsPlayerGameService(
 
     suspend fun handlePlayerVsPlayerInput(userId: UserId, gameId: String, input: PlayerVsPlayerInput) {
         val gamePlayersStatus = fetchPlayersAndStatus(gameId)
-        val isAllowedToChat = gamePlayersStatus.status == CREATED || gamePlayersStatus.isPlaying(userId.id)
+        val isAllowedToChat =
+            gamePlayersStatus.status == CREATED ||
+                    gamePlayersStatus.isPlaying(userId.id) ||
+                    userCache.get(userId.id)?.roles?.contains(UserRole.ADMIN) == true
 
         if (isAllowedToChat) {
             chatMessageDaoService.insertChat(
