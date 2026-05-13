@@ -91,6 +91,12 @@ class PlayerVsPlayerGameService(
     private suspend fun refreshGamesToPlaySessions() {
         val onlineUserIds = userService.onlineUserIds()
 
+        // dynamic matching: pair together pending games whose inviters
+        // are now both online but did not match when the games were created
+        if (onlineUserIds.size >= 2) {
+            findDynamicMatches(onlineUserIds)
+        }
+
         // refresh games to play sessions
         if (gamesToPlaySessions.isNotEmpty() && onlineUserIds.isNotEmpty()) {
             val allGamesToJoin = fetchAllGamesOpenToJoin(onlineUserIds)
@@ -330,6 +336,66 @@ class PlayerVsPlayerGameService(
             )
             .filter { gameRecord -> isOnline(gameRecord.inviter) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
+    }
+
+    /**
+     * Pair together pending games whose inviters are now both online but did
+     * not match when the games were created (e.g. because they were not online
+     * at the same time). For each pair, the newer game's inviter joins the
+     * older game and the newer game is auto-cancelled.
+     */
+    internal suspend fun findDynamicMatches(onlineUserIds: Set<String>) {
+        val candidates = pvpGameDaoService
+            .listGamesOpenToJoin()
+            .filter { game -> onlineUserIds.contains(game.inviter) }
+            .sortedBy { game -> game.created }
+
+        if (candidates.size < 2) return
+
+        val matched = mutableSetOf<String>()
+
+        // iterate newest first so the inviter who has been waiting the longest
+        // keeps their game (the newer inviter joins the older game)
+        for (joinerGame in candidates.reversed()) {
+            if (joinerGame.id in matched) continue
+            val joinerId = joinerGame.inviter
+            val joinerUserType = userCache.fetchUserType(joinerId) ?: continue
+
+            val timeControlCategory = TimeControlCategory.fromSeconds(joinerGame.timeControlBase)
+            val joinerRating = getUserRating(joinerId, timeControlCategory)
+
+            val joinerRequest = CreateGameRequest(
+                inviterColor = joinerGame.inviterColor,
+                isRated = joinerGame.isRated,
+                timeControlBase = joinerGame.timeControlBase,
+                timeControlIncrement = joinerGame.timeControlIncrement,
+                timeControlMode = joinerGame.timeControlMode,
+                allowGuests = joinerGame.allowGuestsToJoin,
+                alwaysVisibleInLobby = joinerGame.alwaysVisibleInLobby,
+                // candidates are guaranteed non-private by listGamesOpenToJoin,
+                // and listCompatibleGames also filters out private games
+                privateInvite = false,
+            )
+
+            val joinerUserId = UserId(joinerUserType, joinerId)
+            val matchGame = findMatchingGame(joinerUserId, joinerRating, joinerRequest)
+                ?.takeIf { it.id !in matched }
+                ?: continue
+
+            try {
+                joinGame(joinerUserId, JoinGameRequest(matchGame.id, GameJoinSource.MATCHED, null))
+                autoCancelGame(joinerGame.id)
+                matched += joinerGame.id
+                matched += matchGame.id
+                logger.debug {
+                    "dynamic matching: user $joinerId's game ${joinerGame.id} matched with ${matchGame.id}"
+                }
+            } catch (e: Exception) {
+                logger.warn(e) {
+                    "dynamic matching failed for ${joinerGame.id} -> ${matchGame.id}"
+                }
+            }
+        }
     }
 
     /**
