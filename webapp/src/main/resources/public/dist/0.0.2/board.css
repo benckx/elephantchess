@@ -412,11 +412,3 @@ a.board-outer-container-link-mask {
         width: 552px;
     }
 }
-
-/* Touch drag ghost: the floating piece image that follows the finger */
-.touch-drag-ghost {
-    border-radius: 100%;
-    box-shadow: rgba(0, 0, 0, 0.4) 0px 4px 10px;
-    user-select: none;
-    -webkit-user-select: none;
-}
