@@ -84,6 +84,7 @@ class ChatBoxWidget {
     #messagesContainer = document.getElementById('chat-box-messages-container');
     #input = document.getElementById('chat-box-input');
     #sendButton = document.getElementById('chat-box-send-message-button');
+    #typingIndicator = document.getElementById('chat-box-typing-indicator');
 
     /**
      * userId to color
@@ -100,6 +101,11 @@ class ChatBoxWidget {
      * @type {function()[]}
      */
     #inputLosesFocusListeners = [];
+
+    /**
+     * @type {function()[]}
+     */
+    #inputTypingListeners = [];
 
     /**
      * @param sendMessageCb {function(string): void}
@@ -124,6 +130,10 @@ class ChatBoxWidget {
 
         this.#input.addEventListener('blur', () => {
             this.#inputLosesFocusListeners.forEach((listener) => listener());
+        });
+
+        this.#input.addEventListener('input', () => {
+            this.#inputTypingListeners.forEach((listener) => listener());
         });
 
         // update relative time of messages every 5 seconds
@@ -177,6 +187,26 @@ class ChatBoxWidget {
      */
     addInputLosesFocusListener(listener) {
         this.#inputLosesFocusListeners.push(listener);
+    }
+
+    /**
+     * @param listener {function()}
+     */
+    addInputTypingListener(listener) {
+        this.#inputTypingListeners.push(listener);
+    }
+
+    /**
+     * @param username {string}
+     */
+    showOpponentTyping(username) {
+        this.#typingIndicator.innerText = `${username} is typing…`;
+        this.#typingIndicator.style.display = 'block';
+    }
+
+    hideOpponentTyping() {
+        this.#typingIndicator.style.display = 'none';
+        this.#typingIndicator.innerText = '';
     }
 
     /**

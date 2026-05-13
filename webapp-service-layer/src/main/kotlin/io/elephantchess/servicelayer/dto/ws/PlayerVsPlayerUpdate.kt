@@ -14,6 +14,7 @@ data class PlayerVsPlayerUpdate(
     val ratingUpdate: RatingUpdate? = null,
     val timeRemaining: TimeRemaining? = null,
     val chatMessages: List<ChatMessage> = emptyList(),
+    val opponentIsTyping: Boolean = false,
 )
 
 data class HasJoined(

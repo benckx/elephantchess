@@ -418,6 +418,7 @@ class PlayerVsPlayerGameService(
         val session =
             PlayerVsPlayerWebSocketSession(
                 gameId = gameId,
+                userId = userId,
                 status = gameState.gameEventType,
                 moveIndex = gameState.index,
                 chatIndex = chatMessageDaoService.currentIndex(gameId),
@@ -430,17 +431,25 @@ class PlayerVsPlayerGameService(
     }
 
     suspend fun handlePlayerVsPlayerInput(userId: UserId, gameId: String, input: PlayerVsPlayerInput) {
-        val gamePlayersStatus = fetchPlayersAndStatus(gameId)
-        val isAllowedToChat = gamePlayersStatus.status == CREATED || gamePlayersStatus.isPlaying(userId.id)
+        if (input.isTyping) {
+            playerVsPlayerSessions
+                .filter { it.gameId == gameId && it.userId.id != userId.id }
+                .forEach { session ->
+                    session.update(PlayerVsPlayerUpdate(opponentIsTyping = true))
+                }
+        } else if (input.message != null) {
+            val gamePlayersStatus = fetchPlayersAndStatus(gameId)
+            val isAllowedToChat = gamePlayersStatus.status == CREATED || gamePlayersStatus.isPlaying(userId.id)
 
-        if (isAllowedToChat) {
-            chatMessageDaoService.insertChat(
-                gameId = gameId,
-                userId = userId.id,
-                content = input.message.trim().take(MESSAGE_LENGTH_LIMIT)
-            )
-        } else {
-            logger.warn { "user $userId is not allowed to send message in game $gameId" }
+            if (isAllowedToChat) {
+                chatMessageDaoService.insertChat(
+                    gameId = gameId,
+                    userId = userId.id,
+                    content = input.message.trim().take(MESSAGE_LENGTH_LIMIT)
+                )
+            } else {
+                logger.warn { "user $userId is not allowed to send message in game $gameId" }
+            }
         }
     }
 

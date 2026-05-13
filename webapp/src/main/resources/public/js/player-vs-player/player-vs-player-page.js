@@ -80,6 +80,8 @@ class PlayGamePage extends BasePage {
 
     #hasRenderedJoinModal = false;
 
+    #opponentTypingTimeoutId = null;
+
     /**
      * @type {string|null}
      */
@@ -201,6 +203,9 @@ class PlayGamePage extends BasePage {
                 },
                 (chatMessages, acks) => {
                     this.#handleChatMessages(chatMessages, acks);
+                },
+                () => {
+                    this.#handleOpponentTyping();
                 }
             );
 
@@ -283,6 +288,12 @@ class PlayGamePage extends BasePage {
 
         this.#chatBoxWidget.addInputLosesFocusListener(() => {
             this.#moveTreeWidget.enableKeyboardNavigation();
+        });
+
+        this.#chatBoxWidget.addInputTypingListener(() => {
+            if (this.#gameController != null) {
+                this.#gameController.sendTypingEvent();
+            }
         });
     }
 
@@ -815,6 +826,22 @@ class PlayGamePage extends BasePage {
 
             this.#chatBoxWidget.addMessage(chatMessage);
         }
+    }
+
+    #handleOpponentTyping() {
+        const gameDto = this.#gameController.gameDto;
+        const opponentUsername =
+            gameDto.userStatus === UserStatus.INVITER
+                ? gameDto.inviteeUsername
+                : gameDto.inviterUsername;
+
+        const displayName = opponentUsername ?? 'Opponent';
+        this.#chatBoxWidget.showOpponentTyping(displayName);
+
+        clearTimeout(this.#opponentTypingTimeoutId);
+        this.#opponentTypingTimeoutId = setTimeout(() => {
+            this.#chatBoxWidget.hideOpponentTyping();
+        }, 3_000);
     }
 
 }
