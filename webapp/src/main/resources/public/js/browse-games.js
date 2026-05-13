@@ -132,6 +132,15 @@ class BrowseGamesPage extends InfiniteScrollPage {
                 this.#renderedCount++;
             }
         });
+
+        // If this batch returned fewer entries than the requested limit, there
+        // are no more entries to come. Remove any pre-rendered placeholder
+        // thumbs that were never filled so they don't show as empty boards.
+        if (entries.length < INIT_ELEMENTS_COUNT) {
+            for (let i = this.#renderedCount; i < this.#initThumbDivs.length; i++) {
+                this.#initThumbDivs[i].remove();
+            }
+        }
     }
 
     /**
