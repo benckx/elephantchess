@@ -34,12 +34,12 @@ class UserProfilePageRendererTest {
                 country = "BE",
                 profileDescription = "hello",
                 puzzleRating = 1200,
-                profilePictureUrl = "https://cdn.elephantchess.io/local/profile-pictures/user-1.png",
+                profilePictureUrl = "https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png",
             )
         )
 
         assertTrue(html.contains("""id="profile-picture""""))
-        assertTrue(html.contains("""src="https://cdn.elephantchess.io/local/profile-pictures/user-1.png""""))
+        assertTrue(html.contains("""src="https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png""""))
     }
 
     @Test
