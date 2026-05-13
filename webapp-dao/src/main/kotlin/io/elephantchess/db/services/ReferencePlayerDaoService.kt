@@ -3,6 +3,7 @@ package io.elephantchess.db.services
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.ReferencePlayerDao
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayer
+import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerDuplicate
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEdit
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEditSource
 import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameRecord
@@ -160,6 +161,47 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
                     .or(lower(REFERENCE_PLAYER.SOURCE_NAME).`in`(lowerNames))
             )
             .and(REFERENCE_PLAYER.ID.ne(excludedPlayerId))
+            .awaitMappedRecords()
+    }
+
+    suspend fun savePlayerDuplicate(playerId: String, isNewDuplicateOf: String) {
+        dslContext
+            .insertInto(REFERENCE_PLAYER_DUPLICATE)
+            .set(REFERENCE_PLAYER_DUPLICATE.PLAYER_ID, playerId)
+            .set(REFERENCE_PLAYER_DUPLICATE.IS_DUPLICATE_OF, isNewDuplicateOf)
+            .onConflict(REFERENCE_PLAYER_DUPLICATE.PLAYER_ID)
+            .doUpdate()
+            .set(REFERENCE_PLAYER_DUPLICATE.IS_DUPLICATE_OF, isNewDuplicateOf)
+            .awaitExecute()
+    }
+
+    suspend fun findConfirmedDuplicatesOf(canonicalPlayerId: String): List<ReferencePlayerDuplicate> {
+        return dslContext
+            .select(REFERENCE_PLAYER_DUPLICATE)
+            .from(REFERENCE_PLAYER_DUPLICATE)
+            .where(REFERENCE_PLAYER_DUPLICATE.IS_DUPLICATE_OF.eq(canonicalPlayerId))
+            .awaitMappedRecords()
+    }
+
+    suspend fun findCanonicalPlayerFor(duplicatePlayerId: String): String? {
+        return dslContext
+            .select(REFERENCE_PLAYER_DUPLICATE.IS_DUPLICATE_OF)
+            .from(REFERENCE_PLAYER_DUPLICATE)
+            .where(REFERENCE_PLAYER_DUPLICATE.PLAYER_ID.eq(duplicatePlayerId))
+            .awaitSingleValue()
+    }
+
+    suspend fun deletePlayerDuplicate(playerId: String) {
+        dslContext
+            .deleteFrom(REFERENCE_PLAYER_DUPLICATE)
+            .where(REFERENCE_PLAYER_DUPLICATE.PLAYER_ID.eq(playerId))
+            .awaitExecute()
+    }
+
+    suspend fun listAllPlayerDuplicates(): List<ReferencePlayerDuplicate> {
+        return dslContext
+            .select(REFERENCE_PLAYER_DUPLICATE)
+            .from(REFERENCE_PLAYER_DUPLICATE)
             .awaitMappedRecords()
     }
 

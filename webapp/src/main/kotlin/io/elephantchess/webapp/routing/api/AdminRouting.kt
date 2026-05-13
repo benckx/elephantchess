@@ -1,6 +1,8 @@
 package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.dto.admin.CreateUpcomingEventRequest
+import io.elephantchess.servicelayer.dto.admin.DeletePlayerDuplicateRequest
+import io.elephantchess.servicelayer.dto.admin.RegisterPlayerDuplicateRequest
 import io.elephantchess.servicelayer.dto.admin.ToggleUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.UpdateUpcomingEventRequest
 import io.elephantchess.servicelayer.services.admin.*
@@ -25,6 +27,7 @@ fun Route.adminConsoleRoutes() {
         adminExceptionRoutes()
         adminNewsletterRoutes()
         adminUpcomingEventsRoutes()
+        adminPlayerDuplicatesRoutes()
     }
 }
 
@@ -252,6 +255,26 @@ private fun Route.adminUpcomingEventsRoutes() {
         requireAdminRole {
             val request = call.receive<ToggleUpcomingEventRequest>()
             adminUpcomingEventsService.toggleEnabled(request)
+        }
+    }
+}
+
+private fun Route.adminPlayerDuplicatesRoutes() {
+    val adminDatabaseService by koin<AdminDatabaseService>()
+
+    get("/player-duplicates") {
+        requireAdminRole { adminDatabaseService.listPlayerDuplicates() }
+    }
+    post("/player-duplicates") {
+        requireAdminRole {
+            val request = call.receive<RegisterPlayerDuplicateRequest>()
+            adminDatabaseService.registerPlayerDuplicate(request.playerId, request.isNewDuplicateOf)
+        }
+    }
+    delete("/player-duplicates") {
+        requireAdminRole {
+            val request = call.receive<DeletePlayerDuplicateRequest>()
+            adminDatabaseService.deletePlayerDuplicate(request.playerId)
         }
     }
 }
