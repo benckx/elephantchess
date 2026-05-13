@@ -18,14 +18,17 @@
  */
 
 class UserGamesBrowsePage extends BrowseGamesPage {
-    #username;
 
     /**
      * @param username {string}
      */
     constructor(username) {
         super('pvp');
-        this.#username = username;
+        // Use a regular property (not a private field) so it is set before any
+        // base-class call to additionalParameters() that happens during super().
+        // Note: super() runs before subclass field initializers, so private
+        // fields declared on the subclass are not yet available there.
+        this.username = username;
     }
 
     baseUrl() {
@@ -34,7 +37,7 @@ class UserGamesBrowsePage extends BrowseGamesPage {
 
     additionalParameters() {
         const params = super.additionalParameters();
-        params.set('username', this.#username);
+        params.set('username', this.username ?? document.body.dataset.username);
         return params;
     }
 }
