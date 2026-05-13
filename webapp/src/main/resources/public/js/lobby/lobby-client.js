@@ -69,7 +69,7 @@ class LobbyClient {
 
     /**
      * @param gameIds {Array<GameId>}
-     * @param cb {function(Array<{gameId: GameId, status: string, fen: string, lastUpdated: number}>)}
+     * @param cb {function(Array<{gameId: GameId, status: string, fen: string, lastUpdated: number, outcome: string|null, isRedOnline: boolean, isBlackOnline: boolean}>)}
      */
     fetchLatestGamesUpdate(gameIds, cb) {
         const body = {
@@ -84,6 +84,9 @@ class LobbyClient {
                     status: entry.status,
                     fen: entry.fen,
                     lastUpdated: Number(entry.lastUpdated),
+                    outcome: entry.outcome ?? null,
+                    isRedOnline: entry.isRedOnline === true,
+                    isBlackOnline: entry.isBlackOnline === true,
                 });
             }
             cb(items);

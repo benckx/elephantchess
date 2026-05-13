@@ -357,7 +357,11 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     GAME.ID,
                     GAME.GAME_STATUS,
                     GAME.CURRENT_FEN,
-                    GAME.LAST_UPDATED
+                    GAME.LAST_UPDATED,
+                    GAME.OUTCOME,
+                    GAME.INVITER,
+                    GAME.INVITEE,
+                    GAME.INVITER_COLOR,
                 )
                 .from(GAME)
                 .where(GAME.ID.`in`(gameIds))
