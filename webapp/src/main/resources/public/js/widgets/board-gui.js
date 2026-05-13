@@ -1238,7 +1238,7 @@ class BoardGui {
         let img = document.createElement('img');
         img.id = this.#positionToElementId('image', position);
         img.className = 'piece-image';
-        if (pieceChar === pieceChar.toLowerCase()) {
+        if (pieceChar >= 'a' && pieceChar <= 'z') {
             img.classList.add('piece-image-black');
         }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
