@@ -146,7 +146,6 @@ class TimeCategoryPlayerVsPlayerStatsDto {
     #blitz;
     #rapid;
     #classical;
-    #severalDays;
     #correspondence;
 
     constructor(json) {
@@ -154,7 +153,6 @@ class TimeCategoryPlayerVsPlayerStatsDto {
         this.#blitz = new PlayerVsPlayerStatsDto(json.blitz);
         this.#rapid = new PlayerVsPlayerStatsDto(json.rapid);
         this.#classical = new PlayerVsPlayerStatsDto(json.classical);
-        this.#severalDays = new PlayerVsPlayerStatsDto(json.severalDays);
         this.#correspondence = new PlayerVsPlayerStatsDto(json.correspondence);
     }
 
@@ -184,13 +182,6 @@ class TimeCategoryPlayerVsPlayerStatsDto {
      */
     get classical() {
         return this.#classical;
-    }
-
-    /**
-     * @returns {PlayerVsPlayerStatsDto}
-     */
-    get severalDays() {
-        return this.#severalDays;
     }
 
     /**
