@@ -53,6 +53,7 @@ class GameDataService(
     private val referencePlayerDaoService: ReferencePlayerDaoService,
     private val referenceEventDaoService: ReferenceEventDaoService,
     private val userDaoService: UserDaoService,
+    private val userService: UserService,
     private val userCache: UserCache,
     private val logger: KLogger,
 ) {
@@ -542,8 +543,7 @@ class GameDataService(
         )
 
         val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
-        val lastOnlineByUserId = userDaoService.fetchLastOnline(userIds)
-        val isOnlineLimit = Clock.System.now().minusSeconds(15L)
+        val onlineUserIds = userService.areOnline(userIds).onlineUserIds
 
         return games
             .map { gameRecord ->
@@ -556,12 +556,12 @@ class GameDataService(
                     redPlayerName = fetchUserName(redUserId),
                     redPlayerRating = gameRecord.redPlayerRating(),
                     redUserType = userCache.fetchUserType(redUserId),
-                    isRedOnline = lastOnlineByUserId[redUserId]?.isAfter(isOnlineLimit) == true,
+                    isRedOnline = onlineUserIds.contains(redUserId),
                     blackPlayerId = blackUserId,
                     blackPlayerName = fetchUserName(blackUserId),
                     blackPlayerRating = gameRecord.blackPlayerRating(),
                     blackUserType = userCache.fetchUserType(blackUserId),
-                    isBlackOnline = lastOnlineByUserId[blackUserId]?.isAfter(isOnlineLimit) == true,
+                    isBlackOnline = onlineUserIds.contains(blackUserId),
                     userColor = null,
                     finalFen = gameRecord.currentFen,
                     status = gameRecord.gameStatus,
