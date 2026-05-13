@@ -24,7 +24,7 @@ tr#outcome-row {
 }
 
 #game-info-info-box {
-    height: 200px;
+    height: 140px;
     display: flex;
 }
 
@@ -212,7 +212,7 @@ tr#outcome-row {
     }
 
     #game-info-info-box {
-        height: 420px;
+        height: 280px;
     }
 
     #perpetual-checking-tracker-info-box {
