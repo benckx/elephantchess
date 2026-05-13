@@ -5,7 +5,6 @@ import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.UserProfile
 import io.elephantchess.utils.cropToFirstNWords
-import io.elephantchess.webapp.routing.html.simplePageRenderer
 
 class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
@@ -79,8 +78,8 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
     }
 
     suspend fun renderUserBrowsePvpGames(username: String): String {
-        return simplePageRenderer.renderTemplate(
-            "user_browse_pvp_games",
+        return htmlRenderer.renderHtml(
+            "/templates/user_browse_pvp_games.html",
             specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
         )
     }

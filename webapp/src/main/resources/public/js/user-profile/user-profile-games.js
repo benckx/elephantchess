@@ -89,11 +89,7 @@ class UserProfileGames {
         for (let i = 0; i < this.#thumbs.length; i++) {
             if (i < entries.length) {
                 this.#thumbs[i].render(entries[i], 'user_profile');
-            } else {
-                // hide unused pre-rendered thumb slots
-                this.#thumbDivs[i].style.display = 'none';
             }
         }
     }
 }
-
