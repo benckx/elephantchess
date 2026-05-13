@@ -1,16 +1,11 @@
 package io.elephantchess.webapp.routing.html
 
-import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
-import io.elephantchess.webapp.rendering.FaqPageRenderer
-import io.elephantchess.webapp.rendering.ModalRenderer
-import io.elephantchess.webapp.rendering.SimplePageRenderer
-import io.elephantchess.webapp.rendering.UserProfilePageRenderer
-import io.elephantchess.webapp.rendering.latestSupporterTagResolver
+import io.elephantchess.webapp.rendering.*
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
