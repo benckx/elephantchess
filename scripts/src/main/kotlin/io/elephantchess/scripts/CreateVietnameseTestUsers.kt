@@ -6,7 +6,6 @@ import io.elephantchess.servicelayer.services.UserService
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
 import java.util.UUID
-import kotlin.system.exitProcess
 
 object CreateVietnameseTestUsers : KoinScriptInit() {
 
@@ -36,14 +35,13 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
                     if (either.isRight()) {
                         println("Created user ${user.username}")
                     } else {
-                        println("ERROR: Failed to create user ${user.username}: ${either.left().errors.joinToString("; ")}")
+                        println("ERROR: Failed to create user ${user.username}")
                     }
                 } else {
                     println("User ${user.username} already exists")
                 }
                 println("http://localhost:8080/@/${user.username}")
             }
-            exitProcess(0)
         }
     }
 
