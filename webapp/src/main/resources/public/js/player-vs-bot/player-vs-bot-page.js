@@ -181,11 +181,7 @@ class PlayerVsBotPage extends BasePage {
 
         this.#cancelButton.addEventListener('click', (e) => {
             if (isInfoBoxButtonEnabled(e)) {
-                this.#controller.cancel(() => {
-                    this.#boardGui.disablePlayerMove();
-                    this.#updateOutcomeLabel();
-                    this.#updateButtonsEnabled();
-                });
+                this.#handleClickedCancelButton();
             }
         });
 
@@ -219,6 +215,22 @@ class PlayerVsBotPage extends BasePage {
             });
         };
         let yesButtonText = 'resign';
+        let noCallback = () => UI.hideModal(null);
+        let noButtonText = 'no';
+        UI.showConfirmationModal(span, yesCallback, yesButtonText, noCallback, noButtonText);
+    }
+
+    #handleClickedCancelButton() {
+        let span = document.createElement('span');
+        span.innerText = 'Are you sure you want to cancel this game?';
+        let yesCallback = () => {
+            this.#controller.cancel(() => {
+                this.#boardGui.disablePlayerMove();
+                this.#updateOutcomeLabel();
+                this.#updateButtonsEnabled();
+            });
+        };
+        let yesButtonText = 'yes';
         let noCallback = () => UI.hideModal(null);
         let noButtonText = 'no';
         UI.showConfirmationModal(span, yesCallback, yesButtonText, noCallback, noButtonText);

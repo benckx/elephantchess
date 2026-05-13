@@ -231,9 +231,7 @@ class PlayGamePage extends BasePage {
 
             this.#cancelButton.addEventListener('click', (e) => {
                 if (isInfoBoxButtonEnabled(e)) {
-                    this.#gameController.cancel(() => {
-                        this.#updateBoardMaskMessage();
-                    });
+                    this.#handleCancelButtonClick();
                 }
             });
 
@@ -764,6 +762,17 @@ class PlayGamePage extends BasePage {
         const yesButtonText = 'draw';
         const noCallback = () => UI.hideModal(null);
         const noButtonText = 'cancel';
+        UI.showConfirmationModal(text, yesCallback, yesButtonText, noCallback, noButtonText);
+    }
+
+    #handleCancelButtonClick() {
+        const text = buildSimpleSpan('Are you sure you want to cancel this game?');
+        const yesCallback = () => this.#gameController.cancel(() => {
+            this.#updateBoardMaskMessage();
+        });
+        const yesButtonText = 'yes';
+        const noCallback = () => UI.hideModal(null);
+        const noButtonText = 'no';
         UI.showConfirmationModal(text, yesCallback, yesButtonText, noCallback, noButtonText);
     }
 
