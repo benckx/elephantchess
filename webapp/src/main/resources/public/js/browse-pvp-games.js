@@ -18,14 +18,14 @@
  */
 
 class UserGamesBrowsePage extends BrowseGamesPage {
-    #userId;
+    #username;
 
     /**
-     * @param userId {string}
+     * @param username {string}
      */
-    constructor(userId) {
+    constructor(username) {
         super('pvp');
-        this.#userId = userId;
+        this.#username = username;
     }
 
     baseUrl() {
@@ -34,16 +34,16 @@ class UserGamesBrowsePage extends BrowseGamesPage {
 
     additionalParameters() {
         const params = super.additionalParameters();
-        params.set('userId', this.#userId);
+        params.set('username', this.#username);
         params.set('distinctByUsers', 'false');
         return params;
     }
 }
 
 window.onload = () => {
-    const userId = new URLSearchParams(window.location.search).get('userId');
-    if (userId) {
-        new UserGamesBrowsePage(userId);
+    const username = new URLSearchParams(window.location.search).get('username');
+    if (username) {
+        new UserGamesBrowsePage(username);
     } else {
         new BrowseGamesPage('pvp');
     }

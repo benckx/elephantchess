@@ -507,6 +507,20 @@ class GameDataService(
             }
     }
 
+    suspend fun listLastPvpGamesByUsername(
+        username: String,
+        requestedLimit: Int,
+        beforeTs: Long?
+    ): ListLastGamesResponse {
+        val user = userDaoService.findByUserName(username)
+            ?: throw NotFoundException("User $username could not be found")
+        return listLastPvpGamesByUserId(
+            userId = user.id,
+            requestedLimit = requestedLimit,
+            beforeTs = beforeTs
+        )
+    }
+
     suspend fun listLastPvpGamesByUserId(
         userId: String,
         requestedLimit: Int,

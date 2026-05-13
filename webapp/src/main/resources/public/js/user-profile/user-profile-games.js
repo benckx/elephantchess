@@ -37,7 +37,7 @@ class UserProfileGamesSection extends BrowseGamesPage {
      */
     additionalParameters() {
         const params = new Map();
-        params.set('userId', document.body.dataset.userId);
+        params.set('username', document.body.dataset.username);
         params.set('limit', USER_PROFILE_GAMES_LIMIT.toString());
         params.set('distinctByUsers', 'false');
         return params;
