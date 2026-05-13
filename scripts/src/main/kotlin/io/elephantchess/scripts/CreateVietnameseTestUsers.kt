@@ -36,6 +36,7 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
                     val either = userService.signUp(SignUpRequest(user.username, user.email, randomPassword))
                     if (either.isRight()) {
                         println("Created user ${user.username}")
+                        println("$LOCALHOST_BASE_URL/@/${user.username}")
                     } else {
                         val errorMessage = either.left().errors
                             .ifEmpty { listOf("Unknown validation error") }
@@ -44,8 +45,8 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
                     }
                 } else {
                     println("User ${user.username} already exists")
+                    println("$LOCALHOST_BASE_URL/@/${user.username}")
                 }
-                println("$LOCALHOST_BASE_URL/@/${user.username}")
             }
         }
     }
