@@ -49,6 +49,13 @@
         <button id="btn-style-traditional">Pieces: Traditional</button>
     </div>
 
+    <div class="controls">
+        <button id="btn-format-wxf-dot">Format: WXF .</button>
+        <button id="btn-format-wxf-equals">Format: WXF =</button>
+        <button id="btn-format-pgn">Format: PGN</button>
+        <button id="btn-format-algebraic">Format: Algebraic</button>
+    </div>
+
     <h2>Setup</h2>
     <pre><code class="language-html">{{snippet_setup}}</code></pre>
 
@@ -170,6 +177,18 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
 
         document.getElementById('btn-style-traditional').onclick = () =>
             boardGui.updatePieceStyle('TRADITIONAL');
+
+        document.getElementById('btn-format-wxf-dot').onclick = () =>
+            boardGui.updateMoveFormat('WXF_DOT', CoordinatesOrientation.WXF);
+
+        document.getElementById('btn-format-wxf-equals').onclick = () =>
+            boardGui.updateMoveFormat('WXF_EQUALS', CoordinatesOrientation.WXF);
+
+        document.getElementById('btn-format-pgn').onclick = () =>
+            boardGui.updateMoveFormat('PGN', CoordinatesOrientation.UCI);
+
+        document.getElementById('btn-format-algebraic').onclick = () =>
+            boardGui.updateMoveFormat('ALGEBRAIC_EN', CoordinatesOrientation.UCI);
     });
 </script>
 </body>

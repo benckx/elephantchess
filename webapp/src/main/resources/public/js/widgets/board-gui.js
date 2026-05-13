@@ -1450,10 +1450,18 @@ class BoardGui {
     }
 
     /**
+     * Update the move format and re-render the board so that the coordinate
+     * labels (WXF vs UCI orientation) reflect the new format.
      *
      * @param moveFormat {string}
+     * @param coordinatesOrientation {string|null|undefined} - one of
+     *        {@link CoordinatesOrientation} or `null` to hide the labels.
+     *        When omitted the currently stored orientation is kept.
      */
-    updateMoveFormat(moveFormat) {
+    updateMoveFormat(moveFormat, coordinatesOrientation) {
+        if (coordinatesOrientation !== undefined) {
+            this.#options = Object.freeze({...this.#options, coordinatesOrientation});
+        }
         // easy solution: complete redraw (TODO: can more subtle)
         this.#boardContainer.innerHTML = '';
         this.#drawBoard();
