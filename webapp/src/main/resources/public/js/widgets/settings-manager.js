@@ -245,7 +245,8 @@ class SelectMoveFormatMenu extends ContextualMenu {
      */
     #updateMoveFormat(moveFormat) {
         this.#settingsManager.moveFormat = moveFormat.toString();
-        this.#boardGui.updateMoveFormat(moveFormat);
+        const coordinatesOrientation = this.#settingsManager.getCoordinatesOrientation();
+        this.#boardGui.updateMoveFormat(moveFormat, coordinatesOrientation);
         this.#moveTreeWidget.updateMoveFormat(moveFormat);
         this.#listeners.forEach(listener => listener(moveFormat));
     }

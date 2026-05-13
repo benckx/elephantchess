@@ -1452,12 +1452,17 @@ class BoardGui {
     /**
      *
      * @param moveFormat {string}
+     * @param coordinatesOrientation {string|null} one of {@link CoordinatesOrientation} or `null` to hide labels
      */
-    updateMoveFormat(moveFormat) {
+    updateMoveFormat(moveFormat, coordinatesOrientation) {
+        if (coordinatesOrientation !== undefined) {
+            this.#options = Object.freeze({...this.#options, coordinatesOrientation});
+        }
         // easy solution: complete redraw (TODO: can more subtle)
         this.#boardContainer.innerHTML = '';
         this.#drawBoard();
         this.#drawPieces();
+        this.updateHighlightedChecks();
     }
 
     reRenderPieces() {
