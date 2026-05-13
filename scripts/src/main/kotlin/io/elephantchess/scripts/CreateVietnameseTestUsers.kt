@@ -34,7 +34,7 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
                     val either = userService.signUp(SignUpRequest(user.username, user.email, randomPassword))
                     if (either.isRight()) {
                         println("Created user ${user.username}")
-                    } else if (either.isLeft()) {
+                    } else {
                         val errors = either.left().errors.joinToString("; ")
                         println("ERROR: Failed to create user ${user.username}: $errors")
                     }
