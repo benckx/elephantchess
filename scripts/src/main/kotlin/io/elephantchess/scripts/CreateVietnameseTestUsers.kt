@@ -37,7 +37,10 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
                     if (either.isRight()) {
                         println("Created user ${user.username}")
                     } else {
-                        println("ERROR: Failed to create user ${user.username}: ${either.left()}")
+                        val errorMessage = either.left().errors
+                            .ifEmpty { listOf("Unknown validation error") }
+                            .joinToString("; ")
+                        println("ERROR: Failed to create user ${user.username}: $errorMessage")
                     }
                 } else {
                     println("User ${user.username} already exists")
