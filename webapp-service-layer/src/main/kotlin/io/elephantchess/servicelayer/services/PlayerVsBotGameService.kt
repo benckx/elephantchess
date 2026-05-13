@@ -170,6 +170,7 @@ class PlayerVsBotGameService(
         gameRecord.currentHalfMoveIndex = 0
         gameRecord.created = now
         gameRecord.lastUpdated = now
+        gameRecord.randomizeOpening = request.randomizeOpening
 
         val statusRecord = BotGameStatusEvent()
         statusRecord.botGameId = gameId
@@ -188,7 +189,8 @@ class PlayerVsBotGameService(
                 position = 0,
                 engine = effectiveEngine,
                 depth = request.depth,
-                usesDefaultStartFen = usesDefaultStartFen
+                usesDefaultStartFen = usesDefaultStartFen,
+                randomizeOpening = request.randomizeOpening
             )
 
             if (botMove != null) {
@@ -288,7 +290,8 @@ class PlayerVsBotGameService(
                         position = gameRecord.currentHalfMoveIndex,
                         engine = gameRecord.engine,
                         depth = gameRecord.depth,
-                        usesDefaultStartFen = gameRecord.startFen == null
+                        usesDefaultStartFen = gameRecord.startFen == null,
+                        randomizeOpening = gameRecord.randomizeOpening ?: false
                     )
 
                     if (botMove != null) {
@@ -344,21 +347,26 @@ class PlayerVsBotGameService(
         engine: Engine,
         depth: Int,
         usesDefaultStartFen: Boolean,
+        randomizeOpening: Boolean,
     ): BotMove? {
         suspend fun playWithEngine() = playWithEngine(gameId, botColor, startFen, fen, position, engine, depth)
 
         return if (usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX) {
-            playFromOpeningRepository(gameId, userMove) ?: playWithEngine()
+            playFromOpeningRepository(gameId, userMove, randomizeOpening) ?: playWithEngine()
         } else {
             playWithEngine()
         }
     }
 
-    private suspend fun playFromOpeningRepository(gameId: String, userMove: String?): BotMove? {
+    private suspend fun playFromOpeningRepository(gameId: String, userMove: String?, randomizeOpening: Boolean): BotMove? {
         val moves = pvbGameDaoService.listMoves(gameId) + listOfNotNull(userMove)
         val openingEntries = openingRepositoryDaoService.fetchNextMovesData(moves)
         return if (openingEntries.isNotEmpty()) {
-            val randomEntry = selectByProbability(openingEntries) { it.occurrences }
+            val randomEntry = if (randomizeOpening) {
+                openingEntries.random()
+            } else {
+                selectByProbability(openingEntries) { it.occurrences }
+            }
             logger.debug {
                 val totalOccurrences = openingEntries.sumOf { it.occurrences }
                 "[$gameId] playing from opening repository ${randomEntry.occurrences} / $totalOccurrences"

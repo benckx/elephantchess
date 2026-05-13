@@ -27,6 +27,7 @@ class PlayBotModalHandler extends ModalHandler {
     #startFenStandardRadio = document.getElementById('start-fen-standard');
     #startFenCustomRadio = document.getElementById('start-fen-custom');
     #startFenInput = document.getElementById('start-fen');
+    #randomizeOpeningCheckbox = document.getElementById('randomize-opening');
     #playBotButton = document.getElementById('play-bot-button');
 
     constructor() {
@@ -109,7 +110,8 @@ class PlayBotModalHandler extends ModalHandler {
                 'color': color,
                 'depth': depth,
                 'engine': engine,
-                'startFen': startFenValue
+                'startFen': startFenValue,
+                'randomizeOpening': this.#randomizeOpeningCheckbox.checked
             };
             postAndHandle('/api/botgame/create', body, json => {
                 window.open('/playbot?id=' + json.gameId, '_self');

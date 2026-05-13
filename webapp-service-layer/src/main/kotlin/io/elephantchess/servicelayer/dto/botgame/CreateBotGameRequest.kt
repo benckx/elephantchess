@@ -8,4 +8,5 @@ data class CreateBotGameRequest(
     val depth: Int,
     val engine: Engine,
     val startFen: String?,
+    val randomizeOpening: Boolean = false,
 )
