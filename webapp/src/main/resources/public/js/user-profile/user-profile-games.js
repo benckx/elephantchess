@@ -19,32 +19,54 @@
 
 const USER_PROFILE_GAMES_LIMIT = 3;
 
-class UserProfileGamesSection extends BrowseGamesPage {
+class UserProfileGamesSection {
+
+    #username;
+    #noGamesMessage = document.getElementById('no-games-message');
 
     /**
      * @param username {string}
      */
     constructor(username) {
-        super('pvp', username);
+        this.#username = username;
+        this.#fetchGames();
     }
 
-    baseUrl() {
-        return '/api/game-data/list-latest-pvp-games-by-user';
-    }
-
-    /**
-     * @returns {Map<string, any>}
-     */
-    additionalParameters() {
+    #fetchGames() {
         const params = new Map();
-        params.set('username', document.body.dataset.username);
+        params.set('username', this.#username);
         params.set('limit', USER_PROFILE_GAMES_LIMIT.toString());
         params.set('distinctByUsers', 'false');
-        return params;
-    }
+        const url = '/api/game-data/list-latest-pvp-games-by-user' + paramMapToQueryString(params);
 
-    shouldFetchNextPage() {
-        return false;
+        const thumbDivs = getElementsByClassNameArray('pvp-game-thumb');
+        const thumbs = thumbDivs.map((thumbDiv, i) => {
+            const boardId = `last-pvp-game-board-${i}`;
+            const boardElement = document.getElementById(boardId);
+            if (!boardElement) {
+                console.error(`Board element not found: ${boardId}`);
+                return null;
+            }
+            const options = {elementId: boardId, showCoordinates: false, mini: true};
+            return new GameThumb(thumbDiv, createWebappBoardGui(options));
+        }).filter(t => t !== null);
+
+        const handler = new ResponseHandlerWithError(
+            (json) => {
+                const entries = json.entries.map(e => new GameMetadataDto(e));
+                if (entries.length === 0) {
+                    this.#noGamesMessage.style.display = 'block';
+                }
+                entries.slice(0, thumbs.length).forEach((entry, i) => {
+                    thumbs[i].render(entry, 'browse_pvp', this.#username);
+                });
+            },
+            (responseText) => {
+                console.error('Failed to load games: ' + responseText);
+            }
+        );
+
+        getAndHandleWith(url, handler);
     }
 
 }
