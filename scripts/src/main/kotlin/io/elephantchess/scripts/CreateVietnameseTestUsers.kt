@@ -7,11 +7,11 @@ import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.UUID
 
 object CreateVietnameseTestUsers : KoinScriptInit() {
 
     private const val LOCALHOST_BASE_URL = "http://localhost:8080"
+    private const val DEFAULT_PASSWORD = "password"
 
     private val userService by inject<UserService>()
     private val userDaoService by inject<UserDaoService>()
@@ -34,8 +34,7 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
             usersToCreate.forEach { user ->
                 val exists = userDaoService.existsForUsername(user.username)
                 if (!exists) {
-                    val randomPassword = UUID.randomUUID().toString()
-                    val either = userService.signUp(SignUpRequest(user.username, user.email, randomPassword))
+                    val either = userService.signUp(SignUpRequest(user.username, user.email, DEFAULT_PASSWORD))
                     if (either.isRight()) {
                         println("Created user ${user.username}")
                         println(profileUrl(user.username))
