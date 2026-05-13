@@ -50,6 +50,7 @@ fun Route.gameDataRoutes() {
             paginationParams { limit, continuation, _ ->
                 val username = call.parameters["username"]
                     ?: throw BadRequestException("username parameter is required")
+
                 gameDataService.listLastPvpGamesByUsername(
                     username = username,
                     requestedLimit = limit,

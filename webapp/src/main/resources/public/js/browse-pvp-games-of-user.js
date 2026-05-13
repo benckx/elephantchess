@@ -17,13 +17,27 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-window.onload = () => {
-    const username = document.body.dataset.username;
-    if (username) {
-        // browse PvP for a single user
-        new BrowsePlayerVsPlayerOfUserPage(username);
-    } else {
-        // general PvP browse
-        new BrowseGamesPage('pvp');
+class BrowsePlayerVsPlayerOfUserPage extends BrowseGamesPage {
+
+    /**
+     * @param username {string}
+     */
+    constructor(username) {
+        super('pvp');
+        // Use a regular property (not a private field) so it is set before any
+        // base-class call to additionalParameters() that happens during super().
+        // Note: super() runs before subclass field initializers, so private
+        // fields declared on the subclass are not yet available there.
+        this.username = username;
     }
-};
+
+    baseUrl() {
+        return '/api/game-data/list-latest-pvp-games-by-user';
+    }
+
+    additionalParameters() {
+        const params = super.additionalParameters();
+        params.set('username', this.username ?? document.body.dataset.username);
+        return params;
+    }
+}
