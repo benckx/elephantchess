@@ -464,29 +464,6 @@ class GameDataService(
     private suspend fun fetchUserName(userId: String?): String? =
         userId?.let { userCache.fetchUsername(it) }
 
-    private suspend fun mapPvpGameToDto(gameRecord: Game, onlineUserIds: Set<String>): GameMetadataDto {
-        val redUserId = gameRecord.redUserId()!!
-        val blackUserId = gameRecord.blackUserId()!!
-        return GameMetadataDto(
-            gameId = GameId(PVP, gameRecord.id),
-            redPlayerId = redUserId,
-            redPlayerName = fetchUserName(redUserId),
-            redPlayerRating = gameRecord.redPlayerRating(),
-            redUserType = userCache.fetchUserType(redUserId),
-            isRedOnline = onlineUserIds.contains(redUserId),
-            blackPlayerId = blackUserId,
-            blackPlayerName = fetchUserName(blackUserId),
-            blackPlayerRating = gameRecord.blackPlayerRating(),
-            blackUserType = userCache.fetchUserType(blackUserId),
-            isBlackOnline = onlineUserIds.contains(blackUserId),
-            userColor = null,
-            finalFen = gameRecord.currentFen,
-            status = gameRecord.gameStatus,
-            outcome = gameRecord.outcome,
-            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds()
-        )
-    }
-
     suspend fun listLastPvpGames(
         requestedLimit: Int,
         distinctByUsers: Boolean,
@@ -550,6 +527,29 @@ class GameDataService(
             .let { entries ->
                 ListLastGamesResponse(entries)
             }
+    }
+
+    private suspend fun mapPvpGameToDto(gameRecord: Game, onlineUserIds: Set<String>): GameMetadataDto {
+        val redUserId = gameRecord.redUserId()!!
+        val blackUserId = gameRecord.blackUserId()!!
+        return GameMetadataDto(
+            gameId = GameId(PVP, gameRecord.id),
+            redPlayerId = redUserId,
+            redPlayerName = fetchUserName(redUserId),
+            redPlayerRating = gameRecord.redPlayerRating(),
+            redUserType = userCache.fetchUserType(redUserId),
+            isRedOnline = onlineUserIds.contains(redUserId),
+            blackPlayerId = blackUserId,
+            blackPlayerName = fetchUserName(blackUserId),
+            blackPlayerRating = gameRecord.blackPlayerRating(),
+            blackUserType = userCache.fetchUserType(blackUserId),
+            isBlackOnline = onlineUserIds.contains(blackUserId),
+            userColor = null,
+            finalFen = gameRecord.currentFen,
+            status = gameRecord.gameStatus,
+            outcome = gameRecord.outcome,
+            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds()
+        )
     }
 
     suspend fun listLastPvbGames(
