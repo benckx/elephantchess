@@ -1,5 +1,6 @@
 package io.elephantchess.webapp.routing.html
 
+import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
@@ -96,6 +97,7 @@ fun Application.htmlRoutingModule() {
         simpleMappingsWithSupporterBanner()
         boardGuiExample()
         userProfile()
+        userBrowsePvpGames()
         modals()
         databasePages()
     }
@@ -167,6 +169,25 @@ private fun Route.userProfile() {
 
         val userProfileResponse = userService.fetchProfile(username)
         call.respondHtml(renderer.renderUserProfile(userProfileResponse))
+    }
+}
+
+private fun Route.userBrowsePvpGames() {
+    val userService by koin<UserService>()
+
+    get("/@/{username}/browse-pvp-games") {
+        val username = call.parameters["username"]
+            ?: throw BadRequestException("username not provided")
+
+        // validate user exists (throws NotFoundException if not)
+        userService.fetchProfile(username)
+
+        call.respondHtml(
+            simplePageRenderer.renderTemplateNoCache(
+                "user_browse_pvp_games",
+                specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
+            )
+        )
     }
 }
 

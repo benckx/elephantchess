@@ -41,7 +41,7 @@ class UserGamesBrowsePage extends BrowseGamesPage {
 }
 
 window.onload = () => {
-    const username = new URLSearchParams(window.location.search).get('username');
+    const username = document.body.dataset.username;
     if (username) {
         new UserGamesBrowsePage(username);
     } else {

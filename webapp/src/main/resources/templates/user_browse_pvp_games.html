@@ -1,0 +1,33 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>{{username}}'s Player-vs-Player Games – elephantchess.io</title>
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/css/browse-games.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/widgets/game-thumb.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/browse-games.js"></script>
+    <script defer src="/js/browse-pvp-games.js"></script>
+</head>
+<body data-username="{{username}}">
+{{body_init}}
+<div class="main-container-text-extended">
+    <h1>{{username}}'s Player-vs-Player Games</h1>
+    <hr class="only-desktop"/>
+    <div id="pvp-games-container">
+        {{game_thumb}}[[iterations:12; {gameType: 'pvp', parentClass: 'pvp-game-thumb'}]]
+    </div>
+    <div id="is-loading-message" style="display: none;">
+        Loading more games...
+    </div>
+    <div id="end-of-pagination-message" style="display: none;">
+        No more games to show
+    </div>
+    <div id="no-games-message" class="empty-list-message" style="display: none;">
+        No games found.
+    </div>
+</div>
+</body>
+</html>
