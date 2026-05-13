@@ -25,6 +25,7 @@ const PROFILE_PICTURE_UPLOAD_URL = USER_SETTINGS_API + '/profile-picture';
 const EMAIL_SETTINGS_URL = USER_SETTINGS_API + '/email-address';
 
 const USERNAME_MAX_DESCRIPTION_LENGTH = 1_000;
+// Keep in sync with UserProfilePictureService.PROFILE_PICTURE_MAX_BYTES on the backend.
 const PROFILE_PICTURE_MAX_BYTES = 500 * 1024;
 const PROFILE_PICTURE_SIZE_PX = 100;
 // Keep JPEG uploads visually crisp while staying comfortably under the 500KB limit.

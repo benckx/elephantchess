@@ -43,7 +43,7 @@ class UserProfilePictureService(
 
     internal fun normalizeProfilePicture(bytes: ByteArray, extension: String): ByteArray {
         val sourceImage = ImageIO.read(ByteArrayInputStream(bytes))
-            ?: throw NotAcceptableException("Unsupported profile picture format")
+            ?: throw NotAcceptableException("Unable to read image file - the file may be corrupted or in an unsupported format")
 
         val size = minOf(sourceImage.width, sourceImage.height)
         val cropX = (sourceImage.width - size) / 2
@@ -79,7 +79,7 @@ class UserProfilePictureService(
 
         val output = ByteArrayOutputStream()
         if (!ImageIO.write(outputImage, imageIoFormatName(extension), output)) {
-            throw NotAcceptableException("Unsupported profile picture format")
+            throw NotAcceptableException("Unable to process image file for profile picture upload")
         }
 
         return output.toByteArray()
