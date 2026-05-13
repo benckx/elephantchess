@@ -121,7 +121,7 @@ class GameStatsDto {
 
     constructor(json) {
         this.#ratings = new TimeCategoryStatsDto(json.ratings);
-        this.#pvp = new PlayerVsPlayerStatsDto(json.pvp);
+        this.#pvp = new TimeCategoryPlayerVsPlayerStatsDto(json.pvp);
     }
 
     /**
@@ -136,6 +136,68 @@ class GameStatsDto {
      */
     get pvp() {
         return this.#pvp;
+    }
+
+}
+
+class TimeCategoryPlayerVsPlayerStatsDto {
+
+    #bullet;
+    #blitz;
+    #rapid;
+    #classical;
+    #severalDays;
+    #correspondence;
+
+    constructor(json) {
+        this.#bullet = new PlayerVsPlayerStatsDto(json.bullet);
+        this.#blitz = new PlayerVsPlayerStatsDto(json.blitz);
+        this.#rapid = new PlayerVsPlayerStatsDto(json.rapid);
+        this.#classical = new PlayerVsPlayerStatsDto(json.classical);
+        this.#severalDays = new PlayerVsPlayerStatsDto(json.severalDays);
+        this.#correspondence = new PlayerVsPlayerStatsDto(json.correspondence);
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get bullet() {
+        return this.#bullet;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get blitz() {
+        return this.#blitz;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get rapid() {
+        return this.#rapid;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get classical() {
+        return this.#classical;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get severalDays() {
+        return this.#severalDays;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get correspondence() {
+        return this.#correspondence;
     }
 
 }

@@ -128,25 +128,6 @@ h2 {
     font-weight: normal;
 }
 
-#pvp-summary-table {
-    margin-top: 6px;
-    border-spacing: 0 3px;
-}
-
-#pvp-summary-table td {
-    font-size: 17px;
-}
-
-#pvp-summary-table .header-cell {
-    width: 120px;
-}
-
-#pvp-summary-table .value-cell {
-    width: 60px;
-    text-align: right;
-    font-weight: bold;
-}
-
 .online-status-indicator {
     margin-right: 0;
 }
@@ -208,18 +189,6 @@ h2 {
     }
 
     #summary-data-table .value-cell {
-        width: 100px;
-    }
-
-    #pvp-summary-table td {
-        font-size: 28px;
-    }
-
-    #pvp-summary-table .header-cell {
-        width: 240px;
-    }
-
-    #pvp-summary-table .value-cell {
         width: 100px;
     }
 
