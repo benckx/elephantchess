@@ -1485,10 +1485,10 @@ class BoardGui {
     }
 
     /**
-     * @param playSounds {boolean}
+     * @param playSoundsEnabled {boolean}
      */
-    updatePlaySounds(playSounds) {
-        this.#options = Object.freeze({...this.#options, playSounds});
+    updatePlaySounds(playSoundsEnabled) {
+        this.#options = Object.freeze({...this.#options, playSounds: playSoundsEnabled});
     }
 
     /**

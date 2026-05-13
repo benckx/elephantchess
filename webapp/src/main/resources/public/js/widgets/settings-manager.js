@@ -86,11 +86,7 @@ class SettingsManager {
      */
     get isPlaySoundsEnabled() {
         const cookieValue = getCookie(PLAY_SOUNDS_SETTING);
-        if (cookieValue === null) {
-            return true;
-        } else {
-            return cookieValue === "true";
-        }
+        return cookieValue === null ? true : cookieValue === "true";
     }
 
     /**
