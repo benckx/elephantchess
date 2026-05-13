@@ -51,6 +51,18 @@ class FaqTocTagResolverTest {
     }
 
     @Test
+    fun `renderFaqToc escapes special HTML characters in titles and ids`() {
+        val html = """<h1 id="ben&amp;jerry">A &amp; B &lt;tag&gt;</h1>"""
+        // Note: extractFaqTocEntries returns the raw captured text (not HTML-decoded);
+        // the renderer must re-escape those characters so the produced HTML is valid.
+        val toc = renderFaqToc(html)
+        assertTrue(toc.contains("&amp;amp;"), "ampersands in title text must be escaped: $toc")
+        assertTrue(toc.contains("&lt;tag&gt;"), "angle brackets in title text must be escaped: $toc")
+        // The id attribute value must not contain a raw double quote (we escape ", &, <, >)
+        assertTrue(!toc.contains("\"<") && !toc.contains(">\""), "no broken attribute markup expected: $toc")
+    }
+
+    @Test
     fun `resolver runs against the real FAQ template and returns a non-empty TOC`() = runTest {
         val resolver = faqTocTagResolver()
         assertEquals(FAQ_TOC_TAG_NAME, resolver.tagName)
