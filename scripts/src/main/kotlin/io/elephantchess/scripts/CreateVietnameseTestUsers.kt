@@ -5,6 +5,7 @@ import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.services.UserService
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
+import java.util.UUID
 import kotlin.system.exitProcess
 
 object CreateVietnameseTestUsers : KoinScriptInit() {
@@ -15,14 +16,13 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
     private data class UserSeed(
         val username: String,
         val email: String,
-        val password: String,
     )
 
     private val usersToCreate = listOf(
-        UserSeed(username = "nguyễn", email = "vietuser1@gmail.com", password = "password1"),
-        UserSeed(username = "trần", email = "vietuser2@gmail.com", password = "password2"),
-        UserSeed(username = "Đặng_123", email = "vietuser3@gmail.com", password = "password3"),
-        UserSeed(username = "phạm-văn", email = "vietuser4@gmail.com", password = "password4"),
+        UserSeed(username = "nguyễn", email = "vietuser1@example.com"),
+        UserSeed(username = "trần", email = "vietuser2@example.com"),
+        UserSeed(username = "Đặng_123", email = "vietuser3@example.com"),
+        UserSeed(username = "phạm-văn", email = "vietuser4@example.com"),
     )
 
     @JvmStatic
@@ -31,10 +31,15 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
             usersToCreate.forEach { user ->
                 val exists = userDaoService.existsForUsername(user.username)
                 if (!exists) {
-                    val either = userService.signUp(SignUpRequest(user.username, user.email, user.password))
-                    println(either)
+                    val randomPassword = UUID.randomUUID().toString()
+                    val either = userService.signUp(SignUpRequest(user.username, user.email, randomPassword))
+                    if (either.isRight()) {
+                        println("Created user ${user.username}")
+                    } else {
+                        println("ERROR: Failed to create user ${user.username}: ${either.left().errors.joinToString("; ")}")
+                    }
                 } else {
-                    println("user ${user.username} already exists")
+                    println("User ${user.username} already exists")
                 }
                 println("http://localhost:8080/@/${user.username}")
             }
