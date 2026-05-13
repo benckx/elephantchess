@@ -40,6 +40,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
     #last30DaysRangeSelector = document.getElementById('range-selector-30d');
 
     #featuredPlayersList = document.getElementById('featured-players-list');
+    #randomizeFeaturedPlayersButton = document.getElementById('randomize-featured-players-button');
 
     // Search parameters
     #currentPlayerName = null;
@@ -54,6 +55,11 @@ class DatabaseSearchPage extends InfiniteScrollPage {
 
         this.#fetchTotalGames();
         this.#fetchFeaturedPlayers();
+
+        this.#randomizeFeaturedPlayersButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.#fetchFeaturedPlayers();
+        });
 
         document
             .getElementsByTagName('html')
