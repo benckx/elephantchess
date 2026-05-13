@@ -36,8 +36,6 @@ class PlayGamePage extends BasePage {
      */
     #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
 
-    #redPlayerInfo = document.getElementById('red-player-info');
-    #blackPlayerInfo = document.getElementById('black-player-info');
     #inviterPlayerInfo = document.getElementById('inviter-player-info');
     #inviterRow = document.getElementById('inviter-row');
 
@@ -48,8 +46,6 @@ class PlayGamePage extends BasePage {
     #gameOutcomeSpan = document.getElementById('game-outcome');
     #outcomeRow = document.getElementById('outcome-row');
 
-    #redPlayerOnlineIndicator = document.getElementById('red-online-status-indicator');
-    #blackPlayerOnlineIndicator = document.getElementById('black-online-status-indicator');
     #inviterOnlineIndicator = document.getElementById('inviter-online-status-indicator');
 
     #gameActionsButtonsInfoBox = document.getElementById('game-actions-buttons-info-box');
@@ -70,6 +66,16 @@ class PlayGamePage extends BasePage {
 
     #topCounter = document.getElementById('top-counter');
     #bottomCounter = document.getElementById('bottom-counter');
+
+    #topPlayerInfo = document.getElementById('top-player-info');
+    #bottomPlayerInfo = document.getElementById('bottom-player-info');
+
+    /**
+     * Player info DOM nodes per color, built by #updatePlayersInfo() and re-attached
+     * to #topPlayerInfo or #bottomPlayerInfo by #renderClockPlayerInfo().
+     * @type {Object.<string, HTMLElement>}
+     */
+    #playerInfoByColor = {};
 
     /**
      * @type {HTMLElement[]}
@@ -430,83 +436,100 @@ class PlayGamePage extends BasePage {
      */
     #updatePlayersInfo() {
         const gameDto = this.#gameController.gameDto;
-        const redPlaceholder = document.getElementById('red-player-info-placeholder');
-        const blackPlaceholder = document.getElementById('black-player-info-placeholder');
+        this.#playerInfoByColor = {};
 
         if (gameDto.hasInviterColor) {
-            this.#deleteAllNodesButOnlineIndicator(this.#redPlayerInfo);
-            this.#deleteAllNodesButOnlineIndicator(this.#blackPlayerInfo);
-
-            // hide placeholders
-            redPlaceholder.style.display = 'none';
-            blackPlaceholder.style.display = 'none';
-
-            // hide inviter only data
+            // hide inviter only data (shown on the left panel only when color is not picked yet)
             this.#inviterRow.style.display = 'none';
             this.#inviterPlayerInfo.style.display = 'none';
 
-            // inviter
-            const inviterNameSpan = document.createElement('span');
-            const inviterRatingSpan = document.createElement('span');
+            const inviterColor = gameDto.inviterColor;
+            const inviteeColor = oppositeColor(inviterColor);
 
             const inviterRatingDelta = document.createElement('span');
             inviterRatingDelta.id = 'inviter-rating-delta';
             inviterRatingDelta.classList.add('user-rating-delta-value-box', 'user-rating-delta-value-smaller');
 
-            inviterNameSpan.append(buildUsernameSpan(gameDto.inviterId, gameDto.inviterUsername, gameDto.inviterUserType));
-            inviterRatingSpan.innerText = ' (' + gameDto.inviterRating + ')';
-
-            // invitee
-            const inviteeNameSpan = document.createElement('span');
-            const inviteeRatingSpan = document.createElement('span');
-
-            const inviteeRatingDelta = document.createElement('span');
-            inviteeRatingDelta.id = 'invitee-rating-delta';
-            inviteeRatingDelta.classList.add('user-rating-delta-value-box', 'user-rating-delta-value-smaller');
+            this.#playerInfoByColor[inviterColor] = this.#buildClockPlayerInfo(
+                inviterColor,
+                gameDto.inviterId,
+                gameDto.inviterUsername,
+                gameDto.inviterUserType,
+                gameDto.inviterRating,
+                inviterRatingDelta
+            );
 
             if (gameDto.hasBeenJoined()) {
-                inviteeNameSpan.append(buildUsernameSpan(gameDto.inviteeId, gameDto.inviteeUsername, gameDto.inviteeUserType));
-                inviteeRatingSpan.innerText = ' (' + gameDto.inviteeRating + ')';
-            }
+                const inviteeRatingDelta = document.createElement('span');
+                inviteeRatingDelta.id = 'invitee-rating-delta';
+                inviteeRatingDelta.classList.add('user-rating-delta-value-box', 'user-rating-delta-value-smaller');
 
-            let inviterDiv = null;
-            let inviteeDiv = null;
-
-            switch (gameDto.inviterColor) {
-                case Color.RED:
-                    inviterDiv = this.#redPlayerInfo;
-                    inviteeDiv = this.#blackPlayerInfo;
-                    this.#redPlayerInfo.style.display = 'block';
-                    if (gameDto.hasBeenJoined()) {
-                        this.#blackPlayerInfo.style.display = 'block';
-                    }
-                    break;
-                case Color.BLACK:
-                    inviterDiv = this.#blackPlayerInfo;
-                    inviteeDiv = this.#redPlayerInfo;
-                    this.#blackPlayerInfo.style.display = 'block';
-                    if (gameDto.hasBeenJoined()) {
-                        this.#redPlayerInfo.style.display = 'block';
-                    }
-                    break;
-                default:
-                    throw new Error('Incorrect color: ' + gameDto.inviterColor);
-            }
-
-            inviterDiv.append(inviterNameSpan, inviterRatingSpan, inviterRatingDelta);
-            if (gameDto.hasBeenJoined()) {
-                inviteeDiv.append(inviteeNameSpan, inviteeRatingSpan, inviteeRatingDelta);
+                this.#playerInfoByColor[inviteeColor] = this.#buildClockPlayerInfo(
+                    inviteeColor,
+                    gameDto.inviteeId,
+                    gameDto.inviteeUsername,
+                    gameDto.inviteeUserType,
+                    gameDto.inviteeRating,
+                    inviteeRatingDelta
+                );
             }
         } else {
-            // red and black are not yet determined, so we show inviter instead
-            redPlaceholder.style.display = 'block';
-            blackPlaceholder.style.display = 'block';
+            // red and black are not yet determined, so we show inviter on the left panel instead
             this.#inviterPlayerInfo.append(buildUsernameSpan(gameDto.inviterId, gameDto.inviterUsername, gameDto.inviterUserType));
             this.#inviterPlayerInfo.style.display = 'block';
             this.#inviterRow.style.display = 'contents';
         }
 
+        const colorAtBottom = gameDto.colorUserPlaysWith || Color.RED;
+        this.#renderClockPlayerInfo(colorAtBottom);
         this.#updateChatAuthorColor();
+    }
+
+    /**
+     * @param color {string}
+     * @param userId {string|number|null}
+     * @param username {string|null}
+     * @param userType {string|null}
+     * @param rating {number|null}
+     * @param ratingDelta {HTMLElement}
+     * @return {HTMLElement}
+     */
+    #buildClockPlayerInfo(color, userId, username, userType, rating, ratingDelta) {
+        const container = document.createElement('div');
+        container.dataset.color = color;
+
+        const onlineIndicator = document.createElement('span');
+        onlineIndicator.classList.add('online-status-indicator', 'online-status-indicator-smaller');
+        onlineIndicator.id = `${color.toLowerCase()}-online-status-indicator`;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.append(buildUsernameSpan(userId, username, userType));
+
+        const ratingSpan = document.createElement('span');
+        ratingSpan.innerText = ' (' + rating + ')';
+
+        container.append(onlineIndicator, nameSpan, ratingSpan, ratingDelta);
+        return container;
+    }
+
+    /**
+     * Places red/black player info blocks into the top/bottom slots around the clock,
+     * based on the color at the bottom (the user's side).
+     * @param colorAtBottom {string}
+     */
+    #renderClockPlayerInfo(colorAtBottom) {
+        this.#topPlayerInfo.innerHTML = '';
+        this.#bottomPlayerInfo.innerHTML = '';
+
+        const colorAtTop = oppositeColor(colorAtBottom);
+        const topInfo = this.#playerInfoByColor[colorAtTop];
+        const bottomInfo = this.#playerInfoByColor[colorAtBottom];
+        if (topInfo != null) {
+            this.#topPlayerInfo.append(topInfo);
+        }
+        if (bottomInfo != null) {
+            this.#bottomPlayerInfo.append(bottomInfo);
+        }
     }
 
     #updateChatAuthorColor() {
@@ -523,20 +546,6 @@ class PlayGamePage extends BasePage {
             ]);
             this.#chatBoxWidget.updateColorMapping(colorMap);
         }
-    }
-
-    /**
-     * @param node {HTMLElement}
-     */
-    #deleteAllNodesButOnlineIndicator(node) {
-        const toKeep = [];
-        for (let child of node.children) {
-            if (child.classList.contains('online-status-indicator')) {
-                toKeep.push(child);
-            }
-        }
-        node.innerHTML = '';
-        toKeep.forEach(child => node.append(child));
     }
 
     #updateGameStatusInfo() {
@@ -668,6 +677,8 @@ class PlayGamePage extends BasePage {
             default:
                 throw new Error('Incorrect color: ' + color);
         }
+
+        this.#renderClockPlayerInfo(color);
     }
 
     /**
@@ -688,16 +699,23 @@ class PlayGamePage extends BasePage {
         allUserIds.push(this.#gameController.gameDto.inviterId);
 
         fetchAreOnline(allUserIds, (onlineUserIds) => {
-            if (onlineUserIds.includes(this.#gameController.gameDto.redPlayerUserId)) {
-                this.#redPlayerOnlineIndicator.classList.add(IS_ONLINE_CSS_CLASS);
-            } else {
-                this.#redPlayerOnlineIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
+            const redIndicator = document.getElementById('red-online-status-indicator');
+            const blackIndicator = document.getElementById('black-online-status-indicator');
+
+            if (redIndicator != null) {
+                if (onlineUserIds.includes(this.#gameController.gameDto.redPlayerUserId)) {
+                    redIndicator.classList.add(IS_ONLINE_CSS_CLASS);
+                } else {
+                    redIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
+                }
             }
 
-            if (onlineUserIds.includes(this.#gameController.gameDto.blackPlayerUserId)) {
-                this.#blackPlayerOnlineIndicator.classList.add(IS_ONLINE_CSS_CLASS);
-            } else {
-                this.#blackPlayerOnlineIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
+            if (blackIndicator != null) {
+                if (onlineUserIds.includes(this.#gameController.gameDto.blackPlayerUserId)) {
+                    blackIndicator.classList.add(IS_ONLINE_CSS_CLASS);
+                } else {
+                    blackIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
+                }
             }
 
             if (onlineUserIds.includes(this.#gameController.gameDto.inviterId)) {

@@ -17,20 +17,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#red-player-info,
-#black-player-info,
-#red-player-info-placeholder,
-#black-player-info-placeholder,
 #inviter-player-info,
 tr#inviter-row,
 tr#outcome-row {
     display: none;
-}
-
-#red-player-info-placeholder,
-#black-player-info-placeholder {
-    font-weight: lighter;
-    color: #515151;
 }
 
 #game-info-info-box {
@@ -54,6 +44,21 @@ tr#outcome-row {
     margin-top: 18px;
     width: 70%;
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.clock-player-info {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 4px 8px;
+    font-size: 14px;
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.clock-player-info:empty {
+    display: none;
 }
 
 .time-counter {
@@ -140,6 +145,12 @@ tr#outcome-row {
 @media (max-width: 1000px) {
     .time-counter {
         font-size: 46px;
+    }
+
+    .clock-player-info {
+        font-size: 28px;
+        min-height: 40px;
+        padding: 8px 12px;
     }
 
     #analysis-button-container-right-side {
