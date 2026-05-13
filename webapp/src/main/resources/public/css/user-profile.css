@@ -50,7 +50,7 @@ h2 {
     display: flex;
     justify-content: left;
     align-items: center;
-    height: 40px;
+    min-height: 40px;
 }
 
 .profile-header-panel {
@@ -59,9 +59,21 @@ h2 {
     margin-right: 10px;
 }
 
+#profile-picture {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(98, 98, 99, 0.25);
+}
+
+.profile-picture-header-panel {
+    margin-right: 16px;
+}
+
 #profile-flag,
 #status-indicator {
-    margin-top: 13px;
+    margin-top: 0;
 }
 
 #profile-description {
@@ -144,11 +156,17 @@ h2 {
     }
 
     #profile-header {
-        height: 62px;
+        min-height: 62px;
     }
 
     .profile-header-panel {
         margin-right: 14px;
+    }
+
+    #profile-picture {
+        width: 150px;
+        height: 150px;
+        border-radius: 16px;
     }
 
     .flag-icons {

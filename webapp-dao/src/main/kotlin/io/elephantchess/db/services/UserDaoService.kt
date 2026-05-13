@@ -14,6 +14,8 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.utils.safeRandomAlphaNumericString
 import org.jooq.DSLContext
 import org.jooq.Record2
+import org.jooq.Record3
+import org.jooq.Record6
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -24,6 +26,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class UserDaoService(private val dslContext: DSLContext) {
+
+    private val profilePictureExtensionField = DSL.field(DSL.name("profile_picture_extension"), String::class.java)
 
     suspend fun save(user: User): String {
         dslContext.transactionCoroutine { cfg ->
@@ -76,11 +80,12 @@ class UserDaoService(private val dslContext: DSLContext) {
         return id!!
     }
 
-    suspend fun fetchProfileSettings(userId: String): Record2<String, String>? {
+    suspend fun fetchProfileSettings(userId: String): Record3<String?, String?, String?>? {
         return dslContext
             .select(
                 USER.DESCRIPTION,
-                USER.COUNTRY
+                USER.COUNTRY,
+                profilePictureExtensionField
             )
             .from(USER)
             .where(USER.ID.eq(userId))
@@ -99,6 +104,34 @@ class UserDaoService(private val dslContext: DSLContext) {
                 .where(USER.ID.fixed().eq(userId))
                 .awaitExecute()
         }
+    }
+
+    suspend fun updateProfilePictureExtension(userId: String, extension: String) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL
+                .using(cfg)
+                .update(USER.fixed())
+                .set(profilePictureExtensionField, extension)
+                .set(USER.LAST_PROFILE_UPDATE.fixed(), Clock.System.now())
+                .where(USER.ID.fixed().eq(userId))
+                .awaitExecute()
+        }
+    }
+
+    suspend fun fetchPublicProfile(username: String): Record6<String, String, String?, String?, Int, String?>? {
+        return dslContext
+            .select(
+                USER.ID,
+                USER.HANDLE,
+                USER.COUNTRY,
+                USER.DESCRIPTION,
+                USER.PUZZLE_RATING,
+                profilePictureExtensionField
+            )
+            .from(USER)
+            .where(USER.HANDLE.equalIgnoreCaseTrimmed(username))
+            .awaitRecords()
+            .firstOrNull()
     }
 
     suspend fun fetchNotificationSettings(userId: String): NotificationsSettingsRecord? {

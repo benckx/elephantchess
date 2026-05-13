@@ -8,6 +8,8 @@ import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.content.PartData
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -128,6 +130,12 @@ private fun Route.userSettingsRoutes() {
                 userService.updateProfileSettings(verifiedToken.userId, request)
             }
         }
+        post("/profile-picture") {
+            requireAuthentication { verifiedToken ->
+                val upload = call.receiveProfilePictureUpload()
+                userService.uploadProfilePicture(verifiedToken.userId, upload.fileName, upload.bytes)
+            }
+        }
         get("/notifications") {
             requireAuthentication { verifiedToken ->
                 userService.fetchNotificationsSettings(verifiedToken.userId)
@@ -144,6 +152,28 @@ private fun Route.userSettingsRoutes() {
             }
         }
     }
+}
+
+private data class ProfilePictureUpload(
+    val fileName: String,
+    val bytes: ByteArray,
+)
+
+private suspend fun ApplicationCall.receiveProfilePictureUpload(): ProfilePictureUpload {
+    var upload: ProfilePictureUpload? = null
+
+    receiveMultipart().forEachPart { part ->
+        try {
+            if (part is PartData.FileItem && upload == null) {
+                val fileName = part.originalFileName ?: throw NotAcceptableException("Missing profile picture file name")
+                upload = ProfilePictureUpload(fileName, part.streamProvider().readBytes())
+            }
+        } finally {
+            part.dispose()
+        }
+    }
+
+    return upload ?: throw NotAcceptableException("Missing profile picture file")
 }
 
 private fun Route.passwordRecoveryRoutes() {

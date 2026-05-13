@@ -20,6 +20,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 SimpleValueTagResolver("user_id", userProfile.userId),
                 SimpleValueTagResolver("username", userProfile.username),
                 descriptionMeta(username, description),
+                profilePictureTagResolver(userProfile.profilePictureUrl, username),
                 flagPanelTagResolver(countryCode),
                 descriptionDivTagResolver(username, description),
             )
@@ -52,6 +53,18 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
             if (countryCode != null) {
                 """<div id="flag-header-panel" class="profile-header-panel" data-country-code="$countryCode">
                     |<img id="profile-flag" class="flag-icons" src="/images/flags/$countryCode.svg" alt="$countryCode"/>
+                    |</div>""".trimMargin()
+            } else {
+                ""
+            }
+        }
+    }
+
+    private fun profilePictureTagResolver(profilePictureUrl: String?, username: String): TagResolver {
+        return CallbackTagResolver("profile_picture_panel") {
+            if (profilePictureUrl != null) {
+                """<div class="profile-header-panel profile-picture-header-panel">
+                    |<img id="profile-picture" src="$profilePictureUrl" alt="$username profile picture"/>
                     |</div>""".trimMargin()
             } else {
                 ""

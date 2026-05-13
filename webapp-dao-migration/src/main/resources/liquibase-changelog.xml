@@ -2361,4 +2361,9 @@
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0094" author="benckx">
+        <addColumn tableName="user">
+            <column name="profile_picture_extension" type="varchar(10)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
