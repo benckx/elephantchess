@@ -464,6 +464,29 @@ class GameDataService(
     private suspend fun fetchUserName(userId: String?): String? =
         userId?.let { userCache.fetchUsername(it) }
 
+    private suspend fun mapPvpGameToDto(gameRecord: Game, onlineUserIds: Set<String>): GameMetadataDto {
+        val redUserId = gameRecord.redUserId()!!
+        val blackUserId = gameRecord.blackUserId()!!
+        return GameMetadataDto(
+            gameId = GameId(PVP, gameRecord.id),
+            redPlayerId = redUserId,
+            redPlayerName = fetchUserName(redUserId),
+            redPlayerRating = gameRecord.redPlayerRating(),
+            redUserType = userCache.fetchUserType(redUserId),
+            isRedOnline = onlineUserIds.contains(redUserId),
+            blackPlayerId = blackUserId,
+            blackPlayerName = fetchUserName(blackUserId),
+            blackPlayerRating = gameRecord.blackPlayerRating(),
+            blackUserType = userCache.fetchUserType(blackUserId),
+            isBlackOnline = onlineUserIds.contains(blackUserId),
+            userColor = null,
+            finalFen = gameRecord.currentFen,
+            status = gameRecord.gameStatus,
+            outcome = gameRecord.outcome,
+            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds()
+        )
+    }
+
     suspend fun listLastPvpGames(
         requestedLimit: Int,
         distinctByUsers: Boolean,
@@ -496,35 +519,12 @@ class GameDataService(
             )
 
         val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
-        val lastOnlineByUserId = userDaoService.fetchLastOnline(userIds)
-        val isOnlineLimit = Clock.System.now().minusSeconds(15L)
+        val onlineUserIds = userService.areOnline(userIds).onlineUserIds
         val selectedGames = if (distinctByUsers) distinctByUserId(games) else games
 
         return selectedGames
             .take(actualLimit)
-            .map { gameRecord ->
-                val redUserId = gameRecord.redUserId()!!
-                val blackUserId = gameRecord.blackUserId()!!
-
-                GameMetadataDto(
-                    gameId = GameId(PVP, gameRecord.id),
-                    redPlayerId = redUserId,
-                    redPlayerName = fetchUserName(redUserId),
-                    redPlayerRating = gameRecord.redPlayerRating(),
-                    redUserType = userCache.fetchUserType(redUserId),
-                    isRedOnline = lastOnlineByUserId[redUserId]?.isAfter(isOnlineLimit) == true,
-                    blackPlayerId = blackUserId,
-                    blackPlayerName = fetchUserName(blackUserId),
-                    blackPlayerRating = gameRecord.blackPlayerRating(),
-                    blackUserType = userCache.fetchUserType(blackUserId),
-                    isBlackOnline = lastOnlineByUserId[blackUserId]?.isAfter(isOnlineLimit) == true,
-                    userColor = null,
-                    finalFen = gameRecord.currentFen,
-                    status = gameRecord.gameStatus,
-                    outcome = gameRecord.outcome,
-                    lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds()
-                )
-            }
+            .map { mapPvpGameToDto(it, onlineUserIds) }
             .let { entries ->
                 ListLastGamesResponse(entries)
             }
@@ -546,29 +546,7 @@ class GameDataService(
         val onlineUserIds = userService.areOnline(userIds).onlineUserIds
 
         return games
-            .map { gameRecord ->
-                val redUserId = gameRecord.redUserId()!!
-                val blackUserId = gameRecord.blackUserId()!!
-
-                GameMetadataDto(
-                    gameId = GameId(PVP, gameRecord.id),
-                    redPlayerId = redUserId,
-                    redPlayerName = fetchUserName(redUserId),
-                    redPlayerRating = gameRecord.redPlayerRating(),
-                    redUserType = userCache.fetchUserType(redUserId),
-                    isRedOnline = onlineUserIds.contains(redUserId),
-                    blackPlayerId = blackUserId,
-                    blackPlayerName = fetchUserName(blackUserId),
-                    blackPlayerRating = gameRecord.blackPlayerRating(),
-                    blackUserType = userCache.fetchUserType(blackUserId),
-                    isBlackOnline = onlineUserIds.contains(blackUserId),
-                    userColor = null,
-                    finalFen = gameRecord.currentFen,
-                    status = gameRecord.gameStatus,
-                    outcome = gameRecord.outcome,
-                    lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds()
-                )
-            }
+            .map { mapPvpGameToDto(it, onlineUserIds) }
             .let { entries ->
                 ListLastGamesResponse(entries)
             }
