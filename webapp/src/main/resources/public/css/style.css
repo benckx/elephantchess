@@ -471,6 +471,12 @@ span.sub-text a, span.sub-text a:visited {
     background-color: #b2d7f6;
 }
 
+.drop-down-menu-item-link,
+.drop-down-menu-item-link:visited {
+    color: #2b2b2b;
+    text-decoration: none;
+}
+
 .drop-down-menu-item-top-separator {
     border-top: 1px solid rgba(43, 43, 43, 0.67);
 }
@@ -786,7 +792,8 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
 }
 
 #user-profile-icon {
-    display: none;
+    display: block;
+    margin-right: 5px;
 }
 
 #user-profile-icon img {
