@@ -6,6 +6,7 @@ import io.elephantchess.model.PuzzleOutcome
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsNumbersResponse
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsRatingResponse
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsSummaryResponse
+import io.elephantchess.servicelayer.dto.user.PlayerVsPlayerStatsDto
 import io.elephantchess.servicelayer.dto.user.TimeCategoryStatsDto
 import io.elephantchess.servicelayer.dto.user.TimeCategoryStatsResponse
 import io.elephantchess.servicelayer.exceptions.NotFoundException
@@ -20,15 +21,21 @@ class UserProfileAnalyticsService(
     suspend fun fetchGameRatings(userId: String): TimeCategoryStatsResponse {
         val userRecord = userDaoService.fetchAllRatings(userId)
             ?: throw NotFoundException("User $userId could not be found")
+        val pvpStats = userDaoService.fetchPlayerVsPlayerOutcomeStats(userId)
 
         return TimeCategoryStatsResponse(
-            TimeCategoryStatsDto(
+            ratings = TimeCategoryStatsDto(
                 bullet = userRecord.gameRatingBullet,
                 blitz = userRecord.gameRatingBlitz,
                 rapid = userRecord.gameRatingRapid,
                 classical = userRecord.gameRatingClassical,
                 severalDays = userRecord.gameRatingSeveralDays,
                 correspondence = userRecord.gameRatingCorrespondence
+            ),
+            pvp = PlayerVsPlayerStatsDto(
+                wins = pvpStats.wins,
+                losses = pvpStats.losses,
+                draws = pvpStats.draws
             )
         )
     }

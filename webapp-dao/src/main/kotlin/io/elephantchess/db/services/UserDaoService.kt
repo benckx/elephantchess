@@ -5,13 +5,17 @@ import io.elephantchess.db.dao.codegen.tables.daos.UserDao
 import io.elephantchess.db.dao.codegen.tables.pojos.User
 import io.elephantchess.db.dao.codegen.tables.records.UserRecord
 import io.elephantchess.db.model.NotificationsSettingsRecord
+import io.elephantchess.db.model.PlayerVsPlayerOutcomeStatsRecord
 import io.elephantchess.db.model.PlayerVsPlayerNumberOfGamesAndLastPlayedRecord
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
 import io.elephantchess.model.UserType.AUTHENTICATED
+import io.elephantchess.model.Outcome.*
 import io.elephantchess.utils.safeRandomAlphaNumericString
+import io.elephantchess.xiangqi.Color.BLACK
+import io.elephantchess.xiangqi.Color.RED
 import org.jooq.DSLContext
 import org.jooq.Record2
 import org.jooq.TableField
@@ -418,6 +422,55 @@ class UserDaoService(private val dslContext: DSLContext) {
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleMappedRecord()
+    }
+
+    suspend fun fetchPlayerVsPlayerOutcomeStats(userId: String): PlayerVsPlayerOutcomeStatsRecord {
+        val isInviter = GAME.INVITER.eq(userId)
+        val isInvitee = GAME.INVITEE.eq(userId)
+        val isUserPlaying = isInviter.or(isInvitee)
+
+        val inviterWinCondition = GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+            .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
+        val inviteeWinCondition = GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
+            .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+
+        val inviterLossCondition = GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
+            .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+        val inviteeLossCondition = GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+            .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
+
+        val wins = dslContext
+            .selectCount()
+            .from(GAME)
+            .where(isUserPlaying)
+            .and(
+                isInviter.and(inviterWinCondition)
+                    .or(isInvitee.and(inviteeWinCondition))
+            )
+            .awaitSingleValue() ?: 0
+
+        val losses = dslContext
+            .selectCount()
+            .from(GAME)
+            .where(isUserPlaying)
+            .and(
+                isInviter.and(inviterLossCondition)
+                    .or(isInvitee.and(inviteeLossCondition))
+            )
+            .awaitSingleValue() ?: 0
+
+        val draws = dslContext
+            .selectCount()
+            .from(GAME)
+            .where(isUserPlaying)
+            .and(GAME.OUTCOME.eq(DRAW))
+            .awaitSingleValue() ?: 0
+
+        return PlayerVsPlayerOutcomeStatsRecord(
+            wins = wins,
+            losses = losses,
+            draws = draws
+        )
     }
 
     suspend fun fetchNumberOfGamesAndLastPlayed(userIds: List<String>): List<PlayerVsPlayerNumberOfGamesAndLastPlayedRecord> {

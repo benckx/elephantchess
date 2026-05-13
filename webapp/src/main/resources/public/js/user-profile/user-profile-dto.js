@@ -79,6 +79,67 @@ class TimeCategoryStatsDto {
 
 }
 
+class PlayerVsPlayerStatsDto {
+
+    #wins;
+    #losses;
+    #draws;
+
+    constructor(json) {
+        this.#wins = json.wins;
+        this.#losses = json.losses;
+        this.#draws = json.draws;
+    }
+
+    /**
+     * @returns {number}
+     */
+    get wins() {
+        return this.#wins;
+    }
+
+    /**
+     * @returns {number}
+     */
+    get losses() {
+        return this.#losses;
+    }
+
+    /**
+     * @returns {number}
+     */
+    get draws() {
+        return this.#draws;
+    }
+
+}
+
+class GameStatsDto {
+
+    #ratings;
+    #pvp;
+
+    constructor(json) {
+        this.#ratings = new TimeCategoryStatsDto(json.ratings);
+        this.#pvp = new PlayerVsPlayerStatsDto(json.pvp);
+    }
+
+    /**
+     * @returns {TimeCategoryStatsDto}
+     */
+    get ratings() {
+        return this.#ratings;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get pvp() {
+        return this.#pvp;
+    }
+
+}
+
 class PuzzleSummaryStatsDto {
 
     #rating;

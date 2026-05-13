@@ -42,11 +42,14 @@ class UserProfilePage extends BasePage {
 
     #fetchGamesRatings() {
         this.#client.fetchGameRatings(stats => {
-            document.getElementById('rating-bullet').innerText = stats.bullet.toString();
-            document.getElementById('rating-blitz').innerText = stats.blitz.toString();
-            document.getElementById('rating-rapid').innerText = stats.rapid.toString();
-            document.getElementById('rating-classical').innerText = stats.classical.toString()
-            document.getElementById('rating-correspondence').innerText = stats.correspondence.toString();
+            document.getElementById('rating-bullet').innerText = stats.ratings.bullet.toString();
+            document.getElementById('rating-blitz').innerText = stats.ratings.blitz.toString();
+            document.getElementById('rating-rapid').innerText = stats.ratings.rapid.toString();
+            document.getElementById('rating-classical').innerText = stats.ratings.classical.toString()
+            document.getElementById('rating-correspondence').innerText = stats.ratings.correspondence.toString();
+            document.getElementById('pvp-wins').innerText = formatNumber(stats.pvp.wins);
+            document.getElementById('pvp-losses').innerText = formatNumber(stats.pvp.losses);
+            document.getElementById('pvp-draws').innerText = formatNumber(stats.pvp.draws);
         });
     }
 
