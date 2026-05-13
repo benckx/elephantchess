@@ -1,5 +1,8 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.config.AppConfig
+import io.elephantchess.config.DbConfig
+import io.elephantchess.config.PropertiesFile
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.servicelayer.clients.DigitalOceanSpacesClient
 import kotlinx.coroutines.test.runTest
@@ -23,11 +26,30 @@ class UserProfilePictureServiceTest {
 
     private val spacesClient = mock<DigitalOceanSpacesClient>()
     private val userDaoService = mock<UserDaoService>()
-    private val service = UserProfilePictureService(spacesClient, userDaoService)
+    private val appConfig = AppConfig(
+        profile = "local-backup",
+        webHost = "localhost",
+        isMinificationEnabled = false,
+        isGoogleAnalyticsEnabled = false,
+        isCookieConsentBannerEnabled = false,
+        isDockerized = false,
+        sendMailNotifications = false,
+        isCachingEnabled = false,
+        isEnginePoolEnabled = false,
+        enginesThreads = 1,
+        pikafishVersion = "",
+        fairyStockfishVersion = "",
+        dbConfig = DbConfig("test", "jdbc:postgresql://localhost/test", "postgres", "postgres"),
+        parseUserAgent = false,
+        disabledBatches = emptyList(),
+        cdnEnabled = true,
+        properties = PropertiesFile("local", null),
+    )
+    private val service = UserProfilePictureService(appConfig, spacesClient, userDaoService)
 
     @Test
     fun `profilePictureUrl returns null when extension is missing`() {
-        assertNull(UserProfilePictureService.profilePictureUrl("user-1", null))
+        assertNull(UserProfilePictureService.profilePictureUrl("local-backup", "user-1", null))
     }
 
     @Test
@@ -61,7 +83,7 @@ class UserProfilePictureServiceTest {
 
         val url = service.uploadProfilePicture("user-1", "photo.png", output.toByteArray())
 
-        assertEquals("https://cdn.elephantchess.io/profile-pictures/user-1.png", url)
+        assertEquals("https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png", url)
         verify(userDaoService).updateProfilePictureExtension("user-1", "png")
         verify(spacesClient).uploadBytes(
             check { bytes ->
@@ -69,7 +91,7 @@ class UserProfilePictureServiceTest {
                 assertEquals(100, image.width)
                 assertEquals(100, image.height)
             },
-            eq("profile-pictures/user-1.png"),
+            eq("local-backup/profile-pictures/user-1.png"),
             eq("image/png"),
             eq("public-read"),
         )

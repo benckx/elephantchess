@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.config.AppConfig
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.servicelayer.clients.DigitalOceanSpacesClient
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
@@ -10,9 +11,12 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 class UserProfilePictureService(
+    appConfig: AppConfig,
     private val spacesClient: DigitalOceanSpacesClient,
     private val userDaoService: UserDaoService,
 ) {
+
+    private val profile = appConfig.profile
 
     /**
      * Validate and normalize a profile picture upload, store it on the CDN-backed object storage,
@@ -32,7 +36,7 @@ class UserProfilePictureService(
             throw NotAcceptableException("Profile picture limited to ${PROFILE_PICTURE_MAX_BYTES / 1024}KB")
         }
 
-        val key = "$PROFILE_PICTURE_FOLDER/$userId.$extension"
+        val key = profilePictureKey(profile, userId, extension)
         val uploaded = spacesClient.uploadBytes(
             bytes = normalizedBytes,
             key = key,
@@ -45,7 +49,7 @@ class UserProfilePictureService(
         }
 
         userDaoService.updateProfilePictureExtension(userId, extension)
-        return profilePictureUrl(userId, extension)!!
+        return profilePictureUrl(profile, userId, extension)!!
     }
 
     internal fun normalizeProfilePicture(bytes: ByteArray, extension: String): ByteArray {
@@ -123,9 +127,13 @@ class UserProfilePictureService(
         private const val CDN_BASE = "https://cdn.elephantchess.io"
         private val SUPPORTED_EXTENSIONS = setOf("png", "jpg", "jpeg")
 
-        fun profilePictureUrl(userId: String, extension: String?): String? {
+        fun profilePictureKey(profile: String, userId: String, extension: String): String {
+            return "$profile/$PROFILE_PICTURE_FOLDER/$userId.$extension"
+        }
+
+        fun profilePictureUrl(profile: String, userId: String, extension: String?): String? {
             val sanitizedExtension = extension?.lowercase()?.takeIf { it in SUPPORTED_EXTENSIONS } ?: return null
-            return "$CDN_BASE/$PROFILE_PICTURE_FOLDER/$userId.$sanitizedExtension"
+            return "$CDN_BASE/${profilePictureKey(profile, userId, sanitizedExtension)}"
         }
     }
 }

@@ -46,6 +46,7 @@ class UserService(
 
     // password hashing
     private val salt: ByteArray = appConfig.loadString("salt").toByteArray()
+    private val profile = appConfig.profile
     private val secretKeyFactory = SecretKeyFactory.getInstance(SALT_ALGO)
 
     private val refreshJob = launchAtFixedRateStartImmediately(
@@ -247,7 +248,7 @@ class UserService(
                 country = record.value3(),
                 profileDescription = record.value4(),
                 puzzleRating = record.value5(),
-                profilePictureUrl = UserProfilePictureService.profilePictureUrl(record.value1(), record.value6())
+                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, record.value1(), record.value6())
             )
         }
     }
@@ -258,7 +259,7 @@ class UserService(
             return ProfileSettingsDto(
                 description = record.value1().orEmpty(),
                 country = record.value2().orEmpty(),
-                profilePictureUrl = UserProfilePictureService.profilePictureUrl(userId, record.value3())
+                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, userId, record.value3())
             )
         } else {
             throw NotFoundException("User not found")
