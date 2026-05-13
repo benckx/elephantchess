@@ -213,6 +213,12 @@ class BoardGui {
     /** @type {HTMLElement|null} - floating ghost image that follows the finger */
     #touchDragGhost = null;
 
+    /** @type {number} - cached width of the touch drag ghost in pixels */
+    #touchDragGhostWidth = 0;
+
+    /** @type {number} - cached height of the touch drag ghost in pixels */
+    #touchDragGhostHeight = 0;
+
     /**
      * @param {BoardGuiOptions} [options]
      */
@@ -1357,6 +1363,8 @@ class BoardGui {
         this.#moveTouchGhost(ghost, touch.clientX, touch.clientY, rect.width, rect.height);
         document.body.appendChild(ghost);
         this.#touchDragGhost = ghost;
+        this.#touchDragGhostWidth = rect.width;
+        this.#touchDragGhostHeight = rect.height;
     }
 
     /**
@@ -1366,8 +1374,7 @@ class BoardGui {
         if (this.#touchDragFromPosition === null) return;
         e.preventDefault();
         const touch = e.touches[0];
-        const ghost = this.#touchDragGhost;
-        this.#moveTouchGhost(ghost, touch.clientX, touch.clientY, parseFloat(ghost.style.width), parseFloat(ghost.style.height));
+        this.#moveTouchGhost(this.#touchDragGhost, touch.clientX, touch.clientY, this.#touchDragGhostWidth, this.#touchDragGhostHeight);
     }
 
     /**
