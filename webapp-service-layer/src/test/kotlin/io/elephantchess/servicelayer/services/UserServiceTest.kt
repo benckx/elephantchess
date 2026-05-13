@@ -138,7 +138,7 @@ class UserServiceTest : ServiceTest() {
             "user@name",       // @ symbol
             "user.name",       // dot
             "user!name",       // exclamation mark
-            "用户名称",           // non-ASCII characters
+            "user🙂name",      // emoji
         )
 
         for (username in invalidUsernames) {
@@ -149,7 +149,7 @@ class UserServiceTest : ServiceTest() {
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username '$username' should be rejected")
-            assertTrue(result.left().errors.contains("Username must be alphanumeric (can also include _ or -)"), "Should contain invalid characters error for '$username'")
+            assertTrue(result.left().errors.contains("Username must contain only letters, numbers, _ or -"), "Should contain invalid characters error for '$username'")
         }
     }
 
@@ -161,6 +161,8 @@ class UserServiceTest : ServiceTest() {
             "user_name",       // with underscore
             "user-name",       // with dash
             "User_Name-123",   // mixed case with underscore and dash
+            "nguyễn",          // vietnamese letters
+            "Đặng_123",        // vietnamese letters with underscore and digits
             "a".repeat(30),    // maximum length
         )
 

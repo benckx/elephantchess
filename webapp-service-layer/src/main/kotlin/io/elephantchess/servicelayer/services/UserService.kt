@@ -356,7 +356,7 @@ class UserService(
         }
 
         if (!isValidUsername(request.username)) {
-            errors += "Username must be alphanumeric (can also include _ or -)"
+            errors += "Username must contain only letters, numbers, _ or -"
         }
 
         if (!isEmailFormatValid(request.email)) {
@@ -416,10 +416,10 @@ class UserService(
         }
 
         /**
-         * Allowed characters: alphanumeric, underscore and dashes
+         * Allowed characters: unicode letters, numbers, underscore and dashes
          */
         private fun isValidUsername(chars: String): Boolean =
-            chars.matches("^[a-zA-Z0-9_-]*$".toRegex())
+            chars.matches("^[\\p{L}\\p{M}\\p{N}_-]*$".toRegex())
 
         private fun isEmailFormatValid(chars: String): Boolean =
             chars.matches(EMAIL_REGEX)
