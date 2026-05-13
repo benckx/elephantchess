@@ -104,4 +104,8 @@ class UserProfilePage extends BasePage {
 
 }
 
-window.onload = () => new UserProfilePage();
+window.onload = () => {
+    new UserProfilePage();
+    const username = document.body.dataset.username;
+    new UserProfileGamesSection(username);
+};

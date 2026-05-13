@@ -529,6 +529,51 @@ class GameDataService(
             }
     }
 
+    suspend fun listLastPvpGamesByUserId(
+        userId: String,
+        requestedLimit: Int,
+        beforeTs: Long?
+    ): ListLastGamesResponse {
+        val games = pvpGameDaoService.listLastGamesByUserId(
+            userId = userId,
+            limit = requestedLimit,
+            minMoveIndex = MIN_MOVE_INDEX,
+            beforeTs = beforeTs
+        )
+
+        val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
+        val lastOnlineByUserId = userDaoService.fetchLastOnline(userIds)
+        val isOnlineLimit = Clock.System.now().minusSeconds(15L)
+
+        return games
+            .map { gameRecord ->
+                val redUserId = gameRecord.redUserId()!!
+                val blackUserId = gameRecord.blackUserId()!!
+
+                GameMetadataDto(
+                    gameId = GameId(PVP, gameRecord.id),
+                    redPlayerId = redUserId,
+                    redPlayerName = fetchUserName(redUserId),
+                    redPlayerRating = gameRecord.redPlayerRating(),
+                    redUserType = userCache.fetchUserType(redUserId),
+                    isRedOnline = lastOnlineByUserId[redUserId]?.isAfter(isOnlineLimit) == true,
+                    blackPlayerId = blackUserId,
+                    blackPlayerName = fetchUserName(blackUserId),
+                    blackPlayerRating = gameRecord.blackPlayerRating(),
+                    blackUserType = userCache.fetchUserType(blackUserId),
+                    isBlackOnline = lastOnlineByUserId[blackUserId]?.isAfter(isOnlineLimit) == true,
+                    userColor = null,
+                    finalFen = gameRecord.currentFen,
+                    status = gameRecord.gameStatus,
+                    outcome = gameRecord.outcome,
+                    lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds()
+                )
+            }
+            .let { entries ->
+                ListLastGamesResponse(entries)
+            }
+    }
+
     suspend fun listLastPvbGames(
         requestedLimit: Int,
         distinctByUsers: Boolean = true,

@@ -45,6 +45,17 @@ fun Route.gameDataRoutes() {
                 )
             }
         }
+        get("/list-latest-pvp-games-by-user") {
+            paginationParams { limit, continuation, _ ->
+                val userId = call.parameters["userId"]
+                    ?: throw BadRequestException("userId parameter is required")
+                gameDataService.listLastPvpGamesByUserId(
+                    userId = userId,
+                    requestedLimit = limit,
+                    beforeTs = continuation
+                )
+            }
+        }
         get("/list-latest-pvb-games") {
             paginationParams { limit, continuation, distinctByUsers ->
                 // false by default
