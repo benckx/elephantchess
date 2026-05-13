@@ -416,10 +416,10 @@ class UserService(
         }
 
         /**
-         * Allowed characters: latin letters, numbers, underscore and dashes
+         * Allowed characters: latin letters (including combining marks), numbers, underscore and dashes
          */
         private fun isValidUsername(chars: String): Boolean =
-            chars.matches("^[\\p{IsLatin}\\p{N}_-]*$".toRegex())
+            chars.matches("^[\\p{IsLatin}\\p{M}\\p{N}_-]*$".toRegex())
 
         private fun isEmailFormatValid(chars: String): Boolean =
             chars.matches(EMAIL_REGEX)

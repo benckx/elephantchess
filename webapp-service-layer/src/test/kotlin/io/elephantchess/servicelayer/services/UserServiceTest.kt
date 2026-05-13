@@ -163,6 +163,7 @@ class UserServiceTest : ServiceTest() {
             "user-name",       // with dash
             "User_Name-123",   // mixed case with underscore and dash
             "nguyễn",          // vietnamese letters
+            "trần",            // vietnamese letters with diacritics
             "Đặng_123",        // vietnamese letters with underscore and digits
             "a".repeat(30),    // maximum length
         )
