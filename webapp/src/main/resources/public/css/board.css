@@ -114,6 +114,10 @@ a.board-outer-container-link-mask {
     z-index: 100;
 }
 
+.board-container.colorblind-friendly-black-pieces .piece-image-black {
+    filter: invert(1);
+}
+
 .piece-holder .piece-image-can-move {
     cursor: move;
 }

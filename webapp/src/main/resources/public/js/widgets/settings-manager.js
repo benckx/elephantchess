@@ -19,6 +19,7 @@
 
 const PIECE_STYLE_SETTING = 'setting.piece.style';
 const SHOW_COORDINATES_SETTING = 'setting.show.coordinates';
+const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
 const MOVE_FORMAT_SETTING = 'setting.move.format';
 const MOVE_NODE_EVAL_FORMAT = 'setting.move.node.eval.format';
 const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
@@ -78,6 +79,25 @@ class SettingsManager {
      */
     set isShowCoordinatesEnabled(value) {
         setCookie(SHOW_COORDINATES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isColorblindFriendlyBlackPiecesEnabled() {
+        const cookieValue = getCookie(COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING);
+        if (cookieValue === null) {
+            return false;
+        } else {
+            return cookieValue === 'true';
+        }
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isColorblindFriendlyBlackPiecesEnabled(value) {
+        setCookie(COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
     }
 
     /**
@@ -173,6 +193,7 @@ function buildWebappBoardGuiOptions(overrides = {}) {
     return {
         coordinatesOrientation: settingsManager.getCoordinatesOrientation(),
         pieceStyle: settingsManager.pieceStyle,
+        colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
         ...(isLocalHost ? { assetsBaseUrl: '' } : {}),
@@ -284,6 +305,7 @@ class SettingsGui {
     #selectPieceStyleRomanizedRounded = document.getElementById('select-piece-style-romanized-rounded');
     #moveFormat = document.getElementById('move-format-button');
     #showCoordinates = document.getElementById('show-coordinates-button');
+    #colorblindFriendlyBlackPieces = document.getElementById('colorblind-friendly-black-pieces-button');
     #flipBoard = document.getElementById('flip-board-button');
 
     // optional
@@ -338,6 +360,14 @@ class SettingsGui {
             this.#settingsManager.isShowCoordinatesEnabled = boardGui.toggleShowCoordinates();
         }
         addToolTip(this.#showCoordinates, 'Show or hide board coordinates');
+
+        // colorblind-friendly black pieces
+        this.#colorblindFriendlyBlackPieces.onclick = () => {
+            const enabled = !this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled;
+            this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = enabled;
+            this.#boardGuis.forEach(boardGui => boardGui.setColorblindFriendlyBlackPiecesEnabled(enabled));
+        }
+        addToolTip(this.#colorblindFriendlyBlackPieces, 'Invert black pieces for colorblind accessibility');
 
         // flip board
         this.#flipBoard.onclick = () => {
