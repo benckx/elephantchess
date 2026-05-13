@@ -132,6 +132,9 @@ const CoordinatesOrientation = Object.freeze({
     UCI: 'UCI',
 });
 
+// Chinese numerals for files 1..9, used to label red's side of the board in WXF mode.
+const CHINESE_FILE_DIGITS = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
+
 /**
  * Visual style of the board pieces. Used to pick the corresponding image folder
  * (under `${assetsBaseUrl}/images/pieces/<style-lowercased>/`).
@@ -1136,11 +1139,13 @@ class BoardGui {
 
                 for (let x = 0; x < BOARD_WIDTH; x++) {
                     // actual text
-                    let label = '?';
+                    let label;
                     if (this.#flippedRed) {
+                        // top row is black's side -> arabic numerals
                         label = (x + 1).toString();
                     } else {
-                        label = (BOARD_WIDTH - x).toString();
+                        // top row is red's side -> chinese numerals
+                        label = CHINESE_FILE_DIGITS[BOARD_WIDTH - x - 1];
                     }
 
                     let div = buildFileDiv(label, 'file-coordinates-top', isSettingEnabled);
@@ -1156,11 +1161,13 @@ class BoardGui {
             }
             for (let x = 0; x < BOARD_WIDTH; x++) {
                 // actual text
-                let label = '?';
+                let label;
                 if (isWfxOriented) {
                     if (this.#flippedRed) {
-                        label = (BOARD_WIDTH - x).toString();
+                        // bottom row is red's side -> chinese numerals
+                        label = CHINESE_FILE_DIGITS[BOARD_WIDTH - x - 1];
                     } else {
+                        // bottom row is black's side -> arabic numerals
                         label = (x + 1).toString();
                     }
                 } else {
