@@ -404,7 +404,8 @@ class DatabaseService(
                 profileText = profileVersion.profile,
                 sources = fetchPlayerProfileSources(playerId, profileVersion.version),
                 editComment = profileVersion.comment,
-                enabled = profileVersion.enabled
+                enabled = profileVersion.enabled,
+                versionTime = profileVersion.versionTime.toEpochMilliseconds()
             )
         } else {
             val player = referencePlayerDaoService.findPlayer(playerId)
@@ -418,7 +419,8 @@ class DatabaseService(
                 profileText = null,
                 sources = emptyList(),
                 editComment = null,
-                enabled = true
+                enabled = true,
+                versionTime = null
             )
         }
     }

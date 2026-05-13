@@ -7,6 +7,11 @@ import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.formatWithChineseName
 import io.github.reactivecircus.cache4k.Cache
+import io.ktor.util.escapeHTML
+import java.time.Instant
+import java.time.ZoneOffset.UTC
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.time.Duration.Companion.hours
 
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
@@ -30,6 +35,13 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         fetchEditorsUsername: suspend () -> List<String>,
     ): String {
         val description = edit.profileText
+        var cachedEditors: List<String>? = null
+        suspend fun fetchContributors(): List<String> {
+            return cachedEditors ?: fetchEditorsUsername()
+                .distinct()
+                .sorted()
+                .also { cachedEditors = it }
+        }
 
         val playerNameEncodedResolver = SimpleValueTagResolver("player_name_encoded", databasePlayer.urlName)
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
@@ -55,11 +67,33 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         }
 
         val authorMeta = CallbackTagResolver("author_meta") {
-            val editors = fetchEditorsUsername()
+            val editors = fetchContributors()
             if (editors.isNotEmpty()) {
                 meta("author", editors.sorted().joinToString(", "))
             } else {
                 ""
+            }
+        }
+
+        val profileMetaResolver = CallbackTagResolver("profile_meta_info") {
+            val contributors = fetchContributors().joinToString(", ") { it.escapeHTML() }
+            val lastEditDate = edit.versionTime
+                ?.let { Instant.ofEpochMilli(it).atZone(UTC).toLocalDate() }
+                ?.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
+            if (contributors.isEmpty() && lastEditDate == null) {
+                ""
+            } else {
+                buildString {
+                    if (contributors.isNotEmpty()) {
+                        append("""<span><b>Contributors:</b> $contributors</span>""")
+                    }
+                    if (lastEditDate != null) {
+                        if (isNotEmpty()) {
+                            append("""<span class="profile-meta-separator"> · </span>""")
+                        }
+                        append("""<span><b>Last edit:</b> $lastEditDate</span>""")
+                    }
+                }
             }
         }
 
@@ -82,6 +116,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 sourcesResolver,
                 styleResolver,
                 authorMeta,
+                profileMetaResolver,
                 noIndexMeta
             ),
             canonicalPath = "/database/player/${databasePlayer.urlName}"
