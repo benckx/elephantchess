@@ -496,7 +496,7 @@ class GameDataService(
 
         val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
         val lastOnlineByUserId = userDaoService.fetchLastOnline(userIds)
-        val isOnlineLimit = Clock.System.now().minusSeconds(15L)
+        val isOnlineLimit = Clock.System.now().minusSeconds(ONLINE_STATUS_THRESHOLD_SECONDS)
         val selectedGames = if (distinctByUsers) distinctByUserId(games) else games
 
         return selectedGames
@@ -548,7 +548,7 @@ class GameDataService(
 
         val userIds = gameRecords.map { game -> game.userId }.distinct().filterNotNull()
         val lastOnlineByUserId = userDaoService.fetchLastOnline(userIds)
-        val isOnlineLimit = Clock.System.now().minusSeconds(15L)
+        val isOnlineLimit = Clock.System.now().minusSeconds(ONLINE_STATUS_THRESHOLD_SECONDS)
 
         return gameRecords
             .take(requestedLimit)
@@ -671,7 +671,7 @@ class GameDataService(
         val pvbUserIds = pvbGames.mapNotNull { game -> game.userId }
         val allUserIds = (pvpUserIds + pvbUserIds).distinct()
         val lastOnlineByUserId = if (allUserIds.isNotEmpty()) userDaoService.fetchLastOnline(allUserIds) else emptyMap()
-        val isOnlineLimit = Clock.System.now().minusSeconds(15L)
+        val isOnlineLimit = Clock.System.now().minusSeconds(ONLINE_STATUS_THRESHOLD_SECONDS)
 
         val entries = pvpGames.map { game ->
             val redUserId = game.redUserId()
@@ -706,6 +706,7 @@ class GameDataService(
 
         const val DEFAULT_ANALYSIS_DEPTH = 20
         const val MIN_MOVE_INDEX = 6
+        const val ONLINE_STATUS_THRESHOLD_SECONDS = 15L
 
     }
 
