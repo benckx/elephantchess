@@ -168,9 +168,13 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             this.#enablePlayerColorRadioButtons(true);
         }
         if (playerColor) {
-            const radioInput = document.querySelector(`input[name="player-color"][value="${playerColor.toLowerCase()}"]`);
-            if (radioInput) {
-                radioInput.checked = true;
+            const validColors = ['red', 'black', 'both'];
+            const normalizedColor = playerColor.toLowerCase();
+            if (validColors.includes(normalizedColor)) {
+                const radioInput = document.querySelector(`input[name="player-color"][value="${normalizedColor}"]`);
+                if (radioInput) {
+                    radioInput.checked = true;
+                }
             }
         }
         if (eventName) {
@@ -179,11 +183,13 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         if (dateStart || dateEnd) {
             const startDate = dateStart ? new Date(dateStart) : null;
             const endDate = dateEnd ? new Date(dateEnd) : null;
-            if (startDate && endDate) {
+            const startValid = startDate && !isNaN(startDate.getTime());
+            const endValid = endDate && !isNaN(endDate.getTime());
+            if (startValid && endValid) {
                 this.#dateRangePicker.setDates(startDate, endDate);
-            } else if (startDate) {
+            } else if (startValid) {
                 this.#dateRangePicker.setDates(startDate, null);
-            } else if (endDate) {
+            } else if (endValid) {
                 this.#dateRangePicker.setDates(null, endDate);
             }
         }

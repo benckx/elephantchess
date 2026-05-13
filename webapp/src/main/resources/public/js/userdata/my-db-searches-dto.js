@@ -110,22 +110,22 @@ class MyDbSearchEntryDto {
      */
     get repeatSearchUrl() {
         const params = new URLSearchParams();
-        if (this.#playerName != null) {
+        if (this.#playerName !== null) {
             params.set('playerName', this.#playerName);
         }
-        if (this.#playerColor != null) {
+        if (this.#playerColor !== null) {
             params.set('playerColor', this.#playerColor);
         }
-        if (this.#eventName != null) {
+        if (this.#eventName !== null) {
             params.set('eventName', this.#eventName);
         }
-        if (this.#searchStart != null) {
+        if (this.#searchStart !== null) {
             params.set('dateStart', this.#searchStart);
         }
-        if (this.#searchEnd != null) {
+        if (this.#searchEnd !== null) {
             params.set('dateEnd', this.#searchEnd);
         }
-        if (this.#fen != null) {
+        if (this.#fen !== null) {
             params.set('fen', this.#fen);
         }
         const queryString = params.toString();
@@ -138,22 +138,22 @@ class MyDbSearchEntryDto {
      */
     get searchSummary() {
         const parts = [];
-        if (this.#playerName != null) {
+        if (this.#playerName !== null) {
             let playerPart = this.#playerName;
-            if (this.#playerColor != null) {
+            if (this.#playerColor !== null) {
                 playerPart += ` (${this.#playerColor.toLowerCase()})`;
             }
             parts.push(playerPart);
         }
-        if (this.#eventName != null) {
+        if (this.#eventName !== null) {
             parts.push(this.#eventName);
         }
-        if (this.#searchStart != null || this.#searchEnd != null) {
+        if (this.#searchStart !== null || this.#searchEnd !== null) {
             const start = this.#searchStart ?? '...';
             const end = this.#searchEnd ?? '...';
             parts.push(`${start} → ${end}`);
         }
-        if (this.#fen != null) {
+        if (this.#fen !== null) {
             parts.push(`FEN: ${this.#fen}`);
         }
         if (parts.length === 0) {

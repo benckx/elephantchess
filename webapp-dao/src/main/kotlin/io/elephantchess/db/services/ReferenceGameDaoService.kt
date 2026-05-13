@@ -415,37 +415,31 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         if (existingId != null) {
             dslContext
                 .update(REFERENCE_GAME_SEARCH_QUERY)
-                .set(updateField, now)
-                .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS, numberOfResults)
+                .set(updateField.fixed(), now)
+                .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS.fixed(), numberOfResults)
                 .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(existingId))
                 .awaitExecute()
             return
         }
 
-        val record = ReferenceGameSearchQuery()
-        record.queryId = generateId()
-        record.userId = userId
-        record.searchStart = searchStart
-        record.searchEnd = searchEnd
-        record.playerName = playerName
-        record.playerId = playerId
-        record.playerColor = playerColor
-        record.eventName = eventName
-        record.eventId = eventId
-        record.fen = fen
-        record.offset = offset
-        record.limit = limit
-        record.numberOfResults = numberOfResults
-        record.queryTime = now
-
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameSearchQueryDao(cfg).insertReactive(record)
-        }
-
+        val queryId = generateId()
         dslContext
-            .update(REFERENCE_GAME_SEARCH_QUERY)
-            .set(updateField, now)
-            .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(record.queryId))
+            .insertInto(REFERENCE_GAME_SEARCH_QUERY.fixed())
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.fixed(), queryId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID.fixed(), userId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME.fixed(), now)
+            .set(updateField.fixed(), now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_START.fixed(), searchStart)
+            .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END.fixed(), searchEnd)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.fixed(), playerName)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID.fixed(), playerId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR.fixed(), playerColor)
+            .set(REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME.fixed(), eventName)
+            .set(REFERENCE_GAME_SEARCH_QUERY.EVENT_ID.fixed(), eventId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.FEN.fixed(), fen)
+            .set(REFERENCE_GAME_SEARCH_QUERY.OFFSET.fixed(), offset)
+            .set(REFERENCE_GAME_SEARCH_QUERY.LIMIT.fixed(), limit)
+            .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS.fixed(), numberOfResults)
             .awaitExecute()
     }
 

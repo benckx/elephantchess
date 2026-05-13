@@ -2365,6 +2365,9 @@
         <addColumn tableName="reference_game_search_query">
             <column name="update_time" type="timestamp with time zone"/>
         </addColumn>
-        <sql>UPDATE reference_game_search_query SET update_time = query_time WHERE update_time IS NULL</sql>
+        <update tableName="reference_game_search_query">
+            <column name="update_time" valueComputed="query_time"/>
+            <where>update_time IS NULL</where>
+        </update>
     </changeSet>
 </databaseChangeLog>
