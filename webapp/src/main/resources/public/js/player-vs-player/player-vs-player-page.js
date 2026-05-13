@@ -492,11 +492,12 @@ class PlayGamePage extends BasePage {
      * @param userType {string|null}
      * @param rating {number|null}
      * @param ratingDelta {HTMLElement}
-     * @return {HTMLElement}
+     * @return {{leftGroup: HTMLElement, ratingDelta: HTMLElement}}
      */
     #buildClockPlayerInfo(color, userId, username, userType, rating, ratingDelta) {
-        const container = document.createElement('div');
-        container.dataset.color = color;
+        const leftGroup = document.createElement('span');
+        leftGroup.classList.add('clock-player-info-left');
+        leftGroup.dataset.color = color;
 
         const onlineIndicator = document.createElement('span');
         onlineIndicator.classList.add('online-status-indicator', 'online-status-indicator-smaller');
@@ -508,8 +509,8 @@ class PlayGamePage extends BasePage {
         const ratingSpan = document.createElement('span');
         ratingSpan.innerText = ' (' + rating + ')';
 
-        container.append(onlineIndicator, nameSpan, ratingSpan, ratingDelta);
-        return container;
+        leftGroup.append(onlineIndicator, nameSpan, ratingSpan);
+        return {leftGroup, ratingDelta};
     }
 
     /**
@@ -525,10 +526,10 @@ class PlayGamePage extends BasePage {
         const topInfo = this.#playerInfoByColor[colorAtTop];
         const bottomInfo = this.#playerInfoByColor[colorAtBottom];
         if (topInfo != null) {
-            this.#topPlayerInfo.append(topInfo);
+            this.#topPlayerInfo.append(topInfo.leftGroup, topInfo.ratingDelta);
         }
         if (bottomInfo != null) {
-            this.#bottomPlayerInfo.append(bottomInfo);
+            this.#bottomPlayerInfo.append(bottomInfo.leftGroup, bottomInfo.ratingDelta);
         }
     }
 
@@ -660,19 +661,23 @@ class PlayGamePage extends BasePage {
      * @param color {string} color to put at the bottom (i.e. on the player's side)
      */
     #updateClocksOrientation(color) {
-        const timeCounters = document.getElementsByClassName('time-counter');
-        for (let i = 0; i < timeCounters.length; i++) {
-            timeCounters[i].classList.remove('red-counter', 'black-counter');
+        const colorables = [this.#topCounter, this.#bottomCounter, this.#topPlayerInfo, this.#bottomPlayerInfo];
+        for (const element of colorables) {
+            element.classList.remove('red-counter', 'black-counter');
         }
 
         switch (color) {
             case Color.RED:
                 this.#topCounter.classList.add('black-counter');
                 this.#bottomCounter.classList.add('red-counter');
+                this.#topPlayerInfo.classList.add('black-counter');
+                this.#bottomPlayerInfo.classList.add('red-counter');
                 break;
             case Color.BLACK:
                 this.#topCounter.classList.add('red-counter');
                 this.#bottomCounter.classList.add('black-counter');
+                this.#topPlayerInfo.classList.add('red-counter');
+                this.#bottomPlayerInfo.classList.add('black-counter');
                 break;
             default:
                 throw new Error('Incorrect color: ' + color);
