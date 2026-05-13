@@ -207,6 +207,12 @@ class BoardGui {
 
     #isSafari = false;
 
+    /** @type {Position|null} - source square of an in-progress touch drag */
+    #touchDragFromPosition = null;
+
+    /** @type {HTMLElement|null} - floating ghost image that follows the finger */
+    #touchDragGhost = null;
+
     /**
      * @param {BoardGuiOptions} [options]
      */
@@ -230,6 +236,12 @@ class BoardGui {
                     boardGui.#hideAllPiecePlaceHolders();
                 }
             });
+
+        // Touch drag-and-drop: listen at document level so the drag continues
+        // even if the finger moves outside the board container.
+        document.addEventListener('touchmove', (e) => this.#touchDragMove(e), {passive: false});
+        document.addEventListener('touchend', (e) => this.#touchDragEnd(e));
+        document.addEventListener('touchcancel', () => this.#touchDragCancel());
 
         if (this.#options.svg) {
             window.onresize = function () {
@@ -1238,6 +1250,7 @@ class BoardGui {
         img.addEventListener('click', () => this.#clickedOnPiece(position));
         img.addEventListener('dragstart', (e) => this.#dragStart(e, position));
         img.addEventListener('dragend', () => this.#dragEnd());
+        img.addEventListener('touchstart', (e) => this.#touchDragStart(e, position), {passive: false});
         square.prepend(img);
     }
 
@@ -1310,11 +1323,103 @@ class BoardGui {
         this.#hideAllPiecePlaceHolders();
     }
 
+    // -------------------------------------------------------------------------
+    // Touch drag-and-drop (mobile support)
+    // -------------------------------------------------------------------------
+
     /**
-     * @param e {DragEvent}
-     * @param to {Position}
+     * @param e {TouchEvent}
+     * @param position {Position}
      */
-    #handlePieceHolderDropEvent(e, to) {
+    #touchDragStart(e, position) {
+        if (!this.isPlayerMoveEnabled || this.#board.getColorAt(position) !== this.#board.getColorToPlay()) {
+            return;
+        }
+
+        e.preventDefault(); // prevent page scroll while dragging a piece
+
+        const touch = e.touches[0];
+        this.#touchDragFromPosition = position;
+        this.#showSelectedPositionAndLegalMovesPlaceHolders(position);
+
+        // Build a floating ghost image that follows the finger
+        const img = e.currentTarget;
+        const rect = img.getBoundingClientRect();
+        const ghost = img.cloneNode(false);
+        ghost.className = 'piece-image touch-drag-ghost';
+        ghost.style.position = 'fixed';
+        ghost.style.pointerEvents = 'none';
+        ghost.style.zIndex = '1000';
+        ghost.style.width = rect.width + 'px';
+        ghost.style.height = rect.height + 'px';
+        ghost.style.margin = '0';
+        ghost.style.opacity = '0.85';
+        this.#moveTouchGhost(ghost, touch.clientX, touch.clientY, rect.width, rect.height);
+        document.body.appendChild(ghost);
+        this.#touchDragGhost = ghost;
+    }
+
+    /**
+     * @param e {TouchEvent}
+     */
+    #touchDragMove(e) {
+        if (this.#touchDragFromPosition === null) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const ghost = this.#touchDragGhost;
+        this.#moveTouchGhost(ghost, touch.clientX, touch.clientY, parseFloat(ghost.style.width), parseFloat(ghost.style.height));
+    }
+
+    /**
+     * @param e {TouchEvent}
+     */
+    #touchDragEnd(e) {
+        if (this.#touchDragFromPosition === null) return;
+
+        // Remove the ghost before calling elementFromPoint so the ghost
+        // element does not obscure the target square.
+        if (this.#touchDragGhost) {
+            this.#touchDragGhost.remove();
+            this.#touchDragGhost = null;
+        }
+
+        const touch = e.changedTouches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (element != null) {
+            const square = element.closest('.piece-holder');
+            if (square != null && square.id) {
+                const to = parsePositionFromElementId(square.id);
+                const move = new HalfMove(this.#touchDragFromPosition, to);
+                this.registerMoveIfLegal(move, false);
+            }
+        }
+
+        this.#hideAllPiecePlaceHolders();
+        this.#touchDragFromPosition = null;
+    }
+
+    #touchDragCancel() {
+        if (this.#touchDragGhost) {
+            this.#touchDragGhost.remove();
+            this.#touchDragGhost = null;
+        }
+        this.#hideAllPiecePlaceHolders();
+        this.#touchDragFromPosition = null;
+    }
+
+    /**
+     * @param ghost {HTMLElement}
+     * @param clientX {number}
+     * @param clientY {number}
+     * @param width {number}
+     * @param height {number}
+     */
+    #moveTouchGhost(ghost, clientX, clientY, width, height) {
+        ghost.style.left = (clientX - width / 2) + 'px';
+        ghost.style.top = (clientY - height / 2) + 'px';
+    }
+
+
         const uci = e.dataTransfer.getData('text/plain');
         const from = Position.parseUci(uci);
         const move = new HalfMove(from, to);
