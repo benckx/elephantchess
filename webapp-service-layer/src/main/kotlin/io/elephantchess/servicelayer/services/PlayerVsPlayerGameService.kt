@@ -27,7 +27,6 @@ import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.ws.GamesToPlayWebSocketSession
 import io.elephantchess.servicelayer.services.ws.PlayerVsPlayerWebSocketSession
-import io.elephantchess.servicelayer.utils.ops.isPreAnalyzed
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
@@ -378,7 +377,7 @@ class PlayerVsPlayerGameService(
                     outcome = gameRecord.userOutcome(userId),
                     ratingFrom = ratingFrom,
                     ratingTo = ratingTo,
-                    isPreAnalyzed = gameRecord.analysisStatus.isPreAnalyzed(),
+                    isPreAnalyzed = gameRecord.analysisStatus == AnalysisStatus.COMPLETED,
                     created = gameRecord.created.toEpochMilliseconds(),
                     lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
                     numberOfMessages = numberOfMessages

@@ -22,7 +22,7 @@
  * @returns {HTMLDivElement}
  */
 function buildPreAnalyzedIcon(gameId) {
-    const iconImg = buildImg('/images/icons/database.png', 'icon');
+    const iconImg = buildImg('/images/icons/stats.png', 'icon');
     iconImg.alt = 'This game is pre-analyzed';
     iconImg.style.opacity = '75%';
 

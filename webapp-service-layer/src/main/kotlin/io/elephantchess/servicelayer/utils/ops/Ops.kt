@@ -7,7 +7,6 @@ import io.elephantchess.engines.process.EngineId
 import io.elephantchess.engines.process.FairyStockfishEngineId
 import io.elephantchess.engines.process.PikafishEngineId
 import io.elephantchess.engines.protocol.model.InfoLinesResult
-import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
 import io.elephantchess.xiangqi.AbstractPieceType
 import io.elephantchess.xiangqi.Board
@@ -15,10 +14,6 @@ import io.elephantchess.xiangqi.Color
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger("Ops")
-
-fun AnalysisStatus.isPreAnalyzed(): Boolean {
-    return this == AnalysisStatus.PARTIALLY_COMPLETED || this == AnalysisStatus.COMPLETED
-}
 
 fun Game.ratingUpdate(): RatingUpdate? {
     return ratingUpdateRecord()?.let { record ->
