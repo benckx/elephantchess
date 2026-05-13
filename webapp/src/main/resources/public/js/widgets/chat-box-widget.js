@@ -204,6 +204,9 @@ class ChatBoxWidget {
         this.#typingIndicator.style.display = 'block';
     }
 
+    /**
+     * Hides the opponent typing indicator.
+     */
     hideOpponentTyping() {
         this.#typingIndicator.style.display = 'none';
         this.#typingIndicator.innerText = '';
