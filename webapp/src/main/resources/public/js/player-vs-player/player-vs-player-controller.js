@@ -52,6 +52,20 @@ class GameController {
      */
     #webSocket = null;
 
+    /**
+     * Wall-clock timestamps (epoch millis) for each move played in the game.
+     * Parallel to the moves list. Null until the moves history has been fetched.
+     * @type {number[]|null}
+     */
+    #moveTimestamps = null;
+
+    /**
+     * Wall-clock timestamp (epoch millis) at which the game started (invitee joined).
+     * Null until the moves history has been fetched (or if not applicable).
+     * @type {number|null}
+     */
+    #joinTime = null;
+
     #inviteeJoinedCallback = () => console.log('invitee joined');
     #stateUpdateCallback = () => console.log('state updated');
     #opponentMoveReceivedCallback = () => console.log('opponent move received');
@@ -129,7 +143,11 @@ class GameController {
                 this.#startUpdateClocks();
             }
 
-            this.#client.getMovesHistory(moves => this.#fetchMovesCallback(moves));
+            this.#client.getMovesHistory((moves, moveTimestamps, joinTime) => {
+                this.#moveTimestamps = moveTimestamps;
+                this.#joinTime = joinTime;
+                this.#fetchMovesCallback(moves);
+            });
             this.#client.getChatHistory(messages => {
                 this.#receivedChatMessages(messages, []);
             });
@@ -286,6 +304,78 @@ class GameController {
 
     get fen() {
         return this.#gameDto.fen;
+    }
+
+    /**
+     * Wall-clock timestamp (epoch millis) for the move at the given 0-based position
+     * in the main line of the game. Returns null if timestamps are not available
+     * or the position is out of range.
+     *
+     * @param position {number}
+     * @return {number|null}
+     */
+    getMoveTimestampAt(position) {
+        if (this.#moveTimestamps == null) {
+            return null;
+        }
+        if (position < 0 || position >= this.#moveTimestamps.length) {
+            return null;
+        }
+        return this.#moveTimestamps[position];
+    }
+
+    /**
+     * Compute the {@link TimeControlClock} state right after the move at the given
+     * 0-based main-line position has been played. Returns null if the data needed
+     * to reconstruct the historical clock is not available (e.g. unrated game with
+     * no time control, missing timestamps, position out of range).
+     *
+     * Mirrors the server-side logic in PlayerVsPlayerGameService#calculateTimeRemaining.
+     *
+     * @param position {number}
+     * @return {TimeControlClock|null}
+     */
+    getClockAtMovePosition(position) {
+        if (!this.#gameDto || !this.#gameDto.hasTimeControl()) {
+            return null;
+        }
+        if (this.#moveTimestamps == null || this.#joinTime == null) {
+            return null;
+        }
+        if (position < 0 || position >= this.#moveTimestamps.length) {
+            return null;
+        }
+
+        const timeControl = this.#gameDto.timeControl;
+        const baseMs = timeControl.base.toMillis();
+        const incrementMs = timeControl.increment != null ? timeControl.increment.toMillis() : 0;
+
+        if (this.#gameDto.timeControlMode === TimeControlMode.MOVE_TIME) {
+            // In MOVE_TIME the per-move timer resets to base for the player about to play,
+            // and the player who just moved is no longer counting down, so the displayed
+            // clock right after any move is (base, base).
+            return new TimeControlClock(baseMs, baseMs);
+        }
+
+        // GAME_TIME
+        let redMs = baseMs;
+        let blackMs = baseMs;
+        let prev = this.#joinTime;
+        for (let i = 0; i <= position; i++) {
+            const ts = this.#moveTimestamps[i];
+            const elapsed = ts - prev;
+            if (i % 2 === 0) {
+                redMs -= elapsed;
+                redMs += incrementMs;
+            } else {
+                blackMs -= elapsed;
+                blackMs += incrementMs;
+            }
+            prev = ts;
+        }
+        if (redMs < 0) redMs = 0;
+        if (blackMs < 0) blackMs = 0;
+        return new TimeControlClock(redMs, blackMs);
     }
 
     /**

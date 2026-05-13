@@ -236,6 +236,7 @@ class ChatBoxWidget {
 
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-box-message');
+        messageElement.dataset.timestamp = String(message.timestamp);
         messageElement.appendChild(header);
         messageElement.appendChild(content);
 
@@ -243,6 +244,54 @@ class ChatBoxWidget {
         this.#messagesContainer.scrollTop = this.#messagesContainer.scrollHeight;
 
         this.#timestampsToUpdate.set(timestampId, message.timestamp);
+    }
+
+    /**
+     * Highlight the most recent chat message whose timestamp is less than or
+     * equal to {@param maxTimestamp}. Used to display the chat state at the
+     * moment of a given game move. Clears any previous highlight.
+     *
+     * Passing null clears the highlight without applying a new one.
+     *
+     * @param maxTimestamp {number|null}
+     */
+    highlightLatestMessageBefore(maxTimestamp) {
+        this.clearHighlightedMessage();
+        if (maxTimestamp == null) {
+            return;
+        }
+
+        const messageElements = this.#messagesContainer.getElementsByClassName('chat-box-message');
+        let candidate = null;
+        let candidateTs = -Infinity;
+        for (let i = 0; i < messageElements.length; i++) {
+            const el = messageElements[i];
+            const ts = Number(el.dataset.timestamp);
+            if (!Number.isNaN(ts) && ts <= maxTimestamp && ts > candidateTs) {
+                candidate = el;
+                candidateTs = ts;
+            }
+        }
+        if (candidate != null) {
+            candidate.classList.add('chat-box-message-highlighted');
+            // scroll the highlighted message into view (only if widget is visible)
+            if (isInViewport(this.#messagesContainer)) {
+                candidate.scrollIntoView({block: 'nearest', inline: 'start'});
+            }
+        }
+    }
+
+    /**
+     * Remove the 'chat-box-message-highlighted' class from any highlighted chat message.
+     */
+    clearHighlightedMessage() {
+        const highlighted = this.#messagesContainer.getElementsByClassName('chat-box-message-highlighted');
+        // collect first because the live HTMLCollection mutates as classes are removed
+        const toClear = [];
+        for (let i = 0; i < highlighted.length; i++) {
+            toClear.push(highlighted[i]);
+        }
+        toClear.forEach((el) => el.classList.remove('chat-box-message-highlighted'));
     }
 
     /**

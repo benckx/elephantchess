@@ -497,7 +497,13 @@ class PlayerVsPlayerGameService(
 
     // TODO: use generic service instead
     suspend fun fetchMoveHistory(gameId: String): GameMovesResponse {
-        return GameMovesResponse(pvpGameDaoService.listMoves(gameId))
+        val timedMoves = pvpGameDaoService.fetchTimedMoveHistory(gameId)
+        val joinTime = pvpGameDaoService.fetchJoinTime(gameId)
+        return GameMovesResponse(
+            moves = timedMoves.map { it.uci },
+            moveTimestamps = timedMoves.map { it.eventTime.toEpochMilliseconds() },
+            joinTime = joinTime?.toEpochMilliseconds(),
+        )
     }
 
     suspend fun fetchChatHistory(gameId: String): GetChatMessageHistoryResponse {

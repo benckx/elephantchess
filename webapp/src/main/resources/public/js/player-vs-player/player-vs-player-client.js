@@ -37,7 +37,10 @@ class GameClient {
     }
 
     /**
-     * @param cb {function(HalfMove[])}
+     * @param cb {function(HalfMove[], number[]|null, number|null)}
+     *           Receives the parsed moves, the parallel move timestamps (epoch millis),
+     *           and the game's join time (epoch millis). The last two are null for game
+     *           types that don't track move timestamps.
      */
     getMovesHistory(cb) {
         /**
@@ -50,7 +53,11 @@ class GameClient {
         }
 
         const url = `${GAME_API}/moves-history?gameId=${this.#gameId}`;
-        getAndHandle(url, (json) => cb(parseUci(json.moves)))
+        getAndHandle(url, (json) => {
+            const moveTimestamps = Array.isArray(json.moveTimestamps) ? json.moveTimestamps : null;
+            const joinTime = (typeof json.joinTime === 'number') ? json.joinTime : null;
+            cb(parseUci(json.moves), moveTimestamps, joinTime);
+        })
     }
 
     /**
