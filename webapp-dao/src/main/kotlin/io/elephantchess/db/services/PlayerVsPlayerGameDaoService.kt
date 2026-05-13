@@ -422,9 +422,9 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .map { record ->
                 PlayerVsPlayerOutcomeStatsPerCategoryRecord(
                     category = record.get(GAME.TIME_CONTROL_CATEGORY),
-                    wins = record.get("wins", Int::class.java),
-                    losses = record.get("losses", Int::class.java),
-                    draws = record.get("draws", Int::class.java)
+                    wins = record.get(winsField)!!,
+                    losses = record.get(lossesField)!!,
+                    draws = record.get(drawsField)!!
                 )
             }
     }
