@@ -55,3 +55,25 @@
     word-wrap: break-word;
     word-break: break-word;
 }
+
+#faq-toc {
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px 10px;
+}
+
+#faq-toc ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+#faq-toc li {
+    margin: 2px 0;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+#faq-toc a {
+    font-size: inherit;
+}

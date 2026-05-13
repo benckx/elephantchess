@@ -6,6 +6,7 @@ import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
+import io.elephantchess.webapp.rendering.FaqPageRenderer
 import io.elephantchess.webapp.rendering.ModalRenderer
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.elephantchess.webapp.rendering.UserProfilePageRenderer
@@ -39,7 +40,6 @@ private val publicPageMapping = mapOf(
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
     "/about/changelog" to "about/changelog",
-    "/about/faq" to "about/faq",
     "/contact" to "contact_form",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
     "/7k/playground" to "seven_kingdoms/seven_kingdoms_playground",
@@ -100,6 +100,7 @@ fun Application.htmlRoutingModule() {
         userBrowsePvpGames()
         modals()
         databasePages()
+        faqPage()
     }
 }
 
@@ -188,6 +189,14 @@ private fun Route.userBrowsePvpGames() {
                 specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
             )
         )
+    }
+}
+
+private fun Route.faqPage() {
+    val renderer by koin<FaqPageRenderer>()
+
+    get("/about/faq") {
+        call.respondHtml(renderer.renderFaqPage())
     }
 }
 
