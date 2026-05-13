@@ -17,8 +17,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const INIT_ELEMENTS_COUNT = 6;
-
 class BrowseGamesPage extends InfiniteScrollPage {
 
     #gamesContainer;
@@ -35,6 +33,13 @@ class BrowseGamesPage extends InfiniteScrollPage {
     #initThumbDivs = [];
 
     #renderedCount = 0;
+
+    /**
+     * Number of pre-rendered game thumb divs present in the DOM.
+     * Derived from the template (e.g. `{{game_thumb}}[[iterations:N; ...]]`).
+     * @type {number}
+     */
+    #initElementsCount = 0;
 
     /**
      * @type {string}
@@ -55,6 +60,7 @@ class BrowseGamesPage extends InfiniteScrollPage {
 
         // initialize board GUIs for pre-rendered game thumbs
         this.#initThumbDivs = getElementsByClassNameArray(`${gameType}-game-thumb`);
+        this.#initElementsCount = this.#initThumbDivs.length;
         this.#initThumbDivs.forEach((thumbDiv, i) => {
             const boardId = `last-${gameType}-game-board-${i}`;
             const boardElement = document.getElementById(boardId);
@@ -108,7 +114,7 @@ class BrowseGamesPage extends InfiniteScrollPage {
      */
     additionalParameters() {
         const params = new Map();
-        params.set('limit', INIT_ELEMENTS_COUNT.toString());
+        params.set('limit', '12');
         params.set('distinctByUsers', 'false');
         return params;
     }
@@ -118,7 +124,7 @@ class BrowseGamesPage extends InfiniteScrollPage {
      */
     addEntries(entries) {
         entries.forEach((entry) => {
-            if (this.#renderedCount < INIT_ELEMENTS_COUNT) {
+            if (this.#renderedCount < this.#initElementsCount) {
                 // Use pre-rendered thumbs for first batch
                 this.#initThumbs[this.#renderedCount].render(
                     entry,
