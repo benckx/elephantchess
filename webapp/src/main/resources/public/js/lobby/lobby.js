@@ -39,7 +39,7 @@ class LobbyPage extends BasePage {
 
     #client = new LobbyClient();
 
-    #gameToJoinListTable = document.getElementById('games-to-join-list-table');
+    #gameToJoinList = document.getElementById('games-to-join-list');
     #createNewGameButton = document.getElementById('create-new-game-button');
 
     // no game to join message links
@@ -118,9 +118,7 @@ class LobbyPage extends BasePage {
      * @param entries {GameToPlayDto[]}
      */
     #renderGameList(entries) {
-        const table = this.#gameToJoinListTable;
-        const body = table.getElementsByTagName('tbody').item(0);
-        body.innerHTML = '';
+        this.#gameToJoinList.innerHTML = '';
 
         entries.sort(sortByOnline);
         // TODO: sort by rating most similar to user's
@@ -129,19 +127,28 @@ class LobbyPage extends BasePage {
             this.#noGameToJoinMessage.classList.add('no-game-to-join-message-visible');
         } else {
             this.#noGameToJoinMessage.classList.remove('no-game-to-join-message-visible');
-            let row = body.insertRow();
-            row.classList.add('col-spanner');
-            let cell = row.insertCell();
-            cell.setAttribute('colspan', '7');
         }
 
-        entries.forEach((entry, i) => {
-            // html elements
-            const row = body.insertRow();
+        entries.forEach((entry) => {
+            const item = document.createElement('div');
+            item.className = 'game-to-join-item';
+
+            const details = document.createElement('div');
+            details.className = 'game-to-join-details';
+            item.append(details);
+
+            const opponentLine = document.createElement('div');
+            opponentLine.className = 'game-to-join-opponent-line';
+            details.append(opponentLine);
+
+            const metadataLine = document.createElement('div');
+            metadataLine.className = 'game-to-join-metadata-line';
+            details.append(metadataLine);
 
             // is online indicator
-            const isOnlineCell = row.insertCell();
+            const isOnlineCell = document.createElement('div');
             isOnlineCell.className = 'online-cell';
+            opponentLine.append(isOnlineCell);
 
             const isOnlineIndicator = document.createElement('div');
             isOnlineIndicator.className = 'online-status-indicator';
@@ -151,8 +158,9 @@ class LobbyPage extends BasePage {
             isOnlineCell.append(isOnlineIndicator);
 
             // username and rating
-            const usernameCell = row.insertCell();
+            const usernameCell = document.createElement('div');
             usernameCell.classList.add('username-cell', 'crop-text-ellipsis');
+            opponentLine.append(usernameCell);
 
             usernameCell.append(
                 buildUsernameSpan(
@@ -162,36 +170,40 @@ class LobbyPage extends BasePage {
                 )
             );
 
-            const ratingCell = row.insertCell();
+            const ratingCell = document.createElement('div');
             ratingCell.className = 'rating-cell';
-            ratingCell.innerText = entry.opponentRating.toString();
+            ratingCell.innerText = `(${entry.opponentRating})`;
+            opponentLine.append(ratingCell);
 
             // color
-            const colorCell = row.insertCell();
-            colorCell.className = 'color-cell';
+            const colorCell = document.createElement('div');
+            colorCell.className = 'game-to-join-metadata-item color-cell';
             colorCell.append(buildColorSpan(entry.opponentColor));
+            metadataLine.append(colorCell);
 
             // time control
-            const timeControlIconCell = row.insertCell();
-            const timeControlCell = row.insertCell();
-            timeControlIconCell.className = 'time-control-icons-cell';
-            timeControlCell.classList.add('time-control-cell', 'crop-text-ellipsis');
+            const timeControlCell = document.createElement('div');
+            timeControlCell.classList.add('game-to-join-metadata-item', 'time-control-cell', 'crop-text-ellipsis');
+            metadataLine.append(timeControlCell);
 
             const imageName = timeControlCategoryIconMap.get(entry.timeControlCategory);
             const img = document.createElement('img');
             img.className = 'time-control-icons';
             img.src = `${ICON_PATH}/${imageName}`;
-            timeControlIconCell.append(img);
+            timeControlCell.append(img);
 
             let timeControlLabel = '--';
             if (entry.timeControl != null) {
                 timeControlLabel = entry.timeControl.printShort(' +');
             }
-            timeControlCell.innerText = timeControlLabel;
+            const timeControlText = document.createElement('span');
+            timeControlText.innerText = timeControlLabel;
+            timeControlCell.append(timeControlText);
 
             // rating mode
-            const ratingModeCell = row.insertCell();
-            ratingModeCell.className = 'rating-mode-cell';
+            const ratingModeCell = document.createElement('div');
+            ratingModeCell.className = 'game-to-join-metadata-item rating-mode-cell';
+            metadataLine.append(ratingModeCell);
 
             const ratingModeSpan = document.createElement('span');
             ratingModeCell.append(ratingModeSpan);
@@ -201,27 +213,16 @@ class LobbyPage extends BasePage {
                 ratingModeSpan.innerText = 'Casual';
             }
 
-            // some space
-            const separatorCell = row.insertCell();
-            separatorCell.className = 'separator-cell';
-
             // join button
-            const joinButtonCell = row.insertCell();
+            const joinButtonCell = document.createElement('div');
             joinButtonCell.className = 'join-button-cell';
+            item.append(joinButtonCell);
 
             const joinButton = makeAppButton(`join-game-button-${entry.gameId}`, 'join');
             joinButtonCell.append(joinButton);
             joinButton.classList.add('join-buttons');
             joinButton.addEventListener('click', () => this.#handleClickJoinButton(entry));
-
-            // remove border for last row
-            // FIXME: this can be done in CSS
-            if (i === entries.length - 1) {
-                row.classList.add('last-row');
-                for (let i = 0; i < row.cells.length; i++) {
-                    row.cells[i].classList.add('last-row');
-                }
-            }
+            this.#gameToJoinList.append(item);
         });
     }
 
