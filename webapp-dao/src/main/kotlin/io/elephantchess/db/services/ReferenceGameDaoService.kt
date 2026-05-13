@@ -10,6 +10,7 @@ import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameOpeningVariat
 import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameRecord
 import io.elephantchess.db.model.EntityIdAndNameRecord
 import io.elephantchess.db.model.ReferenceGamePojo
+import io.elephantchess.db.model.UserDbSearchEntry
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
@@ -365,6 +366,62 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         limit: Int,
         numberOfResults: Int
     ) {
+        // Only track the first page (offset null or 0) to avoid duplicate entries for pagination
+        if (offset != null && offset > 0) {
+            return
+        }
+
+        val now = Clock.System.now()
+        val updateField = DSL.field("update_time", Instant::class.java)
+
+        val existingId = dslContext
+            .select(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID)
+            .from(REFERENCE_GAME_SEARCH_QUERY)
+            .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(userId))
+            .and(
+                if (playerName != null) REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.eq(playerName)
+                else REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.isNull
+            )
+            .and(
+                if (playerId != null) REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID.eq(playerId)
+                else REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID.isNull
+            )
+            .and(
+                if (playerColor != null) REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR.eq(playerColor)
+                else REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR.isNull
+            )
+            .and(
+                if (eventName != null) REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME.eq(eventName)
+                else REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME.isNull
+            )
+            .and(
+                if (eventId != null) REFERENCE_GAME_SEARCH_QUERY.EVENT_ID.eq(eventId)
+                else REFERENCE_GAME_SEARCH_QUERY.EVENT_ID.isNull
+            )
+            .and(
+                if (searchStart != null) REFERENCE_GAME_SEARCH_QUERY.SEARCH_START.eq(searchStart)
+                else REFERENCE_GAME_SEARCH_QUERY.SEARCH_START.isNull
+            )
+            .and(
+                if (searchEnd != null) REFERENCE_GAME_SEARCH_QUERY.SEARCH_END.eq(searchEnd)
+                else REFERENCE_GAME_SEARCH_QUERY.SEARCH_END.isNull
+            )
+            .and(
+                if (fen != null) REFERENCE_GAME_SEARCH_QUERY.FEN.eq(fen)
+                else REFERENCE_GAME_SEARCH_QUERY.FEN.isNull
+            )
+            .awaitSingleValue<String>()
+
+        if (existingId != null) {
+            dslContext
+                .update(REFERENCE_GAME_SEARCH_QUERY)
+                .set(updateField, now)
+                .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS, numberOfResults)
+                .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(existingId))
+                .awaitExecute()
+            return
+        }
+
         val record = ReferenceGameSearchQuery()
         record.queryId = generateId()
         record.userId = userId
@@ -379,11 +436,65 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         record.offset = offset
         record.limit = limit
         record.numberOfResults = numberOfResults
-        record.queryTime = Clock.System.now()
+        record.queryTime = now
 
         dslContext.transactionCoroutine { cfg ->
             ReferenceGameSearchQueryDao(cfg).insertReactive(record)
         }
+
+        dslContext
+            .update(REFERENCE_GAME_SEARCH_QUERY)
+            .set(updateField, now)
+            .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(record.queryId))
+            .awaitExecute()
+    }
+
+    suspend fun listUserSearches(userId: String, beforeTime: Instant?, limit: Int): List<UserDbSearchEntry> {
+        val updateField = DSL.field("update_time", Instant::class.java)
+
+        val condition = REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(userId)
+            .and(REFERENCE_GAME_SEARCH_QUERY.OFFSET.isNull.or(REFERENCE_GAME_SEARCH_QUERY.OFFSET.eq(0)))
+            .let { cond ->
+                if (beforeTime != null) cond.and(updateField.lessThan(beforeTime))
+                else cond
+            }
+
+        return dslContext
+            .select(
+                REFERENCE_GAME_SEARCH_QUERY.QUERY_ID,
+                REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME,
+                updateField,
+                REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME,
+                REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID,
+                REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR,
+                REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME,
+                REFERENCE_GAME_SEARCH_QUERY.EVENT_ID,
+                REFERENCE_GAME_SEARCH_QUERY.SEARCH_START,
+                REFERENCE_GAME_SEARCH_QUERY.SEARCH_END,
+                REFERENCE_GAME_SEARCH_QUERY.FEN,
+                REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS,
+            )
+            .from(REFERENCE_GAME_SEARCH_QUERY)
+            .where(condition)
+            .orderBy(DSL.coalesce(updateField, REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME).desc())
+            .limit(limit)
+            .awaitRecords()
+            .map { record ->
+                UserDbSearchEntry(
+                    queryId = record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID),
+                    queryTime = record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME),
+                    updateTime = record.get(updateField) ?: record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME),
+                    playerName = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME),
+                    playerId = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID),
+                    playerColor = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR),
+                    eventName = record.get(REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME),
+                    eventId = record.get(REFERENCE_GAME_SEARCH_QUERY.EVENT_ID),
+                    searchStart = record.get(REFERENCE_GAME_SEARCH_QUERY.SEARCH_START),
+                    searchEnd = record.get(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END),
+                    fen = record.get(REFERENCE_GAME_SEARCH_QUERY.FEN),
+                    numberOfResults = record.get(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS),
+                )
+            }
     }
 
     suspend fun listLatestDatabaseSearches(limit: Int): List<ReferenceGameSearchQuery> {

@@ -2361,4 +2361,10 @@
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0094" author="benckx">
+        <addColumn tableName="reference_game_search_query">
+            <column name="update_time" type="timestamp with time zone"/>
+        </addColumn>
+        <sql>UPDATE reference_game_search_query SET update_time = query_time WHERE update_time IS NULL</sql>
+    </changeSet>
 </databaseChangeLog>

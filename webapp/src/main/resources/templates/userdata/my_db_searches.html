@@ -1,0 +1,27 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>My DB Searches</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/my-user-data-items.css"/>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/userdata/my-db-searches-dto.js"></script>
+    <script defer src="/js/userdata/my-db-searches.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>My DB Searches</h1>
+    <hr class="only-desktop"/>
+    <div id="my-search-items">
+    </div>
+    <div id="is-loading-message">
+        Loading more searches...
+    </div>
+    <div id="no-searches-message" class="empty-list-message-user-data">
+        You haven't searched the database yet. Go to <a href="/database">the database</a> to start searching.
+    </div>
+    {{logged_as_guest_message}}
+</div>
+</body>
+</html>

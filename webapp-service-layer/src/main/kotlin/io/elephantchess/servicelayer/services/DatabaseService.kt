@@ -627,6 +627,26 @@ class DatabaseService(
         return ValidatedResponse.Valid(Unit)
     }
 
+    suspend fun listUserSearches(userId: String, beforeTime: Long?): MyDbSearchesResponse {
+        val beforeInstant = beforeTime?.let { kotlin.time.Instant.fromEpochMilliseconds(it) }
+        return referenceGameDaoService
+            .listUserSearches(userId, beforeInstant, 30)
+            .map { entry ->
+                MyDbSearchesResponse.Entry(
+                    queryId = entry.queryId,
+                    updateTime = entry.updateTime.toEpochMilliseconds(),
+                    playerName = entry.playerName,
+                    playerColor = entry.playerColor,
+                    eventName = entry.eventName,
+                    searchStart = entry.searchStart?.toString(),
+                    searchEnd = entry.searchEnd?.toString(),
+                    fen = entry.fen,
+                    numberOfResults = entry.numberOfResults,
+                )
+            }
+            .let { entries -> MyDbSearchesResponse(entries) }
+    }
+
     suspend fun findEditedPlayersLatestVersions(userId: String): ListUserEdits {
         return referencePlayerDaoService
             .findEditedPlayersByEditorId(userId)
