@@ -2361,4 +2361,11 @@
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0094" author="benckx">
+        <comment>Add email confirmation fields to user table (separate from automated email_verification)</comment>
+        <addColumn tableName="user">
+            <column name="email_confirmation_code" type="varchar(64)"/>
+            <column name="email_confirmed_at" type="timestamp with time zone"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

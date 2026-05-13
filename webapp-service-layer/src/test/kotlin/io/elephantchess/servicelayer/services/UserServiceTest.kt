@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.dto.user.UserLoginRequest
@@ -13,6 +14,7 @@ import kotlin.test.*
 class UserServiceTest : ServiceTest() {
 
     private val tokenManager by inject<TokenManager>()
+    private val userDaoService by inject<UserDaoService>()
 
     @Test
     fun hashTest01() = runTest {
@@ -216,6 +218,34 @@ class UserServiceTest : ServiceTest() {
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Valid<Unit>>(result, "Password '$password' should be accepted")
         }
+    }
+
+    @Test
+    fun `signUp should generate an email confirmation code and confirmEmail should mark the email as confirmed`() = runTest {
+        val (_, userId) = signUpTestUser()
+
+        // a confirmation code is generated at signup and the email is not yet confirmed
+        val userAfterSignup = userDaoService.findById(userId)!!
+        assertNotNull(userAfterSignup.emailConfirmationCode, "Confirmation code should be generated at signup")
+        assertNull(userAfterSignup.emailConfirmedAt, "Email should not be confirmed yet")
+
+        // confirming with an unknown code does nothing
+        assertFalse(userService.confirmEmail("unknown-code"))
+        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+
+        // confirming with a blank code does nothing
+        assertFalse(userService.confirmEmail(""))
+        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+
+        // confirming with the right code marks the email as confirmed
+        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+        val userAfterConfirmation = userDaoService.findById(userId)!!
+        assertNotNull(userAfterConfirmation.emailConfirmedAt, "Email should be confirmed")
+
+        // confirming again is idempotent
+        val firstConfirmedAt = userAfterConfirmation.emailConfirmedAt
+        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+        assertEquals(firstConfirmedAt, userDaoService.findById(userId)!!.emailConfirmedAt)
     }
 
 }

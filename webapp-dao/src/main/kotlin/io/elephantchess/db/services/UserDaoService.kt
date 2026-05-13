@@ -303,6 +303,25 @@ class UserDaoService(private val dslContext: DSLContext) {
             .awaitSingleMappedRecord()
     }
 
+    suspend fun findByEmailConfirmationCode(code: String): User? {
+        return dslContext
+            .select()
+            .from(USER)
+            .where(USER.EMAIL_CONFIRMATION_CODE.eq(code))
+            .awaitSingleMappedRecord()
+    }
+
+    suspend fun markEmailConfirmed(userId: String, confirmedAt: Instant) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL
+                .using(cfg)
+                .update(USER)
+                .set(USER.EMAIL_CONFIRMED_AT.fixed(), confirmedAt)
+                .where(USER.ID.eq(userId))
+                .awaitExecute()
+        }
+    }
+
     suspend fun existsById(userId: String): Boolean {
         return dslContext
             .selectCount()

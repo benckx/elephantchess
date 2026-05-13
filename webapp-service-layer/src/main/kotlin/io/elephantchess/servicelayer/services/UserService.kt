@@ -98,9 +98,11 @@ class UserService(
             user.lastOnline = now
             user.userType = UserType.AUTHENTICATED
             user.puzzleRating = PUZZLE_START_RATING
+            user.emailConfirmationCode = randomAlphanumeric(EMAIL_CONFIRMATION_CODE_LENGTH)
             userDaoService.save(user)
             mailService.sendNewUserNotification(user)
             mailService.verifyEmailAddressAsync(user.email)
+            mailService.sendEmailConfirmation(user.email, user.emailConfirmationCode)
             ValidatedResponse.Valid(
                 SignUpResponse(
                     userId = user.id,
@@ -114,6 +116,25 @@ class UserService(
             }
             ValidatedResponse.Invalid(errors)
         }
+    }
+
+    /**
+     * Confirms the email address associated with the given code, which was sent to the user by email at signup.
+     * Returns true if the code matches a user (whether it was already confirmed or not).
+     *
+     * The result is stored in [User.emailConfirmedAt], which is separate from the automated verification
+     * results stored in the `email_verification` table.
+     */
+    suspend fun confirmEmail(code: String): Boolean {
+        if (code.isBlank()) {
+            return false
+        }
+        val user = userDaoService.findByEmailConfirmationCode(code) ?: return false
+        if (user.emailConfirmedAt == null) {
+            userDaoService.markEmailConfirmed(user.id, Clock.System.now())
+            logger.info { "email confirmed for user ${user.id}" }
+        }
+        return true
     }
 
     suspend fun obtainGuestUserToken(): ObtainAnonymousTokenResponse {
@@ -404,6 +425,8 @@ class UserService(
         const val PUZZLE_START_RATING = 800
 
         const val MAX_DESCRIPTION_LENGTH = 1_000
+
+        const val EMAIL_CONFIRMATION_CODE_LENGTH = 64
 
         private val EMAIL_REGEX = "^[A-Za-z0-9][^\\s]*@[^\\s]+\\.[^\\s]+$".toRegex()
 

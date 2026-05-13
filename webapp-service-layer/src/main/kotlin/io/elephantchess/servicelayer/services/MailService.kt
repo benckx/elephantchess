@@ -15,6 +15,7 @@ import io.elephantchess.servicelayer.model.Email
 import io.elephantchess.servicelayer.model.MatchingEmail
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.UserService.Companion.PASSWORD_RECOVERY_TIMEOUT_HOURS
+import io.elephantchess.servicelayer.services.resolvers.EmailConfirmationLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.GameLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.RecoveryLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.UnsubscribeTagResolver
@@ -217,6 +218,17 @@ class MailService(
             resolvers = listOf(
                 SimpleValueTagResolver("username", user.handle),
                 SimpleValueTagResolver("email", user.email)
+            )
+        )
+    }
+
+    suspend fun sendEmailConfirmation(recipient: String, code: String) {
+        resolveAndSend(
+            recipient = recipient,
+            subject = "Please confirm your email",
+            templateName = "email_confirmation",
+            resolvers = listOf(
+                EmailConfirmationLinkTagResolver(webHost, code)
             )
         )
     }

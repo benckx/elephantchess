@@ -48,6 +48,7 @@ fun Application.apiServiceModule() {
         supporterRoutes()
         adminConsoleRoutes()
         newsletterUnsubscriptionRoutes()
+        emailConfirmationRoutes()
         integrationRoutes()
     }
 }
