@@ -47,12 +47,12 @@ tr#outcome-row {
 .clock-player-info {
     width: 100%;
     box-sizing: border-box;
-    padding: 4px 8px;
-    font-size: 14px;
-    min-height: 22px;
+    padding: 6px 10px;
+    font-size: 16px;
+    min-height: 28px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 .clock-player-info:empty {
