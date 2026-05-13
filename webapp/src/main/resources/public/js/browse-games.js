@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const INIT_ELEMENTS_COUNT = 12;
+const INIT_ELEMENTS_COUNT = 6;
 
 class BrowseGamesPage extends InfiniteScrollPage {
 
