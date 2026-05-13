@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -27,8 +28,8 @@ class UserProfilePictureServiceTest {
     private val spacesClient = mock<DigitalOceanSpacesClient>()
     private val userDaoService = mock<UserDaoService>()
     private val propertiesFile = mock<PropertiesFile>()
-    private val appConfig = AppConfig(
-        profile = "local-backup",
+    private fun testAppConfig(profile: String) = AppConfig(
+        profile = profile,
         webHost = "localhost",
         isMinificationEnabled = false,
         isGoogleAnalyticsEnabled = false,
@@ -46,11 +47,19 @@ class UserProfilePictureServiceTest {
         cdnEnabled = true,
         properties = propertiesFile,
     )
-    private val service = UserProfilePictureService(appConfig, spacesClient, userDaoService)
+
+    private val service = UserProfilePictureService(testAppConfig("local-backup"), spacesClient, userDaoService)
 
     @Test
     fun `profilePictureUrl returns null when extension is missing`() {
         assertNull(UserProfilePictureService.profilePictureUrl("local-backup", "user-1", null))
+    }
+
+    @Test
+    fun `invalid profile segment is rejected`() {
+        assertFailsWith<IllegalArgumentException> {
+            UserProfilePictureService(testAppConfig("../prod"), spacesClient, userDaoService)
+        }
     }
 
     @Test

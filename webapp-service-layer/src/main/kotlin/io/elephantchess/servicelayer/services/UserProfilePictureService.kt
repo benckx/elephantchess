@@ -16,7 +16,7 @@ class UserProfilePictureService(
     private val userDaoService: UserDaoService,
 ) {
 
-    private val profile = appConfig.profile
+    private val profile = requireValidProfileSegment(appConfig.profile)
 
     /**
      * Validate and normalize a profile picture upload, store it on the CDN-backed object storage,
@@ -125,10 +125,19 @@ class UserProfilePictureService(
         const val PROFILE_PICTURE_SIZE_PX = 100
         const val PROFILE_PICTURE_MAX_BYTES = 500 * 1024
         private const val CDN_BASE = "https://cdn.elephantchess.io"
+        private val VALID_PROFILE_SEGMENT_REGEX = Regex("[A-Za-z0-9-]+")
         private val SUPPORTED_EXTENSIONS = setOf("png", "jpg", "jpeg")
 
+        private fun requireValidProfileSegment(profile: String): String {
+            require(profile.matches(VALID_PROFILE_SEGMENT_REGEX)) {
+                "Unsupported profile segment for profile pictures: $profile"
+            }
+            return profile
+        }
+
         fun profilePictureKey(profile: String, userId: String, extension: String): String {
-            return "$profile/$PROFILE_PICTURE_FOLDER/$userId.$extension"
+            val sanitizedProfile = requireValidProfileSegment(profile)
+            return "$sanitizedProfile/$PROFILE_PICTURE_FOLDER/$userId.$extension"
         }
 
         fun profilePictureUrl(profile: String, userId: String, extension: String?): String? {
