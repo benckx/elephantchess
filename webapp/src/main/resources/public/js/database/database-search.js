@@ -268,24 +268,46 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         // outcome indicator pane
         if (entry.outcome) {
             const outcomeDiv = buildDivWithClass('outcome-label-holder');
+            const searchedPlayerColor = this.#resolveSearchedPlayerColor(entry);
 
-            // use the Outcome enum for proper type checking
-            switch (entry.outcome) {
-                case Outcome.RED_WINS:
-                    outcomeDiv.textContent = 'RED';
-                    outcomeDiv.classList.add('outcome-label-red-wins');
-                    break;
-                case Outcome.BLACK_WINS:
-                    outcomeDiv.textContent = 'BLACK';
-                    outcomeDiv.classList.add('outcome-label-black-wins');
-                    break;
-                case Outcome.DRAW:
-                    outcomeDiv.textContent = 'DRAW';
-                    outcomeDiv.classList.add('outcome-label-draw');
-                    break;
-                default:
-                    outcomeDiv.textContent = '??';
-                    break;
+            if (searchedPlayerColor != null) {
+                const userOutcome = gameOutcomeToUserOutcome(searchedPlayerColor, entry.outcome);
+                switch (userOutcome) {
+                    case UserOutcome.WIN:
+                        outcomeDiv.textContent = 'WIN';
+                        outcomeDiv.classList.add('outcome-label-win');
+                        break;
+                    case UserOutcome.LOSS:
+                        outcomeDiv.textContent = 'LOSS';
+                        outcomeDiv.classList.add('outcome-label-loss');
+                        break;
+                    case UserOutcome.DRAW:
+                        outcomeDiv.textContent = 'DRAW';
+                        outcomeDiv.classList.add('outcome-label-draw');
+                        break;
+                    default:
+                        outcomeDiv.textContent = '??';
+                        break;
+                }
+            } else {
+                // use the Outcome enum for proper type checking
+                switch (entry.outcome) {
+                    case Outcome.RED_WINS:
+                        outcomeDiv.textContent = 'RED';
+                        outcomeDiv.classList.add('outcome-label-red-wins');
+                        break;
+                    case Outcome.BLACK_WINS:
+                        outcomeDiv.textContent = 'BLACK';
+                        outcomeDiv.classList.add('outcome-label-black-wins');
+                        break;
+                    case Outcome.DRAW:
+                        outcomeDiv.textContent = 'DRAW';
+                        outcomeDiv.classList.add('outcome-label-draw');
+                        break;
+                    default:
+                        outcomeDiv.textContent = '??';
+                        break;
+                }
             }
 
             outcomeIndicatorPane.append(outcomeDiv);
@@ -311,6 +333,53 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         }
 
         return gameItem;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    #isSearchingSpecificPlayer() {
+        return this.#currentPlayerName != null && this.#currentPlayerName.trim() !== '';
+    }
+
+    /**
+     * @param entry {GameMetadataDto}
+     * @returns {string|null}
+     */
+    #resolveSearchedPlayerColor(entry) {
+        if (!this.#isSearchingSpecificPlayer()) {
+            return null;
+        }
+
+        if (entry.userColor === Color.RED || entry.userColor === Color.BLACK) {
+            return entry.userColor;
+        }
+
+        if (this.#currentPlayerIds.length > 0) {
+            if (entry.redPlayerId != null && this.#currentPlayerIds.includes(entry.redPlayerId)) {
+                return Color.RED;
+            }
+            if (entry.blackPlayerId != null && this.#currentPlayerIds.includes(entry.blackPlayerId)) {
+                return Color.BLACK;
+            }
+        }
+
+        const searchedPlayerName = this.#currentPlayerName.trim().toLowerCase();
+        if (entry.redPlayerName != null && entry.redPlayerName.trim().toLowerCase() === searchedPlayerName) {
+            return Color.RED;
+        }
+        if (entry.blackPlayerName != null && entry.blackPlayerName.trim().toLowerCase() === searchedPlayerName) {
+            return Color.BLACK;
+        }
+
+        const selectedPlayerColor = document.querySelector('input[name="player-color"]:checked')?.value;
+        if (selectedPlayerColor === 'red') {
+            return Color.RED;
+        }
+        if (selectedPlayerColor === 'black') {
+            return Color.BLACK;
+        }
+        return null;
     }
 
     #clearResults() {
