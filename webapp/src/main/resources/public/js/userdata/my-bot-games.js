@@ -76,23 +76,6 @@ class MyBotGamesPage extends InfiniteScrollPage {
             return div;
         }
 
-        /**
-         * @param entry {BotGameEntryDto}
-         * @returns {HTMLDivElement}
-         */
-        function buildPreAnalyzedIcon(entry) {
-            const iconImg = document.createElement('img');
-            iconImg.className = 'icon';
-            iconImg.src = '/images/icons/database.png';
-            iconImg.alt = 'This game is pre-analyzed';
-            iconImg.style.opacity = '75%';
-
-            const div = wrapInDiv(iconImg);
-            div.id = `pre-analyzed-${entry.gameId}`;
-            addToolTip(div, 'This game is pre-analyzed');
-            return div;
-        }
-
         entries.forEach(entry => {
             // structure
             const leftPane = document.createElement('div');
@@ -145,7 +128,7 @@ class MyBotGamesPage extends InfiniteScrollPage {
                 customFenIndicatorPane.append(buildCustomFenIcon(entry));
             }
             if (entry.isPreAnalyzed) {
-                preAnalysisIndicatorPane.append(buildPreAnalyzedIcon(entry));
+                preAnalysisIndicatorPane.append(buildPreAnalyzedIcon(entry.gameId));
             }
 
             // outcome indicator pane

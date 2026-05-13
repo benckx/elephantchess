@@ -153,6 +153,9 @@ class GameAnalyticsDto {
         return Number(this.#index);
     }
 
+    /**
+     * @return {boolean}
+     */
     get isPreAnalyzed() {
         return this.#isPreAnalyzed;
     }
@@ -346,6 +349,9 @@ class BotGameAnalyticsDto {
         return this.#index;
     }
 
+    /**
+     * @return {boolean}
+     */
     get isPreAnalyzed() {
         return this.#isPreAnalyzed;
     }
