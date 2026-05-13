@@ -262,12 +262,11 @@ class PlayerVsPlayerGameService(
         }
 
         // limit the number of CREATED games a user can have with the same settings
+        val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
         val createdGamesCount = pvpGameDaoService.countCreatedGamesByUser(
             userId.id,
             request.inviterColor,
-            request.timeControlMode,
-            request.timeControlBase,
-            request.timeControlIncrement,
+            timeControlCategory,
         )
         if (createdGamesCount >= MAX_CREATED_GAMES_PER_SETTINGS) {
             throw BadRequestException("You already have $MAX_CREATED_GAMES_PER_SETTINGS pending games with the same settings")
@@ -277,7 +276,6 @@ class PlayerVsPlayerGameService(
         // it should be disabled by UI already, so it's additional backend validation
         val allowGuests = userId.userType == UserType.GUEST || request.allowGuests
 
-        val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
         val userRating = getUserRating(userId.id, timeControlCategory)
 
         // if such a game already exists, join it instead of creating a new one

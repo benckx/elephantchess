@@ -527,7 +527,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     /**
-     * Limit is per (time settings, color): different settings or color should allow new games.
+     * Limit is per (time category, color): different category or color should allow new games.
      */
     @Test
     fun createGameLimitTest02() = runTest {
@@ -549,8 +549,8 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         // different color: should succeed
         pvpGameService.createGame(userId1, request.copy(inviterColor = BLACK))
 
-        // different time setting: should succeed
-        pvpGameService.createGame(userId1, request.copy(timeControlBase = 15.minutes.inWholeSeconds.toInt()))
+        // different time category (BLITZ vs RAPID): should succeed
+        pvpGameService.createGame(userId1, request.copy(timeControlBase = 3.minutes.inWholeSeconds.toInt()))
 
         assertEquals(5, countGameByStatus(CREATED))
     }
