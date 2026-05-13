@@ -77,4 +77,10 @@
 
 #faq-toc li {
     margin: 2px 0;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+#faq-toc a {
+    font-size: inherit;
 }
