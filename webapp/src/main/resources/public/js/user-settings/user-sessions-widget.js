@@ -30,6 +30,7 @@ class UserSessionsWidget {
     #emptyMessage;
     #allSessionsLink;
     #limit;
+    #fetchAll;
     #onUpdate;
 
     constructor(options = {}) {
@@ -40,6 +41,7 @@ class UserSessionsWidget {
         this.#emptyMessage = document.getElementById(options.emptyMessageId || 'user-sessions-empty-message');
         this.#allSessionsLink = document.getElementById(options.allSessionsLinkId || 'all-sessions-link');
         this.#limit = options.limit || 5;
+        this.#fetchAll = options.fetchAll === true;
         this.#onUpdate = options.onUpdate || (() => {
         });
 
@@ -52,7 +54,16 @@ class UserSessionsWidget {
     }
 
     fetchAndRender() {
-        getAndHandle(`${USER_SESSIONS_URL}?limit=${this.#limit}`, (json) => this.#render(json));
+        if (!this.#fetchAll) {
+            getAndHandle(`${USER_SESSIONS_URL}?limit=${this.#limit}`, (json) => this.#render(json));
+            return;
+        }
+
+        getAndHandle(`${USER_SESSIONS_URL}?limit=1`, (json) => {
+            const total = Number(json.total || 0);
+            const allLimit = total > 0 ? total : 1;
+            getAndHandle(`${USER_SESSIONS_URL}?limit=${allLimit}`, (allJson) => this.#render(allJson));
+        });
     }
 
     #render(json) {

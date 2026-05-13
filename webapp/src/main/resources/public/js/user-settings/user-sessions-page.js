@@ -19,7 +19,7 @@
 
 class UserSessionsPage extends BasePage {
 
-    #sessionsWidget = new UserSessionsWidget({limit: 10_000});
+    #sessionsWidget = new UserSessionsWidget({fetchAll: true});
 
     constructor() {
         super();
