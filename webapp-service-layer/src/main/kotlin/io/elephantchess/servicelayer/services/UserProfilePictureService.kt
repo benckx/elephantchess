@@ -48,7 +48,7 @@ class UserProfilePictureService(
         val size = minOf(sourceImage.width, sourceImage.height)
         val cropX = (sourceImage.width - size) / 2
         val cropY = (sourceImage.height - size) / 2
-        val isJpeg = extension == "jpg" || extension == "jpeg"
+        val isJpeg = isJpegExtension(extension)
         val outputImage = BufferedImage(
             PROFILE_PICTURE_SIZE_PX,
             PROFILE_PICTURE_SIZE_PX,
@@ -78,8 +78,7 @@ class UserProfilePictureService(
         }
 
         val output = ByteArrayOutputStream()
-        val formatName = if (extension == "jpg") "jpeg" else extension
-        if (!ImageIO.write(outputImage, formatName, output)) {
+        if (!ImageIO.write(outputImage, imageIoFormatName(extension), output)) {
             throw NotAcceptableException("Unsupported profile picture format")
         }
 
@@ -100,6 +99,14 @@ class UserProfilePictureService(
             "jpg", "jpeg" -> "image/jpeg"
             else -> error("unsupported extension $extension")
         }
+    }
+
+    private fun imageIoFormatName(extension: String): String {
+        return if (extension == "jpg") "jpeg" else extension
+    }
+
+    private fun isJpegExtension(extension: String): Boolean {
+        return extension == "jpg" || extension == "jpeg"
     }
 
     companion object {

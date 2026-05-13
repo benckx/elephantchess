@@ -137,8 +137,8 @@ class UserSettingsPage extends BasePage {
             return;
         }
 
-        const extension = file.name.split('.').pop()?.toLowerCase();
-        if (extension !== 'png' && extension !== 'jpg' && extension !== 'jpeg') {
+        const fileFormat = this.#resolveProfilePictureFormat(file.name);
+        if (fileFormat == null) {
             UI.pushErrorNotification('Only PNG and JPEG profile pictures are supported', 3_000);
             return;
         }
@@ -147,8 +147,8 @@ class UserSettingsPage extends BasePage {
             URL.revokeObjectURL(this.#profilePictureObjectUrl);
         }
 
-        this.#profilePictureExtension = extension;
-        this.#profilePictureMimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
+        this.#profilePictureExtension = fileFormat.extension;
+        this.#profilePictureMimeType = fileFormat.mimeType;
         this.#profilePictureObjectUrl = URL.createObjectURL(file);
 
         const image = new Image();
@@ -165,6 +165,17 @@ class UserSettingsPage extends BasePage {
             this.#renderProfilePictureEditor();
         };
         image.src = this.#profilePictureObjectUrl;
+    }
+
+    #resolveProfilePictureFormat(fileName) {
+        const extension = fileName.split('.').pop()?.toLowerCase();
+        if (extension === 'png') {
+            return {extension: 'png', mimeType: 'image/png'};
+        }
+        if (extension === 'jpg' || extension === 'jpeg') {
+            return {extension, mimeType: 'image/jpeg'};
+        }
+        return null;
     }
 
     #renderProfilePictureEditor() {
