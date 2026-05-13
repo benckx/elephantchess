@@ -532,11 +532,17 @@ class GameDataService(
     suspend fun listLastPvbGames(
         requestedLimit: Int,
         distinctByUsers: Boolean = true,
-        beforeTs: Long? = null
+        beforeTs: Long? = null,
+        excludeAutoResigned: Boolean
     ): ListLastGamesResponse {
         val actualLimit = if (distinctByUsers) requestedLimit * 20 else requestedLimit
         val gameRecords = pvbGameDaoService
-            .listLastGamesByIdentifiedUsers(actualLimit, minMoveIndex = MIN_MOVE_INDEX, beforeTs = beforeTs)
+            .listLastGamesByIdentifiedUsers(
+                actualLimit,
+                minMoveIndex = MIN_MOVE_INDEX,
+                beforeTs = beforeTs,
+                excludeAutoResigned = excludeAutoResigned
+            )
             .let { games ->
                 if (distinctByUsers) {
                     games.distinctBy { game -> game.userId }
