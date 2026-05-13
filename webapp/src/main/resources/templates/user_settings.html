@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/css/user-settings.css"/>
     <script defer src="/js/modules/countries.js"></script>
     <script defer src="/js/user-settings/notification-settings-widget.js"></script>
+    <script defer src="/js/user-settings/user-sessions-widget.js"></script>
     <script defer src="/js/user-settings/user-settings.js"></script>
 </head>
 <body>
@@ -60,6 +61,34 @@
     <div id="email-address-container">
         <input id="email-address" type="text" disabled/>
     </div>
+    <h1>Sessions</h1>
+    <hr/>
+    <div id="sessions-actions-container" class="hidden">
+        <label for="sessions-select-all">
+            <input id="sessions-select-all" type="checkbox"/>
+            select all
+        </label>
+        <input id="delete-sessions-button" type="button" class="app-buttons-bigger" value="delete selected">
+    </div>
+    <table id="user-sessions-table" class="stats-table">
+        <thead>
+        <tr>
+            <th></th>
+            <th class="label-cell">os</th>
+            <th class="label-cell">agent</th>
+            <th class="label-cell">country</th>
+            <th class="label-cell">region</th>
+            <th class="label-cell">city</th>
+            <th class="label-cell">IP</th>
+            <th class="label-cell">created</th>
+            <th class="label-cell">updated</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <p id="user-sessions-empty-message" class="hidden">No sessions found.</p>
+    <a id="all-sessions-link" class="hidden" href="/user/settings/sessions">See all sessions</a>
 </div>
 </body>
 </html>
