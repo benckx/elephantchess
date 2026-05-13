@@ -2361,4 +2361,18 @@
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0094" author="benckx">
+        <addColumn tableName="game">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="puzzle_result">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="reference_game_search_query">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

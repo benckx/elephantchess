@@ -4,6 +4,10 @@ import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.PasswordRecoveryAttempt
 import io.elephantchess.db.dao.codegen.tables.pojos.User
 import io.elephantchess.db.services.PasswordRecoveryAttemptsDaoService
+import io.elephantchess.db.services.PlayerVsBotGameDaoService
+import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
+import io.elephantchess.db.services.PuzzleResultDaoService
+import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
@@ -32,6 +36,10 @@ class UserService(
     appConfig: AppConfig,
     private val passwordRecoveryRequestDaoService: PasswordRecoveryAttemptsDaoService,
     private val userDaoService: UserDaoService,
+    private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
+    private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
+    private val puzzleResultDaoService: PuzzleResultDaoService,
+    private val referenceGameDaoService: ReferenceGameDaoService,
     private val userSessionService: UserSessionService,
     private val tokenManager: TokenManager,
     private val mailService: MailService,
@@ -99,6 +107,9 @@ class UserService(
             user.userType = UserType.AUTHENTICATED
             user.puzzleRating = PUZZLE_START_RATING
             userDaoService.save(user)
+            if (request.guestUserId != null) {
+                transferGuestData(request.guestUserId, user.id)
+            }
             mailService.sendNewUserNotification(user)
             mailService.verifyEmailAddressAsync(user.email)
             ValidatedResponse.Valid(
@@ -375,6 +386,14 @@ class UserService(
         }
 
         return errors
+    }
+
+    private suspend fun transferGuestData(guestUserId: String, newUserId: String) {
+        logger.info { "transferring data from guest $guestUserId to new user $newUserId" }
+        playerVsPlayerGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
+        playerVsBotGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
+        puzzleResultDaoService.transferFromGuestToUser(guestUserId, newUserId)
+        referenceGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
     }
 
     private fun hash(password: CharArray): ByteArray {

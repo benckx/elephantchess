@@ -75,6 +75,10 @@ class SignUpModalHandler extends ModalHandler {
         });
 
         this.#loginSpan.addEventListener('click', () => showLoginModal());
+
+        if (isUserIdentifiedAsGuest()) {
+            document.getElementById('signup-transfer-games-row').style.display = '';
+        }
     }
 
     #scheduleValidation() {
@@ -122,6 +126,11 @@ class SignUpModalHandler extends ModalHandler {
             'email': email,
             'password': password
         };
+
+        const transferCheckbox = document.getElementById('signup-transfer-games-checkbox');
+        if (isUserIdentifiedAsGuest() && transferCheckbox && transferCheckbox.checked) {
+            body['guestUserId'] = getCookie(GUEST_USER_ID_FIELD);
+        }
 
         const handler = new ValidationResponseHandler(
             (json) => {
