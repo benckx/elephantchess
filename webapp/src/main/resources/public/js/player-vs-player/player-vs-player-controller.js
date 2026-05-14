@@ -83,7 +83,7 @@ class GameController {
      * @param updateClocksCallback {function()}
      * @param fetchMovesCallback {function(HalfMove[])}
      * @param receivedChatMessages {function(ChatMessageDto[], number[])}
-     * @param opponentTypingCallback {function(Object.<string,string>)} Map of userId→username for users currently typing
+     * @param opponentTypingCallback {function(Object.<string,string, *>)} Map of userId→username for users currently typing
      */
     constructor(
         gameId,
