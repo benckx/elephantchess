@@ -453,6 +453,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun fetchGameStates(gameIds: List<String>): Map<String, GameStateResult> {
+        // TODO: Flux.from() -> can we not use our shortcut thingy?
         return Flux.from(
             dslContext
                 .select(

@@ -142,11 +142,11 @@ class PlayerVsPlayerGameService(
     private suspend fun refreshPlayerVsPlayerSessions() {
         val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
         val stateMap = pvpGameDaoService.fetchGameStates(allGameIds)
-        val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
 
-        val gameChatTypingStatusCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
-        val gameTypingStatusMap =
-            gameChatTypingStatusDaoService.fetchForGameIds(allGameIds, gameChatTypingStatusCutOff)
+        // chat
+        val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
+        val chatTypingStatusCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
+        val chatTypingStatusMap = gameChatTypingStatusDaoService.fetchForGameIds(allGameIds, chatTypingStatusCutOff)
 
         // not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
         playerVsPlayerSessions
@@ -201,7 +201,7 @@ class PlayerVsPlayerGameService(
                 // Stale entries are filtered out at the DAO layer (see
                 // [TypingStatusDaoService.fetchTypingStatuses]), and clients are
                 // responsible for de-duplicating / hiding the indicator on their side.
-                val typingUsers = gameTypingStatusMap[gameId]
+                val typingUsers = chatTypingStatusMap[gameId]
                     ?.filter { entry -> entry.userId != session.userId.id }
                     ?.map { entry ->
                         TypingUser(
