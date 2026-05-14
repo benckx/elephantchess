@@ -7,6 +7,7 @@ import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.fixed
 import io.elephantchess.db.utils.isAfter
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -14,11 +15,16 @@ class GameChatTypingStatusDaoService(private val dslContext: DSLContext) {
 
     suspend fun upsertTypingStatus(gameId: String, userId: String) {
         val now = Clock.System.now()
+
+        // insert, or update on conflict
         dslContext
             .insertInto(GAME_CHAT_TYPING_STATUS.fixed())
             .set(GAME_CHAT_TYPING_STATUS.GAME_ID.fixed(), gameId)
             .set(GAME_CHAT_TYPING_STATUS.USER_ID.fixed(), userId)
             .set(GAME_CHAT_TYPING_STATUS.TYPED_AT.fixed(), now)
+            .onConflict(GAME_CHAT_TYPING_STATUS.GAME_ID, GAME_CHAT_TYPING_STATUS.USER_ID)
+            .doUpdate()
+            .set(GAME_CHAT_TYPING_STATUS.TYPED_AT, DSL.excluded(GAME_CHAT_TYPING_STATUS.TYPED_AT))
             .awaitExecute()
     }
 
