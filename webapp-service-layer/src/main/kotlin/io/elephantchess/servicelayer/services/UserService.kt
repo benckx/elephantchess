@@ -35,6 +35,7 @@ class UserService(
     private val userSessionService: UserSessionService,
     private val tokenManager: TokenManager,
     private val mailService: MailService,
+    private val userProfilePictureService: UserProfilePictureService,
     private val pageViewEventService: PageViewEventService,
     refresherScope: CoroutineScope,
     private val logger: KLogger,
@@ -45,6 +46,7 @@ class UserService(
 
     // password hashing
     private val salt: ByteArray = appConfig.loadString("salt").toByteArray()
+    private val profile = appConfig.profile
     private val secretKeyFactory = SecretKeyFactory.getInstance(SALT_ALGO)
 
     private val refreshJob = launchAtFixedRateStartImmediately(
@@ -246,17 +248,17 @@ class UserService(
     }
 
     suspend fun fetchProfile(username: String): UserProfile {
-        // TODO: only fetch relevant fields
-        val user = userDaoService.findByUserName(username)
-        return if (user == null) {
+        val record = userDaoService.fetchPublicProfile(username)
+        return if (record == null) {
             throw NotFoundException("User $username could not be found")
         } else {
             UserProfile(
-                userId = user.id,
-                username = user.handle,
-                country = user.country,
-                profileDescription = user.description,
-                puzzleRating = user.puzzleRating
+                userId = record.value1(),
+                username = record.value2(),
+                country = record.value3(),
+                profileDescription = record.value4(),
+                puzzleRating = record.value5(),
+                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, record.value1(), record.value6())
             )
         }
     }
@@ -266,7 +268,8 @@ class UserService(
         if (record != null) {
             return ProfileSettingsDto(
                 description = record.value1().orEmpty(),
-                country = record.value2().orEmpty()
+                country = record.value2().orEmpty(),
+                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, userId, record.value3())
             )
         } else {
             throw NotFoundException("User not found")
@@ -289,6 +292,11 @@ class UserService(
 
         val description = stripHtml(removeSuperfluousLineBreaks(request.description))
         userDaoService.updateProfileSettings(userId, description, request.country)
+    }
+
+    suspend fun uploadProfilePicture(userId: String, originalFileName: String, bytes: ByteArray): ProfilePictureUploadResponse {
+        val url = userProfilePictureService.uploadProfilePicture(userId, originalFileName, bytes)
+        return ProfilePictureUploadResponse(url)
     }
 
     suspend fun fetchNotificationsSettings(userId: String): NotificationsSettingsDto {

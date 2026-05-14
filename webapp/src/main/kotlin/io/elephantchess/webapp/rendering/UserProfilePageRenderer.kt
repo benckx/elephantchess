@@ -20,6 +20,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 SimpleValueTagResolver("user_id", userProfile.userId),
                 SimpleValueTagResolver("username", userProfile.username),
                 descriptionMeta(username, description),
+                profilePictureTagResolver(userProfile.profilePictureUrl, username),
                 flagPanelTagResolver(countryCode),
                 descriptionDivTagResolver(username, description),
             )
@@ -58,6 +59,25 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
             }
         }
     }
+
+    private fun profilePictureTagResolver(profilePictureUrl: String?, username: String): TagResolver {
+        return CallbackTagResolver("profile_picture_panel") {
+            if (profilePictureUrl != null) {
+                val escapedUsername = escapeHtml(username)
+                """<div class="profile-header-panel profile-picture-header-panel">
+                    |<img id="profile-picture" src="$profilePictureUrl" alt="$escapedUsername profile picture"/>
+                    |</div>""".trimMargin()
+            } else {
+                ""
+            }
+        }
+    }
+
+    private fun escapeHtml(s: String): String =
+        s.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
 
     private fun descriptionDivTagResolver(username: String, description: String?): TagResolver {
         return CallbackTagResolver("user_profile_description") {
