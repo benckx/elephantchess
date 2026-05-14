@@ -191,7 +191,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
 
         parts.forEach((part, index) => {
             if (index > 0) {
-                container.append(document.createTextNode(', '));
+                container.append(document.createElement('br'));
             }
             container.append(part);
         });
