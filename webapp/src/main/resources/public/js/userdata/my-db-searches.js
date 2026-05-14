@@ -22,7 +22,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
     /**
      * @type {HTMLDivElement}
      */
-    #itemsDiv = document.getElementById('my-search-items');
+    #itemsDiv = document.getElementById('my-game-items');
 
     /**
      * @type {HTMLDivElement}
@@ -105,11 +105,16 @@ class MyDbSearchesPage extends InfiniteScrollPage {
 
             // mini board overview when a FEN was searched
             if (entry.fen !== null && entry.fen.trim().length > 0) {
-                const orientation = entry.playerColor === 'BLACK' ? Color.BLACK : Color.RED;
+                const orientation = entry.playerColor === Color.BLACK ? Color.BLACK : Color.RED;
                 const fen = entry.fen.trim();
                 // Stored FENs may be abridged (board layout only); complete them so loadFen accepts them.
                 const fullFen = fen.includes(' ') ? fen : `${fen} w - - 0 1`;
-                addMiniboardDiv(item, entry.queryId, fullFen, orientation);
+                try {
+                    addMiniboardDiv(item, entry.queryId, fullFen, orientation);
+                } catch (e) {
+                    // A malformed FEN should not break the rest of the list or pagination.
+                    console.warn(`could not render mini-board for query ${entry.queryId}:`, e);
+                }
             }
         });
     }
@@ -162,8 +167,10 @@ class MyDbSearchesPage extends InfiniteScrollPage {
             playerSpan.innerText = entry.playerName;
             if (entry.playerColor === Color.RED) {
                 playerSpan.classList.add('red-color');
+                // playerSpan.style.fontWeight = 'bold';
             } else if (entry.playerColor === Color.BLACK) {
-                playerSpan.classList.add('black-color');
+                // playerSpan.classList.add('black-color');
+                playerSpan.style.fontWeight = 'bold';
             }
             parts.push(playerSpan);
         }
