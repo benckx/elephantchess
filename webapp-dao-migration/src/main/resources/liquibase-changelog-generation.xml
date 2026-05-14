@@ -2208,4 +2208,19 @@
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0094" author="benckx">
+        <addColumn tableName="reference_game_search_query">
+            <column name="update_time" type="timestamp with time zone"/>
+        </addColumn>
+        <update tableName="reference_game_search_query">
+            <column name="update_time" valueComputed="query_time"/>
+            <where>update_time IS NULL</where>
+        </update>
+        <addNotNullConstraint tableName="reference_game_search_query" columnName="update_time"
+                              columnDataType="timestamp with time zone"/>
+        <createIndex tableName="reference_game_search_query" indexName="idx_ref_game_search_query_user_update_time">
+            <column name="user_id"/>
+            <column name="update_time" descending="true"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>
