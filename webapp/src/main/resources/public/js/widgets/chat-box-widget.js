@@ -139,10 +139,13 @@ class ChatBoxWidget {
         });
 
         this.#input.addEventListener('input', () => {
+            if (this.#input.value.length === 0) {
+                return;
+            }
             clearTimeout(this.#typingDebounceTimer);
             this.#typingDebounceTimer = setTimeout(() => {
                 this.#inputTypingListeners.forEach((listener) => listener());
-            }, 400);
+            }, 200);
         });
 
         // update relative time of messages every 5 seconds
