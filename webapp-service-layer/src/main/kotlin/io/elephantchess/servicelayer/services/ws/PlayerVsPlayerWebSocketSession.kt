@@ -86,7 +86,7 @@ class PlayerVsPlayerWebSocketSession(
             mustUpdate = true
         }
 
-        if (update.typingUserIds.isNotEmpty()) {
+        if (update.typingUsers.isNotEmpty()) {
             mustUpdate = true
         }
 
