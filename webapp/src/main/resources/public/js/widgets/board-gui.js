@@ -811,13 +811,21 @@ class BoardGui {
         const x2 = (bound2.left + bound2.width / 2) - boardBounds.left;
         const y2 = (bound2.top + bound2.height / 2) - boardBounds.top;
 
+        // stroke width scales with the square size so the arrow looks consistent across viewports
+        // (a fixed thick stroke is proportionally too fat on smaller boards, making the elbow look off-centered)
+        const strokeWidth = Math.min(16, bound1.width * 0.16);
+
         let pathD, midpointX, midpointY;
 
         if (isKnightMove(move)) {
             // draw an elbowed arrow matching the horse's actual movement:
             //   segment 1: orthogonal (straight line, 1 square) — the horse's "leg"
             //   segment 2: diagonal (1 square) — the horse's diagonal step
-            const reduction = bound1.width * 0.40;
+            const sourceReduction = bound1.width * 0.40;
+            // the arrow-head marker (path "M0,0 V4 L2,2", refX=0.1) tips at 1.9 marker units past the
+            // path endpoint, and markerUnits defaults to strokeWidth — so to make the tip land exactly
+            // on the destination intersection, we shorten the destination end by 1.9 * strokeWidth.
+            const destReduction = strokeWidth * 1.9;
             const dxPx = x2 - x1;
             const dyPx = y2 - y1;
 
@@ -839,16 +847,16 @@ class BoardGui {
                 elbowX = x1;
                 elbowY = y1 + dyPx / 2;
 
-                [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, reduction);
-                [x2Prime, y2Prime] = shortenToward(x2, y2, elbowX, elbowY, reduction);
+                [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, sourceReduction);
+                [x2Prime, y2Prime] = shortenToward(x2, y2, elbowX, elbowY, destReduction);
             } else {
                 // horizontal-dominant: horse moves 2 squares horizontally then 1 diagonally
                 // elbow is exactly 1 square-width left/right of the source, derived from the actual pixel displacement
                 elbowX = x1 + dxPx / 2;
                 elbowY = y1;
 
-                [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, reduction);
-                [x2Prime, y2Prime] = shortenToward(x2, y2, elbowX, elbowY, reduction);
+                [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, sourceReduction);
+                [x2Prime, y2Prime] = shortenToward(x2, y2, elbowX, elbowY, destReduction);
             }
 
             pathD = `M${Math.round(x1Prime)},${Math.round(y1Prime)} L${Math.round(elbowX)},${Math.round(elbowY)} L${Math.round(x2Prime)},${Math.round(y2Prime)}`;
@@ -885,9 +893,7 @@ class BoardGui {
 
         const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
         arrowPath.setAttribute('d', pathD);
-        // stroke width scales with the square size so the arrow looks consistent across viewports
-        // (a fixed 13px line is proportionally too thick on smaller boards, making the elbow look off-centered)
-        arrowPath.style.strokeWidth = `${Math.min(16, bound1.width * 0.16)}px`;
+        arrowPath.style.strokeWidth = `${strokeWidth}px`;
         arrowPath.style.fill = 'none';
         arrowPath.style.strokeLinejoin = 'round';
 
