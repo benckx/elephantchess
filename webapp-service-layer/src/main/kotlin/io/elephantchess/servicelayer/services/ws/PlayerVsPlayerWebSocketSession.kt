@@ -90,7 +90,7 @@ class PlayerVsPlayerWebSocketSession(
             mustUpdate = true
         }
 
-        // push update
+        // push update  
         if (mustUpdate) {
             val result = sendCb(update)
             if (result.isClosed) {
