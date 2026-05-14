@@ -19,6 +19,18 @@
 
 const UPDATE_TIMESTAMP_INTERVAL = 4_000;
 
+/**
+ * How long the "is typing…" indicator stays visible after the last typing event.
+ */
+const DISPLAY_IS_TYPING_FOR = 1_500;
+
+/**
+ * Cool-down (ms) after a chat message is added during which incoming typing
+ * notifications are ignored - this avoids flickering the indicator for typing
+ * events that were already in flight when the message was sent.
+ */
+const TYPING_COOL_DOWN_AFTER_CHAT = 1_500;
+
 class ChatBoxMessage {
 
     #message;
@@ -112,6 +124,19 @@ class ChatBoxWidget {
      * @type {number|null}
      */
     #typingDebounceTimer = null;
+
+    /**
+     * Timer that hides the "is typing…" indicator after [DISPLAY_IS_TYPING_FOR].
+     * @type {number|null}
+     */
+    #hideIsTypingTimerId = null;
+
+    /**
+     * Timestamp (ms) until which incoming typing notifications are ignored
+     * (cool-down right after a chat message is added).
+     * @type {number}
+     */
+    #typingCoolDownUntil = 0;
 
     /**
      * @param sendMessageCb {function(string): void}
@@ -209,17 +234,45 @@ class ChatBoxWidget {
     }
 
     /**
-     * @param label {string} Full pre-formatted label, e.g. "Alice is typing…" or "Alice and Bob are typing…"
+     * Display (or refresh) the "is typing…" indicator for the given users.
+     * Typing events arriving within the cool-down window after a chat message
+     * was added are silently ignored, so the indicator doesn't flicker for
+     * stale events that were in-flight when the message arrived.
+     *
+     * @param typingUsers {{userId: string, username: string, typedAt: *}[]}
      */
-    showIsTypingIndicator(label) {
+    notifyTypingUsers(typingUsers) {
+        // ignore typing events within the cool-down window after a chat message
+        if (Date.now() < this.#typingCoolDownUntil) {
+            return;
+        }
+
+        if (typingUsers == null || typingUsers.length === 0) {
+            this.#hideIsTypingIndicator();
+            return;
+        }
+
+        const names = typingUsers.map((user) => user.username);
+        let label;
+        if (names.length === 1) {
+            label = `${names[0]} is typing…`;
+        } else {
+            const allButLast = names.slice(0, -1).join(', ');
+            label = `${allButLast} and ${names[names.length - 1]} are typing…`;
+        }
+
         this.#typingIndicator.innerText = label;
         this.#typingIndicator.style.display = 'block';
+
+        clearTimeout(this.#hideIsTypingTimerId);
+        this.#hideIsTypingTimerId = setTimeout(() => {
+            this.#hideIsTypingIndicator();
+        }, DISPLAY_IS_TYPING_FOR);
     }
 
-    /**
-     * Hides the opponent typing indicator.
-     */
-    hideIsTypingIndicator() {
+    #hideIsTypingIndicator() {
+        clearTimeout(this.#hideIsTypingTimerId);
+        this.#hideIsTypingTimerId = null;
         this.#typingIndicator.style.display = 'none';
         this.#typingIndicator.innerText = '';
     }
@@ -246,6 +299,11 @@ class ChatBoxWidget {
      * @param message {ChatBoxMessage}
      */
     addMessage(message) {
+        // a message means the author is no longer typing: hide the indicator
+        // and start a cool-down to ignore in-flight typing notifications
+        this.#hideIsTypingIndicator();
+        this.#typingCoolDownUntil = Date.now() + TYPING_COOL_DOWN_AFTER_CHAT;
+
         const timestampId = randomId();
 
         const timestamp = document.createElement('div');

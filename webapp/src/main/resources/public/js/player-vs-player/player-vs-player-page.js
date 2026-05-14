@@ -20,9 +20,6 @@
 const IS_ONLINE_FETCH_INTERVAL = 3_000;
 const MAX_TIME_CONTROL_LABEL = 14;
 
-const DISPLAY_IS_TYPING_FOR = 1_500;
-const TYPING_COOL_DOWN_AFTER_CHAT = 1_500;
-
 class PlayGamePage extends BasePage {
 
     /**
@@ -82,16 +79,6 @@ class PlayGamePage extends BasePage {
     #joinAudio = new Audio('/audio/624598__eqylizer__high-pitched-two-note-notification.mp3');
 
     #hasRenderedJoinModal = false;
-
-    #opponentTypingTimeoutId = null;
-
-    /**
-     * Timestamp (ms) until which we ignore incoming "is typing" events. Set right
-     * after a chat message arrives, to avoid flickering an "is typing…" indicator
-     * for typing events that were in flight when the message was sent.
-     * @type {number}
-     */
-    #typingCoolDownUntil = 0;
 
     /**
      * @type {string|null}
@@ -216,7 +203,7 @@ class PlayGamePage extends BasePage {
                     this.#handleChatMessages(chatMessages, acks);
                 },
                 (typingUsers) => {
-                    this.#handleOpponentTyping(typingUsers);
+                    this.#chatBoxWidget.notifyTypingUsers(typingUsers);
                 }
             );
 
@@ -837,46 +824,6 @@ class PlayGamePage extends BasePage {
 
             this.#chatBoxWidget.addMessage(chatMessage);
         }
-
-        // when a chat message arrives, the author is no longer typing,
-        // so hide the typing indicator and clear any pending hide timeout.
-        // Also set a short cool-down during which we ignore incoming "is typing"
-        // events, in case typing events still arrive right after the message.
-        if (chatMessages.length > 0) {
-            clearTimeout(this.#opponentTypingTimeoutId);
-            this.#opponentTypingTimeoutId = null;
-            this.#chatBoxWidget.hideIsTypingIndicator();
-            this.#typingCoolDownUntil = Date.now() + TYPING_COOL_DOWN_AFTER_CHAT;
-        }
-    }
-
-    #handleOpponentTyping(typingUsers) {
-        // ignore typing events that arrive within the cool-down window after a chat message
-        if (Date.now() < this.#typingCoolDownUntil) {
-            return;
-        }
-
-        // typingUsers is an array of {userId, username, typedAt} objects sent
-        // directly from the server, so any role (player, spectator, admin) is
-        // already resolved correctly.
-        const names = typingUsers.map((user) => user.username);
-
-        // Build "A is typing…" / "A and B are typing…" / "A, B and C are typing…"
-        if (names.length === 0) return;
-        let label;
-        if (names.length === 1) {
-            label = `${names[0]} is typing…`;
-        } else {
-            const allButLast = names.slice(0, -1).join(', ');
-            label = `${allButLast} and ${names[names.length - 1]} are typing…`;
-        }
-
-        this.#chatBoxWidget.showIsTypingIndicator(label);
-
-        clearTimeout(this.#opponentTypingTimeoutId);
-        this.#opponentTypingTimeoutId = setTimeout(() => {
-            this.#chatBoxWidget.hideIsTypingIndicator();
-        }, DISPLAY_IS_TYPING_FOR);
     }
 
 }

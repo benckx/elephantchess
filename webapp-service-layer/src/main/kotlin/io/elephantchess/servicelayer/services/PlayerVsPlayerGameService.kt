@@ -7,8 +7,8 @@ import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.dao.codegen.tables.pojos.GameChatMessage
 import io.elephantchess.db.model.TimeControlRecord
 import io.elephantchess.db.services.ChatMessageDaoService
-import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.GameChatTypingStatusDaoService
+import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
@@ -226,7 +226,7 @@ class PlayerVsPlayerGameService(
                     if (status == DRAW_PROPOSED) {
                         drawPropositionUser = pvpGameDaoService.fetchDrawPropositionUser(gameId)
                     }
-                    
+
                     session.update(
                         PlayerVsPlayerUpdate(
                             status = status,
