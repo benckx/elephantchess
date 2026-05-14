@@ -127,8 +127,12 @@ class UserSessionsWidget {
         const container = document.createElement('div');
         container.className = 'session-country-cell';
 
-        if (countryCode != null && typeof buildFlagIconImg === 'function') {
-            container.append(buildFlagIconImg(countryCode));
+        if (countryCode != null && typeof window.buildFlagIconImg === 'function') {
+            try {
+                container.append(window.buildFlagIconImg(countryCode));
+            } catch (e) {
+                console.warn('Could not render country flag icon', e);
+            }
         }
 
         const countryLabel = document.createElement('span');
@@ -148,6 +152,8 @@ class UserSessionsWidget {
         const icon = document.createElement('span');
         icon.className = 'session-os-icon';
         icon.innerText = this.#mapOsNameToIcon(osName);
+        icon.setAttribute('role', 'img');
+        icon.setAttribute('aria-label', osName || 'unknown operating system');
         icon.title = osName;
 
         const label = document.createElement('span');
@@ -159,10 +165,10 @@ class UserSessionsWidget {
 
     #mapOsNameToIcon(osName) {
         const lower = (osName || '').toLowerCase();
-        if (lower.includes('android')) return '🤖';
-        if (lower.includes('linux')) return '🐧';
-        if (lower.includes('mac')) return '🍎';
-        if (lower.includes('windows')) return '🪟';
+        if (lower.startsWith('android')) return '🤖';
+        if (lower.startsWith('linux')) return '🐧';
+        if (lower === 'mac' || lower.startsWith('mac os') || lower.startsWith('macos')) return '🍎';
+        if (lower.startsWith('windows')) return '🪟';
         return '❔';
     }
 
