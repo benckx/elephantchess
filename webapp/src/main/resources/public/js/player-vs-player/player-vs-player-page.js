@@ -837,9 +837,10 @@ class PlayGamePage extends BasePage {
     }
 
     #handleOpponentTyping(typingUsers) {
-        // typingUsers is a map of userId→username sent directly from the server,
-        // so any role (player, spectator, admin) is already resolved correctly.
-        const names = Object.values(typingUsers);
+        // typingUsers is an array of {userId, username, typedAt} objects sent
+        // directly from the server, so any role (player, spectator, admin) is
+        // already resolved correctly.
+        const names = typingUsers.map((user) => user.username);
 
         // Build "A is typing…" / "A and B are typing…" / "A, B and C are typing…"
         if (names.length === 0) return;

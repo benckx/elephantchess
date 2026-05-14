@@ -2,19 +2,15 @@ package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.GAME_TYPING_STATUS
 import io.elephantchess.db.dao.codegen.tables.pojos.GameTypingStatus
+import io.elephantchess.db.model.TypingStatusEntry
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.fixed
 import io.elephantchess.db.utils.isBefore
-import io.elephantchess.db.utils.isBeforeEpochMillis
-import io.elephantchess.db.utils.isWithin
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import kotlin.time.Clock
-import kotlin.time.Duration
 import kotlin.time.Instant
-
-data class TypingStatusEntry(val userId: String, val typedAt: Instant)
 
 class TypingStatusDaoService(private val dslContext: DSLContext) {
 
@@ -35,7 +31,7 @@ class TypingStatusDaoService(private val dslContext: DSLContext) {
      * Returns a map keyed by gameId where each value is the list of [TypingStatusEntry]
      * for that game. Only entries for the requested [gameIds] are returned.
      */
-    suspend fun fetchTypingStatuses(gameIds: List<String>, limit : Instant): Map<String, List<TypingStatusEntry>> {
+    suspend fun fetchTypingStatuses(gameIds: List<String>, limit: Instant): Map<String, List<TypingStatusEntry>> {
         if (gameIds.isEmpty()) return emptyMap()
 
         return dslContext

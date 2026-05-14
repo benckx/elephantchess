@@ -5,6 +5,7 @@ import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.TimeRemaining
 import io.elephantchess.xiangqi.Color
+import kotlin.time.Instant
 
 data class PlayerVsPlayerUpdate(
     val status: GameEventType? = null,
@@ -14,7 +15,13 @@ data class PlayerVsPlayerUpdate(
     val ratingUpdate: RatingUpdate? = null,
     val timeRemaining: TimeRemaining? = null,
     val chatMessages: List<ChatMessage> = emptyList(),
-    val typingUsers: Map<String, String> = emptyMap(),
+    val typingUsers: List<TypingUser> = emptyList(),
+)
+
+data class TypingUser(
+    val userId: String,
+    val username: String,
+    val typedAt: Instant,
 )
 
 data class HasJoined(

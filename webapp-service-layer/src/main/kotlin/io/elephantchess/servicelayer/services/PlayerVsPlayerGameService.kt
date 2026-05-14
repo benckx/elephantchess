@@ -145,7 +145,7 @@ class PlayerVsPlayerGameService(
         val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
 
         val typingFreshnessCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
-        val typingStatusMap = typingStatusDaoService.fetchTypingStatuses(allGameIds,typingFreshnessCutOff)
+        val typingStatusMap = typingStatusDaoService.fetchTypingStatuses(allGameIds, typingFreshnessCutOff)
 
         // not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
         playerVsPlayerSessions
@@ -196,26 +196,20 @@ class PlayerVsPlayerGameService(
                     )
                 }
 
-                // typing: collect all new typing events in this game from other users
-                // that we have not yet notified this session about.
-                // Filter out stale entries so that, on refresh/reconnect, we do not surface
-                // typing events that happened long ago.
+                // typing: collect all fresh typing events in this game from other users.
+                // Stale entries are filtered out at the DAO layer (see
+                // [TypingStatusDaoService.fetchTypingStatuses]), and clients are
+                // responsible for de-duplicating / hiding the indicator on their side.
                 val typingUsers = typingStatusMap[gameId]
                     ?.filter { entry -> entry.userId != session.userId.id }
-                    ?.filter { entry ->
-                        val lastNotified = session.getLastTypingNotified(entry.userId)
-                        lastNotified == null || entry.typedAt > lastNotified
+                    ?.map { entry ->
+                        TypingUser(
+                            userId = entry.userId,
+                            username = userCache.fetchUsernameOrDefault(entry.userId),
+                            typedAt = entry.typedAt,
+                        )
                     }
-                    ?.also { entries ->
-                        entries.forEach { entry ->
-                            session.markTypingNotified(
-                                entry.userId,
-                                entry.typedAt
-                            )
-                        }
-                    }
-                    ?.associate { entry -> entry.userId to userCache.fetchUsernameOrDefault(entry.userId) }
-                    ?: emptyMap()
+                    .orEmpty()
 
                 val shouldUpdate =
                     session.currentStatus() != status ||
@@ -231,6 +225,7 @@ class PlayerVsPlayerGameService(
                     if (status == DRAW_PROPOSED) {
                         drawPropositionUser = pvpGameDaoService.fetchDrawPropositionUser(gameId)
                     }
+
 
                     session.update(
                         PlayerVsPlayerUpdate(

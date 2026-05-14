@@ -259,7 +259,7 @@ class GameController {
                         this.#updateClocksCallback();
                     }
                     this.#handleReceivedChatMessages(chatMessages);
-                    if (json.typingUsers && Object.keys(json.typingUsers).length > 0) {
+                    if (Array.isArray(json.typingUsers) && json.typingUsers.length > 0) {
                         this.#opponentTypingCallback(json.typingUsers);
                     }
                 }

@@ -20,12 +20,6 @@ class PlayerVsPlayerWebSocketSession(
     private var timeRemainingLastSync: Instant? = null
     private var drawPropositionUser: String? = null
 
-    /**
-     * Tracks the last [Instant] at which we sent a typing notification for each userId.
-     * Used to avoid re-sending the same typing event on subsequent refresh cycles.
-     */
-    private val typingUserLastNotified: MutableMap<String, Instant> = mutableMapOf()
-
     fun currentIndex(): Int = moveIndex
 
     fun currentChatIndex(): Int = chatIndex
@@ -40,19 +34,6 @@ class PlayerVsPlayerWebSocketSession(
                 now > (timeRemainingLastSync!! + TIME_REMAINING_SYNC_INTERVAL)
     }
 
-    /**
-     * Returns the last [Instant] at which a typing notification for [userId] was sent to this
-     * session, or null if it has never been sent.
-     */
-    fun getLastTypingNotified(userId: String): Instant? = typingUserLastNotified[userId]
-
-    /**
-     * Records that a typing notification for [userId] with the given [typedAt] timestamp was
-     * sent to this session so that subsequent refresh cycles do not duplicate it.
-     */
-    fun markTypingNotified(userId: String, typedAt: Instant) {
-        typingUserLastNotified[userId] = typedAt
-    }
 
     override fun update(update: PlayerVsPlayerUpdate) {
         var mustUpdate = false
