@@ -372,7 +372,6 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         }
 
         val now = Clock.System.now()
-        val updateField = DSL.field("update_time", Instant::class.java)
 
         val existingId = dslContext
             .select(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID)
@@ -415,7 +414,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         if (existingId != null) {
             dslContext
                 .update(REFERENCE_GAME_SEARCH_QUERY)
-                .set(updateField.fixed(), now)
+                .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.fixed(), now)
                 .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS.fixed(), numberOfResults)
                 .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(existingId))
                 .awaitExecute()
@@ -428,7 +427,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.fixed(), queryId)
             .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID.fixed(), userId)
             .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME.fixed(), now)
-            .set(updateField.fixed(), now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.fixed(), now)
             .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_START.fixed(), searchStart)
             .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END.fixed(), searchEnd)
             .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.fixed(), playerName)
@@ -444,12 +443,10 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun listUserSearches(userId: String, beforeTime: Instant?, limit: Int): List<UserDbSearchEntry> {
-        val updateField = DSL.field("update_time", Instant::class.java)
-
         val condition = REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(userId)
             .and(REFERENCE_GAME_SEARCH_QUERY.OFFSET.isNull.or(REFERENCE_GAME_SEARCH_QUERY.OFFSET.eq(0)))
             .let { cond ->
-                if (beforeTime != null) cond.and(updateField.lessThan(beforeTime))
+                if (beforeTime != null) cond.and(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.lessThan(beforeTime))
                 else cond
             }
 
@@ -457,7 +454,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .select(
                 REFERENCE_GAME_SEARCH_QUERY.QUERY_ID,
                 REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME,
-                updateField,
+                REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME,
                 REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME,
                 REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID,
                 REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR,
@@ -470,14 +467,14 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             )
             .from(REFERENCE_GAME_SEARCH_QUERY)
             .where(condition)
-            .orderBy(updateField.desc())
+            .orderBy(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.desc())
             .limit(limit)
             .awaitRecords()
             .map { record ->
                 UserDbSearchEntry(
                     queryId = record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID),
                     queryTime = record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME),
-                    updateTime = record.get(updateField)!!,
+                    updateTime = record.get(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME),
                     playerName = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME),
                     playerId = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID),
                     playerColor = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR),
