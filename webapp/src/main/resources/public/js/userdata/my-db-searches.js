@@ -167,10 +167,8 @@ class MyDbSearchesPage extends InfiniteScrollPage {
             playerSpan.innerText = entry.playerName;
             if (entry.playerColor === Color.RED) {
                 playerSpan.classList.add('red-color');
-                // playerSpan.style.fontWeight = 'bold';
             } else if (entry.playerColor === Color.BLACK) {
                 playerSpan.classList.add('black-color');
-                playerSpan.style.fontWeight = 'bold';
             }
             parts.push(playerSpan);
         }
