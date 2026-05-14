@@ -53,8 +53,8 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
     }
 
     private fun profileUrl(username: String): String {
-        val encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8).replace("+", "%20")
-        return "$LOCALHOST_BASE_URL/@/$encodedUsername"
+//        val encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8).replace("+", "%20")
+        return "$LOCALHOST_BASE_URL/@/$username"
     }
 
 }

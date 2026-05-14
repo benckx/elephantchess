@@ -26,8 +26,7 @@
 class UserProfileGames {
 
     #username;
-    #noGamesMessage = document.getElementById('no-games-message');
-    #browseMoreLink = document.getElementById('browse-more-games-link');
+    #section = document.getElementById('latest-games-section');
 
     /**
      * @type {HTMLDivElement[]}
@@ -75,20 +74,20 @@ class UserProfileGames {
      */
     #renderEntries(entries) {
         if (entries.length === 0) {
-            // Hide all pre-rendered thumbs and the "browse more" link, show empty message
-            this.#thumbDivs.forEach((div) => div.style.display = 'none');
-            if (this.#browseMoreLink != null) {
-                this.#browseMoreLink.style.display = 'none';
-            }
-            if (this.#noGamesMessage != null) {
-                this.#noGamesMessage.style.display = 'block';
-            }
+            // No games to show: keep the whole "Latest Games" section hidden.
             return;
+        }
+
+        if (this.#section != null) {
+            this.#section.style.display = 'block';
         }
 
         for (let i = 0; i < this.#thumbs.length; i++) {
             if (i < entries.length) {
                 this.#thumbs[i].render(entries[i], 'user_profile');
+            } else {
+                // Hide unused pre-rendered thumbs when fewer games than slots
+                this.#thumbDivs[i].style.display = 'none';
             }
         }
     }
