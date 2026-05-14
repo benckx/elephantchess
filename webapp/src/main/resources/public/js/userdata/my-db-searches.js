@@ -64,7 +64,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
 
             const item = document.createElement('a');
             item.className = 'my-game-item';
-            item.setAttribute('href', entry.repeatSearchUrl);
+            item.setAttribute('href', this.#buildRepeatSearchUrl(entry));
 
             item.append(leftPane, middlePane, rightPane);
             this.#itemsDiv.append(item);
@@ -79,7 +79,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
             // middle pane: search summary
             const summaryDiv = document.createElement('div');
             summaryDiv.className = 'default-text';
-            summaryDiv.append(entry.buildSearchSummaryElement());
+            summaryDiv.append(this.#buildSearchSummaryElement(entry));
             middlePane.append(summaryDiv);
 
             let numberOfResultsStr;
@@ -102,7 +102,95 @@ class MyDbSearchesPage extends InfiniteScrollPage {
             lastUsedDiv.id = `last-used-${entry.queryId}`;
             setRelativeTimeAndToolTip(lastUsedDiv, entry.updateTime);
             rightPane.append(lastUsedDiv);
+
+            // mini board overview when a FEN was searched
+            if (entry.fen !== null && entry.fen.trim().length > 0) {
+                const orientation = entry.playerColor === 'BLACK' ? Color.BLACK : Color.RED;
+                const fen = entry.fen.trim();
+                // Stored FENs may be abridged (board layout only); complete them so loadFen accepts them.
+                const fullFen = fen.includes(' ') ? fen : `${fen} w - - 0 1`;
+                addMiniboardDiv(item, entry.queryId, fullFen, orientation);
+            }
         });
+    }
+
+    /**
+     * Builds the URL to repeat the given search on the database search page.
+     * @param entry {MyDbSearchEntryDto}
+     * @returns {string}
+     */
+    #buildRepeatSearchUrl(entry) {
+        const params = new URLSearchParams();
+        if (entry.playerName !== null) {
+            // strip any bracketed content (e.g. Chinese name suffix) added for display
+            const sanitizedPlayerName = entry.playerName.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+            if (sanitizedPlayerName.length > 0) {
+                params.set('playerName', sanitizedPlayerName);
+            }
+        }
+        if (entry.playerColor !== null) {
+            params.set('playerColor', entry.playerColor);
+        }
+        if (entry.eventName !== null && entry.eventName.trim().length > 0) {
+            params.set('eventName', entry.eventName);
+        }
+        if (entry.searchStart !== null) {
+            params.set('dateStart', entry.searchStart);
+        }
+        if (entry.searchEnd !== null) {
+            params.set('dateEnd', entry.searchEnd);
+        }
+        if (entry.fen !== null) {
+            params.set('fen', entry.fen);
+        }
+        const queryString = params.toString();
+        return `/database/search${queryString ? '?' + queryString : ''}`;
+    }
+
+    /**
+     * Builds a human-readable summary of the search parameters as a DOM element.
+     * The player name is rendered with a color class when a player color is set.
+     * @param entry {MyDbSearchEntryDto}
+     * @returns {HTMLSpanElement}
+     */
+    #buildSearchSummaryElement(entry) {
+        const container = document.createElement('span');
+        const parts = [];
+
+        if (entry.playerName !== null && entry.playerName.trim().length > 0) {
+            const playerSpan = document.createElement('span');
+            playerSpan.innerText = entry.playerName;
+            if (entry.playerColor === Color.RED) {
+                playerSpan.classList.add('red-color');
+            } else if (entry.playerColor === Color.BLACK) {
+                playerSpan.classList.add('black-color');
+            }
+            parts.push(playerSpan);
+        }
+        if (entry.eventName !== null && entry.eventName.trim().length > 0) {
+            parts.push(entry.eventName);
+        }
+        if (entry.searchStart !== null || entry.searchEnd !== null) {
+            const start = entry.searchStart ?? '...';
+            const end = entry.searchEnd ?? '...';
+            parts.push(`${start} → ${end}`);
+        }
+        if (entry.fen !== null && entry.fen.trim().length > 0) {
+            parts.push(`FEN: ${entry.fen}`);
+        }
+
+        if (parts.length === 0) {
+            container.innerText = 'All games';
+            return container;
+        }
+
+        parts.forEach((part, index) => {
+            if (index > 0) {
+                container.append(document.createTextNode(', '));
+            }
+            container.append(part);
+        });
+        return container;
     }
 
 }
