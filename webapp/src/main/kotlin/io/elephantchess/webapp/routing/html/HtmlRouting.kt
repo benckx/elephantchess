@@ -56,7 +56,8 @@ private val identificationRequiredPagesMapping = mapOf(
     "/userdata/games" to "userdata/my_games",
     "/userdata/botgames" to "userdata/my_bot_games",
     "/userdata/analysis" to "userdata/my_analysis",
-    "/userdata/puzzles" to "userdata/my_played_puzzles"
+    "/userdata/puzzles" to "userdata/my_played_puzzles",
+    "/userdata/db-searches" to "userdata/my_db_searches",
 )
 
 // only available authenticated users
