@@ -20,6 +20,9 @@
 const IS_ONLINE_FETCH_INTERVAL = 3_000;
 const MAX_TIME_CONTROL_LABEL = 14;
 
+const DISPLAY_IS_TYPING_FOR = 1_500;
+const TYPING_COOL_DOWN_AFTER_CHAT = 1_500;
+
 class PlayGamePage extends BasePage {
 
     /**
@@ -81,6 +84,14 @@ class PlayGamePage extends BasePage {
     #hasRenderedJoinModal = false;
 
     #opponentTypingTimeoutId = null;
+
+    /**
+     * Timestamp (ms) until which we ignore incoming "is typing" events. Set right
+     * after a chat message arrives, to avoid flickering an "is typing…" indicator
+     * for typing events that were in flight when the message was sent.
+     * @type {number}
+     */
+    #typingCoolDownUntil = 0;
 
     /**
      * @type {string|null}
@@ -828,15 +839,23 @@ class PlayGamePage extends BasePage {
         }
 
         // when a chat message arrives, the author is no longer typing,
-        // so hide the typing indicator and clear any pending hide timeout
+        // so hide the typing indicator and clear any pending hide timeout.
+        // Also set a short cool-down during which we ignore incoming "is typing"
+        // events, in case typing events still arrive right after the message.
         if (chatMessages.length > 0) {
             clearTimeout(this.#opponentTypingTimeoutId);
             this.#opponentTypingTimeoutId = null;
             this.#chatBoxWidget.hideIsTypingIndicator();
+            this.#typingCoolDownUntil = Date.now() + TYPING_COOL_DOWN_AFTER_CHAT;
         }
     }
 
     #handleOpponentTyping(typingUsers) {
+        // ignore typing events that arrive within the cool-down window after a chat message
+        if (Date.now() < this.#typingCoolDownUntil) {
+            return;
+        }
+
         // typingUsers is an array of {userId, username, typedAt} objects sent
         // directly from the server, so any role (player, spectator, admin) is
         // already resolved correctly.
@@ -857,7 +876,7 @@ class PlayGamePage extends BasePage {
         clearTimeout(this.#opponentTypingTimeoutId);
         this.#opponentTypingTimeoutId = setTimeout(() => {
             this.#chatBoxWidget.hideIsTypingIndicator();
-        }, 1_500);
+        }, DISPLAY_IS_TYPING_FOR);
     }
 
 }
