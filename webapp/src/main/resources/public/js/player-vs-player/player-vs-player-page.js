@@ -857,7 +857,7 @@ class PlayGamePage extends BasePage {
         clearTimeout(this.#opponentTypingTimeoutId);
         this.#opponentTypingTimeoutId = setTimeout(() => {
             this.#chatBoxWidget.hideIsTypingIndicator();
-        }, 3_000);
+        }, 1_000);
     }
 
 }

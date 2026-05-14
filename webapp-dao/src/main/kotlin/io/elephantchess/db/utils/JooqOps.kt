@@ -122,7 +122,7 @@ fun diffInSeconds(f1: Field<Instant>, f2: Field<Instant>): Field<Int> {
     return DSL.extract(f1, DatePart.EPOCH).minus(DSL.extract(f2, DatePart.EPOCH))
 }
 
-private fun Field<Instant>.isAfter(timestamp: Instant): Field<Boolean> {
+fun Field<Instant>.isAfter(timestamp: Instant): Field<Boolean> {
     return greaterThan(timestamp)
 }
 

@@ -6,7 +6,7 @@ import io.elephantchess.db.model.TypingStatusEntry
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.fixed
-import io.elephantchess.db.utils.isBefore
+import io.elephantchess.db.utils.isAfter
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import kotlin.time.Clock
@@ -29,15 +29,19 @@ class TypingStatusDaoService(private val dslContext: DSLContext) {
 
     /**
      * Returns a map keyed by gameId where each value is the list of [TypingStatusEntry]
-     * for that game. Only entries for the requested [gameIds] are returned.
+     * for that game. Only entries newer than [freshnessCutOff] (i.e. typed after that
+     * instant) are returned, so stale typing events never leak to callers.
      */
-    suspend fun fetchTypingStatuses(gameIds: List<String>, limit: Instant): Map<String, List<TypingStatusEntry>> {
+    suspend fun fetchTypingStatuses(
+        gameIds: List<String>,
+        freshnessCutOff: Instant,
+    ): Map<String, List<TypingStatusEntry>> {
         if (gameIds.isEmpty()) return emptyMap()
 
         return dslContext
             .selectFrom(GAME_TYPING_STATUS)
             .where(GAME_TYPING_STATUS.GAME_ID.`in`(gameIds))
-            .and(GAME_TYPING_STATUS.TYPED_AT.isBefore(limit))
+            .and(GAME_TYPING_STATUS.TYPED_AT.isAfter(freshnessCutOff))
             .awaitMappedRecords<GameTypingStatus>()
             .groupBy { it.gameId!! }
             .mapValues { (_, records) ->
