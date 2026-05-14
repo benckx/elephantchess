@@ -820,7 +820,6 @@ class BoardGui {
             const reduction = bound1.width * 0.40;
             const dxPx = x2 - x1;
             const dyPx = y2 - y1;
-            const squareSize = bound1.width;
 
             // Returns the point shortened by `r` pixels along the line from (px,py) toward (tx,ty)
             function shortenToward(px, py, tx, ty, r) {
@@ -835,17 +834,17 @@ class BoardGui {
             const dyBoardSquares = Math.abs(move.to.y - move.from.y);
 
             if (dyBoardSquares === 2) {
-                // vertical-dominant: horse moves 2 steps orthogonally (up/down), then 1 step diagonally
-                // elbow is 1 square away from source in the vertical direction
+                // vertical-dominant: horse moves 2 squares vertically then 1 diagonally
+                // elbow is exactly 1 square-height above/below the source, derived from the actual pixel displacement
                 elbowX = x1;
-                elbowY = y1 + Math.sign(dyPx) * squareSize;
+                elbowY = y1 + dyPx / 2;
 
                 [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, reduction);
                 [x2Prime, y2Prime] = shortenToward(x2, y2, elbowX, elbowY, reduction);
             } else {
-                // horizontal-dominant: horse moves 2 steps orthogonally (left/right), then 1 step diagonally
-                // elbow is 1 square away from source in the horizontal direction
-                elbowX = x1 + Math.sign(dxPx) * squareSize;
+                // horizontal-dominant: horse moves 2 squares horizontally then 1 diagonally
+                // elbow is exactly 1 square-width left/right of the source, derived from the actual pixel displacement
+                elbowX = x1 + dxPx / 2;
                 elbowY = y1;
 
                 [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, reduction);
