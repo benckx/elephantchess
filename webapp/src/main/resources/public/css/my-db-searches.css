@@ -20,3 +20,36 @@
 .my-game-item {
     height: 90px;
 }
+
+.my-game-item .default-text {
+    /* Allow long FEN strings to wrap inside the middle pane instead of overflowing. */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+@media (max-width: 1000px) {
+    /* On mobile the my-game-item from my-user-data-items.css is bumped to 120px
+       and font-size 26px, but the search summary has multi-line content
+       (player, event, date range, FEN) so we need more room and a readable
+       text size for the .default-text summary. */
+    .my-game-item {
+        height: auto;
+        min-height: 140px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .my-game-item .left-pane {
+        /* Slightly narrower icon column so the summary has more breathing room. */
+        width: 14%;
+    }
+
+    .my-game-item .middle-pane {
+        padding-right: 8px;
+    }
+
+    .my-game-item .default-text {
+        font-size: 22px;
+        line-height: 1.25;
+    }
+}
