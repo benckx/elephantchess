@@ -204,8 +204,8 @@ class PlayGamePage extends BasePage {
                 (chatMessages, acks) => {
                     this.#handleChatMessages(chatMessages, acks);
                 },
-                () => {
-                    this.#handleOpponentTyping();
+                (typingUserId) => {
+                    this.#handleOpponentTyping(typingUserId);
                 }
             );
 
@@ -828,14 +828,17 @@ class PlayGamePage extends BasePage {
         }
     }
 
-    #handleOpponentTyping() {
+    #handleOpponentTyping(typingUserId) {
         const gameDto = this.#gameController.gameDto;
-        const opponentUsername =
-            gameDto.userStatus === UserStatus.INVITER
-                ? gameDto.inviteeUsername
-                : gameDto.inviterUsername;
 
-        const displayName = opponentUsername ?? 'Opponent';
+        // Resolve display name from userId: check both inviter and invitee
+        let displayName = 'Opponent';
+        if (typingUserId === gameDto.inviterId) {
+            displayName = gameDto.inviterUsername ?? displayName;
+        } else if (gameDto.inviteeId != null && typingUserId === gameDto.inviteeId) {
+            displayName = gameDto.inviteeUsername ?? displayName;
+        }
+
         this.#chatBoxWidget.showOpponentTyping(displayName);
 
         clearTimeout(this.#opponentTypingTimeoutId);

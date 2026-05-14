@@ -8,6 +8,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.GameChatMessage
 import io.elephantchess.db.model.TimeControlRecord
 import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
+import io.elephantchess.db.services.TypingStatusDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
@@ -62,6 +63,7 @@ class PlayerVsPlayerGameService(
     private val mailService: MailService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
     private val chatMessageDaoService: ChatMessageDaoService,
+    private val typingStatusDaoService: TypingStatusDaoService,
     private val userCache: UserCache,
     private val discordService: DiscordService,
     private val logger: KLogger,
@@ -141,6 +143,7 @@ class PlayerVsPlayerGameService(
         val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
         val stateMap = pvpGameDaoService.fetchGameStates(allGameIds)
         val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
+        val typingStatusMap = typingStatusDaoService.fetchTypingStatuses(allGameIds)
 
         // not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
         playerVsPlayerSessions
@@ -191,12 +194,26 @@ class PlayerVsPlayerGameService(
                     )
                 }
 
+                // typing: find the most recently-updated typing event in this game from a
+                // different user that we have not yet notified this session about
+                val typingUserId = typingStatusMap[gameId]
+                    ?.entries
+                    ?.filter { (typingUserId, _) -> typingUserId != session.userId.id }
+                    ?.filter { (typingUserId, typedAt) ->
+                        val lastNotified = session.getLastTypingNotified(typingUserId)
+                        lastNotified == null || typedAt > lastNotified
+                    }
+                    ?.maxByOrNull { (_, typedAt) -> typedAt }
+                    ?.also { (typingUserId, typedAt) -> session.markTypingNotified(typingUserId, typedAt) }
+                    ?.key
+
                 val shouldUpdate =
                     session.currentStatus() != status ||
                             newMove != null ||
                             hasJoinedEvent != null ||
                             timeRemaining != null ||
-                            chatMessages.isNotEmpty()
+                            chatMessages.isNotEmpty() ||
+                            typingUserId != null
 
                 // update session
                 if (shouldUpdate) {
@@ -214,6 +231,7 @@ class PlayerVsPlayerGameService(
                             ratingUpdate = fetchRatingUpdateIfNecessaryWs(session.gameId, status),
                             timeRemaining = timeRemaining,
                             chatMessages = chatMessages,
+                            typingUserId = typingUserId,
                         )
                     )
                 }
@@ -432,11 +450,7 @@ class PlayerVsPlayerGameService(
 
     suspend fun handlePlayerVsPlayerInput(userId: UserId, gameId: String, input: PlayerVsPlayerInput) {
         if (input.isTyping) {
-            playerVsPlayerSessions
-                .filter { it.gameId == gameId && it.userId.id != userId.id }
-                .forEach { session ->
-                    session.update(PlayerVsPlayerUpdate(opponentIsTyping = true))
-                }
+            typingStatusDaoService.upsertTypingStatus(gameId, userId.id)
         } else if (input.message != null) {
             val gamePlayersStatus = fetchPlayersAndStatus(gameId)
             val isAllowedToChat = gamePlayersStatus.status == CREATED || gamePlayersStatus.isPlaying(userId.id)

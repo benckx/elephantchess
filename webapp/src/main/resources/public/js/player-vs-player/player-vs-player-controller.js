@@ -65,7 +65,7 @@ class GameController {
     #updateClocksCallback = () => console.log('update clocks');
     #fetchMovesCallback = (moves) => console.log('fetch moves ' + moves);
     #receivedChatMessages = (chatMessages, acks) => console.log('received chat messages ' + chatMessages);
-    #opponentTypingCallback = () => console.log('opponent is typing');
+    #opponentTypingCallback = (typingUserId) => console.log('opponent is typing: ' + typingUserId);
 
     /**
      * @param gameId {string}
@@ -83,7 +83,7 @@ class GameController {
      * @param updateClocksCallback {function()}
      * @param fetchMovesCallback {function(HalfMove[])}
      * @param receivedChatMessages {function(ChatMessageDto[], number[])}
-     * @param opponentTypingCallback {function()}
+     * @param opponentTypingCallback {function(string)}
      */
     constructor(
         gameId,
@@ -101,7 +101,7 @@ class GameController {
         updateClocksCallback,
         fetchMovesCallback,
         receivedChatMessages,
-        opponentTypingCallback = () => {}
+        opponentTypingCallback = (typingUserId) => {}
     ) {
         this.#gameId = gameId;
         this.#inviteeJoinedCallback = inviteeJoinedCallback;
@@ -259,8 +259,8 @@ class GameController {
                         this.#updateClocksCallback();
                     }
                     this.#handleReceivedChatMessages(chatMessages);
-                    if (json.opponentIsTyping) {
-                        this.#opponentTypingCallback();
+                    if (json.typingUserId) {
+                        this.#opponentTypingCallback(json.typingUserId);
                     }
                 }
             });

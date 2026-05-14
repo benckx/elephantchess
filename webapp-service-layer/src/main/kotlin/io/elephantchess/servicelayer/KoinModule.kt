@@ -80,6 +80,7 @@ private fun daoModule() = module {
     singleAuto<ReferencePlayerDaoService>()
     singleAuto<SevenKingdomsGameDaoService>()
     singleAuto<ThrownExceptionDaoService>()
+    singleAuto<TypingStatusDaoService>()
     singleAuto<UpcomingEventDaoService>()
     singleAuto<UserDaoService>()
     singleAuto<UserSessionDaoService>()
