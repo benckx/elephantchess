@@ -77,4 +77,11 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
         }
     }
 
+    suspend fun renderUserBrowsePvpGames(username: String): String {
+        return htmlRenderer.renderHtml(
+            "/templates/user_browse_pvp_games.html",
+            specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
+        )
+    }
+
 }

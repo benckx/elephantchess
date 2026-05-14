@@ -169,6 +169,9 @@ class UserNameDropDownMenu extends DropDownMenu {
                 this.addSimpleItem('My Analysis', () => {
                     window.open('/userdata/analysis', '_self');
                 });
+                this.addSimpleItem('My DB Searches', () => {
+                    window.open('/userdata/db-searches', '_self');
+                });
                 if (user.isEditor) {
                     this.addItemWithTopSeparator('My Edits', () => {
                         window.open('/userdata/db-edits', '_self');
