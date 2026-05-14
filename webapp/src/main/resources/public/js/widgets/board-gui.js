@@ -885,7 +885,9 @@ class BoardGui {
 
         const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
         arrowPath.setAttribute('d', pathD);
-        arrowPath.style.strokeWidth = `13px`;
+        // stroke width scales with the square size so the arrow looks consistent across viewports
+        // (a fixed 13px line is proportionally too thick on smaller boards, making the elbow look off-centered)
+        arrowPath.style.strokeWidth = `${Math.min(13, bound1.width * 0.10)}px`;
         arrowPath.style.fill = 'none';
         arrowPath.style.strokeLinejoin = 'round';
 
