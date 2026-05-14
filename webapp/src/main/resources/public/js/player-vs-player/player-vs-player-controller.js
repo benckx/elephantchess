@@ -65,7 +65,7 @@ class GameController {
     #updateClocksCallback = () => console.log('update clocks');
     #fetchMovesCallback = (moves) => console.log('fetch moves ' + moves);
     #receivedChatMessages = (chatMessages, acks) => console.log('received chat messages ' + chatMessages);
-    #opponentTypingCallback = (typingUserIds) => console.log('opponents are typing: ' + typingUserIds);
+    #opponentTypingCallback = (typingUsers) => console.log('opponents are typing: ' + JSON.stringify(typingUsers));
 
     /**
      * @param gameId {string}
@@ -83,7 +83,7 @@ class GameController {
      * @param updateClocksCallback {function()}
      * @param fetchMovesCallback {function(HalfMove[])}
      * @param receivedChatMessages {function(ChatMessageDto[], number[])}
-     * @param opponentTypingCallback {function(string[])}
+     * @param opponentTypingCallback {function(Object.<string,string>)} Map of userId→username for users currently typing
      */
     constructor(
         gameId,
@@ -101,7 +101,7 @@ class GameController {
         updateClocksCallback,
         fetchMovesCallback,
         receivedChatMessages,
-        opponentTypingCallback = (typingUserIds) => {}
+        opponentTypingCallback = (typingUsers) => {}
     ) {
         this.#gameId = gameId;
         this.#inviteeJoinedCallback = inviteeJoinedCallback;
@@ -259,8 +259,8 @@ class GameController {
                         this.#updateClocksCallback();
                     }
                     this.#handleReceivedChatMessages(chatMessages);
-                    if (json.typingUserIds && json.typingUserIds.length > 0) {
-                        this.#opponentTypingCallback(json.typingUserIds);
+                    if (json.typingUsers && Object.keys(json.typingUsers).length > 0) {
+                        this.#opponentTypingCallback(json.typingUsers);
                     }
                 }
             });

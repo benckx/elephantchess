@@ -197,7 +197,7 @@ class PlayerVsPlayerGameService(
 
                 // typing: collect all new typing events in this game from other users
                 // that we have not yet notified this session about
-                val typingUserIds = typingStatusMap[gameId]
+                val typingUsers = typingStatusMap[gameId]
                     ?.filter { entry -> entry.userId != session.userId.id }
                     ?.filter { entry ->
                         val lastNotified = session.getLastTypingNotified(entry.userId)
@@ -206,8 +206,8 @@ class PlayerVsPlayerGameService(
                     ?.also { entries ->
                         entries.forEach { entry -> session.markTypingNotified(entry.userId, entry.typedAt) }
                     }
-                    ?.map { entry -> entry.userId }
-                    ?: emptyList()
+                    ?.associate { entry -> entry.userId to userCache.fetchUsernameOrDefault(entry.userId) }
+                    ?: emptyMap()
 
                 val shouldUpdate =
                     session.currentStatus() != status ||
@@ -215,7 +215,7 @@ class PlayerVsPlayerGameService(
                             hasJoinedEvent != null ||
                             timeRemaining != null ||
                             chatMessages.isNotEmpty() ||
-                            typingUserIds.isNotEmpty()
+                            typingUsers.isNotEmpty()
 
                 // update session
                 if (shouldUpdate) {
@@ -233,7 +233,7 @@ class PlayerVsPlayerGameService(
                             ratingUpdate = fetchRatingUpdateIfNecessaryWs(session.gameId, status),
                             timeRemaining = timeRemaining,
                             chatMessages = chatMessages,
-                            typingUserIds = typingUserIds,
+                            typingUsers = typingUsers,
                         )
                     )
                 }

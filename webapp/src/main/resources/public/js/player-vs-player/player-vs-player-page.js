@@ -204,8 +204,8 @@ class PlayGamePage extends BasePage {
                 (chatMessages, acks) => {
                     this.#handleChatMessages(chatMessages, acks);
                 },
-                (typingUserIds) => {
-                    this.#handleOpponentTyping(typingUserIds);
+                (typingUsers) => {
+                    this.#handleOpponentTyping(typingUsers);
                 }
             );
 
@@ -828,18 +828,10 @@ class PlayGamePage extends BasePage {
         }
     }
 
-    #handleOpponentTyping(typingUserIds) {
-        const gameDto = this.#gameController.gameDto;
-
-        // Resolve each userId to a display name
-        const names = typingUserIds.map((typingUserId) => {
-            if (typingUserId === gameDto.inviterId) {
-                return gameDto.inviterUsername ?? 'Opponent';
-            } else if (gameDto.inviteeId != null && typingUserId === gameDto.inviteeId) {
-                return gameDto.inviteeUsername ?? 'Opponent';
-            }
-            return 'Opponent';
-        });
+    #handleOpponentTyping(typingUsers) {
+        // typingUsers is a map of userId→username sent directly from the server,
+        // so any role (player, spectator, admin) is already resolved correctly.
+        const names = Object.values(typingUsers);
 
         // Build "A is typing…" / "A and B are typing…" / "A, B and C are typing…"
         if (names.length === 0) return;
