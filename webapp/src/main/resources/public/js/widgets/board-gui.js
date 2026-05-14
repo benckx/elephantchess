@@ -814,29 +814,42 @@ class BoardGui {
         let pathD, midpointX, midpointY;
 
         if (isKnightMove(move)) {
-            // draw an elbowed (L-shaped) arrow for the knight's non-linear movement
+            // draw an elbowed arrow matching the horse's actual movement:
+            //   segment 1: orthogonal (straight line, 1 square) — the horse's "leg"
+            //   segment 2: diagonal (1 square) — the horse's diagonal step
             const reduction = bound1.width * 0.40;
             const dxPx = x2 - x1;
             const dyPx = y2 - y1;
+            const squareSize = bound1.width;
+
+            // Returns the point shortened by `r` pixels along the line from (px,py) toward (tx,ty)
+            function shortenToward(px, py, tx, ty, r) {
+                const dx = tx - px;
+                const dy = ty - py;
+                const d = Math.sqrt(dx * dx + dy * dy);
+                return [px + (dx / d) * r, py + (dy / d) * r];
+            }
 
             let x1Prime, y1Prime, x2Prime, y2Prime, elbowX, elbowY;
 
-            if (Math.abs(dyPx) > Math.abs(dxPx)) {
-                // vertical-dominant: corner at (x1, y2) — go vertically first, then horizontally
+            const dyBoardSquares = Math.abs(move.to.y - move.from.y);
+
+            if (dyBoardSquares === 2) {
+                // vertical-dominant: horse moves 2 steps orthogonally (up/down), then 1 step diagonally
+                // elbow is 1 square away from source in the vertical direction
                 elbowX = x1;
-                elbowY = y2;
-                x1Prime = x1;
-                y1Prime = y1 + Math.sign(dyPx) * reduction;
-                x2Prime = x2 - Math.sign(dxPx) * reduction;
-                y2Prime = y2;
+                elbowY = y1 + Math.sign(dyPx) * squareSize;
+
+                [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, reduction);
+                [x2Prime, y2Prime] = shortenToward(x2, y2, elbowX, elbowY, reduction);
             } else {
-                // horizontal-dominant: corner at (x2, y1) — go horizontally first, then vertically
-                elbowX = x2;
+                // horizontal-dominant: horse moves 2 steps orthogonally (left/right), then 1 step diagonally
+                // elbow is 1 square away from source in the horizontal direction
+                elbowX = x1 + Math.sign(dxPx) * squareSize;
                 elbowY = y1;
-                x1Prime = x1 + Math.sign(dxPx) * reduction;
-                y1Prime = y1;
-                x2Prime = x2;
-                y2Prime = y2 - Math.sign(dyPx) * reduction;
+
+                [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, reduction);
+                [x2Prime, y2Prime] = shortenToward(x2, y2, elbowX, elbowY, reduction);
             }
 
             pathD = `M${Math.round(x1Prime)},${Math.round(y1Prime)} L${Math.round(elbowX)},${Math.round(elbowY)} L${Math.round(x2Prime)},${Math.round(y2Prime)}`;
