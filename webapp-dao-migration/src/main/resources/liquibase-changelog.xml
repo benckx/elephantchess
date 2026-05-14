@@ -2413,7 +2413,7 @@
             </where>
         </delete>
     </changeSet>
-    <changeSet id="0094" author="benckx">
+    <changeSet id="0095" author="benckx">
         <createTable tableName="game_typing_status">
             <column name="game_id" type="varchar(12)">
                 <constraints nullable="false"/>
