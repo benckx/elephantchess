@@ -134,19 +134,26 @@ class MyDbSearchEntryDto {
     }
 
     /**
-     * Builds a human-readable summary of the search parameters.
-     * @returns {string}
+     * Builds a human-readable summary of the search parameters as a DOM element.
+     * The player name is rendered with a color class when a player color is set.
+     * @returns {HTMLSpanElement}
      */
-    get searchSummary() {
+    buildSearchSummaryElement() {
+        const container = document.createElement('span');
+        /** @type {(Node|string)[]} */
         const parts = [];
-        if (this.#playerName !== null) {
-            let playerPart = this.#playerName;
-            if (this.#playerColor !== null) {
-                playerPart += ` (${this.#playerColor.toLowerCase()})`;
+
+        if (this.#playerName !== null && this.#playerName.trim().length > 0) {
+            const playerSpan = document.createElement('span');
+            playerSpan.innerText = this.#playerName;
+            if (this.#playerColor === 'RED') {
+                playerSpan.classList.add('red-color');
+            } else if (this.#playerColor === 'BLACK') {
+                playerSpan.classList.add('black-color');
             }
-            parts.push(playerPart);
+            parts.push(playerSpan);
         }
-        if (this.#eventName !== null) {
+        if (this.#eventName !== null && this.#eventName.trim().length > 0) {
             parts.push(this.#eventName);
         }
         if (this.#searchStart !== null || this.#searchEnd !== null) {
@@ -154,13 +161,22 @@ class MyDbSearchEntryDto {
             const end = this.#searchEnd ?? '...';
             parts.push(`${start} → ${end}`);
         }
-        if (this.#fen !== null) {
+        if (this.#fen !== null && this.#fen.trim().length > 0) {
             parts.push(`FEN: ${this.#fen}`);
         }
+
         if (parts.length === 0) {
-            return 'All games';
+            container.innerText = 'All games';
+            return container;
         }
-        return parts.filter(part => part.trim().length > 0).join(', ');
+
+        parts.forEach((part, index) => {
+            if (index > 0) {
+                container.append(document.createTextNode(', '));
+            }
+            container.append(part);
+        });
+        return container;
     }
 
 }

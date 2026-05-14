@@ -79,7 +79,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
             // middle pane: search summary
             const summaryDiv = document.createElement('div');
             summaryDiv.className = 'default-text';
-            summaryDiv.innerText = entry.searchSummary;
+            summaryDiv.append(entry.buildSearchSummaryElement());
             middlePane.append(summaryDiv);
 
             let numberOfResultsStr;
