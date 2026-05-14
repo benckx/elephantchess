@@ -159,7 +159,7 @@ class MyDbSearchEntryDto {
         if (parts.length === 0) {
             return 'All games';
         }
-        return parts.join(', ');
+        return parts.filter(part => part.trim().length > 0).join(', ');
     }
 
 }
