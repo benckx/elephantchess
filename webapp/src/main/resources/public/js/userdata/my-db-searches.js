@@ -170,7 +170,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
                 // playerSpan.style.fontWeight = 'bold';
             } else if (entry.playerColor === Color.BLACK) {
                 playerSpan.classList.add('black-color');
-                // playerSpan.style.fontWeight = 'bold';
+                playerSpan.style.fontWeight = 'bold';
             }
             parts.push(playerSpan);
         }
