@@ -40,6 +40,9 @@ class UserSettingsPage extends BasePage {
     // TODO: email address section
     #emailAddressField = document.getElementById('email-address');
 
+    // sessions section
+    #sessionsWidget = new UserSessionsWidget({limit: 8, selectable: false});
+
     constructor() {
         super();
 
@@ -61,6 +64,9 @@ class UserSettingsPage extends BasePage {
 
         // email address section
         this.#fetchEmailAddressSettings();
+
+        // sessions section
+        this.#sessionsWidget.fetchAndRender();
     }
 
     #fetchProfileSettings() {

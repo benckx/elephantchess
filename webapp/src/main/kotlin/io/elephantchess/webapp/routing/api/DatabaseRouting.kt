@@ -77,6 +77,12 @@ fun Route.databaseRoutes() {
                 }
             }
         }
+        get("/list-user-searches") {
+            val continuation = call.request.queryParameters["continuation"]?.toLongOrNull()
+            requireIdentification { verifiedToken ->
+                databaseService.listUserSearches(verifiedToken.userId, continuation)
+            }
+        }
         get("/search") {
             requireIdentification { verifiedToken ->
                 val dateStart = call.request.queryParameters["dateStart"]

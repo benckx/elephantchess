@@ -5,6 +5,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.PasswordRecoveryAttempt
 import io.elephantchess.db.dao.codegen.tables.pojos.User
 import io.elephantchess.db.services.PasswordRecoveryAttemptsDaoService
 import io.elephantchess.db.services.UserDaoService
+import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.ContactFormRequest
@@ -32,6 +33,7 @@ class UserService(
     appConfig: AppConfig,
     private val passwordRecoveryRequestDaoService: PasswordRecoveryAttemptsDaoService,
     private val userDaoService: UserDaoService,
+    private val userSessionDaoService: UserSessionDaoService,
     private val userSessionService: UserSessionService,
     private val tokenManager: TokenManager,
     private val mailService: MailService,
@@ -235,6 +237,16 @@ class UserService(
         }
     }
 
+    /**
+     * Throws NotFoundException if user with given username does not exist
+     */
+    suspend fun validateUserExists(username: String) {
+        val userExists = userDaoService.existsForUsername(username)
+        if (!userExists) {
+            throw NotFoundException("User $username could not be found")
+        }
+    }
+
     suspend fun fetchProfile(username: String): UserProfile {
         // TODO: only fetch relevant fields
         val user = userDaoService.findByUserName(username)
@@ -317,6 +329,47 @@ class UserService(
             email = email,
             isValid = mailService.getEmailValidityStatus(email),
         )
+    }
+
+    suspend fun fetchUserSessions(userId: String, limit: Int, offset: Int = 0): UserSessionsSettingsResponse {
+        val total = userSessionDaoService.countAuthenticatedSessionsForUser(userId)
+        val entries =
+            userSessionDaoService
+                .listAuthenticatedSessionsForUser(userId, limit, offset)
+                .map { record ->
+                    UserSessionsSettingsResponse.Entry(
+                        id = record.id!!,
+                        os = record.operatingSystemName,
+                        agentName = record.agentName,
+                        countryCode = record.countryCode,
+                        countryName = record.countryName,
+                        region = record.region,
+                        city = record.city,
+                        remoteAddress = record.remoteAddress,
+                        created = record.created!!.toEpochMilliseconds(),
+                        updated = record.lastUpdated!!.toEpochMilliseconds(),
+                    )
+                }
+
+        return UserSessionsSettingsResponse(
+            entries = entries,
+            total = total,
+        )
+    }
+
+    suspend fun deleteUserSessions(userId: String, request: DeleteUserSessionsRequest): DeleteUserSessionsResponse {
+        val deletedCount =
+            userSessionDaoService.deleteAuthenticatedSessionsForUser(
+                userId = userId,
+                sessionIds = request.sessionIds.toSet()
+            )
+
+        return DeleteUserSessionsResponse(deletedCount)
+    }
+
+    suspend fun deleteAllUserSessions(userId: String): DeleteUserSessionsResponse {
+        val deletedCount = userSessionDaoService.deleteAllAuthenticatedSessionsForUser(userId)
+        return DeleteUserSessionsResponse(deletedCount)
     }
 
     fun isOnline(userId: String): Boolean {
