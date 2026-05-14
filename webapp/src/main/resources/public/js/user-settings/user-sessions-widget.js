@@ -33,6 +33,7 @@ class UserSessionsWidget {
     #fetchAll;
     #selectable;
     #onUpdate;
+    #onDelete;
 
     constructor(options = {}) {
         this.#table = document.getElementById(options.tableId || 'user-sessions-table');
@@ -46,6 +47,7 @@ class UserSessionsWidget {
         this.#selectable = options.selectable !== false;
         this.#onUpdate = options.onUpdate || (() => {
         });
+        this.#onDelete = options.onDelete || null;
 
         if (this.#selectAllCheckbox != null) {
             this.#selectAllCheckbox.addEventListener('change', () => this.#toggleSelectAll());
@@ -53,6 +55,15 @@ class UserSessionsWidget {
         if (this.#deleteButton != null) {
             this.#deleteButton.addEventListener('click', () => this.#deleteSelectedSessions());
         }
+    }
+
+    /**
+     * The underlying <table> element. Exposed so external paginators can
+     * inspect rendered rows (e.g. `InfiniteScrollPage.shouldFetchNextPage`).
+     * @returns {HTMLTableElement}
+     */
+    get table() {
+        return this.#table;
     }
 
     fetchAndRender() {
@@ -68,39 +79,55 @@ class UserSessionsWidget {
         });
     }
 
+    /**
+     * Clear the table body and reset the widget's footer/actions UI to its
+     * empty state. Intended for paginators that drive rendering externally.
+     */
+    clear() {
+        emptyTable(this.#table);
+        if (this.#selectAllCheckbox != null) {
+            this.#selectAllCheckbox.checked = false;
+        }
+        if (this.#actionsContainer != null) {
+            this.#actionsContainer.classList.add('hidden');
+        }
+        if (this.#emptyMessage != null) {
+            this.#emptyMessage.classList.add('hidden');
+        }
+        if (this.#allSessionsLink != null) {
+            this.#allSessionsLink.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Append rows for the given entries to the table body, without clearing
+     * what is already rendered. Toggles the "actions" toolbar on the first
+     * batch that contains rows.
+     * @param entries {Array<Object>}
+     */
+    appendEntries(entries) {
+        if (!entries || entries.length === 0) return;
+
+        const tbody = this.#table.tBodies[0] || this.#table.appendChild(document.createElement('tbody'));
+        entries.forEach(entry => this.#appendRow(tbody, entry));
+        this.#updateSelectAllCheckboxState();
+
+        if (this.#actionsContainer != null && this.#selectable) {
+            this.#actionsContainer.classList.remove('hidden');
+        }
+        if (this.#emptyMessage != null) {
+            this.#emptyMessage.classList.add('hidden');
+        }
+    }
+
     #render(json) {
         const entries = json.entries || [];
         const total = Number(json.total || 0);
 
-        const tbody = emptyTable(this.#table);
-        entries.forEach(entry => {
-            const row = tbody.insertRow();
-            if (this.#selectable) {
-                const checkboxCell = row.insertCell();
-                checkboxCell.className = 'select-cell';
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.dataset.sessionId = entry.id.toString();
-                checkbox.className = 'user-session-checkbox';
-                checkbox.addEventListener('change', () => this.#updateSelectAllCheckboxState());
-                checkboxCell.append(checkbox);
-            }
-
-            row.insertCell().append(this.#buildOsCellContent(entry.os));
-            row.insertCell().innerText = entry.agentName;
-            row.insertCell().append(this.#buildCountryCellContent(entry.countryCode, entry.countryName));
-            this.#insertCroppableCell(row, entry.region);
-            this.#insertCroppableCell(row, entry.city);
-            row.insertCell().innerText = entry.remoteAddress;
-            row.insertCell().innerText = formatTimestampToDateTime(entry.created);
-            row.insertCell().innerText = formatTimestampToDateTime(entry.updated);
-        });
+        this.clear();
+        this.appendEntries(entries);
 
         const hasEntries = entries.length > 0;
-        if (this.#actionsContainer != null) {
-            this.#actionsContainer.classList.toggle('hidden', !hasEntries || !this.#selectable);
-        }
         if (this.#emptyMessage != null) {
             this.#emptyMessage.classList.toggle('hidden', hasEntries);
         }
@@ -108,10 +135,31 @@ class UserSessionsWidget {
             this.#allSessionsLink.classList.toggle('hidden', total <= entries.length);
         }
 
-        if (this.#selectAllCheckbox != null) {
-            this.#selectAllCheckbox.checked = false;
-        }
         this.#onUpdate(entries, total);
+    }
+
+    #appendRow(tbody, entry) {
+        const row = tbody.insertRow();
+        if (this.#selectable) {
+            const checkboxCell = row.insertCell();
+            checkboxCell.className = 'select-cell';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.dataset.sessionId = entry.id.toString();
+            checkbox.className = 'user-session-checkbox';
+            checkbox.addEventListener('change', () => this.#updateSelectAllCheckboxState());
+            checkboxCell.append(checkbox);
+        }
+
+        row.insertCell().append(this.#buildOsCellContent(entry.os));
+        row.insertCell().innerText = entry.agentName;
+        row.insertCell().append(this.#buildCountryCellContent(entry.countryCode, entry.countryName));
+        this.#insertCroppableCell(row, entry.region);
+        this.#insertCroppableCell(row, entry.city);
+        row.insertCell().innerText = entry.remoteAddress;
+        row.insertCell().innerText = formatTimestampToDateTime(entry.created);
+        row.insertCell().innerText = formatTimestampToDateTime(entry.updated);
     }
 
     #insertCroppableCell(row, value) {
@@ -217,7 +265,11 @@ class UserSessionsWidget {
         postAndHandle(DELETE_USER_SESSIONS_URL, {sessionIds: selectedIds}, (json) => {
             const deletedCount = json.deletedCount || 0;
             UI.pushInfoNotification(`${deletedCount} session(s) deleted.`, 2_500);
-            this.fetchAndRender();
+            if (this.#onDelete != null) {
+                this.#onDelete(deletedCount);
+            } else {
+                this.fetchAndRender();
+            }
         });
     }
 

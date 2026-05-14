@@ -149,9 +149,14 @@ private fun Route.userSettingsRoutes() {
                     call.request.queryParameters["limit"]
                         ?.toIntOrNull()
                         ?.coerceAtLeast(1)
-                        ?: 5
+                        ?: 10
+                val offset =
+                    call.request.queryParameters["offset"]
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(0)
+                        ?: 0
 
-                userService.fetchUserSessions(verifiedToken.userId, limit)
+                userService.fetchUserSessions(verifiedToken.userId, limit, offset)
             }
         }
         post("/sessions/delete") {

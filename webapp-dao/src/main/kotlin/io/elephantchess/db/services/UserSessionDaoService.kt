@@ -108,13 +108,14 @@ class UserSessionDaoService(
             .map { mapToRecord(it) }
     }
 
-    suspend fun listAuthenticatedSessionsForUser(userId: String, limit: Int): List<UserSessionRecord> {
+    suspend fun listAuthenticatedSessionsForUser(userId: String, limit: Int, offset: Int = 0): List<UserSessionRecord> {
         return dslContext
             .select()
             .from(USER_SESSION)
             .where(USER_SESSION.USER_ID.eq(userId))
             .orderBy(USER_SESSION.LAST_UPDATED.desc())
             .limit(limit)
+            .offset(offset)
             .awaitMappedRecords<UserSession>()
             .map { mapToRecord(it) }
     }

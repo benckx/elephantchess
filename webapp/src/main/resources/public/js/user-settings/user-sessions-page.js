@@ -17,13 +17,64 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class UserSessionsPage extends BasePage {
+const SESSIONS_PAGE_SIZE = 50;
 
-    #sessionsWidget = new UserSessionsWidget({fetchAll: true});
+class UserSessionsPage extends InfiniteScrollPage {
+
+    #widget;
+    #offset = 0;
 
     constructor() {
         super();
-        this.#sessionsWidget.fetchAndRender();
+        this.#widget = new UserSessionsWidget({
+            onDelete: () => this.#reload(),
+        });
+        this.#widget.clear();
+        this.fetchItems();
+    }
+
+    shouldFetchNextPage() {
+        const rows = this.#widget.table.tBodies[0]?.querySelectorAll('tr');
+        if (!rows || rows.length === 0) return false;
+        return isInViewport(rows[rows.length - 1]);
+    }
+
+    baseUrl() {
+        return USER_SESSIONS_URL;
+    }
+
+    deserializeJsonEntry(jsonEntry) {
+        return jsonEntry;
+    }
+
+    extractToken(_entry) {
+        return this.#offset.toString();
+    }
+
+    showNoItem(value) {
+        const emptyMessage = document.getElementById('user-sessions-empty-message');
+        if (emptyMessage != null) {
+            emptyMessage.classList.toggle('hidden', !value);
+        }
+    }
+
+    additionalParameters() {
+        const params = new Map();
+        params.set('limit', SESSIONS_PAGE_SIZE.toString());
+        params.set('offset', this.#offset.toString());
+        return params;
+    }
+
+    addEntries(entries) {
+        this.#widget.appendEntries(entries);
+        this.#offset += entries.length;
+    }
+
+    #reload() {
+        this.#offset = 0;
+        this.resetPagination();
+        this.#widget.clear();
+        this.fetchItems();
     }
 
 }

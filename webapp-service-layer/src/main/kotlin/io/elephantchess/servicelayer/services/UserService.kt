@@ -331,11 +331,11 @@ class UserService(
         )
     }
 
-    suspend fun fetchUserSessions(userId: String, limit: Int): UserSessionsSettingsResponse {
+    suspend fun fetchUserSessions(userId: String, limit: Int, offset: Int = 0): UserSessionsSettingsResponse {
         val total = userSessionDaoService.countAuthenticatedSessionsForUser(userId)
         val entries =
             userSessionDaoService
-                .listAuthenticatedSessionsForUser(userId, limit)
+                .listAuthenticatedSessionsForUser(userId, limit, offset)
                 .map { record ->
                     UserSessionsSettingsResponse.Entry(
                         id = record.id!!,
