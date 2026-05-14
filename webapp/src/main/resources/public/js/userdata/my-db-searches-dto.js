@@ -111,12 +111,13 @@ class MyDbSearchEntryDto {
     get repeatSearchUrl() {
         const params = new URLSearchParams();
         if (this.#playerName !== null) {
-            params.set('playerName', this.#playerName);
+            const sanitizedPlayerName = this.#playerName.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+            params.set('playerName', sanitizedPlayerName);
         }
         if (this.#playerColor !== null) {
             params.set('playerColor', this.#playerColor);
         }
-        if (this.#eventName !== null) {
+        if (this.#eventName !== null && this.#eventName.trim().length > 0) {
             params.set('eventName', this.#eventName);
         }
         if (this.#searchStart !== null) {
