@@ -28,6 +28,7 @@ class MyDbSearchEntryDto {
     #searchEnd;
     #fen;
     #numberOfResults;
+    #offset;
 
     constructor(json) {
         this.#queryId = json.queryId;
@@ -39,6 +40,7 @@ class MyDbSearchEntryDto {
         this.#searchEnd = json.searchEnd;
         this.#fen = json.fen;
         this.#numberOfResults = json.numberOfResults;
+        this.#offset = json.offset;
     }
 
     /**
@@ -102,6 +104,13 @@ class MyDbSearchEntryDto {
      */
     get numberOfResults() {
         return this.#numberOfResults;
+    }
+
+    /**
+     * @returns {number}
+     */
+    get offset() {
+        return this.#offset;
     }
 
     /**

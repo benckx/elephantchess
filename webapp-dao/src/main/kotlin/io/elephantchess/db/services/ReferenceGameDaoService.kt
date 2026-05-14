@@ -62,7 +62,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitRecords()
     }
 
-    suspend fun findByEventId(eventId: String) : List<ReferenceGameRecord> {
+    suspend fun findByEventId(eventId: String): List<ReferenceGameRecord> {
         return dslContext
             .select()
             .from(REFERENCE_GAME)
@@ -383,8 +383,11 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .from(REFERENCE_GAME_SEARCH_QUERY)
             .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(userId))
             .and(
-                if (sanitizedPlayerName != null) REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.eq(sanitizedPlayerName)
-                else REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.isNull
+                if (sanitizedPlayerName != null) {
+                    lower(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME).eq(sanitizedPlayerName.lowercase())
+                } else {
+                    REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.isNull
+                }
             )
             .and(
                 if (playerId != null) REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID.eq(playerId)
@@ -456,21 +459,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             }
 
         return dslContext
-            .select(
-                REFERENCE_GAME_SEARCH_QUERY.QUERY_ID,
-                REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME,
-                REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME,
-                REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME,
-                REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID,
-                REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR,
-                REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME,
-                REFERENCE_GAME_SEARCH_QUERY.EVENT_ID,
-                REFERENCE_GAME_SEARCH_QUERY.SEARCH_START,
-                REFERENCE_GAME_SEARCH_QUERY.SEARCH_END,
-                REFERENCE_GAME_SEARCH_QUERY.FEN,
-                REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS,
-            )
-            .from(REFERENCE_GAME_SEARCH_QUERY)
+            .selectFrom(REFERENCE_GAME_SEARCH_QUERY)
             .where(condition)
             .orderBy(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.desc())
             .limit(limit)
@@ -489,6 +478,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
                     searchEnd = record.get(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END),
                     fen = record.get(REFERENCE_GAME_SEARCH_QUERY.FEN),
                     numberOfResults = record.get(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS),
+                    offset = record.get(REFERENCE_GAME_SEARCH_QUERY.OFFSET) ?: 0,
                 )
             }
     }
@@ -524,7 +514,8 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         private val WHITESPACE_REGEX = Regex("""\s+""")
 
         fun sanitizePlayerName(playerName: String?): String? =
-            playerName?.replace(PARENTHETICAL_REGEX, "")?.replace(WHITESPACE_REGEX, " ")?.trim()?.takeIf { it.isNotEmpty() }
+            playerName?.replace(PARENTHETICAL_REGEX, "")?.replace(WHITESPACE_REGEX, " ")?.trim()
+                ?.takeIf { it.isNotEmpty() }
     }
 
 }

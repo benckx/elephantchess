@@ -84,7 +84,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
 
             const resultsDiv = document.createElement('div');
             resultsDiv.className = 'game-status';
-            resultsDiv.innerText = `${entry.numberOfResults} result${entry.numberOfResults !== 1 ? 's' : ''}`;
+            resultsDiv.innerText = `${entry.numberOfResults + entry.offset} result${entry.numberOfResults !== 1 ? 's' : ''}`;
             middlePane.append(resultsDiv);
 
             // right pane: last used time
