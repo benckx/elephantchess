@@ -451,7 +451,6 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
 
     suspend fun listUserSearches(userId: String, beforeTime: Instant?, limit: Int): List<ReferenceGameSearchQuery> {
         val condition = REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(userId)
-            .and(REFERENCE_GAME_SEARCH_QUERY.OFFSET.isNull.or(REFERENCE_GAME_SEARCH_QUERY.OFFSET.eq(0)))
             .let { cond ->
                 if (beforeTime != null) cond.and(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.lessThan(beforeTime))
                 else cond
