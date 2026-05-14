@@ -96,6 +96,7 @@ class DatabaseService(
         }
     }
 
+
     suspend fun search(
         dateStart: String?,
         dateEnd: String?,
@@ -629,22 +630,35 @@ class DatabaseService(
 
     suspend fun listUserSearches(userId: String, beforeTime: Long?): MyDbSearchesResponse {
         val beforeInstant = beforeTime?.let { kotlin.time.Instant.fromEpochMilliseconds(it) }
-        return referenceGameDaoService
-            .listUserSearches(userId, beforeInstant, 30)
-            .map { entry ->
+        val records = referenceGameDaoService.listUserSearches(userId, beforeInstant, 30)
+        val resolvedPlayers = records
+            .mapNotNull { entry -> entry.playerName }
+            .distinct()
+            .mapNotNull { name -> resolvePlayerByName(name)?.let { name to it } }
+            .toMap()
+
+        return records
+            .map { record ->
+                val prettyName =
+                    record.playerName?.let { name ->
+                        resolvedPlayers[name]
+                            ?.let { player -> formatWithChineseName(player.canonicalName, player.chineseName) }
+                            ?: name
+                    }
+
                 MyDbSearchesResponse.Entry(
-                    queryId = entry.queryId,
-                    updateTime = entry.updateTime.toEpochMilliseconds(),
-                    playerName = entry.playerName,
-                    playerColor = entry.playerColor,
-                    eventName = entry.eventName,
-                    searchStart = entry.searchStart?.toString(),
-                    searchEnd = entry.searchEnd?.toString(),
-                    fen = entry.fen,
-                    numberOfResults = entry.numberOfResults,
+                    queryId = record.queryId,
+                    updateTime = record.updateTime.toEpochMilliseconds(),
+                    playerName = prettyName,
+                    playerColor = record.playerColor,
+                    eventName = record.eventName,
+                    searchStart = record.searchStart?.toString(),
+                    searchEnd = record.searchEnd?.toString(),
+                    fen = record.fen,
+                    numberOfResults = record.numberOfResults ?: 0,
                 )
             }
-            .let { entries -> MyDbSearchesResponse(entries) }
+            .let { mapped -> MyDbSearchesResponse(mapped) }
     }
 
     suspend fun findEditedPlayersLatestVersions(userId: String): ListUserEdits {

@@ -10,7 +10,6 @@ import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameOpeningVariat
 import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameRecord
 import io.elephantchess.db.model.EntityIdAndNameRecord
 import io.elephantchess.db.model.ReferenceGamePojo
-import io.elephantchess.db.model.UserDbSearchEntry
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
@@ -450,7 +449,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun listUserSearches(userId: String, beforeTime: Instant?, limit: Int): List<UserDbSearchEntry> {
+    suspend fun listUserSearches(userId: String, beforeTime: Instant?, limit: Int): List<ReferenceGameSearchQuery> {
         val condition = REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(userId)
             .and(REFERENCE_GAME_SEARCH_QUERY.OFFSET.isNull.or(REFERENCE_GAME_SEARCH_QUERY.OFFSET.eq(0)))
             .let { cond ->
@@ -463,23 +462,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .where(condition)
             .orderBy(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.desc())
             .limit(limit)
-            .awaitRecords()
-            .map { record ->
-                UserDbSearchEntry(
-                    queryId = record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID),
-                    queryTime = record.get(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME),
-                    updateTime = record.get(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME),
-                    playerName = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME),
-                    playerId = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID),
-                    playerColor = record.get(REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR),
-                    eventName = record.get(REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME),
-                    eventId = record.get(REFERENCE_GAME_SEARCH_QUERY.EVENT_ID),
-                    searchStart = record.get(REFERENCE_GAME_SEARCH_QUERY.SEARCH_START),
-                    searchEnd = record.get(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END),
-                    fen = record.get(REFERENCE_GAME_SEARCH_QUERY.FEN),
-                    numberOfResults = record.get(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS)
-                )
-            }
+            .awaitMappedRecords()
     }
 
     suspend fun listLatestDatabaseSearches(limit: Int): List<ReferenceGameSearchQuery> {
