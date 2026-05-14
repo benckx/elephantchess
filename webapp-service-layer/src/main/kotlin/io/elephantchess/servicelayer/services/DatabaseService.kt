@@ -183,20 +183,31 @@ class DatabaseService(
                     )
                 }
 
-        referenceGameDaoService.persistSearch(
-            userId = userId,
-            searchStart = dateStartParsed,
-            searchEnd = dateEndParsed,
-            playerName = playerName,
-            playerId = playerIds.firstOrNull(),
-            playerColor = playerColor,
-            eventName = eventName,
-            eventId = eventIds.firstOrNull(),
-            fen = fen,
-            offset = offset,
-            limit = SEARCH_RESULT_LIMIT,
-            numberOfResults = entries.size
-        )
+        val hasAnyCriteria = dateStartParsed != null ||
+                dateEndParsed != null ||
+                !playerName.isNullOrBlank() ||
+                resolvedPlayerIds.isNotEmpty() ||
+                playerColor != null ||
+                !eventName.isNullOrBlank() ||
+                resolvedEventIds.isNotEmpty() ||
+                !abridgedFen.isNullOrBlank()
+
+        if (hasAnyCriteria) {
+            referenceGameDaoService.persistSearch(
+                userId = userId,
+                searchStart = dateStartParsed,
+                searchEnd = dateEndParsed,
+                playerName = playerName,
+                playerId = playerIds.firstOrNull(),
+                playerColor = playerColor,
+                eventName = eventName,
+                eventId = eventIds.firstOrNull(),
+                fen = fen,
+                offset = offset,
+                limit = SEARCH_RESULT_LIMIT,
+                numberOfResults = entries.size
+            )
+        }
 
         return ReferenceGameSearchResult(entries)
     }
