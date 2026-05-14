@@ -367,6 +367,11 @@ class UserService(
         return DeleteUserSessionsResponse(deletedCount)
     }
 
+    suspend fun deleteAllUserSessions(userId: String): DeleteUserSessionsResponse {
+        val deletedCount = userSessionDaoService.deleteAllAuthenticatedSessionsForUser(userId)
+        return DeleteUserSessionsResponse(deletedCount)
+    }
+
     fun isOnline(userId: String): Boolean {
         return onlineUserIds.contains(userId)
     }

@@ -19,14 +19,15 @@
 
 const USER_SESSIONS_URL = '/api/user/settings/sessions';
 const DELETE_USER_SESSIONS_URL = USER_SESSIONS_URL + '/delete';
+const DELETE_ALL_USER_SESSIONS_URL = USER_SESSIONS_URL + '/delete-all';
 const MAX_CHARS_IN_CELL = 16;
 
 class UserSessionsWidget {
 
     #table;
     #actionsContainer;
-    #selectAllCheckbox;
     #deleteButton;
+    #deleteAllButton;
     #emptyMessage;
     #allSessionsLink;
     #limit;
@@ -38,8 +39,8 @@ class UserSessionsWidget {
     constructor(options = {}) {
         this.#table = document.getElementById(options.tableId || 'user-sessions-table');
         this.#actionsContainer = document.getElementById(options.actionsContainerId || 'sessions-actions-container');
-        this.#selectAllCheckbox = document.getElementById(options.selectAllCheckboxId || 'sessions-select-all');
         this.#deleteButton = document.getElementById(options.deleteButtonId || 'delete-sessions-button');
+        this.#deleteAllButton = document.getElementById(options.deleteAllButtonId || 'delete-all-sessions-button');
         this.#emptyMessage = document.getElementById(options.emptyMessageId || 'user-sessions-empty-message');
         this.#allSessionsLink = document.getElementById(options.allSessionsLinkId || 'all-sessions-link');
         this.#limit = options.limit || 5;
@@ -49,11 +50,12 @@ class UserSessionsWidget {
         });
         this.#onDelete = options.onDelete || null;
 
-        if (this.#selectAllCheckbox != null) {
-            this.#selectAllCheckbox.addEventListener('change', () => this.#toggleSelectAll());
-        }
         if (this.#deleteButton != null) {
             this.#deleteButton.addEventListener('click', () => this.#deleteSelectedSessions());
+        }
+        if (this.#deleteAllButton != null) {
+            this.#deleteAllButton.addEventListener('click', () => this.#confirmDeleteAllSessions());
+            UI.preloadModal(Modals.CONFIRMATION);
         }
     }
 
@@ -85,9 +87,6 @@ class UserSessionsWidget {
      */
     clear() {
         emptyTable(this.#table);
-        if (this.#selectAllCheckbox != null) {
-            this.#selectAllCheckbox.checked = false;
-        }
         if (this.#actionsContainer != null) {
             this.#actionsContainer.classList.add('hidden');
         }
@@ -110,7 +109,6 @@ class UserSessionsWidget {
 
         const tbody = this.#table.tBodies[0] || this.#table.appendChild(document.createElement('tbody'));
         entries.forEach(entry => this.#appendRow(tbody, entry));
-        this.#updateSelectAllCheckboxState();
 
         if (this.#actionsContainer != null && this.#selectable) {
             this.#actionsContainer.classList.remove('hidden');
@@ -148,7 +146,6 @@ class UserSessionsWidget {
             checkbox.type = 'checkbox';
             checkbox.dataset.sessionId = entry.id.toString();
             checkbox.className = 'user-session-checkbox';
-            checkbox.addEventListener('change', () => this.#updateSelectAllCheckboxState());
             checkboxCell.append(checkbox);
         }
 
@@ -233,25 +230,6 @@ class UserSessionsWidget {
         return null;
     }
 
-    #toggleSelectAll() {
-        const isChecked = this.#selectAllCheckbox.checked;
-        this.#table.querySelectorAll('.user-session-checkbox').forEach(checkbox => {
-            checkbox.checked = isChecked;
-        });
-    }
-
-    #updateSelectAllCheckboxState() {
-        if (this.#selectAllCheckbox == null) {
-            return;
-        }
-        const checkboxes = this.#table.querySelectorAll('.user-session-checkbox');
-        if (checkboxes.length === 0) {
-            this.#selectAllCheckbox.checked = false;
-            return;
-        }
-        this.#selectAllCheckbox.checked =
-            Array.from(checkboxes).every(checkbox => checkbox.checked);
-    }
 
     #deleteSelectedSessions() {
         const selectedIds = Array.from(this.#table.querySelectorAll('.user-session-checkbox:checked'))
@@ -263,14 +241,37 @@ class UserSessionsWidget {
         }
 
         postAndHandle(DELETE_USER_SESSIONS_URL, {sessionIds: selectedIds}, (json) => {
-            const deletedCount = json.deletedCount || 0;
-            UI.pushInfoNotification(`${deletedCount} session(s) deleted.`, 2_500);
-            if (this.#onDelete != null) {
-                this.#onDelete(deletedCount);
-            } else {
-                this.fetchAndRender();
-            }
+            this.#handleDeleteResponse(json);
         });
+    }
+
+    #confirmDeleteAllSessions() {
+        const message = buildSimpleSpan(
+            'Are you sure you want to delete all your sessions?'
+        );
+        UI.showConfirmationModal(
+            message,
+            () => this.#deleteAllSessions(),
+            'delete all',
+            () => UI.hideModal(null),
+            'cancel'
+        );
+    }
+
+    #deleteAllSessions() {
+        postAndHandle(DELETE_ALL_USER_SESSIONS_URL, null, (json) => {
+            this.#handleDeleteResponse(json);
+        });
+    }
+
+    #handleDeleteResponse(json) {
+        const deletedCount = json.deletedCount || 0;
+        UI.pushInfoNotification(`${deletedCount} session(s) deleted.`, 2_500);
+        if (this.#onDelete != null) {
+            this.#onDelete(deletedCount);
+        } else {
+            this.fetchAndRender();
+        }
     }
 
 }

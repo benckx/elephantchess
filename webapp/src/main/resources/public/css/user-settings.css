@@ -138,10 +138,6 @@
         margin-left: 10px;
     }
 
-    #sessions-actions-container input[type="checkbox"] {
-        width: 28px;
-        height: 28px;
-    }
 
     #sessions-actions-container input[type="button"] {
         margin-left: 0;

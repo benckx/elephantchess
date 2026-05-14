@@ -164,6 +164,11 @@ private fun Route.userSettingsRoutes() {
                 userService.deleteUserSessions(verifiedToken.userId, request)
             }
         }
+        post("/sessions/delete-all") {
+            requireAuthentication { verifiedToken ->
+                userService.deleteAllUserSessions(verifiedToken.userId)
+            }
+        }
     }
 }
 

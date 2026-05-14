@@ -140,6 +140,13 @@ class UserSessionDaoService(
             .awaitExecute()
     }
 
+    suspend fun deleteAllAuthenticatedSessionsForUser(userId: String): Int {
+        return dslContext
+            .deleteFrom(USER_SESSION)
+            .where(USER_SESSION.USER_ID.eq(userId))
+            .awaitExecute()
+    }
+
     suspend fun findByUserAgent(userAgent: String): List<UserSessionRecord> {
         val records = mutableListOf<UserSessionRecord>()
 
