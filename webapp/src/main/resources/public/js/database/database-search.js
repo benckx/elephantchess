@@ -315,7 +315,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         // left pane
         const databaseIcon = document.createElement('img');
         databaseIcon.className = 'time-control-icons';
-        databaseIcon.src = '/images/icons/data-search.png.png';
+        databaseIcon.src = '/images/icons/data-search.png';
         databaseIcon.alt = 'Database Game';
         leftPane.append(wrapInDiv(databaseIcon));
 
