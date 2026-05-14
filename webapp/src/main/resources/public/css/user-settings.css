@@ -74,6 +74,43 @@
     white-space: nowrap;
 }
 
+.nice-table {
+    border-collapse: collapse;
+}
+
+.nice-table thead th {
+    border-bottom: 2px solid #d0ccc6;
+    padding-bottom: 8px;
+}
+
+.nice-table td {
+    padding: 8px 10px;
+}
+
+.nice-table-striped tbody tr:nth-child(even) {
+    background-color: #f5f3ef;
+}
+
+.nice-table-hover tbody tr:hover {
+    background-color: #ece9e4;
+}
+
+.session-country-cell,
+.session-os-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.session-os-icon {
+    width: 20px;
+    text-align: center;
+}
+
+#user-sessions-table .select-cell {
+    width: 26px;
+}
+
 #user-sessions-empty-message,
 #all-sessions-link {
     margin-left: 12px;
@@ -127,5 +164,9 @@
     #sessions-actions-container input[type="button"] {
         margin-left: 0;
         margin-top: 10px;
+    }
+
+    .session-os-icon {
+        width: 34px;
     }
 }

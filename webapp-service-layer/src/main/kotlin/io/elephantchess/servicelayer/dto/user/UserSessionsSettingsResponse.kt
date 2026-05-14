@@ -8,6 +8,7 @@ data class UserSessionsSettingsResponse(
         val id: Int,
         val os: String,
         val agentName: String,
+        val countryCode: String?,
         val countryName: String?,
         val region: String?,
         val city: String?,

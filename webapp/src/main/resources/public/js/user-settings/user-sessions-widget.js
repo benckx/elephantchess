@@ -31,6 +31,7 @@ class UserSessionsWidget {
     #allSessionsLink;
     #limit;
     #fetchAll;
+    #selectable;
     #onUpdate;
 
     constructor(options = {}) {
@@ -42,6 +43,7 @@ class UserSessionsWidget {
         this.#allSessionsLink = document.getElementById(options.allSessionsLinkId || 'all-sessions-link');
         this.#limit = options.limit || 5;
         this.#fetchAll = options.fetchAll === true;
+        this.#selectable = options.selectable !== false;
         this.#onUpdate = options.onUpdate || (() => {
         });
 
@@ -73,18 +75,21 @@ class UserSessionsWidget {
         const tbody = emptyTable(this.#table);
         entries.forEach(entry => {
             const row = tbody.insertRow();
-            const checkboxCell = row.insertCell();
+            if (this.#selectable) {
+                const checkboxCell = row.insertCell();
+                checkboxCell.className = 'select-cell';
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.dataset.sessionId = entry.id.toString();
-            checkbox.className = 'user-session-checkbox';
-            checkbox.addEventListener('change', () => this.#updateSelectAllCheckboxState());
-            checkboxCell.append(checkbox);
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.dataset.sessionId = entry.id.toString();
+                checkbox.className = 'user-session-checkbox';
+                checkbox.addEventListener('change', () => this.#updateSelectAllCheckboxState());
+                checkboxCell.append(checkbox);
+            }
 
-            row.insertCell().innerText = entry.os;
+            row.insertCell().append(this.#buildOsCellContent(entry.os));
             row.insertCell().innerText = entry.agentName;
-            this.#insertCroppableCell(row, entry.countryName);
+            row.insertCell().append(this.#buildCountryCellContent(entry.countryCode, entry.countryName));
             this.#insertCroppableCell(row, entry.region);
             this.#insertCroppableCell(row, entry.city);
             row.insertCell().innerText = entry.remoteAddress;
@@ -94,7 +99,7 @@ class UserSessionsWidget {
 
         const hasEntries = entries.length > 0;
         if (this.#actionsContainer != null) {
-            this.#actionsContainer.classList.toggle('hidden', !hasEntries);
+            this.#actionsContainer.classList.toggle('hidden', !hasEntries || !this.#selectable);
         }
         if (this.#emptyMessage != null) {
             this.#emptyMessage.classList.toggle('hidden', hasEntries);
@@ -116,6 +121,49 @@ class UserSessionsWidget {
             cell.id = randomId();
             addToolTip(cell, value);
         }
+    }
+
+    #buildCountryCellContent(countryCode, countryName) {
+        const container = document.createElement('div');
+        container.className = 'session-country-cell';
+
+        if (countryCode != null && typeof buildFlagIconImg === 'function') {
+            container.append(buildFlagIconImg(countryCode));
+        }
+
+        const countryLabel = document.createElement('span');
+        countryLabel.innerText = cropText(countryName, MAX_CHARS_IN_CELL);
+        if (countryName != null && countryName.length > MAX_CHARS_IN_CELL) {
+            countryLabel.id = randomId();
+            addToolTip(countryLabel, countryName);
+        }
+        container.append(countryLabel);
+        return container;
+    }
+
+    #buildOsCellContent(osName) {
+        const container = document.createElement('div');
+        container.className = 'session-os-cell';
+
+        const icon = document.createElement('span');
+        icon.className = 'session-os-icon';
+        icon.innerText = this.#mapOsNameToIcon(osName);
+        icon.title = osName;
+
+        const label = document.createElement('span');
+        label.innerText = osName;
+
+        container.append(icon, label);
+        return container;
+    }
+
+    #mapOsNameToIcon(osName) {
+        const lower = (osName || '').toLowerCase();
+        if (lower.includes('android')) return '🤖';
+        if (lower.includes('linux')) return '🐧';
+        if (lower.includes('mac')) return '🍎';
+        if (lower.includes('windows')) return '🪟';
+        return '❔';
     }
 
     #toggleSelectAll() {

@@ -341,6 +341,7 @@ class UserService(
                         id = record.id!!,
                         os = record.operatingSystemName,
                         agentName = record.agentName,
+                        countryCode = record.countryCode,
                         countryName = record.countryName,
                         region = record.region,
                         city = record.city,
