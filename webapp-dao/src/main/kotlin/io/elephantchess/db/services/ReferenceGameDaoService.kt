@@ -373,12 +373,17 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
 
         val now = Clock.System.now()
 
+        // Sanitize player name the same way the JS client does: strip parenthetical substrings
+        // (e.g. Chinese characters like "(陈松顺)") so "Chen Songshun (陈松顺)" and
+        // "Chen Songshun" are treated as the same search entry.
+        val sanitizedPlayerName = sanitizePlayerName(playerName)
+
         val existingId = dslContext
             .select(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID)
             .from(REFERENCE_GAME_SEARCH_QUERY)
             .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(userId))
             .and(
-                if (playerName != null) REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.eq(playerName)
+                if (sanitizedPlayerName != null) REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.eq(sanitizedPlayerName)
                 else REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.isNull
             )
             .and(
@@ -430,7 +435,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.fixed(), now)
             .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_START.fixed(), searchStart)
             .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END.fixed(), searchEnd)
-            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.fixed(), playerName)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.fixed(), sanitizedPlayerName)
             .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID.fixed(), playerId)
             .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR.fixed(), playerColor)
             .set(REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME.fixed(), eventName)
@@ -512,6 +517,14 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
                     record2.get(REFERENCE_GAME.ANALYSIS_START_TIME)
                 )
             }
+    }
+
+    companion object {
+        private val PARENTHETICAL_REGEX = Regex("""\s*\([^)]*\)\s*""")
+        private val WHITESPACE_REGEX = Regex("""\s+""")
+
+        fun sanitizePlayerName(playerName: String?): String? =
+            playerName?.replace(PARENTHETICAL_REGEX, "")?.replace(WHITESPACE_REGEX, " ")?.trim()?.takeIf { it.isNotEmpty() }
     }
 
 }
