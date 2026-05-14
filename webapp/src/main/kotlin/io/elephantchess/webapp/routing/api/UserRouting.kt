@@ -143,6 +143,32 @@ private fun Route.userSettingsRoutes() {
                 userService.fetchEmailAddressSettings(verifiedToken.userId)
             }
         }
+        get("/sessions") {
+            requireAuthentication { verifiedToken ->
+                val limit =
+                    call.request.queryParameters["limit"]
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(1)
+                        ?: 10
+                val offset =
+                    call.request.queryParameters["offset"]
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(0)
+                        ?: 0
+
+                userService.fetchUserSessions(verifiedToken.userId, limit, offset)
+            }
+        }
+        post("/sessions/delete") {
+            requireAuthenticationWithBody<DeleteUserSessionsRequest> { verifiedToken, request ->
+                userService.deleteUserSessions(verifiedToken.userId, request)
+            }
+        }
+        post("/sessions/delete-all") {
+            requireAuthentication { verifiedToken ->
+                userService.deleteAllUserSessions(verifiedToken.userId)
+            }
+        }
     }
 }
 

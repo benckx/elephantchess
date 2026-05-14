@@ -61,7 +61,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
     private fun descriptionDivTagResolver(username: String, description: String?): TagResolver {
         return CallbackTagResolver("user_profile_description") {
-            if (description != null) {
+            if (!description.isNullOrBlank()) {
                 buildString {
                     append("""<div id="profile-description">""")
                     append(formatNewLinesToHtmlParagraphs(description))
@@ -75,6 +75,13 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 }
             }
         }
+    }
+
+    suspend fun renderUserBrowsePvpGames(username: String): String {
+        return htmlRenderer.renderHtml(
+            "/templates/user_browse_pvp_games.html",
+            specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
+        )
     }
 
 }
