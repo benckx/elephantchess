@@ -8,7 +8,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.GameChatMessage
 import io.elephantchess.db.model.TimeControlRecord
 import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
-import io.elephantchess.db.services.TypingStatusDaoService
+import io.elephantchess.db.services.GameChatTypingStatusDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
@@ -63,7 +63,7 @@ class PlayerVsPlayerGameService(
     private val mailService: MailService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
     private val chatMessageDaoService: ChatMessageDaoService,
-    private val typingStatusDaoService: TypingStatusDaoService,
+    private val gameChatTypingStatusDaoService: GameChatTypingStatusDaoService,
     private val userCache: UserCache,
     private val discordService: DiscordService,
     private val logger: KLogger,
@@ -144,8 +144,9 @@ class PlayerVsPlayerGameService(
         val stateMap = pvpGameDaoService.fetchGameStates(allGameIds)
         val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
 
-        val typingFreshnessCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
-        val typingStatusMap = typingStatusDaoService.fetchTypingStatuses(allGameIds, typingFreshnessCutOff)
+        val gameChatTypingStatusCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
+        val gameTypingStatusMap =
+            gameChatTypingStatusDaoService.fetchForGameIds(allGameIds, gameChatTypingStatusCutOff)
 
         // not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
         playerVsPlayerSessions
@@ -200,7 +201,7 @@ class PlayerVsPlayerGameService(
                 // Stale entries are filtered out at the DAO layer (see
                 // [TypingStatusDaoService.fetchTypingStatuses]), and clients are
                 // responsible for de-duplicating / hiding the indicator on their side.
-                val typingUsers = typingStatusMap[gameId]
+                val typingUsers = gameTypingStatusMap[gameId]
                     ?.filter { entry -> entry.userId != session.userId.id }
                     ?.map { entry ->
                         TypingUser(
@@ -455,7 +456,7 @@ class PlayerVsPlayerGameService(
 
     suspend fun handlePlayerVsPlayerInput(userId: UserId, gameId: String, input: PlayerVsPlayerInput) {
         if (input.isTyping) {
-            typingStatusDaoService.upsertTypingStatus(gameId, userId.id)
+            gameChatTypingStatusDaoService.upsertTypingStatus(gameId, userId.id)
         } else if (input.message != null) {
             val gamePlayersStatus = fetchPlayersAndStatus(gameId)
             val isAllowedToChat = gamePlayersStatus.status == CREATED || gamePlayersStatus.isPlaying(userId.id)
@@ -1095,7 +1096,7 @@ class PlayerVsPlayerGameService(
          * previous session) and are filtered out so that, on refresh/reconnect,
          * we do not re-trigger an "is typing…" indicator for stale events.
          */
-        val TYPING_FRESHNESS_WINDOW = 3.seconds
+        val TYPING_FRESHNESS_WINDOW = 2.seconds
 
         fun formatMillis(millis: Long): String {
             val hours = TimeUnit.MILLISECONDS.toHours(millis).toInt()

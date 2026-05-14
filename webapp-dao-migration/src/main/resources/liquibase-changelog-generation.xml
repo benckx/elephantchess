@@ -2241,7 +2241,7 @@
         </delete>
     </changeSet>
     <changeSet id="0096" author="benckx">
-        <createTable tableName="game_typing_status">
+        <createTable tableName="game_chat_typing_status">
             <column name="game_id" type="varchar(12)">
                 <constraints nullable="false"/>
             </column>
@@ -2253,9 +2253,9 @@
             </column>
         </createTable>
         <addPrimaryKey columnNames="game_id, user_id"
-                       constraintName="game_typing_status_pkey"
-                       tableName="game_typing_status"/>
-        <addForeignKeyConstraint baseTableName="game_typing_status"
+                       constraintName="game_chat_typing_status_pkey"
+                       tableName="game_chat_typing_status"/>
+        <addForeignKeyConstraint baseTableName="game_chat_typing_status"
                                  baseColumnNames="game_id"
                                  constraintName="game_typing_status_to_game_fk"
                                  referencedTableName="game"
