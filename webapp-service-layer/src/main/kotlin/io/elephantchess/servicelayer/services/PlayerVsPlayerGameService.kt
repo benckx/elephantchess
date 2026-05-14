@@ -9,6 +9,7 @@ import io.elephantchess.db.model.TimeControlRecord
 import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.TypingStatusDaoService
+import io.elephantchess.db.services.TypingStatusEntry
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
@@ -194,18 +195,19 @@ class PlayerVsPlayerGameService(
                     )
                 }
 
-                // typing: find the most recently-updated typing event in this game from a
-                // different user that we have not yet notified this session about
-                val typingUserId = typingStatusMap[gameId]
-                    ?.entries
-                    ?.filter { (typingUserId, _) -> typingUserId != session.userId.id }
-                    ?.filter { (typingUserId, typedAt) ->
-                        val lastNotified = session.getLastTypingNotified(typingUserId)
-                        lastNotified == null || typedAt > lastNotified
+                // typing: collect all new typing events in this game from other users
+                // that we have not yet notified this session about
+                val typingUserIds = typingStatusMap[gameId]
+                    ?.filter { entry -> entry.userId != session.userId.id }
+                    ?.filter { entry ->
+                        val lastNotified = session.getLastTypingNotified(entry.userId)
+                        lastNotified == null || entry.typedAt > lastNotified
                     }
-                    ?.maxByOrNull { (_, typedAt) -> typedAt }
-                    ?.also { (typingUserId, typedAt) -> session.markTypingNotified(typingUserId, typedAt) }
-                    ?.key
+                    ?.also { entries ->
+                        entries.forEach { entry -> session.markTypingNotified(entry.userId, entry.typedAt) }
+                    }
+                    ?.map { entry -> entry.userId }
+                    ?: emptyList()
 
                 val shouldUpdate =
                     session.currentStatus() != status ||
@@ -213,7 +215,7 @@ class PlayerVsPlayerGameService(
                             hasJoinedEvent != null ||
                             timeRemaining != null ||
                             chatMessages.isNotEmpty() ||
-                            typingUserId != null
+                            typingUserIds.isNotEmpty()
 
                 // update session
                 if (shouldUpdate) {
@@ -231,7 +233,7 @@ class PlayerVsPlayerGameService(
                             ratingUpdate = fetchRatingUpdateIfNecessaryWs(session.gameId, status),
                             timeRemaining = timeRemaining,
                             chatMessages = chatMessages,
-                            typingUserId = typingUserId,
+                            typingUserIds = typingUserIds,
                         )
                     )
                 }

@@ -259,8 +259,8 @@ class GameController {
                         this.#updateClocksCallback();
                     }
                     this.#handleReceivedChatMessages(chatMessages);
-                    if (json.typingUserId) {
-                        this.#opponentTypingCallback(json.typingUserId);
+                    if (json.typingUserIds && json.typingUserIds.length > 0) {
+                        json.typingUserIds.forEach((typingUserId) => this.#opponentTypingCallback(typingUserId));
                     }
                 }
             });

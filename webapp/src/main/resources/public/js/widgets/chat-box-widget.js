@@ -108,6 +108,12 @@ class ChatBoxWidget {
     #inputTypingListeners = [];
 
     /**
+     * Debounce timer for the input typing event.
+     * @type {number|null}
+     */
+    #typingDebounceTimer = null;
+
+    /**
      * @param sendMessageCb {function(string): void}
      */
     constructor(sendMessageCb) {
@@ -133,7 +139,10 @@ class ChatBoxWidget {
         });
 
         this.#input.addEventListener('input', () => {
-            this.#inputTypingListeners.forEach((listener) => listener());
+            clearTimeout(this.#typingDebounceTimer);
+            this.#typingDebounceTimer = setTimeout(() => {
+                this.#inputTypingListeners.forEach((listener) => listener());
+            }, 400);
         });
 
         // update relative time of messages every 5 seconds

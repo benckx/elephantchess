@@ -10,6 +10,8 @@ import org.jooq.impl.DSL
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+data class TypingStatusEntry(val userId: String, val typedAt: Instant)
+
 class TypingStatusDaoService(private val dslContext: DSLContext) {
 
     suspend fun upsertTypingStatus(gameId: String, userId: String) {
@@ -26,11 +28,10 @@ class TypingStatusDaoService(private val dslContext: DSLContext) {
     }
 
     /**
-     * Returns a nested map where the outer key is gameId and each inner map is keyed by userId
-     * with values representing the last typed-at [Instant] for that user in that game.
-     * Only entries for the requested [gameIds] are returned.
+     * Returns a map keyed by gameId where each value is the list of [TypingStatusEntry]
+     * for that game. Only entries for the requested [gameIds] are returned.
      */
-    suspend fun fetchTypingStatuses(gameIds: List<String>): Map<String, Map<String, Instant>> {
+    suspend fun fetchTypingStatuses(gameIds: List<String>): Map<String, List<TypingStatusEntry>> {
         if (gameIds.isEmpty()) return emptyMap()
 
         return dslContext
@@ -39,7 +40,7 @@ class TypingStatusDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords<GameTypingStatus>()
             .groupBy { it.gameId!! }
             .mapValues { (_, records) ->
-                records.associate { it.userId!! to it.typedAt!! }
+                records.map { TypingStatusEntry(userId = it.userId!!, typedAt = it.typedAt!!) }
             }
     }
 
