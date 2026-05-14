@@ -2361,4 +2361,24 @@
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0094" author="benckx">
+        <createTable tableName="reference_player_duplicate">
+            <column name="player_id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="is_duplicate_of" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="reference_player_duplicate"
+                                 baseColumnNames="player_id"
+                                 constraintName="ref_player_duplicate_player_id_fk"
+                                 referencedTableName="reference_player"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="reference_player_duplicate"
+                                 baseColumnNames="is_duplicate_of"
+                                 constraintName="ref_player_duplicate_is_duplicate_of_fk"
+                                 referencedTableName="reference_player"
+                                 referencedColumnNames="id"/>
+    </changeSet>
 </databaseChangeLog>
