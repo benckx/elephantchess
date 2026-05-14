@@ -226,8 +226,7 @@ class PlayerVsPlayerGameService(
                     if (status == DRAW_PROPOSED) {
                         drawPropositionUser = pvpGameDaoService.fetchDrawPropositionUser(gameId)
                     }
-
-
+                    
                     session.update(
                         PlayerVsPlayerUpdate(
                             status = status,
