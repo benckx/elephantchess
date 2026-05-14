@@ -27,11 +27,11 @@ class SimpleBoardPage extends BasePage {
         const moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
         moveTreeWidget.addNavigationPanel({
             containerId: 'mobile-navigation-panel',
-            isDownloadButtonEnabled: false
+            isDownloadButtonEnabled: true
         });
         moveTreeWidget.addNavigationPanel({
             containerId: 'move-history-navigation-panel',
-            isDownloadButtonEnabled: false
+            isDownloadButtonEnabled: true
         });
         moveTreeWidget.boardWidget = boardGui;
 
