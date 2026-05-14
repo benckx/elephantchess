@@ -34,7 +34,6 @@ class PlayerVsPlayerWebSocketSession(
                 now > (timeRemainingLastSync!! + TIME_REMAINING_SYNC_INTERVAL)
     }
 
-
     override fun update(update: PlayerVsPlayerUpdate) {
         var mustUpdate = false
 
