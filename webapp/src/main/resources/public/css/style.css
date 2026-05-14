@@ -793,17 +793,14 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
 
 #user-profile-icon {
     display: block;
-    margin-right: 5px;
+    margin-right: 12px;
+    margin-top: 5px;
 }
 
 #user-profile-icon img {
-    width: 18px;
-    height: 18px;
-    opacity: 60%;
-}
-
-#user-profile-icon img:hover {
-    opacity: 80%;
+    width: 20px;
+    height: 20px;
+    opacity: 50%;
 }
 
 #login-side input {
