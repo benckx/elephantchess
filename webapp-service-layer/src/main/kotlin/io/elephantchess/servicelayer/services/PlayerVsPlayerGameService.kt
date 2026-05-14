@@ -52,8 +52,8 @@ import kotlin.math.abs
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import io.elephantchess.servicelayer.dto.ws.RatingUpdate as RatingUpdateWs
 
@@ -70,7 +70,7 @@ class PlayerVsPlayerGameService(
     refresherScope: CoroutineScope
 ) {
 
-    private val sessionsRefresh = 1500.milliseconds
+    private val sessionsRefresh = 1.seconds
 
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
     private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
