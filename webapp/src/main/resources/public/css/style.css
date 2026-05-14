@@ -1035,6 +1035,7 @@ input[type=password].incorrect-data {
 
 .main-container,
 .main-container-text,
+.main-container-text-extended-smaller,
 .main-container-text-extended,
 .main-container-text-extended-larger,
 .main-container-text-error-message {
@@ -1043,6 +1044,7 @@ input[type=password].incorrect-data {
 }
 
 .main-container-text,
+.main-container-text-extended-smaller,
 .main-container-text-extended,
 .main-container-text-extended-larger,
 .main-container-text-error-message {
@@ -1054,6 +1056,12 @@ input[type=password].incorrect-data {
     width: 60%;
     min-width: 500px;
     max-width: 950px;
+}
+
+.main-container-text-extended-smaller {
+    width: 70%;
+    min-width: 600px;
+    max-width: 1200px;
 }
 
 .main-container-text-extended {

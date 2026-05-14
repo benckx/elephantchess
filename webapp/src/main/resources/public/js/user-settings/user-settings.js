@@ -41,7 +41,7 @@ class UserSettingsPage extends BasePage {
     #emailAddressField = document.getElementById('email-address');
 
     // sessions section
-    #sessionsWidget = new UserSessionsWidget({limit: 5, selectable: false});
+    #sessionsWidget = new UserSessionsWidget({limit: 10, selectable: false});
 
     constructor() {
         super();

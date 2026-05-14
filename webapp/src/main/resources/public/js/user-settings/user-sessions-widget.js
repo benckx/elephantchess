@@ -127,7 +127,7 @@ class UserSessionsWidget {
         const container = document.createElement('div');
         container.className = 'session-country-cell';
 
-        if (countryCode != null && typeof buildFlagIconImg === 'function') {
+        if (countryCode != null && countryCode !== '-' && typeof buildFlagIconImg === 'function') {
             try {
                 container.append(buildFlagIconImg(countryCode));
             } catch (e) {
