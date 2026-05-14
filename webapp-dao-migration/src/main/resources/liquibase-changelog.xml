@@ -2360,6 +2360,26 @@
         <addColumn tableName="bot_game">
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
+        <sql><![CDATA[
+            -- Fairy-Stockfish: always 11.2
+            UPDATE bot_game
+            SET engine_version = '11.2'
+            WHERE engine = 'FAIRYSTOCKFISH';
+
+            -- Pikafish before the 2024-04-28 upgrade
+            UPDATE bot_game
+            SET engine_version = '2022-12-26'
+            WHERE engine = 'PIKAFISH'
+            AND (created AT TIME ZONE 'UTC')::date < DATE '2024-04-28';
+
+            -- Pikafish after the 2024-04-28 upgrade
+            UPDATE bot_game
+            SET engine_version = '2023-03-05'
+            WHERE engine = 'PIKAFISH'
+            AND (created AT TIME ZONE 'UTC')::date > DATE '2024-04-28';
+
+            -- Pikafish games created on 2024-04-28 keep engine_version = NULL (unknown).
+        ]]></sql>
     </changeSet>
     <changeSet id="0094" author="benckx">
         <addColumn tableName="reference_game_search_query">
