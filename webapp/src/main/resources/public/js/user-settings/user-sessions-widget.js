@@ -153,11 +153,19 @@ class UserSessionsWidget {
         const container = document.createElement('div');
         container.className = 'session-os-cell';
 
-        const icon = document.createElement('span');
+        const iconSrc = this.#mapOsNameToIcon(osName);
+        let icon;
+        if (iconSrc != null) {
+            icon = document.createElement('img');
+            icon.src = iconSrc;
+            icon.alt = osName || 'unknown operating system';
+        } else {
+            icon = document.createElement('span');
+            icon.innerText = '❔';
+            icon.setAttribute('role', 'img');
+            icon.setAttribute('aria-label', osName || 'unknown operating system');
+        }
         icon.className = 'session-os-icon';
-        icon.innerText = this.#mapOsNameToIcon(osName);
-        icon.setAttribute('role', 'img');
-        icon.setAttribute('aria-label', osName || 'unknown operating system');
         icon.title = osName;
 
         const label = document.createElement('span');
@@ -169,11 +177,12 @@ class UserSessionsWidget {
 
     #mapOsNameToIcon(osName) {
         const lower = (osName || '').toLowerCase();
-        if (lower.startsWith('android')) return '🤖';
-        if (lower.startsWith('linux')) return '🐧';
-        if (lower === 'mac' || lower.startsWith('mac os') || lower.startsWith('macos')) return '🍎';
-        if (lower.startsWith('windows')) return '🪟';
-        return '❔';
+        const base = '/images/icons/os/';
+        if (lower.startsWith('android')) return base + 'android.png';
+        if (lower.startsWith('linux')) return base + 'linux.png';
+        if (lower === 'mac' || lower.startsWith('mac os') || lower.startsWith('macos') || lower.startsWith('ios')) return base + 'apple.png';
+        if (lower.startsWith('windows')) return base + 'windows.png';
+        return null;
     }
 
     #toggleSelectAll() {

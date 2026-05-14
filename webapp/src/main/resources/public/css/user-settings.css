@@ -74,26 +74,6 @@
     white-space: nowrap;
 }
 
-.nice-table {
-    border-collapse: collapse;
-}
-
-.nice-table thead th {
-    border-bottom: 2px solid #d0ccc6;
-    padding-bottom: 8px;
-}
-
-.nice-table td {
-    padding: 8px 10px;
-}
-
-.nice-table-striped tbody tr:nth-child(even) {
-    background-color: #f5f3ef;
-}
-
-.nice-table-hover tbody tr:hover {
-    background-color: #ece9e4;
-}
 
 .session-country-cell,
 .session-os-cell {
@@ -104,6 +84,8 @@
 
 .session-os-icon {
     width: 20px;
+    height: 20px;
+    object-fit: contain;
     text-align: center;
 }
 
@@ -168,5 +150,6 @@
 
     .session-os-icon {
         width: 34px;
+        height: 34px;
     }
 }
