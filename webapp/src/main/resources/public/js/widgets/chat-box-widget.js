@@ -206,10 +206,10 @@ class ChatBoxWidget {
     }
 
     /**
-     * @param username {string}
+     * @param label {string} Full pre-formatted label, e.g. "Alice is typing…" or "Alice and Bob are typing…"
      */
-    showOpponentTyping(username) {
-        this.#typingIndicator.innerText = `${username} is typing…`;
+    showOpponentTyping(label) {
+        this.#typingIndicator.innerText = label;
         this.#typingIndicator.style.display = 'block';
     }
 

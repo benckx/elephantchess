@@ -204,8 +204,8 @@ class PlayGamePage extends BasePage {
                 (chatMessages, acks) => {
                     this.#handleChatMessages(chatMessages, acks);
                 },
-                (typingUserId) => {
-                    this.#handleOpponentTyping(typingUserId);
+                (typingUserIds) => {
+                    this.#handleOpponentTyping(typingUserIds);
                 }
             );
 
@@ -828,18 +828,30 @@ class PlayGamePage extends BasePage {
         }
     }
 
-    #handleOpponentTyping(typingUserId) {
+    #handleOpponentTyping(typingUserIds) {
         const gameDto = this.#gameController.gameDto;
 
-        // Resolve display name from userId: check both inviter and invitee
-        let displayName = 'Opponent';
-        if (typingUserId === gameDto.inviterId) {
-            displayName = gameDto.inviterUsername ?? displayName;
-        } else if (gameDto.inviteeId != null && typingUserId === gameDto.inviteeId) {
-            displayName = gameDto.inviteeUsername ?? displayName;
+        // Resolve each userId to a display name
+        const names = typingUserIds.map((typingUserId) => {
+            if (typingUserId === gameDto.inviterId) {
+                return gameDto.inviterUsername ?? 'Opponent';
+            } else if (gameDto.inviteeId != null && typingUserId === gameDto.inviteeId) {
+                return gameDto.inviteeUsername ?? 'Opponent';
+            }
+            return 'Opponent';
+        });
+
+        // Build "A is typing…" / "A and B are typing…" / "A, B and C are typing…"
+        if (names.length === 0) return;
+        let label;
+        if (names.length === 1) {
+            label = `${names[0]} is typing…`;
+        } else {
+            const allButLast = names.slice(0, -1).join(', ');
+            label = `${allButLast} and ${names[names.length - 1]} are typing…`;
         }
 
-        this.#chatBoxWidget.showOpponentTyping(displayName);
+        this.#chatBoxWidget.showOpponentTyping(label);
 
         clearTimeout(this.#opponentTypingTimeoutId);
         this.#opponentTypingTimeoutId = setTimeout(() => {
