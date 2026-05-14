@@ -13,6 +13,20 @@ import kotlin.math.floor
 private const val COST_IN_EUR_PER_DAY = 4
 private val supportedCurrencies = setOf("USD", "EUR", "GBP")
 
+/**
+ * HTML-escapes a string so it can be safely inlined as text content.
+ */
+fun escapeHtml(s: String): String =
+    s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+
+/**
+ * HTML-escapes a string so it can be safely used as an attribute value.
+ */
+fun escapeHtmlAttr(s: String): String =
+    escapeHtml(s).replace("\"", "&quot;")
+
 fun formatNewLinesToHtmlParagraphs(str: String): String {
     return str
         .split("\n\n")
