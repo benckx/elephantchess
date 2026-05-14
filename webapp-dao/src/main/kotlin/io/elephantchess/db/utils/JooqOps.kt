@@ -24,7 +24,7 @@ fun <R : Record> Table<R>.fixed(): Table<Record> {
  * Workaround for inserts and updates
  */
 fun <T : Any> Field<T>.fixed(): Field<Any> {
-    return DSL.field(name.lowercase())
+    return DSL.field(DSL.quotedName(name.lowercase()))
 }
 
 fun Field<String>.eqIgnoreCaseTrimmed(value: String): Condition =
