@@ -1,26 +1,23 @@
 <html lang="en">
 <head>
     {{header_init}}
-    <title>Browse PvB games</title>
-    <meta name="description"
-          content="Browse the latest Player-vs-Bot Chinese Chess (Xiangqi) games played on elephantchess.io against Pikafish and Fairy-Stockfish engines.">
+    <title>{{username}}'s Player-vs-Player Games</title>
+    <meta name="robots" content="noindex">
     <link rel="stylesheet" href="/css/browse-games.css"/>
-    <meta property="og:url" content="https://elephantchess.io/browse/player-vs-bot">
-    <link rel="canonical" href="https://elephantchess.io/browse/player-vs-bot">
     <script defer src="/js/widgets/settings-manager.js"></script>
     <script defer src="/js/widgets/board-gui.js"></script>
     <script defer src="/js/widgets/game-thumb.js"></script>
     <script defer src="/js/infinite-scroll-page.js"></script>
     <script defer src="/js/browse-games.js"></script>
-    <script defer src="/js/browse-pvb-games.js"></script>
+    <script defer src="/js/browse-pvp-games.js"></script>
 </head>
-<body>
+<body data-username="{{username}}">
 {{body_init}}
 <div class="main-container-text-extended">
-    <h1>Latest Player-vs-Bot Games</h1>
+    <h1>{{username}}'s Player-vs-Player Games</h1>
     <hr class="only-desktop"/>
-    <div id="pvb-games-container">
-        {{game_thumb}}[[iterations:6; {gameType: 'pvb', parentClass: 'pvb-game-thumb'}]]
+    <div id="pvp-games-container">
+        {{game_thumb}}[[iterations:6; {gameType: 'pvp', parentClass: 'pvp-game-thumb'}]]
     </div>
     <div id="is-loading-message" style="display: none;">
         Loading more games...
@@ -29,7 +26,7 @@
         No more games to show
     </div>
     <div id="no-games-message" class="empty-list-message" style="display: none;">
-        No games found. Check back later!
+        No games found.
     </div>
 </div>
 </body>

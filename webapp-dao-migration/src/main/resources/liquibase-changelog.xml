@@ -2361,4 +2361,36 @@
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0094" author="benckx">
+        <addColumn tableName="reference_game_search_query">
+            <column name="update_time" type="timestamp with time zone"/>
+        </addColumn>
+        <update tableName="reference_game_search_query">
+            <column name="update_time" valueComputed="query_time"/>
+            <where>update_time IS NULL</where>
+        </update>
+        <addNotNullConstraint tableName="reference_game_search_query" columnName="update_time"
+                              columnDataType="timestamp with time zone"/>
+        <createIndex tableName="reference_game_search_query" indexName="idx_ref_game_search_query_user_update_time">
+            <column name="user_id"/>
+            <column name="update_time" descending="true"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0095" author="benckx">
+        <comment>Delete persisted "empty" searches (all criteria null/blank) that were stored before the
+            empty-criteria guard was added.
+        </comment>
+        <delete tableName="reference_game_search_query">
+            <where>
+                (player_name IS NULL OR player_name = '')
+                AND player_id IS NULL
+                AND player_color IS NULL
+                AND (event_name IS NULL OR event_name = '')
+                AND event_id IS NULL
+                AND search_start IS NULL
+                AND search_end IS NULL
+                AND (fen IS NULL OR fen = '')
+            </where>
+        </delete>
+    </changeSet>
 </databaseChangeLog>

@@ -207,6 +207,7 @@ class UserNameDropDownMenu extends DropDownMenu {
                 this.addSimpleItemWithHref('My Bot Games', '/userdata/botgames');
                 this.addSimpleItemWithHref('My Puzzles', '/userdata/puzzles');
                 this.addSimpleItemWithHref('My Analysis', '/userdata/analysis');
+                this.addSimpleItemWithHref('My DB Searches', '/userdata/db-searches');
                 if (user.isEditor) {
                     this.addItemWithTopSeparatorAndHref('My Edits', '/userdata/db-edits');
                 }

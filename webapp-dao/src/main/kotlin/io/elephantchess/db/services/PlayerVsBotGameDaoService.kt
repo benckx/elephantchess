@@ -67,7 +67,8 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
     suspend fun listLastGamesByIdentifiedUsers(
         limit: Int,
         minMoveIndex: Int? = null,
-        beforeTs: Long? = null
+        beforeTs: Long? = null,
+        excludeAutoResigned: Boolean = false
     ): List<BotGame> {
         var query =
             dslContext
@@ -81,6 +82,10 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
 
         if (beforeTs != null) {
             query = query.and(BOT_GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))
+        }
+
+        if (excludeAutoResigned) {
+            query = query.and(BOT_GAME.GAME_STATUS.ne(AUTO_RESIGNED))
         }
 
         return query
