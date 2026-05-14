@@ -477,8 +477,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
                     searchStart = record.get(REFERENCE_GAME_SEARCH_QUERY.SEARCH_START),
                     searchEnd = record.get(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END),
                     fen = record.get(REFERENCE_GAME_SEARCH_QUERY.FEN),
-                    numberOfResults = record.get(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS),
-                    offset = record.get(REFERENCE_GAME_SEARCH_QUERY.OFFSET) ?: 0,
+                    numberOfResults = record.get(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS)
                 )
             }
     }

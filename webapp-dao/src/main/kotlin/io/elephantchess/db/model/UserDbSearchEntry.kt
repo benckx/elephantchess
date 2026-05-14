@@ -17,5 +17,4 @@ data class UserDbSearchEntry(
     val searchEnd: LocalDate?,
     val fen: String?,
     val numberOfResults: Int,
-    val offset: Int
 )

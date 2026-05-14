@@ -82,17 +82,18 @@ class MyDbSearchesPage extends InfiniteScrollPage {
             summaryDiv.innerText = entry.searchSummary;
             middlePane.append(summaryDiv);
 
-            let numberOfResults = 0;
-            if (entry.numberOfResults > 0) {
-                numberOfResults = entry.numberOfResults;
-            }
-            if (entry.offset > 0) {
-                numberOfResults += entry.offset;
+            let numberOfResultsStr;
+            if (entry.numberOfResults >= 20) {
+                numberOfResultsStr = '20+ results';
+            } else if (entry.numberOfResults > 0) {
+                numberOfResultsStr = `${entry.numberOfResults} result${entry.numberOfResults > 1 ? 's' : ''}`;
+            } else {
+                numberOfResultsStr = 'No results';
             }
 
             const resultsDiv = document.createElement('div');
             resultsDiv.className = 'game-status';
-            resultsDiv.innerText = `${numberOfResults} result${numberOfResults > 1 ? 's' : ''}`;
+            resultsDiv.innerText = numberOfResultsStr;
             middlePane.append(resultsDiv);
 
             // right pane: last used time
