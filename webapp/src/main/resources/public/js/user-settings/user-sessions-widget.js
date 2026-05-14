@@ -127,19 +127,23 @@ class UserSessionsWidget {
         const container = document.createElement('div');
         container.className = 'session-country-cell';
 
-        if (countryCode != null && typeof window.buildFlagIconImg === 'function') {
+        if (countryCode != null && typeof buildFlagIconImg === 'function') {
             try {
-                container.append(window.buildFlagIconImg(countryCode));
+                container.append(buildFlagIconImg(countryCode));
             } catch (e) {
                 console.warn('Could not render country flag icon', e);
             }
         }
 
+        const countryLabelText =
+            countryName
+            || (countryCode != null && typeof getCountryName === 'function' ? getCountryName(countryCode) : countryCode);
+
         const countryLabel = document.createElement('span');
-        countryLabel.innerText = cropText(countryName, MAX_CHARS_IN_CELL);
-        if (countryName != null && countryName.length > MAX_CHARS_IN_CELL) {
+        countryLabel.innerText = cropText(countryLabelText, MAX_CHARS_IN_CELL);
+        if (countryLabelText != null && countryLabelText.length > MAX_CHARS_IN_CELL) {
             countryLabel.id = randomId();
-            addToolTip(countryLabel, countryName);
+            addToolTip(countryLabel, countryLabelText);
         }
         container.append(countryLabel);
         return container;
@@ -197,7 +201,7 @@ class UserSessionsWidget {
             .map(checkbox => Number(checkbox.dataset.sessionId));
 
         if (selectedIds.length === 0) {
-            UI.pushInfoNotification('No sessions selected.', 2_500);
+            UI.pushErrorNotification('No sessions deleted.', 2_500);
             return;
         }
 
