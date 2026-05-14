@@ -72,7 +72,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
             // left pane: database icon
             const dbIcon = document.createElement('img');
             dbIcon.className = 'icon';
-            dbIcon.src = '/images/icons/database.png';
+            dbIcon.src = '/images/icons/data-search.png';
             dbIcon.alt = 'DB Search';
             leftPane.append(wrapInDiv(dbIcon));
 
@@ -90,6 +90,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
             // right pane: last used time
             const lastUsedDiv = document.createElement('div');
             lastUsedDiv.className = 'last-modified';
+            lastUsedDiv.id = `last-used-${entry.queryId}`;
             setRelativeTimeAndToolTip(lastUsedDiv, entry.updateTime);
             rightPane.append(lastUsedDiv);
         });
