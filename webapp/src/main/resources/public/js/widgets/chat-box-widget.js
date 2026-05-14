@@ -211,7 +211,7 @@ class ChatBoxWidget {
     /**
      * @param label {string} Full pre-formatted label, e.g. "Alice is typing…" or "Alice and Bob are typing…"
      */
-    showOpponentTyping(label) {
+    showIsTypingIndicator(label) {
         this.#typingIndicator.innerText = label;
         this.#typingIndicator.style.display = 'block';
     }
@@ -219,7 +219,7 @@ class ChatBoxWidget {
     /**
      * Hides the opponent typing indicator.
      */
-    hideOpponentTyping() {
+    hideIsTypingIndicator() {
         this.#typingIndicator.style.display = 'none';
         this.#typingIndicator.innerText = '';
     }

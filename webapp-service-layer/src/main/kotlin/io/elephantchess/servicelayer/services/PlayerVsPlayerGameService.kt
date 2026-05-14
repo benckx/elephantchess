@@ -143,7 +143,9 @@ class PlayerVsPlayerGameService(
         val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
         val stateMap = pvpGameDaoService.fetchGameStates(allGameIds)
         val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
-        val typingStatusMap = typingStatusDaoService.fetchTypingStatuses(allGameIds)
+
+        val typingFreshnessCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
+        val typingStatusMap = typingStatusDaoService.fetchTypingStatuses(allGameIds,typingFreshnessCutOff)
 
         // not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
         playerVsPlayerSessions
@@ -195,7 +197,9 @@ class PlayerVsPlayerGameService(
                 }
 
                 // typing: collect all new typing events in this game from other users
-                // that we have not yet notified this session about
+                // that we have not yet notified this session about.
+                // Filter out stale entries so that, on refresh/reconnect, we do not surface
+                // typing events that happened long ago.
                 val typingUsers = typingStatusMap[gameId]
                     ?.filter { entry -> entry.userId != session.userId.id }
                     ?.filter { entry ->
@@ -203,7 +207,12 @@ class PlayerVsPlayerGameService(
                         lastNotified == null || entry.typedAt > lastNotified
                     }
                     ?.also { entries ->
-                        entries.forEach { entry -> session.markTypingNotified(entry.userId, entry.typedAt) }
+                        entries.forEach { entry ->
+                            session.markTypingNotified(
+                                entry.userId,
+                                entry.typedAt
+                            )
+                        }
                     }
                     ?.associate { entry -> entry.userId to userCache.fetchUsernameOrDefault(entry.userId) }
                     ?: emptyMap()
@@ -1084,6 +1093,14 @@ class PlayerVsPlayerGameService(
 
         val NOTIFICATIONS_OFFLINE_FOR = 2.minutes
         const val MESSAGE_LENGTH_LIMIT = 200
+
+        /**
+         * Maximum age of a typing event we are willing to surface to a client.
+         * Older entries are considered stale (e.g. persisted in the DB from a
+         * previous session) and are filtered out so that, on refresh/reconnect,
+         * we do not re-trigger an "is typing…" indicator for stale events.
+         */
+        val TYPING_FRESHNESS_WINDOW = 3.seconds
 
         fun formatMillis(millis: Long): String {
             val hours = TimeUnit.MILLISECONDS.toHours(millis).toInt()

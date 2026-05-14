@@ -826,6 +826,14 @@ class PlayGamePage extends BasePage {
 
             this.#chatBoxWidget.addMessage(chatMessage);
         }
+
+        // when a chat message arrives, the author is no longer typing,
+        // so hide the typing indicator and clear any pending hide timeout
+        if (chatMessages.length > 0) {
+            clearTimeout(this.#opponentTypingTimeoutId);
+            this.#opponentTypingTimeoutId = null;
+            this.#chatBoxWidget.hideIsTypingIndicator();
+        }
     }
 
     #handleOpponentTyping(typingUsers) {
@@ -843,11 +851,11 @@ class PlayGamePage extends BasePage {
             label = `${allButLast} and ${names[names.length - 1]} are typing…`;
         }
 
-        this.#chatBoxWidget.showOpponentTyping(label);
+        this.#chatBoxWidget.showIsTypingIndicator(label);
 
         clearTimeout(this.#opponentTypingTimeoutId);
         this.#opponentTypingTimeoutId = setTimeout(() => {
-            this.#chatBoxWidget.hideOpponentTyping();
+            this.#chatBoxWidget.hideIsTypingIndicator();
         }, 3_000);
     }
 

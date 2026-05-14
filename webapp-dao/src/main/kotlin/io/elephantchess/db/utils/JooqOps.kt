@@ -126,7 +126,7 @@ private fun Field<Instant>.isAfter(timestamp: Instant): Field<Boolean> {
     return greaterThan(timestamp)
 }
 
-private fun Field<Instant>.isBefore(timestamp: Instant): Field<Boolean> {
+fun Field<Instant>.isBefore(timestamp: Instant): Field<Boolean> {
     return lessThan(timestamp)
 }
 
