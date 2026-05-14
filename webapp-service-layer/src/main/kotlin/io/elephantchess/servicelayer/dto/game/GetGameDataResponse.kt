@@ -15,6 +15,7 @@ data class GetGameDataResponse(
     val inviteeUserType: UserType?,
     val inviterColor: Color?,
     val created: Long,
+    val lastUpdated: Long,
     val isRated: Boolean,
     val timeControlCategory: TimeControlCategory,
     val timeControlBase: Int?,
