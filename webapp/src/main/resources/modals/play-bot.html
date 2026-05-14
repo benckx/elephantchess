@@ -143,12 +143,20 @@
             <td class="left-cell" colspan="2">
                 <div class="modal-form-label">
                     <h3>Opening</h3>
-                    <div class="standard-checkbox">
+                    <div class="standard-radio">
                         <span>
-                            <input type="checkbox" id="randomize-opening">
+                            <input type="radio" id="opening-by-frequency" name="play-bot-opening" value="ByFrequency" checked="checked">
                         </span>
                         <span class="label-span">
-                            <label for="randomize-opening">Randomize opening <span class="sub-text">(instead of picking by frequency)</span></label>
+                            <label for="opening-by-frequency">Pick among most likely openings from repertoire</label>
+                        </span>
+                    </div>
+                    <div class="standard-radio">
+                        <span>
+                            <input type="radio" id="opening-random" name="play-bot-opening" value="Random">
+                        </span>
+                        <span class="label-span">
+                            <label for="opening-random">Random opening from repertoire</label>
                         </span>
                     </div>
                 </div>
