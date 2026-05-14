@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.dto.botgame
 
 import io.elephantchess.model.Engine
+import io.elephantchess.model.OpeningMode
 import io.elephantchess.xiangqi.Color
 
 data class CreateBotGameRequest(
@@ -8,5 +9,5 @@ data class CreateBotGameRequest(
     val depth: Int,
     val engine: Engine,
     val startFen: String?,
-    val randomizeOpening: Boolean = false,
+    val openingMode: OpeningMode = OpeningMode.BY_FREQUENCY,
 )

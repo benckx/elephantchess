@@ -2413,9 +2413,9 @@
             </where>
         </delete>
     </changeSet>
-    <changeSet id="0094" author="benckx">
+    <changeSet id="0096" author="benckx">
         <addColumn tableName="bot_game">
-            <column name="randomize_opening" type="boolean" defaultValueBoolean="false">
+            <column name="opening_mode" type="varchar(50)" defaultValue="BY_FREQUENCY">
                 <constraints nullable="false"/>
             </column>
         </addColumn>

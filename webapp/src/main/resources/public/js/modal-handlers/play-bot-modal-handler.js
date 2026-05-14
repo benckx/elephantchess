@@ -24,10 +24,10 @@ class PlayBotModalHandler extends ModalHandler {
     #colorRadios = document.getElementsByName('play-bot-color');
     #engineRatios = document.getElementsByName('play-bot-engine');
     #levelRadios = document.getElementsByName('play-bot-level');
+    #openingRadios = document.getElementsByName('play-bot-opening');
     #startFenStandardRadio = document.getElementById('start-fen-standard');
     #startFenCustomRadio = document.getElementById('start-fen-custom');
     #startFenInput = document.getElementById('start-fen');
-    #openingRandomRadio = document.getElementById('opening-random');
     #playBotButton = document.getElementById('play-bot-button');
 
     constructor() {
@@ -98,6 +98,14 @@ class PlayBotModalHandler extends ModalHandler {
             engine = 'FAIRYSTOCKFISH';
         }
 
+        // opening mode param
+        let openingMode = 'BY_FREQUENCY';
+        for (let i = 0; i < this.#openingRadios.length; i++) {
+            if (this.#openingRadios[i].checked) {
+                openingMode = this.#openingRadios[i].value;
+            }
+        }
+
         // start fen param
         let startFenValue = this.#readStartFenValue();
 
@@ -111,7 +119,7 @@ class PlayBotModalHandler extends ModalHandler {
                 'depth': depth,
                 'engine': engine,
                 'startFen': startFenValue,
-                'randomizeOpening': this.#openingRandomRadio.checked
+                'openingMode': openingMode
             };
             postAndHandle('/api/botgame/create', body, json => {
                 window.open('/playbot?id=' + json.gameId, '_self');
