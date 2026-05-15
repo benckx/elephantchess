@@ -62,7 +62,7 @@ class EvalLineChart extends ApexChartWidget {
                 evalData.push(parseFloat(infoLine.eval.toFixed(1)));
                 const moveNum = node.fullMoveCount;
                 const isRedMove = node.position % 2 === 0;
-                categories.push(isRedMove ? `${moveNum}` : '');
+                categories.push(isRedMove ? `${moveNum}.` : `${moveNum}...`);
             }
         });
 
@@ -109,7 +109,8 @@ class EvalLineChart extends ApexChartWidget {
                     tickAmount: Math.min(8, categories.length - 1),
                     labels: {
                         style: {colors: '#aaaaaa', fontSize: '10px'},
-                        rotate: 0
+                        rotate: 0,
+                        formatter: (val) => (typeof val === 'string' && val.endsWith('...')) ? '' : val
                     },
                     axisBorder: {color: '#555'},
                     axisTicks: {color: '#555'}
