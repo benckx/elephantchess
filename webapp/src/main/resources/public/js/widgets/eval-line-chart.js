@@ -96,7 +96,7 @@ class EvalLineChart extends ApexChartWidget {
                     height: 150,
                     toolbar: {show: false},
                     animations: {enabled: false},
-                    background: '#1e1e1e'
+                    background: 'transparent'
                 },
                 colors: ['#D32F2F', '#222222'],
                 stroke: {
@@ -108,31 +108,31 @@ class EvalLineChart extends ApexChartWidget {
                     categories: categories,
                     tickAmount: Math.min(8, categories.length - 1),
                     labels: {
-                        style: {colors: '#aaaaaa', fontSize: '10px'},
+                        style: {colors: '#555555', fontSize: '10px'},
                         rotate: 0,
                         formatter: (val) => (typeof val === 'string' && val.endsWith('...')) ? '' : val
                     },
-                    axisBorder: {color: '#555'},
-                    axisTicks: {color: '#555'}
+                    axisBorder: {color: '#888'},
+                    axisTicks: {color: '#888'}
                 },
                 yaxis: {
                     min: -100,
                     max: 100,
                     tickAmount: 4,
                     labels: {
-                        style: {colors: '#aaaaaa', fontSize: '10px'},
+                        style: {colors: '#555555', fontSize: '10px'},
                         formatter: (val) => (val > 0 ? '+' : '') + Math.round(val)
                     }
                 },
                 grid: {
-                    borderColor: '#444',
+                    borderColor: '#888',
                     xaxis: {lines: {show: false}},
                     yaxis: {lines: {show: true}}
                 },
                 annotations: {
                     yaxis: [{
                         y: 0,
-                        borderColor: '#888',
+                        borderColor: '#555',
                         strokeDashArray: 3,
                         borderWidth: 1
                     }]
@@ -142,8 +142,7 @@ class EvalLineChart extends ApexChartWidget {
                     x: {show: true},
                     y: {formatter: formatEvalTooltip}
                 },
-                legend: {show: false},
-                theme: {mode: 'dark'}
+                legend: {show: false}
             };
 
             this.enableRender();
