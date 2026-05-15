@@ -24,7 +24,7 @@
 
 function formatEvalTooltip(val) {
     if (val === null || val === undefined) {
-        return '';
+        return undefined;
     }
     return (val > 0 ? '+' : '') + val.toFixed(1);
 }
@@ -96,7 +96,7 @@ class EvalLineChart extends ApexChartWidget {
                     height: 150,
                     toolbar: {show: false},
                     animations: {enabled: false},
-                    background: 'transparent'
+                    background: '#1e1e1e'
                 },
                 colors: ['#D32F2F', '#222222'],
                 stroke: {
