@@ -1388,6 +1388,11 @@ table.info-box-sub-table td.values {
     margin-bottom: 4px;
 }
 
+#eval-line-chart-container {
+    margin-top: 20px;
+    margin-bottom: 6px;
+}
+
 #chat-box-container {
     border: 1px solid black;
     margin-bottom: 15px;

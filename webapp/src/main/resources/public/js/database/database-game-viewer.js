@@ -125,7 +125,7 @@ class DatabaseGameViewerPage extends BasePage {
             this.#gameDataClient.fetchMoves(moves => {
                 this.#moveTreeWidget.setMoves(moves);
                 renderAnalysisSummaryReportGeneric(
-                    this.#gameMetadata.gameId,
+                    gameId,
                     this.#moveTreeWidget.getMainBranchNodes(),
                 );
             });
