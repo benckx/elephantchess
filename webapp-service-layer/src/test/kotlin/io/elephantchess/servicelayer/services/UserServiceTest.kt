@@ -5,6 +5,7 @@ import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.model.PuzzleAlgo
 import io.elephantchess.model.PuzzleOutcome
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.model.UserType.GUEST
@@ -427,8 +428,8 @@ class UserServiceTest : ServiceTest() {
             .set(PUZZLE.ID, puzzleId)
             .set(PUZZLE.REF_GAME_SOURCE, "test")
             .set(PUZZLE.REF_GAME_SOURCE_ID, "testSource1")
-            .set(PUZZLE.ALGORITHM, "manual")
-            .set(PUZZLE.PLAYER_COLOR, "RED")
+            .set(PUZZLE.ALGORITHM, PuzzleAlgo.FIND_PATH_TO_MATE)
+            .set(PUZZLE.PLAYER_COLOR, RED)
             .set(PUZZLE.START_FEN, "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR r")
             .set(PUZZLE.INITIAL_RATING, 1000)
             .set(PUZZLE.RATING, 1000)
