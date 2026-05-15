@@ -45,21 +45,20 @@ private fun Route.loginAndSignUpRoutes() {
             }
         }
         post("/signup") {
-            val request = call.receive<SignUpRequest>()
-            // Secure: extract the guest user ID from the verified token (cookie/header),
-            // not from the request body, to prevent any user from stealing a guest's data.
-            val guestUserId: String? = if (request.transferGuestData) {
-                val token = extractAndVerifyToken() as? GuestToken
-                if (token == null) {
-                    signupLogger.warn { "transferGuestData=true but no valid guest token found in request — transfer skipped" }
+            requireIdentificationWithBody<SignUpRequest> { verifiedToken, request ->
+                val guestUserId = if (request.transferGuestData) {
+                    (verifiedToken as? GuestToken)?.userId.also { id ->
+                        if (id == null) signupLogger.warn { "transferGuestData=true but no valid guest token in request (got ${verifiedToken::class.simpleName}) — transfer skipped" }
+                    }
+                } else null
+                val either = userService.signUp(request, guestUserId)
+                if (either.isRight()) {
+                    call.response.status(Created)
+                    either.right()
+                } else {
+                    call.response.status(NotAcceptable)
+                    either.left()
                 }
-                token?.userId
-            } else null
-            val either = userService.signUp(request, guestUserId)
-            if (either.isRight()) {
-                call.respond(Created, either.right())
-            } else {
-                call.respond(NotAcceptable, either.left())
             }
         }
         get("/obtain-guest-user-token") {
