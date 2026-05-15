@@ -12,6 +12,7 @@ import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.utils.safeRandomAlphaNumericString
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jooq.DSLContext
 import org.jooq.Record2
 import org.jooq.TableField
@@ -24,6 +25,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class UserDaoService(private val dslContext: DSLContext) {
+
+    private val logger = KotlinLogging.logger {}
 
     suspend fun save(user: User): String {
         dslContext.transactionCoroutine { cfg ->
@@ -339,6 +342,24 @@ class UserDaoService(private val dslContext: DSLContext) {
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
+    }
+
+    suspend fun transferRatingsFromGuest(guestUserId: String, newUserId: String) {
+        val guestUser = findById(guestUserId)
+        if (guestUser == null) {
+            logger.warn { "transferRatingsFromGuest: guest user $guestUserId not found — ratings not transferred to $newUserId" }
+            return
+        }
+        var update = dslContext
+            .update(USER)
+            .set(USER.PUZZLE_RATING, guestUser.puzzleRating)
+        guestUser.gameRatingBullet?.let { update = update.set(USER.GAME_RATING_BULLET, it) }
+        guestUser.gameRatingBlitz?.let { update = update.set(USER.GAME_RATING_BLITZ, it) }
+        guestUser.gameRatingRapid?.let { update = update.set(USER.GAME_RATING_RAPID, it) }
+        guestUser.gameRatingClassical?.let { update = update.set(USER.GAME_RATING_CLASSICAL, it) }
+        guestUser.gameRatingSeveralDays?.let { update = update.set(USER.GAME_RATING_SEVERAL_DAYS, it) }
+        guestUser.gameRatingCorrespondence?.let { update = update.set(USER.GAME_RATING_CORRESPONDENCE, it) }
+        update.where(USER.ID.eq(newUserId)).awaitExecute()
     }
 
     suspend fun updateLastOnline(userIds: List<String>) {

@@ -2,12 +2,15 @@ package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.dto.ContactFormRequest
 import io.elephantchess.servicelayer.dto.user.*
+import io.elephantchess.servicelayer.model.GuestToken
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.NotAcceptable
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -17,6 +20,7 @@ import io.ktor.util.*
 private val userService by koin<UserService>()
 private val userProfileAnalyticsService by koin<UserProfileAnalyticsService>()
 private val globalAnalyticsService by koin<GlobalAnalyticsService>()
+private val signupLogger = KotlinLogging.logger {}
 
 fun Route.userRoutes() {
     loginAndSignUpRoutes()
@@ -41,8 +45,21 @@ private fun Route.loginAndSignUpRoutes() {
             }
         }
         post("/signup") {
-            handleValidatedResponse<SignUpRequest, SignUpResponse> { request ->
-                userService.signUp(request)
+            val request = call.receive<SignUpRequest>()
+            // Secure: extract the guest user ID from the verified token (cookie/header),
+            // not from the request body, to prevent any user from stealing a guest's data.
+            val guestUserId: String? = if (request.transferGuestData) {
+                val token = extractAndVerifyToken() as? GuestToken
+                if (token == null) {
+                    signupLogger.warn { "transferGuestData=true but no valid guest token found in request — transfer skipped" }
+                }
+                token?.userId
+            } else null
+            val either = userService.signUp(request, guestUserId)
+            if (either.isRight()) {
+                call.respond(Created, either.right())
+            } else {
+                call.respond(NotAcceptable, either.left())
             }
         }
         get("/obtain-guest-user-token") {

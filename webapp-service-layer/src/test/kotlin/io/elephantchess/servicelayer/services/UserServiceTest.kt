@@ -320,15 +320,15 @@ class UserServiceTest : ServiceTest() {
             .awaitSingleValue<String>()
         assertEquals(guestId.id, inviterBefore)
 
-        // Sign up and request transfer of guest data
+        // Sign up and pass the verified guest ID (simulating routing-level token extraction)
         val i = randomAlphanumeric(8)
         val request = SignUpRequest(
             username = "xfer$i",
             email = "xfer$i@example.com",
             password = "password",
-            guestUserId = guestId.id
+            transferGuestData = true
         )
-        val newUserId = userService.signUp(request).right().userId
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
 
         // The PvP game should now be owned by the new authenticated user
         val inviterAfter = dslContext.select(GAME.INVITER)
@@ -363,7 +363,7 @@ class UserServiceTest : ServiceTest() {
         val gameResponse = pvpGameService.createGame(guestId, createGameRequest)
         val gameId = gameResponse.gameId
 
-        // Sign up WITHOUT guestUserId
+        // Sign up without passing a guest user ID (no transfer)
         val i = randomAlphanumeric(8)
         val request = SignUpRequest(
             username = "noxfer$i",
@@ -378,6 +378,42 @@ class UserServiceTest : ServiceTest() {
             .where(GAME.ID.eq(gameId))
             .awaitSingleValue<String>()
         assertEquals(guestId.id, inviterAfter)
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer puzzle rating to new user`() = runTest {
+        val guestTokenResponse = userService.obtainGuestUserToken()
+        val guestId = UserId(GUEST, guestTokenResponse.id)
+
+        // Verify the guest starts with the default puzzle rating
+        val guestRatingBefore = dslContext.select(USER.PUZZLE_RATING)
+            .from(USER)
+            .where(USER.ID.eq(guestId.id))
+            .awaitSingleValue<Int>()
+        assertEquals(800, guestRatingBefore)
+
+        // Simulate the guest improving their puzzle rating
+        dslContext.update(USER)
+            .set(USER.PUZZLE_RATING, 950)
+            .where(USER.ID.eq(guestId.id))
+            .awaitExecute()
+
+        // Sign up and transfer guest data
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "elouser$i",
+            email = "elouser$i@example.com",
+            password = "password",
+            transferGuestData = true
+        )
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+
+        // The new user should have the guest's puzzle rating
+        val newUserRating = dslContext.select(USER.PUZZLE_RATING)
+            .from(USER)
+            .where(USER.ID.eq(newUserId))
+            .awaitSingleValue<Int>()
+        assertEquals(950, newUserRating)
     }
 
 }

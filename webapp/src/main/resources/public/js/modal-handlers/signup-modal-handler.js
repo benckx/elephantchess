@@ -129,7 +129,7 @@ class SignUpModalHandler extends ModalHandler {
 
         const transferCheckbox = document.getElementById('signup-transfer-games-checkbox');
         if (isUserIdentifiedAsGuest() && transferCheckbox && transferCheckbox.checked) {
-            body['guestUserId'] = getCookie(GUEST_USER_ID_FIELD);
+            body['transferGuestData'] = true;
         }
 
         const handler = new ValidationResponseHandler(
