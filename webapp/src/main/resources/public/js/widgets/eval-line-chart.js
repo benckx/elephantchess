@@ -62,7 +62,7 @@ class EvalLineChart extends ApexChartWidget {
                 evalData.push(parseFloat(infoLine.eval.toFixed(1)));
                 const moveNum = node.fullMoveCount;
                 const isRedMove = node.position % 2 === 0;
-                categories.push(isRedMove ? `${moveNum}.` : `${moveNum}...`);
+                categories.push(`${moveNum}(${isRedMove ? 'r' : 'b'})`);
             }
         });
 
@@ -110,7 +110,7 @@ class EvalLineChart extends ApexChartWidget {
                     labels: {
                         style: {colors: '#555555', fontSize: '10px'},
                         rotate: 0,
-                        formatter: (val) => (typeof val === 'string' && val.endsWith('...')) ? '' : val
+                        formatter: (val) => (typeof val === 'string' && val.endsWith('(b)')) ? '' : (typeof val === 'string' ? val.replace('(r)', '') : val)
                     },
                     axisBorder: {color: '#888'},
                     axisTicks: {color: '#888'}
@@ -139,7 +139,17 @@ class EvalLineChart extends ApexChartWidget {
                 },
                 tooltip: {
                     theme: 'dark',
-                    x: {show: true},
+                    x: {
+                        show: true,
+                        // Override: without this, the tooltip title falls back to the xaxis labels
+                        // formatter, which hides black-move categories (those ending in '...').
+                        formatter: (val, opts) => {
+                            if (opts && typeof opts.dataPointIndex === 'number') {
+                                return categories[opts.dataPointIndex];
+                            }
+                            return val;
+                        }
+                    },
                     y: {formatter: formatEvalTooltip}
                 },
                 legend: {show: false}
