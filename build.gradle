@@ -82,8 +82,9 @@ allprojects {
             force "io.netty:netty-transport-native-epoll:$nettyVersion"
             force "io.netty:netty-transport-native-kqueue:$nettyVersion"
             force "io.netty:netty-transport-native-unix-common:$nettyVersion"
-//            force "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
-//            force "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+            force "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+            force "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+            force "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
         }
     }
 
