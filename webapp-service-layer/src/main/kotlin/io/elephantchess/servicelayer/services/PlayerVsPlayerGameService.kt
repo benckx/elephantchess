@@ -455,21 +455,21 @@ class PlayerVsPlayerGameService(
     }
 
     suspend fun handlePlayerVsPlayerInput(userId: UserId, gameId: String, input: PlayerVsPlayerInput) {
-        if (input.isTyping) {
-            gameChatTypingStatusDaoService.upsertTypingStatus(gameId, userId.id)
-        } else if (input.message != null) {
-            val gamePlayersStatus = fetchPlayersAndStatus(gameId)
-            val isAllowedToChat = gamePlayersStatus.status == CREATED || gamePlayersStatus.isPlaying(userId.id)
+        val gamePlayersStatus = fetchPlayersAndStatus(gameId)
+        val isAllowedToChat = gamePlayersStatus.status == CREATED || gamePlayersStatus.isPlaying(userId.id)
 
-            if (isAllowedToChat) {
+        if (isAllowedToChat) {
+            if (input.message != null) {
                 chatMessageDaoService.insertChat(
                     gameId = gameId,
                     userId = userId.id,
                     content = input.message.trim().take(MESSAGE_LENGTH_LIMIT)
                 )
-            } else {
-                logger.warn { "user $userId is not allowed to send message in game $gameId" }
+            } else if (input.isTyping) {
+                gameChatTypingStatusDaoService.upsertTypingStatus(gameId, userId.id)
             }
+        } else {
+            logger.warn { "user $userId is not allowed to send message in game $gameId" }
         }
     }
 
@@ -957,6 +957,7 @@ class PlayerVsPlayerGameService(
     /**
      * Only fetch the necessary fields to proceed to the basic requests validation
      */
+    // TODO: should we explicitly index the columns fetches in this call?
     private suspend fun fetchPlayersAndStatus(gameId: String) =
         pvpGameDaoService.fetchPlayersAndStatus(gameId) ?: throw NotFoundException("Game $gameId not found")
 

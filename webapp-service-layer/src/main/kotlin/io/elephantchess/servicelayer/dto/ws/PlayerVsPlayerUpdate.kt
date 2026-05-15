@@ -5,7 +5,6 @@ import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.TimeRemaining
 import io.elephantchess.xiangqi.Color
-import kotlin.time.Instant
 
 data class PlayerVsPlayerUpdate(
     val status: GameEventType? = null,
