@@ -62,7 +62,7 @@ class EvalLineChart extends ApexChartWidget {
                 evalData.push(parseFloat(infoLine.eval.toFixed(1)));
                 const moveNum = node.fullMoveCount;
                 const isRedMove = node.position % 2 === 0;
-                categories.push(isRedMove ? `${moveNum}.` : `${moveNum}...`);
+                categories.push(isRedMove ? `${moveNum}` : '');
             }
         });
 
