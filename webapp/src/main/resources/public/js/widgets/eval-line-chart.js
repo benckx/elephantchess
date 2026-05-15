@@ -21,8 +21,6 @@
  * Line chart showing the engine evaluation history over the course of a game.
  * Positive values indicate a Red advantage, negative values a Black advantage.
  */
-
-
 class EvalLineChart extends ApexChartWidget {
 
     /**
