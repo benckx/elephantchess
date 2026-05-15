@@ -149,7 +149,7 @@ class PlayerVsPlayerGameService(
         val chatTypingStatusMap = gameChatTypingStatusDaoService.fetchForGameIds(allGameIds, chatTypingStatusCutOff)
 
         // TODO: not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
-        // DAO access could be cached in Map and stuff
+        //   DAO access could be cached in Map and stuff
         playerVsPlayerSessions
             .forEach { session ->
                 val gameId = session.gameId
