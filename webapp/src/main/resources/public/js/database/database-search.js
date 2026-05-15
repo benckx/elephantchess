@@ -142,6 +142,71 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             document.getElementById('player-color-any-label'),
             'When searching for a specific player, select this to not filter by playing color.'
         );
+
+        this.#initFromUrlParams();
+    }
+
+    /**
+     * Pre-fills the search form from URL query parameters and auto-triggers the search if any params are present.
+     * This allows linking directly to a search from e.g. "My DB Searches".
+     */
+    #initFromUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        const playerName = params.get('playerName');
+        const playerColor = params.get('playerColor');
+        const eventName = params.get('eventName');
+        const dateStart = params.get('dateStart');
+        const dateEnd = params.get('dateEnd');
+        const fen = params.get('fen');
+
+        if (!playerName && !eventName && !dateStart && !dateEnd && !fen) {
+            return;
+        }
+
+        if (playerName) {
+            this.#playerSearchField.setInputFieldValue(playerName);
+            this.#enablePlayerColorRadioButtons(true);
+        }
+        if (playerColor) {
+            const validColors = ['red', 'black', 'both'];
+            const normalizedColor = playerColor.toLowerCase();
+            if (validColors.includes(normalizedColor)) {
+                const radioInput = document.querySelector(`input[name="player-color"][value="${normalizedColor}"]`);
+                if (radioInput) {
+                    radioInput.checked = true;
+                }
+            }
+        }
+        if (eventName) {
+            this.#eventSearchField.setInputFieldValue(eventName);
+        }
+        if (dateStart || dateEnd) {
+            const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+            const startDate = (dateStart && datePattern.test(dateStart)) ? new Date(dateStart) : null;
+            const endDate = (dateEnd && datePattern.test(dateEnd)) ? new Date(dateEnd) : null;
+            const startValid = startDate && !isNaN(startDate.getTime());
+            const endValid = endDate && !isNaN(endDate.getTime());
+            if (startValid && endValid) {
+                this.#dateRangePicker.setDates(startDate, endDate);
+            } else if (startValid) {
+                this.#dateRangePicker.setDates(startDate, null);
+            } else if (endValid) {
+                this.#dateRangePicker.setDates(null, endDate);
+            }
+        }
+        if (fen) {
+            this.#fenSearchField.value = fen;
+        }
+
+        // auto-trigger the search
+        this.#setButtonEnabled(false);
+        this.#currentPlayerName = playerName;
+        this.#currentPlayerIds = [];
+        this.#currentEventName = eventName;
+        this.#currentEventIds = [];
+        this.#currentInterval = this.#dateRangePicker.getDates(DATE_FORMAT);
+        this.#currentFen = fen;
+        this.fetchItems();
     }
 
     /**
@@ -250,7 +315,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         // left pane
         const databaseIcon = document.createElement('img');
         databaseIcon.className = 'time-control-icons';
-        databaseIcon.src = '/images/icons/database.png';
+        databaseIcon.src = '/images/icons/data-search.png';
         databaseIcon.alt = 'Database Game';
         leftPane.append(wrapInDiv(databaseIcon));
 
