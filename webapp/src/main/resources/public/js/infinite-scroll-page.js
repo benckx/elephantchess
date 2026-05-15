@@ -152,14 +152,18 @@ class InfiniteScrollPage extends BasePage {
             (json) => {
                 const entries = [];
                 json.entries.forEach(entry => entries.push(this.deserializeJsonEntry(entry)));
+                const wasFirstPage = this.#continuation == null;
                 this.addEntries(entries);
-                if (this.#continuation == null && entries.length === 0) {
+                const isEmptyFirstPage = wasFirstPage && entries.length === 0;
+                if (isEmptyFirstPage) {
                     this.showNoItem(true);
                 }
                 this.#continuation = entries.length > 0 ? this.extractToken(entries[entries.length - 1]) : null;
                 this.#lastPageFound = entries.length === 0;
                 this.#updateIsLoading(false);
-                this.#updateEndOfPaginationMessage(this.#lastPageFound);
+                // suppress "no more items" when the list was empty from the
+                // start: the "no items" message already conveys that.
+                this.#updateEndOfPaginationMessage(this.#lastPageFound && !isEmptyFirstPage);
             },
             (responseText) => this.fetchItemsErrorCb(responseText)
         );
