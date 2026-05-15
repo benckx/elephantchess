@@ -148,7 +148,8 @@ class PlayerVsPlayerGameService(
         val chatTypingStatusCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
         val chatTypingStatusMap = gameChatTypingStatusDaoService.fetchForGameIds(allGameIds, chatTypingStatusCutOff)
 
-        // not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
+        // TODO: not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
+        // DAO access could be cached in Map and stuff
         playerVsPlayerSessions
             .forEach { session ->
                 val gameId = session.gameId
@@ -207,7 +208,7 @@ class PlayerVsPlayerGameService(
                         TypingUser(
                             userId = entry.userId,
                             username = userCache.fetchUsernameOrDefault(entry.userId),
-                            typedAt = entry.typedAt,
+                            typedAt = entry.typedAt.toEpochMilliseconds(),
                         )
                     }
                     .orEmpty()

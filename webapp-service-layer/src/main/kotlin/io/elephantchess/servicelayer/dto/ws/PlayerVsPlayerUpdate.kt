@@ -21,7 +21,7 @@ data class PlayerVsPlayerUpdate(
 data class TypingUser(
     val userId: String,
     val username: String,
-    val typedAt: Instant,
+    val typedAt: Long,
 )
 
 data class HasJoined(
