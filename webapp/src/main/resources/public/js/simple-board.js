@@ -23,7 +23,23 @@ class SimpleBoardPage extends BasePage {
         super();
         const boardGui = createWebappBoardGui();
         boardGui.loadFen(DEFAULT_START_FEN);
-        new SettingsGui(boardGui, null);
+
+        const moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+        moveTreeWidget.addNavigationPanel({
+            containerId: 'mobile-navigation-panel',
+            isDownloadButtonEnabled: true
+        });
+        moveTreeWidget.addNavigationPanel({
+            containerId: 'move-history-navigation-panel',
+            isDownloadButtonEnabled: true
+        });
+        moveTreeWidget.boardWidget = boardGui;
+
+        boardGui.addAfterMoveListener((move) => {
+            moveTreeWidget.addMoveAtTheEnd(move);
+        });
+
+        new SettingsGui(boardGui, moveTreeWidget);
     }
 
 }
