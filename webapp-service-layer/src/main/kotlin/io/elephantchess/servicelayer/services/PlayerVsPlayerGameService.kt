@@ -265,7 +265,6 @@ class PlayerVsPlayerGameService(
         val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
         val createdGamesCount = pvpGameDaoService.countCreatedGamesByUser(
             userId.id,
-            request.inviterColor,
             timeControlCategory,
         )
         if (createdGamesCount >= MAX_CREATED_GAMES_PER_SETTINGS) {
