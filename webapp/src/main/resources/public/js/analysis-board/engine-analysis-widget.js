@@ -143,7 +143,7 @@ class EngineAnalysisWidget {
                         // show mini board with the resulting position
                         const pvMoves = this.#findAllMovesBefore(e.target.id);
                         const resultFen = calculateFen([...this.#movesUpToSelection, ...pvMoves], this.#startFen);
-                        this.#showPvMiniBoard(e.target, resultFen);
+                        this.#showPvMiniBoard(resultFen);
                     });
 
                     enginePvMoveDiv.addEventListener('mouseout', () => {
@@ -234,7 +234,7 @@ class EngineAnalysisWidget {
         );
         document.body.appendChild(this.#pvMiniBoardDiv);
 
-        this.#pvMiniBoardGui = new BoardGui({
+        this.#pvMiniBoardGui = createWebappBoardGui({
             elementId: miniBoardId,
             showCoordinates: false,
             mini: true,
@@ -249,18 +249,16 @@ class EngineAnalysisWidget {
     }
 
     /**
-     * @param element {HTMLElement}
      * @param fen {string}
      */
-    #showPvMiniBoard(element, fen) {
+    #showPvMiniBoard(fen) {
         this.#ensurePvMiniBoard();
         this.#pvMiniBoardGui.loadFen(fen);
 
-        const LEFT_MARGIN = 12;
-        const MINI_BOARD_HEIGHT = 256 / 0.9;
-        const rect = element.getBoundingClientRect();
-        const left = rect.right + LEFT_MARGIN + window.scrollX;
-        const top = rect.top + window.scrollY + (rect.height / 2) - (MINI_BOARD_HEIGHT / 2);
+        const TOP_MARGIN = 8;
+        const pvRect = this.#enginePvDiv.getBoundingClientRect();
+        const left = pvRect.left + window.scrollX;
+        const top = pvRect.bottom + TOP_MARGIN + window.scrollY;
         this.#pvMiniBoardDiv.style.top = `${top}px`;
         this.#pvMiniBoardDiv.style.left = `${left}px`;
         this.#pvMiniBoardDiv.style.display = 'block';
