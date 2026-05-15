@@ -22,12 +22,6 @@
  * Positive values indicate a Red advantage, negative values a Black advantage.
  */
 
-function formatEvalTooltip(val) {
-    if (val === null || val === undefined) {
-        return undefined;
-    }
-    return (val > 0 ? '+' : '') + val.toFixed(1);
-}
 
 class EvalLineChart extends ApexChartWidget {
 
@@ -62,7 +56,7 @@ class EvalLineChart extends ApexChartWidget {
                 evalData.push(parseFloat(infoLine.eval.toFixed(1)));
                 const moveNum = node.fullMoveCount;
                 const isRedMove = node.position % 2 === 0;
-                categories.push(`${moveNum}(${isRedMove ? 'r' : 'b'})`);
+                categories.push(`${moveNum} (${isRedMove ? 'r' : 'b'})`);
             }
         });
 
@@ -107,6 +101,7 @@ class EvalLineChart extends ApexChartWidget {
                 xaxis: {
                     categories: categories,
                     tickAmount: Math.min(8, categories.length - 1),
+                    tooltip: {enabled: false},
                     labels: {
                         style: {colors: '#555555', fontSize: '10px'},
                         rotate: 0,
@@ -139,18 +134,23 @@ class EvalLineChart extends ApexChartWidget {
                 },
                 tooltip: {
                     theme: 'dark',
-                    x: {
-                        show: true,
-                        // Override: without this, the tooltip title falls back to the xaxis labels
-                        // formatter, which hides black-move categories (those ending in '...').
-                        formatter: (val, opts) => {
-                            if (opts && typeof opts.dataPointIndex === 'number') {
-                                return categories[opts.dataPointIndex];
-                            }
-                            return val;
-                        }
-                    },
-                    y: {formatter: formatEvalTooltip}
+                    // Custom tooltip: at zero-crossings both series carry a value (the cap-to-zero
+                    // trick used to draw the segment to the axis), which would otherwise render two
+                    // rows. We always show a single row based on the real eval at that index, and
+                    // display Black advantage as a positive value (e.g. "+0.9" instead of "-0.9").
+                    custom: ({dataPointIndex}) => {
+                        const cat = categories[dataPointIndex];
+                        const val = evalData[dataPointIndex];
+                        const isRed = val >= 0;
+                        const color = isRed ? '#D32F2F' : '#222222';
+                        const label = isRed ? 'Red advantage' : 'Black advantage';
+                        const display = '+' + Math.abs(val).toFixed(1);
+                        return '<div class="apexcharts-tooltip-title" style="font-size:12px;">' + cat + '</div>'
+                            + '<div style="padding:4px 10px 6px 10px;font-size:12px;">'
+                            + '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + color + ';margin-right:6px;vertical-align:middle;"></span>'
+                            + label + ':&nbsp;<strong>' + display + '</strong>'
+                            + '</div>';
+                    }
                 },
                 legend: {show: false}
             };
