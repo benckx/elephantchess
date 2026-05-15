@@ -32,7 +32,7 @@ class UserServiceTest : ServiceTest() {
 
     @AfterTest
     fun afterEach() = runTest {
-        listOf(GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
+        listOf(GAME_MOVE, GAME_STATUS_EVENT, GAME, USER_SESSION, USER)
             .forEach { table ->
                 dslContext
                     .deleteFrom(table)
