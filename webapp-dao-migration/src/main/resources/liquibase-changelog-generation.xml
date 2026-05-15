@@ -2240,4 +2240,25 @@
             </where>
         </delete>
     </changeSet>
+    <changeSet id="0096" author="benckx">
+        <createTable tableName="game_chat_typing_status">
+            <column name="game_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="typed_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="game_id, user_id"
+                       constraintName="game_chat_typing_status_pkey"
+                       tableName="game_chat_typing_status"/>
+        <addForeignKeyConstraint baseTableName="game_chat_typing_status"
+                                 baseColumnNames="game_id"
+                                 constraintName="game_typing_status_to_game_fk"
+                                 referencedTableName="game"
+                                 referencedColumnNames="id"/>
+    </changeSet>
 </databaseChangeLog>

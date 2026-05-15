@@ -1394,12 +1394,22 @@ table.info-box-sub-table td.values {
     height: 270px;
     box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0px 0.25em 1em;
     background-color: #ece8e3;
+    display: flex;
+    flex-direction: column;
 }
 
 #chat-box-messages-container {
     overflow-y: scroll;
     overflow-x: hidden;
-    height: 230px;
+    flex: 1;
+}
+
+#chat-box-typing-indicator {
+    padding: 2px 8px;
+    font-size: 12px;
+    font-style: italic;
+    color: #555;
+    min-height: 0;
 }
 
 #chat-box-send-container {
