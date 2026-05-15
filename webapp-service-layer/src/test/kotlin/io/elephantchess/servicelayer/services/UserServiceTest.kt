@@ -5,6 +5,7 @@ import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.model.PuzzleOutcome
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.ValidatedResponse
@@ -32,7 +33,7 @@ class UserServiceTest : ServiceTest() {
 
     @AfterTest
     fun afterEach() = runTest {
-        listOf(GAME_MOVE, GAME_STATUS_EVENT, GAME, USER_SESSION, USER)
+        listOf(GAME_MOVE, GAME_STATUS_EVENT, GAME, USER_SESSION, PUZZLE_RESULT, USER, PUZZLE)
             .forEach { table ->
                 dslContext
                     .deleteFrom(table)
@@ -414,6 +415,59 @@ class UserServiceTest : ServiceTest() {
             .where(USER.ID.eq(newUserId))
             .awaitSingleValue<Int>()
         assertEquals(950, newUserRating)
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer puzzle results to new user`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+
+        // Insert a minimal puzzle row (required by the puzzle_result FK)
+        val puzzleId = "testpzl1"
+        dslContext.insertInto(PUZZLE)
+            .set(PUZZLE.ID, puzzleId)
+            .set(PUZZLE.REF_GAME_SOURCE, "test")
+            .set(PUZZLE.REF_GAME_SOURCE_ID, "testSource1")
+            .set(PUZZLE.ALGORITHM, "manual")
+            .set(PUZZLE.PLAYER_COLOR, "RED")
+            .set(PUZZLE.START_FEN, "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR r")
+            .set(PUZZLE.INITIAL_RATING, 1000)
+            .set(PUZZLE.RATING, 1000)
+            .awaitExecute()
+
+        // Insert a puzzle result for the guest
+        dslContext.insertInto(PUZZLE_RESULT)
+            .set(PUZZLE_RESULT.PUZZLE_ID, puzzleId)
+            .set(PUZZLE_RESULT.USER_ID, guestId.id)
+            .set(PUZZLE_RESULT.OUTCOME, PuzzleOutcome.SOLVED)
+            .set(PUZZLE_RESULT.PUZZLE_RATING_FROM, 1000)
+            .set(PUZZLE_RESULT.PUZZLE_RATING_TO, 1005)
+            .set(PUZZLE_RESULT.PLAYER_RATING_FROM, 800)
+            .set(PUZZLE_RESULT.PLAYER_RATING_TO, 810)
+            .awaitExecute()
+
+        // Sign up and transfer guest data
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "pzlxfer$i",
+            email = "pzlxfer$i@example.com",
+            password = "password",
+            transferGuestData = true
+        )
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+
+        // The puzzle result should now belong to the new user
+        val userIdAfter = dslContext.select(PUZZLE_RESULT.USER_ID)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId))
+            .awaitSingleValue<String>()
+        assertEquals(newUserId, userIdAfter)
+
+        // The original guest user ID should be recorded on the puzzle result row
+        val guestUserIdAfter = dslContext.select(PUZZLE_RESULT.GUEST_USER_ID)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, guestUserIdAfter)
     }
 
 }

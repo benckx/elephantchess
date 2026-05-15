@@ -350,16 +350,19 @@ class UserDaoService(private val dslContext: DSLContext) {
             logger.warn { "transferRatingsFromGuest: guest user $guestUserId not found — ratings not transferred to $newUserId" }
             return
         }
-        var update = dslContext
-            .update(USER)
-            .set(USER.PUZZLE_RATING, guestUser.puzzleRating)
-        guestUser.gameRatingBullet?.let { update = update.set(USER.GAME_RATING_BULLET, it) }
-        guestUser.gameRatingBlitz?.let { update = update.set(USER.GAME_RATING_BLITZ, it) }
-        guestUser.gameRatingRapid?.let { update = update.set(USER.GAME_RATING_RAPID, it) }
-        guestUser.gameRatingClassical?.let { update = update.set(USER.GAME_RATING_CLASSICAL, it) }
-        guestUser.gameRatingSeveralDays?.let { update = update.set(USER.GAME_RATING_SEVERAL_DAYS, it) }
-        guestUser.gameRatingCorrespondence?.let { update = update.set(USER.GAME_RATING_CORRESPONDENCE, it) }
-        update.where(USER.ID.eq(newUserId)).awaitExecute()
+        dslContext.transactionCoroutine { cfg ->
+            DSL.using(cfg)
+                .update(USER)
+                .set(USER.PUZZLE_RATING, guestUser.puzzleRating)
+                .set(USER.GAME_RATING_BULLET, guestUser.gameRatingBullet)
+                .set(USER.GAME_RATING_BLITZ, guestUser.gameRatingBlitz)
+                .set(USER.GAME_RATING_RAPID, guestUser.gameRatingRapid)
+                .set(USER.GAME_RATING_CLASSICAL, guestUser.gameRatingClassical)
+                .set(USER.GAME_RATING_SEVERAL_DAYS, guestUser.gameRatingSeveralDays)
+                .set(USER.GAME_RATING_CORRESPONDENCE, guestUser.gameRatingCorrespondence)
+                .where(USER.ID.eq(newUserId))
+                .awaitExecute()
+        }
     }
 
     suspend fun updateLastOnline(userIds: List<String>) {
