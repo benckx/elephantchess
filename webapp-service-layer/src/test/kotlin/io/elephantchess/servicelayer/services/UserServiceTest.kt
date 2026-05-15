@@ -1,6 +1,9 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.db.model.UserSessionRecord
+import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.servicelayer.dto.ValidatedResponse
+import io.elephantchess.servicelayer.dto.user.DeleteUserSessionsRequest
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.dto.user.UserLoginRequest
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
@@ -13,6 +16,7 @@ import kotlin.test.*
 class UserServiceTest : ServiceTest() {
 
     private val tokenManager by inject<TokenManager>()
+    private val userSessionDaoService by inject<UserSessionDaoService>()
 
     @Test
     fun hashTest01() = runTest {
@@ -138,7 +142,8 @@ class UserServiceTest : ServiceTest() {
             "user@name",       // @ symbol
             "user.name",       // dot
             "user!name",       // exclamation mark
-            "用户名称",           // non-ASCII characters
+            "用户名称",          // Chinese characters
+            "user🙂name",      // emoji
         )
 
         for (username in invalidUsernames) {
@@ -149,7 +154,7 @@ class UserServiceTest : ServiceTest() {
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username '$username' should be rejected")
-            assertTrue(result.left().errors.contains("Username must be alphanumeric (can also include _ or -)"), "Should contain invalid characters error for '$username'")
+            assertTrue(result.left().errors.contains("Username must contain only letters, numbers, _ or -"), "Should contain invalid characters error for '$username'")
         }
     }
 
@@ -161,6 +166,9 @@ class UserServiceTest : ServiceTest() {
             "user_name",       // with underscore
             "user-name",       // with dash
             "User_Name-123",   // mixed case with underscore and dash
+            "nguyễn",          // vietnamese letters
+            "trần",            // vietnamese letters with diacritics
+            "Đặng_123",        // vietnamese letters with underscore and digits
             "a".repeat(30),    // maximum length
         )
 
@@ -216,6 +224,53 @@ class UserServiceTest : ServiceTest() {
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Valid<Unit>>(result, "Password '$password' should be accepted")
         }
+    }
+
+    @Test
+    fun `fetchUserSessions should return latest sessions with total count`() = runTest {
+        val userId = signUpTestUser().second
+
+        repeat(6) { i ->
+            userSessionDaoService.createOrUpdate(
+                UserSessionRecord(
+                    userId = userId,
+                    remoteAddress = "1.2.3.${i + 1}",
+                    userAgent = "agent-$i",
+                    operatingSystemName = "os-$i",
+                    agentName = "browser-$i",
+                )
+            )
+        }
+
+        val result = userService.fetchUserSessions(userId, limit = 5)
+
+        assertEquals(6, result.total)
+        assertEquals(5, result.entries.size)
+    }
+
+    @Test
+    fun `deleteUserSessions should only delete selected sessions`() = runTest {
+        val userId = signUpTestUser().second
+
+        repeat(3) { i ->
+            userSessionDaoService.createOrUpdate(
+                UserSessionRecord(
+                    userId = userId,
+                    remoteAddress = "2.3.4.${i + 1}",
+                    userAgent = "del-agent-$i",
+                    operatingSystemName = "del-os-$i",
+                    agentName = "del-browser-$i",
+                )
+            )
+        }
+
+        val sessionsBeforeDelete = userService.fetchUserSessions(userId, limit = 10)
+        val selectedSessionIds = sessionsBeforeDelete.entries.take(2).map { it.id }
+
+        val deleteResult = userService.deleteUserSessions(userId, DeleteUserSessionsRequest(selectedSessionIds))
+
+        assertEquals(2, deleteResult.deletedCount)
+        assertEquals(1, userService.fetchUserSessions(userId, limit = 10).entries.size)
     }
 
 }
