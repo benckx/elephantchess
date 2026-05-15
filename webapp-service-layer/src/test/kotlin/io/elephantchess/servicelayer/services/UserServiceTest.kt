@@ -1,22 +1,44 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.services.UserSessionDaoService
+import io.elephantchess.db.utils.awaitExecute
+import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.model.TimeControlMode
+import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.ValidatedResponse
+import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.user.DeleteUserSessionsRequest
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.dto.user.UserLoginRequest
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
+import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
+import io.elephantchess.xiangqi.Color.RED
 import kotlinx.coroutines.test.runTest
 import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
+import org.jooq.DSLContext
 import org.koin.core.component.inject
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 
 class UserServiceTest : ServiceTest() {
 
     private val tokenManager by inject<TokenManager>()
     private val userSessionDaoService by inject<UserSessionDaoService>()
+    private val pvpGameService by inject<PlayerVsPlayerGameService>()
+    private val dslContext by inject<DSLContext>()
+
+    @AfterTest
+    fun afterEach() = runTest {
+        listOf(GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
+            .forEach { table ->
+                dslContext
+                    .deleteFrom(table)
+                    .awaitExecute()
+            }
+    }
 
     @Test
     fun hashTest01() = runTest {
@@ -271,6 +293,91 @@ class UserServiceTest : ServiceTest() {
 
         assertEquals(2, deleteResult.deletedCount)
         assertEquals(1, userService.fetchUserSessions(userId, limit = 10).entries.size)
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer PvP games to new user`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+        userService.refreshIsOnlineCache()
+
+        val createGameRequest = CreateGameRequest(
+            inviterColor = RED,
+            isRated = false,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+        val gameResponse = pvpGameService.createGame(guestId, createGameRequest)
+        val gameId = gameResponse.gameId
+
+        // Verify the game is initially owned by the guest
+        val inviterBefore = dslContext.select(GAME.INVITER)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, inviterBefore)
+
+        // Sign up and request transfer of guest data
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "xfer$i",
+            email = "xfer$i@example.com",
+            password = "password",
+            guestUserId = guestId.id
+        )
+        val newUserId = userService.signUp(request).right().userId
+
+        // The PvP game should now be owned by the new authenticated user
+        val inviterAfter = dslContext.select(GAME.INVITER)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(newUserId, inviterAfter)
+
+        // The original guest user ID should be recorded on the game row
+        val guestUserIdAfter = dslContext.select(GAME.GUEST_USER_ID)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, guestUserIdAfter)
+    }
+
+    @Test
+    fun `signUp without guestUserId should not transfer any data`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+        userService.refreshIsOnlineCache()
+
+        val createGameRequest = CreateGameRequest(
+            inviterColor = RED,
+            isRated = false,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+        val gameResponse = pvpGameService.createGame(guestId, createGameRequest)
+        val gameId = gameResponse.gameId
+
+        // Sign up WITHOUT guestUserId
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "noxfer$i",
+            email = "noxfer$i@example.com",
+            password = "password"
+        )
+        userService.signUp(request)
+
+        // The game should still belong to the guest
+        val inviterAfter = dslContext.select(GAME.INVITER)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, inviterAfter)
     }
 
 }
