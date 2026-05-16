@@ -143,7 +143,7 @@ class EngineAnalysisWidget {
                         // show mini board with the resulting position
                         const pvMoves = this.#findAllMovesBefore(e.target.id);
                         const resultFen = calculateFen([...this.#movesUpToSelection, ...pvMoves], this.#startFen);
-                        this.#showPvMiniBoard(resultFen);
+                        this.#showPvMiniBoard(e, resultFen);
                     });
 
                     enginePvMoveDiv.addEventListener('mouseout', () => {
@@ -249,18 +249,16 @@ class EngineAnalysisWidget {
     }
 
     /**
+     * @param mouseEvent {MouseEvent}
      * @param fen {string}
      */
-    #showPvMiniBoard(fen) {
+    #showPvMiniBoard(mouseEvent, fen) {
         this.#ensurePvMiniBoard();
         this.#pvMiniBoardGui.loadFen(fen);
 
-        const TOP_MARGIN = 8;
-        const pvRect = this.#enginePvDiv.getBoundingClientRect();
-        const left = pvRect.left + window.scrollX;
-        const top = pvRect.bottom + TOP_MARGIN + window.scrollY;
-        this.#pvMiniBoardDiv.style.top = `${top}px`;
-        this.#pvMiniBoardDiv.style.left = `${left}px`;
+        const CURSOR_OFFSET = 16;
+        this.#pvMiniBoardDiv.style.top = `${mouseEvent.pageY + CURSOR_OFFSET}px`;
+        this.#pvMiniBoardDiv.style.left = `${mouseEvent.pageX}px`;
         this.#pvMiniBoardDiv.style.display = 'block';
     }
 

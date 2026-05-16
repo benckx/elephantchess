@@ -399,3 +399,78 @@ class SettingsGui {
     }
 
 }
+
+/**
+ * Adds a miniature board that appears on hover for an element.
+ * Uses {@link createWebappBoardGui} so piece images are served from the
+ * correct base URL (local server in dev, CDN in production).
+ *
+ * @param element {HTMLElement} - The element to attach hover listeners to
+ * @param gameId {string} - Unique identifier for this miniboard
+ * @param fen {string} - FEN string representing the board position
+ * @param playerColor {string} - Color to flip the board to
+ * @param lazy {boolean} - If true, only create the board on first mouseenter (default: false)
+ * @returns {HTMLElement|null} - The created miniboard div (null if lazy and not yet created)
+ */
+function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false) {
+    const LEFT_MARGIN = 12;
+    const MINI_BOARD_HEIGHT = 256 / 0.9;
+
+    const miniBoardId = `mini-board-overview-${gameId}`;
+    let miniBoardDiv = null;
+
+    function createBoard() {
+        if (miniBoardDiv) return;
+
+        miniBoardDiv = document.createElement('div');
+        miniBoardDiv.id = miniBoardId;
+        miniBoardDiv.classList.add(
+            'board-container',
+            'mini-board-container',
+            'mini-board-overview'
+        );
+
+        document.body.appendChild(miniBoardDiv);
+
+        const boardGui = createWebappBoardGui({
+            elementId: miniBoardId,
+            showCoordinates: false,
+            mini: true,
+            forceRenderChecks: true,
+        });
+        boardGui.loadFen(fen);
+        boardGui.flipToColor(playerColor);
+        boardGui.updateHighlightedChecks();
+    }
+
+    // Create board immediately if not lazy
+    if (!lazy) {
+        createBoard();
+    }
+
+    // listeners
+    function showMiniboard() {
+        // Create board on first hover if lazy
+        if (!miniBoardDiv) {
+            createBoard();
+        }
+
+        const gameItemRect = element.getBoundingClientRect();
+        const left = gameItemRect.right + LEFT_MARGIN + window.scrollX;
+        const top = gameItemRect.top + window.scrollY + (gameItemRect.height / 2) - (MINI_BOARD_HEIGHT / 2);
+        miniBoardDiv.style.top = `${top}px`;
+        miniBoardDiv.style.left = `${left}px`;
+        miniBoardDiv.style.display = 'block';
+    }
+
+    function hideMiniboard() {
+        if (miniBoardDiv) {
+            miniBoardDiv.style.display = 'none';
+        }
+    }
+
+    element.addEventListener('mouseenter', showMiniboard);
+    element.addEventListener('mouseleave', hideMiniboard);
+
+    return miniBoardDiv;
+}
