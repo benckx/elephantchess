@@ -258,19 +258,20 @@ Except for KTor, Koin, a Kubernetes client, Apache Commons, the project has few 
 If you check the `settings.gradle.kts` file, you will see that the project is made of several modules:
 
 ```
-include('utils')
-include('engine-api')
-include('xiangqi-core')
-include('xiangqi-core-test-utils')
-include('seven-kingdoms-core')
-include('seven-kingdoms-core-test-utils')
-include('webapp-config')
-include('webapp-dao')
-include('webapp-dao-migration')
-include('webapp-html-renderer')
-include('webapp-model-common')
-include('webapp-service-layer')
-include('webapp')
+include("utils")
+include("engine-api")
+include("xiangqi-core")
+include("xiangqi-core-test-utils")
+include("seven-kingdoms-core")
+include("seven-kingdoms-core-test-utils")
+include("webapp-config")
+include("webapp-dao")
+include("webapp-dao-migration")
+include("webapp-html-renderer")
+include("webapp-model-common")
+include("webapp-service-layer")
+include("webapp")
+include("scripts")
 ```
 
 ### utils
