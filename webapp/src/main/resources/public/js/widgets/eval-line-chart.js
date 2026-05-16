@@ -103,12 +103,28 @@ class EvalLineChart extends ApexChartWidget {
                     yaxis: {lines: {show: true}}
                 },
                 annotations: {
-                    yaxis: [{
-                        y: 0,
-                        borderColor: '#555',
-                        strokeDashArray: 3,
-                        borderWidth: 1
-                    }]
+                    yaxis: [
+                        {
+                            y: 0,
+                            y2: 100,
+                            fillColor: '#D32F2F',
+                            opacity: 0.08,
+                            borderColor: 'transparent'
+                        },
+                        {
+                            y: -100,
+                            y2: 0,
+                            fillColor: '#222222',
+                            opacity: 0.25,
+                            borderColor: 'transparent'
+                        },
+                        {
+                            y: 0,
+                            borderColor: '#555',
+                            strokeDashArray: 3,
+                            borderWidth: 1
+                        }
+                    ]
                 },
                 tooltip: {
                     theme: 'dark',
