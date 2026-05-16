@@ -59,29 +59,9 @@ class EvalLineChart extends ApexChartWidget {
         });
 
         if (evalData.length > 1) {
-            // Split into two series: red for positive (Red advantage), dark for negative (Black advantage).
-            // At each zero-crossing, the departing series adds a 0 at that index so the segment ends at
-            // the axis rather than leaving an abrupt gap; the arriving series picks up its real value.
-            const redData = [];
-            const blackData = [];
-            for (let i = 0; i < evalData.length; i++) {
-                const v = evalData[i];
-                const prev = i > 0 ? evalData[i - 1] : null;
-                if (v >= 0) {
-                    redData.push(v);
-                    // Transition from negative to positive: cap the black segment at 0
-                    blackData.push((prev !== null && prev <= 0) ? 0 : null);
-                } else {
-                    // Transition from positive to negative: cap the red segment at 0
-                    redData.push((prev !== null && prev >= 0) ? 0 : null);
-                    blackData.push(v);
-                }
-            }
-
             this.chartOptions = {
                 series: [
-                    {name: 'Red advantage', data: redData},
-                    {name: 'Black advantage', data: blackData}
+                    {name: 'Advantage', data: evalData}
                 ],
                 chart: {
                     type: 'line',
@@ -90,10 +70,10 @@ class EvalLineChart extends ApexChartWidget {
                     animations: {enabled: false},
                     background: 'transparent'
                 },
-                colors: ['#D32F2F', '#222222'],
+                colors: ['#022e7d'],
                 stroke: {
                     curve: 'smooth',
-                    width: [2, 2]
+                    width: [2]
                 },
                 dataLabels: {enabled: false},
                 xaxis: {
@@ -123,25 +103,38 @@ class EvalLineChart extends ApexChartWidget {
                     yaxis: {lines: {show: true}}
                 },
                 annotations: {
-                    yaxis: [{
-                        y: 0,
-                        borderColor: '#555',
-                        strokeDashArray: 3,
-                        borderWidth: 1
-                    }]
+                    yaxis: [
+                        {
+                            y: 0,
+                            y2: 100,
+                            fillColor: '#D32F2F',
+                            opacity: 0.08,
+                            borderColor: 'transparent'
+                        },
+                        {
+                            y: -100,
+                            y2: 0,
+                            fillColor: '#222222',
+                            opacity: 0.25,
+                            borderColor: 'transparent'
+                        },
+                        {
+                            y: 0,
+                            borderColor: '#555',
+                            strokeDashArray: 3,
+                            borderWidth: 1
+                        }
+                    ]
                 },
                 tooltip: {
                     theme: 'dark',
-                    // Custom tooltip: at zero-crossings both series carry a value (the cap-to-zero
-                    // trick used to draw the segment to the axis), which would otherwise render two
-                    // rows. We always show a single row based on the real eval at that index, and
-                    // display Black advantage as a positive value (e.g. "+0.9" instead of "-0.9").
+                    // Custom tooltip: display Black advantage as a positive value (e.g. "+0.9" instead of "-0.9").
                     custom: ({dataPointIndex}) => {
                         const cat = categories[dataPointIndex];
                         const val = evalData[dataPointIndex];
-                        const isRed = val >= 0;
-                        const color = isRed ? '#D32F2F' : '#222222';
-                        const label = isRed ? 'Red advantage' : 'Black advantage';
+                        const isPositive = val >= 0;
+                        const color = '#022e7d';
+                        const label = isPositive ? 'Red advantage' : 'Black advantage';
                         const display = '+' + Math.abs(val).toFixed(1);
                         return '<div class="apexcharts-tooltip-title" style="font-size:12px;">' + cat + '</div>'
                             + '<div style="padding:4px 10px 6px 10px;font-size:12px;">'
