@@ -90,7 +90,28 @@ tr#outcome-row {
 }
 
 .mini-counter-box {
-    display: none;
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 400;
+    width: 200px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0 4px 10px;
+    border-radius: 4px;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.mini-counter-box.mini-counter-box-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.mini-counter-box .mini-time-counter {
+    font-size: 28px;
+    padding-top: 4px;
+    padding-bottom: 2px;
+    border-width: 2px;
 }
 
 .move-tree-container-smaller {
@@ -144,32 +165,6 @@ tr#outcome-row {
 @media (max-width: 1000px) {
     .time-counter {
         font-size: 46px;
-    }
-
-    .mini-counter-box {
-        display: block;
-        position: fixed;
-        top: 8px;
-        right: 8px;
-        z-index: 400;
-        width: 200px;
-        box-shadow: rgba(0, 0, 0, 0.4) 0 4px 10px;
-        border-radius: 4px;
-        overflow: hidden;
-        opacity: 1;
-        transition: opacity 0.2s ease-in-out;
-    }
-
-    .mini-counter-box.mini-counter-box-hidden {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    .mini-counter-box .mini-time-counter {
-        font-size: 28px;
-        padding-top: 4px;
-        padding-bottom: 2px;
-        border-width: 2px;
     }
 
     #analysis-button-container-right-side {
