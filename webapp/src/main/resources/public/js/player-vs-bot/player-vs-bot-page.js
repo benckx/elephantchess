@@ -221,18 +221,18 @@ class PlayerVsBotPage extends BasePage {
     }
 
     #handleClickedCancelButton() {
-        let span = document.createElement('span');
+        const span = document.createElement('span');
         span.innerText = 'Are you sure you want to cancel this game?';
-        let yesCallback = () => {
+        const yesCallback = () => {
             this.#controller.cancel(() => {
                 this.#boardGui.disablePlayerMove();
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
             });
         };
-        let yesButtonText = 'yes';
-        let noCallback = () => UI.hideModal(null);
-        let noButtonText = 'no';
+        const yesButtonText = 'yes';
+        const noCallback = () => UI.hideModal(null);
+        const noButtonText = 'no';
         UI.showConfirmationModal(span, yesCallback, yesButtonText, noCallback, noButtonText);
     }
 
