@@ -67,7 +67,8 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
     suspend fun listLastGamesByIdentifiedUsers(
         limit: Int,
         minMoveIndex: Int? = null,
-        beforeTs: Long? = null
+        beforeTs: Long? = null,
+        excludeAutoResigned: Boolean = false
     ): List<BotGame> {
         var query =
             dslContext
@@ -81,6 +82,10 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
 
         if (beforeTs != null) {
             query = query.and(BOT_GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))
+        }
+
+        if (excludeAutoResigned) {
+            query = query.and(BOT_GAME.GAME_STATUS.ne(AUTO_RESIGNED))
         }
 
         return query
@@ -403,6 +408,15 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                 .where(BOT_GAME.ID.eq(gameId))
                 .awaitExecute()
         }
+    }
+
+    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
+        dslContext
+            .update(BOT_GAME)
+            .set(BOT_GAME.USER_ID, newUserId)
+            .set(BOT_GAME.GUEST_USER_ID, guestUserId)
+            .where(BOT_GAME.USER_ID.eq(guestUserId))
+            .awaitExecute()
     }
 
 }

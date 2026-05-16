@@ -96,6 +96,7 @@ class DatabaseService(
         }
     }
 
+
     suspend fun search(
         dateStart: String?,
         dateEnd: String?,
@@ -182,20 +183,31 @@ class DatabaseService(
                     )
                 }
 
-        referenceGameDaoService.persistSearch(
-            userId = userId,
-            searchStart = dateStartParsed,
-            searchEnd = dateEndParsed,
-            playerName = playerName,
-            playerId = playerIds.firstOrNull(),
-            playerColor = playerColor,
-            eventName = eventName,
-            eventId = eventIds.firstOrNull(),
-            fen = fen,
-            offset = offset,
-            limit = SEARCH_RESULT_LIMIT,
-            numberOfResults = entries.size
-        )
+        val hasAnyCriteria = dateStartParsed != null ||
+                dateEndParsed != null ||
+                !playerName.isNullOrBlank() ||
+                resolvedPlayerIds.isNotEmpty() ||
+                playerColor != null ||
+                !eventName.isNullOrBlank() ||
+                resolvedEventIds.isNotEmpty() ||
+                !abridgedFen.isNullOrBlank()
+
+        if (hasAnyCriteria) {
+            referenceGameDaoService.persistSearch(
+                userId = userId,
+                searchStart = dateStartParsed,
+                searchEnd = dateEndParsed,
+                playerName = playerName,
+                playerId = playerIds.firstOrNull(),
+                playerColor = playerColor,
+                eventName = eventName,
+                eventId = eventIds.firstOrNull(),
+                fen = fen,
+                offset = offset,
+                limit = SEARCH_RESULT_LIMIT,
+                numberOfResults = entries.size
+            )
+        }
 
         return ReferenceGameSearchResult(entries)
     }
@@ -625,6 +637,39 @@ class DatabaseService(
         )
 
         return ValidatedResponse.Valid(Unit)
+    }
+
+    suspend fun listUserSearches(userId: String, beforeTime: Long?): MyDbSearchesResponse {
+        val beforeInstant = beforeTime?.let { kotlin.time.Instant.fromEpochMilliseconds(it) }
+        val records = referenceGameDaoService.listUserSearches(userId, beforeInstant, 30)
+        val resolvedPlayers = records
+            .mapNotNull { entry -> entry.playerName }
+            .distinct()
+            .mapNotNull { name -> resolvePlayerByName(name)?.let { name to it } }
+            .toMap()
+
+        return records
+            .map { record ->
+                val prettyName =
+                    record.playerName?.let { name ->
+                        resolvedPlayers[name]
+                            ?.let { player -> formatWithChineseName(player.canonicalName, player.chineseName) }
+                            ?: name
+                    }
+
+                MyDbSearchesResponse.Entry(
+                    queryId = record.queryId,
+                    updateTime = record.updateTime.toEpochMilliseconds(),
+                    playerName = prettyName,
+                    playerColor = record.playerColor,
+                    eventName = record.eventName,
+                    searchStart = record.searchStart?.toString(),
+                    searchEnd = record.searchEnd?.toString(),
+                    fen = record.fen,
+                    numberOfResults = record.numberOfResults ?: 0,
+                )
+            }
+            .let { mapped -> MyDbSearchesResponse(mapped) }
     }
 
     suspend fun findEditedPlayersLatestVersions(userId: String): ListUserEdits {
