@@ -410,4 +410,13 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
+    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
+        dslContext
+            .update(BOT_GAME)
+            .set(BOT_GAME.USER_ID, newUserId)
+            .set(BOT_GAME.GUEST_USER_ID, guestUserId)
+            .where(BOT_GAME.USER_ID.eq(guestUserId))
+            .awaitExecute()
+    }
+
 }

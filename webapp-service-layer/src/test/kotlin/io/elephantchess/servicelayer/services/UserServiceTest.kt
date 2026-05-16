@@ -1,22 +1,59 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.db.dao.codegen.Tables.*
+import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
+import io.elephantchess.db.dao.codegen.tables.pojos.BotGameStatusEvent
 import io.elephantchess.db.model.UserSessionRecord
+import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.UserSessionDaoService
+import io.elephantchess.db.utils.awaitExecute
+import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.model.Engine
+import io.elephantchess.model.GameEventType
+import io.elephantchess.model.PuzzleAlgo
+import io.elephantchess.model.PuzzleOutcome
+import io.elephantchess.model.TimeControlMode
+import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.ValidatedResponse
+import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.user.DeleteUserSessionsRequest
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.dto.user.UserLoginRequest
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
+import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
+import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.Color.RED
 import kotlinx.coroutines.test.runTest
 import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
+import org.jooq.DSLContext
 import org.koin.core.component.inject
 import kotlin.test.*
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
 
 class UserServiceTest : ServiceTest() {
 
     private val tokenManager by inject<TokenManager>()
     private val userSessionDaoService by inject<UserSessionDaoService>()
+    private val pvpGameService by inject<PlayerVsPlayerGameService>()
+    private val pvbGameDaoService by inject<PlayerVsBotGameDaoService>()
+    private val dslContext by inject<DSLContext>()
+
+    @AfterTest
+    fun afterEach() = runTest {
+        listOf(
+            GAME_MOVE, GAME_STATUS_EVENT, GAME,
+            BOT_GAME_MOVE, BOT_GAME_STATUS_EVENT, BOT_GAME,
+            REFERENCE_GAME_SEARCH_QUERY,
+            USER_SESSION, PUZZLE_RESULT, USER, PUZZLE
+        )
+            .forEach { table ->
+                dslContext
+                    .deleteFrom(table)
+                    .awaitExecute()
+            }
+    }
 
     @Test
     fun hashTest01() = runTest {
@@ -66,7 +103,10 @@ class UserServiceTest : ServiceTest() {
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Email '$email' should be rejected")
-            assertTrue(result.left().errors.contains("Invalid email format"), "Should contain 'Invalid email format' error for '$email'")
+            assertTrue(
+                result.left().errors.contains("Invalid email format"),
+                "Should contain 'Invalid email format' error for '$email'"
+            )
         }
     }
 
@@ -87,7 +127,10 @@ class UserServiceTest : ServiceTest() {
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Email '$email' should be rejected")
-            assertTrue(result.left().errors.contains("Invalid email format"), "Should contain 'Invalid email format' error for '$email'")
+            assertTrue(
+                result.left().errors.contains("Invalid email format"),
+                "Should contain 'Invalid email format' error for '$email'"
+            )
         }
     }
 
@@ -120,7 +163,10 @@ class UserServiceTest : ServiceTest() {
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username 'abc' should be rejected (too short)")
-        assertTrue(result.left().errors.contains("Username must be between 4 and 30 char."), "Should contain username length error")
+        assertTrue(
+            result.left().errors.contains("Username must be between 4 and 30 char."),
+            "Should contain username length error"
+        )
     }
 
     @Test
@@ -132,7 +178,10 @@ class UserServiceTest : ServiceTest() {
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username with 31 chars should be rejected (too long)")
-        assertTrue(result.left().errors.contains("Username must be between 4 and 30 char."), "Should contain username length error")
+        assertTrue(
+            result.left().errors.contains("Username must be between 4 and 30 char."),
+            "Should contain username length error"
+        )
     }
 
     @Test
@@ -154,7 +203,10 @@ class UserServiceTest : ServiceTest() {
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username '$username' should be rejected")
-            assertTrue(result.left().errors.contains("Username must contain only letters, numbers, _ or -"), "Should contain invalid characters error for '$username'")
+            assertTrue(
+                result.left().errors.contains("Username must contain only letters, numbers, _ or -"),
+                "Should contain invalid characters error for '$username'"
+            )
         }
     }
 
@@ -192,7 +244,10 @@ class UserServiceTest : ServiceTest() {
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Password 'abc' should be rejected (too short)")
-        assertTrue(result.left().errors.contains("Password must be between 4 and 50 char."), "Should contain password length error")
+        assertTrue(
+            result.left().errors.contains("Password must be between 4 and 50 char."),
+            "Should contain password length error"
+        )
     }
 
     @Test
@@ -204,7 +259,10 @@ class UserServiceTest : ServiceTest() {
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Password with 51 chars should be rejected (too long)")
-        assertTrue(result.left().errors.contains("Password must be between 4 and 50 char."), "Should contain password length error")
+        assertTrue(
+            result.left().errors.contains("Password must be between 4 and 50 char."),
+            "Should contain password length error"
+        )
     }
 
     @Test
@@ -271,6 +329,289 @@ class UserServiceTest : ServiceTest() {
 
         assertEquals(2, deleteResult.deletedCount)
         assertEquals(1, userService.fetchUserSessions(userId, limit = 10).entries.size)
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer PvP games to new user`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+        userService.refreshIsOnlineCache()
+
+        val createGameRequest = CreateGameRequest(
+            inviterColor = RED,
+            isRated = false,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+        val gameResponse = pvpGameService.createGame(guestId, createGameRequest)
+        val gameId = gameResponse.gameId
+
+        // Verify the game is initially owned by the guest
+        val inviterBefore = dslContext.select(GAME.INVITER)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, inviterBefore)
+
+        // Sign up and pass the verified guest ID (simulating routing-level token extraction)
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "xfer$i",
+            email = "xfer$i@example.com",
+            password = "password",
+            transferGuestData = true
+        )
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+
+        // The PvP game should now be owned by the new authenticated user
+        val inviterAfter = dslContext.select(GAME.INVITER)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(newUserId, inviterAfter)
+
+        // The original guest user ID should be recorded on the game row
+        val guestUserIdAfter = dslContext.select(GAME.GUEST_USER_ID)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, guestUserIdAfter)
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer PvB games to new user`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+
+        // Create a PvB game owned by the guest directly via the DAO (avoids running the engine)
+        val gameId = randomAlphanumeric(12)
+        val now = Clock.System.now()
+
+        val gameRecord = BotGame().apply {
+            id = gameId
+            userId = guestId.id
+            userColor = RED
+            engine = Engine.FAIRYSTOCKFISH
+            engineVersion = "11.2"
+            depth = 4
+            startFen = null
+            gameStatus = GameEventType.CREATED
+            currentFen = DEFAULT_START_FEN
+            currentHalfMoveIndex = 0
+            created = now
+            lastUpdated = now
+        }
+        val statusRecord = BotGameStatusEvent().apply {
+            botGameId = gameId
+            eventType = GameEventType.CREATED
+            eventTime = now
+        }
+        pvbGameDaoService.insertGame(gameRecord, statusRecord)
+
+        // Verify the bot game is initially owned by the guest
+        val userIdBefore = dslContext.select(BOT_GAME.USER_ID)
+            .from(BOT_GAME)
+            .where(BOT_GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, userIdBefore)
+
+        // Sign up and pass the verified guest ID
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "pvbxfer$i",
+            email = "pvbxfer$i@example.com",
+            password = "password",
+            transferGuestData = true
+        )
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+
+        // The PvB game should now be owned by the new authenticated user
+        val userIdAfter = dslContext.select(BOT_GAME.USER_ID)
+            .from(BOT_GAME)
+            .where(BOT_GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(newUserId, userIdAfter)
+
+        // The original guest user ID should be recorded on the bot game row
+        val guestUserIdAfter = dslContext.select(BOT_GAME.GUEST_USER_ID)
+            .from(BOT_GAME)
+            .where(BOT_GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, guestUserIdAfter)
+    }
+
+    @Test
+    fun `signUp without guestUserId should not transfer any data`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+        userService.refreshIsOnlineCache()
+
+        val createGameRequest = CreateGameRequest(
+            inviterColor = RED,
+            isRated = false,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+        val gameResponse = pvpGameService.createGame(guestId, createGameRequest)
+        val gameId = gameResponse.gameId
+
+        // Sign up without passing a guest user ID (no transfer)
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "noxfer$i",
+            email = "noxfer$i@example.com",
+            password = "password"
+        )
+        userService.signUp(request)
+
+        // The game should still belong to the guest
+        val inviterAfter = dslContext.select(GAME.INVITER)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, inviterAfter)
+
+        val guestUserId = dslContext.select(GAME.GUEST_USER_ID)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertNull(guestUserId, "Guest user ID should be null since no transfer occurred")
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer puzzle rating to new user`() = runTest {
+        val guestTokenResponse = userService.obtainGuestUserToken()
+        val guestId = UserId(GUEST, guestTokenResponse.id)
+
+        // Verify the guest starts with the default puzzle rating
+        val guestRatingBefore = dslContext.select(USER.PUZZLE_RATING)
+            .from(USER)
+            .where(USER.ID.eq(guestId.id))
+            .awaitSingleValue<Int>()
+        assertEquals(800, guestRatingBefore)
+
+        // Simulate the guest improving their puzzle rating
+        dslContext.update(USER)
+            .set(USER.PUZZLE_RATING, 950)
+            .where(USER.ID.eq(guestId.id))
+            .awaitExecute()
+
+        // Sign up and transfer guest data
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "elouser$i",
+            email = "elouser$i@example.com",
+            password = "password",
+            transferGuestData = true
+        )
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+
+        // The new user should have the guest's puzzle rating
+        val newUserRating = dslContext.select(USER.PUZZLE_RATING)
+            .from(USER)
+            .where(USER.ID.eq(newUserId))
+            .awaitSingleValue<Int>()
+        assertEquals(950, newUserRating)
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer puzzle results to new user`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+
+        // Insert a minimal puzzle row (required by the puzzle_result FK)
+        val puzzleId = "testpzl1"
+        dslContext.insertInto(PUZZLE)
+            .set(PUZZLE.ID, puzzleId)
+            .set(PUZZLE.REF_GAME_SOURCE, "test")
+            .set(PUZZLE.REF_GAME_SOURCE_ID, "testSource1")
+            .set(PUZZLE.ALGORITHM, PuzzleAlgo.FIND_PATH_TO_MATE)
+            .set(PUZZLE.PLAYER_COLOR, RED)
+            .set(PUZZLE.START_FEN, DEFAULT_START_FEN)
+            .set(PUZZLE.INITIAL_RATING, 1000)
+            .set(PUZZLE.RATING, 1000)
+            .awaitExecute()
+
+        // Insert a puzzle result for the guest
+        dslContext.insertInto(PUZZLE_RESULT)
+            .set(PUZZLE_RESULT.PUZZLE_ID, puzzleId)
+            .set(PUZZLE_RESULT.USER_ID, guestId.id)
+            .set(PUZZLE_RESULT.OUTCOME, PuzzleOutcome.SOLVED)
+            .set(PUZZLE_RESULT.PUZZLE_RATING_FROM, 1000)
+            .set(PUZZLE_RESULT.PUZZLE_RATING_TO, 1005)
+            .set(PUZZLE_RESULT.PLAYER_RATING_FROM, 800)
+            .set(PUZZLE_RESULT.PLAYER_RATING_TO, 810)
+            .awaitExecute()
+
+        // Sign up and transfer guest data
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "pzlxfer$i",
+            email = "pzlxfer$i@example.com",
+            password = "password",
+            transferGuestData = true
+        )
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+
+        // The puzzle result should now belong to the new user
+        val userIdAfter = dslContext.select(PUZZLE_RESULT.USER_ID)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId))
+            .awaitSingleValue<String>()
+        assertEquals(newUserId, userIdAfter)
+
+        // The original guest user ID should be recorded on the puzzle result row
+        val guestUserIdAfter = dslContext.select(PUZZLE_RESULT.GUEST_USER_ID)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, guestUserIdAfter)
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer reference game searches to new user`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+
+        // Insert a reference game search query owned by the guest
+        val queryId = randomAlphanumeric(12)
+        val now = Clock.System.now()
+        dslContext.insertInto(REFERENCE_GAME_SEARCH_QUERY)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID, queryId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID, guestId.id)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME, now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME, now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME, "Hu Ronghua")
+            .set(REFERENCE_GAME_SEARCH_QUERY.LIMIT, 20)
+            .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS, 5)
+            .awaitExecute()
+
+        // Sign up and transfer guest data
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "srchxfer$i",
+            email = "srchxfer$i@example.com",
+            password = "password",
+            transferGuestData = true
+        )
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+
+        // The search query should now belong to the new user
+        val userIdAfter = dslContext.select(REFERENCE_GAME_SEARCH_QUERY.USER_ID)
+            .from(REFERENCE_GAME_SEARCH_QUERY)
+            .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId))
+            .awaitSingleValue<String>()
+        assertEquals(newUserId, userIdAfter)
+
+        // The original guest user ID should be recorded on the search query row
+        val guestUserIdAfter = dslContext.select(REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID)
+            .from(REFERENCE_GAME_SEARCH_QUERY)
+            .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, guestUserIdAfter)
     }
 
 }
