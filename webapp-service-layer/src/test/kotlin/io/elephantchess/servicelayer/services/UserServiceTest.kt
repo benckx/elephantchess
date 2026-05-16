@@ -1,10 +1,15 @@
 package io.elephantchess.servicelayer.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
+import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
+import io.elephantchess.db.dao.codegen.tables.pojos.BotGameStatusEvent
 import io.elephantchess.db.model.UserSessionRecord
+import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.model.Engine
+import io.elephantchess.model.GameEventType
 import io.elephantchess.model.PuzzleAlgo
 import io.elephantchess.model.PuzzleOutcome
 import io.elephantchess.model.TimeControlMode
@@ -24,6 +29,7 @@ import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import kotlin.test.*
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
 class UserServiceTest : ServiceTest() {
@@ -31,11 +37,16 @@ class UserServiceTest : ServiceTest() {
     private val tokenManager by inject<TokenManager>()
     private val userSessionDaoService by inject<UserSessionDaoService>()
     private val pvpGameService by inject<PlayerVsPlayerGameService>()
+    private val pvbGameDaoService by inject<PlayerVsBotGameDaoService>()
     private val dslContext by inject<DSLContext>()
 
     @AfterTest
     fun afterEach() = runTest {
-        listOf(GAME_MOVE, GAME_STATUS_EVENT, GAME, USER_SESSION, PUZZLE_RESULT, USER, PUZZLE)
+        listOf(
+            GAME_MOVE, GAME_STATUS_EVENT, GAME,
+            BOT_GAME_MOVE, BOT_GAME_STATUS_EVENT, BOT_GAME,
+            USER_SESSION, PUZZLE_RESULT, USER, PUZZLE
+        )
             .forEach { table ->
                 dslContext
                     .deleteFrom(table)
@@ -365,6 +376,67 @@ class UserServiceTest : ServiceTest() {
         val guestUserIdAfter = dslContext.select(GAME.GUEST_USER_ID)
             .from(GAME)
             .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, guestUserIdAfter)
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer PvB games to new user`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+
+        // Create a PvB game owned by the guest directly via the DAO (avoids running the engine)
+        val gameId = randomAlphanumeric(12)
+        val now = Clock.System.now()
+
+        val gameRecord = BotGame().apply {
+            id = gameId
+            userId = guestId.id
+            userColor = RED
+            engine = Engine.FAIRYSTOCKFISH
+            engineVersion = "11.2"
+            depth = 4
+            startFen = null
+            gameStatus = GameEventType.CREATED
+            currentFen = DEFAULT_START_FEN
+            currentHalfMoveIndex = 0
+            created = now
+            lastUpdated = now
+        }
+        val statusRecord = BotGameStatusEvent().apply {
+            botGameId = gameId
+            eventType = GameEventType.CREATED
+            eventTime = now
+        }
+        pvbGameDaoService.insertGame(gameRecord, statusRecord)
+
+        // Verify the bot game is initially owned by the guest
+        val userIdBefore = dslContext.select(BOT_GAME.USER_ID)
+            .from(BOT_GAME)
+            .where(BOT_GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, userIdBefore)
+
+        // Sign up and pass the verified guest ID
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "pvbxfer$i",
+            email = "pvbxfer$i@example.com",
+            password = "password",
+            transferGuestData = true
+        )
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+
+        // The PvB game should now be owned by the new authenticated user
+        val userIdAfter = dslContext.select(BOT_GAME.USER_ID)
+            .from(BOT_GAME)
+            .where(BOT_GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertEquals(newUserId, userIdAfter)
+
+        // The original guest user ID should be recorded on the bot game row
+        val guestUserIdAfter = dslContext.select(BOT_GAME.GUEST_USER_ID)
+            .from(BOT_GAME)
+            .where(BOT_GAME.ID.eq(gameId))
             .awaitSingleValue<String>()
         assertEquals(guestId.id, guestUserIdAfter)
     }
