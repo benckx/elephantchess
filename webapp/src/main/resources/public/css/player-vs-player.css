@@ -114,15 +114,6 @@ tr#outcome-row {
     border-width: 2px;
 }
 
-.mini-counter-box .red-counter {
-    background-color: rgb(255 0 0 / 80%);
-}
-
-.mini-counter-box .black-counter {
-    background-color: rgb(111 111 111 / 95%);
-    color: rgba(255, 255, 255);
-}
-
 .move-tree-container-smaller {
     height: 270px;
 }
