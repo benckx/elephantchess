@@ -354,7 +354,6 @@ project(":webapp") {
         implementation("io.ktor:ktor-serialization-jackson:$kTorVersion")
         implementation("io.ktor:ktor-serialization-kotlinx-json:$kTorVersion")
         implementation("io.ktor:ktor-server-websockets:$kTorVersion")
-        implementation("io.ktor:ktor-server-default-headers:$kTorVersion")
         implementation("io.ktor:ktor-server-compression:$kTorVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
