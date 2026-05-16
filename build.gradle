@@ -82,8 +82,9 @@ allprojects {
             force "io.netty:netty-transport-native-epoll:$nettyVersion"
             force "io.netty:netty-transport-native-kqueue:$nettyVersion"
             force "io.netty:netty-transport-native-unix-common:$nettyVersion"
-//            force "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
-//            force "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+            force "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+            force "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+            force "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
         }
     }
 
@@ -281,7 +282,7 @@ project(":webapp-service-layer") {
         implementation "com.auth0:java-jwt:4.5.2"
         implementation "com.sun.mail:javax.mail:$javaxMailVersion"
         implementation "io.github.reactivecircus.cache4k:cache4k:$cache4kVersion"
-        implementation "io.fabric8:kubernetes-client:7.6.1"
+        implementation "io.fabric8:kubernetes-client:7.7.0"
         implementation "org.jooq:jooq:$jooqVersion"
         implementation "io.ktor:ktor-client-core:$kTorVersion"
         implementation "io.ktor:ktor-client-cio:$kTorVersion"
