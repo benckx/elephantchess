@@ -207,6 +207,9 @@ class PlayGamePage extends BasePage {
                 },
                 (chatMessages, acks) => {
                     this.#handleChatMessages(chatMessages, acks);
+                },
+                (typingUsers) => {
+                    this.#chatBoxWidget.notifyTypingUsers(typingUsers);
                 }
             );
 
@@ -289,6 +292,12 @@ class PlayGamePage extends BasePage {
 
         this.#chatBoxWidget.addInputLosesFocusListener(() => {
             this.#moveTreeWidget.enableKeyboardNavigation();
+        });
+
+        this.#chatBoxWidget.addInputTypingListener(() => {
+            if (this.#gameController != null) {
+                this.#gameController.sendTypingEvent();
+            }
         });
     }
 

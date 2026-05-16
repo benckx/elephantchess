@@ -1,0 +1,48 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Sessions</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/common/nice-table.css"/>
+    <link rel="stylesheet" href="/css/user-settings.css"/>
+    <script defer src="/js/modules/countries.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/user-settings/user-sessions-widget.js"></script>
+    <script defer src="/js/user-settings/user-sessions-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    <h1>Sessions</h1>
+    <hr/>
+    <div id="sessions-actions-container" class="hidden">
+        <input id="delete-sessions-button" type="button" class="app-buttons-bigger" value="delete selected">
+        <input id="delete-all-sessions-button" type="button" class="app-buttons-bigger" value="delete all">
+    </div>
+    <table id="user-sessions-table" class="nice-table nice-table-striped nice-table-hover">
+        <thead>
+        <tr>
+            <th></th>
+            <th class="label-cell">os</th>
+            <th class="label-cell">agent</th>
+            <th class="label-cell">country</th>
+            <th class="label-cell">region</th>
+            <th class="label-cell">city</th>
+            <th class="label-cell">IP</th>
+            <th class="label-cell">created</th>
+            <th class="label-cell">updated</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <p id="user-sessions-empty-message" class="hidden">No sessions found.</p>
+    <div id="is-loading-message" style="display: none;">
+        Loading more sessions...
+    </div>
+    <div id="end-of-pagination-message" style="display: none;">
+        No more sessions to show
+    </div>
+</div>
+</body>
+</html>

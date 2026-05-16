@@ -24,7 +24,7 @@ fun <R : Record> Table<R>.fixed(): Table<Record> {
  * Workaround for inserts and updates
  */
 fun <T : Any> Field<T>.fixed(): Field<Any> {
-    return DSL.field(name.lowercase())
+    return DSL.field(DSL.quotedName(name.lowercase()))
 }
 
 fun Field<String>.eqIgnoreCaseTrimmed(value: String): Condition =
@@ -122,11 +122,11 @@ fun diffInSeconds(f1: Field<Instant>, f2: Field<Instant>): Field<Int> {
     return DSL.extract(f1, DatePart.EPOCH).minus(DSL.extract(f2, DatePart.EPOCH))
 }
 
-private fun Field<Instant>.isAfter(timestamp: Instant): Field<Boolean> {
+fun Field<Instant>.isAfter(timestamp: Instant): Field<Boolean> {
     return greaterThan(timestamp)
 }
 
-private fun Field<Instant>.isBefore(timestamp: Instant): Field<Boolean> {
+fun Field<Instant>.isBefore(timestamp: Instant): Field<Boolean> {
     return lessThan(timestamp)
 }
 

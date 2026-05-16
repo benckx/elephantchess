@@ -160,6 +160,9 @@ function renderAnalysisSummaryReport(
             row.cells.item(3).innerText = (counterBlack.get(symbolType) || 0).toString()
         }
 
+        const evalChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen);
+        evalChart.render();
+
         if (redPlayerName != null) {
             document
                 .getElementById('analysis-summary-red-player-name')
