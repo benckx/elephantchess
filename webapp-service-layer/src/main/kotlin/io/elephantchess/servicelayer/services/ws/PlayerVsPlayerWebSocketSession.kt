@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.services.ws
 
 import io.elephantchess.model.GameEventType
 import io.elephantchess.servicelayer.dto.ws.PlayerVsPlayerUpdate
+import io.elephantchess.servicelayer.model.UserId
 import kotlinx.coroutines.channels.ChannelResult
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -9,6 +10,7 @@ import kotlin.time.Instant
 
 class PlayerVsPlayerWebSocketSession(
     val gameId: String,
+    val userId: UserId,
     private var status: GameEventType,
     private var moveIndex: Int,
     private var chatIndex: Int,
@@ -64,7 +66,11 @@ class PlayerVsPlayerWebSocketSession(
             mustUpdate = true
         }
 
-        // push update
+        if (update.typingUsers.isNotEmpty()) {
+            mustUpdate = true
+        }
+
+        // push update  
         if (mustUpdate) {
             val result = sendCb(update)
             if (result.isClosed) {

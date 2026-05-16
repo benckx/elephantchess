@@ -1496,6 +1496,15 @@ class BoardGui {
         }
     }
 
+    /**
+     * Returns the color currently shown at the bottom of the board.
+     *
+     * @return {string}
+     */
+    get bottomColor() {
+        return this.#flippedRed ? Color.RED : Color.BLACK;
+    }
+
     flip() {
         this.#boardContainer.innerHTML = '';
         this.#flippedRed = !this.#flippedRed;
@@ -1660,7 +1669,9 @@ function parsePositionFromElementId(elementId) {
 }
 
 /**
- * Adds a miniature board that appears on hover for an element
+ * Adds a miniature board that appears on hover for an element.
+ * Uses {@link createWebappBoardGui} so piece images are served from the
+ * correct base URL (local server in dev, CDN in production).
  *
  * @param element {HTMLElement} - The element to attach hover listeners to
  * @param gameId {string} - Unique identifier for this miniboard
@@ -1689,14 +1700,12 @@ function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false) {
 
         document.body.appendChild(miniBoardDiv);
 
-        const options = {
+        const boardGui = createWebappBoardGui({
             elementId: miniBoardId,
             showCoordinates: false,
             mini: true,
             forceRenderChecks: true,
-        };
-
-        const boardGui = new BoardGui(options);
+        });
         boardGui.loadFen(fen);
         boardGui.flipToColor(playerColor);
         boardGui.updateHighlightedChecks();
