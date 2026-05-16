@@ -185,7 +185,10 @@ h1 {
 }
 
 .game-to-join-online-cell {
-    height: 14px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 input[type=button].join-buttons {
@@ -413,10 +416,6 @@ iframe {
 
     .game-to-join-item .time-control-cell {
         min-width: 165px;
-    }
-
-    .game-to-join-item .join-button-cell {
-        margin-left: 0;
     }
 
     #online-users-and-rating {
