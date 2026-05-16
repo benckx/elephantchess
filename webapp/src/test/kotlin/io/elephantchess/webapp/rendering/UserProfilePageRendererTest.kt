@@ -7,6 +7,7 @@ import io.elephantchess.servicelayer.dto.user.UserProfile
 import io.ktor.http.encodeURLPath
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class UserProfilePageRendererTest {
@@ -48,7 +49,7 @@ class UserProfilePageRendererTest {
         assertTrue(html.contains("""rel="canonical""""))
         assertTrue(html.contains(expectedCanonicalUrl), "Expected encoded canonical URL in: $html")
         assertTrue(html.contains("""property="og:url""""))
-        assertTrue(!html.contains("https://elephantchess.io/@/$username"), "Canonical URL should be encoded: $html")
+        assertFalse(html.contains("https://elephantchess.io/@/$username"), "Canonical URL should be encoded: $html")
     }
 
     private companion object {
