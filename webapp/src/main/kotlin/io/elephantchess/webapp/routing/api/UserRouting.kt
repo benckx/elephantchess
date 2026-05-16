@@ -50,9 +50,7 @@ private fun Route.loginAndSignUpRoutes() {
                         null
                     }
 
-                handleValidatedResponse<SignUpRequest, SignUpResponse> { request ->
-                    userService.signUp(request, guestUserId)
-                }
+                handleEither(userService.signUp(request, guestUserId))
             }
         }
         get("/obtain-guest-user-token") {
