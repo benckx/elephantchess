@@ -94,7 +94,7 @@ tr#outcome-row {
     bottom: 8px;
     right: 8px;
     z-index: 400;
-    width: 200px;
+    width: 300px;
     box-shadow: rgba(0, 0, 0, 0.4) 0 4px 10px;
     border-radius: 4px;
     overflow: hidden;
@@ -108,10 +108,9 @@ tr#outcome-row {
 }
 
 .mini-counter-box .mini-time-counter {
-    font-size: 28px;
+    font-size: 46px;
     padding-top: 4px;
     padding-bottom: 2px;
-    border-width: 2px;
 }
 
 .mini-counter-box .red-counter {
