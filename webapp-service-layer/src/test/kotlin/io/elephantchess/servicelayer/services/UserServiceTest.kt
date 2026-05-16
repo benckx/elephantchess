@@ -17,6 +17,7 @@ import io.elephantchess.servicelayer.dto.user.UserLoginRequest
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
+import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Color.RED
 import kotlinx.coroutines.test.runTest
 import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
@@ -90,7 +91,10 @@ class UserServiceTest : ServiceTest() {
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Email '$email' should be rejected")
-            assertTrue(result.left().errors.contains("Invalid email format"), "Should contain 'Invalid email format' error for '$email'")
+            assertTrue(
+                result.left().errors.contains("Invalid email format"),
+                "Should contain 'Invalid email format' error for '$email'"
+            )
         }
     }
 
@@ -111,7 +115,10 @@ class UserServiceTest : ServiceTest() {
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Email '$email' should be rejected")
-            assertTrue(result.left().errors.contains("Invalid email format"), "Should contain 'Invalid email format' error for '$email'")
+            assertTrue(
+                result.left().errors.contains("Invalid email format"),
+                "Should contain 'Invalid email format' error for '$email'"
+            )
         }
     }
 
@@ -144,7 +151,10 @@ class UserServiceTest : ServiceTest() {
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username 'abc' should be rejected (too short)")
-        assertTrue(result.left().errors.contains("Username must be between 4 and 30 char."), "Should contain username length error")
+        assertTrue(
+            result.left().errors.contains("Username must be between 4 and 30 char."),
+            "Should contain username length error"
+        )
     }
 
     @Test
@@ -156,7 +166,10 @@ class UserServiceTest : ServiceTest() {
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username with 31 chars should be rejected (too long)")
-        assertTrue(result.left().errors.contains("Username must be between 4 and 30 char."), "Should contain username length error")
+        assertTrue(
+            result.left().errors.contains("Username must be between 4 and 30 char."),
+            "Should contain username length error"
+        )
     }
 
     @Test
@@ -178,7 +191,10 @@ class UserServiceTest : ServiceTest() {
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username '$username' should be rejected")
-            assertTrue(result.left().errors.contains("Username must contain only letters, numbers, _ or -"), "Should contain invalid characters error for '$username'")
+            assertTrue(
+                result.left().errors.contains("Username must contain only letters, numbers, _ or -"),
+                "Should contain invalid characters error for '$username'"
+            )
         }
     }
 
@@ -216,7 +232,10 @@ class UserServiceTest : ServiceTest() {
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Password 'abc' should be rejected (too short)")
-        assertTrue(result.left().errors.contains("Password must be between 4 and 50 char."), "Should contain password length error")
+        assertTrue(
+            result.left().errors.contains("Password must be between 4 and 50 char."),
+            "Should contain password length error"
+        )
     }
 
     @Test
@@ -228,7 +247,10 @@ class UserServiceTest : ServiceTest() {
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Password with 51 chars should be rejected (too long)")
-        assertTrue(result.left().errors.contains("Password must be between 4 and 50 char."), "Should contain password length error")
+        assertTrue(
+            result.left().errors.contains("Password must be between 4 and 50 char."),
+            "Should contain password length error"
+        )
     }
 
     @Test
@@ -380,6 +402,12 @@ class UserServiceTest : ServiceTest() {
             .where(GAME.ID.eq(gameId))
             .awaitSingleValue<String>()
         assertEquals(guestId.id, inviterAfter)
+
+        val guestUserId = dslContext.select(GAME.GUEST_USER_ID)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue<String>()
+        assertNull(guestUserId, "Guest user ID should be null since no transfer occurred")
     }
 
     @Test
@@ -430,7 +458,7 @@ class UserServiceTest : ServiceTest() {
             .set(PUZZLE.REF_GAME_SOURCE_ID, "testSource1")
             .set(PUZZLE.ALGORITHM, PuzzleAlgo.FIND_PATH_TO_MATE)
             .set(PUZZLE.PLAYER_COLOR, RED)
-            .set(PUZZLE.START_FEN, "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR r")
+            .set(PUZZLE.START_FEN, DEFAULT_START_FEN)
             .set(PUZZLE.INITIAL_RATING, 1000)
             .set(PUZZLE.RATING, 1000)
             .awaitExecute()
