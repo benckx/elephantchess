@@ -45,6 +45,7 @@ class UserServiceTest : ServiceTest() {
         listOf(
             GAME_MOVE, GAME_STATUS_EVENT, GAME,
             BOT_GAME_MOVE, BOT_GAME_STATUS_EVENT, BOT_GAME,
+            REFERENCE_GAME_SEARCH_QUERY,
             USER_SESSION, PUZZLE_RESULT, USER, PUZZLE
         )
             .forEach { table ->
@@ -567,6 +568,48 @@ class UserServiceTest : ServiceTest() {
         val guestUserIdAfter = dslContext.select(PUZZLE_RESULT.GUEST_USER_ID)
             .from(PUZZLE_RESULT)
             .where(PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId))
+            .awaitSingleValue<String>()
+        assertEquals(guestId.id, guestUserIdAfter)
+    }
+
+    @Test
+    fun `signUp with guestUserId should transfer reference game searches to new user`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+
+        // Insert a reference game search query owned by the guest
+        val queryId = randomAlphanumeric(12)
+        val now = Clock.System.now()
+        dslContext.insertInto(REFERENCE_GAME_SEARCH_QUERY)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID, queryId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID, guestId.id)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME, now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME, now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME, "Hu Ronghua")
+            .set(REFERENCE_GAME_SEARCH_QUERY.LIMIT, 20)
+            .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS, 5)
+            .awaitExecute()
+
+        // Sign up and transfer guest data
+        val i = randomAlphanumeric(8)
+        val request = SignUpRequest(
+            username = "srchxfer$i",
+            email = "srchxfer$i@example.com",
+            password = "password",
+            transferGuestData = true
+        )
+        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+
+        // The search query should now belong to the new user
+        val userIdAfter = dslContext.select(REFERENCE_GAME_SEARCH_QUERY.USER_ID)
+            .from(REFERENCE_GAME_SEARCH_QUERY)
+            .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId))
+            .awaitSingleValue<String>()
+        assertEquals(newUserId, userIdAfter)
+
+        // The original guest user ID should be recorded on the search query row
+        val guestUserIdAfter = dslContext.select(REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID)
+            .from(REFERENCE_GAME_SEARCH_QUERY)
+            .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId))
             .awaitSingleValue<String>()
         assertEquals(guestId.id, guestUserIdAfter)
     }
