@@ -8,9 +8,7 @@ import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode.Companion.Created
-import io.ktor.http.HttpStatusCode.Companion.NotAcceptable
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -20,7 +18,6 @@ import io.ktor.util.*
 private val userService by koin<UserService>()
 private val userProfileAnalyticsService by koin<UserProfileAnalyticsService>()
 private val globalAnalyticsService by koin<GlobalAnalyticsService>()
-private val signupLogger = KotlinLogging.logger {}
 
 fun Route.userRoutes() {
     loginAndSignUpRoutes()
@@ -46,18 +43,15 @@ private fun Route.loginAndSignUpRoutes() {
         }
         post("/signup") {
             requireIdentificationWithBody<SignUpRequest> { verifiedToken, request ->
-                val guestUserId = if (request.transferGuestData) {
-                    (verifiedToken as? GuestToken)?.userId.also { id ->
-                        if (id == null) signupLogger.warn { "transferGuestData=true but no valid guest token in request (got ${verifiedToken::class.simpleName}) — transfer skipped" }
+                val guestUserId =
+                    if (request.transferGuestData) {
+                        (verifiedToken as? GuestToken)?.userId
+                    } else {
+                        null
                     }
-                } else null
-                val either = userService.signUp(request, guestUserId)
-                if (either.isRight()) {
-                    call.response.status(Created)
-                    either.right()
-                } else {
-                    call.response.status(NotAcceptable)
-                    either.left()
+
+                handleValidatedResponse<SignUpRequest, SignUpResponse> { request ->
+                    userService.signUp(request, guestUserId)
                 }
             }
         }

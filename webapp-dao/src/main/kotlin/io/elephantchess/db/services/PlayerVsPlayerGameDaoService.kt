@@ -1030,13 +1030,15 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
     suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
         dslContext.transactionCoroutine { cfg ->
-            val tx = DSL.using(cfg)
-            tx.update(GAME)
+            val transaction = DSL.using(cfg)
+
+            transaction.update(GAME)
                 .set(GAME.INVITER, newUserId)
                 .set(GAME.GUEST_USER_ID, guestUserId)
                 .where(GAME.INVITER.eq(guestUserId))
                 .awaitExecute()
-            tx.update(GAME)
+
+            transaction.update(GAME)
                 .set(GAME.INVITEE, newUserId)
                 .set(GAME.GUEST_USER_ID, guestUserId)
                 .where(GAME.INVITEE.eq(guestUserId))

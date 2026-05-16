@@ -93,7 +93,7 @@ class UserService(
         }
     }
 
-    suspend fun signUp(request: SignUpRequest, guestUserId: String? = null): ValidatedResponse<SignUpResponse> {
+    suspend fun signUp(request: SignUpRequest, guestUserId: String?): ValidatedResponse<SignUpResponse> {
         val errors = validateSignUpRequest(request)
 
         val now = Clock.System.now()
@@ -109,10 +109,13 @@ class UserService(
             user.userType = UserType.AUTHENTICATED
             user.puzzleRating = PUZZLE_START_RATING
             userDaoService.save(user)
-            val guestTransferred = if (guestUserId != null) {
-                transferGuestData(guestUserId, user.id)
-                true
-            } else false
+            val guestTransferred =
+                if (guestUserId != null) {
+                    transferGuestData(guestUserId, user.id)
+                    true
+                } else {
+                    false
+                }
             mailService.sendNewUserNotification(user, guestTransferred = guestTransferred)
             mailService.verifyEmailAddressAsync(user.email)
             ValidatedResponse.Valid(
@@ -443,7 +446,7 @@ class UserService(
     }
 
     private suspend fun transferGuestData(guestUserId: String, newUserId: String) {
-        logger.info { "transferring data from guest $guestUserId to new user $newUserId" }
+        logger.debug { "transferring data from guest $guestUserId to new user $newUserId" }
         playerVsPlayerGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
         playerVsBotGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
         puzzleResultDaoService.transferFromGuestToUser(guestUserId, newUserId)

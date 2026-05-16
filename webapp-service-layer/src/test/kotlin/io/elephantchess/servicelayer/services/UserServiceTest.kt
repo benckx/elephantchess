@@ -372,7 +372,7 @@ class UserServiceTest : ServiceTest() {
             email = "noxfer$i@example.com",
             password = "password"
         )
-        userService.signUp(request)
+        userService.signUp(request, null)
 
         // The game should still belong to the guest
         val inviterAfter = dslContext.select(GAME.INVITER)

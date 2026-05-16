@@ -75,10 +75,6 @@ class SignUpModalHandler extends ModalHandler {
         });
 
         this.#loginSpan.addEventListener('click', () => showLoginModal());
-
-        if (isUserIdentifiedAsGuest()) {
-            document.getElementById('signup-transfer-games-row').style.display = '';
-        }
     }
 
     #scheduleValidation() {

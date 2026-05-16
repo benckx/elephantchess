@@ -12,7 +12,7 @@ import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.utils.safeRandomAlphaNumericString
-import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
 import org.jooq.Record2
 import org.jooq.TableField
@@ -24,9 +24,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
-class UserDaoService(private val dslContext: DSLContext) {
-
-    private val logger = KotlinLogging.logger {}
+class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
 
     suspend fun save(user: User): String {
         dslContext.transactionCoroutine { cfg ->
