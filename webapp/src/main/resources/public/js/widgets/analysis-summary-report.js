@@ -21,8 +21,10 @@
  * @param gameId {GameId}
  * @param nodes {MoveTreeNode[]}
  * @param startFen {string}
+ * @param moveTreeWidget {MoveTreeWidget|null} optional widget on which annotation symbols (??, ?!, etc.) will be
+ *        applied to the move history once analysis data is fetched
  */
-function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_START_FEN) {
+function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_START_FEN, moveTreeWidget = null) {
     if (startFen != null) {
         startFen = DEFAULT_START_FEN;
     }
@@ -45,6 +47,10 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
                         gameMetadata.blackPlayerName,
                         gameMetadata.outcome
                     );
+
+                    if (moveTreeWidget != null) {
+                        moveTreeWidget.applyAnnotationSymbolsFromCache(analysisMap);
+                    }
                 });
             });
         }
