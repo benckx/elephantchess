@@ -133,22 +133,30 @@ class LobbyPage extends BasePage {
             const item = document.createElement('div');
             item.className = 'game-to-join-item';
 
-            const details = document.createElement('div');
-            details.className = 'game-to-join-details';
-            item.append(details);
+            const leftPane = document.createElement('div');
+            leftPane.className = 'game-to-join-left-pane';
+            item.append(leftPane);
+
+            const middlePane = document.createElement('div');
+            middlePane.className = 'game-to-join-middle-pane';
+            item.append(middlePane);
+
+            const rightPane = document.createElement('div');
+            rightPane.className = 'game-to-join-right-pane';
+            item.append(rightPane);
 
             const opponentLine = document.createElement('div');
             opponentLine.className = 'game-to-join-opponent-line';
-            details.append(opponentLine);
+            middlePane.append(opponentLine);
 
             const metadataLine = document.createElement('div');
             metadataLine.className = 'game-to-join-metadata-line';
-            details.append(metadataLine);
+            middlePane.append(metadataLine);
 
             // is online indicator
             const isOnlineCell = document.createElement('div');
-            isOnlineCell.className = 'online-cell';
-            opponentLine.append(isOnlineCell);
+            isOnlineCell.className = 'game-to-join-online-cell';
+            leftPane.append(isOnlineCell);
 
             const isOnlineIndicator = document.createElement('div');
             isOnlineIndicator.className = 'online-status-indicator';
@@ -182,23 +190,27 @@ class LobbyPage extends BasePage {
             metadataLine.append(colorCell);
 
             // time control
-            const timeControlCell = document.createElement('div');
-            timeControlCell.classList.add('game-to-join-metadata-item', 'time-control-cell', 'crop-text-ellipsis');
-            metadataLine.append(timeControlCell);
+            const timeControlIconCell = document.createElement('div');
+            timeControlIconCell.className = 'game-to-join-time-icon-cell';
+            leftPane.append(timeControlIconCell);
 
             const imageName = timeControlCategoryIconMap.get(entry.timeControlCategory);
             const img = document.createElement('img');
             img.className = 'time-control-icons';
             img.src = `${ICON_PATH}/${imageName}`;
-            timeControlCell.append(img);
+            timeControlIconCell.append(img);
 
             let timeControlLabel = '--';
             if (entry.timeControl != null) {
                 timeControlLabel = entry.timeControl.printShort(' +');
             }
+
+            const timeControlCell = document.createElement('div');
+            timeControlCell.classList.add('game-to-join-metadata-item', 'time-control-cell', 'crop-text-ellipsis');
             const timeControlText = document.createElement('span');
             timeControlText.innerText = timeControlLabel;
             timeControlCell.append(timeControlText);
+            metadataLine.append(timeControlCell);
 
             // rating mode
             const ratingModeCell = document.createElement('div');
@@ -216,7 +228,7 @@ class LobbyPage extends BasePage {
             // join button
             const joinButtonCell = document.createElement('div');
             joinButtonCell.className = 'join-button-cell';
-            item.append(joinButtonCell);
+            rightPane.append(joinButtonCell);
 
             const joinButton = makeAppButton(`join-game-button-${entry.gameId}`, 'join');
             joinButtonCell.append(joinButton);

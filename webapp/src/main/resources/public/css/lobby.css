@@ -99,7 +99,6 @@ h1 {
 
 .game-to-join-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     background-color: #ece5d8;
     border: 1px solid #565656;
@@ -109,19 +108,38 @@ h1 {
     box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px, rgba(0, 0, 0, 0.2) 0 1px 2px;
 }
 
-.game-to-join-details {
+.game-to-join-left-pane,
+.game-to-join-middle-pane,
+.game-to-join-right-pane {
+    display: flex;
+    align-items: center;
+}
+
+.game-to-join-left-pane {
+    width: 34px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+}
+
+.game-to-join-middle-pane {
     min-width: 0;
     flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 8px;
+}
+
+.game-to-join-right-pane {
+    width: 110px;
+    justify-content: flex-end;
+    margin-left: 10px;
 }
 
 .game-to-join-opponent-line {
     display: flex;
     align-items: center;
     gap: 6px;
-}
-
-.game-to-join-opponent-line .online-cell {
-    width: 18px;
 }
 
 .game-to-join-opponent-line .username-cell {
@@ -159,12 +177,15 @@ h1 {
 }
 
 .game-to-join-item .join-button-cell {
-    margin-left: 12px;
     text-align: right;
 }
 
 .game-to-join-item .time-control-icons {
     width: 20px;
+}
+
+.game-to-join-online-cell {
+    height: 14px;
 }
 
 input[type=button].join-buttons {
@@ -363,12 +384,22 @@ iframe {
         padding: 10px 12px;
     }
 
-    .game-to-join-opponent-line .online-cell {
-        width: 24px;
+    .game-to-join-left-pane {
+        width: 50px;
+        gap: 8px;
+    }
+
+    .game-to-join-middle-pane {
+        margin-left: 6px;
+    }
+
+    .game-to-join-right-pane {
+        width: 95px;
+        margin-left: 8px;
     }
 
     .game-to-join-opponent-line .username-cell {
-        max-width: 390px;
+        max-width: 350px;
         font-size: 32px;
     }
 
@@ -381,11 +412,11 @@ iframe {
     }
 
     .game-to-join-item .time-control-cell {
-        min-width: 180px;
+        min-width: 165px;
     }
 
     .game-to-join-item .join-button-cell {
-        margin-left: 8px;
+        margin-left: 0;
     }
 
     #online-users-and-rating {
