@@ -231,6 +231,37 @@ function millisToRelativeTime(elapsed, suffix = 'ago') {
 }
 
 /**
+ * Formats a duration in milliseconds as a compact shorthand string showing the
+ * largest non-zero unit plus the next smaller unit (e.g. '45s', '5m 12s',
+ * '1h 30m', '2d 4h'). Negative values are treated as zero.
+ *
+ * @param elapsed {number}
+ * @returns {string}
+ */
+function formatDurationShorthand(elapsed) {
+    if (elapsed == null || elapsed <= 0) {
+        return '0s';
+    }
+    const totalSeconds = Math.floor(elapsed / 1_000);
+    if (totalSeconds < 60) {
+        return totalSeconds + 's';
+    }
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    if (totalMinutes < 60) {
+        const s = totalSeconds % 60;
+        return s === 0 ? totalMinutes + 'm' : totalMinutes + 'm ' + s + 's';
+    }
+    const totalHours = Math.floor(totalMinutes / 60);
+    if (totalHours < 24) {
+        const m = totalMinutes % 60;
+        return m === 0 ? totalHours + 'h' : totalHours + 'h ' + m + 'm';
+    }
+    const totalDays = Math.floor(totalHours / 24);
+    const h = totalHours % 24;
+    return h === 0 ? totalDays + 'd' : totalDays + 'd ' + h + 'h';
+}
+
+/**
  * @param elapsed {number}
  * @returns {string}
  */

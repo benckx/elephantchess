@@ -159,6 +159,7 @@ class GameDto {
     #inviterColor;
     #isRated;
     #created;
+    #lastUpdated;
     #timeControlCategory;
     #timeControl;
     #timeControlMode;
@@ -185,6 +186,7 @@ class GameDto {
         this.#inviterColor = json.inviterColor;
         this.#isRated = json.isRated;
         this.#created = json.created;
+        this.#lastUpdated = json.lastUpdated;
         this.#timeControlCategory = json.timeControlCategory;
         this.#timeControl = TimeControl.fromJson(json);
         this.#timeControlMode = json.timeControlMode;
@@ -293,6 +295,13 @@ class GameDto {
      */
     get created() {
         return this.#created;
+    }
+
+    /**
+     * @returns {number}
+     */
+    get lastUpdated() {
+        return this.#lastUpdated;
     }
 
     /**
