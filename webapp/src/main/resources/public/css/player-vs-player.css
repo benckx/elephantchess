@@ -114,6 +114,14 @@ tr#outcome-row {
     border-width: 2px;
 }
 
+.mini-counter-box .red-counter {
+    background-color: rgb(255 168 168);
+}
+
+.mini-counter-box .black-counter {
+    background-color: rgb(171 171 171);
+}
+
 .move-tree-container-smaller {
     height: 270px;
 }
