@@ -18,6 +18,7 @@ import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.user.DeleteUserSessionsRequest
+import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.dto.user.UserLoginRequest
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
@@ -284,6 +285,23 @@ class UserServiceTest : ServiceTest() {
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Valid<Unit>>(result, "Password '$password' should be accepted")
         }
+    }
+
+    @Test
+    fun `fetchEmailAddressSettings should reflect the email validity status`() = runTest {
+        val (request, userId) = signUpTestUser()
+
+        // Before confirmation, no automated check has run, so status is UNKNOWN.
+        val before = userService.fetchEmailAddressSettings(userId)
+        assertEquals(request.email, before.email)
+        assertEquals(EmailValidityStatus.UNKNOWN, before.validityStatus)
+
+        // After the user clicks the confirmation link, the email is MANUALLY_CONFIRMED.
+        val code = userDaoService.findById(userId)!!.emailConfirmationCode
+        assertTrue(userService.confirmEmail(code))
+
+        val after = userService.fetchEmailAddressSettings(userId)
+        assertEquals(EmailValidityStatus.MANUALLY_CONFIRMED, after.validityStatus)
     }
 
     @Test

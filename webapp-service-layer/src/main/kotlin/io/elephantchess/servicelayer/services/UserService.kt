@@ -363,7 +363,7 @@ class UserService(
 
         return EmailAddressSettingsResponse(
             email = email,
-            isValid = mailService.getEmailValidityStatus(email),
+            validityStatus = mailService.getEmailValidityDetails(email),
         )
     }
 

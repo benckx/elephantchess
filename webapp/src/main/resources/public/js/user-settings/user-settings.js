@@ -106,17 +106,24 @@ class UserSettingsPage extends BasePage {
 
     #fetchEmailAddressSettings() {
         getAndHandle(EMAIL_SETTINGS_URL, json => {
-            let email = json.email;
-            let isValid = json.isValid;
-
-            this.#emailAddressField.value = email;
-            let elementId = 'email-validity-unknown';
-            if (isValid === true) {
-                elementId = 'email-valid';
-            } else if (isValid === false) {
-                elementId = 'email-invalid';
+            this.#emailAddressField.value = json.email;
+            let elementId;
+            switch (json.validityStatus) {
+                case 'MANUALLY_CONFIRMED':
+                    elementId = 'email-manually-confirmed';
+                    break;
+                case 'AUTOMATED_VALID':
+                    elementId = 'email-automated-valid';
+                    break;
+                case 'AUTOMATED_BOUNCED':
+                    elementId = 'email-automated-bounced';
+                    break;
+                case 'AUTOMATED_INVALID':
+                    elementId = 'email-automated-invalid';
+                    break;
+                default:
+                    elementId = 'email-validity-unknown';
             }
-
             document.getElementById(elementId).classList.remove('hidden');
         });
     }
