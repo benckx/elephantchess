@@ -12,6 +12,7 @@ import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.utils.safeRandomAlphaNumericString
+import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
 import org.jooq.Record2
 import org.jooq.TableField
@@ -23,7 +24,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
-class UserDaoService(private val dslContext: DSLContext) {
+class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
 
     suspend fun save(user: User): String {
         dslContext.transactionCoroutine { cfg ->
@@ -356,6 +357,27 @@ class UserDaoService(private val dslContext: DSLContext) {
                 .update(USER)
                 .set(USER.LAST_ONLINE.fixed(), Clock.System.now())
                 .where(USER.ID.eq(userId))
+                .awaitExecute()
+        }
+    }
+
+    suspend fun transferRatingsFromGuest(guestUserId: String, newUserId: String) {
+        val guestUser = findById(guestUserId)
+        if (guestUser == null) {
+            logger.warn { "transferRatingsFromGuest: guest user $guestUserId not found — ratings not transferred to $newUserId" }
+            return
+        }
+        dslContext.transactionCoroutine { cfg ->
+            DSL.using(cfg)
+                .update(USER)
+                .set(USER.PUZZLE_RATING, guestUser.puzzleRating)
+                .set(USER.GAME_RATING_BULLET, guestUser.gameRatingBullet)
+                .set(USER.GAME_RATING_BLITZ, guestUser.gameRatingBlitz)
+                .set(USER.GAME_RATING_RAPID, guestUser.gameRatingRapid)
+                .set(USER.GAME_RATING_CLASSICAL, guestUser.gameRatingClassical)
+                .set(USER.GAME_RATING_SEVERAL_DAYS, guestUser.gameRatingSeveralDays)
+                .set(USER.GAME_RATING_CORRESPONDENCE, guestUser.gameRatingCorrespondence)
+                .where(USER.ID.eq(newUserId))
                 .awaitExecute()
         }
     }

@@ -5,6 +5,7 @@ import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.UserProfile
 import io.elephantchess.utils.cropToFirstNWords
+import io.ktor.http.encodeURLPath
 
 class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
@@ -15,6 +16,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/user_profile.html",
+            canonicalPath = "/@/${username.encodeURLPath()}",
             specificTagResolvers = listOf(
                 noIndexMeta(description),
                 SimpleValueTagResolver("user_id", userProfile.userId),
@@ -61,7 +63,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
     private fun descriptionDivTagResolver(username: String, description: String?): TagResolver {
         return CallbackTagResolver("user_profile_description") {
-            if (description != null) {
+            if (!description.isNullOrBlank()) {
                 buildString {
                     append("""<div id="profile-description">""")
                     append(formatNewLinesToHtmlParagraphs(description))
@@ -75,6 +77,13 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 }
             }
         }
+    }
+
+    suspend fun renderUserBrowsePvpGames(username: String): String {
+        return htmlRenderer.renderHtml(
+            "/templates/user_browse_pvp_games.html",
+            specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
+        )
     }
 
 }

@@ -207,6 +207,10 @@ private fun Game.userIdByColor(color: Color): String? {
     }
 }
 
+fun BotGame.prettyEngineName() : String {
+    return "$engine (${depth})"
+}
+
 fun SevenKingdomsGame.minColorPerPlayer(): Int {
     return when (minPlayers) {
         4 -> 1

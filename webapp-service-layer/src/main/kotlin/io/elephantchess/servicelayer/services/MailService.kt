@@ -210,14 +210,15 @@ class MailService(
         )
     }
 
-    suspend fun sendNewUserNotification(user: User) {
+    suspend fun sendNewUserNotification(user: User, guestTransferred: Boolean = false) {
         resolveAndSend(
             recipient = ADMIN_GMAIL_EMAIL,
             subject = "new user",
             templateName = "new_user_notification",
             resolvers = listOf(
                 SimpleValueTagResolver("username", user.handle),
-                SimpleValueTagResolver("email", user.email)
+                SimpleValueTagResolver("email", user.email),
+                SimpleValueTagResolver("guest_transferred", if (guestTransferred) "yes" else "no")
             )
         )
     }

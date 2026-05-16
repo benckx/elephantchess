@@ -61,7 +61,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitRecords()
     }
 
-    suspend fun findByEventId(eventId: String) : List<ReferenceGameRecord> {
+    suspend fun findByEventId(eventId: String): List<ReferenceGameRecord> {
         return dslContext
             .select()
             .from(REFERENCE_GAME)
@@ -365,25 +365,103 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         limit: Int,
         numberOfResults: Int
     ) {
-        val record = ReferenceGameSearchQuery()
-        record.queryId = generateId()
-        record.userId = userId
-        record.searchStart = searchStart
-        record.searchEnd = searchEnd
-        record.playerName = playerName
-        record.playerId = playerId
-        record.playerColor = playerColor
-        record.eventName = eventName
-        record.eventId = eventId
-        record.fen = fen
-        record.offset = offset
-        record.limit = limit
-        record.numberOfResults = numberOfResults
-        record.queryTime = Clock.System.now()
-
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameSearchQueryDao(cfg).insertReactive(record)
+        // Only track the first page (offset null or 0) to avoid duplicate entries for pagination
+        if (offset != null && offset > 0) {
+            return
         }
+
+        val now = Clock.System.now()
+
+        // Sanitize player name the same way the JS client does: strip parenthetical substrings
+        // (e.g. Chinese characters like "(陈松顺)") so "Chen Songshun (陈松顺)" and
+        // "Chen Songshun" are treated as the same search entry.
+        val sanitizedPlayerName = sanitizePlayerName(playerName)
+
+        val existingId = dslContext
+            .select(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID)
+            .from(REFERENCE_GAME_SEARCH_QUERY)
+            .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(userId))
+            .and(
+                if (sanitizedPlayerName != null) {
+                    lower(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME).eq(sanitizedPlayerName.lowercase())
+                } else {
+                    REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.isNull
+                }
+            )
+            .and(
+                if (playerId != null) REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID.eq(playerId)
+                else REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID.isNull
+            )
+            .and(
+                if (playerColor != null) REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR.eq(playerColor)
+                else REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR.isNull
+            )
+            .and(
+                if (eventName != null) REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME.eq(eventName)
+                else REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME.isNull
+            )
+            .and(
+                if (eventId != null) REFERENCE_GAME_SEARCH_QUERY.EVENT_ID.eq(eventId)
+                else REFERENCE_GAME_SEARCH_QUERY.EVENT_ID.isNull
+            )
+            .and(
+                if (searchStart != null) REFERENCE_GAME_SEARCH_QUERY.SEARCH_START.eq(searchStart)
+                else REFERENCE_GAME_SEARCH_QUERY.SEARCH_START.isNull
+            )
+            .and(
+                if (searchEnd != null) REFERENCE_GAME_SEARCH_QUERY.SEARCH_END.eq(searchEnd)
+                else REFERENCE_GAME_SEARCH_QUERY.SEARCH_END.isNull
+            )
+            .and(
+                if (fen != null) REFERENCE_GAME_SEARCH_QUERY.FEN.eq(fen)
+                else REFERENCE_GAME_SEARCH_QUERY.FEN.isNull
+            )
+            .awaitSingleValue<String>()
+
+        if (existingId != null) {
+            dslContext
+                .update(REFERENCE_GAME_SEARCH_QUERY)
+                .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.fixed(), now)
+                .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS.fixed(), numberOfResults)
+                .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(existingId))
+                .awaitExecute()
+            return
+        }
+
+        val queryId = generateId()
+        dslContext
+            .insertInto(REFERENCE_GAME_SEARCH_QUERY.fixed())
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.fixed(), queryId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID.fixed(), userId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME.fixed(), now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.fixed(), now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_START.fixed(), searchStart)
+            .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END.fixed(), searchEnd)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.fixed(), sanitizedPlayerName)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID.fixed(), playerId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR.fixed(), playerColor)
+            .set(REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME.fixed(), eventName)
+            .set(REFERENCE_GAME_SEARCH_QUERY.EVENT_ID.fixed(), eventId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.FEN.fixed(), fen)
+            .set(REFERENCE_GAME_SEARCH_QUERY.OFFSET.fixed(), offset)
+            .set(REFERENCE_GAME_SEARCH_QUERY.LIMIT.fixed(), limit)
+            .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS.fixed(), numberOfResults)
+            .awaitExecute()
+    }
+
+    suspend fun listUserSearches(userId: String, beforeTime: Instant?, limit: Int): List<ReferenceGameSearchQuery> {
+        val condition = REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(userId)
+            .let { cond ->
+                if (beforeTime != null) cond.and(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.lessThan(beforeTime))
+                else cond
+            }
+
+        return dslContext
+            .selectFrom(REFERENCE_GAME_SEARCH_QUERY)
+            .where(condition)
+            .orderBy(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.desc())
+            .limit(limit)
+            .awaitMappedRecords()
     }
 
     suspend fun listLatestDatabaseSearches(limit: Int): List<ReferenceGameSearchQuery> {
@@ -410,6 +488,24 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
                     record2.get(REFERENCE_GAME.ANALYSIS_START_TIME)
                 )
             }
+    }
+
+    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
+        dslContext
+            .update(REFERENCE_GAME_SEARCH_QUERY)
+            .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID, newUserId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID, guestUserId)
+            .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(guestUserId))
+            .awaitExecute()
+    }
+
+    companion object {
+        private val PARENTHETICAL_REGEX = Regex("""\s*\([^)]*\)\s*""")
+        private val WHITESPACE_REGEX = Regex("""\s+""")
+
+        fun sanitizePlayerName(playerName: String?): String? =
+            playerName?.replace(PARENTHETICAL_REGEX, "")?.replace(WHITESPACE_REGEX, " ")?.trim()
+                ?.takeIf { it.isNotEmpty() }
     }
 
 }

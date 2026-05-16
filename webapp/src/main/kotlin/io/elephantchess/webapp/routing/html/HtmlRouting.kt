@@ -5,11 +5,7 @@ import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
-import io.elephantchess.webapp.rendering.FaqPageRenderer
-import io.elephantchess.webapp.rendering.ModalRenderer
-import io.elephantchess.webapp.rendering.SimplePageRenderer
-import io.elephantchess.webapp.rendering.UserProfilePageRenderer
-import io.elephantchess.webapp.rendering.latestSupporterTagResolver
+import io.elephantchess.webapp.rendering.*
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -60,12 +56,14 @@ private val identificationRequiredPagesMapping = mapOf(
     "/userdata/games" to "userdata/my_games",
     "/userdata/botgames" to "userdata/my_bot_games",
     "/userdata/analysis" to "userdata/my_analysis",
-    "/userdata/puzzles" to "userdata/my_played_puzzles"
+    "/userdata/puzzles" to "userdata/my_played_puzzles",
+    "/userdata/db-searches" to "userdata/my_db_searches",
 )
 
 // only available authenticated users
 private val authenticatedRequiredPagesMapping = mapOf(
     "/user/settings" to "user_settings",
+    "/user/settings/sessions" to "user_sessions",
 )
 
 private val adminPagesMapping = mapOf(
@@ -168,6 +166,13 @@ private fun Route.userProfile() {
 
         val userProfileResponse = userService.fetchProfile(username)
         call.respondHtml(renderer.renderUserProfile(userProfileResponse))
+    }
+    get("/@/{username}/browse-pvp-games") {
+        val username = call.parameters["username"]
+            ?: throw BadRequestException("username not provided")
+
+        userService.validateUserExists(username)
+        call.respondHtml(renderer.renderUserBrowsePvpGames(username))
     }
 }
 

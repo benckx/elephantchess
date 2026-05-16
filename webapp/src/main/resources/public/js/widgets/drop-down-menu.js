@@ -95,11 +95,61 @@ class DropDownMenu {
 
     /**
      * @param label {string}
+     * @param optionalCssClasses {string[]}
+     * @param href {string}
+     * @return {HTMLAnchorElement}
+     */
+    addItemWithHref(label, optionalCssClasses, href) {
+        let item = document.createElement('a');
+        item.href = href;
+
+        let defaultCssClasses = this.defaultCssClasses();
+        for (let i = 0; i < defaultCssClasses.length; i++) {
+            item.classList.add(defaultCssClasses[i]);
+        }
+        for (let i = 0; i < optionalCssClasses.length; i++) {
+            item.classList.add(optionalCssClasses[i]);
+        }
+        item.classList.add('drop-down-menu-item-link');
+        item.innerText = label;
+        item.addEventListener('click', (e) => {
+            if (this.isEnabled(item)) {
+                this.hide();
+            } else {
+                e.preventDefault();
+            }
+        });
+
+        this.#container.append(item);
+        this.#items.push(item);
+        return item;
+    }
+
+    /**
+     * @param label {string}
+     * @param href {string}
+     * @return {HTMLAnchorElement}
+     */
+    addSimpleItemWithHref(label, href) {
+        return this.addItemWithHref(label, [], href);
+    }
+
+    /**
+     * @param label {string}
      * @param cb {function}
      * @return {HTMLDivElement}
      */
     addItemWithTopSeparator(label, cb) {
         return this.addItem(label, ['drop-down-menu-item-top-separator'], cb);
+    }
+
+    /**
+     * @param label {string}
+     * @param href {string}
+     * @return {HTMLAnchorElement}
+     */
+    addItemWithTopSeparatorAndHref(label, href) {
+        return this.addItemWithHref(label, ['drop-down-menu-item-top-separator'], href);
     }
 
     defaultCssClasses() {
@@ -151,33 +201,18 @@ class UserNameDropDownMenu extends DropDownMenu {
 
         switch (user.userType) {
             case UserType.AUTHENTICATED:
-                this.addSimpleItem('Profile', () => {
-                    window.open('/@/' + user.username, '_self');
-                });
-                this.addSimpleItem('Settings', () => {
-                    window.open('/user/settings', '_self');
-                });
-                this.addItemWithTopSeparator('My Games', () => {
-                    window.open('/userdata/games', '_self');
-                });
-                this.addSimpleItem('My Bot Games', () => {
-                    window.open('/userdata/botgames', '_self');
-                });
-                this.addSimpleItem('My Puzzles', () => {
-                    window.open('/userdata/puzzles', '_self');
-                });
-                this.addSimpleItem('My Analysis', () => {
-                    window.open('/userdata/analysis', '_self');
-                });
+                this.addSimpleItemWithHref('Profile', '/@/' + user.username);
+                this.addSimpleItemWithHref('Settings', '/user/settings');
+                this.addItemWithTopSeparatorAndHref('My Games', '/userdata/games');
+                this.addSimpleItemWithHref('My Bot Games', '/userdata/botgames');
+                this.addSimpleItemWithHref('My Puzzles', '/userdata/puzzles');
+                this.addSimpleItemWithHref('My Analysis', '/userdata/analysis');
+                this.addSimpleItemWithHref('My DB Searches', '/userdata/db-searches');
                 if (user.isEditor) {
-                    this.addItemWithTopSeparator('My Edits', () => {
-                        window.open('/userdata/db-edits', '_self');
-                    });
+                    this.addItemWithTopSeparatorAndHref('My Edits', '/userdata/db-edits');
                 }
                 if (user.isAdmin) {
-                    this.addItemWithTopSeparator('Admin', () => {
-                        window.open('/admin', '_self');
-                    });
+                    this.addItemWithTopSeparatorAndHref('Admin', '/admin');
                 }
                 this.addItem('Logout', ['drop-down-menu-item-top-separator', 'drop-down-menu-item-logout'], () => {
                     eraseAllIdentificationCookies();
@@ -185,15 +220,10 @@ class UserNameDropDownMenu extends DropDownMenu {
                 });
                 break;
             case UserType.GUEST:
-                this.addSimpleItem('My Games', () => {
-                    window.open('/userdata/games', '_self');
-                });
-                this.addSimpleItem('My Bot Games', () => {
-                    window.open('/userdata/botgames', '_self');
-                });
-                this.addSimpleItem('My Puzzles', () => {
-                    window.open('/userdata/puzzles', '_self');
-                });
+                this.addSimpleItemWithHref('My Games', '/userdata/games');
+                this.addSimpleItemWithHref('My Bot Games', '/userdata/botgames');
+                this.addSimpleItemWithHref('My Puzzles', '/userdata/puzzles');
+                this.addSimpleItemWithHref('My DB Searches', '/userdata/db-searches');
                 this.addItem('Login', ['drop-down-menu-item-top-separator', 'drop-down-menu-item-authenticate'], () => {
                     showLoginModal();
                 });
