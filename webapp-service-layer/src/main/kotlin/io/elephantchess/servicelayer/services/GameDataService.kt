@@ -592,6 +592,7 @@ class GameDataService(
         beforeTs: Long? = null,
         excludeAutoResigned: Boolean
     ): ListLastGamesResponse {
+        // TODO: the distinct by user could happen easily in SQL
         val actualLimit = if (distinctByUsers) requestedLimit * 20 else requestedLimit
         val gameRecords = pvbGameDaoService
             .listLastGamesByIdentifiedUsers(
