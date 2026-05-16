@@ -223,6 +223,7 @@ class UserNameDropDownMenu extends DropDownMenu {
                 this.addSimpleItemWithHref('My Games', '/userdata/games');
                 this.addSimpleItemWithHref('My Bot Games', '/userdata/botgames');
                 this.addSimpleItemWithHref('My Puzzles', '/userdata/puzzles');
+                this.addSimpleItemWithHref('My DB Searches', '/userdata/db-searches');
                 this.addItem('Login', ['drop-down-menu-item-top-separator', 'drop-down-menu-item-authenticate'], () => {
                     showLoginModal();
                 });
