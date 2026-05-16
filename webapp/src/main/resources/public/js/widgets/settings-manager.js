@@ -388,17 +388,12 @@ class SettingsGui {
     enableEditPositionButton(getCurrentStartFenCb, selectedFenCb) {
         this.#editPositionItem.style.display = 'block';
         this.#editPositionButton.onclick = () => {
-            const openPositionEditor = () => {
-                UI.showModalByName(Modals.POSITION_EDITOR, () => {
-                    new PositionEditorHandler(getCurrentStartFenCb, selectedFenCb);
-                });
-            };
-            if (this.#moveTreeWidget != null && !this.#moveTreeWidget.isEmpty()) {
-                const text = buildSimpleSpan('Editing the start position will erase the current game history. Continue?');
-                UI.showConfirmationModal(text, openPositionEditor, 'continue', () => UI.hideModal(null), 'cancel');
-            } else {
-                openPositionEditor();
-            }
+            UI.openWithConfirmation(
+                this.#moveTreeWidget != null && !this.#moveTreeWidget.isEmpty(),
+                'Editing the start position will erase the current game history. Continue?',
+                'continue',
+                () => UI.showModalByName(Modals.POSITION_EDITOR, () => new PositionEditorHandler(getCurrentStartFenCb, selectedFenCb))
+            );
         };
         addToolTip(this.#editPositionButton, 'Edit start position');
 

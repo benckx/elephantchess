@@ -46,31 +46,21 @@ class MoveHistoryDropDownMenuWidget extends DropDownMenu {
 
         // callbacks
         this.addSimpleItem('Import moves', () => {
-            const openImportMovesModal = () => {
-                UI.showModalByName(Modals.IMPORT_MOVES, () => {
-                    new ImportMovesHandler(boardGui, moveTreeWidget);
-                });
-            };
-            if (!moveTreeWidget.isEmpty()) {
-                const text = buildSimpleSpan('Importing moves will erase the current game history. Continue?');
-                UI.showConfirmationModal(text, openImportMovesModal, 'import', () => UI.hideModal(null), 'cancel');
-            } else {
-                openImportMovesModal();
-            }
+            UI.openWithConfirmation(
+                !moveTreeWidget.isEmpty(),
+                'Importing moves will erase the current game history. Continue?',
+                'import',
+                () => UI.showModalByName(Modals.IMPORT_MOVES, () => new ImportMovesHandler(boardGui, moveTreeWidget))
+            );
         });
 
         this.addSimpleItem('Edit start position', () => {
-            const openPositionEditor = () => {
-                UI.showModalByName(Modals.POSITION_EDITOR, () => {
-                    new PositionEditorHandler(getCurrentStartFenCb, selectedFenCb);
-                });
-            };
-            if (!moveTreeWidget.isEmpty()) {
-                const text = buildSimpleSpan('Editing the start position will erase the current game history. Continue?');
-                UI.showConfirmationModal(text, openPositionEditor, 'continue', () => UI.hideModal(null), 'cancel');
-            } else {
-                openPositionEditor();
-            }
+            UI.openWithConfirmation(
+                !moveTreeWidget.isEmpty(),
+                'Editing the start position will erase the current game history. Continue?',
+                'continue',
+                () => UI.showModalByName(Modals.POSITION_EDITOR, () => new PositionEditorHandler(getCurrentStartFenCb, selectedFenCb))
+            );
         });
 
         // register

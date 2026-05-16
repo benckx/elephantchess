@@ -815,6 +815,23 @@ class UI {
     }
 
     /**
+     * Open a modal, showing a confirmation dialog first if shouldConfirm is true.
+     *
+     * @param shouldConfirm {boolean}
+     * @param confirmText {string}
+     * @param yesButtonText {string}
+     * @param openFn {function}
+     */
+    static openWithConfirmation(shouldConfirm, confirmText, yesButtonText, openFn) {
+        if (shouldConfirm) {
+            const text = buildSimpleSpan(confirmText);
+            UI.showConfirmationModal(text, openFn, yesButtonText, () => UI.hideModal(null), 'cancel');
+        } else {
+            openFn();
+        }
+    }
+
+    /**
      * @param modalName {string}
      * @param loadedCallback {function}
      */
