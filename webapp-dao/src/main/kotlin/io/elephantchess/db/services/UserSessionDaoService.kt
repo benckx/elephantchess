@@ -108,6 +108,45 @@ class UserSessionDaoService(
             .map { mapToRecord(it) }
     }
 
+    suspend fun listAuthenticatedSessionsForUser(userId: String, limit: Int, offset: Int = 0): List<UserSessionRecord> {
+        return dslContext
+            .select()
+            .from(USER_SESSION)
+            .where(USER_SESSION.USER_ID.eq(userId))
+            .orderBy(USER_SESSION.LAST_UPDATED.desc())
+            .limit(limit)
+            .offset(offset)
+            .awaitMappedRecords<UserSession>()
+            .map { mapToRecord(it) }
+    }
+
+    suspend fun countAuthenticatedSessionsForUser(userId: String): Int {
+        return dslContext
+            .selectCount()
+            .from(USER_SESSION)
+            .where(USER_SESSION.USER_ID.eq(userId))
+            .awaitSingleValue<Int>() ?: 0
+    }
+
+    suspend fun deleteAuthenticatedSessionsForUser(userId: String, sessionIds: Collection<Int>): Int {
+        if (sessionIds.isEmpty()) {
+            return 0
+        }
+
+        return dslContext
+            .deleteFrom(USER_SESSION)
+            .where(USER_SESSION.USER_ID.eq(userId))
+            .and(USER_SESSION.ID.`in`(sessionIds))
+            .awaitExecute()
+    }
+
+    suspend fun deleteAllAuthenticatedSessionsForUser(userId: String): Int {
+        return dslContext
+            .deleteFrom(USER_SESSION)
+            .where(USER_SESSION.USER_ID.eq(userId))
+            .awaitExecute()
+    }
+
     suspend fun findByUserAgent(userAgent: String): List<UserSessionRecord> {
         val records = mutableListOf<UserSessionRecord>()
 
@@ -162,6 +201,7 @@ class UserSessionDaoService(
 
         fun mapToRecord(userSession: UserSession): UserSessionRecord {
             return UserSessionRecord(
+                id = userSession.id,
                 userId = userSession.userId,
                 remoteAddress = userSession.remoteAddress,
                 userAgent = userSession.userAgent,

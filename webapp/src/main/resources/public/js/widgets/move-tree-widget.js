@@ -1074,6 +1074,10 @@ class NavigationPanelGui {
         });
 
         this.#downloadButtonContainer.addEventListener('click', (e) => {
+            // skip if the click already happened on the inner <a> (its own handler + browser default already triggers the download)
+            if (e.target.closest('a') === link) {
+                return;
+            }
             if (isButtonEnabled(e.target)) {
                 link.click();
             }
