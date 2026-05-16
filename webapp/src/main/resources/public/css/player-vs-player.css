@@ -91,7 +91,7 @@ tr#outcome-row {
 
 .mini-counter-box {
     position: fixed;
-    top: 8px;
+    bottom: 8px;
     right: 8px;
     z-index: 400;
     width: 200px;
@@ -112,6 +112,15 @@ tr#outcome-row {
     padding-top: 4px;
     padding-bottom: 2px;
     border-width: 2px;
+}
+
+.mini-counter-box .red-counter {
+    background-color: rgb(255 0 0 / 80%);
+}
+
+.mini-counter-box .black-counter {
+    background-color: rgb(111 111 111 / 95%);
+    color: rgba(255, 255, 255);
 }
 
 .move-tree-container-smaller {
