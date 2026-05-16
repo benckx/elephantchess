@@ -67,7 +67,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "2.3.21" apply false
 }
 
-allprojects {
+subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.adarshr.test-logger")
     apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
@@ -201,7 +201,7 @@ val daoCodeGen = tasks.register("dao-code-gen") {
     }
 }
 
-tasks.named("compileKotlin") {
+project(":webapp-dao").tasks.named("compileKotlin") {
     dependsOn(daoCodeGen)
 }
 
