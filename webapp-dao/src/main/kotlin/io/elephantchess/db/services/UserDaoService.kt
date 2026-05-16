@@ -304,6 +304,15 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .awaitSingleMappedRecord()
     }
 
+    suspend fun listManuallyConfirmedEmailAddresses(): List<String> {
+        return dslContext
+            .select(USER.EMAIL)
+            .from(USER)
+            .where(USER.EMAIL.isNotNull)
+            .and(USER.EMAIL_CONFIRMED_AT.isNotNull)
+            .awaitMappedRecords()
+    }
+
     suspend fun findByEmailConfirmationCode(code: String): User? {
         return dslContext
             .select()

@@ -173,22 +173,27 @@ class MailService(
 
     /**
      * List all emails that:
-     * - have been validated automatically by the external service
+     * - have a valid status (manually confirmed by the user, or automatically validated by the
+     *   external service)
      * - have not bounced
      * - consent to receive the newsletter (implicit)
      */
     suspend fun listNewsLetterRecipientEmails(): List<String> {
         val automaticallyValidated =
             emailVerificationDaoService.listAllAutomaticallyValidatedEmails(emailValidityDuration)
+        val manuallyConfirmed = userDaoService.listManuallyConfirmedEmailAddresses().toSet()
         val bounced = emailVerificationDaoService.listBouncedEmails()
         val newsletterRecipients = userDaoService
             .listNewsletterEmailAddresses()
-            .filter { emailAddress -> automaticallyValidated.contains(emailAddress) }
+            .filter { emailAddress ->
+                manuallyConfirmed.contains(emailAddress) || automaticallyValidated.contains(emailAddress)
+            }
             .filterNot { emailAddress -> bounced.contains(emailAddress) }
             .map { emailAddress -> emailAddress.trim() }
 
         logger.info {
-            "found ${automaticallyValidated.size} valid e-mail addresses, " +
+            "found ${automaticallyValidated.size} automatically validated e-mail addresses, " +
+                    "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
                     "${bounced.size} bounced e-mail addresses, " +
                     "${newsletterRecipients.size} total newsletter recipients"
         }
