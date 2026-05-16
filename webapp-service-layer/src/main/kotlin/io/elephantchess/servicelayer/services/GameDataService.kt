@@ -123,10 +123,30 @@ class GameDataService(
                         ?.let { record ->
                             val userId = record.userId
                             val userName = fetchUserName(userId)
-                            val redPlayerId = if (record.userColor == RED) userId else null
-                            val redPlayerName = if (record.userColor == RED) userName else null
-                            val blackPlayerId = if (record.userColor == BLACK) userId else null
-                            val blackPlayerName = if (record.userColor == BLACK) userName else null
+                            var blackPlayerId: String? = null
+                            var blackPlayerName: String? = null
+                            var redPlayerId: String? = null
+                            var redPlayerName: String? = null
+                            val engineName = record.prettyEngineName()
+
+                            when (record.userColor) {
+                                RED -> {
+                                    redPlayerId = userId
+                                    redPlayerName = userName
+                                    blackPlayerName = engineName
+                                }
+
+                                BLACK -> {
+                                    redPlayerName = engineName
+                                    blackPlayerId = userId
+                                    blackPlayerName = userName
+                                }
+
+                                else -> {
+                                    // should not happen, but in case of data inconsistency, we don't want to fail the whole request
+                                    logger.warn { "Game $gameId has invalid user color ${record.userColor}" }
+                                }
+                            }
 
                             GameMetadataDto(
                                 gameId = gameId,
@@ -612,13 +632,13 @@ class GameDataService(
                     redPlayerRating = null
                     redUserType = userCache.fetchUserType(record.userId)
                     blackUserId = null
-                    blackPlayerName = record.engine.toString()
-                    blackPlayerRating = record.depth
+                    blackPlayerName = record.prettyEngineName()
+                    blackPlayerRating = null
                     blackUserType = null
                 } else {
                     redUserId = null
-                    redPlayerName = record.engine.toString()
-                    redPlayerRating = record.depth
+                    redPlayerName = record.prettyEngineName()
+                    redPlayerRating = null
                     redUserType = null
                     blackUserId = record.userId
                     blackPlayerName = fetchUserName(record.userId)
