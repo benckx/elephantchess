@@ -93,7 +93,7 @@ class UserService(
         }
     }
 
-    suspend fun signUp(request: SignUpRequest, guestUserId: String?): ValidatedResponse<SignUpResponse> {
+    suspend fun signUp(request: SignUpRequest, guestUserId: String? = null): ValidatedResponse<SignUpResponse> {
         val errors = validateSignUpRequest(request)
 
         val now = Clock.System.now()
