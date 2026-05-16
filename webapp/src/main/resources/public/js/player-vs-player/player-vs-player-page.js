@@ -70,6 +70,9 @@ class PlayGamePage extends BasePage {
 
     #topCounter = document.getElementById('top-counter');
     #bottomCounter = document.getElementById('bottom-counter');
+    #miniCounterBox = document.getElementById('mini-counter-box');
+    #miniTopCounter = document.getElementById('mini-top-counter');
+    #miniBottomCounter = document.getElementById('mini-bottom-counter');
 
     /**
      * @type {HTMLElement[]}
@@ -110,6 +113,9 @@ class PlayGamePage extends BasePage {
         this.#moveTreeWidget.addClickedNodeListener(() => this.#handleNavigationEvent());
         this.#moveTreeWidget.addNavigationListener(() => this.#handleNavigationEvent());
         new SettingsGui(this.#boardGui, this.#moveTreeWidget);
+
+        // hide the mobile mini timer when the main counter box is on screen
+        this.#setUpMiniCounterVisibility();
 
         // handle params
         const params = new URLSearchParams(window.location.search);
@@ -667,14 +673,38 @@ class PlayGamePage extends BasePage {
             case Color.RED:
                 this.#topCounter.classList.add('black-counter');
                 this.#bottomCounter.classList.add('red-counter');
+                this.#miniTopCounter.classList.add('black-counter');
+                this.#miniBottomCounter.classList.add('red-counter');
                 break;
             case Color.BLACK:
                 this.#topCounter.classList.add('red-counter');
                 this.#bottomCounter.classList.add('black-counter');
+                this.#miniTopCounter.classList.add('red-counter');
+                this.#miniBottomCounter.classList.add('black-counter');
                 break;
             default:
                 throw new Error('Incorrect color: ' + color);
         }
+    }
+
+    #setUpMiniCounterVisibility() {
+        const mainCounterBox = document.getElementById('counter-box');
+        if (mainCounterBox == null || this.#miniCounterBox == null) {
+            return;
+        }
+        if (typeof IntersectionObserver === 'undefined') {
+            return;
+        }
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    this.#miniCounterBox.classList.add('mini-counter-box-hidden');
+                } else {
+                    this.#miniCounterBox.classList.remove('mini-counter-box-hidden');
+                }
+            });
+        });
+        observer.observe(mainCounterBox);
     }
 
     /**
