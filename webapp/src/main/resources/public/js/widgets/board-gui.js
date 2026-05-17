@@ -147,6 +147,8 @@ const FileNumbersStyle = Object.freeze({
     CHINESE_BOTH: 'CHINESE_BOTH',
     /** Chinese numerals on red's side; Arabic numerals on black's side (default). */
     CHINESE_RED_ONLY: 'CHINESE_RED_ONLY',
+    /** Chinese numerals on black's side; Arabic numerals on red's side. */
+    CHINESE_BLACK_ONLY: 'CHINESE_BLACK_ONLY',
     DEFAULT: 'CHINESE_RED_ONLY',
 });
 
@@ -1220,6 +1222,8 @@ class BoardGui {
                         return false;
                     case FileNumbersStyle.CHINESE_BOTH:
                         return true;
+                    case FileNumbersStyle.CHINESE_BLACK_ONLY:
+                        return side === 'black';
                     case FileNumbersStyle.CHINESE_RED_ONLY:
                     default:
                         return side === 'red';
