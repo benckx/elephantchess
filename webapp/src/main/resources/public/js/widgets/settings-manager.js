@@ -299,6 +299,7 @@ class SettingsGui {
 
     #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
     #advancedSettingsBox = document.getElementById('advanced-settings-box');
+    #advancedSettingsCloseButton = document.getElementById('advanced-settings-close-button');
 
     // advanced settings
     #advancedMoveFormatSettingItem = document.getElementById('advanced-move-format-setting-item');
@@ -488,9 +489,23 @@ class SettingsGui {
         updateCoordinatesMoveFormatMismatchWarning();
 
         // advanced settings
+        const closeAdvancedSettings = () => {
+            this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+        };
+        const openAdvancedSettings = () => {
+            this.#advancedSettingsBox.classList.add('advanced-settings-box-open');
+        };
         this.#advancedSettingsToggle.onclick = (e) => {
             e.preventDefault();
-            this.#advancedSettingsBox.classList.toggle('advanced-settings-box-open');
+            if (this.#advancedSettingsBox.classList.contains('advanced-settings-box-open')) {
+                closeAdvancedSettings();
+            } else {
+                openAdvancedSettings();
+            }
+        };
+        this.#advancedSettingsCloseButton.onclick = (e) => {
+            e.preventDefault();
+            closeAdvancedSettings();
         };
         if (!showAdvancedSettingsLink) {
             this.#advancedSettingsToggle.style.display = 'none';
@@ -500,7 +515,7 @@ class SettingsGui {
                 const isInsideAdvancedBox = this.#advancedSettingsBox.contains(event.target);
                 const isAdvancedToggle = this.#advancedSettingsToggle.contains(event.target);
                 if (!isInsideAdvancedBox && !isAdvancedToggle) {
-                    this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+                    closeAdvancedSettings();
                 }
             });
         }

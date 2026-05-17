@@ -1376,6 +1376,10 @@ table.info-box-sub-table td.values {
     box-sizing: border-box;
 }
 
+#settings-info-box-container #advanced-settings-close-button {
+    display: none;
+}
+
 #settings-info-box-container #advanced-settings-box.advanced-settings-box-open {
     display: block;
 }
