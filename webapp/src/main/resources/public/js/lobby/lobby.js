@@ -93,7 +93,7 @@ class LobbyPage extends BasePage {
         addEventListener('scroll', (_) => this.#renderYouTubeEmbed());
         addEventListener('resize', (_) => this.#renderYouTubeEmbed());
 
-        const settingsGui = new SettingsGui(this.#puzzleBoardGui, null);
+        const settingsGui = new SettingsGui(this.#puzzleBoardGui, null, false, false);
         new LiveGamesViewer(settingsGui);
     }
 

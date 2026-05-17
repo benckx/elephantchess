@@ -3,7 +3,6 @@ package io.elephantchess.db.services
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.PuzzleResultDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleResult
-import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleResultAnonymous
 import io.elephantchess.db.model.PlayedPuzzleRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.PuzzleOutcome
@@ -273,6 +272,15 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             }
         }
 
+    }
+
+    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
+        dslContext
+            .update(PUZZLE_RESULT)
+            .set(PUZZLE_RESULT.USER_ID, newUserId)
+            .set(PUZZLE_RESULT.GUEST_USER_ID, guestUserId)
+            .where(PUZZLE_RESULT.USER_ID.eq(guestUserId))
+            .awaitExecute()
     }
 
 }
