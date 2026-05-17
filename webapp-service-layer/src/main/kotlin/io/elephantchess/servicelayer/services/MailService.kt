@@ -243,6 +243,21 @@ class MailService(
         )
     }
 
+    suspend fun sendUserFlaggedNotification(gameId: String, userId: String, username: String) {
+        resolveAndSend(
+            recipient = ADMIN_GMAIL_EMAIL,
+            subject = "user flagged",
+            templateName = "user_flagged_notification",
+            resolvers = listOf(
+                SimpleValueTagResolver("game_id", gameId),
+                SimpleValueTagResolver("user_id", userId),
+                SimpleValueTagResolver("username", username),
+                GameLinkTagResolver(webHost, gameId),
+            ),
+            skipRecipientValidityCheck = true
+        )
+    }
+
     suspend fun sendEmailConfirmation(recipient: String, code: String, showWelcomeMessage: Boolean) {
         val subject = if (showWelcomeMessage) {
             "Welcome to elephantchess - email address confirmation"

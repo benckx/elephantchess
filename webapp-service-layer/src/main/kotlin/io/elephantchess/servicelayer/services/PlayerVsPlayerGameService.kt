@@ -640,7 +640,11 @@ class PlayerVsPlayerGameService(
                 winnerColor = color.reverse(),
                 updateRatingsCallback = updateRatingsCallback
             )
-            // TODO: send email when offline?
+            mailService.sendUserFlaggedNotification(
+                gameId = gameId,
+                userId = userId,
+                username = userCache.fetchUsernameOrDefault(userId),
+            )
         }
     }
 
