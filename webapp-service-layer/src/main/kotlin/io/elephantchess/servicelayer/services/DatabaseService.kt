@@ -508,6 +508,7 @@ class DatabaseService(
             eventName = idToEventName(record.event),
             date = record.date,
             outcome = record.outcome,
+            finalFen = record.finalFen,
         )
     }
 

@@ -24,12 +24,6 @@ class DatabaseGameViewerPage extends BasePage {
      */
     #gameDataClient;
 
-    /**
-     * @type {GameMetadataDto|null}
-     */
-    #gameMetadata;
-
-
     #boardGui = createWebappBoardGui();
 
     /**
@@ -62,59 +56,62 @@ class DatabaseGameViewerPage extends BasePage {
         const idParam = getQueryParam('id');
         const orientationParam = getQueryParam('orientation');
 
-        if (idParam != null) {
-            let gameId = new GameId(GameType.DB, idParam);
-            this.#gameDataClient = new GameDataClient(gameId);
-            this.#gameDataClient.fetchMetadata(metadata => {
-                // display metadata
-                this.#gameMetadata = metadata;
-                this.#boardGui.loadFen(metadata.finalFen);
-                if (orientationParam != null) {
-                    this.#boardGui.flipToColor(orientationParam);
-                }
-                // players-info, game-status-info, game-date-info and game-event-info are
-                // rendered server-side (so that crawlers / no-JS users see meaningful content,
-                // including Chinese names).
+        if (idParam == null) {
+            window.open('/', '_self');
+            return;
+        }
 
-                ['analyze-button-left-side', 'analyze-button-right-side']
-                    .forEach((id) => {
-                        document.getElementById(id)
-                            .addEventListener('click', () => {
-                                window.open(gameId.analysisUrl, '_self');
-                            });
+        const gameId = new GameId(GameType.DB, idParam);
+        this.#gameDataClient = new GameDataClient(gameId);
+
+        // players-info, game-date-info, game-event-info and the page title / meta
+        // description are rendered server-side. The board's final FEN is read from a
+        // body data-* attribute, so we don't need to fetch metadata dynamically — we
+        // only need to fetch the move list.
+        const finalFen = document.body.dataset.finalFen;
+        if (finalFen != null && finalFen !== '') {
+            this.#boardGui.loadFen(finalFen);
+        }
+        if (orientationParam != null) {
+            this.#boardGui.flipToColor(orientationParam);
+        }
+
+        ['analyze-button-left-side', 'analyze-button-right-side']
+            .forEach((id) => {
+                document.getElementById(id)
+                    .addEventListener('click', () => {
+                        window.open(gameId.analysisUrl, '_self');
                     });
             });
 
-            this.#gameDataClient.fetchMoves(moves => {
-                this.#moveTreeWidget.setMoves(moves);
-                renderAnalysisSummaryReportGeneric(
-                    gameId,
-                    this.#moveTreeWidget.getMainBranchNodes(),
-                    DEFAULT_START_FEN,
-                    this.#moveTreeWidget
-                );
-            });
-        } else {
-            window.open('/', '_self');
-        }
+        this.#gameDataClient.fetchMoves(moves => {
+            this.#moveTreeWidget.setMoves(moves);
+            renderAnalysisSummaryReportGeneric(
+                gameId,
+                this.#moveTreeWidget.getMainBranchNodes(),
+                DEFAULT_START_FEN,
+                this.#moveTreeWidget
+            );
+        });
     }
 
     /**
+     * Build the PGN metadata Map from the body data-* attributes (populated
+     * server-side). Avoids the extra metadata HTTP fetch.
+     *
      * @return {Map<string, string>}
      */
     #buildPgnMetadata() {
-        let metadata = new Map();
-
-        // site metadata
+        const metadata = new Map();
         metadata.set('Site', window.location.href);
 
-        // game metadata
-        if (this.#gameMetadata != null) {
-            this
-                .#gameMetadata
-                .buildPgnMetadata()
-                .forEach((value, key) => metadata.set(key, value));
-        }
+        const ds = document.body.dataset;
+        if (ds.pgnRedPlayer) metadata.set('White', ds.pgnRedPlayer);
+        if (ds.pgnBlackPlayer) metadata.set('Black', ds.pgnBlackPlayer);
+        if (ds.pgnEvent) metadata.set('Event', ds.pgnEvent);
+        if (ds.pgnDate) metadata.set('Date', ds.pgnDate);
+        if (ds.pgnResult) metadata.set('Result', ds.pgnResult);
+        metadata.set('Variant', 'Xiangqi');
 
         return metadata;
     }

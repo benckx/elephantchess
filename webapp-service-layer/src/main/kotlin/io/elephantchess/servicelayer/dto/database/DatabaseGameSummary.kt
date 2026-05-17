@@ -18,4 +18,5 @@ data class DatabaseGameSummary(
     val eventName: String?,
     val date: LocalDate?,
     val outcome: Outcome?,
+    val finalFen: String?,
 )

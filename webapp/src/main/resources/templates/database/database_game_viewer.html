@@ -10,7 +10,12 @@
     <script defer src="/js/database/database-player-utils.js"></script>
     <script defer src="/js/database/database-game-viewer.js"></script>
 </head>
-<body>
+<body data-final-fen="{{game_final_fen}}"
+      data-pgn-red-player="{{pgn_red_player}}"
+      data-pgn-black-player="{{pgn_black_player}}"
+      data-pgn-event="{{pgn_event}}"
+      data-pgn-date="{{pgn_date}}"
+      data-pgn-result="{{pgn_result}}">
 {{body_init}}
 <div class="flex-triptych-container">
     <div class="flex-triptych-left-container">

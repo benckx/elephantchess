@@ -316,6 +316,18 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             }
         } ?: ""
 
+        // PGN-friendly fields (also surfaced as body data-* attributes so the JS
+        // does not need to fetch metadata to render the board or build the PGN download)
+        val pgnResult = when (summary.outcome) {
+            Outcome.RED_WINS -> "1-0"
+            Outcome.BLACK_WINS -> "0-1"
+            Outcome.DRAW -> "1/2-1/2"
+            null -> ""
+        }
+        val pgnDate = summary.date?.let { d ->
+            "%04d.%02d.%02d".format(d.year, d.monthValue, d.dayOfMonth)
+        } ?: ""
+
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_game_viewer.html",
             specificTagResolvers = listOf(
@@ -324,6 +336,12 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 SimpleValueTagResolver("players_info", playersInfoHtml),
                 SimpleValueTagResolver("game_date_info", dateInfoHtml),
                 SimpleValueTagResolver("game_event_info", eventInfoHtml),
+                SimpleValueTagResolver("game_final_fen", escapeHtmlAttr(summary.finalFen.orEmpty())),
+                SimpleValueTagResolver("pgn_red_player", escapeHtmlAttr(redCanonical.orEmpty())),
+                SimpleValueTagResolver("pgn_black_player", escapeHtmlAttr(blackCanonical.orEmpty())),
+                SimpleValueTagResolver("pgn_event", escapeHtmlAttr(summary.eventName.orEmpty())),
+                SimpleValueTagResolver("pgn_date", pgnDate),
+                SimpleValueTagResolver("pgn_result", pgnResult),
             ),
             canonicalPath = "/database/game?id=${summary.gameId}"
         )
