@@ -303,6 +303,8 @@ class SettingsGui {
 
     #selectPieceStyleTraditional = document.getElementById('select-piece-style-traditional');
     #selectPieceStyleRomanizedRounded = document.getElementById('select-piece-style-romanized-rounded');
+    #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
+    #advancedSettingsBox = document.getElementById('advanced-settings-box');
     #moveFormat = document.getElementById('move-format-button');
     #showCoordinates = document.getElementById('show-coordinates-button');
     #colorblindFriendlyBlackPieces = document.getElementById('colorblind-friendly-black-pieces-button');
@@ -320,8 +322,9 @@ class SettingsGui {
      * @param boardGui {BoardGui}
      * @param moveTreeWidget {MoveTreeWidget|null}
      * @param showArrowsOption {boolean} - whether to show arrows option (it's only for analysis board)
+     * @param showAdvancedSettingsLink {boolean} - whether to show "Advanced" settings trigger
      */
-    constructor(boardGui, moveTreeWidget, showArrowsOption = false) {
+    constructor(boardGui, moveTreeWidget, showArrowsOption = false, showAdvancedSettingsLink = true) {
         this.#moveTreeWidget = moveTreeWidget;
         this.#boardGuis.push(boardGui);
 
@@ -368,6 +371,24 @@ class SettingsGui {
             this.#boardGuis.forEach(boardGui => boardGui.setColorblindFriendlyBlackPiecesEnabled(enabled));
         }
         addToolTip(this.#colorblindFriendlyBlackPieces, 'Invert black pieces for colorblind accessibility');
+
+        // advanced settings
+        this.#advancedSettingsToggle.onclick = (e) => {
+            e.preventDefault();
+            this.#advancedSettingsBox.classList.toggle('advanced-settings-box-open');
+        };
+        if (!showAdvancedSettingsLink) {
+            this.#advancedSettingsToggle.parentElement.parentElement.style.display = 'none';
+            this.#advancedSettingsBox.style.display = 'none';
+        } else {
+            document.addEventListener('click', (event) => {
+                const isInsideAdvancedBox = this.#advancedSettingsBox.contains(event.target);
+                const isAdvancedToggle = this.#advancedSettingsToggle.contains(event.target);
+                if (!isInsideAdvancedBox && !isAdvancedToggle) {
+                    this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+                }
+            });
+        }
 
         // flip board
         this.#flipBoard.onclick = () => {
@@ -429,4 +450,3 @@ class SettingsGui {
     }
 
 }
-

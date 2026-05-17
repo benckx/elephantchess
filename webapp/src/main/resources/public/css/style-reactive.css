@@ -516,6 +516,16 @@
         width: 68px;
     }
 
+    #settings-info-box #advanced-settings-toggle {
+        font-size: 30px;
+    }
+
+    #settings-info-box #advanced-settings-box {
+        top: 94px;
+        right: 12px;
+        padding: 10px 8px;
+    }
+
     #settings-info-box img#flip-board-button,
     #settings-info-box img#show-coordinates-button,
     #settings-info-box img#colorblind-friendly-black-pieces-button,

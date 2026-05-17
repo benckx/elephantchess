@@ -1300,6 +1300,7 @@ table.info-box-sub-table td.values {
     align-items: center;
     justify-content: space-between;
     height: 40px;
+    position: relative;
 }
 
 #settings-info-box .setting-option-item,
@@ -1340,6 +1341,32 @@ table.info-box-sub-table td.values {
 
 #settings-info-box img#move-format-button {
     width: 30px;
+}
+
+#settings-info-box #advanced-settings-toggle {
+    color: #ddf5ff;
+    text-decoration: underline;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#settings-info-box #advanced-settings-box {
+    display: none;
+    position: absolute;
+    top: 44px;
+    right: 6px;
+    z-index: 1200;
+    background: #4b4b4b;
+    border: 1px solid #868686;
+    border-radius: 4px;
+    box-shadow: rgba(0, 0, 0, 0.55) 0 4px 12px;
+    padding: 8px 6px;
+}
+
+#settings-info-box #advanced-settings-box.advanced-settings-box-open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #settings-info-box #show-analytics-arrows-item {
