@@ -548,6 +548,11 @@
         margin: 10px 0;
     }
 
+    #settings-info-box-container #advanced-settings-box .advanced-setting-icon {
+        width: 34px;
+        margin-right: 12px;
+    }
+
     #settings-info-box-container #advanced-settings-box .advanced-setting-title {
         font-size: 24px;
     }
@@ -557,7 +562,7 @@
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-options {
-        gap: 18px;
+        gap: 8px;
         font-size: 20px;
     }
 

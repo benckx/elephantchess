@@ -1293,6 +1293,7 @@ table.info-box-sub-table td.values {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
     overflow: visible;
 }
 
@@ -1381,13 +1382,24 @@ table.info-box-sub-table td.values {
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-row {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
+    width: 100%;
     margin: 6px 0;
 }
 
+#settings-info-box-container #advanced-settings-box .advanced-setting-icon {
+    width: 20px;
+    margin-right: 8px;
+    margin-top: 2px;
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-content {
+    flex: 1;
+    min-width: 0;
+}
+
 #settings-info-box-container #advanced-settings-box .advanced-setting-text {
-    text-align: center;
+    text-align: left;
     margin-bottom: 4px;
 }
 
@@ -1404,10 +1416,9 @@ table.info-box-sub-table td.values {
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-options {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
     font-size: 12px;
     color: #2f2f2f;
 }
