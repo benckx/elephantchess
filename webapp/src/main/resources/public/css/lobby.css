@@ -85,6 +85,14 @@ h1 {
     gap: 8px;
 }
 
+@media (min-width: 1450px) {
+    #games-to-join-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 10px;
+    }
+}
+
 .discrete-messages {
     font-size: 14px;
     color: #434343;
@@ -385,9 +393,8 @@ iframe {
         font-size: 26px;
     }
 
-    .time-control-icons {
-        width: 30px;
-        margin-right: 8px;
+    .game-to-join-item .time-control-icons {
+        width: 36px;
     }
 
     #games-to-join-list-container {
@@ -401,7 +408,7 @@ iframe {
     }
 
     .game-to-join-left-pane {
-        width: 40px;
+        width: 48px;
     }
 
     .game-to-join-middle-pane {

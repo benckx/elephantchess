@@ -186,7 +186,11 @@ class LobbyPage extends BasePage {
             // color
             const colorCell = document.createElement('div');
             colorCell.className = 'game-to-join-metadata-item color-cell';
-            colorCell.append(buildColorSpan(entry.opponentColor));
+            const colorSpan = buildColorSpan(entry.opponentColor);
+            if (colorSpan.classList.contains('any-color')) {
+                colorSpan.innerText = 'Any color';
+            }
+            colorCell.append(colorSpan);
             metadataLine.append(colorCell);
 
             // time control
