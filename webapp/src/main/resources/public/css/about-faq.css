@@ -77,3 +77,18 @@
 #page-toc a {
     font-size: inherit;
 }
+
+.anchor-copy-link {
+    cursor: pointer;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.anchor-copy-link img {
+    width: 16px;
+    opacity: 60%;
+}
+
+.anchor-copy-link:hover img {
+    opacity: 100%;
+}
