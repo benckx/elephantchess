@@ -360,7 +360,7 @@ class UserService(
         }
 
         val description = stripHtml(removeSuperfluousLineBreaks(request.description))
-        val country = normalizeCountry(request.country).orEmpty()
+        val country = normalizeCountry(request.country)
         userDaoService.updateProfileSettings(userId, description, country)
     }
 

@@ -320,7 +320,7 @@ class UserServiceTest : ServiceTest() {
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleValue<String>()
-        assertTrue(storedCountry.isNullOrBlank())
+        assertNull(storedCountry)
     }
 
     @Test
