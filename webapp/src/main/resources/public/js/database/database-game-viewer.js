@@ -24,31 +24,6 @@ class DatabaseGameViewerPage extends BasePage {
      */
     #gameDataClient;
 
-    /**
-     * @type {GameMetadataDto|null}
-     */
-    #gameMetadata;
-
-    /**
-     * @type {HTMLDivElement}
-     */
-    #playersInfo = document.getElementById('players-info');
-
-    /**
-     * @type {HTMLDivElement}
-     */
-    #gameStatusInfo = document.getElementById('game-status-info');
-
-    /**
-     * @type {HTMLDivElement}
-     */
-    #gameDateInfo = document.getElementById('game-date-info');
-
-    /**
-     * @type {HTMLDivElement}
-     */
-    #gameEventInfo = document.getElementById('game-event-info');
-
     #boardGui = createWebappBoardGui();
 
     /**
@@ -78,130 +53,66 @@ class DatabaseGameViewerPage extends BasePage {
     }
 
     #loadGameData() {
-        const idParam = getQueryParam('id');
-        const orientationParam = getQueryParam('orientation');
+        const ds = document.body.dataset;
+        const idParam = ds.gameId;
+        const orientationParam = ds.orientation;
 
-        if (idParam != null) {
-            let gameId = new GameId(GameType.DB, idParam);
-            this.#gameDataClient = new GameDataClient(gameId);
-            this.#gameDataClient.fetchMetadata(metadata => {
-                // display metadata
-                this.#gameMetadata = metadata;
-                this.#boardGui.loadFen(metadata.finalFen);
-                if (orientationParam != null) {
-                    this.#boardGui.flipToColor(orientationParam);
-                }
-                this.#playersInfo.append(this.#playerInfo(metadata));
-                this.#gameStatusInfo.innerText = this.#formatOutcome(metadata);
-                if (metadata.lastUpdated != null) {
-                    this.#gameDateInfo.innerText = formatTimestampDefaultDateFormatNoTime(metadata.lastUpdated);
-                } else {
-                    this.#gameDateInfo.innerText = '<unknown date>';
-                }
+        if (idParam == null || idParam === '') {
+            window.open('/', '_self');
+            return;
+        }
 
-                if (metadata.eventId != null && metadata.eventName != null) {
-                    this.#gameEventInfo.innerHTML = '';
-                    this.#gameEventInfo.append(
-                        buildLink(
-                            `/database/event?id=${metadata.eventId}`,
-                            metadata.eventName
-                        )
-                    );
-                } else if (metadata.eventName != null) {
-                    this.#gameEventInfo.innerText = metadata.eventName;
-                } else {
-                    this.#gameEventInfo.style.display = 'none';
-                }
+        const gameId = new GameId(GameType.DB, idParam);
+        this.#gameDataClient = new GameDataClient(gameId);
 
-                ['analyze-button-left-side', 'analyze-button-right-side']
-                    .forEach((id) => {
-                        document.getElementById(id)
-                            .addEventListener('click', () => {
-                                window.open(gameId.analysisUrl, '_self');
-                            });
+        // players-info, game-date-info, game-event-info and the page title / meta
+        // description are rendered server-side. The board's final FEN, game id and
+        // orientation are all read from body data-* attributes, so we don't need to
+        // fetch metadata dynamically — we only need to fetch the move list.
+        const finalFen = ds.finalFen;
+        if (finalFen != null && finalFen !== '') {
+            this.#boardGui.loadFen(finalFen);
+        }
+        if (orientationParam != null && orientationParam !== '') {
+            this.#boardGui.flipToColor(orientationParam);
+        }
+
+        ['analyze-button-left-side', 'analyze-button-right-side']
+            .forEach((id) => {
+                document.getElementById(id)
+                    .addEventListener('click', () => {
+                        window.open(gameId.analysisUrl, '_self');
                     });
             });
 
-            this.#gameDataClient.fetchMoves(moves => {
-                this.#moveTreeWidget.setMoves(moves);
-                renderAnalysisSummaryReportGeneric(
-                    gameId,
-                    this.#moveTreeWidget.getMainBranchNodes(),
-                );
-            });
-        } else {
-            window.open('/', '_self');
-        }
-    }
-
-    /**
-     * @param metadata {GameMetadataDto}
-     * @return {HTMLDivElement}
-     */
-    #playerInfo(metadata) {
-        const red = buildSimpleSpan('<unknown>');
-        const black = buildSimpleSpan('<unknown>');
-        if (metadata.redPlayerName != null && metadata.redPlayerName !== '') {
-            red.innerHTML = '';
-            red.append(
-                buildLink(`/database/player/${encodePlayerNameForUrl(metadata.redPlayerName)}`, metadata.redPlayerName)
+        this.#gameDataClient.fetchMoves(moves => {
+            this.#moveTreeWidget.setMoves(moves);
+            renderAnalysisSummaryReportGeneric(
+                gameId,
+                this.#moveTreeWidget.getMainBranchNodes(),
+                DEFAULT_START_FEN,
+                this.#moveTreeWidget
             );
-        }
-        if (metadata.blackPlayerName != null && metadata.blackPlayerName !== '') {
-            black.innerHTML = '';
-            black.append(
-                buildLink(`/database/player/${encodePlayerNameForUrl(metadata.blackPlayerName)}`, metadata.blackPlayerName)
-            );
-        }
-
-        const div = document.createElement('div');
-        div.append(red);
-        div.append(buildSimpleSpan(' vs. '));
-        div.append(black);
-        return div;
+        });
     }
 
     /**
-     * @param metadata {GameMetadataDto}
-     * @returns {string}
-     */
-    #formatOutcome(metadata) {
-        switch (metadata.outcome) {
-            case Outcome.RED_WINS:
-                if (metadata.redPlayerName != null && metadata.redPlayerName !== '') {
-                    return `${metadata.redPlayerName} victory (Red)`;
-                } else {
-                    return 'Red wins';
-                }
-            case Outcome.BLACK_WINS:
-                if (metadata.blackPlayerName != null && metadata.blackPlayerName !== '') {
-                    return `${metadata.blackPlayerName} victory (Black)`;
-                } else {
-                    return 'Black wins';
-                }
-            case Outcome.DRAW:
-                return 'Draw';
-            default:
-                return '--';
-        }
-    }
-
-    /**
+     * Build the PGN metadata Map from the body data-* attributes (populated
+     * server-side). Avoids the extra metadata HTTP fetch.
+     *
      * @return {Map<string, string>}
      */
     #buildPgnMetadata() {
-        let metadata = new Map();
-
-        // site metadata
+        const metadata = new Map();
         metadata.set('Site', window.location.href);
 
-        // game metadata
-        if (this.#gameMetadata != null) {
-            this
-                .#gameMetadata
-                .buildPgnMetadata()
-                .forEach((value, key) => metadata.set(key, value));
-        }
+        const ds = document.body.dataset;
+        if (ds.pgnRedPlayer) metadata.set('White', ds.pgnRedPlayer);
+        if (ds.pgnBlackPlayer) metadata.set('Black', ds.pgnBlackPlayer);
+        if (ds.pgnEvent) metadata.set('Event', ds.pgnEvent);
+        if (ds.pgnDate) metadata.set('Date', ds.pgnDate);
+        if (ds.pgnResult) metadata.set('Result', ds.pgnResult);
+        metadata.set('Variant', 'Xiangqi');
 
         return metadata;
     }

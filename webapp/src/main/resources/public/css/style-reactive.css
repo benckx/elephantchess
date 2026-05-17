@@ -80,10 +80,12 @@
 
     .main-container,
     .main-container-text,
+    .main-container-text-extended-smaller,
     .main-container-text-extended,
     .main-container-text-extended-larger,
     .main-container-text-error-message {
         width: 96%;
+        min-width: 0;
     }
 
     .standard-data-table .user-rating-delta-value-box,
@@ -91,6 +93,10 @@
     .standard-data-table .user-rating-delta-value-box-positive,
     .standard-data-table .user-rating-delta-value-box-negative {
         font-size: 18px;
+    }
+
+    textarea {
+        font-size: 28px;
     }
 
     input[type="checkbox"],

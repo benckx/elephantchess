@@ -586,32 +586,23 @@ class GameDataService(
         )
     }
 
-    suspend fun listLastPvbGames(
+    suspend fun listLatestPvbGames(
         requestedLimit: Int,
         distinctByUsers: Boolean = true,
         beforeTs: Long? = null,
         excludeAutoResigned: Boolean
     ): ListLastGamesResponse {
-        val actualLimit = if (distinctByUsers) requestedLimit * 20 else requestedLimit
         val gameRecords = pvbGameDaoService
-            .listLastGamesByIdentifiedUsers(
-                actualLimit,
+            .listLatestGamesByIdentifiedUsers(
+                limit = requestedLimit,
                 minMoveIndex = MIN_MOVE_INDEX,
                 beforeTs = beforeTs,
-                excludeAutoResigned = excludeAutoResigned
+                excludeAutoResigned = excludeAutoResigned,
+                distinctByUsers = distinctByUsers
             )
-            .let { games ->
-                if (distinctByUsers) {
-                    games.distinctBy { game -> game.userId }
-                } else {
-                    games
-                }
-            }
-            .sortedByDescending { game -> game.lastUpdated }
 
         val userIds = gameRecords.map { game -> game.userId }.distinct().filterNotNull()
-        val lastOnlineByUserId = userDaoService.fetchLastOnline(userIds)
-        val isOnlineLimit = Clock.System.now().minusSeconds(15L)
+        val onlineUserIds = userService.areOnline(userIds).onlineUserIds
 
         return gameRecords
             .take(requestedLimit)
@@ -624,7 +615,7 @@ class GameDataService(
                 val blackPlayerName: String?
                 val blackPlayerRating: Int?
                 val blackUserType: UserType?
-                val isUserOnline = lastOnlineByUserId[record.userId]?.isAfter(isOnlineLimit) == true
+                val isUserOnline = onlineUserIds.contains(record.userId)
 
                 if (record.userColor == RED) {
                     redUserId = record.userId

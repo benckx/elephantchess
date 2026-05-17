@@ -101,7 +101,7 @@ class AdminFeedService(
     suspend fun listLastBotGames(): ListBotGamesResponse {
         val entries =
             pvbGameDaoService
-                .listLastGamesByIdentifiedUsers(80)
+                .listLatestGamesByIdentifiedUsers(80)
                 .map { gameRecord -> mapBotGameToDto(gameRecord) }
 
         return ListBotGamesResponse(entries)

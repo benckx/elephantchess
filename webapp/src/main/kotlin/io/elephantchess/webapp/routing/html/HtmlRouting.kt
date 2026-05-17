@@ -26,7 +26,6 @@ private val publicPageMapping = mapOf(
     "/board" to "simple_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
-    "/database/game" to "database/database_game_viewer",
     "/browse/player-vs-player" to "browse_pvp_games",
     "/browse/player-vs-bot" to "browse_pvb_games",
     "/analysis" to "analysis_board",
