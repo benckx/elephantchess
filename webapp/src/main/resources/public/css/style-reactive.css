@@ -522,16 +522,15 @@
 
     #settings-info-box-container #advanced-settings-box {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+        top: 50%;
+        left: 50%;
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+        transform: translate(-50%, -50%);
         z-index: 1202;
         overflow-y: auto;
-        border-radius: 0;
-        border-left: 0;
-        border-right: 0;
-        padding: 80px 34px 30px;
+        border-radius: 8px;
+        padding: 76px 34px 34px;
     }
 
     #settings-info-box-container #advanced-settings-close-button {
@@ -580,16 +579,16 @@
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-title {
-        font-size: 30px;
+        font-size: 32px;
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-description {
-        font-size: 18px;
+        font-size: 20px;
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-options {
         gap: 8px;
-        font-size: 28px;
+        font-size: 30px;
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=radio] {
