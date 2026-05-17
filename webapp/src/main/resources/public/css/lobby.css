@@ -118,9 +118,10 @@ h1 {
 }
 
 .game-to-join-left-pane {
-    width: 26px;
+    width: 34px;
     flex-direction: column;
     justify-content: center;
+    gap: 2px;
 }
 
 .game-to-join-middle-pane {
@@ -173,16 +174,23 @@ h1 {
     min-width: 56px;
 }
 
-.game-to-join-item .time-control-cell {
-    min-width: 96px;
-}
-
 .game-to-join-item .join-button-cell {
     text-align: right;
 }
 
+.game-to-join-time-icon-cell {
+    display: flex;
+    justify-content: center;
+}
+
 .game-to-join-item .time-control-icons {
     width: 20px;
+}
+
+.game-to-join-time-duration-cell {
+    color: #3a3a3a;
+    font-size: 13px;
+    line-height: 1;
 }
 
 .game-to-join-online-cell {
@@ -418,8 +426,8 @@ iframe {
         font-size: 25px;
     }
 
-    .game-to-join-item .time-control-cell {
-        min-width: 165px;
+    .game-to-join-time-duration-cell {
+        font-size: 22px;
     }
 
     #online-users-and-rating {

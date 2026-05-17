@@ -205,12 +205,10 @@ class LobbyPage extends BasePage {
                 timeControlLabel = entry.timeControl.printShort(' +');
             }
 
-            const timeControlCell = document.createElement('div');
-            timeControlCell.classList.add('game-to-join-metadata-item', 'time-control-cell', 'crop-text-ellipsis');
-            const timeControlText = document.createElement('span');
-            timeControlText.innerText = timeControlLabel;
-            timeControlCell.append(timeControlText);
-            metadataLine.append(timeControlCell);
+            const timeControlDurationCell = document.createElement('div');
+            timeControlDurationCell.className = 'game-to-join-time-duration-cell';
+            timeControlDurationCell.innerText = timeControlLabel;
+            leftPane.append(timeControlDurationCell);
 
             // rating mode
             const ratingModeCell = document.createElement('div');
