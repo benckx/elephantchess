@@ -21,6 +21,11 @@ const COLOR_DELTA_FOR_ONE_LEVEL = 10;
 const HOVERING_COLOR = '#01138a';
 const MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX = 'moveTreeWidget.height';
 const MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS = 150;
+const MOVE_TREE_WIDGET_PAGE_KEY_PVP = 'pvp';
+const MOVE_TREE_WIDGET_PAGE_KEY_PVB = 'pvb';
+const MOVE_TREE_WIDGET_PAGE_KEY_SIMPLE_BOARD = 'simple-board';
+const MOVE_TREE_WIDGET_PAGE_KEY_ANALYSIS = 'analysis';
+const MOVE_TREE_WIDGET_PAGE_KEY_DB_VIEWER = 'database-viewer';
 
 const BRANCHES_COLORS = [
     '#01138a',
@@ -1313,12 +1318,37 @@ class MoveTreeWidget {
     }
 
     #cookieHeightName() {
-        const page = encodeURIComponent(window.location.pathname || '');
-        return `${MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX}.${page}.${this.#mainContainer.id}`;
+        const pageKey = this.#pageKey();
+        if (pageKey === null) {
+            return null;
+        }
+        return `${MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX}.${pageKey}.${this.#mainContainer.id}`;
+    }
+
+    #pageKey() {
+        switch (window.location.pathname) {
+            case '/game':
+                return MOVE_TREE_WIDGET_PAGE_KEY_PVP;
+            case '/playbot':
+                return MOVE_TREE_WIDGET_PAGE_KEY_PVB;
+            case '/board':
+                return MOVE_TREE_WIDGET_PAGE_KEY_SIMPLE_BOARD;
+            case '/analysis':
+                return MOVE_TREE_WIDGET_PAGE_KEY_ANALYSIS;
+            case '/database/game':
+                return MOVE_TREE_WIDGET_PAGE_KEY_DB_VIEWER;
+            default:
+                return null;
+        }
     }
 
     #applySavedHeight() {
-        const rawValue = getCookie(this.#cookieHeightName());
+        const cookieKey = this.#cookieHeightName();
+        if (cookieKey === null) {
+            return;
+        }
+
+        const rawValue = getCookie(cookieKey);
         if (rawValue === null) {
             return;
         }
@@ -1349,7 +1379,10 @@ class MoveTreeWidget {
             this.#resizeSaveTimeout = setTimeout(() => {
                 const height = this.#mainContainer.offsetHeight;
                 if (height >= this.#minResizeHeight() && height !== this.#lastSavedHeight) {
-                    setCookie(this.#cookieHeightName(), height.toString(), CHROME_COOKIE_MAX_TTL);
+                    const cookieKey = this.#cookieHeightName();
+                    if (cookieKey !== null) {
+                        setCookie(cookieKey, height.toString(), CHROME_COOKIE_MAX_TTL);
+                    }
                     this.#lastSavedHeight = height;
                 }
             }, MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS);
