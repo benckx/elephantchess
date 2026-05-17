@@ -16,15 +16,14 @@ class MailRendererTest {
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("email_css", ""),
                 SimpleValueTagResolver("game_id", "game-123"),
-                SimpleValueTagResolver("user_id", "user-456"),
                 SimpleValueTagResolver("username", "alice"),
                 SimpleValueTagResolver("game_link", "https://elephantchess.test/g/game-123"),
+                SimpleValueTagResolver("update_mail_settings", ""),
             )
         )
 
-        assertTrue(html.contains("user flagged in game: game-123"))
-        assertTrue(html.contains("userId: user-456"))
-        assertTrue(html.contains("username: alice"))
-        assertTrue(html.contains("game link: https://elephantchess.test/g/game-123"))
+        assertTrue(html.contains("Hi alice"))
+        assertTrue(html.contains("You lost your game on time (flagged): game-123."))
+        assertTrue(html.contains("Review the game at https://elephantchess.test/g/game-123"))
     }
 }

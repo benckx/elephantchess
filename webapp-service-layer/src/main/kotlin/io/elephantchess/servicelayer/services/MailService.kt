@@ -243,18 +243,16 @@ class MailService(
         )
     }
 
-    suspend fun sendUserFlaggedNotification(gameId: String, userId: String, username: String) {
+    suspend fun sendUserFlaggedNotification(recipient: String, gameId: String, username: String) {
         resolveAndSend(
-            recipient = ADMIN_GMAIL_EMAIL,
-            subject = "user flagged",
+            recipient = recipient,
+            subject = "You lost on time",
             templateName = "user_flagged_notification",
             resolvers = listOf(
                 SimpleValueTagResolver("game_id", gameId),
-                SimpleValueTagResolver("user_id", userId),
                 SimpleValueTagResolver("username", username),
                 GameLinkTagResolver(webHost, gameId),
             ),
-            skipRecipientValidityCheck = true
         )
     }
 

@@ -640,11 +640,16 @@ class PlayerVsPlayerGameService(
                 winnerColor = color.reverse(),
                 updateRatingsCallback = updateRatingsCallback
             )
-            mailService.sendUserFlaggedNotification(
-                gameId = gameId,
-                userId = userId,
-                username = userCache.fetchUsernameOrDefault(userId),
-            )
+            val email = userDaoService.findById(userId)?.email
+            if (email == null) {
+                logger.info { "not sending 'user flagged' notification for $userId in $gameId because email is null" }
+            } else {
+                mailService.sendUserFlaggedNotification(
+                    recipient = email,
+                    gameId = gameId,
+                    username = userCache.fetchUsernameOrDefault(userId),
+                )
+            }
         }
     }
 
