@@ -24,7 +24,10 @@ class SimpleBoardPage extends BasePage {
         const boardGui = createWebappBoardGui();
         boardGui.loadFen(DEFAULT_START_FEN);
 
-        const moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+        const moveTreeWidget = new MoveTreeWidget({
+            containerId: 'move-tree-container',
+            ...moveTreeResizeCookiePersistence('simple-board', 'move-tree-container')
+        });
         moveTreeWidget.addNavigationPanel({
             containerId: 'mobile-navigation-panel',
             isDownloadButtonEnabled: true

@@ -19,6 +19,7 @@
 
 const ANALYSIS_NOTIFICATION_TIMEOUT = 4_000;
 const PROGRESS_BAR_DISAPPEAR_TIMEOUT = 4_000;
+const MOVE_TREE_WIDGET_PAGE_KEY_ANALYSIS = 'analysis';
 
 class AnalysisBoardPage extends BasePage {
 
@@ -44,7 +45,8 @@ class AnalysisBoardPage extends BasePage {
     #moveTreeWidget = new MoveTreeWidget({
         containerId: 'move-tree-container',
         isContextualMenuEnabled: true,
-        isLoadingAnimationEnabled: true
+        isLoadingAnimationEnabled: true,
+        ...moveTreeResizeCookiePersistence(MOVE_TREE_WIDGET_PAGE_KEY_ANALYSIS, 'move-tree-container')
     });
 
     #boardGui = createWebappBoardGui({ svg: true });

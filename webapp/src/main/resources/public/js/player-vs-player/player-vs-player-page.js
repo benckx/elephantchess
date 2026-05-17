@@ -19,6 +19,7 @@
 
 const IS_ONLINE_FETCH_INTERVAL = 3_000;
 const MAX_TIME_CONTROL_LABEL = 14;
+const MOVE_TREE_WIDGET_PAGE_KEY_PVP = 'pvp';
 
 class PlayGamePage extends BasePage {
 
@@ -34,7 +35,10 @@ class PlayGamePage extends BasePage {
     /**
      * @type {MoveTreeWidget}
      */
-    #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+    #moveTreeWidget = new MoveTreeWidget({
+        containerId: 'move-tree-container',
+        ...moveTreeResizeCookiePersistence(MOVE_TREE_WIDGET_PAGE_KEY_PVP, 'move-tree-container')
+    });
 
     #redPlayerInfo = document.getElementById('red-player-info');
     #blackPlayerInfo = document.getElementById('black-player-info');

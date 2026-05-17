@@ -19,13 +19,7 @@
 
 const COLOR_DELTA_FOR_ONE_LEVEL = 10;
 const HOVERING_COLOR = '#01138a';
-const MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX = 'moveTreeWidget.height';
 const MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS = 150;
-const MOVE_TREE_WIDGET_PAGE_KEY_PVP = 'pvp';
-const MOVE_TREE_WIDGET_PAGE_KEY_PVB = 'pvb';
-const MOVE_TREE_WIDGET_PAGE_KEY_SIMPLE_BOARD = 'simple-board';
-const MOVE_TREE_WIDGET_PAGE_KEY_ANALYSIS = 'analysis';
-const MOVE_TREE_WIDGET_PAGE_KEY_DB_VIEWER = 'database-viewer';
 
 const BRANCHES_COLORS = [
     '#01138a',
@@ -1267,6 +1261,8 @@ class MoveTreeWidget {
     #lastSavedHeight = null;
     #fallbackResizeListener = null;
     #disposalObserver = null;
+    #loadPersistedHeight = () => null;
+    #persistHeight = () => {};
 
     constructor(options) {
         // options
@@ -1276,6 +1272,12 @@ class MoveTreeWidget {
 
         if (options.isLoadingAnimationEnabled !== undefined) {
             this.#isLoadingAnimationEnabled = options.isLoadingAnimationEnabled;
+        }
+        if (options.loadPersistedHeight !== undefined) {
+            this.#loadPersistedHeight = options.loadPersistedHeight;
+        }
+        if (options.persistHeight !== undefined) {
+            this.#persistHeight = options.persistHeight;
         }
 
         const containerId = options.containerId;
@@ -1317,49 +1319,22 @@ class MoveTreeWidget {
         this.#addLoadingIconIfNeeded();
     }
 
-    #cookieHeightName() {
-        const pageKey = this.#pageKey();
-        if (pageKey === null) {
-            return null;
-        }
-        return `${MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX}.${pageKey}.${this.#mainContainer.id}`;
-    }
-
-    #pageKey() {
-        switch (window.location.pathname) {
-            case '/game':
-                return MOVE_TREE_WIDGET_PAGE_KEY_PVP;
-            case '/playbot':
-                return MOVE_TREE_WIDGET_PAGE_KEY_PVB;
-            case '/board':
-                return MOVE_TREE_WIDGET_PAGE_KEY_SIMPLE_BOARD;
-            case '/analysis':
-                return MOVE_TREE_WIDGET_PAGE_KEY_ANALYSIS;
-            case '/database/game':
-                return MOVE_TREE_WIDGET_PAGE_KEY_DB_VIEWER;
-            default:
-                return null;
-        }
-    }
-
     #applySavedHeight() {
-        const cookieKey = this.#cookieHeightName();
-        if (cookieKey === null) {
+        const persistedHeight = this.#loadPersistedHeight();
+        if (persistedHeight === null) {
             return;
         }
 
-        const rawValue = getCookie(cookieKey);
-        if (rawValue === null) {
+        if (
+            !Number.isFinite(persistedHeight)
+            || !Number.isInteger(persistedHeight)
+            || persistedHeight < this.#minResizeHeight()
+        ) {
             return;
         }
 
-        const parsed = Number.parseInt(rawValue, 10);
-        if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < this.#minResizeHeight()) {
-            return;
-        }
-
-        this.#mainContainer.style.height = `${parsed}px`;
-        this.#lastSavedHeight = parsed;
+        this.#mainContainer.style.height = `${persistedHeight}px`;
+        this.#lastSavedHeight = persistedHeight;
     }
 
     #minResizeHeight() {
@@ -1379,10 +1354,7 @@ class MoveTreeWidget {
             this.#resizeSaveTimeout = setTimeout(() => {
                 const height = this.#mainContainer.offsetHeight;
                 if (height >= this.#minResizeHeight() && height !== this.#lastSavedHeight) {
-                    const cookieKey = this.#cookieHeightName();
-                    if (cookieKey !== null) {
-                        setCookie(cookieKey, height.toString(), CHROME_COOKIE_MAX_TTL);
-                    }
+                    this.#persistHeight(height);
                     this.#lastSavedHeight = height;
                 }
             }, MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS);

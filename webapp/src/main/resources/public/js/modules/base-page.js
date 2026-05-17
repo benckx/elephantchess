@@ -155,3 +155,25 @@ class BasePage {
     }
 
 }
+
+const MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX = 'moveTreeWidget.height';
+
+function moveTreeResizeCookiePersistence(pageKey, containerId) {
+    const cookieName = `${MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX}.${pageKey}.${containerId}`;
+    return {
+        loadPersistedHeight: () => {
+            const rawValue = getCookie(cookieName);
+            if (rawValue === null) {
+                return null;
+            }
+            const parsed = Number.parseInt(rawValue, 10);
+            if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
+                return null;
+            }
+            return parsed;
+        },
+        persistHeight: (height) => {
+            setCookie(cookieName, height.toString(), CHROME_COOKIE_MAX_TTL);
+        }
+    };
+}
