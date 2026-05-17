@@ -85,8 +85,11 @@
 }
 
 .anchor-copy-link img {
-    width: 16px;
-    opacity: 60%;
+    width: 18px;
+    opacity: 70%;
+    vertical-align: middle;
+    position: relative;
+    top: -4px;
 }
 
 .anchor-copy-link:hover img {
