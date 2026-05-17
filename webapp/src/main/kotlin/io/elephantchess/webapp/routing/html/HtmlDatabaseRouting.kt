@@ -112,6 +112,12 @@ internal fun Routing.databasePages() {
 
         call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, eventName, round))
     }
+    get("/database/game") {
+        call.parameters["id"]
+            ?: throw BadRequestException("id query parameter not provided")
+
+        call.respondHtml(simplePageRenderer.renderTemplate("database/database_game_viewer"))
+    }
 }
 
 private suspend fun RoutingContext.resolveDatabasePlayer(render: suspend (DatabasePlayer) -> String) {
