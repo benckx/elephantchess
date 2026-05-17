@@ -402,13 +402,13 @@ class SettingsGui {
         }
         updateShowCoordinatesRadios(this.#settingsManager.isShowCoordinatesEnabled);
         this.#showCoordinatesEnabledRadio.onchange = () => {
-            if (this.#showCoordinatesEnabledRadio.checked && !this.#settingsManager.isShowCoordinatesEnabled) {
+            if (this.#showCoordinatesEnabledRadio.checked) {
                 this.#boardGuis.forEach(board => board.toggleShowCoordinates());
                 this.#settingsManager.isShowCoordinatesEnabled = true;
             }
         }
         this.#showCoordinatesDisabledRadio.onchange = () => {
-            if (this.#showCoordinatesDisabledRadio.checked && this.#settingsManager.isShowCoordinatesEnabled) {
+            if (this.#showCoordinatesDisabledRadio.checked) {
                 this.#boardGuis.forEach(board => board.toggleShowCoordinates());
                 this.#settingsManager.isShowCoordinatesEnabled = false;
             }
