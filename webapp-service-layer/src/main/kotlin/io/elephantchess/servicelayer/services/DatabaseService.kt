@@ -494,6 +494,16 @@ class DatabaseService(
         return referencePlayerDaoService.searchByNames(names = nameVariations, excludedPlayerId = player.id)
     }
 
+    suspend fun fetchGameSummary(gameId: String): DatabaseGameSummary? {
+        val record = referenceGameDaoService.findById(gameId) ?: return null
+        return DatabaseGameSummary(
+            gameId = record.id,
+            redPlayerName = playerIdToCanonicalName(record.redPlayer),
+            blackPlayerName = playerIdToCanonicalName(record.blackPlayer),
+            eventName = idToEventName(record.event),
+        )
+    }
+
     suspend fun fetchEventName(eventId: String): String? {
         return referenceEventDaoService.findEventName(eventId)
     }

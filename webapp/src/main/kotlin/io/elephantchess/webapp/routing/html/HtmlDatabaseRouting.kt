@@ -113,10 +113,13 @@ internal fun Routing.databasePages() {
         call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, eventName, round))
     }
     get("/database/game") {
-        call.parameters["id"]
+        val gameId = call.parameters["id"]
             ?: throw BadRequestException("id query parameter not provided")
 
-        call.respondHtml(simplePageRenderer.renderTemplate("database/database_game_viewer"))
+        val summary = databaseService.fetchGameSummary(gameId)
+            ?: throw NotFoundException("Game not found")
+
+        call.respondHtml(databasePageRenderer.renderGamePage(summary))
     }
 }
 

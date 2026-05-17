@@ -255,6 +255,27 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         }
     }
 
+    suspend fun renderGamePage(summary: DatabaseGameSummary): String {
+        val red = summary.redPlayerName ?: "Unknown player"
+        val black = summary.blackPlayerName ?: "Unknown player"
+        val title = "$red vs. $black"
+        val description = buildString {
+            append("Chinese chess (Xiangqi) game between $red (red) and $black (black)")
+            if (!summary.eventName.isNullOrBlank()) {
+                append(" at ${summary.eventName}")
+            }
+            append(".")
+        }
+        return htmlRenderer.renderHtml(
+            templatePath = "/templates/database/database_game_viewer.html",
+            specificTagResolvers = listOf(
+                SimpleValueTagResolver("page_title", title),
+                SimpleValueTagResolver("description_meta", descriptionMeta(description)),
+            ),
+            canonicalPath = "/database/game?id=${summary.gameId}"
+        )
+    }
+
     private companion object {
 
         fun descriptionMeta(edit: DatabasePlayerProfileEdit): TagResolver {
