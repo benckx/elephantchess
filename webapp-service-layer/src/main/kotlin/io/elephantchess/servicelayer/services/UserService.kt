@@ -122,7 +122,7 @@ class UserService(
 
             // email
             mailService.sendNewUserNotification(user, guestTransferred)
-            mailService.sendEmailConfirmation(user.email, user.emailConfirmationCode)
+            mailService.sendEmailConfirmation(user.email, user.emailConfirmationCode, showWelcomeMessage = true)
             mailService.verifyEmailAddressAsync(user.email)
 
             // result
@@ -159,7 +159,9 @@ class UserService(
         val user = userDaoService.findByEmailConfirmationCode(code) ?: return false
         if (user.emailConfirmedAt == null) {
             val createdAt = user.emailConfirmationCodeCreatedAt
-            if (createdAt == null || createdAt.plusHours(EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS).isBefore(Clock.System.now())) {
+            if (createdAt == null || createdAt.plusHours(EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS)
+                    .isBefore(Clock.System.now())
+            ) {
                 logger.info { "email confirmation code expired for user ${user.id}" }
                 return false
             }
@@ -181,7 +183,7 @@ class UserService(
         }
         val newCode = UUID.randomUUID().toString()
         userDaoService.updateEmailConfirmationCode(userId, newCode, Clock.System.now())
-        mailService.sendEmailConfirmation(user.email, newCode)
+        mailService.sendEmailConfirmation(user.email, newCode, showWelcomeMessage = false)
     }
 
     suspend fun obtainGuestUserToken(): ObtainAnonymousTokenResponse {

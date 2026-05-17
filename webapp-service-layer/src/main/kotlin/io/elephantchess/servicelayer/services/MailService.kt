@@ -243,16 +243,20 @@ class MailService(
         )
     }
 
-    suspend fun sendEmailConfirmation(recipient: String, code: String) {
+    suspend fun sendEmailConfirmation(recipient: String, code: String, showWelcomeMessage: Boolean) {
+        val subject = if (showWelcomeMessage) {
+            "Welcome to elephantchess - email address confirmation"
+        } else {
+            "elephantchess - email address confirmation"
+        }
+
         resolveAndSend(
             recipient = recipient,
-            subject = "Welcome to elephantchess - email address confirmation",
+            subject = subject,
             templateName = "email_confirmation",
             resolvers = listOf(
                 EmailConfirmationLinkTagResolver(webHost, code)
             ),
-            // we can disable this later, but I'd like to see the first ones
-            copyToAdmin = true,
             // The whole point of this email is to flip the recipient's status to MANUALLY_CONFIRMED,
             // so we must not gate it on the address already being known-valid (it never is at signup).
             skipRecipientValidityCheck = true,
