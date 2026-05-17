@@ -1379,6 +1379,28 @@ table.info-box-sub-table td.values {
     justify-content: center;
 }
 
+#settings-info-box-container #advanced-settings-box .setting-option-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+#settings-info-box-container #advanced-settings-box img {
+    width: 32px;
+}
+
+#settings-info-box-container #advanced-settings-box img#show-coordinates-button,
+#settings-info-box-container #advanced-settings-box img#colorblind-friendly-black-pieces-button {
+    width: 24px;
+}
+
+#settings-info-box-container #advanced-settings-box img#move-format-button {
+    width: 30px;
+}
+
 #settings-info-box #show-analytics-arrows-item {
     display: none;
 }

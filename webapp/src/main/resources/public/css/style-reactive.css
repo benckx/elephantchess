@@ -543,6 +543,21 @@
         width: 88px;
     }
 
+    #settings-info-box-container #advanced-settings-box .setting-option-item {
+        width: 88px;
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+
+    #settings-info-box-container #advanced-settings-box img {
+        width: 68px;
+    }
+
+    #settings-info-box-container #advanced-settings-box img#show-coordinates-button,
+    #settings-info-box-container #advanced-settings-box img#colorblind-friendly-black-pieces-button {
+        width: 55px;
+    }
+
     #settings-info-box .setting-option-double-item {
         width: 140px;
     }
