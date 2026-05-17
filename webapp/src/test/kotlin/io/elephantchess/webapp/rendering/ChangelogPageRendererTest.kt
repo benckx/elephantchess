@@ -28,7 +28,7 @@ class ChangelogPageRendererTest {
 
         val toc = renderChangelogToc(html)
 
-        assertTrue(toc.startsWith("""<nav id="faq-toc">"""))
+        assertTrue(toc.startsWith("""<nav id="page-toc">"""))
         assertTrue(toc.endsWith("</nav>"))
 
         // Q2 2026 should link to the first month of that quarter in document order (May).
@@ -64,7 +64,7 @@ class ChangelogPageRendererTest {
         val toc = renderChangelogToc(html)
 
         assertTrue(toc.isNotBlank(), "TOC should not be blank for the real changelog")
-        assertTrue(toc.startsWith("""<nav id="faq-toc">"""))
+        assertTrue(toc.startsWith("""<nav id="page-toc">"""))
         // The very first month heading in the template is the most recent one; its quarter
         // entry should link to it.
         val firstH1 = Regex("""<h1\b[^>]*\bid\s*=\s*"(\d{4})-(\d{2})"""").find(html)

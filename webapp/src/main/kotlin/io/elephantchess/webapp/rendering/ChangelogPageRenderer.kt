@@ -50,7 +50,7 @@ class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) 
                 val label = "Q$quarter $year"
                 """<li><a href="#${escapeHtmlAttr(id)}">${escapeHtml(label)}</a></li>"""
             }
-            return """<nav id="faq-toc"><ul>$items</ul></nav>"""
+            return """<nav id="page-toc"><ul>$items</ul></nav>"""
         }
 
     }
