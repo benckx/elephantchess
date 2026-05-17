@@ -1363,15 +1363,16 @@ table.info-box-sub-table td.values {
 #settings-info-box-container #advanced-settings-box {
     display: none;
     position: absolute;
-    bottom: 30px;
-    right: 6px;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
     z-index: 1200;
-    min-width: 310px;
     background: #e0d2bd;
     border: 1px solid #b7ab95;
     border-radius: 4px;
     box-shadow: rgba(0, 0, 0, 0.55) 0 4px 12px;
     padding: 8px 10px;
+    box-sizing: border-box;
 }
 
 #settings-info-box-container #advanced-settings-box.advanced-settings-box-open {

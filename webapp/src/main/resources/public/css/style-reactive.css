@@ -517,9 +517,9 @@
     }
 
     #settings-info-box-container #advanced-settings-box {
-        bottom: 34px;
-        right: 12px;
-        min-width: 420px;
+        top: calc(100% + 10px);
+        left: 0;
+        width: 100%;
         padding: 10px 12px;
     }
 
