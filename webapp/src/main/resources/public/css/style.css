@@ -1881,6 +1881,8 @@ img#navigation-end {
 .move-tree-container {
     margin-top: 10px;
     height: 440px;
+    min-height: 180px;
+    resize: vertical;
     overflow-y: scroll;
     overflow-x: hidden;
 }

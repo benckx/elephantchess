@@ -19,6 +19,8 @@
 
 const COLOR_DELTA_FOR_ONE_LEVEL = 10;
 const HOVERING_COLOR = '#01138a';
+const MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX = 'moveTreeWidget.height';
+const MOVE_TREE_WIDGET_MIN_HEIGHT = 180;
 
 const BRANCHES_COLORS = [
     '#01138a',
@@ -1255,6 +1257,7 @@ class MoveTreeWidget {
     #stopLoadingAnimationTimeout = null;
 
     #keyboardNavigation = true;
+    #resizeObserver = null;
 
     constructor(options) {
         // options
@@ -1274,6 +1277,8 @@ class MoveTreeWidget {
         // init
         this.#mainContainer = document.getElementById(containerId);
         this.#mainContainer.innerHTML = '';
+        this.#applySavedHeight();
+        this.#setUpResizePersistence();
 
         // contextual menu if enabled
         if (this.#isContextualMenuEnabled) {
@@ -1301,6 +1306,42 @@ class MoveTreeWidget {
         }
 
         this.#addLoadingIconIfNeeded();
+    }
+
+    #cookieHeightName() {
+        const page = encodeURIComponent(window.location.pathname || '');
+        return `${MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX}.${page}.${this.#mainContainer.id}`;
+    }
+
+    #applySavedHeight() {
+        const rawValue = getCookie(this.#cookieHeightName());
+        if (rawValue == null) {
+            return;
+        }
+
+        const parsed = Number.parseInt(rawValue, 10);
+        if (!Number.isInteger(parsed) || parsed < MOVE_TREE_WIDGET_MIN_HEIGHT) {
+            return;
+        }
+
+        this.#mainContainer.style.height = `${parsed}px`;
+    }
+
+    #setUpResizePersistence() {
+        const saveHeight = () => {
+            const height = this.#mainContainer.offsetHeight;
+            if (height >= MOVE_TREE_WIDGET_MIN_HEIGHT) {
+                setCookie(this.#cookieHeightName(), height.toString(), CHROME_COOKIE_MAX_TTL);
+            }
+        };
+
+        if (typeof ResizeObserver !== 'undefined') {
+            this.#resizeObserver = new ResizeObserver(() => saveHeight());
+            this.#resizeObserver.observe(this.#mainContainer);
+        } else {
+            this.#mainContainer.addEventListener('mouseup', saveHeight);
+            this.#mainContainer.addEventListener('touchend', saveHeight);
+        }
     }
 
     enableKeyboardNavigation() {
