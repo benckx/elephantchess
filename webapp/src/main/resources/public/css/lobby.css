@@ -50,7 +50,7 @@ h1 {
 }
 
 .flex-games-to-join-list-container {
-    flex: 2 1 700px;
+    flex: 2 1 770px;
     min-width: 400px;
     max-width: unset;
 }
@@ -227,7 +227,8 @@ h1 {
 }
 
 .game-to-join-item .time-control-icons {
-    width: 24px;
+    width: 20px;
+    margin-bottom: 2px;
 }
 
 .game-to-join-time-duration-cell {
@@ -249,9 +250,9 @@ h1 {
 }
 
 input[type=button].join-buttons {
-    width: 68px;
+    width: 58px;
     height: 34px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .no-game-to-join-message {
@@ -430,7 +431,7 @@ iframe {
     }
 
     .game-to-join-item .time-control-icons {
-        width: 42px;
+        width: 38px;
     }
 
     .game-to-join-variant-pane {

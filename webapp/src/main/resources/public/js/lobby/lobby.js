@@ -211,7 +211,7 @@ class LobbyPage extends BasePage {
             const colorSpan = buildColorSpan(entry.opponentColor);
             if (colorSpan.classList.contains('any-color')) {
                 colorSpan.innerText = 'Any color';
-                colorSpan.title = 'This player can play either color';
+                colorSpan.title = 'Colors will be assigned randomly at the start of the game';
             } else if (entry.opponentColor === Color.RED) {
                 colorSpan.title = 'This player picked Red, you would play Black';
             } else if (entry.opponentColor === Color.BLACK) {
