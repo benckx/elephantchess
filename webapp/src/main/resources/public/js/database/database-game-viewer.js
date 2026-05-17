@@ -127,7 +127,7 @@ class DatabaseGameViewerPage extends BasePage {
                 renderAnalysisSummaryReportGeneric(
                     gameId,
                     this.#moveTreeWidget.getMainBranchNodes(),
-                    undefined,
+                    DEFAULT_START_FEN,
                     this.#moveTreeWidget
                 );
             });

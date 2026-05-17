@@ -25,7 +25,7 @@
  *        applied to the move history once analysis data is fetched
  */
 function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_START_FEN, moveTreeWidget = null) {
-    if (startFen != null) {
+    if (startFen == null) {
         startFen = DEFAULT_START_FEN;
     }
 
