@@ -5,9 +5,11 @@ import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGameStatusEvent
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
+import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.db.utils.minusHours
 import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.PuzzleAlgo
@@ -17,6 +19,7 @@ import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.user.DeleteUserSessionsRequest
+import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.dto.user.UserLoginRequest
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
@@ -35,6 +38,7 @@ import kotlin.time.Duration.Companion.minutes
 class UserServiceTest : ServiceTest() {
 
     private val tokenManager by inject<TokenManager>()
+    private val userDaoService by inject<UserDaoService>()
     private val userSessionDaoService by inject<UserSessionDaoService>()
     private val pvpGameService by inject<PlayerVsPlayerGameService>()
     private val pvbGameDaoService by inject<PlayerVsBotGameDaoService>()
@@ -282,6 +286,83 @@ class UserServiceTest : ServiceTest() {
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Valid<Unit>>(result, "Password '$password' should be accepted")
         }
+    }
+
+    @Test
+    fun `fetchEmailAddressSettings should reflect the email validity status`() = runTest {
+        val (request, userId) = signUpTestUser()
+
+        // Before confirmation, no automated check has run, so status is UNKNOWN.
+        val before = userService.fetchEmailAddressSettings(userId)
+        assertEquals(request.email, before.email)
+        assertEquals(EmailValidityStatus.UNKNOWN, before.validityStatus)
+
+        // After the user clicks the confirmation link, the email is MANUALLY_CONFIRMED.
+        val code = userDaoService.findById(userId)!!.emailConfirmationCode
+        assertTrue(userService.confirmEmail(code))
+
+        val after = userService.fetchEmailAddressSettings(userId)
+        assertEquals(EmailValidityStatus.MANUALLY_CONFIRMED, after.validityStatus)
+    }
+
+    @Test
+    fun `signUp should generate an email confirmation code and confirmEmail should mark the email as confirmed`() = runTest {
+        val (_, userId) = signUpTestUser()
+
+        // a confirmation code is generated at signup and the email is not yet confirmed
+        val userAfterSignup = userDaoService.findById(userId)!!
+        assertNotNull(userAfterSignup.emailConfirmationCode, "Confirmation code should be generated at signup")
+        assertNull(userAfterSignup.emailConfirmedAt, "Email should not be confirmed yet")
+
+        // confirming with an unknown code does nothing
+        assertFalse(userService.confirmEmail("unknown-code"))
+        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+
+        // confirming with a blank code does nothing
+        assertFalse(userService.confirmEmail(""))
+        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+
+        // confirming with the right code marks the email as confirmed
+        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+        val userAfterConfirmation = userDaoService.findById(userId)!!
+        assertNotNull(userAfterConfirmation.emailConfirmedAt, "Email should be confirmed")
+
+        // confirming again is idempotent
+        val firstConfirmedAt = userAfterConfirmation.emailConfirmedAt
+        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+        assertEquals(firstConfirmedAt, userDaoService.findById(userId)!!.emailConfirmedAt)
+    }
+
+    @Test
+    fun `confirmEmail should reject an expired confirmation code`() = runTest {
+        val (_, userId) = signUpTestUser()
+        val userAfterSignup = userDaoService.findById(userId)!!
+        val code = userAfterSignup.emailConfirmationCode
+
+        // simulate that the code was generated more than 1h ago
+        userDaoService.updateEmailConfirmationCode(userId, code, Clock.System.now().minusHours(2L))
+
+        assertFalse(userService.confirmEmail(code), "Expired code should be rejected")
+        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+
+        // after a resend, a new code is generated with a fresh timestamp and confirmation works again
+        userService.resendEmailConfirmation(userId)
+        val refreshed = userDaoService.findById(userId)!!
+        assertNotEquals(code, refreshed.emailConfirmationCode, "Resend should generate a new code")
+        assertTrue(userService.confirmEmail(refreshed.emailConfirmationCode))
+        assertNotNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+    }
+
+    @Test
+    fun `resendEmailConfirmation should be a no-op for already-confirmed users`() = runTest {
+        val (_, userId) = signUpTestUser()
+        val originalCode = userDaoService.findById(userId)!!.emailConfirmationCode
+        assertTrue(userService.confirmEmail(originalCode))
+
+        userService.resendEmailConfirmation(userId)
+
+        // code is unchanged since the user is already confirmed
+        assertEquals(originalCode, userDaoService.findById(userId)!!.emailConfirmationCode)
     }
 
     @Test
