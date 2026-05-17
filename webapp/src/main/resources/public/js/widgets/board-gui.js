@@ -159,6 +159,8 @@ const PieceStyleSetting = Object.freeze({
  *                                                    serving the assets from the current host on localhost).
  * @property {string}      [pieceStyle]             - one of {@link PieceStyleSetting}; selects the piece
  *                                                    image folder.
+ * @property {boolean}     [colorblindFriendlyBlackPieces] - if true, black piece images get an invert
+ *                                                    CSS filter for improved contrast.
  */
 
 /** @type {Readonly<Required<BoardGuiOptions>>} */
@@ -171,6 +173,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     svg: false,
     assetsBaseUrl: 'https://cdn.elephantchess.io/static',
     pieceStyle: PieceStyleSetting.DEFAULT,
+    colorblindFriendlyBlackPieces: false,
 });
 
 class BoardGui {
@@ -217,6 +220,7 @@ class BoardGui {
         this.#clickSound = new Audio(`${this.#options.assetsBaseUrl}/audio/rclick-13693.mp3`);
 
         this.#boardContainer = document.getElementById(this.#options.elementId);
+        this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
         this.#drawBoard();
         this.#drawPieces(); // FIXME: useful?
 
@@ -1290,10 +1294,13 @@ class BoardGui {
      * @param position {Position}
      */
     #drawPieceAt(pieceChar, position) {
-        let square = document.getElementById(this.#positionToElementId('square', position));
-        let img = document.createElement('img');
+        const square = document.getElementById(this.#positionToElementId('square', position));
+        const img = document.createElement('img');
         img.id = this.#positionToElementId('image', position);
         img.className = 'piece-image';
+        if (isBlackPiece(pieceChar)) {
+            img.classList.add('piece-image-black');
+        }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
         img.addEventListener('click', () => this.#clickedOnPiece(position));
         img.addEventListener('dragstart', (e) => this.#dragStart(e, position));
@@ -1550,6 +1557,17 @@ class BoardGui {
     }
 
     /**
+     * @param enabled {boolean}
+     */
+    setColorblindFriendlyBlackPiecesEnabled(enabled) {
+        if (this.#options.colorblindFriendlyBlackPieces === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, colorblindFriendlyBlackPieces: enabled});
+        this.#renderColorblindFriendlyBlackPiecesSetting(enabled);
+    }
+
+    /**
      * @return {boolean}
      */
     toggleShowCoordinates() {
@@ -1566,6 +1584,13 @@ class BoardGui {
         for (let label of labels) {
             label.style.visibility = show ? 'visible' : 'hidden';
         }
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderColorblindFriendlyBlackPiecesSetting(enabled) {
+        this.#boardContainer.classList.toggle('colorblind-friendly-black-pieces', enabled);
     }
 
     #areCoordinatesVisible() {
