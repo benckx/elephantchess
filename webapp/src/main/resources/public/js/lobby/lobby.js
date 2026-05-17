@@ -156,7 +156,7 @@ class LobbyPage extends BasePage {
             // is online indicator
             const isOnlineCell = document.createElement('div');
             isOnlineCell.className = 'game-to-join-online-cell';
-            leftPane.append(isOnlineCell);
+            opponentLine.append(isOnlineCell);
 
             const isOnlineIndicator = document.createElement('div');
             isOnlineIndicator.className = 'online-status-indicator';

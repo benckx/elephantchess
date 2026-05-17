@@ -50,13 +50,15 @@ h1 {
 }
 
 .flex-games-to-join-list-container {
+    flex: 2 1 700px;
     min-width: 400px;
-    max-width: 850px;
+    max-width: unset;
 }
 
 .flex-new-game-logo-container {
+    flex: 1 1 320px;
     min-width: 350px;
-    max-width: 500px;
+    max-width: unset;
 }
 
 #games-to-join-list-container {
@@ -103,8 +105,8 @@ h1 {
     background-color: #ece5d8;
     border: 1px solid #565656;
     border-radius: 3px;
-    min-height: 62px;
-    padding: 8px 10px;
+    min-height: 56px;
+    padding: 6px 10px;
     box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px, rgba(0, 0, 0, 0.2) 0 1px 2px;
 }
 
@@ -116,10 +118,9 @@ h1 {
 }
 
 .game-to-join-left-pane {
-    width: 34px;
+    width: 26px;
     flex-direction: column;
     justify-content: center;
-    gap: 3px;
 }
 
 .game-to-join-middle-pane {
@@ -185,15 +186,19 @@ h1 {
 }
 
 .game-to-join-online-cell {
-    height: 20px;
+    width: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+.game-to-join-opponent-line .game-to-join-online-cell {
+    margin-right: 2px;
+}
+
 input[type=button].join-buttons {
     width: 90px;
-    height: 25px;
+    height: 30px;
     font-size: 12px;
 }
 
@@ -388,8 +393,7 @@ iframe {
     }
 
     .game-to-join-left-pane {
-        width: 50px;
-        gap: 8px;
+        width: 40px;
     }
 
     .game-to-join-middle-pane {
