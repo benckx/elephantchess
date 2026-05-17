@@ -21,10 +21,6 @@
     margin-top: 12px;
 }
 
-/*#players-info a {*/
-/*    font-weight: bold;*/
-/*}*/
-
 /*
  * Player name links inside #players-info: override the default link color
  * (and the :visited link color, which has specificity 0,1,1 and would beat

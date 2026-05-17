@@ -8,9 +8,8 @@ import io.elephantchess.model.Outcome
 import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.formatWithChineseName
-import io.ktor.http.encodeURLPath
-import io.ktor.http.encodeURLQueryComponent
 import io.github.reactivecircus.cache4k.Cache
+import io.ktor.http.*
 import kotlin.time.Duration.Companion.hours
 
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
@@ -260,26 +259,23 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
     }
 
     suspend fun renderGamePage(summary: DatabaseGameSummary, orientation: String? = null): String {
-        val unknown = "<unknown>"
-        val redCanonical = summary.redPlayerCanonicalName
-        val blackCanonical = summary.blackPlayerCanonicalName
-        val redDisplay =
-            redCanonical?.let { canonicalName -> formatWithChineseName(canonicalName, summary.redPlayerChineseName) }
-                ?: unknown
-        val blackDisplay =
-            blackCanonical?.let { canonicalName ->
-                formatWithChineseName(
-                    canonicalName,
-                    summary.blackPlayerChineseName
-                )
-            } ?: unknown
+        fun formatName(canonicalName: String?, chineseName: String?): String {
+            return if (!canonicalName.isNullOrBlank()) {
+                formatWithChineseName(canonicalName, chineseName)
+            } else {
+                "<unknown>"
+            }
+        }
+
+        val redDisplay = formatName(summary.redPlayerCanonicalName, summary.redPlayerChineseName)
+        val blackDisplay = formatName(summary.blackPlayerCanonicalName, summary.blackPlayerChineseName)
 
         val title = "$redDisplay vs. $blackDisplay"
 
         val outcomeText = when (summary.outcome) {
             Outcome.RED_WINS -> "$redDisplay won (red)"
             Outcome.BLACK_WINS -> "$blackDisplay won (black)"
-            Outcome.DRAW -> "the game ended in a draw"
+            Outcome.DRAW -> "draw"
             null -> null
         }
 
@@ -318,8 +314,24 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         val blackWinnerSuffix = if (summary.outcome == Outcome.BLACK_WINS) " $winnerStar" else ""
 
         val playersInfoHtml = buildString {
-            append("""<div>${playerLink(redCanonical, redDisplay, "red-color")}$redWinnerSuffix</div>""")
-            append("""<div>${playerLink(blackCanonical, blackDisplay, "black-color")}$blackWinnerSuffix</div>""")
+            append(
+                """<div>${
+                    playerLink(
+                        summary.redPlayerCanonicalName,
+                        redDisplay,
+                        "red-color"
+                    )
+                }$redWinnerSuffix</div>"""
+            )
+            append(
+                """<div>${
+                    playerLink(
+                        summary.blackPlayerCanonicalName,
+                        blackDisplay,
+                        "black-color"
+                    )
+                }$blackWinnerSuffix</div>"""
+            )
         }
 
         val dateInfoHtml = summary.date?.toString() ?: ""
@@ -328,7 +340,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             val escapedName = escapeHtml(name)
             val eventId = summary.eventId
             if (!eventId.isNullOrBlank()) {
-                """<a href="/database/event?id=${eventId.encodeURLQueryComponent()}">$escapedName</a>"""
+                """<a href="/database/event?id=${eventId}">$escapedName</a>"""
             } else {
                 escapedName
             }
@@ -349,10 +361,6 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             "%04d.%02d.%02d".format(d.year, d.monthValue, d.dayOfMonth)
         }
 
-        fun dataAttr(name: String, value: String?): String {
-            return if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
-        }
-
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_game_viewer.html",
             specificTagResolvers = listOf(
@@ -365,8 +373,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                     append(dataAttr("game-id", summary.gameId))
                     append(dataAttr("orientation", orientation))
                     append(dataAttr("final-fen", summary.finalFen))
-                    append(dataAttr("pgn-red-player", redCanonical))
-                    append(dataAttr("pgn-black-player", blackCanonical))
+                    append(dataAttr("pgn-red-player", summary.redPlayerCanonicalName))
+                    append(dataAttr("pgn-black-player", summary.blackPlayerCanonicalName))
                     append(dataAttr("pgn-event", summary.eventName))
                     append(dataAttr("pgn-date", pgnDate))
                     append(dataAttr("pgn-result", pgnResult))
@@ -377,6 +385,9 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
     }
 
     private companion object {
+
+        fun dataAttr(name: String, value: String?): String =
+            if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
 
         fun descriptionMeta(edit: DatabasePlayerProfileEdit): TagResolver {
             return CallbackTagResolver("description_meta") {
