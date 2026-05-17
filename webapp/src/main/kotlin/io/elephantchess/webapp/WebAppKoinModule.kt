@@ -78,6 +78,7 @@ private fun pageRendererModule(eagerAllowed: Boolean) = module {
     singleAuto<BoardGuiExampleRenderer>(eager = eagerAllowed)
     singleAuto<ModalRenderer>(eager = eagerAllowed)
     singleAuto<FaqPageRenderer>(eager = eagerAllowed)
+    singleAuto<ChangelogPageRenderer>(eager = eagerAllowed)
 }
 
 private fun listFragmentTags(): List<String> {

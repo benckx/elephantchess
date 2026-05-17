@@ -5,6 +5,7 @@
     <meta name="description"
           content="Latest updates on elephantchess.io. The website is updated weekly. Last updated May 2026.">
     <meta property="og:url" content="https://elephantchess.io/about/changelog">
+    <link rel="stylesheet" href="/css/about-changelog.css"/>
     <script defer src="/js/default-base-page.js"></script>
 </head>
 <body>
@@ -12,7 +13,8 @@
 <div class="main-container-text">
     <h1>Changelog</h1>
     <hr/>
-    <h4>2026-05-17</h4>
+    {{changelog_toc}}
+    <h4 id="2026-05-17">2026-05-17</h4>
     <ul>
         <li>
             Show move annotation symbols in move history on PvP, PvB and DB pages
@@ -26,7 +28,7 @@
             Server-side rendering of <a href="/database?medium=changelog">Database</a> games.
         </li>
     </ul>
-    <h4>2026-05-16</h4>
+    <h4 id="2026-05-16">2026-05-16</h4>
     <ul>
         <li>
             Add confirmation prompt before cancelling PvP and PvB games
@@ -62,7 +64,7 @@
             Technical changes (dependencies upgrades, refactor call "listLatestPvbGames")
         </li>
     </ul>
-    <h4>2026-05-15</h4>
+    <h4 id="2026-05-15">2026-05-15</h4>
     <ul>
         <li>
             Add "user is typing" indicator to PvP chat
@@ -73,7 +75,7 @@
             (<a href="https://github.com/benckx/elephantchess/issues/169" target="_blank">issue #169</a>)
         </li>
     </ul>
-    <h4>2026-05-14</h4>
+    <h4 id="2026-05-14">2026-05-14</h4>
     <ul>
         <li>
             Import ICCS format moves in the <a href="/analysis">Analysis Board</a>
@@ -116,7 +118,7 @@
             Upgrade Fairy Stockfish version to 14.0.1 (reverted, doesn't seem to work on the server)
         </li>
     </ul>
-    <h4>2026-05-13</h4>
+    <h4 id="2026-05-13">2026-05-13</h4>
     <ul>
         <li>
             Exclude auto-resigned games from the "Latest Bot Games" section on the lobby (they remain visible when
@@ -135,7 +137,7 @@
             Decrease number of default game thumbs in all the "browse" pages
         </li>
     </ul>
-    <h4>2026-05-12</h4>
+    <h4 id="2026-05-12">2026-05-12</h4>
     <ul>
         <li>
             Persist which version of the engine is used when creating a PvB game and add binaries for Fairy Stockfish
@@ -145,13 +147,13 @@
             Minor edits
         </li>
     </ul>
-    <h4>2026-05-11</h4>
+    <h4 id="2026-05-11">2026-05-11</h4>
     <ul>
         <li>
             Same thing as previous day
         </li>
     </ul>
-    <h4>2026-05-10</h4>
+    <h4 id="2026-05-10">2026-05-10</h4>
     <ul>
         <li>
             Attempt to resolve the issue in the lobby where sometimes it seems that it blinks between "No user online"
@@ -161,19 +163,19 @@
             Technical changes (HTML meta).
         </li>
     </ul>
-    <h4>2026-05-09</h4>
+    <h4 id="2026-05-09">2026-05-09</h4>
     <ul>
         <li>
             Minor changes to the Ko-fi integration
         </li>
     </ul>
-    <h4>2026-05-06</h4>
+    <h4 id="2026-05-06">2026-05-06</h4>
     <ul>
         <li>
             The webapp is now open source.
         </li>
     </ul>
-    <h4>2026-05-04</h4>
+    <h4 id="2026-05-04">2026-05-04</h4>
     <ul>
         <li>
             Replace uses of LocalDateTime to Instant (use UTC in all the codebase)
@@ -183,7 +185,7 @@
             Technical changes (addressed some warnings, libraries upgrades).
         </li>
     </ul>
-    <h4>2026-05-03</h4>
+    <h4 id="2026-05-03">2026-05-03</h4>
     <ul>
         <li>
             Refactoring of board-gui.js functions loadFen() and drawHistoricalPosition(). drawHistoricalPosition() had
@@ -204,7 +206,7 @@
             Technical changes (refactoring of lobby live viewer and game thumb).
         </li>
     </ul>
-    <h4>2026-05-02</h4>
+    <h4 id="2026-05-02">2026-05-02</h4>
     <ul>
         <li>
             Latest Games in the lobby are updated live, with animation, without being reshuffled as much.
@@ -215,7 +217,7 @@
             Made minified files (JavaScript and CSS) open source under GPL or LGPL license and accessible.
         </li>
     </ul>
-    <h4>2026-05-01</h4>
+    <h4 id="2026-05-01">2026-05-01</h4>
     <ul>
         <li>
             Strengthen the parsing of PGN moves
@@ -237,33 +239,33 @@
             end (e.g. by disabling browser extensions or using a different network).
         </li>
     </ul>
-    <h4>2026-04-30</h4>
+    <h4 id="2026-04-30">2026-04-30</h4>
     <ul>
         <li>
             Improve documentation of the <a href="/about/developers/board-gui-example">Board GUI</a>
         </li>
     </ul>
-    <h4>2026-04-29</h4>
+    <h4 id="2026-04-29">2026-04-29</h4>
     <ul>
         <li>
             Publish the Board GUI code so it can re-used
             (<a href="https://github.com/benckx/elephantchess.io/issues/383" target="_blank">issue #383</a>)
         </li>
     </ul>
-    <h4>2026-04-27</h4>
+    <h4 id="2026-04-27">2026-04-27</h4>
     <ul>
         <li>
             Technical changes (refactor BoardGui constructor)
             (related to <a href="https://github.com/benckx/elephantchess.io/issues/383" target="_blank">issue #383</a>)
         </li>
     </ul>
-    <h4>2026-04-24</h4>
+    <h4 id="2026-04-24">2026-04-24</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2026-04-22</h4>
+    <h4 id="2026-04-22">2026-04-22</h4>
     <ul>
         <li>
             Split board-related CSS to a separate file
@@ -273,14 +275,14 @@
             Improve play bot modal layout on mobile (some left/right padding)
         </li>
     </ul>
-    <h4>2026-04-21</h4>
+    <h4 id="2026-04-21">2026-04-21</h4>
     <ul>
         <li>
             Animate any position change (not just 1 move forward)
             (<a href="https://github.com/benckx/elephantchess.io/issues/48" target="_blank">issue #48</a>)
         </li>
     </ul>
-    <h4>2026-04-20</h4>
+    <h4 id="2026-04-20">2026-04-20</h4>
     <ul>
         <li>
             Improve Position Editor
@@ -290,15 +292,15 @@
             Technical changes (libraries upgrades and scripts)
         </li>
     </ul>
-    <h4>2026-04-19</h4>
+    <h4 id="2026-04-19">2026-04-19</h4>
     <ul>
         <li>Technical changes (libraries upgrades and scripts)</li>
     </ul>
-    <h4>2026-04-16</h4>
+    <h4 id="2026-04-16">2026-04-16</h4>
     <ul>
         <li>Fix bug in email template rendering</li>
     </ul>
-    <h4>2026-04-15</h4>
+    <h4 id="2026-04-15">2026-04-15</h4>
     <ul>
         <li>
             Fix the Position Editor in the <a href="/analysis">Analysis Board</a>. It's now functional again even though
@@ -312,13 +314,13 @@
             Technical changes (handle warning in logs due to libraries upgrades)
         </li>
     </ul>
-    <h4>2026-04-13</h4>
+    <h4 id="2026-04-13">2026-04-13</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2026-04-12</h4>
+    <h4 id="2026-04-12">2026-04-12</h4>
     <ul>
         <li>
             Sometimes it seems some engine process is getting stuck and the backend keeps respond with "No result from
@@ -326,37 +328,37 @@
             automatically when it happens.
         </li>
     </ul>
-    <h4>2026-03-23</h4>
+    <h4 id="2026-03-23">2026-03-23</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2026-03-17</h4>
+    <h4 id="2026-03-17">2026-03-17</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2026-03-07</h4>
+    <h4 id="2026-03-07">2026-03-07</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2026-03-04</h4>
+    <h4 id="2026-03-04">2026-03-04</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2026-02-23</h4>
+    <h4 id="2026-02-23">2026-02-23</h4>
     <ul>
         <li>
             E-mail format validation fix
         </li>
     </ul>
-    <h4>2026-01-30</h4>
+    <h4 id="2026-01-30">2026-01-30</h4>
     <ul>
         <li>
             Clarify that "private game" means that it's the invite that is private (game doesn't appear in lobby)
@@ -366,13 +368,13 @@
             Technical changes (admin console, libraries upgrades, CSS)
         </li>
     </ul>
-    <h4>2026-01-29</h4>
+    <h4 id="2026-01-29">2026-01-29</h4>
     <ul>
         <li>
             Technical changes (admin console, CSS, templating)
         </li>
     </ul>
-    <h4>2026-01-28</h4>
+    <h4 id="2026-01-28">2026-01-28</h4>
     <ul>
         <li>
             Info label for "Swag" top menu item
@@ -397,7 +399,7 @@
             Technical changes (analytics)
         </li>
     </ul>
-    <h4>2026-01-27</h4>
+    <h4 id="2026-01-27">2026-01-27</h4>
     <ul>
         <li>
             Limit event description meta tag to top 10 players of the event
@@ -425,7 +427,7 @@
             Technical changes (db indexes, analytics)
         </li>
     </ul>
-    <h4>2026-01-26</h4>
+    <h4 id="2026-01-26">2026-01-26</h4>
     <ul>
         <li>
             Allow admins to add/edit upcoming events
@@ -450,7 +452,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2026-01-25</h4>
+    <h4 id="2026-01-25">2026-01-25</h4>
     <ul>
         <li>
             Page for individual Database events, e.g. for the <a href="/database/event?id=zyxLzoIl&medium=changelog">2011
@@ -467,7 +469,7 @@
             Technical changes (admin console, charts, HTML templating, simplified sitemap)
         </li>
     </ul>
-    <h4>2026-01-24</h4>
+    <h4 id="2026-01-24">2026-01-24</h4>
     <ul>
         <li>
             Private games (don't appear in lobby but the link can be shared)
@@ -493,7 +495,7 @@
             Technical changes (admin console, HTML templating, libraries upgrades)
         </li>
     </ul>
-    <h4>2026-01-19</h4>
+    <h4 id="2026-01-19">2026-01-19</h4>
     <ul>
         <li>
             Formatting of user profile (especially charts)
@@ -507,7 +509,7 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2026-01-18</h4>
+    <h4 id="2026-01-18">2026-01-18</h4>
     <ul>
         <li>
             Attempt to fix issue where the winner indicator on the game thumb (the blue star) appear where it shouldn't
@@ -521,7 +523,7 @@
             webhook, SEO improvements)
         </li>
     </ul>
-    <h4>2026-01-17</h4>
+    <h4 id="2026-01-17">2026-01-17</h4>
     <ul>
         <li>
             Improved SEO and sitemap
@@ -531,7 +533,7 @@
             Technical changes (<a href="https://ko-fi.com/elephantchess" target="_blank">Ko-fi</a> webhook)
         </li>
     </ul>
-    <h4>2026-01-16</h4>
+    <h4 id="2026-01-16">2026-01-16</h4>
     <ul>
         <li>
             Additional role check in backend
@@ -546,7 +548,7 @@
             accessible, but not indexed)
         </li>
     </ul>
-    <h4>2026-01-15</h4>
+    <h4 id="2026-01-15">2026-01-15</h4>
     <ul>
         <li>
             Add "My Database Edits" view to see the edits a user has made to <a href="/database?medium=changelog">Database</a>
@@ -561,7 +563,7 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2026-01-14</h4>
+    <h4 id="2026-01-14">2026-01-14</h4>
     <ul>
         <li>
             Add "diff" page to visualize the differences between versions of <a href="/database?medium=changelog">Database</a>
@@ -577,7 +579,7 @@
             Technical changes (<a href="https://ko-fi.com/elephantchess" target="_blank">Ko-fi</a> webhook)
         </li>
     </ul>
-    <h4>2026-01-13</h4>
+    <h4 id="2026-01-13">2026-01-13</h4>
     <ul>
         <li>
             Ensure <a href="/database?medium=changelog">Database</a> player pages with "version" are not indexed by
@@ -591,7 +593,7 @@
             List front-end libraries on the <a href="/about?medium=changelog">About</a> page
         </li>
     </ul>
-    <h4>2026-01-12</h4>
+    <h4 id="2026-01-12">2026-01-12</h4>
     <ul>
         <li>
             Add Wins/Draws/Losses stats on <a href="/database?medium=changelog">Database</a> player pages
@@ -615,7 +617,7 @@
             Technical changes (DB field names, admin console)
         </li>
     </ul>
-    <h4>2026-01-11</h4>
+    <h4 id="2026-01-11">2026-01-11</h4>
     <ul>
         <li>
             Show "Possible Duplicates" on the <a href="/database?medium=changelog">Database</a> player pages,
@@ -625,7 +627,7 @@
             later merge the data in the backend somehow; in such a way that it appears as one single profile.
         </li>
     </ul>
-    <h4>2026-01-10</h4>
+    <h4 id="2026-01-10">2026-01-10</h4>
     <ul>
         <li>
             Align redundant game metadata DTO
@@ -635,20 +637,20 @@
             Technical changes (libraries upgrades, increase max guest id length to 8 characters)
         </li>
     </ul>
-    <h4>2026-01-09</h4>
+    <h4 id="2026-01-09">2026-01-09</h4>
     <ul>
         <li>
             Auto-resign player-vs-bot ongoing games after 24h of inactivity
             (<a href="https://github.com/benckx/elephantchess.io/issues/354" target="_blank">issue #354</a>)
         </li>
     </ul>
-    <h4>2026-01-07</h4>
+    <h4 id="2026-01-07">2026-01-07</h4>
     <ul>
         <li>
             Technical changes (HTML templating)
         </li>
     </ul>
-    <h4>2026-01-05</h4>
+    <h4 id="2026-01-05">2026-01-05</h4>
     <ul>
         <li>
             Added feature to make a profile page for <a href="/database?medium=changelog">Database</a> players.
@@ -662,19 +664,19 @@
             Technical changes (dynamic sitemap)
         </li>
     </ul>
-    <h4>2025-12-29</h4>
+    <h4 id="2025-12-29">2025-12-29</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades, etc.)
         </li>
     </ul>
-    <h4>2025-12-27</h4>
+    <h4 id="2025-12-27">2025-12-27</h4>
     <ul>
         <li>
             Technical changes (admin console, embed images in newsletters)
         </li>
     </ul>
-    <h4>2025-12-25</h4>
+    <h4 id="2025-12-25">2025-12-25</h4>
     <ul>
         <li>
             Accept dash and underscore characters in usernames
@@ -688,31 +690,31 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2025-12-17</h4>
+    <h4 id="2025-12-17">2025-12-17</h4>
     <ul>
         <li>
             Technical changes (DB indexes)
         </li>
     </ul>
-    <h4>2025-12-15</h4>
+    <h4 id="2025-12-15">2025-12-15</h4>
     <ul>
         <li>
             Technical changes (admin console, page view analytics)
         </li>
     </ul>
-    <h4>2025-12-14</h4>
+    <h4 id="2025-12-14">2025-12-14</h4>
     <ul>
         <li>
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2025-12-13</h4>
+    <h4 id="2025-12-13">2025-12-13</h4>
     <ul>
         <li>
             Technical changes (exception handling, admin console)
         </li>
     </ul>
-    <h4>2025-12-10</h4>
+    <h4 id="2025-12-10">2025-12-10</h4>
     <ul>
         <li>
             Fix issue where move annotation symbols wouldn't render when opening a game with analysis data in <a
@@ -724,19 +726,19 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/483" target="_blank">issue #483</a>)
         </li>
     </ul>
-    <h4>2025-12-09</h4>
+    <h4 id="2025-12-09">2025-12-09</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-12-08</h4>
+    <h4 id="2025-12-08">2025-12-08</h4>
     <ul>
         <li>
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2025-12-06</h4>
+    <h4 id="2025-12-06">2025-12-06</h4>
     <ul>
         <li>
             Overhaul of the "move annotation symbols" system and the game analysis data. We now compare engine best move
@@ -747,25 +749,25 @@
             it will start at around 50% completion).
         </li>
     </ul>
-    <h4>2025-12-02</h4>
+    <h4 id="2025-12-02">2025-12-02</h4>
     <ul>
         <li>
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2025-11-19</h4>
+    <h4 id="2025-11-19">2025-11-19</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-11-18</h4>
+    <h4 id="2025-11-18">2025-11-18</h4>
     <ul>
         <li>
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2025-11-17</h4>
+    <h4 id="2025-11-17">2025-11-17</h4>
     <ul>
         <li>
             Fix issue where analysis couldn't be started anymore
@@ -774,7 +776,7 @@
             Store exceptions in the database so it's easier to detect issues
         </li>
     </ul>
-    <h4>2025-11-15</h4>
+    <h4 id="2025-11-15">2025-11-15</h4>
     <ul>
         <li>
             Fix issue where user profiles would get redirected to the 404 page when they didn't have any puzzle history
@@ -788,13 +790,13 @@
             Technical changes (libraries upgrades, refactoring, coroutines scope configuration, logging, etc.)
         </li>
     </ul>
-    <h4>2025-11-05</h4>
+    <h4 id="2025-11-05">2025-11-05</h4>
     <ul>
         <li>
             Technical changes (top level functions, db script)
         </li>
     </ul>
-    <h4>2025-11-03</h4>
+    <h4 id="2025-11-03">2025-11-03</h4>
     <ul>
         <li>
             Fix relative time display to ensure we don't show things like "60 seconds ago" which doesn't really make
@@ -808,7 +810,7 @@
             Technical changes (admin console, top level functions)
         </li>
     </ul>
-    <h4>2025-11-02</h4>
+    <h4 id="2025-11-02">2025-11-02</h4>
     <ul>
         <li>
             New pages to browse latest Player-vs-Player and Player-vs-Bot games with infinite scroll
@@ -826,27 +828,27 @@
             Footer CSS
         </li>
     </ul>
-    <h4>2025-11-01</h4>
+    <h4 id="2025-11-01">2025-11-01</h4>
     <ul>
         <li>
             Technical changes (routing utils refactoring, libraries upgrades,
             <a href="https://github.com/benckx/elephantchess.io/issues/464" target="_blank">issue #464</a>)
         </li>
     </ul>
-    <h4>2025-10-28</h4>
+    <h4 id="2025-10-28">2025-10-28</h4>
     <ul>
         <li>
             Footer
             (<a href="https://github.com/benckx/elephantchess.io/issues/406" target="_blank">issue #406</a>)
         </li>
     </ul>
-    <h4>2025-10-27</h4>
+    <h4 id="2025-10-27">2025-10-27</h4>
     <ul>
         <li>
             Technical changes (analytics, minor changes, memory management)
         </li>
     </ul>
-    <h4>2025-10-26</h4>
+    <h4 id="2025-10-26">2025-10-26</h4>
     <ul>
         <li>
             Display email address verification status on user profile page on mobile
@@ -859,19 +861,19 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/460" target="_blank">issue #460</a>)
         </li>
     </ul>
-    <h4>2025-10-25</h4>
+    <h4 id="2025-10-25">2025-10-25</h4>
     <ul>
         <li>
             Technical changes (admin console, graceful termination, analytics)
         </li>
     </ul>
-    <h4>2025-10-24</h4>
+    <h4 id="2025-10-24">2025-10-24</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-10-21</h4>
+    <h4 id="2025-10-21">2025-10-21</h4>
     <ul>
         <li>
             Ping via WS instead of polling
@@ -882,20 +884,20 @@
             (related to <a href="https://github.com/benckx/elephantchess.io/issues/436" target="_blank">issue #436</a>)
         </li>
     </ul>
-    <h4>2025-10-19</h4>
+    <h4 id="2025-10-19">2025-10-19</h4>
     <ul>
         <li>
             Technical changes (move DB access to asynchronous programming, which is better for scalability)
             (<a href="https://github.com/benckx/elephantchess.io/issues/452" target="_blank">issue #452</a>)
         </li>
     </ul>
-    <h4>2025-10-14</h4>
+    <h4 id="2025-10-14">2025-10-14</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-10-12</h4>
+    <h4 id="2025-10-12">2025-10-12</h4>
     <ul>
         <li>
             Specify the color of the player when searching games from a specific player on the
@@ -906,7 +908,7 @@
             Technical changes (admin console, make email address comparisons case-insensitive)
         </li>
     </ul>
-    <h4>2025-10-06</h4>
+    <h4 id="2025-10-06">2025-10-06</h4>
     <ul>
         <li>
             Add information text on the <a href="/database?medium=changelog">database</a> to inform games from app
@@ -922,7 +924,7 @@
             Improve mobile layout on different pages (global, lobby, user settings)
         </li>
     </ul>
-    <h4>2025-10-04</h4>
+    <h4 id="2025-10-04">2025-10-04</h4>
     <ul>
         <li>
             Minor technical changes (div utils, mini board overview console error, libraries upgrades)
@@ -931,7 +933,7 @@
             DB engine version upgrade
         </li>
     </ul>
-    <h4>2025-09-11</h4>
+    <h4 id="2025-09-11">2025-09-11</h4>
     <ul>
         <li>
             Search <a href="/database?medium=changelog">database</a> games from FEN
@@ -941,7 +943,7 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-09-09</h4>
+    <h4 id="2025-09-09">2025-09-09</h4>
     <ul>
         <li>
             <a href="/database?medium=changelog">Database</a> search results formatting
@@ -957,14 +959,14 @@
             Change wording from "last games" to "latest games" in the Lobby
         </li>
     </ul>
-    <h4>2025-09-08</h4>
+    <h4 id="2025-09-08">2025-09-08</h4>
     <ul>
         <li>
             Infinite scrolling on <a href="/database?medium=changelog">database</a> search results
             (<a href="https://github.com/benckx/elephantchess.io/issues/167" target="_blank">issue #167</a>)
         </li>
     </ul>
-    <h4>2025-08-25</h4>
+    <h4 id="2025-08-25">2025-08-25</h4>
     <ul>
         <li>
             Fix issue where using arrow keys when the chat box is focused would trigger board navigation events and
@@ -976,32 +978,32 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/433" target="_blank">issue #433</a>)
         </li>
     </ul>
-    <h4>2025-08-23</h4>
+    <h4 id="2025-08-23">2025-08-23</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-08-17</h4>
+    <h4 id="2025-08-17">2025-08-17</h4>
     <ul>
         <li>
             Update <a href="/database?medium=changelog">database games</a>
         </li>
     </ul>
-    <h4>2025-08-11</h4>
+    <h4 id="2025-08-11">2025-08-11</h4>
     <ul>
         <li>
             Fix formatting of upcoming event URL on mobile
         </li>
     </ul>
-    <h4>2025-08-09</h4>
+    <h4 id="2025-08-09">2025-08-09</h4>
     <ul>
         <li>
             Fix the error on <a href="/global">Global</a>
             (<a href="https://github.com/benckx/elephantchess.io/issues/438" target="_blank">issue #438</a>)
         </li>
     </ul>
-    <h4>2025-08-03</h4>
+    <h4 id="2025-08-03">2025-08-03</h4>
     <ul>
         <li>
             Do not show the "share this game" message when the game is canceled
@@ -1009,7 +1011,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/433" target="_blank">issue #433</a>)
         </li>
     </ul>
-    <h4>2025-08-03</h4>
+    <h4 id="2025-08-03">2025-08-03</h4>
     <ul>
         <li>
             Safari-specific render workarounds for the board and rendering of board cosmetic features (crosshairs,
@@ -1022,7 +1024,7 @@
             #101</a>)
         </li>
     </ul>
-    <h4>2025-08-02</h4>
+    <h4 id="2025-08-02">2025-08-02</h4>
     <ul>
         <li>
             Draw board with little "crosshairs" at the positions of the pawns and cannons, so it looks more like a
@@ -1038,14 +1040,14 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2025-07-31</h4>
+    <h4 id="2025-07-31">2025-07-31</h4>
     <ul>
         <li>
             Technical changes (better HTML ACL)
             (<a href="https://github.com/benckx/elephantchess.io/issues/430" target="_blank">issue #430</a>)
         </li>
     </ul>
-    <h4>2025-07-30</h4>
+    <h4 id="2025-07-30">2025-07-30</h4>
     <ul>
         <li>
             Highlight ongoing games in "My Games" view
@@ -1055,7 +1057,7 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-07-28</h4>
+    <h4 id="2025-07-28">2025-07-28</h4>
     <ul>
         <li>
             Improve "My Analysis" view, especially for mobile
@@ -1086,7 +1088,7 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/427" target="_blank">issue #427</a>)
         </li>
     </ul>
-    <h4>2025-07-27</h4>
+    <h4 id="2025-07-27">2025-07-27</h4>
     <ul>
         <li>
             Improve "My Bot Games" view, especially for mobile
@@ -1104,7 +1106,7 @@
             #101</a>)
         </li>
     </ul>
-    <h4>2025-07-26</h4>
+    <h4 id="2025-07-26">2025-07-26</h4>
     <ul>
         <li>
             Improve "My Games" and "My Played Puzzles" views, especially for mobile. "My Bot Games" and "My Analysis"
@@ -1114,7 +1116,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/394" target="_blank">issue #394</a>)
         </li>
     </ul>
-    <h4>2025-07-25</h4>
+    <h4 id="2025-07-25">2025-07-25</h4>
     <ul>
         <li>
             Make "share link" text clickable on PvP page
@@ -1130,7 +1132,7 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/415" target="_blank">issue #415</a>)
         </li>
     </ul>
-    <h4>2025-07-24</h4>
+    <h4 id="2025-07-24">2025-07-24</h4>
     <ul>
         <li>
             Clarify visually whether a game has been joined yet
@@ -1145,7 +1147,7 @@
             Technical changes (re-organize)
         </li>
     </ul>
-    <h4>2025-07-21</h4>
+    <h4 id="2025-07-21">2025-07-21</h4>
     <ul>
         <li>
             Let guests complete puzzles as identified users (i.e. with rating and more customized challenges)
@@ -1167,7 +1169,7 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-07-20</h4>
+    <h4 id="2025-07-20">2025-07-20</h4>
     <ul>
         <li>
             Fix configuration of data caching in <a href="/global">Global</a> page
@@ -1175,7 +1177,7 @@
             #101</a>)
         </li>
     </ul>
-    <h4>2025-07-14</h4>
+    <h4 id="2025-07-14">2025-07-14</h4>
     <ul>
         <li>
             Make chat author black or red depending on what they play
@@ -1185,7 +1187,7 @@
             Technical changes (pod monitoring)
         </li>
     </ul>
-    <h4>2025-07-13</h4>
+    <h4 id="2025-07-13">2025-07-13</h4>
     <ul>
         <li>
             Small fixes on <a href="/global">Global</a> page: fix the number of users and speed up loading of number
@@ -1194,7 +1196,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/407" target="_blank">issue #407</a>)
         </li>
     </ul>
-    <h4>2025-07-12</h4>
+    <h4 id="2025-07-12">2025-07-12</h4>
     <ul>
         <li>
             Add more data to <a href="/global">Global</a> page. Stats about best PvP players yet to come.
@@ -1213,33 +1215,33 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2025-07-07</h4>
+    <h4 id="2025-07-07">2025-07-07</h4>
     <ul>
         <li>
             Render greyed out game thumbs when not enough games are loaded
             (<a href="https://github.com/benckx/elephantchess.io/issues/403" target="_blank">issue #403</a>)
         </li>
     </ul>
-    <h4>2025-07-06</h4>
+    <h4 id="2025-07-06">2025-07-06</h4>
     <ul>
         <li>
             Technical changes (Google Ads conversion to increase PvP matching)
             (<a href="https://github.com/benckx/elephantchess.io/issues/401" target="_blank">issue #401</a>)
         </li>
     </ul>
-    <h4>2025-06-29</h4>
+    <h4 id="2025-06-29">2025-06-29</h4>
     <ul>
         <li>
             Workaround for Safari so game thumbs in the lobby render somewhat correctly.
         </li>
     </ul>
-    <h4>2025-06-24</h4>
+    <h4 id="2025-06-24">2025-06-24</h4>
     <ul>
         <li>
             Technical changes (quick fix around something minor to investigate a crash)
         </li>
     </ul>
-    <h4>2025-06-23</h4>
+    <h4 id="2025-06-23">2025-06-23</h4>
     <ul>
         <li>
             Shorten delay of game auto-cancel when user has been offline for while (48h for guests, 7 days for
@@ -1254,7 +1256,7 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-06-22</h4>
+    <h4 id="2025-06-22">2025-06-22</h4>
     <ul>
         <li>
             Fix batch that processes flagged games
@@ -1263,7 +1265,7 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-05-19</h4>
+    <h4 id="2025-05-19">2025-05-19</h4>
     <ul>
         <li>
             Add some checks to the <a href="/">Player-vs-Player</a> controller as a workaround to possibly buggy game
@@ -1274,20 +1276,20 @@
             Technical change (simplify "games to play" WS sessions refresh to avoid co-modification issues)
         </li>
     </ul>
-    <h4>2025-05-12</h4>
+    <h4 id="2025-05-12">2025-05-12</h4>
     <ul>
         <li>
             Show fewer "latest games" in the lobby on mobile (2x2 instead of 2x6)
         </li>
     </ul>
-    <h4>2025-05-10</h4>
+    <h4 id="2025-05-10">2025-05-10</h4>
     <ul>
         <li>
             Fix inconsistent font size on mobile
             (<a href="https://github.com/benckx/elephantchess.io/issues/396" target="_blank">issue #396</a>)
         </li>
     </ul>
-    <h4>2025-05-05</h4>
+    <h4 id="2025-05-05">2025-05-05</h4>
     <ul>
         <li>
             Remove the 3 retries when creating a guest session. It's a system I tested because on Brave, it seems that I
@@ -1304,7 +1306,7 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/243" target="_blank">issue #243</a>)
         </li>
     </ul>
-    <h4>2025-05-04</h4>
+    <h4 id="2025-05-04">2025-05-04</h4>
     <ul>
         <li>
             Avoid matching with offline users when creating a new game
@@ -1318,20 +1320,20 @@
             Technical changes (admin console to monitor chat messages)
         </li>
     </ul>
-    <h4>2025-05-03</h4>
+    <h4 id="2025-05-03">2025-05-03</h4>
     <ul>
         <li>
             Chat box for <a href="/">Player-vs-Player</a> games
             (<a href="https://github.com/benckx/elephantchess.io/issues/57" target="_blank">issue #57</a>)
         </li>
     </ul>
-    <h4>2025-04-28</h4>
+    <h4 id="2025-04-28">2025-04-28</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-04-27</h4>
+    <h4 id="2025-04-27">2025-04-27</h4>
     <ul>
         <li>
             Update the layout of <a href="/">Player-vs-Player</a> to improve how it renders on mobile and gain some
@@ -1344,7 +1346,7 @@
             Technical changes (JavaScript and CSS files naming)
         </li>
     </ul>
-    <h4>2025-04-26</h4>
+    <h4 id="2025-04-26">2025-04-26</h4>
     <ul>
         <li>
             Migrate <a href="/">Player-vs-Player</a> from REST to WebSocket. No visible changes for user, but this will
@@ -1355,7 +1357,7 @@
             Technical changes (User Agent parser client)
         </li>
     </ul>
-    <h4>2025-04-19</h4>
+    <h4 id="2025-04-19">2025-04-19</h4>
     <ul>
         <li>
             Fix small JavaScript error related to the guest banner message
@@ -1365,7 +1367,7 @@
             Fix issue where "Cancel Game" button wasn't shown
         </li>
     </ul>
-    <h4>2025-03-24</h4>
+    <h4 id="2025-03-24">2025-03-24</h4>
     <ul>
         <li>
             March 2025 newsletter
@@ -1374,7 +1376,7 @@
             Formatting
         </li>
     </ul>
-    <h4>2025-03-22</h4>
+    <h4 id="2025-03-22">2025-03-22</h4>
     <ul>
         <li>
             Improve email verification
@@ -1384,13 +1386,13 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-03-19</h4>
+    <h4 id="2025-03-19">2025-03-19</h4>
     <ul>
         <li>
             Technical changes (simplify Main class)
         </li>
     </ul>
-    <h4>2025-03-16</h4>
+    <h4 id="2025-03-16">2025-03-16</h4>
     <ul>
         <li>
             Open source release of the engine-api package on the
@@ -1401,27 +1403,27 @@
             <a href="https://github.com/benckx/elephantchess" target="_blank">GitHub</a>)
         </li>
     </ul>
-    <h4>2025-03-15</h4>
+    <h4 id="2025-03-15">2025-03-15</h4>
     <ul>
         <li>
             Fix bug in perpetual checking detection
             (<a href="https://github.com/benckx/elephantchess.io/issues/379" target="_blank">issue #379</a>)
         </li>
     </ul>
-    <h4>2025-03-12</h4>
+    <h4 id="2025-03-12">2025-03-12</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2025-03-10</h4>
+    <h4 id="2025-03-10">2025-03-10</h4>
     <ul>
         <li>
             Open source release of the xiangqi-core package on the
             <a href="https://github.com/benckx/elephantchess" target="_blank">GitHub</a>
         </li>
     </ul>
-    <h4>2025-03-09</h4>
+    <h4 id="2025-03-09">2025-03-09</h4>
     <ul>
         <li>
             Remove some unused JavaScript files from the <a href="/">Lobby</a> to improve performances
@@ -1431,7 +1433,7 @@
             Technical changes (performances: resize icons)
         </li>
     </ul>
-    <h4>2025-03-08</h4>
+    <h4 id="2025-03-08">2025-03-08</h4>
     <ul>
         <li>
             Remove tracking params from URL upon loading the page (so they are not in the sharing links)
@@ -1450,14 +1452,14 @@
             Technical changes (analytics; performances: defer non-critical CSS, resize icons)
         </li>
     </ul>
-    <h4>2025-03-04</h4>
+    <h4 id="2025-03-04">2025-03-04</h4>
     <ul>
         <li>
             Technical changes (performances: add Gzip compression to static assets, increase cache duration, lazy
             loading of images)
         </li>
     </ul>
-    <h4>2025-03-03</h4>
+    <h4 id="2025-03-03">2025-03-03</h4>
     <ul>
         <li>
             Add number labels on <a href="/analysis">Analysis Board</a> arrows
@@ -1467,7 +1469,7 @@
             Technical changes (analytics)
         </li>
     </ul>
-    <h4>2025-03-01</h4>
+    <h4 id="2025-03-01">2025-03-01</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1475,7 +1477,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-02-24</h4>
+    <h4 id="2025-02-24">2025-02-24</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1483,7 +1485,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-02-19</h4>
+    <h4 id="2025-02-19">2025-02-19</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1491,7 +1493,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-02-17</h4>
+    <h4 id="2025-02-17">2025-02-17</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1499,7 +1501,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-02-16</h4>
+    <h4 id="2025-02-16">2025-02-16</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1507,7 +1509,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-02-15</h4>
+    <h4 id="2025-02-15">2025-02-15</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1515,7 +1517,7 @@
             related to <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-02-08</h4>
+    <h4 id="2025-02-08">2025-02-08</h4>
     <ul>
         <li>
             <a href="/analysis">Analysis Board</a> mobile layout improvements
@@ -1530,13 +1532,13 @@
             Technical changes (logging library, libraries upgrades, naming)
         </li>
     </ul>
-    <h4>2025-01-29</h4>
+    <h4 id="2025-01-29">2025-01-29</h4>
     <ul>
         <li>
             Technical changes (package name)
         </li>
     </ul>
-    <h4>2025-01-27</h4>
+    <h4 id="2025-01-27">2025-01-27</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
@@ -1547,13 +1549,13 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-01-26</h4>
+    <h4 id="2025-01-26">2025-01-26</h4>
     <ul>
         <li>
             Technical changes (HTML rendering)
         </li>
     </ul>
-    <h4>2025-01-23</h4>
+    <h4 id="2025-01-23">2025-01-23</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1561,7 +1563,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-01-20</h4>
+    <h4 id="2025-01-20">2025-01-20</h4>
     <ul>
         <li>
             Fix analysis summary report to PvP game page
@@ -1580,7 +1582,7 @@
             Technical changes (build config - DAO code gen)
         </li>
     </ul>
-    <h4>2025-01-19</h4>
+    <h4 id="2025-01-19">2025-01-19</h4>
     <ul>
         <li>
             Fix issue where analysis buttons were not enabled on PvB games
@@ -1600,7 +1602,7 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/312" target="_blank">issue #312</a>)
         </li>
     </ul>
-    <h4>2025-01-18</h4>
+    <h4 id="2025-01-18">2025-01-18</h4>
     <ul>
         <li>
             Text formatting
@@ -1630,7 +1632,7 @@
             #283</a>)
         </li>
     </ul>
-    <h4>2025-01-17</h4>
+    <h4 id="2025-01-17">2025-01-17</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1645,7 +1647,7 @@
             Technical changes (naming)
         </li>
     </ul>
-    <h4>2025-01-16</h4>
+    <h4 id="2025-01-16">2025-01-16</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1653,7 +1655,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-01-15</h4>
+    <h4 id="2025-01-15">2025-01-15</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1661,7 +1663,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-01-12</h4>
+    <h4 id="2025-01-12">2025-01-12</h4>
     <ul>
         <li>
             Lobby CSS (improve "Our Supporters" block)
@@ -1673,7 +1675,7 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-01-11</h4>
+    <h4 id="2025-01-11">2025-01-11</h4>
     <ul>
         <li>
             Prototyping on the <a href="/7k/about">Seven Kingdoms</a> variant
@@ -1681,20 +1683,20 @@
             <a href="https://github.com/benckx/elephantchess.io/issues/283" target="_blank">issue #283</a>)
         </li>
     </ul>
-    <h4>2025-01-09</h4>
+    <h4 id="2025-01-09">2025-01-09</h4>
     <ul>
         <li>
             Indicate the best engine moves with arrows in the <a href="/analysis">Analysis Board</a>
             (<a href="https://github.com/benckx/elephantchess.io/issues/279" target="_blank">issue #279</a>)
         </li>
     </ul>
-    <h4>2025-01-08</h4>
+    <h4 id="2025-01-08">2025-01-08</h4>
     <ul>
         <li>
             Formatting of supporters in the <a href="/">Home page</a>
         </li>
     </ul>
-    <h4>2025-01-05</h4>
+    <h4 id="2025-01-05">2025-01-05</h4>
     <ul>
         <li>
             Refactor the settings box HTML fragment and remove the gap that would appear when rendered without a
@@ -1710,7 +1712,7 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/278" target="_blank">issue #278</a>)
         </li>
     </ul>
-    <h4>2025-01-04</h4>
+    <h4 id="2025-01-04">2025-01-04</h4>
     <ul>
         <li>
             Add table comparing 2 players number of blunders, etc. in the <a href="/analysis">Analysis Board</a>
@@ -1719,7 +1721,7 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/168" target="_blank">issue #168</a>)
         </li>
     </ul>
-    <h4>2025-01-02</h4>
+    <h4 id="2025-01-02">2025-01-02</h4>
     <ul>
         <li>
             Refactor the css of the settings box
@@ -1735,7 +1737,7 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/168" target="_blank">issue #168</a>)
         </li>
     </ul>
-    <h4>2024-12-31</h4>
+    <h4 id="2024-12-31">2024-12-31</h4>
     <ul>
         <li>
             Remove "confirm password" field from the sign-up and recovery forms
@@ -1753,7 +1755,7 @@
             Technical changes (email formatting)
         </li>
     </ul>
-    <h4>2024-12-30</h4>
+    <h4 id="2024-12-30">2024-12-30</h4>
     <ul>
         <li>
             Decrease password length requirement from 8 to 6 characters
@@ -1767,14 +1769,14 @@
             Technical changes (error handling in scheduled tasks, libraries upgrades, admin console, etc.)
         </li>
     </ul>
-    <h4>2024-12-29</h4>
+    <h4 id="2024-12-29">2024-12-29</h4>
     <ul>
         <li>
             Overhaul of the newsletter processing system (with unsubscription links)
             (<a href="https://github.com/benckx/elephantchess.io/issues/269" target="_blank">issue #269</a>)
         </li>
     </ul>
-    <h4>2024-12-28</h4>
+    <h4 id="2024-12-28">2024-12-28</h4>
     <ul>
         <li>
             Automated email verification
@@ -1787,7 +1789,7 @@
             #269</a>)
         </li>
     </ul>
-    <h4>2024-12-27</h4>
+    <h4 id="2024-12-27">2024-12-27</h4>
     <ul>
         <li>
             Fix issue where when puzzle got solved on mobile, the animation was lagging a little,
@@ -1816,7 +1818,7 @@
             kind of an eyesore
         </li>
     </ul>
-    <h4>2024-12-26</h4>
+    <h4 id="2024-12-26">2024-12-26</h4>
     <ul>
         <li>
             Simplify Discord notifications even further: do not respond when a user joins or cancels a game,
@@ -1845,7 +1847,7 @@
             Minor style changes (width of "join game" modal)
         </li>
     </ul>
-    <h4>2024-12-25</h4>
+    <h4 id="2024-12-25">2024-12-25</h4>
     <ul>
         <li>
             Fix the red app button on confirmation modal on mobile layout
@@ -1863,7 +1865,7 @@
             Fix bug where username would appear twice when another user would join the game
         </li>
     </ul>
-    <h4>2024-12-24</h4>
+    <h4 id="2024-12-24">2024-12-24</h4>
     <ul>
         <li>
             Simplify Discord notifications
@@ -1888,7 +1890,7 @@
             developing)
         </li>
     </ul>
-    <h4>2024-12-23</h4>
+    <h4 id="2024-12-23">2024-12-23</h4>
     <ul>
         <li>
             Disable zoom when double tapping on board on mobile
@@ -1906,7 +1908,7 @@
             Technical changes (DB)
         </li>
     </ul>
-    <h4>2024-12-22</h4>
+    <h4 id="2024-12-22">2024-12-22</h4>
     <ul>
         <li>
             Replace the short polling implementation that fetches the games list for the Lobby with a WebSocket
@@ -1939,13 +1941,13 @@
             Technical changes (remove HTML comments from rendering)
         </li>
     </ul>
-    <h4>2024-12-19</h4>
+    <h4 id="2024-12-19">2024-12-19</h4>
     <ul>
         <li>
             Improve style of "turn to play" notification indicator (especially on mobile)
         </li>
     </ul>
-    <h4>2024-12-17</h4>
+    <h4 id="2024-12-17">2024-12-17</h4>
     <ul>
         <li>
             Fix issue in game match: prevent users from matching with a game they created
@@ -1954,7 +1956,7 @@
             Fix issue where some users had no puzzle rating, so profile would show an error
         </li>
     </ul>
-    <h4>2024-12-16</h4>
+    <h4 id="2024-12-16">2024-12-16</h4>
     <ul>
         <li>
             When users create a game, first check if they can join an existing game that matches, instead of
@@ -1969,7 +1971,7 @@
             Make guest ids vary between 3 and 6 chars included
         </li>
     </ul>
-    <h4>2024-12-15</h4>
+    <h4 id="2024-12-15">2024-12-15</h4>
     <ul>
         <li>
             Add an option to the New Game modal, to allow to keep games always visible in the lobby, even when the
@@ -2010,14 +2012,14 @@
             the HTML)
         </li>
     </ul>
-    <h4>2024-12-14</h4>
+    <h4 id="2024-12-14">2024-12-14</h4>
     <ul>
         <li>
             Fix New Game modal which changed size a bit when selecting a time option
             (<a href="https://github.com/benckx/elephantchess.io/issues/247" target="_blank">issue #247</a>)
         </li>
     </ul>
-    <h4>2024-12-12</h4>
+    <h4 id="2024-12-12">2024-12-12</h4>
     <ul>
         <li>
             Improve list of game to join on the lobby page for mobile layout
@@ -2030,7 +2032,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2024-12-11</h4>
+    <h4 id="2024-12-11">2024-12-11</h4>
     <ul>
         <li>
             Only mark a game as "live" if it was updated < 3 min ago.
@@ -2043,7 +2045,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2024-12-10</h4>
+    <h4 id="2024-12-10">2024-12-10</h4>
     <ul>
         <li>
             Fix issue where guest couldn't cancel their own games or join via link
@@ -2053,7 +2055,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2024-12-09</h4>
+    <h4 id="2024-12-09">2024-12-09</h4>
     <ul>
         <li>
             Adjust <a href="/global">Global</a> page numbers to take guests into account
@@ -2071,7 +2073,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2024-12-08</h4>
+    <h4 id="2024-12-08">2024-12-08</h4>
     <ul>
         <li>
             Support guest users, allow non-authenticated users to play PvP games
@@ -2093,7 +2095,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2024-12-07</h4>
+    <h4 id="2024-12-07">2024-12-07</h4>
     <ul>
         <li>
             Fix tool tip issue on the top bar
@@ -2104,13 +2106,13 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/215" target="_blank">issue #215</a>)
         </li>
     </ul>
-    <h4>2024-12-06</h4>
+    <h4 id="2024-12-06">2024-12-06</h4>
     <ul>
         <li>
             Fix issue where we wouldn't fill all "Last Bot Games" on the home page
         </li>
     </ul>
-    <h4>2024-12-02</h4>
+    <h4 id="2024-12-02">2024-12-02</h4>
     <ul>
         <li>
             Fix issue where disabled green buttons would appear as green instead of grey on mobile
@@ -2127,7 +2129,7 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/221" target="_blank">issue #221</a>)
         </li>
     </ul>
-    <h4>2024-12-01</h4>
+    <h4 id="2024-12-01">2024-12-01</h4>
     <ul>
         <li>
             Improve "New Game" modal
@@ -2155,7 +2157,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2024-11-30</h4>
+    <h4 id="2024-11-30">2024-11-30</h4>
     <ul>
         <li>
             Introduce WebSocket to add the ability to watch PvB games as spectator
@@ -2172,7 +2174,7 @@
             Technical changes (Docker image building and engine processes management)
         </li>
     </ul>
-    <h4>2024-11-29</h4>
+    <h4 id="2024-11-29">2024-11-29</h4>
     <ul>
         <li>
             List last PvP games on the <a href="/">Lobby page</a>
@@ -2207,7 +2209,7 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2024-11-24</h4>
+    <h4 id="2024-11-24">2024-11-24</h4>
     <ul>
         <li>
             Add puzzle vote (thumb up / thumb down) to the <a href="/puzzles">Puzzles page</a>
@@ -2222,19 +2224,19 @@
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2024-11-23</h4>
+    <h4 id="2024-11-23">2024-11-23</h4>
     <ul>
         <li>
             Technical changes (dependency injection)
         </li>
     </ul>
-    <h4>2024-11-04</h4>
+    <h4 id="2024-11-04">2024-11-04</h4>
     <ul>
         <li>
             Minor technical changes related to HTML rendering
         </li>
     </ul>
-    <h4>2024-11-03</h4>
+    <h4 id="2024-11-03">2024-11-03</h4>
     <ul>
         <li>
             Attempt to fix SEO-related issue, i.e. by rendering user profile HTML with username already resolved
@@ -2244,7 +2246,7 @@
             Also added user profile description to the HTML rendering, so it can be indexed by search engines
         </li>
     </ul>
-    <h4>2024-11-02</h4>
+    <h4 id="2024-11-02">2024-11-02</h4>
     <ul>
         <li>
             Fix issue where incomplete analysis status would not update (making it impossible to restart the
@@ -2262,13 +2264,13 @@
             Minor CSS changes
         </li>
     </ul>
-    <h4>2024-10-12</h4>
+    <h4 id="2024-10-12">2024-10-12</h4>
     <ul>
         <li>
             Technical changes (libraries upgrades)
         </li>
     </ul>
-    <h4>2024-09-04</h4>
+    <h4 id="2024-09-04">2024-09-04</h4>
     <ul>
         <li>
             Fix CSS issue where the mask covering the miniboard would overflow its parent div
@@ -2277,13 +2279,13 @@
             Re-add the 3 dots menu on <a href="/analysis">Analysis Board</a> (not visible on mobile yet though)
         </li>
     </ul>
-    <h4>2024-09-02</h4>
+    <h4 id="2024-09-02">2024-09-02</h4>
     <ul>
         <li>
             Fix CSS issue where the 2 Analyze buttons would be visible
         </li>
     </ul>
-    <h4>2024-08-31</h4>
+    <h4 id="2024-08-31">2024-08-31</h4>
     <ul>
         <li>
             Make the website more mobile-friendly. The triptych layout (used in puzzles, games, etc.) has been
@@ -2291,7 +2293,7 @@
             perfectly usable on mobile devices, but it is already great improvement compared to what it was.
         </li>
     </ul>
-    <h4>2024-08-24</h4>
+    <h4 id="2024-08-24">2024-08-24</h4>
     <ul>
         <li>
             Technical changes (removal of un-used template)
@@ -2303,7 +2305,7 @@
             Bug fix on username menu (it would not open when clicking on the username itself)
         </li>
     </ul>
-    <h4>2024-08-21</h4>
+    <h4 id="2024-08-21">2024-08-21</h4>
     <ul>
         <li>
             Make the top bar reactive, i.e. automatically adapted to narrower screen resolutions. This is the first
@@ -2311,20 +2313,20 @@
             in the process of making the whole platform look better on mobile devices.
         </li>
     </ul>
-    <h4>2024-08-06</h4>
+    <h4 id="2024-08-06">2024-08-06</h4>
     <ul>
         <li>
             Technical changes (HTML id of elements on the squares (image, highlight, etc.))
         </li>
     </ul>
-    <h4>2024-08-03</h4>
+    <h4 id="2024-08-03">2024-08-03</h4>
     <ul>
         <li>
             Position Editor to create custom positions without playing the moves. Currently only available in the <a
                 href="/analysis">Analysis Board</a>. Still in beta.
         </li>
     </ul>
-    <h4>2024-06-14</h4>
+    <h4 id="2024-06-14">2024-06-14</h4>
     <ul>
         <li>
             Technical changes (Google Tag Manager)
@@ -2333,19 +2335,19 @@
             Number formatting on the <a href="/global">Global</a> page
         </li>
     </ul>
-    <h4>2024-06-14</h4>
+    <h4 id="2024-06-14">2024-06-14</h4>
     <ul>
         <li>
             Add empty block in Move History Tree Widget when a custom start FEN starts with black
         </li>
     </ul>
-    <h4>2024-06-05</h4>
+    <h4 id="2024-06-05">2024-06-05</h4>
     <ul>
         <li>
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2024-05-25</h4>
+    <h4 id="2024-05-25">2024-05-25</h4>
     <ul>
         <li>
             Display e.g. "m10" instead of "100" in the Analysis Board when the result from the engine contains a
@@ -2358,7 +2360,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2024-05-12</h4>
+    <h4 id="2024-05-12">2024-05-12</h4>
     <ul>
         <li>
             Add original game link on the Puzzle app (after puzzle is resolved)
@@ -2371,7 +2373,7 @@
             according to the color of the puzzle)
         </li>
     </ul>
-    <h4>2024-05-09</h4>
+    <h4 id="2024-05-09">2024-05-09</h4>
     <ul>
         <li>
             Add original game in "My Played Puzzles" screen
@@ -2380,7 +2382,7 @@
             Minor technical changes
         </li>
     </ul>
-    <h4>2024-05-05</h4>
+    <h4 id="2024-05-05">2024-05-05</h4>
     <ul>
         <li>
             Add 3 dots menu on the side of the Move History Tree Widget in the <a href="/analysis">Analysis Board</a> to
@@ -2403,7 +2405,7 @@
             Minify CSS (resulting in small performance improvements for end users)
         </li>
     </ul>
-    <h4>2024-05-04</h4>
+    <h4 id="2024-05-04">2024-05-04</h4>
     <ul>
         <li>
             Move scripts tags to headers (HTML rendering)
@@ -2413,7 +2415,7 @@
             "Necessary")
         </li>
     </ul>
-    <h4>2024-05-01</h4>
+    <h4 id="2024-05-01">2024-05-01</h4>
     <ul>
         <li>
             Reduce threads overhead by using more coroutines (internal)
@@ -2425,13 +2427,13 @@
             Cookie consent banner and related information in the <a href="/about/faq">FAQ page</a>
         </li>
     </ul>
-    <h4>2024-04-29</h4>
+    <h4 id="2024-04-29">2024-04-29</h4>
     <ul>
         <li>
             EnginesPool improvements (internal)
         </li>
     </ul>
-    <h4>2024-04-28</h4>
+    <h4 id="2024-04-28">2024-04-28</h4>
     <ul>
         <li>
             Forward exotic positions (e.g. more than 2 chariots) queries to Fairy Stockfish (illegal positions are not
@@ -2448,7 +2450,7 @@
             Engine health check (technical)
         </li>
     </ul>
-    <h4>2024-04-27</h4>
+    <h4 id="2024-04-27">2024-04-27</h4>
     <ul>
         <li>
             Modals refactoring (no significant change for end users)
@@ -2460,7 +2462,7 @@
             Metrics logging (no significant change for end users)
         </li>
     </ul>
-    <h4>2024-04-21</h4>
+    <h4 id="2024-04-21">2024-04-21</h4>
     <ul>
         <li>
             Added the <i>River of the Chu</i> 楚河 and the <i>Border of the Han</i> 漢界 decoration texts inside the
@@ -2477,7 +2479,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2024-04-20</h4>
+    <h4 id="2024-04-20">2024-04-20</h4>
     <ul>
         <li>
             Fix bug where it looks like Elo calculation happened twice
@@ -2499,13 +2501,13 @@
             User sessions expiration after 60 days (internal)
         </li>
     </ul>
-    <h4>2024-04-18</h4>
+    <h4 id="2024-04-18">2024-04-18</h4>
     <ul>
         <li>
             Update opening repertoire in the <a href="/analysis">Analysis Board</a> (to move 20)
         </li>
     </ul>
-    <h4>2024-04-15</h4>
+    <h4 id="2024-04-15">2024-04-15</h4>
     <ul>
         <li>
             Board coordinates for WXF move format
@@ -2521,7 +2523,7 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/140" target="_blank">issue #140</a>)
         </li>
     </ul>
-    <h4>2024-04-14</h4>
+    <h4 id="2024-04-14">2024-04-14</h4>
     <ul>
         <li>
             Re-enable analysis for games custom start FENs. It seems the most exotic positions are not well
@@ -2547,14 +2549,14 @@
             Refactor "Import Moves" modal in the <a href="/analysis">Analysis Board</a>
         </li>
     </ul>
-    <h4>2024-04-08</h4>
+    <h4 id="2024-04-08">2024-04-08</h4>
     <ul>
         <li>
             Temporarily disable game analysis for bot games with custom start FENs, since it doesn't work in the
             <a href="/analysis">Analysis Board</a> yet.
         </li>
     </ul>
-    <h4>2024-04-07</h4>
+    <h4 id="2024-04-07">2024-04-07</h4>
     <ul>
         <li>
             Add ambiguous file notation (+ or - instead of file number when 2 similar pieces are on the same file)
@@ -2565,7 +2567,7 @@
             Render widgets with selected move format in the <a href="/analysis">Analysis Board</a>
         </li>
     </ul>
-    <h4>2024-04-06</h4>
+    <h4 id="2024-04-06">2024-04-06</h4>
     <ul>
         <li>
             Refactor board settings management (piece style, show coordinates, move notation format)
@@ -2581,7 +2583,7 @@
             Add tool tip text to settings buttons
         </li>
     </ul>
-    <h4>2024-04-04</h4>
+    <h4 id="2024-04-04">2024-04-04</h4>
     <ul>
         <li>
             Fix small issue in the <a href="/analysis">Analysis Board</a> (prevent querying engine when game is
@@ -2589,7 +2591,7 @@
             being analyzed)
         </li>
     </ul>
-    <h4>2024-04-01</h4>
+    <h4 id="2024-04-01">2024-04-01</h4>
     <ul>
         <li>
             Add UI tooltips (i.e. the feature, it's currently not enabled on many elements)
@@ -2600,7 +2602,7 @@
             6 (previously there was no difference).
         </li>
     </ul>
-    <h4>2024-03-31</h4>
+    <h4 id="2024-03-31">2024-03-31</h4>
     <ul>
         <li>
             Automatically persist requested engine data while viewing an analysis in the <a href="/analysis">Analysis
@@ -2614,7 +2616,7 @@
             in WXF for example.
         </li>
     </ul>
-    <h4>2024-03-24</h4>
+    <h4 id="2024-03-24">2024-03-24</h4>
     <ul>
         <li>
             Fix bug where trying to analyzed an anonymous game against a bot would crash the <a href="/analysis">Analysis
@@ -2627,7 +2629,7 @@
             calls to separate client class)
         </li>
     </ul>
-    <h4>2024-03-23</h4>
+    <h4 id="2024-03-23">2024-03-23</h4>
     <ul>
         <li>
             Fix the <a href="https://github.com/benckx/elephantchess.io/issues/131" target="_blank">bug</a> where
@@ -2636,7 +2638,7 @@
             though, but we now ensure incorrect data doesn't get persisted.
         </li>
     </ul>
-    <h4>2024-03-18</h4>
+    <h4 id="2024-03-18">2024-03-18</h4>
     <ul>
         <li>
             Fix the bug where after clicking on PV line in the <a href="/analysis">Analysis Board</a>, clicking
@@ -2646,13 +2648,13 @@
             (<a href="https://github.com/benckx/elephantchess.io/issues/103" target="_blank">issue #103</a>)
         </li>
     </ul>
-    <h4>2024-03-17</h4>
+    <h4 id="2024-03-17">2024-03-17</h4>
     <ul>
         <li>
             Some refactoring about last changes (remove old table and refresh materialized views)
         </li>
     </ul>
-    <h4>2024-03-16</h4>
+    <h4 id="2024-03-16">2024-03-16</h4>
     <ul>
         <li>
             Some refactoring about last changes (deletion of some deprecated code)
@@ -2661,20 +2663,20 @@
             Admin console page to monitor latest analyzed games
         </li>
     </ul>
-    <h4>2024-02-25</h4>
+    <h4 id="2024-02-25">2024-02-25</h4>
     <ul>
         <li>
             Add option to analyze in-app games to the <a href="/analysis">Analysis Board</a>
         </li>
     </ul>
-    <h4>2024-02-11</h4>
+    <h4 id="2024-02-11">2024-02-11</h4>
     <ul>
         <li>
             Fix issue in the moves import function in the <a href="/analysis">Analysis Board</a>. The bug had been
             introduced by the last update.
         </li>
     </ul>
-    <h4>2024-02-10</h4>
+    <h4 id="2024-02-10">2024-02-10</h4>
     <ul>
         <li>
             Perpetual checking rule enforcement in PvP games
@@ -2683,7 +2685,7 @@
             Technical bugfix (user session IP in the wrong format)
         </li>
     </ul>
-    <h4>2024-01-02</h4>
+    <h4 id="2024-01-02">2024-01-02</h4>
     <ul>
         <li>
             Fix to the admin UI
@@ -2697,19 +2699,19 @@
             Minor style changes (remove bold style on table row hovering, 2 digits year format)
         </li>
     </ul>
-    <h4>2023-12-29</h4>
+    <h4 id="2023-12-29">2023-12-29</h4>
     <ul>
         <li>
             Play bot games with custom starting position
         </li>
     </ul>
-    <h4>2023-12-17</h4>
+    <h4 id="2023-12-17">2023-12-17</h4>
     <ul>
         <li>
             Technical changes (JDK upgrade, HTTP routing refactor)
         </li>
     </ul>
-    <h4>2023-12-11</h4>
+    <h4 id="2023-12-11">2023-12-11</h4>
     <ul>
         <li>
             Working on perpetual checks, fixed small bugs in the board core library
@@ -2718,13 +2720,13 @@
             Re-designed home page
         </li>
     </ul>
-    <h4>2023-12-04</h4>
+    <h4 id="2023-12-04">2023-12-04</h4>
     <ul>
         <li>
             Refactored user profile page (and hide puzzle stats panel by default)
         </li>
     </ul>
-    <h4>2023-12-03</h4>
+    <h4 id="2023-12-03">2023-12-03</h4>
     <ul>
         <li>
             In profile settings, indicate characters limit on the description field
@@ -2743,7 +2745,7 @@
             Technical changes (admin console)
         </li>
     </ul>
-    <h4>2023-11-27</h4>
+    <h4 id="2023-11-27">2023-11-27</h4>
     <ul>
         <li>
             Add engine caching in the <a href="/analysis">Analysis Board</a>, resulting in faster response time when
@@ -2762,7 +2764,7 @@
             Add move number on "my games" and "my bot games" pages
         </li>
     </ul>
-    <h4>2023-11-25</h4>
+    <h4 id="2023-11-25">2023-11-25</h4>
     <ul>
         <li>
             Increase <a href="/global">puzzle leaderboard</a> to 50 entries and added user country flag
@@ -2771,20 +2773,20 @@
             Technical changes (Kotlin version, refactored HTML rendering cache)
         </li>
     </ul>
-    <h4>2023-11-24</h4>
+    <h4 id="2023-11-24">2023-11-24</h4>
     <ul>
         <li>
             Ad-hoc / experimental solution to avoid that the bot gets stuck in a loop where it checks
             perpetually
         </li>
     </ul>
-    <h4>2023-11-20</h4>
+    <h4 id="2023-11-20">2023-11-20</h4>
     <ul>
         <li>
             Add a function to Cancel and Resign bot games
         </li>
     </ul>
-    <h4>2023-11-19</h4>
+    <h4 id="2023-11-19">2023-11-19</h4>
     <ul>
         <li>
             Add option to select depth 1 when playing against bot
@@ -2793,7 +2795,7 @@
             Technical changes (admin UI, HTML rending, re-organization of JS files)
         </li>
     </ul>
-    <h4>2023-11-18</h4>
+    <h4 id="2023-11-18">2023-11-18</h4>
     <ul>
         <li>
             Persist games played against bots
@@ -2803,13 +2805,13 @@
             management, JS minification management)
         </li>
     </ul>
-    <h4>2023-11-01</h4>
+    <h4 id="2023-11-01">2023-11-01</h4>
     <ul>
         <li>
             Fix issue where password recovery wouldn't show any feedback when providing valid email
         </li>
     </ul>
-    <h4>2023-10-29</h4>
+    <h4 id="2023-10-29">2023-10-29</h4>
     <ul>
         <li>
             Password recovery now shows an error message if the provided email doesn't match any known user (to
@@ -2817,19 +2819,19 @@
             confusion, because it used to be a positive message no matter what the user input)
         </li>
     </ul>
-    <h4>2023-10-09</h4>
+    <h4 id="2023-10-09">2023-10-09</h4>
     <ul>
         <li>
             Improve design for smaller board (pre-requisite to add mini-board overview widget in the future)
         </li>
     </ul>
-    <h4>2023-10-07</h4>
+    <h4 id="2023-10-07">2023-10-07</h4>
     <ul>
         <li>
             Ensure username doesn't overflow in the top bar
         </li>
     </ul>
-    <h4>2023-10-02</h4>
+    <h4 id="2023-10-02">2023-10-02</h4>
     <ul>
         <li>
             Add a time limit to all games. Correspondence games will be "move time based", meaning the counter will
@@ -2840,19 +2842,19 @@
             rated.
         </li>
     </ul>
-    <h4>2023-10-01</h4>
+    <h4 id="2023-10-01">2023-10-01</h4>
     <ul>
         <li>
             Technical changes regarding the batch jobs (no significant change for end users)
         </li>
     </ul>
-    <h4>2023-09-24</h4>
+    <h4 id="2023-09-24">2023-09-24</h4>
     <ul>
         <li>
             Add option to play <a href="/puzzles?category=MATE_IN_1">puzzles from a certain category</a>
         </li>
     </ul>
-    <h4>2023-09-23</h4>
+    <h4 id="2023-09-23">2023-09-23</h4>
     <ul>
         <li>
             Refactor the <a href="/puzzles">puzzles screen</a> code (no significant change for user, it is mainly to
@@ -2867,7 +2869,7 @@
             on 90 days, i.e. the k value is 8 instead of 16 if you solved it 45 days ago)
         </li>
     </ul>
-    <h4>2023-09-10</h4>
+    <h4 id="2023-09-10">2023-09-10</h4>
     <ul>
         <li>
             Import moves in WXF format in the <a href="/analysis">Analysis Board</a> (fixes)
@@ -2879,49 +2881,49 @@
             Update of backend libs
         </li>
     </ul>
-    <h4>2023-09-09</h4>
+    <h4 id="2023-09-09">2023-09-09</h4>
     <ul>
         <li>
             Import moves in WXF format in the <a href="/analysis">Analysis Board</a> (fixes)
         </li>
     </ul>
-    <h4>2023-09-04</h4>
+    <h4 id="2023-09-04">2023-09-04</h4>
     <ul>
         <li>
             Import moves in WXF format in the <a href="/analysis">Analysis Board</a>
         </li>
     </ul>
-    <h4>2023-09-03</h4>
+    <h4 id="2023-09-03">2023-09-03</h4>
     <ul>
         <li>
             Import moves in UCI and algebraic format in the <a href="/analysis">Analysis Board</a>
         </li>
     </ul>
-    <h4>2023-09-02</h4>
+    <h4 id="2023-09-02">2023-09-02</h4>
     <ul>
         <li>
             Fix bug when updating analysis in the <a href="/analysis">Analysis Board</a>
         </li>
     </ul>
-    <h4>2023-08-28</h4>
+    <h4 id="2023-08-28">2023-08-28</h4>
     <ul>
         <li>
             Ensure parser can handle both 0-based and 1-based PGN in the <a href="/analysis">Analysis Board</a>
         </li>
     </ul>
-    <h4>2023-08-25</h4>
+    <h4 id="2023-08-25">2023-08-25</h4>
     <ul>
         <li>
             Fix to the admin UI
         </li>
     </ul>
-    <h4>2023-08-22</h4>
+    <h4 id="2023-08-22">2023-08-22</h4>
     <ul>
         <li>
             User session management
         </li>
     </ul>
-    <h4>2023-08-21</h4>
+    <h4 id="2023-08-21">2023-08-21</h4>
     <ul>
         <li>
             Fix to the admin UI
@@ -2930,7 +2932,7 @@
             Technical changes (config refactoring)
         </li>
     </ul>
-    <h4>2023-08-20</h4>
+    <h4 id="2023-08-20">2023-08-20</h4>
     <ul>
         <li>
             Date format in <a href="/database?medium=changelog">Database</a> and in the
@@ -2946,19 +2948,19 @@
             User session management
         </li>
     </ul>
-    <h4>2023-08-19</h4>
+    <h4 id="2023-08-19">2023-08-19</h4>
     <ul>
         <li>
             Minor UI changes to the admin UI
         </li>
     </ul>
-    <h4>2023-08-16</h4>
+    <h4 id="2023-08-16">2023-08-16</h4>
     <ul>
         <li>
             Automatically fetch new games to the <a href="/database?medium=changelog">Database</a>
         </li>
     </ul>
-    <h4>2023-08-15</h4>
+    <h4 id="2023-08-15">2023-08-15</h4>
     <ul>
         <li>
             Persist and display more comprehensive engine data in the <a href="/analysis">Analysis Board</a> and
@@ -2969,25 +2971,25 @@
             Fix some database data errors
         </li>
     </ul>
-    <h4>2023-08-13</h4>
+    <h4 id="2023-08-13">2023-08-13</h4>
     <ul>
         <li>
             Minor UI changes
         </li>
     </ul>
-    <h4>2023-08-12</h4>
+    <h4 id="2023-08-12">2023-08-12</h4>
     <ul>
         <li>
             Add drag and drop moves
         </li>
     </ul>
-    <h4>2023-08-07</h4>
+    <h4 id="2023-08-07">2023-08-07</h4>
     <ul>
         <li>
             Minor UI changes to the admin UI
         </li>
     </ul>
-    <h4>2023-08-06</h4>
+    <h4 id="2023-08-06">2023-08-06</h4>
     <ul>
         <li>
             Fix the copying to the clipboard of puzzle link when clicking on puzzle id
@@ -3008,7 +3010,7 @@
             Modal to sign up if you open a game link when you're not logged in
         </li>
     </ul>
-    <h4>2023-08-05</h4>
+    <h4 id="2023-08-05">2023-08-05</h4>
     <ul>
         <li>
             Split "outcome" and "status" on the Play Game page, for clarity
@@ -3020,7 +3022,7 @@
             Fix wrongly proportioned icons in Safari
         </li>
     </ul>
-    <h4>2023-08-04</h4>
+    <h4 id="2023-08-04">2023-08-04</h4>
     <ul>
         <li>
             Re-design of the "New Game" modal in the <a href="/">lobby</a>
@@ -3034,7 +3036,7 @@
             Add FEN export below the board in the <a href="/analysis?medium=changelog">Analysis Board</a>
         </li>
     </ul>
-    <h4>2023-08-03</h4>
+    <h4 id="2023-08-03">2023-08-03</h4>
     <ul>
         <li>
             Minor UI improvements (standardize data tables)
@@ -3043,7 +3045,7 @@
             Fix <a href="/database?medium=changelog">database game search</a> UX issues
         </li>
     </ul>
-    <h4>2023-08-02</h4>
+    <h4 id="2023-08-02">2023-08-02</h4>
     <ul>
         <li>
             Minor UI improvements (users with longer name)
@@ -3055,7 +3057,7 @@
             Change default time control to Correspondence
         </li>
     </ul>
-    <h4>2023-08-01</h4>
+    <h4 id="2023-08-01">2023-08-01</h4>
     <ul>
         <li>
             Fix date metadata when downloading PGN from a game
@@ -3064,7 +3066,7 @@
             Minor UI improvements
         </li>
     </ul>
-    <h4>2023-07-31</h4>
+    <h4 id="2023-07-31">2023-07-31</h4>
     <ul>
         <li>
             Minor UI improvements
@@ -3085,7 +3087,7 @@
             Highlight last opponent move when re-opening a game
         </li>
     </ul>
-    <h4>2023-07-30</h4>
+    <h4 id="2023-07-30">2023-07-30</h4>
     <ul>
         <li>
             Add Time Control to <a href="/">Player-vs-Player</a>
@@ -3097,19 +3099,19 @@
             Minor UI improvements
         </li>
     </ul>
-    <h4>2023-07-29</h4>
+    <h4 id="2023-07-29">2023-07-29</h4>
     <ul>
         <li>
             Minor UI improvements
         </li>
     </ul>
-    <h4>2023-07-28</h4>
+    <h4 id="2023-07-28">2023-07-28</h4>
     <ul>
         <li>
             UI fix in the "is online" indicator in the Play Game screen.
         </li>
     </ul>
-    <h4>2023-07-27</h4>
+    <h4 id="2023-07-27">2023-07-27</h4>
     <ul>
         <li>
             Add a Cancel button after creating a game, to cancel a game before anyone can join.
@@ -3125,7 +3127,7 @@
             Fix bug that prevented analysis deletion.
         </li>
     </ul>
-    <h4>2023-07-26</h4>
+    <h4 id="2023-07-26">2023-07-26</h4>
     <ul>
         <li>
             Indicate the games where it's user's turn to play, with a kind of notification panel
@@ -3134,7 +3136,7 @@
             Minor technical changes
         </li>
     </ul>
-    <h4>2023-07-25</h4>
+    <h4 id="2023-07-25">2023-07-25</h4>
     <ul>
         <li>
             Some UX bug fixes in <a href="/">Player-vs-Player</a>
@@ -3145,27 +3147,27 @@
             but you're offline. You can disable/enable this in your <a href="/user/settings">Settings</a>.
         </li>
     </ul>
-    <h4>2023-07-24</h4>
+    <h4 id="2023-07-24">2023-07-24</h4>
     <ul>
         <li>
             Add <a href="/">Player-vs-Player</a> in beta. Time Control is still missing, as well as a couple
             functionalities that should be added soon.
         </li>
     </ul>
-    <h4>2023-07-21</h4>
+    <h4 id="2023-07-21">2023-07-21</h4>
     <ul>
         <li>
             Make annotation max. length more explicit in the <a href="/analysis?medium=changelog">Analysis Board</a>.
             Increase the max length to 2000.
         </li>
     </ul>
-    <h4>2023-06-17</h4>
+    <h4 id="2023-06-17">2023-06-17</h4>
     <ul>
         <li>
             Some technical changes
         </li>
     </ul>
-    <h4>2023-06-10</h4>
+    <h4 id="2023-06-10">2023-06-10</h4>
     <ul>
         <li>
             New opening cache for the <a href="/analysis?medium=changelog">Analysis Board</a>. The experience isn't much
@@ -3175,7 +3177,7 @@
             Indicate if user is online on their profile
         </li>
     </ul>
-    <h4>2023-06-04</h4>
+    <h4 id="2023-06-04">2023-06-04</h4>
     <ul>
         <li>
             Add an option to Settings to enable/disable email notifications. Right now it's only for the newsletter
@@ -3189,7 +3191,7 @@
             Upload more games to the <a href="/database?medium=changelog">Database</a>, totaling 92,000.
         </li>
     </ul>
-    <h4>2023-06-03</h4>
+    <h4 id="2023-06-03">2023-06-03</h4>
     <ul>
         <li>
             Replace logarithmic eval calculation by a more simple linear calculation in <a href="/analysis">Analysis
@@ -3203,13 +3205,13 @@
             interesting to persist engine result data that don't contain a cp value.
         </li>
     </ul>
-    <h4>2023-05-29</h4>
+    <h4 id="2023-05-29">2023-05-29</h4>
     <ul>
         <li>
             Add text annotation to the <a href="/analysis">Analysis Board</a>
         </li>
     </ul>
-    <h4>2023-05-22</h4>
+    <h4 id="2023-05-22">2023-05-22</h4>
     <ul>
         <li>
             Fixed download PGN button on the Move Tree Widget
@@ -3222,7 +3224,7 @@
             Board</a>
         </li>
     </ul>
-    <h4>2023-05-21</h4>
+    <h4 id="2023-05-21">2023-05-21</h4>
     <ul>
         <li>
             Integrate the new Move Tree Widget into the <a href="/puzzles">puzzles screen</a>
@@ -3248,7 +3250,7 @@
             so we need to pre-calculate opening data.
         </li>
     </ul>
-    <h4>2023-05-20</h4>
+    <h4 id="2023-05-20">2023-05-20</h4>
     <ul>
         <li>
             Export PGN with variations with a nested structure instead of a flat list of lines/variations. However, we
@@ -3259,7 +3261,7 @@
             before integrating to the other screens
         </li>
     </ul>
-    <h4>2023-05-19</h4>
+    <h4 id="2023-05-19">2023-05-19</h4>
     <ul>
         <li>
             Add a button to the <a href="/analysis?medium=changelog">Analysis Board</a> to download the PGN of your
@@ -3269,14 +3271,14 @@
             Technical re-organization of files
         </li>
     </ul>
-    <h4>2023-05-18</h4>
+    <h4 id="2023-05-18">2023-05-18</h4>
     <ul>
         <li>
             Improve "My Analysis" view with buttons to load an older version of your analysis and to delete your
             analysis. It will only keep maximum 10 versions.
         </li>
     </ul>
-    <h4>2023-05-14</h4>
+    <h4 id="2023-05-14">2023-05-14</h4>
     <ul>
         <li>
             Add save and reload user's analysis feature in the <a href="/analysis?medium=changelog">Analysis Board</a>
@@ -3286,53 +3288,53 @@
             Board</a>
         </li>
     </ul>
-    <h4>2023-05-12</h4>
+    <h4 id="2023-05-12">2023-05-12</h4>
     <ul>
         <li>
             Fix the bug where you had to click twice to open the user drop down menu
         </li>
     </ul>
-    <h4>2023-05-11</h4>
+    <h4 id="2023-05-11">2023-05-11</h4>
     <ul>
         <li>
             Add right click menu in the Move History Tree Widget in the <a href="/analysis?medium=changelog">Analysis
             Board</a> to edit the history (e.g. delete branch, etc.)
         </li>
     </ul>
-    <h4>2023-05-09</h4>
+    <h4 id="2023-05-09">2023-05-09</h4>
     <ul>
         <li>
             Allow multiple variations in the Move History Tree Widget in the <a href="/analysis?medium=changelog">Analysis
             Board</a>
         </li>
     </ul>
-    <h4>2023-05-08</h4>
+    <h4 id="2023-05-08">2023-05-08</h4>
     <ul>
         <li>
             Re-add the navigation arrows below the new Move History Tree Widget in <a href="/analysis">Analysis
             Board</a>.
         </li>
     </ul>
-    <h4>2023-05-07</h4>
+    <h4 id="2023-05-07">2023-05-07</h4>
     <ul>
         <li>
             Add the Move History Tree Widget to <a href="/analysis?medium=changelog">Analysis Board</a>. Still a test
             version.
         </li>
     </ul>
-    <h4>2023-04-29 / 2023-04-30</h4>
+    <h4 id="2023-04-29">2023-04-29 / 2023-04-30</h4>
     <ul>
         <li>
             Improve the <a href="/analysis?medium=changelog">Analysis Board</a> UI
         </li>
     </ul>
-    <h4>2023-04-28</h4>
+    <h4 id="2023-04-28">2023-04-28</h4>
     <ul>
         <li>
             Allow to solve puzzles by stalemate
         </li>
     </ul>
-    <h4>2023-04-25</h4>
+    <h4 id="2023-04-25">2023-04-25</h4>
     <ul>
         <li>
             Avoid to show players and events that don't have any game uploaded yet
@@ -3344,38 +3346,38 @@
             Uploaded additional game data to the <a href="/database?medium=changelog">Database</a>, reaching 15,000
         </li>
     </ul>
-    <h4>2023-04-24</h4>
+    <h4 id="2023-04-24">2023-04-24</h4>
     <ul>
         <li>
             Couple of fixes on the new features
         </li>
     </ul>
-    <h4>2023-04-23</h4>
+    <h4 id="2023-04-23">2023-04-23</h4>
     <ul>
         <li>
             First version of the <a href="/database?medium=changelog">Database</a> and <a
                 href="/analysis?medium=changelog">Analysis Board</a> features
         </li>
     </ul>
-    <h4>2023-04-09</h4>
+    <h4 id="2023-04-09">2023-04-09</h4>
     <ul>
         <li>
             Exclude coordinate texts from automated Google translation
         </li>
     </ul>
-    <h4>2023-04-07</h4>
+    <h4 id="2023-04-07">2023-04-07</h4>
     <ul>
         <li>
             Add a setting option to show/hide coordinates
         </li>
     </ul>
-    <h4>2023-04-03 / 2023-04-04</h4>
+    <h4 id="2023-04-03">2023-04-03 / 2023-04-04</h4>
     <ul>
         <li>
             Simplifying the UI, so it's more stable on more devices
         </li>
     </ul>
-    <h4>2023-04-02</h4>
+    <h4 id="2023-04-02">2023-04-02</h4>
     <ul>
         <li>
             Password recovery procedure via email
@@ -3387,7 +3389,7 @@
             Add success rate bar indicator in Global page
         </li>
     </ul>
-    <h4>2023-04-01</h4>
+    <h4 id="2023-04-01">2023-04-01</h4>
     <ul>
         <li>
             Fix profiles with username with Chinese characters (NB: it's currently not possible to sign up with a
@@ -3400,7 +3402,7 @@
             Key shortcut to go to next puzzle (Enter)
         </li>
     </ul>
-    <h4>2023-03-31</h4>
+    <h4 id="2023-03-31">2023-03-31</h4>
     <ul>
         <li>
             Additional information on the global stats page
@@ -3409,7 +3411,7 @@
             Charts style on user profile
         </li>
     </ul>
-    <h4>2023-03-30</h4>
+    <h4 id="2023-03-30">2023-03-30</h4>
     <ul>
         <li>
             Only show the 20 players with the highest rating on the leaderboard
@@ -3418,7 +3420,7 @@
             Display solved rate on the leaderboard
         </li>
     </ul>
-    <h4>2023-03-27</h4>
+    <h4 id="2023-03-27">2023-03-27</h4>
     <ul>
         <li>
             Add quick fix for render on Safari (still doesn't look perfect but at least it's playable)
@@ -3433,7 +3435,7 @@
             Move the changelog on a separate page
         </li>
     </ul>
-    <h4>2023-03-26</h4>
+    <h4 id="2023-03-26">2023-03-26</h4>
     <ul>
         <li>
             Add option to play with romanized pieces
@@ -3458,7 +3460,7 @@
             Hide puzzle metadata (category and rating) until the puzzle is done
         </li>
     </ul>
-    <h4>2023-03-25</h4>
+    <h4 id="2023-03-25">2023-03-25</h4>
     <ul>
         <li>
             Refactor puzzles so it can accept alternative paths to checkmate
@@ -3467,13 +3469,13 @@
             Uploaded remaining puzzles, to reach just a bit less of 18,000 puzzles total
         </li>
     </ul>
-    <h4>2023-03-24</h4>
+    <h4 id="2023-03-24">2023-03-24</h4>
     <ul>
         <li>
             Additional data in Global stats page + Top menu item to access it
         </li>
     </ul>
-    <h4>2023-03-23</h4>
+    <h4 id="2023-03-23">2023-03-23</h4>
     <ul>
         <li>
             Drop down menu for users to update their profile and logout
@@ -3482,7 +3484,7 @@
             Caching on HTML files for better performance
         </li>
     </ul>
-    <h4>2023-03-20</h4>
+    <h4 id="2023-03-20">2023-03-20</h4>
     <ul>
         <li>
             Fix UI issue on mobiles
@@ -3491,7 +3493,7 @@
             Add user profile with stats
         </li>
     </ul>
-    <h4>2023-03-19</h4>
+    <h4 id="2023-03-19">2023-03-19</h4>
     <ul>
         <li>
             UI improvements and fixes (align Puzzles and Play Bot screens with top menu, make Play Bot screen
@@ -3499,7 +3501,7 @@
             with Puzzle screen, center modals in the middle of the screen, submit modals form with Enter key, etc.)
         </li>
     </ul>
-    <h4>2023-03-18</h4>
+    <h4 id="2023-03-18">2023-03-18</h4>
     <ul>
         <li>
             Play against Fairy Stockfish
@@ -3514,20 +3516,20 @@
             UI adjustments
         </li>
     </ul>
-    <h4>2023-03-17</h4>
+    <h4 id="2023-03-17">2023-03-17</h4>
     <ul>
         <li>
             Select playing color and level when playing bot
         </li>
     </ul>
-    <h4>2023-03-16</h4>
+    <h4 id="2023-03-16">2023-03-16</h4>
     <ul>
         <li>
             Add links to the <a href="https://github.com/benckx/elephantchess.io/issues" target="_blank">GitHub</a>
             and the <a href="https://ko-fi.com/elephantchess" target="_blank">support page</a>
         </li>
     </ul>
-    <h4>2023-03-13</h4>
+    <h4 id="2023-03-13">2023-03-13</h4>
     <ul>
         <li>
             Increase Pikafish bot depth to 10
@@ -3536,20 +3538,20 @@
             Sign Up form
         </li>
     </ul>
-    <h4>2023-03-12</h4>
+    <h4 id="2023-03-12">2023-03-12</h4>
     <ul>
         <li>
             Basic UI to play against the Pikafish engine (i.e. games are not saved and there is no option to select the
             level at the moment). Depth has been set to 4 for now.
         </li>
     </ul>
-    <h4>2023-03-11</h4>
+    <h4 id="2023-03-11">2023-03-11</h4>
     <ul>
         <li>
             Added link to <a href="https://discord.gg/WEGDqnWXNg" target="_blank">Discord server</a>
         </li>
     </ul>
-    <h4>2023-03-09</h4>
+    <h4 id="2023-03-09">2023-03-09</h4>
     <ul>
         <li>
             Migrate backend to a different framework
@@ -3564,7 +3566,7 @@
             First registered <a href="/@/BeVegan">user</a> added, official birthday of the platform 🎂
         </li>
     </ul>
-    <h4>2023-03-07</h4>
+    <h4 id="2023-03-07">2023-03-07</h4>
     <ul>
         <li>
             Minor UX changes
@@ -3573,7 +3575,7 @@
             HTML metadata
         </li>
     </ul>
-    <h4>2023-03-06</h4>
+    <h4 id="2023-03-06">2023-03-06</h4>
     <ul>
         <li>
             Top menu and "About" page
@@ -3593,7 +3595,7 @@
             (available only to logged users)
         </li>
     </ul>
-    <h4>2023-02-11</h4>
+    <h4 id="2023-02-11">2023-02-11</h4>
     <ul>
         <li>
             The domain name was acquired
@@ -3602,7 +3604,7 @@
             Configuration of the server
         </li>
     </ul>
-    <h4>2023-01-23</h4>
+    <h4 id="2023-01-23">2023-01-23</h4>
     <ul>
         <li>
             First commit to the Git repository
