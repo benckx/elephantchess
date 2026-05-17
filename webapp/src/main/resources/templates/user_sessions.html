@@ -19,23 +19,25 @@
         <input id="delete-sessions-button" type="button" class="app-buttons-bigger" value="delete selected">
         <input id="delete-all-sessions-button" type="button" class="app-buttons-bigger" value="delete all">
     </div>
-    <table id="user-sessions-table" class="nice-table nice-table-striped nice-table-hover">
-        <thead>
-        <tr>
-            <th></th>
-            <th class="label-cell">os</th>
-            <th class="label-cell">agent</th>
-            <th class="label-cell">country</th>
-            <th class="label-cell only-desktop-table-cell">region</th>
-            <th class="label-cell only-desktop-table-cell">city</th>
-            <th class="label-cell">IP</th>
-            <th class="label-cell only-desktop-table-cell">created</th>
-            <th class="label-cell only-desktop-table-cell">updated</th>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    <div id="user-sessions-table-container">
+        <table id="user-sessions-table" class="nice-table nice-table-striped nice-table-hover">
+            <thead>
+            <tr>
+                <th></th>
+                <th class="label-cell">os</th>
+                <th class="label-cell">agent</th>
+                <th class="label-cell">country</th>
+                <th class="label-cell">region</th>
+                <th class="label-cell">city</th>
+                <th class="label-cell">IP</th>
+                <th class="label-cell">created</th>
+                <th class="label-cell">updated</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
     <p id="user-sessions-empty-message" class="hidden">No sessions found.</p>
     <div id="is-loading-message" style="display: none;">
         Loading more sessions...

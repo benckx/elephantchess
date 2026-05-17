@@ -557,7 +557,7 @@
         display: flex;
     }
 
-    .only-desktop, .only-desktop-flex, .only-desktop-table-cell {
+    .only-desktop, .only-desktop-flex {
         display: none;
     }
 

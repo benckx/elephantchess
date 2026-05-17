@@ -2140,10 +2140,6 @@ img#navigation-end {
     display: flex;
 }
 
-.only-desktop-table-cell {
-    display: table-cell;
-}
-
 .only-mobile, .only-mobile-flex {
     display: none;
 }

@@ -152,18 +152,15 @@ class UserSessionsWidget {
         row.insertCell().append(this.#buildOsCellContent(entry.os));
         row.insertCell().innerText = entry.agentName;
         row.insertCell().append(this.#buildCountryCellContent(entry.countryCode, entry.countryName));
-        this.#insertCroppableCell(row, entry.region, 'only-desktop-table-cell');
-        this.#insertCroppableCell(row, entry.city, 'only-desktop-table-cell');
+        this.#insertCroppableCell(row, entry.region);
+        this.#insertCroppableCell(row, entry.city);
         row.insertCell().innerText = entry.remoteAddress;
-        this.#insertCroppableCell(row, formatTimestampToDateTime(entry.created), 'only-desktop-table-cell');
-        this.#insertCroppableCell(row, formatTimestampToDateTime(entry.updated), 'only-desktop-table-cell');
+        row.insertCell().innerText = formatTimestampToDateTime(entry.created);
+        row.insertCell().innerText = formatTimestampToDateTime(entry.updated);
     }
 
-    #insertCroppableCell(row, value, className) {
+    #insertCroppableCell(row, value) {
         const cell = row.insertCell();
-        if (className != null) {
-            cell.className = className;
-        }
         cell.innerText = cropText(value, MAX_CHARS_IN_CELL);
         if (value != null && value.length > MAX_CHARS_IN_CELL) {
             cell.id = randomId();
