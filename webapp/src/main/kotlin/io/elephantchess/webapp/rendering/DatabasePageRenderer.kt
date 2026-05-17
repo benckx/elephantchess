@@ -3,9 +3,12 @@ package io.elephantchess.webapp.rendering
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
+import io.elephantchess.model.Outcome
 import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.formatWithChineseName
+import io.ktor.http.encodeURLPath
+import io.ktor.http.encodeURLQueryComponent
 import io.github.reactivecircus.cache4k.Cache
 import kotlin.time.Duration.Companion.hours
 
@@ -256,21 +259,67 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
     }
 
     suspend fun renderGamePage(summary: DatabaseGameSummary): String {
-        val red = summary.redPlayerName ?: "Unknown player"
-        val black = summary.blackPlayerName ?: "Unknown player"
-        val title = "$red vs. $black"
+        val unknown = "<unknown>"
+        val redCanonical = summary.redPlayerCanonicalName
+        val blackCanonical = summary.blackPlayerCanonicalName
+        val redDisplay =
+            redCanonical?.let { canonicalName -> formatWithChineseName(canonicalName, summary.redPlayerChineseName) } ?: unknown
+        val blackDisplay =
+            blackCanonical?.let { canonicalName -> formatWithChineseName(canonicalName, summary.blackPlayerChineseName) } ?: unknown
+
+        val title = "$redDisplay vs. $blackDisplay"
+
         val description = buildString {
-            append("Chinese chess (Xiangqi) game between $red (red) and $black (black)")
-            if (!summary.eventName.isNullOrBlank()) {
-                append(" at ${summary.eventName}")
-            }
+            append("Chinese chess (Xiangqi) game between $redDisplay (red) and $blackDisplay (black)")
+            if (!summary.eventName.isNullOrBlank()) append(" at ${summary.eventName}")
+            summary.date?.let { append(", played on $it") }
             append(".")
         }
+
+        fun playerLink(canonicalName: String?, displayName: String): String {
+            return if (canonicalName.isNullOrBlank()) {
+                escapeHtml(displayName)
+            } else {
+                val urlName = canonicalName.replace(" ", "_").encodeURLPath()
+                """<a href="/database/player/$urlName">${escapeHtml(displayName)}</a>"""
+            }
+        }
+
+        val playersInfoHtml = buildString {
+            append("""<div class="player red">${playerLink(redCanonical, redDisplay)}</div>""")
+            append("""<div class="player black">${playerLink(blackCanonical, blackDisplay)}</div>""")
+        }
+
+        val dateInfoHtml = summary.date?.toString() ?: ""
+
+        val eventInfoHtml = summary.eventName?.let { name ->
+            val escapedName = escapeHtml(name)
+            val eventId = summary.eventId
+            if (!eventId.isNullOrBlank()) {
+                """<a href="/database/event?id=${eventId.encodeURLQueryComponent()}">$escapedName</a>"""
+            } else {
+                escapedName
+            }
+        } ?: ""
+
+        val statusInfoHtml = when (summary.outcome) {
+            Outcome.RED_WINS ->
+                if (!redCanonical.isNullOrBlank()) "${escapeHtml(redDisplay)} victory (Red)" else "Red wins"
+            Outcome.BLACK_WINS ->
+                if (!blackCanonical.isNullOrBlank()) "${escapeHtml(blackDisplay)} victory (Black)" else "Black wins"
+            Outcome.DRAW -> "Draw"
+            null -> "--"
+        }
+
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_game_viewer.html",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("page_title", title),
                 SimpleValueTagResolver("description_meta", descriptionMeta(description)),
+                SimpleValueTagResolver("players_info", playersInfoHtml),
+                SimpleValueTagResolver("game_status_info", statusInfoHtml),
+                SimpleValueTagResolver("game_date_info", dateInfoHtml),
+                SimpleValueTagResolver("game_event_info", eventInfoHtml),
             ),
             canonicalPath = "/database/game?id=${summary.gameId}"
         )
