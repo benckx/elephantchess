@@ -145,6 +145,7 @@ class LobbyPage extends BasePage {
             const variantSymbol = document.createElement('span');
             variantSymbol.className = 'game-to-join-variant-symbol';
             variantSymbol.innerText = '象';
+            variantSymbol.title = 'Xiangqi (Chinese chess)';
             variantPane.append(variantSymbol);
 
             const leftPane = document.createElement('div');
@@ -195,6 +196,9 @@ class LobbyPage extends BasePage {
                     entry.opponentUserType
                 )
             );
+            if (entry.opponentUserType === UserType.GUEST && usernameCell.firstChild?.innerText != null) {
+                usernameCell.firstChild.innerText = usernameCell.firstChild.innerText.replace(/^guest\s*/i, '');
+            }
 
             const ratingCell = document.createElement('div');
             ratingCell.className = 'rating-cell';
@@ -207,6 +211,11 @@ class LobbyPage extends BasePage {
             const colorSpan = buildColorSpan(entry.opponentColor);
             if (colorSpan.classList.contains('any-color')) {
                 colorSpan.innerText = 'Any color';
+                colorSpan.title = 'This player can play either color';
+            } else if (entry.opponentColor === Color.RED) {
+                colorSpan.title = 'This player picked Red, you would play Black';
+            } else if (entry.opponentColor === Color.BLACK) {
+                colorSpan.title = 'This player picked Black, you would play Red';
             }
             colorCell.append(colorSpan);
             metadataLine.append(colorCell);

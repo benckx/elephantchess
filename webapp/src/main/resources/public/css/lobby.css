@@ -76,13 +76,13 @@ h1 {
 
 #games-to-join-list-table-container {
     width: 100%;
-    padding: 12px 14px;
+    padding: 14px 16px;
 }
 
 #games-to-join-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 @media (min-width: 1450px) {
@@ -128,17 +128,17 @@ h1 {
 }
 
 .game-to-join-variant-pane {
-    width: 28px;
+    width: 32px;
     justify-content: center;
 }
 
 .game-to-join-variant-symbol {
-    font-size: 20px;
+    font-size: 24px;
     color: #343434;
 }
 
 .game-to-join-left-pane {
-    width: 54px;
+    width: 68px;
     flex-direction: column;
     justify-content: center;
     gap: 2px;
@@ -149,19 +149,19 @@ h1 {
     flex: 1;
     flex-direction: column;
     align-items: flex-start;
-    margin-left: 6px;
+    margin-left: 10px;
 }
 
 .game-to-join-right-pane {
     width: 96px;
     justify-content: flex-end;
-    margin-left: 10px;
+    margin-left: 12px;
 }
 
 .game-to-join-rating-pane {
     width: 56px;
     justify-content: center;
-    margin-left: 4px;
+    margin-left: 8px;
 }
 
 .game-to-join-opponent-line {
@@ -171,8 +171,8 @@ h1 {
 }
 
 .game-to-join-opponent-line .username-cell {
-    max-width: 250px;
-    font-size: 16px;
+    max-width: 280px;
+    font-size: 15px;
 }
 
 .game-to-join-opponent-line .rating-cell {
@@ -234,6 +234,7 @@ h1 {
     color: #3a3a3a;
     font-size: 13px;
     line-height: 1;
+    white-space: nowrap;
 }
 
 .game-to-join-online-cell {
@@ -433,11 +434,11 @@ iframe {
     }
 
     .game-to-join-variant-pane {
-        width: 38px;
+        width: 44px;
     }
 
     .game-to-join-variant-symbol {
-        font-size: 34px;
+        font-size: 40px;
     }
 
     #games-to-join-list-container {
@@ -451,26 +452,26 @@ iframe {
     }
 
     .game-to-join-left-pane {
-        width: 72px;
+        width: 88px;
     }
 
     .game-to-join-middle-pane {
-        margin-left: 6px;
+        margin-left: 10px;
     }
 
     .game-to-join-right-pane {
         width: 82px;
-        margin-left: 8px;
+        margin-left: 10px;
     }
 
     .game-to-join-rating-pane {
         width: 72px;
-        margin-left: 6px;
+        margin-left: 8px;
     }
 
     .game-to-join-opponent-line .username-cell {
-        max-width: 350px;
-        font-size: 32px;
+        max-width: 380px;
+        font-size: 30px;
     }
 
     .game-to-join-opponent-line .rating-cell {
