@@ -89,7 +89,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .firstOrNull()
     }
 
-    suspend fun updateProfileSettings(userId: String, description: String, country: String) {
+    suspend fun updateProfileSettings(userId: String, description: String, country: String?) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)

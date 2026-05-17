@@ -51,6 +51,11 @@ class UserService(
     private val logger: KLogger,
 ) {
 
+    private fun normalizeCountry(country: String?): String? =
+        country
+            ?.trim()
+            ?.takeUnless { it.isBlank() || it.equals("none", ignoreCase = true) }
+
     @Volatile
     private var onlineUserIds: Set<String> = emptySet()
 
@@ -324,7 +329,7 @@ class UserService(
             UserProfile(
                 userId = user.id,
                 username = user.handle,
-                country = user.country,
+                country = normalizeCountry(user.country),
                 profileDescription = user.description,
                 puzzleRating = user.puzzleRating
             )
@@ -355,7 +360,8 @@ class UserService(
         }
 
         val description = stripHtml(removeSuperfluousLineBreaks(request.description))
-        userDaoService.updateProfileSettings(userId, description, request.country)
+        val country = normalizeCountry(request.country)
+        userDaoService.updateProfileSettings(userId, description, country)
     }
 
     suspend fun fetchNotificationsSettings(userId: String): NotificationsSettingsDto {
