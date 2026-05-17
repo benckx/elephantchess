@@ -151,6 +151,11 @@ private fun Route.userSettingsRoutes() {
                 userService.fetchEmailAddressSettings(verifiedToken.userId)
             }
         }
+        post("/email-address/resend-confirmation") {
+            requireAuthentication { verifiedToken ->
+                userService.resendEmailConfirmation(verifiedToken.userId)
+            }
+        }
         get("/sessions") {
             requireAuthentication { verifiedToken ->
                 val limit =

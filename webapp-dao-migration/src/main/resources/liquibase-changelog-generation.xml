@@ -2275,4 +2275,12 @@
             <column name="guest_user_id" type="varchar(12)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0098" author="benckx">
+        <comment>Add email confirmation fields to user table (separate from automated email_verification)</comment>
+        <addColumn tableName="user">
+            <column name="email_confirmation_code" type="varchar(64)"/>
+            <column name="email_confirmation_code_created_at" type="timestamp with time zone"/>
+            <column name="email_confirmed_at" type="timestamp with time zone"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
