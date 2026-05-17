@@ -48,6 +48,10 @@
     margin-left: 13px;
 }
 
+#resend-email-confirmation-container {
+    margin: 0 15px 15px 13px;
+}
+
 #email-address {
     font-size: 18px;
     height: 30px;
@@ -63,6 +67,10 @@
 
 #sessions-actions-container input[type="button"] {
     margin-left: 12px;
+}
+
+#user-sessions-table-container {
+    overflow-x: auto;
 }
 
 #user-sessions-table {

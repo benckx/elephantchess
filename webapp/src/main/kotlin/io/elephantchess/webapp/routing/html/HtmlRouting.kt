@@ -26,7 +26,6 @@ private val publicPageMapping = mapOf(
     "/board" to "simple_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
-    "/database/game" to "database/database_game_viewer",
     "/browse/player-vs-player" to "browse_pvp_games",
     "/browse/player-vs-bot" to "browse_pvb_games",
     "/analysis" to "analysis_board",
@@ -34,7 +33,6 @@ private val publicPageMapping = mapOf(
     "/recovery" to "password_recovery1",
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
-    "/about/changelog" to "about/changelog",
     "/contact" to "contact_form",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
     "/7k/playground" to "seven_kingdoms/seven_kingdoms_playground",
@@ -97,6 +95,7 @@ fun Application.htmlRoutingModule() {
         modals()
         databasePages()
         faqPage()
+        changelogPage()
     }
 }
 
@@ -181,6 +180,14 @@ private fun Route.faqPage() {
 
     get("/about/faq") {
         call.respondHtml(renderer.renderFaqPage())
+    }
+}
+
+private fun Route.changelogPage() {
+    val renderer by koin<ChangelogPageRenderer>()
+
+    get("/about/changelog") {
+        call.respondHtml(renderer.renderChangelogPage())
     }
 }
 

@@ -132,24 +132,6 @@ const CoordinatesOrientation = Object.freeze({
     UCI: 'UCI',
 });
 
-// Chinese numerals for files 1..9, used to label files in WXF mode when the
-// {@link FileNumbersStyle} setting calls for Chinese numerals on that side.
-const CHINESE_FILE_DIGITS = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
-
-/**
- * How file numbers are rendered around the board in WXF mode. Only affects the
- * file-number labels; the UCI orientation (a..i letters) is unaffected.
- */
-const FileNumbersStyle = Object.freeze({
-    /** Arabic numerals (1..9) on both sides of the board. */
-    ARABIC_BOTH: 'ARABIC_BOTH',
-    /** Chinese numerals (一..九) on both sides of the board. */
-    CHINESE_BOTH: 'CHINESE_BOTH',
-    /** Chinese numerals on red's side; Arabic numerals on black's side (default). */
-    CHINESE_RED_ONLY: 'CHINESE_RED_ONLY',
-    DEFAULT: 'CHINESE_RED_ONLY',
-});
-
 /**
  * Visual style of the board pieces. Used to pick the corresponding image folder
  * (under `${assetsBaseUrl}/images/pieces/<style-lowercased>/`).
@@ -179,8 +161,6 @@ const PieceStyleSetting = Object.freeze({
  *                                                    image folder.
  * @property {boolean}     [colorblindFriendlyBlackPieces] - if true, black piece images get an invert
  *                                                    CSS filter for improved contrast.
- * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
- *                                                    file numbers are rendered in WXF mode.
  */
 
 /** @type {Readonly<Required<BoardGuiOptions>>} */
@@ -194,7 +174,6 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     assetsBaseUrl: 'https://cdn.elephantchess.io/static',
     pieceStyle: PieceStyleSetting.DEFAULT,
     colorblindFriendlyBlackPieces: false,
-    fileNumbersStyle: FileNumbersStyle.DEFAULT,
 });
 
 class BoardGui {
@@ -1212,41 +1191,20 @@ class BoardGui {
             // so we must pick an arbitrary orientation for the (invisible) labels:
             const isWfxOriented = orientation !== CoordinatesOrientation.UCI;
 
-            const fileNumbersStyle = this.#options.fileNumbersStyle;
-            // For a given side ('red' | 'black'), should we render Chinese numerals?
-            const isChineseOnSide = (side) => {
-                switch (fileNumbersStyle) {
-                    case FileNumbersStyle.ARABIC_BOTH:
-                        return false;
-                    case FileNumbersStyle.CHINESE_BOTH:
-                        return true;
-                    case FileNumbersStyle.CHINESE_RED_ONLY:
-                    default:
-                        return side === 'red';
-                }
-            };
-
             // draw top file coordinates
             if (isWfxOriented) {
                 let topCoordinatesY = BOARD_HEIGHT - 1;
                 if (!this.#flippedRed) {
                     topCoordinatesY = 0;
                 }
-                // top row shows black's side when red is at the bottom, and red's side when flipped
-                const topSide = this.#flippedRed ? 'black' : 'red';
-                const topChinese = isChineseOnSide(topSide);
 
                 for (let x = 0; x < BOARD_WIDTH; x++) {
                     // actual text
-                    let label;
+                    let label = '?';
                     if (this.#flippedRed) {
-                        // top row: file 1 is on the right (black perspective)
-                        label = topChinese ? CHINESE_FILE_DIGITS[x] : (x + 1).toString();
+                        label = (x + 1).toString();
                     } else {
-                        // top row: file 1 is on the left (board flipped, red on top)
-                        label = topChinese
-                            ? CHINESE_FILE_DIGITS[BOARD_WIDTH - x - 1]
-                            : (BOARD_WIDTH - x).toString();
+                        label = (BOARD_WIDTH - x).toString();
                     }
 
                     let div = buildFileDiv(label, 'file-coordinates-top', isSettingEnabled);
@@ -1260,21 +1218,14 @@ class BoardGui {
             if (!this.#flippedRed) {
                 bottomCoordinatesY = BOARD_HEIGHT - 1;
             }
-            // bottom row shows red's side when red is at the bottom, and black's side when flipped
-            const bottomSide = this.#flippedRed ? 'red' : 'black';
-            const bottomChinese = isChineseOnSide(bottomSide);
             for (let x = 0; x < BOARD_WIDTH; x++) {
                 // actual text
-                let label;
+                let label = '?';
                 if (isWfxOriented) {
                     if (this.#flippedRed) {
-                        // bottom row: file 1 is on the left (red perspective)
-                        label = bottomChinese
-                            ? CHINESE_FILE_DIGITS[BOARD_WIDTH - x - 1]
-                            : (BOARD_WIDTH - x).toString();
+                        label = (BOARD_WIDTH - x).toString();
                     } else {
-                        // bottom row: file 1 is on the right (board flipped, black at bottom)
-                        label = bottomChinese ? CHINESE_FILE_DIGITS[x] : (x + 1).toString();
+                        label = (x + 1).toString();
                     }
                 } else {
                     label = UCI_LETTER[x];
@@ -1614,43 +1565,6 @@ class BoardGui {
         }
         this.#options = Object.freeze({...this.#options, colorblindFriendlyBlackPieces: enabled});
         this.#renderColorblindFriendlyBlackPiecesSetting(enabled);
-    }
-
-    /**
-     * Change which numeral system is used for file coordinates in WXF mode.
-     *
-     * @param fileNumbersStyle {string} one of {@link FileNumbersStyle}
-     */
-    setFileNumbersStyle(fileNumbersStyle) {
-        if (this.#options.fileNumbersStyle === fileNumbersStyle) {
-            return;
-        }
-        this.#options = Object.freeze({...this.#options, fileNumbersStyle});
-        this.#redrawCoordinates();
-    }
-
-    /**
-     * Change the orientation (WXF numerals vs UCI letters) of the board coordinates.
-     *
-     * @param coordinatesOrientation {string|null} one of {@link CoordinatesOrientation} or
-     *                                             `null` to keep the labels hidden
-     */
-    setCoordinatesOrientation(coordinatesOrientation) {
-        if (this.#options.coordinatesOrientation === coordinatesOrientation) {
-            return;
-        }
-        this.#options = Object.freeze({...this.#options, coordinatesOrientation});
-        this.#redrawCoordinates();
-    }
-
-    #redrawCoordinates() {
-        // remove existing file-coordinate (top + bottom) and right-side rank labels
-        // (rank labels only exist in UCI mode but the selector is harmless if absent)
-        document.querySelectorAll(`#${this.#options.elementId} .file-coordinates-top,
-                                   #${this.#options.elementId} .file-coordinates-bottom,
-                                   #${this.#options.elementId} .rows-coordinates-right`)
-            .forEach(el => el.remove());
-        this.#drawCoordinates();
     }
 
     /**
