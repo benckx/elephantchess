@@ -376,6 +376,7 @@ class PlayerVsBotPage extends BasePage {
                 new GameId(GameType.PVB, this.#controller.gameId),
                 this.#moveTreeWidget.getMainBranchNodes(),
                 this.#controller.startFen(),
+                this.#moveTreeWidget
             );
         }
     }
