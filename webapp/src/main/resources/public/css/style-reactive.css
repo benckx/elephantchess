@@ -95,6 +95,10 @@
         font-size: 18px;
     }
 
+    textarea {
+        font-size: 28px;
+    }
+
     input[type="checkbox"],
     input[type="radio"] {
         -ms-transform: scale(2); /* IE 9 */
