@@ -156,13 +156,13 @@ class LobbyPage extends BasePage {
             middlePane.className = 'game-to-join-middle-pane';
             item.append(middlePane);
 
-            const rightPane = document.createElement('div');
-            rightPane.className = 'game-to-join-right-pane';
-            item.append(rightPane);
-
             const ratingPane = document.createElement('div');
             ratingPane.className = 'game-to-join-rating-pane';
             item.append(ratingPane);
+
+            const rightPane = document.createElement('div');
+            rightPane.className = 'game-to-join-right-pane';
+            item.append(rightPane);
 
             const opponentLine = document.createElement('div');
             opponentLine.className = 'game-to-join-opponent-line';

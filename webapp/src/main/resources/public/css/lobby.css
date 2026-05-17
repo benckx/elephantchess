@@ -133,7 +133,7 @@ h1 {
 }
 
 .game-to-join-variant-symbol {
-    font-size: 24px;
+    font-size: 26px;
     color: #343434;
 }
 
@@ -153,15 +153,15 @@ h1 {
 }
 
 .game-to-join-right-pane {
-    width: 96px;
+    width: 78px;
     justify-content: flex-end;
-    margin-left: 12px;
+    margin-left: 6px;
 }
 
 .game-to-join-rating-pane {
     width: 56px;
     justify-content: center;
-    margin-left: 8px;
+    margin-left: 12px;
 }
 
 .game-to-join-opponent-line {
@@ -249,7 +249,7 @@ h1 {
 }
 
 input[type=button].join-buttons {
-    width: 90px;
+    width: 68px;
     height: 34px;
     font-size: 12px;
 }
@@ -438,7 +438,7 @@ iframe {
     }
 
     .game-to-join-variant-symbol {
-        font-size: 40px;
+        font-size: 44px;
     }
 
     #games-to-join-list-container {
