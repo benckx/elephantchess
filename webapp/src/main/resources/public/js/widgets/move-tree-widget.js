@@ -1261,6 +1261,7 @@ class MoveTreeWidget {
     #resizeSaveTimeout = null;
     #lastSavedHeight = null;
     #fallbackResizeListener = null;
+    #disposalObserver = null;
 
     constructor(options) {
         // options
@@ -1318,7 +1319,7 @@ class MoveTreeWidget {
 
     #applySavedHeight() {
         const rawValue = getCookie(this.#cookieHeightName());
-        if (rawValue == null) {
+        if (rawValue === null) {
             return;
         }
 
@@ -1341,7 +1342,7 @@ class MoveTreeWidget {
 
     #setUpResizePersistence() {
         const saveHeight = () => {
-            if (this.#resizeSaveTimeout != null) {
+            if (this.#resizeSaveTimeout !== null) {
                 clearTimeout(this.#resizeSaveTimeout);
             }
 
@@ -1363,18 +1364,34 @@ class MoveTreeWidget {
             this.#mainContainer.addEventListener('touchend', this.#fallbackResizeListener);
         }
 
-        window.addEventListener('beforeunload', () => {
-            if (this.#resizeObserver != null) {
-                this.#resizeObserver.disconnect();
-            }
-            if (this.#fallbackResizeListener != null) {
-                this.#mainContainer.removeEventListener('mouseup', this.#fallbackResizeListener);
-                this.#mainContainer.removeEventListener('touchend', this.#fallbackResizeListener);
-            }
-            if (this.#resizeSaveTimeout != null) {
-                clearTimeout(this.#resizeSaveTimeout);
-            }
-        });
+        if (document.body !== null) {
+            this.#disposalObserver = new MutationObserver(() => {
+                if (!document.body.contains(this.#mainContainer)) {
+                    this.#teardownResizePersistence();
+                }
+            });
+            this.#disposalObserver.observe(document.body, {childList: true, subtree: true});
+        }
+    }
+
+    #teardownResizePersistence() {
+        if (this.#resizeObserver !== null) {
+            this.#resizeObserver.disconnect();
+            this.#resizeObserver = null;
+        }
+        if (this.#fallbackResizeListener !== null) {
+            this.#mainContainer.removeEventListener('mouseup', this.#fallbackResizeListener);
+            this.#mainContainer.removeEventListener('touchend', this.#fallbackResizeListener);
+            this.#fallbackResizeListener = null;
+        }
+        if (this.#resizeSaveTimeout !== null) {
+            clearTimeout(this.#resizeSaveTimeout);
+            this.#resizeSaveTimeout = null;
+        }
+        if (this.#disposalObserver !== null) {
+            this.#disposalObserver.disconnect();
+            this.#disposalObserver = null;
+        }
     }
 
     enableKeyboardNavigation() {
