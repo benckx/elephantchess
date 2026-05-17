@@ -20,7 +20,6 @@
 const COLOR_DELTA_FOR_ONE_LEVEL = 10;
 const HOVERING_COLOR = '#01138a';
 const MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX = 'moveTreeWidget.height';
-const MOVE_TREE_WIDGET_MIN_HEIGHT = 180;
 const MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS = 150;
 
 const BRANCHES_COLORS = [
@@ -1261,6 +1260,7 @@ class MoveTreeWidget {
     #resizeObserver = null;
     #resizeSaveTimeout = null;
     #lastSavedHeight = null;
+    #fallbackResizeListener = null;
 
     constructor(options) {
         // options
@@ -1323,12 +1323,20 @@ class MoveTreeWidget {
         }
 
         const parsed = Number.parseInt(rawValue, 10);
-        if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < MOVE_TREE_WIDGET_MIN_HEIGHT) {
+        if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < this.#minResizeHeight()) {
             return;
         }
 
         this.#mainContainer.style.height = `${parsed}px`;
         this.#lastSavedHeight = parsed;
+    }
+
+    #minResizeHeight() {
+        const parsed = Number.parseInt(window.getComputedStyle(this.#mainContainer).minHeight, 10);
+        if (Number.isFinite(parsed) && parsed > 0) {
+            return parsed;
+        }
+        return 0;
     }
 
     #setUpResizePersistence() {
@@ -1339,7 +1347,7 @@ class MoveTreeWidget {
 
             this.#resizeSaveTimeout = setTimeout(() => {
                 const height = this.#mainContainer.offsetHeight;
-                if (height >= MOVE_TREE_WIDGET_MIN_HEIGHT && height !== this.#lastSavedHeight) {
+                if (height >= this.#minResizeHeight() && height !== this.#lastSavedHeight) {
                     setCookie(this.#cookieHeightName(), height.toString(), CHROME_COOKIE_MAX_TTL);
                     this.#lastSavedHeight = height;
                 }
@@ -1350,13 +1358,18 @@ class MoveTreeWidget {
             this.#resizeObserver = new ResizeObserver(() => saveHeight());
             this.#resizeObserver.observe(this.#mainContainer);
         } else {
-            this.#mainContainer.addEventListener('mouseup', saveHeight);
-            this.#mainContainer.addEventListener('touchend', saveHeight);
+            this.#fallbackResizeListener = saveHeight;
+            this.#mainContainer.addEventListener('mouseup', this.#fallbackResizeListener);
+            this.#mainContainer.addEventListener('touchend', this.#fallbackResizeListener);
         }
 
         window.addEventListener('beforeunload', () => {
             if (this.#resizeObserver != null) {
                 this.#resizeObserver.disconnect();
+            }
+            if (this.#fallbackResizeListener != null) {
+                this.#mainContainer.removeEventListener('mouseup', this.#fallbackResizeListener);
+                this.#mainContainer.removeEventListener('touchend', this.#fallbackResizeListener);
             }
             if (this.#resizeSaveTimeout != null) {
                 clearTimeout(this.#resizeSaveTimeout);
