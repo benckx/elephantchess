@@ -72,7 +72,7 @@ class UserSettingsPage extends BasePage {
 
     #fetchProfileSettings() {
         getAndHandle(PROFILE_URL, json => {
-            this.#descriptionField.value = json.description;
+            this.#descriptionField.value = json.description ?? '';
             this.#updateDescriptionCharacterCounter();
             if (json.country != null) {
                 let countryName = getCountryName(json.country)
@@ -91,10 +91,12 @@ class UserSettingsPage extends BasePage {
         });
     }
 
-    // TODO: 'none' option selected
     #updateProfileSettings() {
         let description = this.#descriptionField.value;
         let country = this.#countryField.value;
+        if (country === 'none') {
+            country = '';
+        }
         let body = {'description': description, 'country': country};
         postAndHandle(PROFILE_URL, body, () => {
             UI.pushInfoNotification('Profile settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
