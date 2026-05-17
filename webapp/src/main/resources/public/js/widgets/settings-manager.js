@@ -196,7 +196,7 @@ function buildWebappBoardGuiOptions(overrides = {}) {
         colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
-        ...(isLocalHost ? { assetsBaseUrl: '' } : {}),
+        ...(isLocalHost ? {assetsBaseUrl: ''} : {}),
         ...overrides,
     };
 }
@@ -210,74 +210,6 @@ function buildWebappBoardGuiOptions(overrides = {}) {
  */
 function createWebappBoardGui(overrides = {}) {
     return new BoardGui(buildWebappBoardGuiOptions(overrides));
-}
-
-let moveLabelMap = new Map([
-    [MoveFormatSetting.WXF_DOT, 'WXF .'],
-    [MoveFormatSetting.WXF_EQUALS, 'WXF ='],
-    [MoveFormatSetting.PGN, 'PGN'],
-    [MoveFormatSetting.ALGEBRAIC_EN, 'Algebraic'],
-]);
-
-class SelectMoveFormatMenu extends ContextualMenu {
-
-    /**
-     * @type {BoardGui}
-     */
-    #boardGui;
-
-    /**
-     * @type {MoveTreeWidget}
-     */
-    #moveTreeWidget;
-
-    #settingsManager = new SettingsManager();
-
-    /**
-     * @type {function(string)[]}
-     */
-    #listeners = [];
-
-    /**
-     * @param boardGui {BoardGui}
-     * @param moveTreeWidget {MoveTreeWidget}
-     */
-    constructor(boardGui, moveTreeWidget) {
-        super('select-move-format-menu');
-        this.#boardGui = boardGui;
-        this.#moveTreeWidget = moveTreeWidget;
-
-        // build menu items
-        let selectedMoveFormat = this.#settingsManager.moveFormat
-        moveLabelMap.forEach((value, key) => {
-            let label = value;
-            if (selectedMoveFormat === key) {
-                label = `✓ ${value}`;
-            }
-
-            this.addSimpleItem(label, () => {
-                this.#updateMoveFormat(key);
-            });
-        });
-    }
-
-    /**
-     * @param moveFormat {string}
-     */
-    #updateMoveFormat(moveFormat) {
-        this.#settingsManager.moveFormat = moveFormat.toString();
-        this.#boardGui.updateMoveFormat(moveFormat);
-        this.#moveTreeWidget.updateMoveFormat(moveFormat);
-        this.#listeners.forEach(listener => listener(moveFormat));
-    }
-
-    /**
-     * @param listener {function(string)}
-     */
-    addListener(listener) {
-        this.#listeners.push(listener);
-    }
-
 }
 
 class SettingsGui {
@@ -301,10 +233,15 @@ class SettingsGui {
      */
     #boardGuis = [];
 
+    // base settings
     #selectPieceStyleTraditional = document.getElementById('select-piece-style-traditional');
     #selectPieceStyleRomanizedRounded = document.getElementById('select-piece-style-romanized-rounded');
+    #flipBoard = document.getElementById('flip-board-button');
+
     #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
     #advancedSettingsBox = document.getElementById('advanced-settings-box');
+
+    // advanced settings
     #advancedMoveFormatSettingItem = document.getElementById('advanced-move-format-setting-item');
     #moveFormatRadioWxfDot = document.getElementById('move-format-radio-wxf-dot');
     #moveFormatRadioWxfEquals = document.getElementById('move-format-radio-wxf-equals');
@@ -314,13 +251,12 @@ class SettingsGui {
     #showCoordinatesDisabledRadio = document.getElementById('show-coordinates-disabled-radio');
     #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
     #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
-    #flipBoard = document.getElementById('flip-board-button');
 
-    // optional
+    // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
     #showAnalyticsArrowsImg = document.getElementById('show-analytics-arrows');
 
-    // optional
+    // optional (for Analysis Board)
     #editPositionItem = document.getElementById('edit-position-item');
     #editPositionButton = document.getElementById('edit-position-button');
 
