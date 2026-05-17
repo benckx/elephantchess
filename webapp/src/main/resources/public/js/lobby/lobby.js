@@ -197,7 +197,7 @@ class LobbyPage extends BasePage {
                 )
             );
             if (entry.opponentUserType === UserType.GUEST && usernameCell.firstChild?.innerText != null) {
-                usernameCell.firstChild.innerText = usernameCell.firstChild.innerText.replace(/^guest\b\s*/i, '').trim();
+                usernameCell.firstChild.innerText = usernameCell.firstChild.innerText.replace(/^guest\s+/i, '').trim();
             }
 
             const ratingCell = document.createElement('div');
