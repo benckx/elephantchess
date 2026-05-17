@@ -21,6 +21,7 @@ const COLOR_DELTA_FOR_ONE_LEVEL = 10;
 const HOVERING_COLOR = '#01138a';
 const MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX = 'moveTreeWidget.height';
 const MOVE_TREE_WIDGET_MIN_HEIGHT = 180;
+const MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS = 150;
 
 const BRANCHES_COLORS = [
     '#01138a',
@@ -1258,6 +1259,8 @@ class MoveTreeWidget {
 
     #keyboardNavigation = true;
     #resizeObserver = null;
+    #resizeSaveTimeout = null;
+    #lastSavedHeight = null;
 
     constructor(options) {
         // options
@@ -1320,19 +1323,27 @@ class MoveTreeWidget {
         }
 
         const parsed = Number.parseInt(rawValue, 10);
-        if (!Number.isInteger(parsed) || parsed < MOVE_TREE_WIDGET_MIN_HEIGHT) {
+        if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < MOVE_TREE_WIDGET_MIN_HEIGHT) {
             return;
         }
 
         this.#mainContainer.style.height = `${parsed}px`;
+        this.#lastSavedHeight = parsed;
     }
 
     #setUpResizePersistence() {
         const saveHeight = () => {
-            const height = this.#mainContainer.offsetHeight;
-            if (height >= MOVE_TREE_WIDGET_MIN_HEIGHT) {
-                setCookie(this.#cookieHeightName(), height.toString(), CHROME_COOKIE_MAX_TTL);
+            if (this.#resizeSaveTimeout != null) {
+                clearTimeout(this.#resizeSaveTimeout);
             }
+
+            this.#resizeSaveTimeout = setTimeout(() => {
+                const height = this.#mainContainer.offsetHeight;
+                if (height >= MOVE_TREE_WIDGET_MIN_HEIGHT && height !== this.#lastSavedHeight) {
+                    setCookie(this.#cookieHeightName(), height.toString(), CHROME_COOKIE_MAX_TTL);
+                    this.#lastSavedHeight = height;
+                }
+            }, MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS);
         };
 
         if (typeof ResizeObserver !== 'undefined') {
@@ -1342,6 +1353,15 @@ class MoveTreeWidget {
             this.#mainContainer.addEventListener('mouseup', saveHeight);
             this.#mainContainer.addEventListener('touchend', saveHeight);
         }
+
+        window.addEventListener('beforeunload', () => {
+            if (this.#resizeObserver != null) {
+                this.#resizeObserver.disconnect();
+            }
+            if (this.#resizeSaveTimeout != null) {
+                clearTimeout(this.#resizeSaveTimeout);
+            }
+        });
     }
 
     enableKeyboardNavigation() {
