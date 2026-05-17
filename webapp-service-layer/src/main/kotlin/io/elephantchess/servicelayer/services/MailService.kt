@@ -238,7 +238,8 @@ class MailService(
                 SimpleValueTagResolver("username", user.handle),
                 SimpleValueTagResolver("email", user.email),
                 SimpleValueTagResolver("guest_transferred", if (guestTransferred) "yes" else "no")
-            )
+            ),
+            skipRecipientValidityCheck = true
         )
     }
 
@@ -376,7 +377,7 @@ class MailService(
         }
 
         if (!sendMailNotifications) {
-            logger.debug { "not sending e-mail '$subject' because emails are disabled" }
+            logger.info { "not sending e-mail '$subject' because emails are disabled" }
             return
         }
 
