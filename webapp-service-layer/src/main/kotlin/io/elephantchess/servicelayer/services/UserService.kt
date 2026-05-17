@@ -118,9 +118,9 @@ class UserService(
                 } else {
                     false
                 }
-            mailService.sendNewUserNotification(user, guestTransferred = guestTransferred)
-            mailService.verifyEmailAddressAsync(user.email)
+            mailService.sendNewUserNotification(user, guestTransferred)
             mailService.sendEmailConfirmation(user.email, user.emailConfirmationCode)
+            mailService.verifyEmailAddressAsync(user.email)
             ValidatedResponse.Valid(
                 SignUpResponse(
                     userId = user.id,

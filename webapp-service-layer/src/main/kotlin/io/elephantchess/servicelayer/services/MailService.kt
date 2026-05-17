@@ -229,7 +229,7 @@ class MailService(
         )
     }
 
-    suspend fun sendNewUserNotification(user: User, guestTransferred: Boolean = false) {
+    suspend fun sendNewUserNotification(user: User, guestTransferred: Boolean) {
         resolveAndSend(
             recipient = ADMIN_GMAIL_EMAIL,
             subject = "new user",
