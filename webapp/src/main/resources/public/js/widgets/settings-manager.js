@@ -352,7 +352,7 @@ class SettingsGui {
         const applyMoveFormat = (moveFormat) => {
             this.#settingsManager.moveFormat = moveFormat;
             if (this.#moveTreeWidget != null) {
-                boardGui.updateMoveFormat(moveFormat);
+                this.#boardGuis.forEach(board => board.updateMoveFormat(moveFormat));
                 this.#moveTreeWidget.updateMoveFormat(moveFormat);
                 this.#selectMoveFormatMenuListeners.forEach(listener => listener(moveFormat));
             }
@@ -391,6 +391,7 @@ class SettingsGui {
                 this.#moveFormatRadioWxfDot.checked = true;
                 break;
         }
+        applyMoveFormat(this.#settingsManager.moveFormat);
         if (this.#moveTreeWidget == null) {
             this.#advancedMoveFormatSettingItem.style.display = 'none';
         }
