@@ -148,4 +148,9 @@
         width: 34px;
         height: 34px;
     }
+
+    #user-sessions-table .session-region-column,
+    #user-sessions-table .session-city-column {
+        display: none;
+    }
 }
