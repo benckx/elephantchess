@@ -143,6 +143,7 @@ class UserSettingsPage extends BasePage {
         button.disabled = true;
         postAndHandle(RESEND_EMAIL_CONFIRMATION_URL, null, () => {
             UI.pushInfoNotification('Confirmation email sent!', UI_NOTIFICATION_TIMEOUT);
+            button.disabled = false;
         });
     }
 
