@@ -1364,15 +1364,15 @@ table.info-box-sub-table td.values {
 #settings-info-box-container #advanced-settings-box {
     display: none;
     position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    width: 100%;
+    top: calc(100% + 10px);
+    left: -5px;
+    width: calc(100% + 10px);
     z-index: 1200;
     background: #e0d2bd;
-    border: 1px solid #b7ab95;
-    border-radius: 4px;
+    border: 2px solid #393939;
+    border-radius: 6px;
     box-shadow: rgba(0, 0, 0, 0.55) 0 4px 12px;
-    padding: 8px 10px;
+    padding: 12px 19px;
     box-sizing: border-box;
 }
 
@@ -1411,7 +1411,7 @@ table.info-box-sub-table td.values {
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-description {
     color: #50483d;
-    font-size: 11px;
+    font-size: 13px;
 }
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-options {
@@ -1419,7 +1419,7 @@ table.info-box-sub-table td.values {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-    font-size: 12px;
+    font-size: 14px;
     color: #2f2f2f;
 }
 
@@ -1504,7 +1504,7 @@ table.info-box-sub-table td.values {
 
 #chat-box-typing-indicator {
     padding: 2px 8px;
-    font-size: 12px;
+    font-size: 14px;
     font-style: italic;
     color: #555;
     min-height: 0;
@@ -1787,7 +1787,6 @@ img#navigation-end {
     float: right;
     transform: rotate(180deg);
 }
-
 
 
 /* bar indicators */
