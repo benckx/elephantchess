@@ -519,7 +519,8 @@
     #settings-info-box-container #advanced-settings-box {
         bottom: 34px;
         right: 12px;
-        padding: 10px 8px;
+        min-width: 420px;
+        padding: 10px 12px;
     }
 
     #settings-info-box img#flip-board-button,
@@ -543,19 +544,25 @@
         width: 88px;
     }
 
-    #settings-info-box-container #advanced-settings-box .setting-option-item {
-        width: 88px;
-        margin-left: 12px;
-        margin-right: 12px;
+    #settings-info-box-container #advanced-settings-box .advanced-setting-row {
+        margin: 10px 0;
     }
 
-    #settings-info-box-container #advanced-settings-box img {
-        width: 68px;
+    #settings-info-box-container #advanced-settings-box .advanced-setting-title {
+        font-size: 24px;
     }
 
-    #settings-info-box-container #advanced-settings-box img#show-coordinates-button,
-    #settings-info-box-container #advanced-settings-box img#colorblind-friendly-black-pieces-button {
-        width: 55px;
+    #settings-info-box-container #advanced-settings-box .advanced-setting-description {
+        font-size: 18px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options {
+        gap: 18px;
+        font-size: 20px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=radio] {
+        transform: scale(1.8);
     }
 
     #settings-info-box .setting-option-double-item {

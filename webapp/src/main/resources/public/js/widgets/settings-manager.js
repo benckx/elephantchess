@@ -305,9 +305,15 @@ class SettingsGui {
     #selectPieceStyleRomanizedRounded = document.getElementById('select-piece-style-romanized-rounded');
     #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
     #advancedSettingsBox = document.getElementById('advanced-settings-box');
-    #moveFormat = document.getElementById('move-format-button');
-    #showCoordinates = document.getElementById('show-coordinates-button');
-    #colorblindFriendlyBlackPieces = document.getElementById('colorblind-friendly-black-pieces-button');
+    #advancedMoveFormatSettingItem = document.getElementById('advanced-move-format-setting-item');
+    #moveFormatRadioWxfDot = document.getElementById('move-format-radio-wxf-dot');
+    #moveFormatRadioWxfEquals = document.getElementById('move-format-radio-wxf-equals');
+    #moveFormatRadioPgn = document.getElementById('move-format-radio-pgn');
+    #moveFormatRadioAlgebraic = document.getElementById('move-format-radio-algebraic');
+    #showCoordinatesEnabledRadio = document.getElementById('show-coordinates-enabled-radio');
+    #showCoordinatesDisabledRadio = document.getElementById('show-coordinates-disabled-radio');
+    #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
+    #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
     #flipBoard = document.getElementById('flip-board-button');
 
     // optional
@@ -343,34 +349,89 @@ class SettingsGui {
         addToolTip(this.#selectPieceStyleRomanizedRounded, "Select 'Romanized Rounded' piece style");
 
         // move format
-        // doesn't apply to mini boards, so no need loop over all boards for this one
-        this.#moveFormat.onclick = () => {
+        const applyMoveFormat = (moveFormat) => {
+            this.#settingsManager.moveFormat = moveFormat;
             if (this.#moveTreeWidget != null) {
-                const menu = new SelectMoveFormatMenu(boardGui, moveTreeWidget);
-                this.#selectMoveFormatMenuListeners.forEach(listener => menu.addListener(listener));
-                menu.showAt(UI.cursorX, UI.cursorY);
-                DropDownMenuManager.getInstance().registerDropDownMenu(menu, [this.#moveFormat.id]);
+                boardGui.updateMoveFormat(moveFormat);
+                this.#moveTreeWidget.updateMoveFormat(moveFormat);
+                this.#selectMoveFormatMenuListeners.forEach(listener => listener(moveFormat));
             }
         }
-        addToolTip(this.#moveFormat, 'Select move format');
+        this.#moveFormatRadioWxfDot.onchange = () => {
+            if (this.#moveFormatRadioWxfDot.checked) {
+                applyMoveFormat(MoveFormatSetting.WXF_DOT);
+            }
+        }
+        this.#moveFormatRadioWxfEquals.onchange = () => {
+            if (this.#moveFormatRadioWxfEquals.checked) {
+                applyMoveFormat(MoveFormatSetting.WXF_EQUALS);
+            }
+        }
+        this.#moveFormatRadioPgn.onchange = () => {
+            if (this.#moveFormatRadioPgn.checked) {
+                applyMoveFormat(MoveFormatSetting.PGN);
+            }
+        }
+        this.#moveFormatRadioAlgebraic.onchange = () => {
+            if (this.#moveFormatRadioAlgebraic.checked) {
+                applyMoveFormat(MoveFormatSetting.ALGEBRAIC_EN);
+            }
+        }
+        switch (this.#settingsManager.moveFormat) {
+            case MoveFormatSetting.WXF_EQUALS:
+                this.#moveFormatRadioWxfEquals.checked = true;
+                break;
+            case MoveFormatSetting.PGN:
+                this.#moveFormatRadioPgn.checked = true;
+                break;
+            case MoveFormatSetting.ALGEBRAIC_EN:
+                this.#moveFormatRadioAlgebraic.checked = true;
+                break;
+            default:
+                this.#moveFormatRadioWxfDot.checked = true;
+                break;
+        }
         if (this.#moveTreeWidget == null) {
-            // .setting-option-item
-            this.#moveFormat.parentElement.parentElement.style.display = 'none';
+            this.#advancedMoveFormatSettingItem.style.display = 'none';
         }
 
         // show coordinates
-        this.#showCoordinates.onclick = () => {
-            this.#settingsManager.isShowCoordinatesEnabled = boardGui.toggleShowCoordinates();
+        const updateShowCoordinatesRadios = (enabled) => {
+            this.#showCoordinatesEnabledRadio.checked = enabled;
+            this.#showCoordinatesDisabledRadio.checked = !enabled;
         }
-        addToolTip(this.#showCoordinates, 'Show or hide board coordinates');
+        updateShowCoordinatesRadios(this.#settingsManager.isShowCoordinatesEnabled);
+        this.#showCoordinatesEnabledRadio.onchange = () => {
+            if (this.#showCoordinatesEnabledRadio.checked && !this.#settingsManager.isShowCoordinatesEnabled) {
+                this.#boardGuis.forEach(board => board.toggleShowCoordinates());
+                this.#settingsManager.isShowCoordinatesEnabled = true;
+            }
+        }
+        this.#showCoordinatesDisabledRadio.onchange = () => {
+            if (this.#showCoordinatesDisabledRadio.checked && this.#settingsManager.isShowCoordinatesEnabled) {
+                this.#boardGuis.forEach(board => board.toggleShowCoordinates());
+                this.#settingsManager.isShowCoordinatesEnabled = false;
+            }
+        }
 
         // colorblind-friendly black pieces
-        this.#colorblindFriendlyBlackPieces.onclick = () => {
-            const enabled = !this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled;
-            this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = enabled;
-            this.#boardGuis.forEach(boardGui => boardGui.setColorblindFriendlyBlackPiecesEnabled(enabled));
+        const updateColorblindRadios = (enabled) => {
+            this.#colorblindFriendlyBlackPiecesEnabledRadio.checked = enabled;
+            this.#colorblindFriendlyBlackPiecesDisabledRadio.checked = !enabled;
         }
-        addToolTip(this.#colorblindFriendlyBlackPieces, 'Invert black pieces for colorblind accessibility');
+        updateColorblindRadios(this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled);
+        this.#colorblindFriendlyBlackPiecesEnabledRadio.onchange = () => {
+            if (this.#colorblindFriendlyBlackPiecesEnabledRadio.checked) {
+                this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = true;
+                this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(true));
+            }
+        }
+        this.#colorblindFriendlyBlackPiecesDisabledRadio.onchange = () => {
+            if (this.#colorblindFriendlyBlackPiecesDisabledRadio.checked) {
+                this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = false;
+                this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(false));
+            }
+        }
 
         // advanced settings
         this.#advancedSettingsToggle.onclick = (e) => {

@@ -1366,39 +1366,60 @@ table.info-box-sub-table td.values {
     bottom: 30px;
     right: 6px;
     z-index: 1200;
-    background: #4b4b4b;
-    border: 1px solid #868686;
+    min-width: 310px;
+    background: #e0d2bd;
+    border: 1px solid #b7ab95;
     border-radius: 4px;
     box-shadow: rgba(0, 0, 0, 0.55) 0 4px 12px;
-    padding: 8px 6px;
+    padding: 8px 10px;
 }
 
 #settings-info-box-container #advanced-settings-box.advanced-settings-box-open {
+    display: block;
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 6px 0;
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-text {
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-title {
+    color: #3b3b3b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-description {
+    color: #50483d;
+    font-size: 11px;
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-options {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    color: #2f2f2f;
 }
 
-#settings-info-box-container #advanced-settings-box .setting-option-item {
-    display: flex;
+#settings-info-box-container #advanced-settings-box .advanced-setting-options label {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 44px;
-    margin-left: 6px;
-    margin-right: 6px;
+    gap: 4px;
+    cursor: pointer;
 }
 
-#settings-info-box-container #advanced-settings-box img {
-    width: 32px;
-}
-
-#settings-info-box-container #advanced-settings-box img#show-coordinates-button,
-#settings-info-box-container #advanced-settings-box img#colorblind-friendly-black-pieces-button {
-    width: 24px;
-}
-
-#settings-info-box-container #advanced-settings-box img#move-format-button {
-    width: 30px;
+#settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=radio] {
+    cursor: pointer;
 }
 
 #settings-info-box #show-analytics-arrows-item {
