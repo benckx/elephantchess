@@ -1294,11 +1294,11 @@ class BoardGui {
      * @param position {Position}
      */
     #drawPieceAt(pieceChar, position) {
-        let square = document.getElementById(this.#positionToElementId('square', position));
-        let img = document.createElement('img');
+        const square = document.getElementById(this.#positionToElementId('square', position));
+        const img = document.createElement('img');
         img.id = this.#positionToElementId('image', position);
         img.className = 'piece-image';
-        if (pieceChar >= 'a' && pieceChar <= 'z') {
+        if (isBlackPiece(pieceChar)) {
             img.classList.add('piece-image-black');
         }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
