@@ -1242,7 +1242,7 @@ class BoardGui {
 
                 for (let x = 0; x < BOARD_WIDTH; x++) {
                     // actual text
-                    let label;
+                    let label = '';
                     if (this.#flippedRed) {
                         // top row: file 1 is on the right (black perspective)
                         label = topChinese ? CHINESE_FILE_DIGITS[x] : (x + 1).toString();
@@ -1269,7 +1269,7 @@ class BoardGui {
             const bottomChinese = isChineseOnSide(bottomSide);
             for (let x = 0; x < BOARD_WIDTH; x++) {
                 // actual text
-                let label;
+                let label = '';
                 if (isWfxOriented) {
                     if (this.#flippedRed) {
                         // bottom row: file 1 is on the left (red perspective)
