@@ -17,13 +17,20 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.anchor-copy-link').forEach((el) => {
-        el.addEventListener('click', () => {
-            const target = el.dataset.anchorTarget;
-            if (!target) return;
-            const link = `${getFullHost()}${window.location.pathname}#${target}`;
-            copyTextToClipboardAndNotify(link, 'Link copied to clipboard!');
+class ChangelogPage extends BasePage {
+
+    constructor() {
+        super();
+        document.querySelectorAll('.anchor-copy-link').forEach((el) => {
+            el.addEventListener('click', () => {
+                const target = el.dataset.anchorTarget;
+                if (!target) return;
+                const link = `${getFullHost()}${window.location.pathname}#${target}`;
+                copyTextToClipboardAndNotify(link, 'Link copied to clipboard!');
+            });
         });
-    });
-});
+    }
+
+}
+
+window.onload = () => new ChangelogPage();
