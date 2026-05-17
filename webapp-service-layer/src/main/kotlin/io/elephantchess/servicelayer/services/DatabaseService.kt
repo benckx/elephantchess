@@ -509,6 +509,7 @@ class DatabaseService(
             date = record.date,
             outcome = record.outcome,
             finalFen = record.finalFen,
+            analysisStatus = record.analysisStatus,
         )
     }
 

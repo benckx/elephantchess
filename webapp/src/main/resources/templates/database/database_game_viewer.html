@@ -9,14 +9,7 @@
     <script defer src="/js/database/database-player-utils.js"></script>
     <script defer src="/js/database/database-game-viewer.js"></script>
 </head>
-<body data-game-id="{{game_id_attr}}"
-      data-orientation="{{game_orientation}}"
-      data-final-fen="{{game_final_fen}}"
-      data-pgn-red-player="{{pgn_red_player}}"
-      data-pgn-black-player="{{pgn_black_player}}"
-      data-pgn-event="{{pgn_event}}"
-      data-pgn-date="{{pgn_date}}"
-      data-pgn-result="{{pgn_result}}">
+<body{{body_data_attrs}}>
 {{body_init}}
 <div class="flex-triptych-container">
     <div class="flex-triptych-left-container">

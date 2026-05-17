@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.dto.database
 
+import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.Outcome
 import java.time.LocalDate
 
@@ -19,4 +20,5 @@ data class DatabaseGameSummary(
     val date: LocalDate?,
     val outcome: Outcome?,
     val finalFen: String?,
+    val analysisStatus: AnalysisStatus?,
 )
