@@ -159,6 +159,10 @@ class LobbyPage extends BasePage {
             rightPane.className = 'game-to-join-right-pane';
             item.append(rightPane);
 
+            const ratingPane = document.createElement('div');
+            ratingPane.className = 'game-to-join-rating-pane';
+            item.append(ratingPane);
+
             const opponentLine = document.createElement('div');
             opponentLine.className = 'game-to-join-opponent-line';
             middlePane.append(opponentLine);
@@ -231,7 +235,7 @@ class LobbyPage extends BasePage {
             // rating mode
             const ratingModeCell = document.createElement('div');
             ratingModeCell.className = 'game-to-join-rating-mode-cell';
-            rightPane.append(ratingModeCell);
+            ratingPane.append(ratingModeCell);
 
             const ratingModeIcon = document.createElement('img');
             ratingModeIcon.className = 'game-to-join-rating-mode-icon';
