@@ -251,7 +251,10 @@ class MailService(
                 EmailConfirmationLinkTagResolver(webHost, code)
             ),
             // we can disable this later but I'd like to see the first ones
-            copyToAdmin = true
+            copyToAdmin = true,
+            // The whole point of this email is to flip the recipient's status to MANUALLY_CONFIRMED,
+            // so we must not gate it on the address already being known-valid (it never is at signup).
+            skipRecipientValidityCheck = true,
         )
     }
 
@@ -360,6 +363,7 @@ class MailService(
         templateName: String,
         resolvers: List<TagResolver> = listOf(),
         copyToAdmin: Boolean = false,
+        skipRecipientValidityCheck: Boolean = false,
     ) {
         fun sendSafeAsync(email: Email) {
             mailScope.launch {
@@ -376,7 +380,7 @@ class MailService(
             return
         }
 
-        if (!isEmailAddressValid(recipient)) {
+        if (!skipRecipientValidityCheck && !isEmailAddressValid(recipient)) {
             logger.debug { "not sending e-mail '$subject' because recipient $recipient is not valid" }
             return
         }
