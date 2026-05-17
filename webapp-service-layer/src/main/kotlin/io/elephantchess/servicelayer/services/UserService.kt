@@ -28,6 +28,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
 import java.time.LocalDate
+import java.util.UUID
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import kotlin.time.Clock
@@ -108,7 +109,7 @@ class UserService(
             user.lastOnline = now
             user.userType = UserType.AUTHENTICATED
             user.puzzleRating = PUZZLE_START_RATING
-            user.emailConfirmationCode = randomAlphanumeric(EMAIL_CONFIRMATION_CODE_LENGTH)
+            user.emailConfirmationCode = UUID.randomUUID().toString()
             userDaoService.save(user)
             val guestTransferred =
                 if (guestUserId != null) {
@@ -311,9 +312,6 @@ class UserService(
         }
     }
 
-    suspend fun fetchDescriptionByUserName(username: String) =
-        userDaoService.fetchDescriptionByUsername(username)
-
     suspend fun updateProfileSettings(userId: String, request: ProfileSettingsDto) {
         // max 2 consecutive line breaks
         fun removeSuperfluousLineBreaks(input: String): String {
@@ -502,8 +500,6 @@ class UserService(
         const val PUZZLE_START_RATING = 800
 
         const val MAX_DESCRIPTION_LENGTH = 1_000
-
-        const val EMAIL_CONFIRMATION_CODE_LENGTH = 64
 
         private val EMAIL_REGEX = "^[A-Za-z0-9][^\\s]*@[^\\s]+\\.[^\\s]+$".toRegex()
 
