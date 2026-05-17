@@ -64,19 +64,6 @@ class MailService(
     }
 
     /**
-     * Tri-state validity status for the given email address (true / false / null = unknown).
-     *
-     * See [getEmailValidityDetails] for the full status (including how the email got validated).
-     */
-    suspend fun getEmailValidityStatus(email: String): Boolean? {
-        return when (getEmailValidityDetails(email)) {
-            EmailValidityStatus.MANUALLY_CONFIRMED, EmailValidityStatus.AUTOMATED_VALID -> true
-            EmailValidityStatus.AUTOMATED_BOUNCED, EmailValidityStatus.AUTOMATED_INVALID -> false
-            EmailValidityStatus.UNKNOWN -> null
-        }
-    }
-
-    /**
      * Returns the full [EmailValidityStatus] for the given email.
      *
      * The check is layered: if a user owns this address and has clicked the confirmation
