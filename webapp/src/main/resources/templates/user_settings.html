@@ -64,22 +64,24 @@
     </div>
     <h1>Latest Sessions</h1>
     <hr/>
-    <table id="user-sessions-table" class="nice-table nice-table-striped nice-table-hover">
-        <thead>
-        <tr>
-            <th class="label-cell">os</th>
-            <th class="label-cell">agent</th>
-            <th class="label-cell">country</th>
-            <th class="label-cell">region</th>
-            <th class="label-cell">city</th>
-            <th class="label-cell">IP</th>
-            <th class="label-cell">created</th>
-            <th class="label-cell">updated</th>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    <div id="user-sessions-table-container">
+        <table id="user-sessions-table" class="nice-table nice-table-striped nice-table-hover">
+            <thead>
+            <tr>
+                <th class="label-cell">os</th>
+                <th class="label-cell">agent</th>
+                <th class="label-cell">country</th>
+                <th class="label-cell">region</th>
+                <th class="label-cell">city</th>
+                <th class="label-cell">IP</th>
+                <th class="label-cell">created</th>
+                <th class="label-cell">updated</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
     <p id="user-sessions-empty-message" class="hidden">No sessions found.</p>
     <a id="all-sessions-link" class="hidden" href="/user/settings/sessions">See all sessions</a>
 </div>
