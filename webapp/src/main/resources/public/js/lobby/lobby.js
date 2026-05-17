@@ -35,6 +35,11 @@ function makeAppButton(id, value) {
     return button;
 }
 
+const RATING_MODE_ICONS = {
+    rated: '/images/icons/trophy-icon-smaller.png',
+    casual: '/images/icons/handshake1.png',
+};
+
 class LobbyPage extends BasePage {
 
     #client = new LobbyClient();
@@ -225,15 +230,21 @@ class LobbyPage extends BasePage {
 
             // rating mode
             const ratingModeCell = document.createElement('div');
-            ratingModeCell.className = 'game-to-join-metadata-item rating-mode-cell';
-            metadataLine.append(ratingModeCell);
+            ratingModeCell.className = 'game-to-join-rating-mode-cell';
+            rightPane.append(ratingModeCell);
+
+            const ratingModeIcon = document.createElement('img');
+            ratingModeIcon.className = 'game-to-join-rating-mode-icon';
+            ratingModeCell.append(ratingModeIcon);
 
             const ratingModeSpan = document.createElement('span');
             ratingModeCell.append(ratingModeSpan);
             if (entry.isRated) {
                 ratingModeSpan.innerText = 'Rated';
+                ratingModeIcon.src = RATING_MODE_ICONS.rated;
             } else {
                 ratingModeSpan.innerText = 'Casual';
+                ratingModeIcon.src = RATING_MODE_ICONS.casual;
             }
 
             // join button
