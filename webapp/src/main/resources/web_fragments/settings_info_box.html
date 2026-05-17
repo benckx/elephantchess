@@ -132,34 +132,41 @@
         <div class="advanced-setting-row">
             <img class="advanced-setting-icon"
                  src="/images/icons/coordinates2.png"
-                 alt="File numbers style setting icon"
+                 alt="Coordinates style setting icon"
                  loading="lazy">
             <div class="advanced-setting-content">
                 <div class="advanced-setting-text">
-                    <div class="advanced-setting-title">File numbers</div>
-                    <div class="advanced-setting-description">Numeral system used for file labels in WXF mode.</div>
+                    <div class="advanced-setting-title">Coordinates</div>
+                    <div class="advanced-setting-description">Numeral system used for board coordinates.</div>
                 </div>
                 <div class="advanced-setting-options">
                     <label>
                         <input type="radio"
-                               name="file-numbers-style-setting"
-                               id="file-numbers-style-arabic-both-radio"
-                               value="ARABIC_BOTH">
+                               name="coordinates-style-setting"
+                               id="coordinates-style-wxf-arabic-radio"
+                               value="WXF_ARABIC">
                         Arabic on both sides
                     </label>
                     <label>
                         <input type="radio"
-                               name="file-numbers-style-setting"
-                               id="file-numbers-style-chinese-both-radio"
-                               value="CHINESE_BOTH">
+                               name="coordinates-style-setting"
+                               id="coordinates-style-wxf-chinese-radio"
+                               value="WXF_CHINESE">
                         Chinese on both sides
                     </label>
                     <label>
                         <input type="radio"
-                               name="file-numbers-style-setting"
-                               id="file-numbers-style-chinese-red-only-radio"
-                               value="CHINESE_RED_ONLY">
+                               name="coordinates-style-setting"
+                               id="coordinates-style-wxf-chinese-red-only-radio"
+                               value="WXF_CHINESE_RED_ONLY">
                         Chinese on red side only
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="coordinates-style-setting"
+                               id="coordinates-style-uci-radio"
+                               value="UCI">
+                        UCI / Algebraic (a–i)
                     </label>
                 </div>
             </div>

@@ -23,7 +23,23 @@ const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.bl
 const MOVE_FORMAT_SETTING = 'setting.move.format';
 const MOVE_NODE_EVAL_FORMAT = 'setting.move.node.eval.format';
 const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
-const FILE_NUMBERS_STYLE_SETTING = 'setting.file.numbers.style';
+const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
+
+/**
+ * User-facing style of the board coordinate labels. Combines the WXF/UCI
+ * orientation and (for WXF) the numeral system used for file labels.
+ */
+const CoordinatesStyle = Object.freeze({
+    /** WXF: Arabic numerals (1..9) on both sides. */
+    WXF_ARABIC: 'WXF_ARABIC',
+    /** WXF: Chinese numerals (一..九) on both sides. */
+    WXF_CHINESE: 'WXF_CHINESE',
+    /** WXF: Chinese numerals on red's side; Arabic on black's side. */
+    WXF_CHINESE_RED_ONLY: 'WXF_CHINESE_RED_ONLY',
+    /** UCI / Algebraic: letters a..i for files and 1..10 for ranks. */
+    UCI: 'UCI',
+    DEFAULT: 'WXF_CHINESE_RED_ONLY',
+});
 
 const MoveFormatSetting = Object.freeze({
     WXF_DOT: 'WXF_DOT',
@@ -160,25 +176,25 @@ class SettingsManager {
     }
 
     /**
-     * @return {string}
+     * @return {string} one of {@link CoordinatesStyle}
      */
-    get fileNumbersStyle() {
-        const cookieValue = getCookie(FILE_NUMBERS_STYLE_SETTING);
-        if (cookieValue === null) {
-            return FileNumbersStyle.DEFAULT;
-        }
-        // guard against stale/invalid cookie values
-        if (Object.values(FileNumbersStyle).includes(cookieValue)) {
+    get coordinatesStyle() {
+        const cookieValue = getCookie(COORDINATES_STYLE_SETTING);
+        if (cookieValue !== null && Object.values(CoordinatesStyle).includes(cookieValue)) {
             return cookieValue;
         }
-        return FileNumbersStyle.DEFAULT;
+        // backward-compat default: tie to the move format chosen by the user
+        // (PGN/Algebraic users get UCI letters; WXF users get the default WXF flavour)
+        const isWxfMoveFormat = this.moveFormat === MoveFormatSetting.WXF_DOT
+            || this.moveFormat === MoveFormatSetting.WXF_EQUALS;
+        return isWxfMoveFormat ? CoordinatesStyle.DEFAULT : CoordinatesStyle.UCI;
     }
 
     /**
      * @param value {string}
      */
-    set fileNumbersStyle(value) {
-        setCookie(FILE_NUMBERS_STYLE_SETTING, value, CHROME_COOKIE_MAX_TTL);
+    set coordinatesStyle(value) {
+        setCookie(COORDINATES_STYLE_SETTING, value, CHROME_COOKIE_MAX_TTL);
     }
 
     /**
@@ -191,9 +207,28 @@ class SettingsManager {
         if (!this.isShowCoordinatesEnabled) {
             return null;
         }
-        const isWxf = this.moveFormat === MoveFormatSetting.WXF_DOT
-            || this.moveFormat === MoveFormatSetting.WXF_EQUALS;
-        return isWxf ? CoordinatesOrientation.WXF : CoordinatesOrientation.UCI;
+        return this.coordinatesStyle === CoordinatesStyle.UCI
+            ? CoordinatesOrientation.UCI
+            : CoordinatesOrientation.WXF;
+    }
+
+    /**
+     * Resolves the user's preference into a {@link FileNumbersStyle} value
+     * (only meaningful when the orientation is WXF).
+     *
+     * @return {string}
+     */
+    getFileNumbersStyle() {
+        switch (this.coordinatesStyle) {
+            case CoordinatesStyle.WXF_ARABIC:
+                return FileNumbersStyle.ARABIC_BOTH;
+            case CoordinatesStyle.WXF_CHINESE:
+                return FileNumbersStyle.CHINESE_BOTH;
+            case CoordinatesStyle.WXF_CHINESE_RED_ONLY:
+                return FileNumbersStyle.CHINESE_RED_ONLY;
+            default:
+                return FileNumbersStyle.DEFAULT;
+        }
     }
 
 }
@@ -217,7 +252,7 @@ function buildWebappBoardGuiOptions(overrides = {}) {
         coordinatesOrientation: settingsManager.getCoordinatesOrientation(),
         pieceStyle: settingsManager.pieceStyle,
         colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
-        fileNumbersStyle: settingsManager.fileNumbersStyle,
+        fileNumbersStyle: settingsManager.getFileNumbersStyle(),
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
         ...(isLocalHost ? {assetsBaseUrl: ''} : {}),
@@ -275,9 +310,10 @@ class SettingsGui {
     #showCoordinatesDisabledRadio = document.getElementById('show-coordinates-disabled-radio');
     #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
     #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
-    #fileNumbersStyleArabicBothRadio = document.getElementById('file-numbers-style-arabic-both-radio');
-    #fileNumbersStyleChineseBothRadio = document.getElementById('file-numbers-style-chinese-both-radio');
-    #fileNumbersStyleChineseRedOnlyRadio = document.getElementById('file-numbers-style-chinese-red-only-radio');
+    #coordinatesStyleWxfArabicRadio = document.getElementById('coordinates-style-wxf-arabic-radio');
+    #coordinatesStyleWxfChineseRadio = document.getElementById('coordinates-style-wxf-chinese-radio');
+    #coordinatesStyleWxfChineseRedOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-red-only-radio');
+    #coordinatesStyleUciRadio = document.getElementById('coordinates-style-uci-radio');
 
     // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
@@ -402,24 +438,30 @@ class SettingsGui {
             }
         }
 
-        // file numbers style
-        const fileNumbersStyleRadios = {
-            [FileNumbersStyle.ARABIC_BOTH]: this.#fileNumbersStyleArabicBothRadio,
-            [FileNumbersStyle.CHINESE_BOTH]: this.#fileNumbersStyleChineseBothRadio,
-            [FileNumbersStyle.CHINESE_RED_ONLY]: this.#fileNumbersStyleChineseRedOnlyRadio,
+        // coordinates style (WXF flavours + UCI/Algebraic letters)
+        const coordinatesStyleRadios = {
+            [CoordinatesStyle.WXF_ARABIC]: this.#coordinatesStyleWxfArabicRadio,
+            [CoordinatesStyle.WXF_CHINESE]: this.#coordinatesStyleWxfChineseRadio,
+            [CoordinatesStyle.WXF_CHINESE_RED_ONLY]: this.#coordinatesStyleWxfChineseRedOnlyRadio,
+            [CoordinatesStyle.UCI]: this.#coordinatesStyleUciRadio,
         };
-        const applyFileNumbersStyle = (style) => {
-            this.#settingsManager.fileNumbersStyle = style;
-            this.#boardGuis.forEach(board => board.setFileNumbersStyle(style));
+        const applyCoordinatesStyle = (style) => {
+            this.#settingsManager.coordinatesStyle = style;
+            const orientation = this.#settingsManager.getCoordinatesOrientation();
+            const fileNumbersStyle = this.#settingsManager.getFileNumbersStyle();
+            this.#boardGuis.forEach(board => {
+                board.setCoordinatesOrientation(orientation);
+                board.setFileNumbersStyle(fileNumbersStyle);
+            });
         };
-        const currentStyle = fileNumbersStyleRadios[this.#settingsManager.fileNumbersStyle]
-            ? this.#settingsManager.fileNumbersStyle
-            : FileNumbersStyle.DEFAULT;
-        fileNumbersStyleRadios[currentStyle].checked = true;
-        Object.entries(fileNumbersStyleRadios).forEach(([style, radio]) => {
+        const currentCoordinatesStyle = coordinatesStyleRadios[this.#settingsManager.coordinatesStyle]
+            ? this.#settingsManager.coordinatesStyle
+            : CoordinatesStyle.DEFAULT;
+        coordinatesStyleRadios[currentCoordinatesStyle].checked = true;
+        Object.entries(coordinatesStyleRadios).forEach(([style, radio]) => {
             radio.onchange = () => {
                 if (radio.checked) {
-                    applyFileNumbersStyle(style);
+                    applyCoordinatesStyle(style);
                 }
             };
         });

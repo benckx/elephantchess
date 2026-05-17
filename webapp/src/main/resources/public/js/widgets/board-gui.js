@@ -1626,14 +1626,29 @@ class BoardGui {
             return;
         }
         this.#options = Object.freeze({...this.#options, fileNumbersStyle});
-        this.#redrawFileCoordinates();
+        this.#redrawCoordinates();
     }
 
-    #redrawFileCoordinates() {
-        // remove existing file-coordinate labels (top and bottom rows); rank
-        // coordinates are not affected by this setting.
+    /**
+     * Change the orientation (WXF numerals vs UCI letters) of the board coordinates.
+     *
+     * @param coordinatesOrientation {string|null} one of {@link CoordinatesOrientation} or
+     *                                             `null` to keep the labels hidden
+     */
+    setCoordinatesOrientation(coordinatesOrientation) {
+        if (this.#options.coordinatesOrientation === coordinatesOrientation) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, coordinatesOrientation});
+        this.#redrawCoordinates();
+    }
+
+    #redrawCoordinates() {
+        // remove existing file-coordinate (top + bottom) and right-side rank labels
+        // (rank labels only exist in UCI mode but the selector is harmless if absent)
         document.querySelectorAll(`#${this.#options.elementId} .file-coordinates-top,
-                                   #${this.#options.elementId} .file-coordinates-bottom`)
+                                   #${this.#options.elementId} .file-coordinates-bottom,
+                                   #${this.#options.elementId} .rows-coordinates-right`)
             .forEach(el => el.remove());
         this.#drawCoordinates();
     }
