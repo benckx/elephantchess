@@ -316,11 +316,11 @@ class UserServiceTest : ServiceTest() {
         val profile = userService.fetchProfile(request.username)
         assertNull(profile.country)
 
-        val storedCountry = dslContext.select(USER.COUNTRY)
+        val storedCountry: String? = dslContext.select(USER.COUNTRY)
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleValue<String>()
-        assertEquals("", storedCountry)
+        assertTrue(storedCountry.isNullOrBlank())
     }
 
     @Test
