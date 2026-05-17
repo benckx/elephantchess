@@ -519,6 +519,11 @@ class SettingsGui {
             e.preventDefault();
             closeAdvancedSettings();
         };
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && this.#advancedSettingsBox.classList.contains('advanced-settings-box-open')) {
+                closeAdvancedSettings();
+            }
+        });
         if (!showAdvancedSettingsLink) {
             this.#advancedSettingsToggle.style.display = 'none';
             this.#advancedSettingsBox.style.display = 'none';
@@ -527,11 +532,6 @@ class SettingsGui {
                 const isInsideAdvancedBox = this.#advancedSettingsBox.contains(event.target);
                 const isAdvancedToggle = this.#advancedSettingsToggle.contains(event.target);
                 if (!isInsideAdvancedBox && !isAdvancedToggle) {
-                    closeAdvancedSettings();
-                }
-            });
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && this.#advancedSettingsBox.classList.contains('advanced-settings-box-open')) {
                     closeAdvancedSettings();
                 }
             });
