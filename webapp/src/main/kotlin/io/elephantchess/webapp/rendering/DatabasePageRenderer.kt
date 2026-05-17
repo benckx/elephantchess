@@ -269,25 +269,39 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         val title = "$redDisplay vs. $blackDisplay"
 
+        val outcomeText = when (summary.outcome) {
+            Outcome.RED_WINS -> "$redDisplay won (red)"
+            Outcome.BLACK_WINS -> "$blackDisplay won (black)"
+            Outcome.DRAW -> "the game ended in a draw"
+            null -> null
+        }
+
         val description = buildString {
             append("Chinese chess (Xiangqi) game between $redDisplay (red) and $blackDisplay (black)")
             if (!summary.eventName.isNullOrBlank()) append(" at ${summary.eventName}")
             summary.date?.let { append(", played on $it") }
             append(".")
+            outcomeText?.let { append(" Outcome: $it.") }
         }
 
-        fun playerLink(canonicalName: String?, displayName: String): String {
+        fun playerLink(canonicalName: String?, displayName: String, colorClass: String): String {
+            val escapedName = escapeHtml(displayName)
             return if (canonicalName.isNullOrBlank()) {
-                escapeHtml(displayName)
+                """<span class="$colorClass">$escapedName</span>"""
             } else {
                 val urlName = canonicalName.replace(" ", "_").encodeURLPath()
-                """<a href="/database/player/$urlName">${escapeHtml(displayName)}</a>"""
+                """<a class="$colorClass" href="/database/player/$urlName">$escapedName</a>"""
             }
         }
 
+        val winnerStar =
+            """<img alt="winner" class="winner-icon" src="/images/icons/blue-star-small.png">"""
+        val redWinnerSuffix = if (summary.outcome == Outcome.RED_WINS) " $winnerStar" else ""
+        val blackWinnerSuffix = if (summary.outcome == Outcome.BLACK_WINS) " $winnerStar" else ""
+
         val playersInfoHtml = buildString {
-            append("""<div class="player red">${playerLink(redCanonical, redDisplay)}</div>""")
-            append("""<div class="player black">${playerLink(blackCanonical, blackDisplay)}</div>""")
+            append("""<div>${playerLink(redCanonical, redDisplay, "red-color")}$redWinnerSuffix</div>""")
+            append("""<div>${playerLink(blackCanonical, blackDisplay, "black-color")}$blackWinnerSuffix</div>""")
         }
 
         val dateInfoHtml = summary.date?.toString() ?: ""
@@ -302,22 +316,12 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             }
         } ?: ""
 
-        val statusInfoHtml = when (summary.outcome) {
-            Outcome.RED_WINS ->
-                if (!redCanonical.isNullOrBlank()) "${escapeHtml(redDisplay)} victory (Red)" else "Red wins"
-            Outcome.BLACK_WINS ->
-                if (!blackCanonical.isNullOrBlank()) "${escapeHtml(blackDisplay)} victory (Black)" else "Black wins"
-            Outcome.DRAW -> "Draw"
-            null -> "--"
-        }
-
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_game_viewer.html",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("page_title", title),
                 SimpleValueTagResolver("description_meta", descriptionMeta(description)),
                 SimpleValueTagResolver("players_info", playersInfoHtml),
-                SimpleValueTagResolver("game_status_info", statusInfoHtml),
                 SimpleValueTagResolver("game_date_info", dateInfoHtml),
                 SimpleValueTagResolver("game_event_info", eventInfoHtml),
             ),
