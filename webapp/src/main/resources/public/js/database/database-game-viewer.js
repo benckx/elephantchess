@@ -17,6 +17,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+const ANALYZE_BUTTON_TOOLTIP_ENABLED = 'You can analyse the game with the Analysis Board tool';
+const ANALYZE_BUTTON_TOOLTIP_DISABLED = 'Games without moves cannot be analyzed.';
+
 class DatabaseGameViewerPage extends BasePage {
 
     /**
@@ -30,6 +33,10 @@ class DatabaseGameViewerPage extends BasePage {
      * @type {MoveTreeWidget}
      */
     #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+    #analyzeButtons = [
+        document.getElementById('analyze-button-left-side'),
+        document.getElementById('analyze-button-right-side')
+    ];
 
     constructor() {
         super();
@@ -77,22 +84,37 @@ class DatabaseGameViewerPage extends BasePage {
             this.#boardGui.flipToColor(orientationParam);
         }
 
-        ['analyze-button-left-side', 'analyze-button-right-side']
-            .forEach((id) => {
-                document.getElementById(id)
-                    .addEventListener('click', () => {
-                        window.open(gameId.analysisUrl, '_self');
-                    });
+        this.#analyzeButtons.forEach((button) => {
+            button.addEventListener('click', (e) => {
+                if (isAppButtonEnabled(e)) {
+                    window.open(gameId.analysisUrl, '_self');
+                }
             });
+        });
+
+        this.#setAnalyzeButtonsEnabled(false);
 
         this.#gameDataClient.fetchMoves(moves => {
             this.#moveTreeWidget.setMoves(moves);
+            this.#setAnalyzeButtonsEnabled(moves.length > 0);
             renderAnalysisSummaryReportGeneric(
                 gameId,
                 this.#moveTreeWidget.getMainBranchNodes(),
                 DEFAULT_START_FEN,
                 this.#moveTreeWidget
             );
+        });
+    }
+
+    #setAnalyzeButtonsEnabled(value) {
+        this.#analyzeButtons.forEach((button) => {
+            if (value) {
+                enableAppButton(button);
+                addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
+            } else {
+                disableAppButton(button);
+                addToolTip(button, ANALYZE_BUTTON_TOOLTIP_DISABLED);
+            }
         });
     }
 

@@ -204,6 +204,7 @@ class PlayGamePage extends BasePage {
                     }
 
                     this.#renderAnalysisSummaryReportIfAvailable();
+                    this.#updateButtonsEnabled();
                 },
                 (chatMessages, acks) => {
                     this.#handleChatMessages(chatMessages, acks);
@@ -633,7 +634,11 @@ class PlayGamePage extends BasePage {
             this.#showGameActionButtonsBlock(false);
         }
 
-        if (this.#gameController.isGameFinished()) {
+        const canAnalyze =
+            this.#gameController.isGameFinished() &&
+            this.#moveTreeWidget.getMainBranchNodes().length > 0;
+
+        if (canAnalyze) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
             });

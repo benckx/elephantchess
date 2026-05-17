@@ -560,13 +560,19 @@ class AnalysisBoardPage extends BasePage {
     }
 
     #saveAnalysis() {
+        const serializedNodes = this.#moveTreeWidget.serializeToDtos();
+        if (serializedNodes.length === 0) {
+            UI.pushErrorNotification('Analysis must contain at least one move', ANALYSIS_NOTIFICATION_TIMEOUT);
+            return;
+        }
+
         this.#saveAnalysisButton.classList.add('app-buttons-disabled');
 
         this.#client.saveAnalysis(
             this.#analysisId,
             this.#analysisNameField.value,
             this.#gameMetadata?.gameId,
-            this.#moveTreeWidget.serializeToDtos(),
+            serializedNodes,
             this.#moveTreeWidget.selectedNode?.nodeId,
             this.#moveTreeWidget.listOpenBranchIds(),
             this.#analysisCache.serializeToDtos(),
