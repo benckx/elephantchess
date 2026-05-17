@@ -471,6 +471,12 @@ span.sub-text a, span.sub-text a:visited {
     background-color: #b2d7f6;
 }
 
+.drop-down-menu-item-link,
+.drop-down-menu-item-link:visited {
+    color: #2b2b2b;
+    text-decoration: none;
+}
+
 .drop-down-menu-item-top-separator {
     border-top: 1px solid rgba(43, 43, 43, 0.67);
 }
@@ -786,17 +792,15 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
 }
 
 #user-profile-icon {
-    display: none;
+    display: block;
+    margin-right: 12px;
+    margin-top: 5px;
 }
 
 #user-profile-icon img {
-    width: 18px;
-    height: 18px;
-    opacity: 60%;
-}
-
-#user-profile-icon img:hover {
-    opacity: 80%;
+    width: 20px;
+    height: 20px;
+    opacity: 50%;
 }
 
 #login-side input {
@@ -1031,6 +1035,7 @@ input[type=password].incorrect-data {
 
 .main-container,
 .main-container-text,
+.main-container-text-extended-smaller,
 .main-container-text-extended,
 .main-container-text-extended-larger,
 .main-container-text-error-message {
@@ -1039,6 +1044,7 @@ input[type=password].incorrect-data {
 }
 
 .main-container-text,
+.main-container-text-extended-smaller,
 .main-container-text-extended,
 .main-container-text-extended-larger,
 .main-container-text-error-message {
@@ -1050,6 +1056,12 @@ input[type=password].incorrect-data {
     width: 60%;
     min-width: 500px;
     max-width: 950px;
+}
+
+.main-container-text-extended-smaller {
+    width: 70%;
+    min-width: 600px;
+    max-width: 1200px;
 }
 
 .main-container-text-extended {
@@ -1377,18 +1389,33 @@ table.info-box-sub-table td.values {
     margin-bottom: 4px;
 }
 
+#eval-line-chart-container {
+    margin-top: 20px;
+    margin-bottom: 6px;
+}
+
 #chat-box-container {
     border: 1px solid black;
     margin-bottom: 15px;
     height: 270px;
     box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0px 0.25em 1em;
     background-color: #ece8e3;
+    display: flex;
+    flex-direction: column;
 }
 
 #chat-box-messages-container {
     overflow-y: scroll;
     overflow-x: hidden;
-    height: 230px;
+    flex: 1;
+}
+
+#chat-box-typing-indicator {
+    padding: 2px 8px;
+    font-size: 12px;
+    font-style: italic;
+    color: #555;
+    min-height: 0;
 }
 
 #chat-box-send-container {

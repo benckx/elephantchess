@@ -5,10 +5,7 @@ import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
-import io.elephantchess.webapp.rendering.ModalRenderer
-import io.elephantchess.webapp.rendering.SimplePageRenderer
-import io.elephantchess.webapp.rendering.UserProfilePageRenderer
-import io.elephantchess.webapp.rendering.latestSupporterTagResolver
+import io.elephantchess.webapp.rendering.*
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -29,7 +26,6 @@ private val publicPageMapping = mapOf(
     "/board" to "simple_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
-    "/database/game" to "database/database_game_viewer",
     "/browse/player-vs-player" to "browse_pvp_games",
     "/browse/player-vs-bot" to "browse_pvb_games",
     "/analysis" to "analysis_board",
@@ -38,7 +34,6 @@ private val publicPageMapping = mapOf(
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
     "/about/changelog" to "about/changelog",
-    "/about/faq" to "about/faq",
     "/contact" to "contact_form",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
     "/7k/playground" to "seven_kingdoms/seven_kingdoms_playground",
@@ -60,12 +55,14 @@ private val identificationRequiredPagesMapping = mapOf(
     "/userdata/games" to "userdata/my_games",
     "/userdata/botgames" to "userdata/my_bot_games",
     "/userdata/analysis" to "userdata/my_analysis",
-    "/userdata/puzzles" to "userdata/my_played_puzzles"
+    "/userdata/puzzles" to "userdata/my_played_puzzles",
+    "/userdata/db-searches" to "userdata/my_db_searches",
 )
 
 // only available authenticated users
 private val authenticatedRequiredPagesMapping = mapOf(
     "/user/settings" to "user_settings",
+    "/user/settings/sessions" to "user_sessions",
 )
 
 private val adminPagesMapping = mapOf(
@@ -98,6 +95,7 @@ fun Application.htmlRoutingModule() {
         userProfile()
         modals()
         databasePages()
+        faqPage()
     }
 }
 
@@ -167,6 +165,21 @@ private fun Route.userProfile() {
 
         val userProfileResponse = userService.fetchProfile(username)
         call.respondHtml(renderer.renderUserProfile(userProfileResponse))
+    }
+    get("/@/{username}/browse-pvp-games") {
+        val username = call.parameters["username"]
+            ?: throw BadRequestException("username not provided")
+
+        userService.validateUserExists(username)
+        call.respondHtml(renderer.renderUserBrowsePvpGames(username))
+    }
+}
+
+private fun Route.faqPage() {
+    val renderer by koin<FaqPageRenderer>()
+
+    get("/about/faq") {
+        call.respondHtml(renderer.renderFaqPage())
     }
 }
 

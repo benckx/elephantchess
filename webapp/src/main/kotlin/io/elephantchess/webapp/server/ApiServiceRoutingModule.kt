@@ -47,7 +47,7 @@ fun Application.apiServiceModule() {
         lobbyRoutes()
         supporterRoutes()
         adminConsoleRoutes()
-        newsletterUnsubscriptionRoutes()
+        emailSettingRoutes()
         integrationRoutes()
     }
 }
