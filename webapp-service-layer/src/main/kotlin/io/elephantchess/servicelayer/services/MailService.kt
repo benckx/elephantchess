@@ -249,7 +249,9 @@ class MailService(
             templateName = "email_confirmation",
             resolvers = listOf(
                 EmailConfirmationLinkTagResolver(webHost, code)
-            )
+            ),
+            // we can disable this later but I'd like to see the first ones
+            copyToAdmin = true
         )
     }
 
