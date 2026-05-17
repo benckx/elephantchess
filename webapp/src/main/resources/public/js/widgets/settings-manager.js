@@ -272,6 +272,8 @@ function createWebappBoardGui(overrides = {}) {
 }
 
 class SettingsGui {
+    static #advancedSettingsEscapeListenerRegistered = false;
+    static #activeAdvancedSettingsCloseHandler = null;
 
     #moveTreeWidget;
     #settingsManager = new SettingsManager();
@@ -494,17 +496,21 @@ class SettingsGui {
         const isMobileAdvancedSettingsLayout = () => window.matchMedia('(max-width: 1000px)').matches;
         const closeAdvancedSettings = () => {
             this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+            if (SettingsGui.#activeAdvancedSettingsCloseHandler === closeAdvancedSettings) {
+                SettingsGui.#activeAdvancedSettingsCloseHandler = null;
+            }
             if (this.#advancedSettingsUsesModalBackground) {
                 this.#advancedSettingsUsesModalBackground = false;
                 this.#modalBackground.style.display = 'none';
             }
         };
         const openAdvancedSettings = () => {
-            if (isMobileAdvancedSettingsLayout() && this.#modalBackground != null
-                && getComputedStyle(this.#modalBackground).display === 'none') {
+            const isModalBackgroundVisible = this.#modalBackground != null && this.#modalBackground.style.display === 'flex';
+            if (isMobileAdvancedSettingsLayout() && this.#modalBackground != null && !isModalBackgroundVisible) {
                 this.#advancedSettingsUsesModalBackground = true;
                 this.#modalBackground.style.display = 'flex';
             }
+            SettingsGui.#activeAdvancedSettingsCloseHandler = closeAdvancedSettings;
             this.#advancedSettingsBox.classList.add('advanced-settings-box-open');
         };
         this.#advancedSettingsToggle.onclick = (e) => {
@@ -519,11 +525,14 @@ class SettingsGui {
             e.preventDefault();
             closeAdvancedSettings();
         };
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && this.#advancedSettingsBox.classList.contains('advanced-settings-box-open')) {
-                closeAdvancedSettings();
-            }
-        });
+        if (!SettingsGui.#advancedSettingsEscapeListenerRegistered) {
+            SettingsGui.#advancedSettingsEscapeListenerRegistered = true;
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && typeof SettingsGui.#activeAdvancedSettingsCloseHandler === 'function') {
+                    SettingsGui.#activeAdvancedSettingsCloseHandler();
+                }
+            });
+        }
         if (!showAdvancedSettingsLink) {
             this.#advancedSettingsToggle.style.display = 'none';
             this.#advancedSettingsBox.style.display = 'none';
