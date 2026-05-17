@@ -118,6 +118,7 @@ h1 {
     box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px, rgba(0, 0, 0, 0.2) 0 1px 2px;
 }
 
+.game-to-join-variant-pane,
 .game-to-join-left-pane,
 .game-to-join-middle-pane,
 .game-to-join-right-pane {
@@ -125,8 +126,18 @@ h1 {
     align-items: center;
 }
 
+.game-to-join-variant-pane {
+    width: 24px;
+    justify-content: center;
+}
+
+.game-to-join-variant-symbol {
+    font-size: 16px;
+    color: #343434;
+}
+
 .game-to-join-left-pane {
-    width: 34px;
+    width: 44px;
     flex-direction: column;
     justify-content: center;
     gap: 2px;
@@ -137,7 +148,7 @@ h1 {
     flex: 1;
     flex-direction: column;
     align-items: flex-start;
-    margin-left: 8px;
+    margin-left: 6px;
 }
 
 .game-to-join-right-pane {
@@ -192,7 +203,7 @@ h1 {
 }
 
 .game-to-join-item .time-control-icons {
-    width: 20px;
+    width: 24px;
 }
 
 .game-to-join-time-duration-cell {
@@ -394,7 +405,15 @@ iframe {
     }
 
     .game-to-join-item .time-control-icons {
-        width: 36px;
+        width: 42px;
+    }
+
+    .game-to-join-variant-pane {
+        width: 34px;
+    }
+
+    .game-to-join-variant-symbol {
+        font-size: 30px;
     }
 
     #games-to-join-list-container {
@@ -408,7 +427,7 @@ iframe {
     }
 
     .game-to-join-left-pane {
-        width: 48px;
+        width: 62px;
     }
 
     .game-to-join-middle-pane {

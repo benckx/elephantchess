@@ -133,6 +133,15 @@ class LobbyPage extends BasePage {
             const item = document.createElement('div');
             item.className = 'game-to-join-item';
 
+            const variantPane = document.createElement('div');
+            variantPane.className = 'game-to-join-variant-pane';
+            item.append(variantPane);
+
+            const variantSymbol = document.createElement('span');
+            variantSymbol.className = 'game-to-join-variant-symbol';
+            variantSymbol.innerText = '象';
+            variantPane.append(variantSymbol);
+
             const leftPane = document.createElement('div');
             leftPane.className = 'game-to-join-left-pane';
             item.append(leftPane);
