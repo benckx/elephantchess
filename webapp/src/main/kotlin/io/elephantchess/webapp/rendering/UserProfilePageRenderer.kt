@@ -51,7 +51,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
     private fun flagPanelTagResolver(countryCode: String?): TagResolver {
         return CallbackTagResolver("flag_header_panel") {
-            if (countryCode != null) {
+            if (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)) {
                 """<div id="flag-header-panel" class="profile-header-panel" data-country-code="$countryCode">
                     |<img id="profile-flag" class="flag-icons" src="/images/flags/$countryCode.svg" alt="$countryCode"/>
                     |</div>""".trimMargin()

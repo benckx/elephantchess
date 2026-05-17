@@ -321,10 +321,13 @@ class UserService(
         return if (user == null) {
             throw NotFoundException("User $username could not be found")
         } else {
+            val country = user.country
+                ?.trim()
+                ?.takeUnless { it.isBlank() || it.equals("none", ignoreCase = true) }
             UserProfile(
                 userId = user.id,
                 username = user.handle,
-                country = user.country,
+                country = country,
                 profileDescription = user.description,
                 puzzleRating = user.puzzleRating
             )
@@ -355,7 +358,11 @@ class UserService(
         }
 
         val description = stripHtml(removeSuperfluousLineBreaks(request.description))
-        userDaoService.updateProfileSettings(userId, description, request.country)
+        val country = request.country
+            .trim()
+            .takeUnless { it.isBlank() || it.equals("none", ignoreCase = true) }
+            .orEmpty()
+        userDaoService.updateProfileSettings(userId, description, country)
     }
 
     suspend fun fetchNotificationsSettings(userId: String): NotificationsSettingsDto {
