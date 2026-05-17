@@ -310,6 +310,7 @@ class UserServiceTest : ServiceTest() {
     fun `updateProfileSettings should unset country when none is selected`() = runTest {
         val (request, userId) = signUpTestUser()
 
+        userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "be"))
         userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "none"))
 
         val profile = userService.fetchProfile(request.username)

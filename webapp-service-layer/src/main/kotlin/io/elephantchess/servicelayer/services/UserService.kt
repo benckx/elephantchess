@@ -51,6 +51,11 @@ class UserService(
     private val logger: KLogger,
 ) {
 
+    private fun normalizeCountry(country: String?): String? =
+        country
+            ?.trim()
+            ?.takeUnless { it.isBlank() || it.equals("none", ignoreCase = true) }
+
     @Volatile
     private var onlineUserIds: Set<String> = emptySet()
 
@@ -321,13 +326,10 @@ class UserService(
         return if (user == null) {
             throw NotFoundException("User $username could not be found")
         } else {
-            val country = user.country
-                ?.trim()
-                ?.takeUnless { it.isBlank() || it.equals("none", ignoreCase = true) }
             UserProfile(
                 userId = user.id,
                 username = user.handle,
-                country = country,
+                country = normalizeCountry(user.country),
                 profileDescription = user.description,
                 puzzleRating = user.puzzleRating
             )
@@ -358,10 +360,7 @@ class UserService(
         }
 
         val description = stripHtml(removeSuperfluousLineBreaks(request.description))
-        val country = request.country
-            .trim()
-            .takeUnless { it.isBlank() || it.equals("none", ignoreCase = true) }
-            .orEmpty()
+        val country = normalizeCountry(request.country).orEmpty()
         userDaoService.updateProfileSettings(userId, description, country)
     }
 
