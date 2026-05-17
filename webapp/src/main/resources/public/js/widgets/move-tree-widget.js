@@ -1261,8 +1261,8 @@ class MoveTreeWidget {
     #lastSavedHeight = null;
     #fallbackResizeListener = null;
     #disposalObserver = null;
-    #loadPersistedHeight = () => null;
-    #persistHeight = () => {};
+    #loadPersistedHeight = null;
+    #persistHeight = null;
 
     constructor(options) {
         // options
@@ -1320,6 +1320,10 @@ class MoveTreeWidget {
     }
 
     #applySavedHeight() {
+        if (this.#loadPersistedHeight === null) {
+            return;
+        }
+
         const persistedHeight = this.#loadPersistedHeight();
         if (persistedHeight === null) {
             return;
@@ -1354,7 +1358,9 @@ class MoveTreeWidget {
             this.#resizeSaveTimeout = setTimeout(() => {
                 const height = this.#mainContainer.offsetHeight;
                 if (height >= this.#minResizeHeight() && height !== this.#lastSavedHeight) {
-                    this.#persistHeight(height);
+                    if (this.#persistHeight !== null) {
+                        this.#persistHeight(height);
+                    }
                     this.#lastSavedHeight = height;
                 }
             }, MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS);

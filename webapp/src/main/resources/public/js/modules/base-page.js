@@ -167,7 +167,7 @@ function moveTreeResizeCookiePersistence(pageKey, containerId) {
                 return null;
             }
             const parsed = Number.parseInt(rawValue, 10);
-            if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
+            if (!Number.isFinite(parsed)) {
                 return null;
             }
             return parsed;
