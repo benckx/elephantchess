@@ -19,6 +19,7 @@
 
 const PIECE_STYLE_SETTING = 'setting.piece.style';
 const SHOW_COORDINATES_SETTING = 'setting.show.coordinates';
+const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
 const MOVE_FORMAT_SETTING = 'setting.move.format';
 const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const MOVE_NODE_EVAL_FORMAT = 'setting.move.node.eval.format';
@@ -94,6 +95,25 @@ class SettingsManager {
      */
     set isPlaySoundsEnabled(value) {
         setCookie(PLAY_SOUNDS_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isColorblindFriendlyBlackPiecesEnabled() {
+        const cookieValue = getCookie(COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING);
+        if (cookieValue === null) {
+            return false;
+        } else {
+            return cookieValue === 'true';
+        }
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isColorblindFriendlyBlackPiecesEnabled(value) {
+        setCookie(COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
     }
 
     /**
@@ -190,9 +210,10 @@ function buildWebappBoardGuiOptions(overrides = {}) {
         coordinatesOrientation: settingsManager.getCoordinatesOrientation(),
         playSounds: settingsManager.isPlaySoundsEnabled,
         pieceStyle: settingsManager.pieceStyle,
+        colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
-        ...(isLocalHost ? { assetsBaseUrl: '' } : {}),
+        ...(isLocalHost ? {assetsBaseUrl: ''} : {}),
         ...overrides,
     };
 }
@@ -206,74 +227,6 @@ function buildWebappBoardGuiOptions(overrides = {}) {
  */
 function createWebappBoardGui(overrides = {}) {
     return new BoardGui(buildWebappBoardGuiOptions(overrides));
-}
-
-let moveLabelMap = new Map([
-    [MoveFormatSetting.WXF_DOT, 'WXF .'],
-    [MoveFormatSetting.WXF_EQUALS, 'WXF ='],
-    [MoveFormatSetting.PGN, 'PGN'],
-    [MoveFormatSetting.ALGEBRAIC_EN, 'Algebraic'],
-]);
-
-class SelectMoveFormatMenu extends ContextualMenu {
-
-    /**
-     * @type {BoardGui}
-     */
-    #boardGui;
-
-    /**
-     * @type {MoveTreeWidget}
-     */
-    #moveTreeWidget;
-
-    #settingsManager = new SettingsManager();
-
-    /**
-     * @type {function(string)[]}
-     */
-    #listeners = [];
-
-    /**
-     * @param boardGui {BoardGui}
-     * @param moveTreeWidget {MoveTreeWidget}
-     */
-    constructor(boardGui, moveTreeWidget) {
-        super('select-move-format-menu');
-        this.#boardGui = boardGui;
-        this.#moveTreeWidget = moveTreeWidget;
-
-        // build menu items
-        let selectedMoveFormat = this.#settingsManager.moveFormat
-        moveLabelMap.forEach((value, key) => {
-            let label = value;
-            if (selectedMoveFormat === key) {
-                label = `✓ ${value}`;
-            }
-
-            this.addSimpleItem(label, () => {
-                this.#updateMoveFormat(key);
-            });
-        });
-    }
-
-    /**
-     * @param moveFormat {string}
-     */
-    #updateMoveFormat(moveFormat) {
-        this.#settingsManager.moveFormat = moveFormat.toString();
-        this.#boardGui.updateMoveFormat(moveFormat);
-        this.#moveTreeWidget.updateMoveFormat(moveFormat);
-        this.#listeners.forEach(listener => listener(moveFormat));
-    }
-
-    /**
-     * @param listener {function(string)}
-     */
-    addListener(listener) {
-        this.#listeners.push(listener);
-    }
-
 }
 
 class SettingsGui {
@@ -297,18 +250,32 @@ class SettingsGui {
      */
     #boardGuis = [];
 
+    // base settings
     #selectPieceStyleTraditional = document.getElementById('select-piece-style-traditional');
     #selectPieceStyleRomanizedRounded = document.getElementById('select-piece-style-romanized-rounded');
-    #moveFormat = document.getElementById('move-format-button');
-    #showCoordinates = document.getElementById('show-coordinates-button');
-    #playSounds = document.getElementById('play-sounds-button');
     #flipBoard = document.getElementById('flip-board-button');
 
-    // optional
+    #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
+    #advancedSettingsBox = document.getElementById('advanced-settings-box');
+
+    // advanced settings
+    #advancedMoveFormatSettingItem = document.getElementById('advanced-move-format-setting-item');
+    #moveFormatRadioWxfDot = document.getElementById('move-format-radio-wxf-dot');
+    #moveFormatRadioWxfEquals = document.getElementById('move-format-radio-wxf-equals');
+    #moveFormatRadioPgn = document.getElementById('move-format-radio-pgn');
+    #moveFormatRadioAlgebraic = document.getElementById('move-format-radio-algebraic');
+    #showCoordinatesEnabledRadio = document.getElementById('show-coordinates-enabled-radio');
+    #showCoordinatesDisabledRadio = document.getElementById('show-coordinates-disabled-radio');
+    #playSoundsEnabledRadio = document.getElementById('play-sounds-enabled-radio');
+    #playSoundsDisabledRadio = document.getElementById('play-sounds-disabled-radio');
+    #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
+    #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
+
+    // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
     #showAnalyticsArrowsImg = document.getElementById('show-analytics-arrows');
 
-    // optional
+    // optional (for Analysis Board)
     #editPositionItem = document.getElementById('edit-position-item');
     #editPositionButton = document.getElementById('edit-position-button');
 
@@ -316,8 +283,9 @@ class SettingsGui {
      * @param boardGui {BoardGui}
      * @param moveTreeWidget {MoveTreeWidget|null}
      * @param showArrowsOption {boolean} - whether to show arrows option (it's only for analysis board)
+     * @param showAdvancedSettingsLink {boolean} - whether to show "Advanced" settings trigger
      */
-    constructor(boardGui, moveTreeWidget, showArrowsOption = false) {
+    constructor(boardGui, moveTreeWidget, showArrowsOption = false, showAdvancedSettingsLink = true) {
         this.#moveTreeWidget = moveTreeWidget;
         this.#boardGuis.push(boardGui);
 
@@ -336,34 +304,137 @@ class SettingsGui {
         addToolTip(this.#selectPieceStyleRomanizedRounded, "Select 'Romanized Rounded' piece style");
 
         // move format
-        // doesn't apply to mini boards, so no need loop over all boards for this one
-        this.#moveFormat.onclick = () => {
+        const applyMoveFormat = (moveFormat) => {
+            this.#settingsManager.moveFormat = moveFormat;
             if (this.#moveTreeWidget != null) {
-                const menu = new SelectMoveFormatMenu(boardGui, moveTreeWidget);
-                this.#selectMoveFormatMenuListeners.forEach(listener => menu.addListener(listener));
-                menu.showAt(UI.cursorX, UI.cursorY);
-                DropDownMenuManager.getInstance().registerDropDownMenu(menu, [this.#moveFormat.id]);
+                this.#boardGuis.forEach(board => board.updateMoveFormat(moveFormat));
+                this.#moveTreeWidget.updateMoveFormat(moveFormat);
+                this.#selectMoveFormatMenuListeners.forEach(listener => listener(moveFormat));
             }
         }
-        addToolTip(this.#moveFormat, 'Select move format');
+        this.#moveFormatRadioWxfDot.onchange = () => {
+            if (this.#moveFormatRadioWxfDot.checked) {
+                applyMoveFormat(MoveFormatSetting.WXF_DOT);
+            }
+        }
+        this.#moveFormatRadioWxfEquals.onchange = () => {
+            if (this.#moveFormatRadioWxfEquals.checked) {
+                applyMoveFormat(MoveFormatSetting.WXF_EQUALS);
+            }
+        }
+        this.#moveFormatRadioPgn.onchange = () => {
+            if (this.#moveFormatRadioPgn.checked) {
+                applyMoveFormat(MoveFormatSetting.PGN);
+            }
+        }
+        this.#moveFormatRadioAlgebraic.onchange = () => {
+            if (this.#moveFormatRadioAlgebraic.checked) {
+                applyMoveFormat(MoveFormatSetting.ALGEBRAIC_EN);
+            }
+        }
+        switch (this.#settingsManager.moveFormat) {
+            case MoveFormatSetting.WXF_EQUALS:
+                this.#moveFormatRadioWxfEquals.checked = true;
+                break;
+            case MoveFormatSetting.PGN:
+                this.#moveFormatRadioPgn.checked = true;
+                break;
+            case MoveFormatSetting.ALGEBRAIC_EN:
+                this.#moveFormatRadioAlgebraic.checked = true;
+                break;
+            default:
+                this.#moveFormatRadioWxfDot.checked = true;
+                break;
+        }
+        applyMoveFormat(this.#settingsManager.moveFormat);
         if (this.#moveTreeWidget == null) {
-            // .setting-option-item
-            this.#moveFormat.parentElement.parentElement.style.display = 'none';
+            this.#advancedMoveFormatSettingItem.style.display = 'none';
         }
 
         // show coordinates
-        this.#showCoordinates.onclick = () => {
-            this.#settingsManager.isShowCoordinatesEnabled = boardGui.toggleShowCoordinates();
+        const updateShowCoordinatesRadios = (enabled) => {
+            this.#showCoordinatesEnabledRadio.checked = enabled;
+            this.#showCoordinatesDisabledRadio.checked = !enabled;
         }
-        addToolTip(this.#showCoordinates, 'Show or hide board coordinates');
+        const setShowCoordinatesEnabled = (enabled) => {
+            if (this.#settingsManager.isShowCoordinatesEnabled === enabled) {
+                return;
+            }
+            this.#boardGuis.forEach(board => board.toggleShowCoordinates());
+            this.#settingsManager.isShowCoordinatesEnabled = enabled;
+        }
+        updateShowCoordinatesRadios(this.#settingsManager.isShowCoordinatesEnabled);
+        this.#showCoordinatesEnabledRadio.onchange = () => {
+            if (this.#showCoordinatesEnabledRadio.checked) {
+                setShowCoordinatesEnabled(true);
+            }
+        }
+        this.#showCoordinatesDisabledRadio.onchange = () => {
+            if (this.#showCoordinatesDisabledRadio.checked) {
+                setShowCoordinatesEnabled(false);
+            }
+        }
+
+        // colorblind-friendly black pieces
+        const updateColorblindRadios = (enabled) => {
+            this.#colorblindFriendlyBlackPiecesEnabledRadio.checked = enabled;
+            this.#colorblindFriendlyBlackPiecesDisabledRadio.checked = !enabled;
+        }
+        updateColorblindRadios(this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled);
+        this.#colorblindFriendlyBlackPiecesEnabledRadio.onchange = () => {
+            if (this.#colorblindFriendlyBlackPiecesEnabledRadio.checked) {
+                this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = true;
+                this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(true));
+            }
+        }
+        this.#colorblindFriendlyBlackPiecesDisabledRadio.onchange = () => {
+            if (this.#colorblindFriendlyBlackPiecesDisabledRadio.checked) {
+                this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = false;
+                this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(false));
+            }
+        }
+
+        // advanced settings
+        this.#advancedSettingsToggle.onclick = (e) => {
+            e.preventDefault();
+            this.#advancedSettingsBox.classList.toggle('advanced-settings-box-open');
+        };
+        if (!showAdvancedSettingsLink) {
+            this.#advancedSettingsToggle.style.display = 'none';
+            this.#advancedSettingsBox.style.display = 'none';
+        } else {
+            document.addEventListener('click', (event) => {
+                const isInsideAdvancedBox = this.#advancedSettingsBox.contains(event.target);
+                const isAdvancedToggle = this.#advancedSettingsToggle.contains(event.target);
+                if (!isInsideAdvancedBox && !isAdvancedToggle) {
+                    this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+                }
+            });
+        }
 
         // play sounds
-        this.#playSounds.onclick = () => {
-            this.#settingsManager.isPlaySoundsEnabled = !this.#settingsManager.isPlaySoundsEnabled;
-            const playSoundsEnabled = this.#settingsManager.isPlaySoundsEnabled;
-            this.#boardGuis.forEach(boardGui => boardGui.updatePlaySounds(playSoundsEnabled));
+        const updatePlaySoundsRadios = (enabled) => {
+            this.#playSoundsEnabledRadio.checked = enabled;
+            this.#playSoundsDisabledRadio.checked = !enabled;
         }
-        addToolTip(this.#playSounds, 'Enable or disable board sounds');
+        const setPlaySoundsEnabled = (enabled) => {
+            if (this.#settingsManager.isPlaySoundsEnabled === enabled) {
+                return;
+            }
+            this.#settingsManager.isPlaySoundsEnabled = enabled;
+            this.#boardGuis.forEach(boardGui => boardGui.updatePlaySounds(enabled));
+        }
+        updatePlaySoundsRadios(this.#settingsManager.isPlaySoundsEnabled);
+        this.#playSoundsEnabledRadio.onchange = () => {
+            if (this.#playSoundsEnabledRadio.checked) {
+                setPlaySoundsEnabled(true);
+            }
+        }
+        this.#playSoundsDisabledRadio.onchange = () => {
+            if (this.#playSoundsDisabledRadio.checked) {
+                setPlaySoundsEnabled(false);
+            }
+        }
 
         // flip board
         this.#flipBoard.onclick = () => {

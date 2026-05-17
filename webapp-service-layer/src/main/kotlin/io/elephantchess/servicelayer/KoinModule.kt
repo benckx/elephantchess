@@ -64,6 +64,7 @@ private fun daoModule() = module {
     singleAuto<DiscordGameNotificationDaoService>()
     singleAuto<EmailVerificationDaoService>()
     singleAuto<EngineCacheDaoService>()
+    singleAuto<GameChatTypingStatusDaoService>()
     singleAuto<KofiEventDaoService>()
     singleAuto<MoveAnalysisDaoService>()
     singleAuto<NewsletterDaoService>()

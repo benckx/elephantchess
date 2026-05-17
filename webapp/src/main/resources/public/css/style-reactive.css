@@ -44,6 +44,7 @@
 
     #user-profile-icon {
         display: block;
+        margin-right: 0;
     }
 
 
@@ -79,10 +80,12 @@
 
     .main-container,
     .main-container-text,
+    .main-container-text-extended-smaller,
     .main-container-text-extended,
     .main-container-text-extended-larger,
     .main-container-text-error-message {
         width: 96%;
+        min-width: 0;
     }
 
     .standard-data-table .user-rating-delta-value-box,
@@ -90,6 +93,10 @@
     .standard-data-table .user-rating-delta-value-box-positive,
     .standard-data-table .user-rating-delta-value-box-negative {
         font-size: 18px;
+    }
+
+    textarea {
+        font-size: 28px;
     }
 
     input[type="checkbox"],
@@ -333,8 +340,8 @@
     }
 
     #user-profile-icon img {
-        width: 30px;
-        height: 30px;
+        width: 50px;
+        height: 50px;
     }
 
     #handle-menu-container {
@@ -509,9 +516,20 @@
         width: 68px;
     }
 
+    #settings-info-box-container #advanced-settings-toggle {
+        font-size: 24px;
+    }
+
+    #settings-info-box-container #advanced-settings-box {
+        top: calc(100% + 10px);
+        left: -5px;
+        width: calc(100% + 10px);
+        padding: 30px 34px;
+    }
+
     #settings-info-box img#flip-board-button,
     #settings-info-box img#show-coordinates-button,
-    #settings-info-box img#play-sounds-button,
+    #settings-info-box img#colorblind-friendly-black-pieces-button,
     #settings-info-box img#show-analytics-arrows {
         width: 55px;
     }
@@ -528,6 +546,32 @@
 
     #settings-info-box .setting-option-item {
         width: 88px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-row {
+        margin: 10px 0;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-icon {
+        width: 34px;
+        margin-right: 12px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-title {
+        font-size: 30px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-description {
+        font-size: 18px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options {
+        gap: 8px;
+        font-size: 28px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=radio] {
+        transform: scale(1.8);
     }
 
     #settings-info-box .setting-option-double-item {

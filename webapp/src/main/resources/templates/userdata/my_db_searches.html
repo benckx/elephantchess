@@ -1,0 +1,33 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>My Database Searches</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/my-user-data-items.css"/>
+    <link rel="stylesheet" href="/css/my-db-searches.css"/>
+    <script defer src="/js/widgets/settings-manager.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/userdata/my-db-searches-dto.js"></script>
+    <script defer src="/js/userdata/my-db-searches.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>My Database Searches</h1>
+    <hr class="only-desktop"/>
+    <div id="my-game-items">
+    </div>
+    <div id="is-loading-message">
+        Loading more searches...
+    </div>
+    <div id="end-of-pagination-message">
+        No more searches to load.
+    </div>
+    <div id="no-searches-message" class="empty-list-message-user-data">
+        You haven't searched the database yet. Go to <a href="/database">the database</a> to start searching.
+    </div>
+    {{logged_as_guest_message}}
+</div>
+</body>
+</html>
