@@ -49,7 +49,7 @@ class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) 
             val items = entries.joinToString("\n") { (id, title) ->
                 """<li><a href="#${escapeHtmlAttr(id)}">${escapeHtml(title)}</a></li>"""
             }
-            return """<nav id="changelog-toc"><ul>$items</ul></nav>"""
+            return """<nav id="faq-toc"><ul>$items</ul></nav>"""
         }
 
     }

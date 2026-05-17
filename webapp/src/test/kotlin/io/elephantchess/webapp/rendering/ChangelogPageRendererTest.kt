@@ -26,7 +26,7 @@ class ChangelogPageRendererTest {
 
         val toc = renderChangelogToc(html)
 
-        assertTrue(toc.startsWith("""<nav id="changelog-toc">"""))
+        assertTrue(toc.startsWith("""<nav id="faq-toc">"""))
         assertTrue(toc.endsWith("</nav>"))
 
         val mayIdx = toc.indexOf("""<a href="#2026-05">May 2026</a>""")
@@ -57,7 +57,7 @@ class ChangelogPageRendererTest {
         val toc = renderChangelogToc(html)
 
         assertTrue(toc.isNotBlank(), "TOC should not be blank for the real changelog")
-        assertTrue(toc.startsWith("""<nav id="changelog-toc">"""))
+        assertTrue(toc.startsWith("""<nav id="faq-toc">"""))
         // The very first month heading in the template is the most recent one.
         val firstH3 = Regex("""<h3\b[^>]*\bid\s*=\s*"(\d{4}-\d{2})"""").find(html)
         assertTrue(firstH3 != null, "expected at least one month <h3> in the changelog template")
