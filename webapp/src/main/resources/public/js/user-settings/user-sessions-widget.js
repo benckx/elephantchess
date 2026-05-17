@@ -152,11 +152,11 @@ class UserSessionsWidget {
         row.insertCell().append(this.#buildOsCellContent(entry.os));
         row.insertCell().innerText = entry.agentName;
         row.insertCell().append(this.#buildCountryCellContent(entry.countryCode, entry.countryName));
-        this.#insertCroppableCell(row, entry.region, 'only-desktop');
-        this.#insertCroppableCell(row, entry.city, 'only-desktop');
+        this.#insertCroppableCell(row, entry.region, 'only-desktop-table-cell');
+        this.#insertCroppableCell(row, entry.city, 'only-desktop-table-cell');
         row.insertCell().innerText = entry.remoteAddress;
-        this.#insertCroppableCell(row, formatTimestampToDateTime(entry.created), 'only-desktop');
-        this.#insertCroppableCell(row, formatTimestampToDateTime(entry.updated), 'only-desktop');
+        this.#insertCroppableCell(row, formatTimestampToDateTime(entry.created), 'only-desktop-table-cell');
+        this.#insertCroppableCell(row, formatTimestampToDateTime(entry.updated), 'only-desktop-table-cell');
     }
 
     #insertCroppableCell(row, value, className) {
