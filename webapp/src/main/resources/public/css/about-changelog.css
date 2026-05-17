@@ -38,17 +38,3 @@
 #changelog-toc a {
     font-size: inherit;
 }
-
-#changelog-toc .changelog-toc-month {
-    font-weight: bold;
-    margin-top: 6px;
-}
-
-#changelog-toc .changelog-toc-month:first-child {
-    margin-top: 0;
-}
-
-#changelog-toc .changelog-toc-dates {
-    list-style: none;
-    padding-left: 14px;
-}
