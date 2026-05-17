@@ -166,11 +166,7 @@ function moveTreeResizeCookiePersistence(pageKey, containerId) {
             if (rawValue === null) {
                 return null;
             }
-            const parsed = Number.parseInt(rawValue, 10);
-            if (!Number.isFinite(parsed)) {
-                return null;
-            }
-            return parsed;
+            return Number.parseInt(rawValue, 10);
         },
         persistHeight: (height) => {
             setCookie(cookieName, height.toString(), CHROME_COOKIE_MAX_TTL);
