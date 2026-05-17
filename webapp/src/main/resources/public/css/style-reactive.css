@@ -539,10 +539,12 @@
         position: absolute;
         top: 20px;
         right: 24px;
+        width: 44px;
+        height: 44px;
         border: 0;
         background: transparent;
-        color: #1f1f1f;
-        font-size: 52px;
+        color: inherit;
+        font-size: 40px;
         line-height: 1;
         cursor: pointer;
     }
