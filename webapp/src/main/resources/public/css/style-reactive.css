@@ -516,12 +516,8 @@
         width: 68px;
     }
 
-    #settings-info-box #advanced-settings-toggle {
-        font-size: 30px;
-    }
-
-    #settings-info-box #advanced-settings-box {
-        top: 94px;
+    #settings-info-box-container #advanced-settings-box {
+        bottom: 34px;
         right: 12px;
         padding: 10px 8px;
     }

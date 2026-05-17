@@ -1293,6 +1293,7 @@ table.info-box-sub-table td.values {
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: visible;
 }
 
 #settings-info-box {
@@ -1343,17 +1344,26 @@ table.info-box-sub-table td.values {
     width: 30px;
 }
 
-#settings-info-box #advanced-settings-toggle {
-    color: #ddf5ff;
+#settings-info-box-container #advanced-settings-toggle {
+    position: absolute;
+    right: 12px;
+    bottom: 6px;
+    color: #3b3b3b;
     text-decoration: underline;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 14px;
+    font-style: italic;
+    line-height: 1;
+    z-index: 1201;
 }
 
-#settings-info-box #advanced-settings-box {
+#settings-info-box-container #advanced-settings-toggle:hover {
+    cursor: pointer;
+}
+
+#settings-info-box-container #advanced-settings-box {
     display: none;
     position: absolute;
-    top: 44px;
+    bottom: 30px;
     right: 6px;
     z-index: 1200;
     background: #4b4b4b;
@@ -1363,7 +1373,7 @@ table.info-box-sub-table td.values {
     padding: 8px 6px;
 }
 
-#settings-info-box #advanced-settings-box.advanced-settings-box-open {
+#settings-info-box-container #advanced-settings-box.advanced-settings-box-open {
     display: flex;
     align-items: center;
     justify-content: center;

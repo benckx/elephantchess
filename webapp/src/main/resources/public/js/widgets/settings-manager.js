@@ -378,7 +378,7 @@ class SettingsGui {
             this.#advancedSettingsBox.classList.toggle('advanced-settings-box-open');
         };
         if (!showAdvancedSettingsLink) {
-            this.#advancedSettingsToggle.parentElement.parentElement.style.display = 'none';
+            this.#advancedSettingsToggle.style.display = 'none';
             this.#advancedSettingsBox.style.display = 'none';
         } else {
             document.addEventListener('click', (event) => {
