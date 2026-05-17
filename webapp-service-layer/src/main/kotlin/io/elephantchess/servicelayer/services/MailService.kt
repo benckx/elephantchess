@@ -246,12 +246,12 @@ class MailService(
     suspend fun sendEmailConfirmation(recipient: String, code: String) {
         resolveAndSend(
             recipient = recipient,
-            subject = "Please confirm your email",
+            subject = "Welcome to elephantchess - email address confirmation",
             templateName = "email_confirmation",
             resolvers = listOf(
                 EmailConfirmationLinkTagResolver(webHost, code)
             ),
-            // we can disable this later but I'd like to see the first ones
+            // we can disable this later, but I'd like to see the first ones
             copyToAdmin = true,
             // The whole point of this email is to flip the recipient's status to MANUALLY_CONFIRMED,
             // so we must not gate it on the address already being known-valid (it never is at signup).
