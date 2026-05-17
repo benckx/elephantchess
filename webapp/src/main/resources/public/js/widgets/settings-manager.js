@@ -400,17 +400,22 @@ class SettingsGui {
             this.#showCoordinatesEnabledRadio.checked = enabled;
             this.#showCoordinatesDisabledRadio.checked = !enabled;
         }
+        const setShowCoordinatesEnabled = (enabled) => {
+            if (this.#settingsManager.isShowCoordinatesEnabled === enabled) {
+                return;
+            }
+            this.#boardGuis.forEach(board => board.toggleShowCoordinates());
+            this.#settingsManager.isShowCoordinatesEnabled = enabled;
+        }
         updateShowCoordinatesRadios(this.#settingsManager.isShowCoordinatesEnabled);
         this.#showCoordinatesEnabledRadio.onchange = () => {
             if (this.#showCoordinatesEnabledRadio.checked) {
-                this.#boardGuis.forEach(board => board.toggleShowCoordinates());
-                this.#settingsManager.isShowCoordinatesEnabled = true;
+                setShowCoordinatesEnabled(true);
             }
         }
         this.#showCoordinatesDisabledRadio.onchange = () => {
             if (this.#showCoordinatesDisabledRadio.checked) {
-                this.#boardGuis.forEach(board => board.toggleShowCoordinates());
-                this.#settingsManager.isShowCoordinatesEnabled = false;
+                setShowCoordinatesEnabled(false);
             }
         }
 
