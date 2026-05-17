@@ -505,10 +505,13 @@ class SettingsGui {
             }
         };
         const openAdvancedSettings = () => {
-            const isModalBackgroundVisible = this.#modalBackground != null && this.#modalBackground.style.display === 'flex';
-            if (isMobileAdvancedSettingsLayout() && this.#modalBackground != null && !isModalBackgroundVisible) {
-                this.#advancedSettingsUsesModalBackground = true;
-                this.#modalBackground.style.display = 'flex';
+            if (isMobileAdvancedSettingsLayout() && this.#modalBackground != null) {
+                const isModalBackgroundHidden = this.#modalBackground.style.display === ''
+                    || this.#modalBackground.style.display === 'none';
+                if (isModalBackgroundHidden) {
+                    this.#advancedSettingsUsesModalBackground = true;
+                    this.#modalBackground.style.display = 'flex';
+                }
             }
             SettingsGui.#activeAdvancedSettingsCloseHandler = closeAdvancedSettings;
             this.#advancedSettingsBox.classList.add('advanced-settings-box-open');
