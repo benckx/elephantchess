@@ -5,6 +5,7 @@ import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.UserProfile
 import io.elephantchess.utils.cropToFirstNWords
+import io.ktor.http.encodeURLPath
 
 class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
@@ -15,6 +16,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/user_profile.html",
+            canonicalPath = "/@/${username.encodeURLPath()}",
             specificTagResolvers = listOf(
                 noIndexMeta(description),
                 SimpleValueTagResolver("user_id", userProfile.userId),

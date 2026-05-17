@@ -17,22 +17,20 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#game-event-info {
-    margin-top: 12px;
+class ChangelogPage extends BasePage {
+
+    constructor() {
+        super();
+        document.querySelectorAll('.anchor-copy-link').forEach((el) => {
+            el.addEventListener('click', () => {
+                const target = el.dataset.anchorTarget;
+                if (!target) return;
+                const link = `${getFullHost()}${window.location.pathname}#${target}`;
+                copyTextToClipboardAndNotify(link, 'Link copied to clipboard!');
+            });
+        });
+    }
+
 }
 
-/*
- * Player name links inside #players-info: override the default link color
- * (and the :visited link color, which has specificity 0,1,1 and would beat
- * a plain .red-color / .black-color rule) so that the red / black player
- * names actually appear in their respective colors.
- */
-#players-info a.red-color,
-#players-info a.red-color:visited {
-    color: rgba(222, 7, 7);
-}
-
-#players-info a.black-color,
-#players-info a.black-color:visited {
-    color: rgba(0, 0, 0);
-}
+window.onload = () => new ChangelogPage();

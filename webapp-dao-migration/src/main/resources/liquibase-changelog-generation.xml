@@ -2261,4 +2261,26 @@
                                  referencedTableName="game"
                                  referencedColumnNames="id"/>
     </changeSet>
+    <changeSet id="0097" author="benckx">
+        <addColumn tableName="game">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="puzzle_result">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="reference_game_search_query">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0098" author="benckx">
+        <comment>Add email confirmation fields to user table (separate from automated email_verification)</comment>
+        <addColumn tableName="user">
+            <column name="email_confirmation_code" type="varchar(64)"/>
+            <column name="email_confirmation_code_created_at" type="timestamp with time zone"/>
+            <column name="email_confirmed_at" type="timestamp with time zone"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

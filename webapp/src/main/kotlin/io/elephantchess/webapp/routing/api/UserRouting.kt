@@ -2,6 +2,7 @@ package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.dto.ContactFormRequest
 import io.elephantchess.servicelayer.dto.user.*
+import io.elephantchess.servicelayer.model.GuestToken
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.servicelayer.services.UserService
@@ -41,8 +42,15 @@ private fun Route.loginAndSignUpRoutes() {
             }
         }
         post("/signup") {
-            handleValidatedResponse<SignUpRequest, SignUpResponse> { request ->
-                userService.signUp(request)
+            requireIdentificationWithBody<SignUpRequest> { verifiedToken, request ->
+                val guestUserId =
+                    if (request.transferGuestData) {
+                        (verifiedToken as? GuestToken)?.userId
+                    } else {
+                        null
+                    }
+
+                handleEither(userService.signUp(request, guestUserId))
             }
         }
         get("/obtain-guest-user-token") {
@@ -141,6 +149,11 @@ private fun Route.userSettingsRoutes() {
         get("/email-address") {
             requireAuthentication { verifiedToken ->
                 userService.fetchEmailAddressSettings(verifiedToken.userId)
+            }
+        }
+        post("/email-address/resend-confirmation") {
+            requireAuthentication { verifiedToken ->
+                userService.resendEmailConfirmation(verifiedToken.userId)
             }
         }
         get("/sessions") {

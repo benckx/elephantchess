@@ -494,6 +494,25 @@ class DatabaseService(
         return referencePlayerDaoService.searchByNames(names = nameVariations, excludedPlayerId = player.id)
     }
 
+    suspend fun fetchGameSummary(gameId: String): DatabaseGameSummary? {
+        val record = referenceGameDaoService.findById(gameId) ?: return null
+        val redPlayer = record.redPlayer?.let { referencePlayerDaoService.findPlayer(it) }
+        val blackPlayer = record.blackPlayer?.let { referencePlayerDaoService.findPlayer(it) }
+        return DatabaseGameSummary(
+            gameId = record.id,
+            redPlayerCanonicalName = redPlayer?.canonicalName,
+            redPlayerChineseName = redPlayer?.chineseName,
+            blackPlayerCanonicalName = blackPlayer?.canonicalName,
+            blackPlayerChineseName = blackPlayer?.chineseName,
+            eventId = record.event,
+            eventName = idToEventName(record.event),
+            date = record.date,
+            outcome = record.outcome,
+            finalFen = record.finalFen,
+            analysisStatus = record.analysisStatus,
+        )
+    }
+
     suspend fun fetchEventName(eventId: String): String? {
         return referenceEventDaoService.findEventName(eventId)
     }

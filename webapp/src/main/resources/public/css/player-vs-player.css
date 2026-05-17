@@ -89,6 +89,39 @@ tr#outcome-row {
     border-top-color: #4d4d4d;
 }
 
+.mini-counter-box {
+    position: fixed;
+    bottom: 8px;
+    right: 8px;
+    z-index: 400;
+    width: 300px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0 4px 10px;
+    border-radius: 4px;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.mini-counter-box.mini-counter-box-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.mini-counter-box .mini-time-counter {
+    font-size: 46px;
+    padding-top: 4px;
+    padding-bottom: 2px;
+    box-sizing: border-box;
+}
+
+.mini-counter-box .red-counter {
+    background-color: rgb(255 168 168);
+}
+
+.mini-counter-box .black-counter {
+    background-color: rgb(171 171 171);
+}
+
 .move-tree-container-smaller {
     height: 270px;
 }

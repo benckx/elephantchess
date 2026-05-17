@@ -63,7 +63,7 @@ fun Route.gameDataRoutes() {
                 // false by default
                 val excludeAutoResigned = (call.parameters["excludeAutoResigned"] ?: "false").toBoolean()
 
-                gameDataService.listLastPvbGames(
+                gameDataService.listLatestPvbGames(
                     requestedLimit = limit,
                     distinctByUsers = distinctByUsers,
                     beforeTs = continuation,
