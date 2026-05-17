@@ -1434,6 +1434,16 @@ table.info-box-sub-table td.values {
     cursor: pointer;
 }
 
+#settings-info-box-container #advanced-settings-box .advanced-setting-warning {
+    margin-top: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #8a5a00;
+    background-color: #fff7e0;
+    border: 1px solid #f0d68b;
+    border-radius: 3px;
+}
+
 #settings-info-box #show-analytics-arrows-item {
     display: none;
 }

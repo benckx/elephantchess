@@ -314,6 +314,7 @@ class SettingsGui {
     #coordinatesStyleWxfChineseRadio = document.getElementById('coordinates-style-wxf-chinese-radio');
     #coordinatesStyleWxfChineseRedOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-red-only-radio');
     #coordinatesStyleUciRadio = document.getElementById('coordinates-style-uci-radio');
+    #coordinatesMoveFormatMismatchWarning = document.getElementById('coordinates-move-format-mismatch-warning');
 
     // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
@@ -348,6 +349,19 @@ class SettingsGui {
         addToolTip(this.#selectPieceStyleRomanizedRounded, "Select 'Romanized Rounded' piece style");
 
         // move format
+        const isWxfMoveFormat = (mf) => mf === MoveFormatSetting.WXF_DOT || mf === MoveFormatSetting.WXF_EQUALS;
+        const isWxfCoordinatesStyle = (cs) =>
+            cs === CoordinatesStyle.WXF_ARABIC
+            || cs === CoordinatesStyle.WXF_CHINESE
+            || cs === CoordinatesStyle.WXF_CHINESE_RED_ONLY;
+        const updateCoordinatesMoveFormatMismatchWarning = () => {
+            const mf = this.#settingsManager.moveFormat;
+            const cs = this.#settingsManager.coordinatesStyle;
+            const mismatch = isWxfMoveFormat(mf) !== isWxfCoordinatesStyle(cs);
+            if (this.#coordinatesMoveFormatMismatchWarning != null) {
+                this.#coordinatesMoveFormatMismatchWarning.hidden = !mismatch;
+            }
+        };
         const applyMoveFormat = (moveFormat) => {
             this.#settingsManager.moveFormat = moveFormat;
             if (this.#moveTreeWidget != null) {
@@ -355,6 +369,7 @@ class SettingsGui {
                 this.#moveTreeWidget.updateMoveFormat(moveFormat);
                 this.#selectMoveFormatMenuListeners.forEach(listener => listener(moveFormat));
             }
+            updateCoordinatesMoveFormatMismatchWarning();
         }
         this.#moveFormatRadioWxfDot.onchange = () => {
             if (this.#moveFormatRadioWxfDot.checked) {
@@ -453,6 +468,7 @@ class SettingsGui {
                 board.setCoordinatesOrientation(orientation);
                 board.setFileNumbersStyle(fileNumbersStyle);
             });
+            updateCoordinatesMoveFormatMismatchWarning();
         };
         const currentCoordinatesStyle = coordinatesStyleRadios[this.#settingsManager.coordinatesStyle]
             ? this.#settingsManager.coordinatesStyle
@@ -465,6 +481,7 @@ class SettingsGui {
                 }
             };
         });
+        updateCoordinatesMoveFormatMismatchWarning();
 
         // advanced settings
         this.#advancedSettingsToggle.onclick = (e) => {
