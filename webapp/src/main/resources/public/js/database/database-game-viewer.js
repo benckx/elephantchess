@@ -53,10 +53,11 @@ class DatabaseGameViewerPage extends BasePage {
     }
 
     #loadGameData() {
-        const idParam = getQueryParam('id');
-        const orientationParam = getQueryParam('orientation');
+        const ds = document.body.dataset;
+        const idParam = ds.gameId;
+        const orientationParam = ds.orientation;
 
-        if (idParam == null) {
+        if (idParam == null || idParam === '') {
             window.open('/', '_self');
             return;
         }
@@ -65,14 +66,14 @@ class DatabaseGameViewerPage extends BasePage {
         this.#gameDataClient = new GameDataClient(gameId);
 
         // players-info, game-date-info, game-event-info and the page title / meta
-        // description are rendered server-side. The board's final FEN is read from a
-        // body data-* attribute, so we don't need to fetch metadata dynamically — we
-        // only need to fetch the move list.
-        const finalFen = document.body.dataset.finalFen;
+        // description are rendered server-side. The board's final FEN, game id and
+        // orientation are all read from body data-* attributes, so we don't need to
+        // fetch metadata dynamically — we only need to fetch the move list.
+        const finalFen = ds.finalFen;
         if (finalFen != null && finalFen !== '') {
             this.#boardGui.loadFen(finalFen);
         }
-        if (orientationParam != null) {
+        if (orientationParam != null && orientationParam !== '') {
             this.#boardGui.flipToColor(orientationParam);
         }
 

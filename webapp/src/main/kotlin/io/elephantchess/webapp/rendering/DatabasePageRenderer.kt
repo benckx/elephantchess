@@ -258,7 +258,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         }
     }
 
-    suspend fun renderGamePage(summary: DatabaseGameSummary): String {
+    suspend fun renderGamePage(summary: DatabaseGameSummary, orientation: String? = null): String {
         val unknown = "<unknown>"
         val redCanonical = summary.redPlayerCanonicalName
         val blackCanonical = summary.blackPlayerCanonicalName
@@ -337,6 +337,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 SimpleValueTagResolver("game_date_info", dateInfoHtml),
                 SimpleValueTagResolver("game_event_info", eventInfoHtml),
                 SimpleValueTagResolver("game_final_fen", escapeHtmlAttr(summary.finalFen.orEmpty())),
+                SimpleValueTagResolver("game_id_attr", escapeHtmlAttr(summary.gameId)),
+                SimpleValueTagResolver("game_orientation", escapeHtmlAttr(orientation.orEmpty())),
                 SimpleValueTagResolver("pgn_red_player", escapeHtmlAttr(redCanonical.orEmpty())),
                 SimpleValueTagResolver("pgn_black_player", escapeHtmlAttr(blackCanonical.orEmpty())),
                 SimpleValueTagResolver("pgn_event", escapeHtmlAttr(summary.eventName.orEmpty())),

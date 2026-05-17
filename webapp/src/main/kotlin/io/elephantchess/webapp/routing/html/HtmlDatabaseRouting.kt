@@ -116,10 +116,12 @@ internal fun Routing.databasePages() {
         val gameId = call.parameters["id"]
             ?: throw BadRequestException("id query parameter not provided")
 
+        val orientation = call.request.queryParameters["orientation"]
+
         val summary = databaseService.fetchGameSummary(gameId)
             ?: throw NotFoundException("Game not found")
 
-        call.respondHtml(databasePageRenderer.renderGamePage(summary))
+        call.respondHtml(databasePageRenderer.renderGamePage(summary, orientation))
     }
 }
 
