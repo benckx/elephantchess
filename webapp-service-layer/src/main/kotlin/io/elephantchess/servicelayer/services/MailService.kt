@@ -256,6 +256,19 @@ class MailService(
         )
     }
 
+    suspend fun sendOpponentFlaggedWhileOffline(recipient: String, opponent: String, gameId: String) {
+        resolveAndSend(
+            recipient = recipient,
+            subject = "$opponent flagged on time",
+            templateName = "opponent_flagged_while_offline",
+            resolvers = listOf(
+                SimpleValueTagResolver("opponent", opponent),
+                GameLinkTagResolver(webHost, gameId),
+            ),
+            copyToAdmin = true
+        )
+    }
+
     suspend fun sendEmailConfirmation(recipient: String, code: String, showWelcomeMessage: Boolean) {
         val subject = if (showWelcomeMessage) {
             "Welcome to elephantchess - email address confirmation"

@@ -634,6 +634,7 @@ class PlayerVsPlayerGameService(
         if (userId == null) {
             logger.error { "$color user not found for $gameId" }
         } else {
+            val username = userCache.fetchUsernameOrDefault(userId)
             pvpGameDaoService.flag(
                 userId = userId,
                 gameId = gameId,
@@ -647,9 +648,24 @@ class PlayerVsPlayerGameService(
                 mailService.sendUserFlaggedNotification(
                     recipient = email,
                     gameId = gameId,
-                    username = userCache.fetchUsernameOrDefault(userId),
+                    username = username,
                 )
             }
+            val gamePlayersStatus = fetchPlayersAndStatus(gameId)
+            pvpGameDaoService
+                .shouldSendOpponentFlaggedNotification(
+                    gameId = gameId,
+                    flaggedUserId = userId,
+                    gamePlayersStatus = gamePlayersStatus,
+                    duration = NOTIFICATIONS_OFFLINE_FOR
+                )
+                ?.let { recipient ->
+                    mailService.sendOpponentFlaggedWhileOffline(
+                        recipient = recipient,
+                        opponent = username,
+                        gameId = gameId,
+                    )
+                }
         }
     }
 

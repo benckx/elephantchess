@@ -26,4 +26,20 @@ class MailRendererTest {
         assertTrue(html.contains("You lost your game on time (flagged): game-123."))
         assertTrue(html.contains("Review the game at https://elephantchess.test/g/game-123"))
     }
+
+    @Test
+    fun `render opponent flagged while offline template`() = runTest {
+        val html = mailRenderer.renderEmail(
+            templateName = "opponent_flagged_while_offline",
+            specificTagResolvers = listOf(
+                SimpleValueTagResolver("email_css", ""),
+                SimpleValueTagResolver("opponent", "alice"),
+                SimpleValueTagResolver("game_link", "https://elephantchess.test/g/game-123"),
+                SimpleValueTagResolver("update_mail_settings", ""),
+            )
+        )
+
+        assertTrue(html.contains("alice flagged on time while you were offline."))
+        assertTrue(html.contains("Review the game at https://elephantchess.test/g/game-123"))
+    }
 }
