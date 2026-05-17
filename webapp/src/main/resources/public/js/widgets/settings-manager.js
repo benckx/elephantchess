@@ -26,8 +26,8 @@ const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
 const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
 
 /**
- * User-facing style of the board coordinate labels. Combines the WXF/UCI
- * orientation and (for WXF) the numeral system used for file labels.
+ * User-facing style of the board coordinate labels.
+ * Combines the WXF orientation and (for WXF) the numeral system used for file labels.
  */
 const CoordinatesStyle = Object.freeze({
     /** WXF: Arabic numerals (1..9) on both sides. */
@@ -36,8 +36,8 @@ const CoordinatesStyle = Object.freeze({
     WXF_CHINESE: 'WXF_CHINESE',
     /** WXF: Chinese numerals on red's side; Arabic on black's side. */
     WXF_CHINESE_RED_ONLY: 'WXF_CHINESE_RED_ONLY',
-    /** UCI / Algebraic: letters a..i for files and 1..10 for ranks. */
-    UCI: 'UCI',
+    /** Algebraic: letters a..i for files and 1..10 for ranks. */
+    ALGEBRAIC: 'ALGEBRAIC',
     DEFAULT: 'WXF_CHINESE_RED_ONLY',
 });
 
@@ -184,10 +184,10 @@ class SettingsManager {
             return cookieValue;
         }
         // backward-compat default: tie to the move format chosen by the user
-        // (PGN/Algebraic users get UCI letters; WXF users get the default WXF flavour)
+        // (PGN/Algebraic users get algebraic letters; WXF users get the default WXF flavor)
         const isWxfMoveFormat = this.moveFormat === MoveFormatSetting.WXF_DOT
             || this.moveFormat === MoveFormatSetting.WXF_EQUALS;
-        return isWxfMoveFormat ? CoordinatesStyle.DEFAULT : CoordinatesStyle.UCI;
+        return isWxfMoveFormat ? CoordinatesStyle.DEFAULT : CoordinatesStyle.ALGEBRAIC;
     }
 
     /**
@@ -207,8 +207,8 @@ class SettingsManager {
         if (!this.isShowCoordinatesEnabled) {
             return null;
         }
-        return this.coordinatesStyle === CoordinatesStyle.UCI
-            ? CoordinatesOrientation.UCI
+        return this.coordinatesStyle === CoordinatesStyle.ALGEBRAIC
+            ? CoordinatesOrientation.ALGEBRAIC
             : CoordinatesOrientation.WXF;
     }
 
@@ -302,19 +302,23 @@ class SettingsGui {
 
     // advanced settings
     #advancedMoveFormatSettingItem = document.getElementById('advanced-move-format-setting-item');
+
     #moveFormatRadioWxfDot = document.getElementById('move-format-radio-wxf-dot');
     #moveFormatRadioWxfEquals = document.getElementById('move-format-radio-wxf-equals');
     #moveFormatRadioPgn = document.getElementById('move-format-radio-pgn');
     #moveFormatRadioAlgebraic = document.getElementById('move-format-radio-algebraic');
+
     #showCoordinatesEnabledRadio = document.getElementById('show-coordinates-enabled-radio');
     #showCoordinatesDisabledRadio = document.getElementById('show-coordinates-disabled-radio');
-    #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
-    #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
+
     #coordinatesStyleWxfArabicRadio = document.getElementById('coordinates-style-wxf-arabic-radio');
     #coordinatesStyleWxfChineseRadio = document.getElementById('coordinates-style-wxf-chinese-radio');
     #coordinatesStyleWxfChineseRedOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-red-only-radio');
-    #coordinatesStyleUciRadio = document.getElementById('coordinates-style-uci-radio');
+    #coordinatesStyleAlgebraicRadio = document.getElementById('coordinates-style-algebraic-radio');
     #coordinatesMoveFormatMismatchWarning = document.getElementById('coordinates-move-format-mismatch-warning');
+
+    #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
+    #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
 
     // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
@@ -453,12 +457,12 @@ class SettingsGui {
             }
         }
 
-        // coordinates style (WXF flavours + UCI/Algebraic letters)
+        // coordinates style (WXF flavors + Algebraic letters)
         const coordinatesStyleRadios = {
             [CoordinatesStyle.WXF_ARABIC]: this.#coordinatesStyleWxfArabicRadio,
             [CoordinatesStyle.WXF_CHINESE]: this.#coordinatesStyleWxfChineseRadio,
             [CoordinatesStyle.WXF_CHINESE_RED_ONLY]: this.#coordinatesStyleWxfChineseRedOnlyRadio,
-            [CoordinatesStyle.UCI]: this.#coordinatesStyleUciRadio,
+            [CoordinatesStyle.ALGEBRAIC]: this.#coordinatesStyleAlgebraicRadio,
         };
         const applyCoordinatesStyle = (style) => {
             this.#settingsManager.coordinatesStyle = style;

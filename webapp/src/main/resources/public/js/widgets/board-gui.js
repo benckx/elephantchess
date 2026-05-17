@@ -129,7 +129,7 @@ const EngineArrowType = Object.freeze({
  */
 const CoordinatesOrientation = Object.freeze({
     WXF: 'WXF',
-    UCI: 'UCI',
+    ALGEBRAIC: 'ALGEBRAIC',
 });
 
 // Chinese numerals for files 1..9, used to label files in WXF mode when the
@@ -138,7 +138,7 @@ const CHINESE_FILE_DIGITS = ['一', '二', '三', '四', '五', '六', '七', '�
 
 /**
  * How file numbers are rendered around the board in WXF mode. Only affects the
- * file-number labels; the UCI orientation (a..i letters) is unaffected.
+ * file-number labels; the algebraic orientation (a..i letters) is unaffected.
  */
 const FileNumbersStyle = Object.freeze({
     /** Arabic numerals (1..9) on both sides of the board. */
@@ -1210,7 +1210,7 @@ class BoardGui {
             const isSettingEnabled = orientation !== null;
             // when the user has disabled coordinates we still reserve the space (hidden labels),
             // so we must pick an arbitrary orientation for the (invisible) labels:
-            const isWfxOriented = orientation !== CoordinatesOrientation.UCI;
+            const isWfxOriented = orientation !== CoordinatesOrientation.ALGEBRAIC;
 
             const fileNumbersStyle = this.#options.fileNumbersStyle;
             // For a given side ('red' | 'black'), should we render Chinese numerals?
@@ -1630,7 +1630,7 @@ class BoardGui {
     }
 
     /**
-     * Change the orientation (WXF numerals vs UCI letters) of the board coordinates.
+     * Change the orientation (WXF numerals vs algebraic letters) of the board coordinates.
      *
      * @param coordinatesOrientation {string|null} one of {@link CoordinatesOrientation} or
      *                                             `null` to keep the labels hidden
@@ -1645,7 +1645,7 @@ class BoardGui {
 
     #redrawCoordinates() {
         // remove existing file-coordinate (top + bottom) and right-side rank labels
-        // (rank labels only exist in UCI mode but the selector is harmless if absent)
+        // (rank labels only exist in algebraic mode but the selector is harmless if absent)
         document.querySelectorAll(`#${this.#options.elementId} .file-coordinates-top,
                                    #${this.#options.elementId} .file-coordinates-bottom,
                                    #${this.#options.elementId} .rows-coordinates-right`)
