@@ -23,6 +23,7 @@ const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.bl
 const MOVE_FORMAT_SETTING = 'setting.move.format';
 const MOVE_NODE_EVAL_FORMAT = 'setting.move.node.eval.format';
 const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
+const FILE_NUMBERS_STYLE_SETTING = 'setting.file.numbers.style';
 
 const MoveFormatSetting = Object.freeze({
     WXF_DOT: 'WXF_DOT',
@@ -159,6 +160,28 @@ class SettingsManager {
     }
 
     /**
+     * @return {string}
+     */
+    get fileNumbersStyle() {
+        const cookieValue = getCookie(FILE_NUMBERS_STYLE_SETTING);
+        if (cookieValue === null) {
+            return FileNumbersStyle.DEFAULT;
+        }
+        // guard against stale/invalid cookie values
+        if (Object.values(FileNumbersStyle).includes(cookieValue)) {
+            return cookieValue;
+        }
+        return FileNumbersStyle.DEFAULT;
+    }
+
+    /**
+     * @param value {string}
+     */
+    set fileNumbersStyle(value) {
+        setCookie(FILE_NUMBERS_STYLE_SETTING, value, CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
      * Resolves the user's preference into a {@link CoordinatesOrientation} value
      * (or `null` if the user disabled the coordinates display).
      *
@@ -194,6 +217,7 @@ function buildWebappBoardGuiOptions(overrides = {}) {
         coordinatesOrientation: settingsManager.getCoordinatesOrientation(),
         pieceStyle: settingsManager.pieceStyle,
         colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
+        fileNumbersStyle: settingsManager.fileNumbersStyle,
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
         ...(isLocalHost ? {assetsBaseUrl: ''} : {}),
@@ -251,6 +275,9 @@ class SettingsGui {
     #showCoordinatesDisabledRadio = document.getElementById('show-coordinates-disabled-radio');
     #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
     #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
+    #fileNumbersStyleArabicBothRadio = document.getElementById('file-numbers-style-arabic-both-radio');
+    #fileNumbersStyleChineseBothRadio = document.getElementById('file-numbers-style-chinese-both-radio');
+    #fileNumbersStyleChineseRedOnlyRadio = document.getElementById('file-numbers-style-chinese-red-only-radio');
 
     // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
@@ -374,6 +401,28 @@ class SettingsGui {
                 this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(false));
             }
         }
+
+        // file numbers style
+        const fileNumbersStyleRadios = {
+            [FileNumbersStyle.ARABIC_BOTH]: this.#fileNumbersStyleArabicBothRadio,
+            [FileNumbersStyle.CHINESE_BOTH]: this.#fileNumbersStyleChineseBothRadio,
+            [FileNumbersStyle.CHINESE_RED_ONLY]: this.#fileNumbersStyleChineseRedOnlyRadio,
+        };
+        const applyFileNumbersStyle = (style) => {
+            this.#settingsManager.fileNumbersStyle = style;
+            this.#boardGuis.forEach(board => board.setFileNumbersStyle(style));
+        };
+        const currentStyle = fileNumbersStyleRadios[this.#settingsManager.fileNumbersStyle]
+            ? this.#settingsManager.fileNumbersStyle
+            : FileNumbersStyle.DEFAULT;
+        fileNumbersStyleRadios[currentStyle].checked = true;
+        Object.entries(fileNumbersStyleRadios).forEach(([style, radio]) => {
+            radio.onchange = () => {
+                if (radio.checked) {
+                    applyFileNumbersStyle(style);
+                }
+            };
+        });
 
         // advanced settings
         this.#advancedSettingsToggle.onclick = (e) => {
