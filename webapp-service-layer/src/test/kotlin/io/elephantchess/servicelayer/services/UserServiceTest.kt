@@ -9,6 +9,7 @@ import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.db.utils.minusHours
 import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.PuzzleAlgo
@@ -330,6 +331,38 @@ class UserServiceTest : ServiceTest() {
         val firstConfirmedAt = userAfterConfirmation.emailConfirmedAt
         assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
         assertEquals(firstConfirmedAt, userDaoService.findById(userId)!!.emailConfirmedAt)
+    }
+
+    @Test
+    fun `confirmEmail should reject an expired confirmation code`() = runTest {
+        val (_, userId) = signUpTestUser()
+        val userAfterSignup = userDaoService.findById(userId)!!
+        val code = userAfterSignup.emailConfirmationCode
+
+        // simulate that the code was generated more than 1h ago
+        userDaoService.updateEmailConfirmationCode(userId, code, Clock.System.now().minusHours(2L))
+
+        assertFalse(userService.confirmEmail(code), "Expired code should be rejected")
+        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+
+        // after a resend, a new code is generated with a fresh timestamp and confirmation works again
+        userService.resendEmailConfirmation(userId)
+        val refreshed = userDaoService.findById(userId)!!
+        assertNotEquals(code, refreshed.emailConfirmationCode, "Resend should generate a new code")
+        assertTrue(userService.confirmEmail(refreshed.emailConfirmationCode))
+        assertNotNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+    }
+
+    @Test
+    fun `resendEmailConfirmation should be a no-op for already-confirmed users`() = runTest {
+        val (_, userId) = signUpTestUser()
+        val originalCode = userDaoService.findById(userId)!!.emailConfirmationCode
+        assertTrue(userService.confirmEmail(originalCode))
+
+        userService.resendEmailConfirmation(userId)
+
+        // code is unchanged since the user is already confirmed
+        assertEquals(originalCode, userDaoService.findById(userId)!!.emailConfirmationCode)
     }
 
     @Test

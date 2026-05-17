@@ -110,6 +110,7 @@ class UserService(
             user.userType = UserType.AUTHENTICATED
             user.puzzleRating = PUZZLE_START_RATING
             user.emailConfirmationCode = UUID.randomUUID().toString()
+            user.emailConfirmationCodeCreatedAt = now
             userDaoService.save(user)
             val guestTransferred =
                 if (guestUserId != null) {
@@ -142,7 +143,11 @@ class UserService(
 
     /**
      * Confirms the email address associated with the given code, which was sent to the user by email at signup.
-     * Returns true if the code matches a user (whether it was already confirmed or not).
+     * Returns true if the code matches a user (whether it was already confirmed or not) and has not expired.
+     *
+     * The code is valid for [EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS] hour(s) after it was generated; after that the
+     * user must request a new one from the settings page. Already-confirmed users remain confirmed regardless
+     * of code expiration (the check is idempotent).
      *
      * The result is stored in [User.emailConfirmedAt], which is separate from the automated verification
      * results stored in the `email_verification` table.
@@ -153,10 +158,30 @@ class UserService(
         }
         val user = userDaoService.findByEmailConfirmationCode(code) ?: return false
         if (user.emailConfirmedAt == null) {
+            val createdAt = user.emailConfirmationCodeCreatedAt
+            if (createdAt == null || createdAt.plusHours(EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS).isBefore(Clock.System.now())) {
+                logger.info { "email confirmation code expired for user ${user.id}" }
+                return false
+            }
             userDaoService.markEmailConfirmed(user.id, Clock.System.now())
             logger.info { "email confirmed for user ${user.id}" }
         }
         return true
+    }
+
+    /**
+     * Regenerates the email confirmation code (with a fresh creation timestamp) and re-sends the
+     * confirmation email. No-op for users whose email is already manually confirmed.
+     */
+    suspend fun resendEmailConfirmation(userId: String) {
+        val user = userDaoService.findById(userId) ?: throw NotFoundException("User not found: $userId")
+        if (user.emailConfirmedAt != null) {
+            logger.debug { "email already confirmed for user $userId, skipping resend" }
+            return
+        }
+        val newCode = UUID.randomUUID().toString()
+        userDaoService.updateEmailConfirmationCode(userId, newCode, Clock.System.now())
+        mailService.sendEmailConfirmation(user.email, newCode)
     }
 
     suspend fun obtainGuestUserToken(): ObtainAnonymousTokenResponse {
@@ -493,6 +518,7 @@ class UserService(
     companion object {
 
         const val PASSWORD_RECOVERY_TIMEOUT_HOURS = 1L
+        const val EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS = 1L
         const val SALT_ALGO = "PBKDF2WithHmacSHA1"
 
         const val USERNAME_MIN_LENGTH = 4

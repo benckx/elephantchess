@@ -332,6 +332,18 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         }
     }
 
+    suspend fun updateEmailConfirmationCode(userId: String, code: String, createdAt: Instant) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL
+                .using(cfg)
+                .update(USER)
+                .set(USER.EMAIL_CONFIRMATION_CODE, code)
+                .set(USER.EMAIL_CONFIRMATION_CODE_CREATED_AT.fixed(), createdAt)
+                .where(USER.ID.eq(userId))
+                .awaitExecute()
+        }
+    }
+
     suspend fun existsById(userId: String): Boolean {
         return dslContext
             .selectCount()

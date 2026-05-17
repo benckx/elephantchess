@@ -22,6 +22,7 @@ const UI_NOTIFICATION_TIMEOUT = 2_500;
 const USER_SETTINGS_API = '/api/user/settings';
 const PROFILE_URL = USER_SETTINGS_API + '/profile';
 const EMAIL_SETTINGS_URL = USER_SETTINGS_API + '/email-address';
+const RESEND_EMAIL_CONFIRMATION_URL = EMAIL_SETTINGS_URL + '/resend-confirmation';
 
 const USERNAME_MAX_DESCRIPTION_LENGTH = 1_000;
 
@@ -125,6 +126,23 @@ class UserSettingsPage extends BasePage {
                     elementId = 'email-validity-unknown';
             }
             document.getElementById(elementId).classList.remove('hidden');
+
+            // The resend button is shown for any status except MANUALLY_CONFIRMED, since manual
+            // confirmation is the strongest signal and a resend would not change anything.
+            if (json.validityStatus !== 'MANUALLY_CONFIRMED') {
+                const container = document.getElementById('resend-email-confirmation-container');
+                const button = document.getElementById('resend-email-confirmation-button');
+                container.classList.remove('hidden');
+                button.addEventListener('click', () => this.#resendEmailConfirmation());
+            }
+        });
+    }
+
+    #resendEmailConfirmation() {
+        const button = document.getElementById('resend-email-confirmation-button');
+        button.disabled = true;
+        postAndHandle(RESEND_EMAIL_CONFIRMATION_URL, null, () => {
+            UI.pushInfoNotification('Confirmation email sent!', UI_NOTIFICATION_TIMEOUT);
         });
     }
 
