@@ -300,6 +300,8 @@ class SettingsGui {
     #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
     #advancedSettingsBox = document.getElementById('advanced-settings-box');
     #advancedSettingsCloseButton = document.getElementById('advanced-settings-close-button');
+    #modalBackground = document.getElementById('modal-background');
+    #advancedSettingsUsesModalBackground = false;
 
     // advanced settings
     #advancedMoveFormatSettingItem = document.getElementById('advanced-move-format-setting-item');
@@ -489,10 +491,20 @@ class SettingsGui {
         updateCoordinatesMoveFormatMismatchWarning();
 
         // advanced settings
+        const isMobileAdvancedSettingsLayout = () => window.matchMedia('(max-width: 1000px)').matches;
         const closeAdvancedSettings = () => {
             this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+            if (this.#advancedSettingsUsesModalBackground) {
+                this.#advancedSettingsUsesModalBackground = false;
+                this.#modalBackground.style.display = 'none';
+            }
         };
         const openAdvancedSettings = () => {
+            if (isMobileAdvancedSettingsLayout() && this.#modalBackground != null
+                && getComputedStyle(this.#modalBackground).display === 'none') {
+                this.#advancedSettingsUsesModalBackground = true;
+                this.#modalBackground.style.display = 'flex';
+            }
             this.#advancedSettingsBox.classList.add('advanced-settings-box-open');
         };
         this.#advancedSettingsToggle.onclick = (e) => {
@@ -515,6 +527,11 @@ class SettingsGui {
                 const isInsideAdvancedBox = this.#advancedSettingsBox.contains(event.target);
                 const isAdvancedToggle = this.#advancedSettingsToggle.contains(event.target);
                 if (!isInsideAdvancedBox && !isAdvancedToggle) {
+                    closeAdvancedSettings();
+                }
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && this.#advancedSettingsBox.classList.contains('advanced-settings-box-open')) {
                     closeAdvancedSettings();
                 }
             });
