@@ -16,22 +16,6 @@
         </div>
         <div class="setting-option-item">
             <div>
-                <img id="move-format-button"
-                     src="/images/icons/types.png"
-                     alt="Select move format"
-                     loading="lazy">
-            </div>
-        </div>
-        <div class="setting-option-item">
-            <div>
-                <img id="show-coordinates-button"
-                     src="/images/icons/coordinates1.png"
-                     alt="Show or hide board coordinates"
-                     loading="lazy">
-            </div>
-        </div>
-        <div class="setting-option-item">
-            <div>
                 <img id="flip-board-button"
                      src="/images/icons/circle-of-two-clockwise-arrows-rotation-blue.png"
                      alt="Flip board"
@@ -52,6 +36,145 @@
                      src="/images/icons/edit-position.png"
                      alt="Edit position"
                      loading="lazy">
+            </div>
+        </div>
+    </div>
+    <a id="advanced-settings-toggle"
+       href="#"
+       aria-label="Open advanced settings">
+        advanced
+    </a>
+    <div id="advanced-settings-box">
+        <div id="advanced-move-format-setting-item" class="advanced-setting-row">
+            <img class="advanced-setting-icon"
+                 src="/images/icons/types.png"
+                 alt="Move format setting icon"
+                 loading="lazy">
+            <div class="advanced-setting-content">
+                <div class="advanced-setting-text">
+                    <div class="advanced-setting-title">Move format</div>
+                    <div class="advanced-setting-description">Notation shown in the move list.</div>
+                </div>
+                <div class="advanced-setting-options">
+                    <label>
+                        <input type="radio" name="move-format-setting" id="move-format-radio-wxf-dot" value="WXF_DOT">
+                        WXF .
+                    </label>
+                    <label>
+                        <input type="radio" name="move-format-setting" id="move-format-radio-wxf-equals"
+                               value="WXF_EQUALS">
+                        WXF =
+                    </label>
+                    <label>
+                        <input type="radio" name="move-format-setting" id="move-format-radio-pgn" value="PGN">
+                        PGN
+                    </label>
+                    <label>
+                        <input type="radio" name="move-format-setting" id="move-format-radio-algebraic"
+                               value="ALGEBRAIC_EN">
+                        Algebraic
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="advanced-setting-row">
+            <img class="advanced-setting-icon"
+                 src="/images/icons/coordinates1.png"
+                 alt="Show coordinates setting icon"
+                 loading="lazy">
+            <div class="advanced-setting-content">
+                <div class="advanced-setting-text">
+                    <div class="advanced-setting-title">Show coordinates</div>
+                    <div class="advanced-setting-description">Display board coordinates around the board edges.</div>
+                </div>
+                <div class="advanced-setting-options">
+                    <label>
+                        <input type="radio" name="show-coordinates-setting" id="show-coordinates-enabled-radio"
+                               value="true">
+                        On
+                    </label>
+                    <label>
+                        <input type="radio" name="show-coordinates-setting" id="show-coordinates-disabled-radio"
+                               value="false">
+                        Off
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="advanced-setting-row">
+            <img class="advanced-setting-icon"
+                 src="/images/icons/coordinates2.png"
+                 alt="Coordinates style setting icon"
+                 loading="lazy">
+            <div class="advanced-setting-content">
+                <div class="advanced-setting-text">
+                    <div class="advanced-setting-title">Coordinates</div>
+                    <div class="advanced-setting-description">Numeral system used for board coordinates.</div>
+                </div>
+                <div class="advanced-setting-options">
+                    <label>
+                        <input type="radio"
+                               name="coordinates-style-setting"
+                               id="coordinates-style-wxf-arabic-radio"
+                               value="WXF_ARABIC">
+                        Arabic on both sides
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="coordinates-style-setting"
+                               id="coordinates-style-wxf-chinese-radio"
+                               value="WXF_CHINESE">
+                        Chinese on both sides
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="coordinates-style-setting"
+                               id="coordinates-style-wxf-chinese-red-only-radio"
+                               value="WXF_CHINESE_RED_ONLY">
+                        Chinese on red side only
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="coordinates-style-setting"
+                               id="coordinates-style-algebraic-radio"
+                               value="ALGEBRAIC">
+                         Algebraic (a–i, 1–10)
+                    </label>
+                </div>
+                <div id="coordinates-move-format-mismatch-warning"
+                     class="advanced-setting-warning"
+                     hidden>
+                    ⚠ Warning: the chosen coordinates don't match the move format family
+                    (WXF vs Algebraic).
+                </div>
+            </div>
+        </div>
+        <div class="advanced-setting-row">
+            <img class="advanced-setting-icon"
+                 src="/images/icons/contrast-circle-symbol-smaller.png"
+                 alt="Colorblind black pieces setting icon"
+                 loading="lazy">
+            <div class="advanced-setting-content">
+                <div class="advanced-setting-text">
+                    <div class="advanced-setting-title">Colorblind black pieces</div>
+                    <div class="advanced-setting-description">Increase contrast for black pieces.</div>
+                </div>
+                <div class="advanced-setting-options">
+                    <label>
+                        <input type="radio"
+                               name="colorblind-black-pieces-setting"
+                               id="colorblind-friendly-black-pieces-enabled-radio"
+                               value="true">
+                        On
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="colorblind-black-pieces-setting"
+                               id="colorblind-friendly-black-pieces-disabled-radio"
+                               value="false">
+                        Off
+                    </label>
+                </div>
             </div>
         </div>
     </div>

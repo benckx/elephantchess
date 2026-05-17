@@ -23,7 +23,7 @@ fun eventsTableTagResolver(
     }
 
     buildString {
-        append("""<table class="database-table events-list-table">""")
+        append("""<table class="database-table events-list-table nice-table nice-table-striped">""")
         append("<thead><tr>")
         append("<th>Event</th>")
         append("<th>Date</th>")
@@ -48,7 +48,7 @@ fun playersTableTagResolver(
     playerStandings: PlayersListResponse
 ) = CallbackTagResolver("players_table") {
     buildString {
-        append("""<table class="database-table standings-table">""")
+        append("""<table class="database-table standings-table nice-table nice-table-striped">""")
         append("<thead><tr>")
         append("<th>Player</th>")
         append("<th>W</th>")
@@ -117,7 +117,7 @@ fun eventGamesListTagResolver(
         )
 
         val lines = mutableListOf<String>()
-        lines += """<div><table class="database-table game-round-table">"""
+        lines += """<div><table class="database-table game-round-table nice-table nice-table-striped">"""
         lines += "<tr><th>red</th><th>outcome</th><th>black</th><tr>"
         for (game in sortedGames) {
             lines += """<tr 
@@ -210,7 +210,7 @@ fun eventGamesListTagResolver(
 
         val lines = mutableListOf<String>()
         lines += """<h2>Standings</h2>"""
-        lines += """<table class="database-table scores-table">"""
+        lines += """<table class="database-table scores-table nice-table nice-table-striped">"""
         lines += "<tr><th>#</th><th>Player</th><th>W</th><th>D</th><th>L</th><th>Score</th></tr>"
         for ((index, entry) in sortedScores.withIndex()) {
             val (triple, stats) = entry

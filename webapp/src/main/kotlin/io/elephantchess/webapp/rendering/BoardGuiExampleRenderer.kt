@@ -37,11 +37,6 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
                 .let(::escapeHtml)
         }
 
-    private fun escapeHtml(s: String): String =
-        s.replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-
     private fun boardGuiAssetsTagResolver(useCdn: Boolean): TagResolver =
         CallbackTagResolver("board_gui_assets") {
             var distPath = "/dist/$DIST_VERSION"
@@ -57,7 +52,7 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
 
     companion object {
 
-        const val DIST_VERSION = "0.0.2"
+        const val DIST_VERSION = "0.0.4"
 
     }
 }

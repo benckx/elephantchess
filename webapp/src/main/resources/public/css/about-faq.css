@@ -55,3 +55,43 @@
     word-wrap: break-word;
     word-break: break-word;
 }
+
+#page-toc {
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px 10px;
+}
+
+#page-toc ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+#page-toc li {
+    margin: 2px 0;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+#page-toc a {
+    font-size: inherit;
+}
+
+.anchor-copy-link {
+    cursor: pointer;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.anchor-copy-link img {
+    width: 18px;
+    opacity: 70%;
+    vertical-align: middle;
+    position: relative;
+    top: -4px;
+}
+
+.anchor-copy-link:hover img {
+    opacity: 100%;
+}
