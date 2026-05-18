@@ -283,8 +283,10 @@ function createWebappBoardGui(overrides = {}) {
     return new BoardGui(buildWebappBoardGuiOptions(overrides));
 }
 
-class SettingsGui {
+let activeAdvancedSettingsEscapeListener = null;
+let activeAdvancedSettingsCloseHandler = null;
 
+class SettingsGui {
     #moveTreeWidget;
     #settingsManager = new SettingsManager();
     #selectMoveFormatMenuListeners = [];
@@ -311,6 +313,9 @@ class SettingsGui {
 
     #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
     #advancedSettingsBox = document.getElementById('advanced-settings-box');
+    #advancedSettingsCloseButton = document.getElementById('advanced-settings-close-button');
+    #modalBackground = document.getElementById('modal-background');
+    #advancedSettingsUsesModalBackground = false;
 
     // advanced settings
     #advancedMoveFormatSettingItem = document.getElementById('advanced-move-format-setting-item');
@@ -528,10 +533,49 @@ class SettingsGui {
         updateCoordinatesMoveFormatMismatchWarning();
 
         // advanced settings
+        const isMobileAdvancedSettingsLayout = () => window.matchMedia('(max-width: 1000px)').matches;
+        const closeAdvancedSettings = () => {
+            this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+            if (activeAdvancedSettingsCloseHandler === closeAdvancedSettings) {
+                activeAdvancedSettingsCloseHandler = null;
+            }
+            if (this.#advancedSettingsUsesModalBackground) {
+                this.#advancedSettingsUsesModalBackground = false;
+                this.#modalBackground.style.display = 'none';
+            }
+        };
+        const openAdvancedSettings = () => {
+            if (isMobileAdvancedSettingsLayout() && this.#modalBackground != null) {
+                const isModalBackgroundHidden = this.#modalBackground.style.display === ''
+                    || this.#modalBackground.style.display === 'none';
+                if (isModalBackgroundHidden) {
+                    this.#advancedSettingsUsesModalBackground = true;
+                    this.#modalBackground.style.display = 'flex';
+                }
+            }
+            activeAdvancedSettingsCloseHandler = closeAdvancedSettings;
+            this.#advancedSettingsBox.classList.add('advanced-settings-box-open');
+        };
         this.#advancedSettingsToggle.onclick = (e) => {
             e.preventDefault();
-            this.#advancedSettingsBox.classList.toggle('advanced-settings-box-open');
+            if (this.#advancedSettingsBox.classList.contains('advanced-settings-box-open')) {
+                closeAdvancedSettings();
+            } else {
+                openAdvancedSettings();
+            }
         };
+        this.#advancedSettingsCloseButton.onclick = (e) => {
+            e.preventDefault();
+            closeAdvancedSettings();
+        };
+        if (activeAdvancedSettingsEscapeListener === null) {
+            activeAdvancedSettingsEscapeListener = (event) => {
+                if (event.key === 'Escape' && typeof activeAdvancedSettingsCloseHandler === 'function') {
+                    activeAdvancedSettingsCloseHandler();
+                }
+            };
+            document.addEventListener('keydown', activeAdvancedSettingsEscapeListener);
+        }
         if (!showAdvancedSettingsLink) {
             this.#advancedSettingsToggle.style.display = 'none';
             this.#advancedSettingsBox.style.display = 'none';
@@ -540,7 +584,7 @@ class SettingsGui {
                 const isInsideAdvancedBox = this.#advancedSettingsBox.contains(event.target);
                 const isAdvancedToggle = this.#advancedSettingsToggle.contains(event.target);
                 if (!isInsideAdvancedBox && !isAdvancedToggle) {
-                    this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+                    closeAdvancedSettings();
                 }
             });
         }

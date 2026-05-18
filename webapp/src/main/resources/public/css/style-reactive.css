@@ -521,10 +521,31 @@
     }
 
     #settings-info-box-container #advanced-settings-box {
-        top: calc(100% + 10px);
-        left: -5px;
-        width: calc(100% + 10px);
-        padding: 30px 34px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+        transform: translate(-50%, -50%);
+        z-index: 1202;
+        overflow-y: auto;
+        border-radius: 8px;
+        padding: 76px 34px 34px;
+    }
+
+    #settings-info-box-container #advanced-settings-close-button {
+        display: block;
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 40px;
+        line-height: 1;
+        cursor: pointer;
     }
 
     #settings-info-box img#flip-board-button,
@@ -558,16 +579,16 @@
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-title {
-        font-size: 30px;
+        font-size: 32px;
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-description {
-        font-size: 18px;
+        font-size: 20px;
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-options {
         gap: 8px;
-        font-size: 28px;
+        font-size: 30px;
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=radio] {
