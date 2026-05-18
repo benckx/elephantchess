@@ -92,16 +92,15 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
 
     @JvmStatic
     fun main(args: Array<String>): Unit = runBlocking {
-
         // set up users
         (1..testUsers).forEach { i -> createTestUserIfNotExists(i) }
 
         // create games
         val rnd = Random.Default
         val weirdTimeControls = rnd.generateWeirdTimeControls()
-        val timeControls = standardTimeControls + weirdTimeControls
+        val timeControls = standardTimeControls// + weirdTimeControls
 
-        repeat(30) {
+        repeat(50) {
             val i = rnd.nextInt(testUsers) + 1
             val user = userDaoService.findByEmail("test$i@protonmail.com")!!
             val hasColor = rnd.nextBoolean()

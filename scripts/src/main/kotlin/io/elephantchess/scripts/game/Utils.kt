@@ -21,7 +21,7 @@ object Utils : KoinComponent {
     private val dslContext by inject<DSLContext>()
 
     suspend fun createTestUserIfNotExists(i: Int, randomizeRatings: Boolean = true) {
-        val username = "test$i-pretty-long-name-${safeRandomAlphaNumericString(10, 20)}"
+        val username = "test$i-pretty-long-name-${safeRandomAlphaNumericString(5, 10)}".take(30)
         val email = "test$i@protonmail.com"
         val password = "password$i"
         val userExists = userDaoService.existsForEmail(email)
