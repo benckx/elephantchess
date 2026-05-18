@@ -149,6 +149,10 @@ const FileNumbersStyle = Object.freeze({
     CHINESE_RED_ONLY: 'CHINESE_RED_ONLY',
     /** Chinese numerals on black's side; Arabic numerals on red's side. */
     CHINESE_BLACK_ONLY: 'CHINESE_BLACK_ONLY',
+    /** Chinese numerals on the bottom (lower) side of the screen; Arabic on the top side. */
+    CHINESE_LOWER_ONLY: 'CHINESE_LOWER_ONLY',
+    /** Chinese numerals on the top side of the screen; Arabic on the bottom side. */
+    CHINESE_TOP_ONLY: 'CHINESE_TOP_ONLY',
     DEFAULT: 'CHINESE_RED_ONLY',
 });
 
@@ -1215,8 +1219,9 @@ class BoardGui {
             const isWfxOriented = orientation !== CoordinatesOrientation.ALGEBRAIC;
 
             const fileNumbersStyle = this.#options.fileNumbersStyle;
-            // For a given side ('red' | 'black'), should we render Chinese numerals?
-            const isChineseOnSide = (side) => {
+            // For a given side ('red' | 'black') and its screen position ('top' | 'bottom'),
+            // should we render Chinese numerals?
+            const isChineseOnSide = (side, position) => {
                 switch (fileNumbersStyle) {
                     case FileNumbersStyle.ARABIC_BOTH:
                         return false;
@@ -1224,6 +1229,10 @@ class BoardGui {
                         return true;
                     case FileNumbersStyle.CHINESE_BLACK_ONLY:
                         return side === 'black';
+                    case FileNumbersStyle.CHINESE_LOWER_ONLY:
+                        return position === 'bottom';
+                    case FileNumbersStyle.CHINESE_TOP_ONLY:
+                        return position === 'top';
                     case FileNumbersStyle.CHINESE_RED_ONLY:
                     default:
                         return side === 'red';
@@ -1238,7 +1247,7 @@ class BoardGui {
                 }
                 // top row shows black's side when red is at the bottom, and red's side when flipped
                 const topSide = this.#flippedRed ? 'black' : 'red';
-                const topChinese = isChineseOnSide(topSide);
+                const topChinese = isChineseOnSide(topSide, 'top');
 
                 for (let x = 0; x < BOARD_WIDTH; x++) {
                     // actual text
@@ -1266,7 +1275,7 @@ class BoardGui {
             }
             // bottom row shows red's side when red is at the bottom, and black's side when flipped
             const bottomSide = this.#flippedRed ? 'red' : 'black';
-            const bottomChinese = isChineseOnSide(bottomSide);
+            const bottomChinese = isChineseOnSide(bottomSide, 'bottom');
             for (let x = 0; x < BOARD_WIDTH; x++) {
                 // actual text
                 let label;

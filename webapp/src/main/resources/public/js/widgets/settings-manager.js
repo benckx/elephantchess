@@ -38,6 +38,10 @@ const CoordinatesStyle = Object.freeze({
     WXF_CHINESE_RED_ONLY: 'WXF_CHINESE_RED_ONLY',
     /** WXF: Chinese numerals on black's side; Arabic on red's side. */
     WXF_CHINESE_BLACK_ONLY: 'WXF_CHINESE_BLACK_ONLY',
+    /** WXF: Chinese numerals on the bottom side of the screen only. */
+    WXF_CHINESE_LOWER_ONLY: 'WXF_CHINESE_LOWER_ONLY',
+    /** WXF: Chinese numerals on the top side of the screen only. */
+    WXF_CHINESE_TOP_ONLY: 'WXF_CHINESE_TOP_ONLY',
     /** Algebraic: letters a..i for files and 1..10 for ranks. */
     ALGEBRAIC: 'ALGEBRAIC',
     DEFAULT: 'WXF_CHINESE_RED_ONLY',
@@ -230,6 +234,10 @@ class SettingsManager {
                 return FileNumbersStyle.CHINESE_RED_ONLY;
             case CoordinatesStyle.WXF_CHINESE_BLACK_ONLY:
                 return FileNumbersStyle.CHINESE_BLACK_ONLY;
+            case CoordinatesStyle.WXF_CHINESE_LOWER_ONLY:
+                return FileNumbersStyle.CHINESE_LOWER_ONLY;
+            case CoordinatesStyle.WXF_CHINESE_TOP_ONLY:
+                return FileNumbersStyle.CHINESE_TOP_ONLY;
             default:
                 return FileNumbersStyle.DEFAULT;
         }
@@ -319,6 +327,8 @@ class SettingsGui {
     #coordinatesStyleWxfChineseRadio = document.getElementById('coordinates-style-wxf-chinese-radio');
     #coordinatesStyleWxfChineseRedOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-red-only-radio');
     #coordinatesStyleWxfChineseBlackOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-black-only-radio');
+    #coordinatesStyleWxfChineseLowerOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-lower-only-radio');
+    #coordinatesStyleWxfChineseTopOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-top-only-radio');
     #coordinatesStyleAlgebraicRadio = document.getElementById('coordinates-style-algebraic-radio');
     #coordinatesMoveFormatMismatchWarning = document.getElementById('coordinates-move-format-mismatch-warning');
 
@@ -363,7 +373,9 @@ class SettingsGui {
             cs === CoordinatesStyle.WXF_ARABIC
             || cs === CoordinatesStyle.WXF_CHINESE
             || cs === CoordinatesStyle.WXF_CHINESE_RED_ONLY
-            || cs === CoordinatesStyle.WXF_CHINESE_BLACK_ONLY;
+            || cs === CoordinatesStyle.WXF_CHINESE_BLACK_ONLY
+            || cs === CoordinatesStyle.WXF_CHINESE_LOWER_ONLY
+            || cs === CoordinatesStyle.WXF_CHINESE_TOP_ONLY;
         const updateCoordinatesMoveFormatMismatchWarning = () => {
             const mf = this.#settingsManager.moveFormat;
             const cs = this.#settingsManager.coordinatesStyle;
@@ -470,6 +482,8 @@ class SettingsGui {
             [CoordinatesStyle.WXF_CHINESE]: this.#coordinatesStyleWxfChineseRadio,
             [CoordinatesStyle.WXF_CHINESE_RED_ONLY]: this.#coordinatesStyleWxfChineseRedOnlyRadio,
             [CoordinatesStyle.WXF_CHINESE_BLACK_ONLY]: this.#coordinatesStyleWxfChineseBlackOnlyRadio,
+            [CoordinatesStyle.WXF_CHINESE_LOWER_ONLY]: this.#coordinatesStyleWxfChineseLowerOnlyRadio,
+            [CoordinatesStyle.WXF_CHINESE_TOP_ONLY]: this.#coordinatesStyleWxfChineseTopOnlyRadio,
             [CoordinatesStyle.ALGEBRAIC]: this.#coordinatesStyleAlgebraicRadio,
         };
         const applyCoordinatesStyle = (style) => {
