@@ -242,10 +242,11 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 0;
 }
 
-.game-to-join-opponent-line .game-to-join-online-cell {
-    margin-right: 0;
+.game-to-join-online-cell .online-status-indicator {
+    margin-right: 3px;
 }
 
 .join-buttons {

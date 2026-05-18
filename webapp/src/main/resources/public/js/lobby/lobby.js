@@ -143,11 +143,21 @@ class LobbyPage extends BasePage {
         }
 
         entries.forEach((entry) => {
-            const item = buildDivWithClass('game-to-join-item');
-
+            // skeleton
             const variantPane = buildDivWithClass('game-to-join-variant-pane');
-            item.append(variantPane);
+            const timeControlPane = buildDivWithClass('game-to-join-time-control-pane');
+            const middlePane = buildDivWithClass('game-to-join-middle-pane');
+            const ratingPane = buildDivWithClass('game-to-join-rating-pane');
+            const rightPane = buildDivWithClass('game-to-join-right-pane');
 
+            const item = buildDivWithClass('game-to-join-item');
+            item.append(variantPane);
+            item.append(timeControlPane);
+            item.append(middlePane);
+            item.append(ratingPane);
+            item.append(rightPane);
+
+            // variant
             variantPane.append(
                 buildSpan(
                     '象',
@@ -156,25 +166,14 @@ class LobbyPage extends BasePage {
                 )
             );
 
-            const timeControlPane = buildDivWithClass('game-to-join-time-control-pane');
-            item.append(timeControlPane);
-
-            const middlePane = buildDivWithClass('game-to-join-middle-pane');
-            item.append(middlePane);
-
-            const ratingPane = buildDivWithClass('game-to-join-rating-pane');
-            item.append(ratingPane);
-
-            const rightPane = buildDivWithClass('game-to-join-right-pane');
-            item.append(rightPane);
-
+            // opponent
             const opponentLine = buildDivWithClass('game-to-join-opponent-line');
-            middlePane.append(opponentLine);
-
             const metadataLine = buildDivWithClass('game-to-join-metadata-line');
+
+            middlePane.append(opponentLine);
             middlePane.append(metadataLine);
 
-            // is online indicator
+            // opponent (is online)
             const isOnlineCell = buildDivWithClass('game-to-join-online-cell');
             opponentLine.append(isOnlineCell);
 
@@ -183,42 +182,6 @@ class LobbyPage extends BasePage {
                 isOnlineIndicator.classList.add(IS_ONLINE_CSS_CLASS);
             }
             isOnlineCell.append(isOnlineIndicator);
-
-            // username and rating
-            const usernameCell = document.createElement('div');
-            usernameCell.classList.add('username-cell', 'crop-text-ellipsis');
-            opponentLine.append(usernameCell);
-
-            usernameCell.append(
-                buildUsernameSpan(
-                    entry.opponentUserId,
-                    entry.opponentUsername,
-                    entry.opponentUserType
-                )
-            );
-            if (entry.opponentUserType === UserType.GUEST && usernameCell.firstChild?.innerText != null) {
-                usernameCell.firstChild.innerText = usernameCell.firstChild.innerText.replace(/^guest\s+/i, '').trim();
-            }
-
-            const ratingCell = document.createElement('div');
-            ratingCell.className = 'rating-cell';
-            ratingCell.innerText = `(${entry.opponentRating})`;
-            opponentLine.append(ratingCell);
-
-            // color
-            const colorCell = document.createElement('div');
-            colorCell.className = 'game-to-join-metadata-item color-cell';
-            const colorSpan = buildColorSpan(entry.opponentColor);
-            if (colorSpan.classList.contains('any-color')) {
-                colorSpan.innerText = 'Any color';
-                colorSpan.title = 'Colors will be assigned randomly at the start of the game';
-            } else if (entry.opponentColor === Color.RED) {
-                colorSpan.title = 'This player picked Red, you would play Black';
-            } else if (entry.opponentColor === Color.BLACK) {
-                colorSpan.title = 'This player picked Black, you would play Red';
-            }
-            colorCell.append(colorSpan);
-            metadataLine.append(colorCell);
 
             // time control
             let timeControlLabel;
@@ -237,6 +200,43 @@ class LobbyPage extends BasePage {
 
             timeControlPane.append(timeControlIconCell);
             timeControlPane.append(timeControlDurationCell);
+
+            // opponent (username and rating)
+            const usernameCell = document.createElement('div');
+            usernameCell.classList.add('username-cell', 'crop-text-ellipsis');
+            opponentLine.append(usernameCell);
+
+            usernameCell.append(
+                buildUsernameSpan(
+                    entry.opponentUserId,
+                    entry.opponentUsername,
+                    entry.opponentUserType,
+                    20
+                )
+            );
+            if (entry.opponentUserType === UserType.GUEST && usernameCell.firstChild?.innerText != null) {
+                usernameCell.firstChild.innerText = usernameCell.firstChild.innerText.replace(/^guest\s+/i, '').trim();
+            }
+
+            const ratingCell = document.createElement('div');
+            ratingCell.className = 'rating-cell';
+            ratingCell.innerText = `(${entry.opponentRating})`;
+            opponentLine.append(ratingCell);
+
+            // opponent (color)
+            const colorCell = document.createElement('div');
+            colorCell.className = 'game-to-join-metadata-item color-cell';
+            const colorSpan = buildColorSpan(entry.opponentColor);
+            if (colorSpan.classList.contains('any-color')) {
+                colorSpan.innerText = 'Any color';
+                colorSpan.title = 'Colors will be assigned randomly at the start of the game';
+            } else if (entry.opponentColor === Color.RED) {
+                colorSpan.title = 'This player picked Red, you would play Black';
+            } else if (entry.opponentColor === Color.BLACK) {
+                colorSpan.title = 'This player picked Black, you would play Red';
+            }
+            colorCell.append(colorSpan);
+            metadataLine.append(colorCell);
 
             // rating mode
             const ratingModeCell = document.createElement('div');
