@@ -6,6 +6,7 @@ import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.fixed
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.services.UserService
+import io.elephantchess.utils.safeRandomAlphaNumericString
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -20,8 +21,8 @@ object Utils : KoinComponent {
     private val dslContext by inject<DSLContext>()
 
     suspend fun createTestUserIfNotExists(i: Int, randomizeRatings: Boolean = true) {
-        val username = "test$i"
-        val email = "test$i@gmail.com"
+        val username = "test$i-pretty-long-name-${safeRandomAlphaNumericString(10, 20)}"
+        val email = "test$i@protonmail.com"
         val password = "password$i"
         val userExists = userDaoService.existsForEmail(email)
 
