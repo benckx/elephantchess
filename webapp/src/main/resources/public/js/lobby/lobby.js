@@ -220,7 +220,7 @@ class LobbyPage extends BasePage {
             timeControlPane.append(timeControlDurationCell);
 
             if (hasCustomTimeControl && entry.timeControl != null) {
-                customTimeLine.innerText = `custom time: ${entry.timeControl.printShort(' +')}`;
+                customTimeLine.innerText = entry.timeControl.printShort(' +');
             }
 
             // opponent (username and rating)

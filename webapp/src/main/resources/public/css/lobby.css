@@ -130,10 +130,10 @@ h1 {
 }
 
 .game-to-join-time-control-pane {
-    width: 90px;
+    width: 80px;
     flex-direction: column;
     justify-content: center;
-    gap: 2px;
+    gap: 4px;
 }
 
 .game-to-join-middle-pane {
@@ -219,8 +219,7 @@ h1 {
 }
 
 .game-to-join-item .time-control-icons {
-    width: 20px;
-    margin-bottom: 2px;
+    width: 22px;
 }
 
 .game-to-join-time-duration-cell {
