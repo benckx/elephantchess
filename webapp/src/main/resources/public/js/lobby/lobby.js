@@ -148,9 +148,9 @@ class LobbyPage extends BasePage {
             variantSymbol.title = 'Xiangqi (Chinese chess)';
             variantPane.append(variantSymbol);
 
-            const leftPane = document.createElement('div');
-            leftPane.className = 'game-to-join-left-pane';
-            item.append(leftPane);
+            const timeControlPane = document.createElement('div');
+            timeControlPane.className = 'game-to-join-time-control-pane';
+            item.append(timeControlPane);
 
             const middlePane = document.createElement('div');
             middlePane.className = 'game-to-join-middle-pane';
@@ -223,7 +223,7 @@ class LobbyPage extends BasePage {
             // time control
             const timeControlIconCell = document.createElement('div');
             timeControlIconCell.className = 'game-to-join-time-icon-cell';
-            leftPane.append(timeControlIconCell);
+            timeControlPane.append(timeControlIconCell);
 
             const imageName = timeControlCategoryIconMap.get(entry.timeControlCategory);
             const img = document.createElement('img');
@@ -239,7 +239,7 @@ class LobbyPage extends BasePage {
             const timeControlDurationCell = document.createElement('div');
             timeControlDurationCell.className = 'game-to-join-time-duration-cell';
             timeControlDurationCell.innerText = timeControlLabel;
-            leftPane.append(timeControlDurationCell);
+            timeControlPane.append(timeControlDurationCell);
 
             // rating mode
             const ratingModeCell = document.createElement('div');
