@@ -283,6 +283,8 @@ function createWebappBoardGui(overrides = {}) {
     return new BoardGui(buildWebappBoardGuiOptions(overrides));
 }
 
+let activeAdvancedSettingsEscapeListener = null;
+
 class SettingsGui {
     #moveTreeWidget;
     #settingsManager = new SettingsManager();
@@ -561,11 +563,15 @@ class SettingsGui {
             e.preventDefault();
             closeAdvancedSettings();
         };
-        document.addEventListener('keydown', (event) => {
+        if (activeAdvancedSettingsEscapeListener !== null) {
+            document.removeEventListener('keydown', activeAdvancedSettingsEscapeListener);
+        }
+        activeAdvancedSettingsEscapeListener = (event) => {
             if (event.key === 'Escape' && this.#advancedSettingsBox.classList.contains('advanced-settings-box-open')) {
                 closeAdvancedSettings();
             }
-        });
+        };
+        document.addEventListener('keydown', activeAdvancedSettingsEscapeListener);
         if (!showAdvancedSettingsLink) {
             this.#advancedSettingsToggle.style.display = 'none';
             this.#advancedSettingsBox.style.display = 'none';
