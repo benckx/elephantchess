@@ -153,7 +153,6 @@ h1 {
 }
 
 .game-to-join-right-pane {
-    width: 78px;
     justify-content: flex-end;
     margin-left: 6px;
 }
@@ -249,10 +248,10 @@ h1 {
     margin-right: 0;
 }
 
-input[type=button].join-buttons {
-    width: 58px;
+.join-buttons {
     height: 34px;
     font-size: 13px;
+    padding: 0 15px;
 }
 
 .no-game-to-join-message {
@@ -461,7 +460,6 @@ iframe {
     }
 
     .game-to-join-right-pane {
-        width: 82px;
         margin-left: 10px;
     }
 
@@ -502,7 +500,7 @@ iframe {
         font-size: 28px;
     }
 
-    input[type=button].join-buttons {
+    .join-buttons {
         width: 70px;
         height: 74px;
         font-size: 28px;

@@ -143,18 +143,18 @@ class LobbyPage extends BasePage {
         }
 
         entries.forEach((entry) => {
-            const item = document.createElement('div');
-            item.className = 'game-to-join-item';
+            const item = buildDivWithClass('game-to-join-item');
 
-            const variantPane = document.createElement('div');
-            variantPane.className = 'game-to-join-variant-pane';
+            const variantPane = buildDivWithClass('game-to-join-variant-pane');
             item.append(variantPane);
 
-            const variantSymbol = document.createElement('span');
-            variantSymbol.className = 'game-to-join-variant-symbol';
-            variantSymbol.innerText = '象';
-            variantSymbol.title = 'Xiangqi (Chinese chess)';
-            variantPane.append(variantSymbol);
+            variantPane.append(
+                buildSpan(
+                    '象',
+                    'game-to-join-variant-symbol',
+                    'Xiangqi (Chinese chess)'
+                )
+            );
 
             const timeControlPane = buildDivWithClass('game-to-join-time-control-pane');
             item.append(timeControlPane);

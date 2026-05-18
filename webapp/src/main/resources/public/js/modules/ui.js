@@ -128,6 +128,21 @@ function buildSimpleSpan(text) {
 }
 
 /**
+ * @returns {HTMLSpanElement}
+ */
+function buildSpan(innerText, className = null, title = null) {
+    const span = document.createElement('span');
+    span.innerText = innerText;
+    if (className != null) {
+        span.classList.add(className);
+    }
+    if (title != null) {
+        span.title = title;
+    }
+    return span;
+}
+
+/**
  * @param src {string}
  * @param className {string|null}
  * @returns {HTMLImageElement}
