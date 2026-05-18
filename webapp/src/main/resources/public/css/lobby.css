@@ -373,7 +373,7 @@ iframe {
     }
 
     #games-to-join-list-table-container {
-        padding-top: 0;
+        padding: 0;
     }
 
     #games-to-join-list {
@@ -436,7 +436,7 @@ iframe {
     }
 
     .game-to-join-variant-pane {
-        width: 56px;
+        width: 58px;
     }
 
     .game-to-join-variant-symbol {
@@ -462,7 +462,8 @@ iframe {
     }
 
     .game-to-join-right-pane {
-        margin-left: 8px;
+        margin-left: 12px;
+        margin-right: 8px;
     }
 
     .game-to-join-rating-pane {
@@ -477,7 +478,6 @@ iframe {
     .game-to-join-opponent-line .username-cell {
         flex: 1 1 auto;
         min-width: 0;
-        max-width: 250px;
         font-size: 24px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -516,10 +516,14 @@ iframe {
     }
 
     .join-buttons {
-        width: 46px;
-        height: 54px;
-        font-size: 20px;
-        padding: 0 4px;
+        min-width: 90px !important;
+        max-width: 100px !important;
+        height: 72px;
+        font-size: 25px;
+        padding: 0 !important;
+        margin: 0;
+        box-sizing: border-box;
+        flex: 0 0 46px;
     }
 
     .game-to-join-item .online-status-indicator {
