@@ -40,6 +40,14 @@ const RATING_MODE_ICONS = {
     casual: '/images/icons/handshake1.png',
 };
 
+/**
+ * @param entry {GameToPlayDto}
+ * @returns {string}
+ */
+function timeControlIconSource(entry) {
+    return `${ICON_PATH}/${timeControlCategoryIconMap.get(entry.timeControlCategory)}`
+}
+
 class LobbyPage extends BasePage {
 
     #client = new LobbyClient();
@@ -221,22 +229,18 @@ class LobbyPage extends BasePage {
             metadataLine.append(colorCell);
 
             // time control
-            let timeControlLabel = '--';
+            let timeControlLabel;
             if (entry.timeControl != null) {
                 timeControlLabel = entry.timeControl.printShort(' +');
+            } else {
+                timeControlLabel = '--'
             }
 
-            const imageName = timeControlCategoryIconMap.get(entry.timeControlCategory);
-            const timeControlIcon = document.createElement('img');
-            timeControlIcon.className = 'time-control-icons';
-            timeControlIcon.src = `${ICON_PATH}/${imageName}`;
-
-            const timeControlIconCell = document.createElement('div');
-            timeControlIconCell.className = 'game-to-join-time-icon-cell';
+            const timeControlIcon = buildImg(timeControlIconSource(entry), 'time-control-icons');
+            const timeControlIconCell = buildDivWithClass('game-to-join-time-icon-cell')
             timeControlIconCell.append(timeControlIcon);
 
-            const timeControlDurationCell = document.createElement('div');
-            timeControlDurationCell.className = 'game-to-join-time-duration-cell';
+            const timeControlDurationCell = buildDivWithClass('game-to-join-time-duration-cell');
             timeControlDurationCell.innerText = timeControlLabel;
 
             timeControlPane.append(timeControlIconCell);

@@ -50,7 +50,7 @@ h1 {
 }
 
 .flex-games-to-join-list-container {
-    flex: 2 1 770px;
+    flex: 2 1 800px;
     min-width: 400px;
     max-width: unset;
 }
@@ -128,7 +128,7 @@ h1 {
 }
 
 .game-to-join-variant-pane {
-    width: 32px;
+    width: 34px;
     justify-content: center;
 }
 
