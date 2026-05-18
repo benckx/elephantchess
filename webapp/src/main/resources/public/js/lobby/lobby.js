@@ -221,15 +221,14 @@ class LobbyPage extends BasePage {
             metadataLine.append(colorCell);
 
             // time control
+            const imageName = timeControlCategoryIconMap.get(entry.timeControlCategory);
+            const timeControlIcon = document.createElement('img');
+            timeControlIcon.className = 'time-control-icons';
+            timeControlIcon.src = `${ICON_PATH}/${imageName}`;
+
             const timeControlIconCell = document.createElement('div');
             timeControlIconCell.className = 'game-to-join-time-icon-cell';
-            timeControlPane.append(timeControlIconCell);
-
-            const imageName = timeControlCategoryIconMap.get(entry.timeControlCategory);
-            const img = document.createElement('img');
-            img.className = 'time-control-icons';
-            img.src = `${ICON_PATH}/${imageName}`;
-            timeControlIconCell.append(img);
+            timeControlIconCell.append(timeControlIcon);
 
             let timeControlLabel = '--';
             if (entry.timeControl != null) {
@@ -239,6 +238,8 @@ class LobbyPage extends BasePage {
             const timeControlDurationCell = document.createElement('div');
             timeControlDurationCell.className = 'game-to-join-time-duration-cell';
             timeControlDurationCell.innerText = timeControlLabel;
+
+            timeControlPane.append(timeControlIconCell);
             timeControlPane.append(timeControlDurationCell);
 
             // rating mode
