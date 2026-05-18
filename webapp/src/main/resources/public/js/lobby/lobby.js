@@ -188,15 +188,11 @@ class LobbyPage extends BasePage {
             middlePane.append(metadataLine);
             middlePane.append(customTimeLine);
 
-            // opponent (is online)
-            const isOnlineCell = buildDivWithClass('game-to-join-online-cell');
-            opponentLine.append(isOnlineCell);
-
             const isOnlineIndicator = buildDivWithClass('online-status-indicator');
             if (entry.isOpponentOnline) {
                 isOnlineIndicator.classList.add(IS_ONLINE_CSS_CLASS);
             }
-            isOnlineCell.append(isOnlineIndicator);
+            opponentLine.append(isOnlineIndicator);
 
             // time control
             const hasCustomTimeControl = isCustomTimeControl(entry);

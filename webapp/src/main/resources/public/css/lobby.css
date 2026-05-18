@@ -300,7 +300,7 @@ img#kofi-logo {
     opacity: 82%;
 }
 
-input[type="button"]#create-new-game-button {
+#create-new-game-button {
     width: 250px;
     height: 45px;
     margin-top: 50px;
@@ -403,11 +403,11 @@ iframe {
         margin-top: 44px;
     }
 
-    input[type="button"]#create-new-game-button {
-        margin-top: 18px;
-        margin-bottom: 18px;
+    #create-new-game-button {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
         width: 380px;
-        height: 80px;
+        height: 90px;
     }
 
     #no-game-to-join-message {
@@ -444,17 +444,17 @@ iframe {
     }
 
     #games-to-join-list-container {
-        height: 550px;
+        height: 642px;
     }
 
     .game-to-join-item {
         border-radius: 0;
-        min-height: 108px;
+        min-height: 140px;
         padding: 10px 12px;
     }
 
     .game-to-join-time-control-pane {
-        width: 108px;
+        width: 118px;
     }
 
     .game-to-join-middle-pane {
@@ -476,8 +476,7 @@ iframe {
     }
 
     .game-to-join-opponent-line .username-cell {
-        flex: 1 1 auto;
-        min-width: 0;
+        max-width: unset;
         font-size: 24px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -489,19 +488,19 @@ iframe {
     }
 
     .game-to-join-metadata-item {
-        font-size: 22px;
+        font-size: 26px;
     }
 
     .game-to-join-custom-time-line {
-        font-size: 20px;
+        font-size: 24px;
     }
 
     .game-to-join-time-duration-cell {
-        font-size: 22px;
+        font-size: 24px;
     }
 
     .game-to-join-rating-mode-cell {
-        font-size: 22px;
+        font-size: 24px;
         gap: 2px;
     }
 
@@ -516,14 +515,13 @@ iframe {
     }
 
     .join-buttons {
-        min-width: 90px !important;
-        max-width: 100px !important;
-        height: 72px;
+        min-width: 110px !important;
+        max-width: 120px !important;
+        height: 80px;
         font-size: 25px;
         padding: 0 !important;
         margin: 0;
         box-sizing: border-box;
-        flex: 0 0 46px;
     }
 
     .game-to-join-item .online-status-indicator {
