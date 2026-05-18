@@ -358,39 +358,39 @@
         font-size: 30px;
     }
 
-    input[type=button].app-buttons,
-    input[type=button].app-buttons-red,
-    input[type=button].app-buttons-bigger,
-    input[type=button].app-buttons-much-bigger {
+    .app-buttons,
+    .app-buttons-red,
+    .app-buttons-bigger,
+    .app-buttons-much-bigger {
         border-radius: 6px;
     }
 
     /* use the color of :hover (since there is no hover on mobile) */
-    input[type=button].app-buttons,
-    input[type=button].app-buttons-bigger,
-    input[type=button].app-buttons-much-bigger {
+    .app-buttons,
+    .app-buttons-bigger,
+    .app-buttons-much-bigger {
         background-color: #077d01;
     }
 
-    input[type=button].app-buttons-disabled,
-    input[type=button].app-buttons-disabled:hover {
+    .app-buttons-disabled,
+    .app-buttons-disabled:hover {
         background-color: #848484;
     }
 
-    input[type=button].app-buttons,
-    input[type=button].app-buttons-red {
+    .app-buttons,
+    .app-buttons-red {
         font-size: 30px;
         height: 55px;
         min-width: 180px;
     }
 
-    input[type=button].app-buttons-bigger {
+    .app-buttons-bigger {
         font-size: 34px;
         height: 60px;
         min-width: 200px;
     }
 
-    input[type=button].app-buttons-much-bigger {
+    .app-buttons-much-bigger {
         font-size: 36px;
         height: 66px;
         margin-top: 30px;
@@ -398,7 +398,7 @@
         min-width: 220px;
     }
 
-    input[type=button].app-buttons-smaller {
+    .app-buttons-smaller {
         font-size: 20px;
         height: 54px;
     }
