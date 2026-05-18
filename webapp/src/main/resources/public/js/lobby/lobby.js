@@ -36,8 +36,8 @@ function makeAppButton(id, value) {
 }
 
 const RATING_MODE_ICONS = {
-    rated: '/images/icons/trophy-icon-smaller.png',
-    casual: '/images/icons/handshake1.png',
+    rated: '/images/icons/trophy-football.png',
+    casual: '/images/icons/sunset.png',
 };
 
 /**
