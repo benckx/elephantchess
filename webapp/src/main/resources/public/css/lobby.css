@@ -105,7 +105,7 @@ h1 {
     background-color: #ece5d8;
     border: 1px solid #565656;
     border-radius: 3px;
-    min-height: 62px;
+    min-height: 64px;
     padding: 6px 10px;
     box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px, rgba(0, 0, 0, 0.2) 0 1px 2px;
 }
@@ -162,12 +162,12 @@ h1 {
 
 .game-to-join-opponent-line .username-cell {
     max-width: 280px;
-    font-size: 14px;
+    font-size: 15px;
 }
 
-.game-to-join-metadata-line .rating-cell {
+.game-to-join-opponent-line .rating-cell {
     color: #555;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .game-to-join-metadata-line {

@@ -203,7 +203,7 @@ class LobbyPage extends BasePage {
 
             // opponent (username and rating)
             // FIXME: class 'crop-text-ellipsis' doesn't actually making ellipsis but prevent line break
-            //  attributes should be move to 'username-cell'
+            //  attributes should be move to 'username-cell' (it actually works on mobile but not desktop for some reason)
             const usernameCell = document.createElement('div');
             usernameCell.classList.add('username-cell', 'crop-text-ellipsis');
             opponentLine.append(usernameCell);
