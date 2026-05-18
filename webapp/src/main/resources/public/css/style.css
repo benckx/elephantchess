@@ -1434,6 +1434,13 @@ table.info-box-sub-table td.values {
     cursor: pointer;
 }
 
+#settings-info-box-container #advanced-settings-box .advanced-setting-options .advanced-setting-option-disabled,
+#settings-info-box-container #advanced-settings-box .advanced-setting-options .advanced-setting-option-disabled input[type=radio] {
+    color: #9a9a9a;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 #settings-info-box-container #advanced-settings-box .advanced-setting-warning {
     margin-top: 6px;
     padding: 4px 8px;
