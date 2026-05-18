@@ -98,7 +98,7 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
         // create games
         val rnd = Random.Default
         val weirdTimeControls = rnd.generateWeirdTimeControls()
-        val timeControls = standardTimeControls// + weirdTimeControls
+        val timeControls = standardTimeControls + weirdTimeControls
 
         repeat(50) {
             val i = rnd.nextInt(testUsers) + 1

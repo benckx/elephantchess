@@ -178,6 +178,12 @@ h1 {
     gap: 6px;
 }
 
+.game-to-join-custom-time-line {
+    color: #555;
+    font-size: 13px;
+    margin-top: 2px;
+}
+
 .game-to-join-metadata-item {
     display: flex;
     align-items: center;

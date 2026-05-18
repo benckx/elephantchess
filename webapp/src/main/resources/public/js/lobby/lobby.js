@@ -26,6 +26,7 @@ const YOUTUBE_EMBED = `
 /**
  * @return {HTMLInputElement}
  */
+// TODO: move to utils.js
 function makeAppButton(id, value) {
     const button = document.createElement('input');
     button.type = 'button';
@@ -34,6 +35,10 @@ function makeAppButton(id, value) {
     button.value = value;
     return button;
 }
+
+const KNOWN_TIME_CONTROL_IDS = new Set(
+    timeControlCategories.flatMap((category) => category.timeControls.map((timeControl) => timeControl.id))
+);
 
 const RATING_MODE_ICONS = {
     rated: '/images/icons/trophy-football.png',
@@ -46,6 +51,14 @@ const RATING_MODE_ICONS = {
  */
 function timeControlIconSource(entry) {
     return `${ICON_PATH}/${timeControlCategoryIconMap.get(entry.timeControlCategory)}`
+}
+
+/**
+ * @param entry {GameToPlayDto}
+ * @returns {boolean}
+ */
+function isCustomTimeControl(entry) {
+    return entry.timeControl != null && !KNOWN_TIME_CONTROL_IDS.has(entry.timeControl.id);
 }
 
 class LobbyPage extends BasePage {
@@ -169,9 +182,11 @@ class LobbyPage extends BasePage {
             // opponent
             const opponentLine = buildDivWithClass('game-to-join-opponent-line');
             const metadataLine = buildDivWithClass('game-to-join-metadata-line');
+            const customTimeLine = buildDivWithClass('game-to-join-custom-time-line');
 
             middlePane.append(opponentLine);
             middlePane.append(metadataLine);
+            middlePane.append(customTimeLine);
 
             // opponent (is online)
             const isOnlineCell = buildDivWithClass('game-to-join-online-cell');
@@ -184,8 +199,11 @@ class LobbyPage extends BasePage {
             isOnlineCell.append(isOnlineIndicator);
 
             // time control
+            const hasCustomTimeControl = isCustomTimeControl(entry);
             let timeControlLabel;
-            if (entry.timeControl != null) {
+            if (hasCustomTimeControl) {
+                timeControlLabel = 'Custom';
+            } else if (entry.timeControl != null) {
                 timeControlLabel = entry.timeControl.printShort(' +');
             } else {
                 timeControlLabel = '--'
@@ -200,6 +218,10 @@ class LobbyPage extends BasePage {
 
             timeControlPane.append(timeControlIconCell);
             timeControlPane.append(timeControlDurationCell);
+
+            if (hasCustomTimeControl && entry.timeControl != null) {
+                customTimeLine.innerText = `custom time: ${entry.timeControl.printShort(' +')}`;
+            }
 
             // opponent (username and rating)
             // FIXME: class 'crop-text-ellipsis' doesn't actually making ellipsis but prevent line break
