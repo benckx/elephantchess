@@ -284,6 +284,7 @@ function createWebappBoardGui(overrides = {}) {
 }
 
 let activeAdvancedSettingsEscapeListener = null;
+let activeAdvancedSettingsCloseHandler = null;
 
 class SettingsGui {
     #moveTreeWidget;
@@ -535,6 +536,9 @@ class SettingsGui {
         const isMobileAdvancedSettingsLayout = () => window.matchMedia('(max-width: 1000px)').matches;
         const closeAdvancedSettings = () => {
             this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+            if (activeAdvancedSettingsCloseHandler === closeAdvancedSettings) {
+                activeAdvancedSettingsCloseHandler = null;
+            }
             if (this.#advancedSettingsUsesModalBackground) {
                 this.#advancedSettingsUsesModalBackground = false;
                 this.#modalBackground.style.display = 'none';
@@ -549,6 +553,7 @@ class SettingsGui {
                     this.#modalBackground.style.display = 'flex';
                 }
             }
+            activeAdvancedSettingsCloseHandler = closeAdvancedSettings;
             this.#advancedSettingsBox.classList.add('advanced-settings-box-open');
         };
         this.#advancedSettingsToggle.onclick = (e) => {
@@ -563,15 +568,14 @@ class SettingsGui {
             e.preventDefault();
             closeAdvancedSettings();
         };
-        if (activeAdvancedSettingsEscapeListener !== null) {
-            document.removeEventListener('keydown', activeAdvancedSettingsEscapeListener);
+        if (activeAdvancedSettingsEscapeListener === null) {
+            activeAdvancedSettingsEscapeListener = (event) => {
+                if (event.key === 'Escape' && typeof activeAdvancedSettingsCloseHandler === 'function') {
+                    activeAdvancedSettingsCloseHandler();
+                }
+            };
+            document.addEventListener('keydown', activeAdvancedSettingsEscapeListener);
         }
-        activeAdvancedSettingsEscapeListener = (event) => {
-            if (event.key === 'Escape' && this.#advancedSettingsBox.classList.contains('advanced-settings-box-open')) {
-                closeAdvancedSettings();
-            }
-        };
-        document.addEventListener('keydown', activeAdvancedSettingsEscapeListener);
         if (!showAdvancedSettingsLink) {
             this.#advancedSettingsToggle.style.display = 'none';
             this.#advancedSettingsBox.style.display = 'none';
