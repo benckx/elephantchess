@@ -213,15 +213,15 @@ class LobbyPage extends BasePage {
                     entry.opponentUserId,
                     entry.opponentUsername,
                     entry.opponentUserType,
-                    18,
-                    true
+                    null,
+                    false
                 )
             );
 
             const ratingCell = document.createElement('div');
             ratingCell.className = 'rating-cell';
-            ratingCell.innerText = `rating: ${entry.opponentRating}`;
-            // opponentLine.append(ratingCell);
+            ratingCell.innerText = ` (${entry.opponentRating})`;
+            opponentLine.append(ratingCell);
 
             // opponent (color and rating)
             const colorCell = document.createElement('div');
@@ -237,7 +237,7 @@ class LobbyPage extends BasePage {
             }
             colorCell.append(colorSpan);
             metadataLine.append(colorCell);
-            metadataLine.append(ratingCell);
+            // metadataLine.append(ratingCell);
 
             // rating mode
             const ratingModeCell = document.createElement('div');
