@@ -156,37 +156,29 @@ class LobbyPage extends BasePage {
             variantSymbol.title = 'Xiangqi (Chinese chess)';
             variantPane.append(variantSymbol);
 
-            const timeControlPane = document.createElement('div');
-            timeControlPane.className = 'game-to-join-time-control-pane';
+            const timeControlPane = buildDivWithClass('game-to-join-time-control-pane');
             item.append(timeControlPane);
 
-            const middlePane = document.createElement('div');
-            middlePane.className = 'game-to-join-middle-pane';
+            const middlePane = buildDivWithClass('game-to-join-middle-pane');
             item.append(middlePane);
 
-            const ratingPane = document.createElement('div');
-            ratingPane.className = 'game-to-join-rating-pane';
+            const ratingPane = buildDivWithClass('game-to-join-rating-pane');
             item.append(ratingPane);
 
-            const rightPane = document.createElement('div');
-            rightPane.className = 'game-to-join-right-pane';
+            const rightPane = buildDivWithClass('game-to-join-right-pane');
             item.append(rightPane);
 
-            const opponentLine = document.createElement('div');
-            opponentLine.className = 'game-to-join-opponent-line';
+            const opponentLine = buildDivWithClass('game-to-join-opponent-line');
             middlePane.append(opponentLine);
 
-            const metadataLine = document.createElement('div');
-            metadataLine.className = 'game-to-join-metadata-line';
+            const metadataLine = buildDivWithClass('game-to-join-metadata-line');
             middlePane.append(metadataLine);
 
             // is online indicator
-            const isOnlineCell = document.createElement('div');
-            isOnlineCell.className = 'game-to-join-online-cell';
+            const isOnlineCell = buildDivWithClass('game-to-join-online-cell');
             opponentLine.append(isOnlineCell);
 
-            const isOnlineIndicator = document.createElement('div');
-            isOnlineIndicator.className = 'online-status-indicator';
+            const isOnlineIndicator = buildDivWithClass('online-status-indicator');
             if (entry.isOpponentOnline) {
                 isOnlineIndicator.classList.add(IS_ONLINE_CSS_CLASS);
             }
