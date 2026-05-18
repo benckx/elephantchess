@@ -202,6 +202,8 @@ class LobbyPage extends BasePage {
             timeControlPane.append(timeControlDurationCell);
 
             // opponent (username and rating)
+            // FIXME: class 'crop-text-ellipsis' doesn't actually making ellipsis but prevent line break
+            //  attributes should be move to 'username-cell'
             const usernameCell = document.createElement('div');
             usernameCell.classList.add('username-cell', 'crop-text-ellipsis');
             opponentLine.append(usernameCell);
@@ -211,19 +213,17 @@ class LobbyPage extends BasePage {
                     entry.opponentUserId,
                     entry.opponentUsername,
                     entry.opponentUserType,
-                    20
+                    18,
+                    true
                 )
             );
-            if (entry.opponentUserType === UserType.GUEST && usernameCell.firstChild?.innerText != null) {
-                usernameCell.firstChild.innerText = usernameCell.firstChild.innerText.replace(/^guest\s+/i, '').trim();
-            }
 
             const ratingCell = document.createElement('div');
             ratingCell.className = 'rating-cell';
-            ratingCell.innerText = `(${entry.opponentRating})`;
-            opponentLine.append(ratingCell);
+            ratingCell.innerText = `rating: ${entry.opponentRating}`;
+            // opponentLine.append(ratingCell);
 
-            // opponent (color)
+            // opponent (color and rating)
             const colorCell = document.createElement('div');
             colorCell.className = 'game-to-join-metadata-item color-cell';
             const colorSpan = buildColorSpan(entry.opponentColor);
@@ -237,6 +237,7 @@ class LobbyPage extends BasePage {
             }
             colorCell.append(colorSpan);
             metadataLine.append(colorCell);
+            metadataLine.append(ratingCell);
 
             // rating mode
             const ratingModeCell = document.createElement('div');

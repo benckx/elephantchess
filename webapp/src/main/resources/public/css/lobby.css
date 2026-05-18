@@ -174,9 +174,9 @@ h1 {
     font-size: 14px;
 }
 
-.game-to-join-opponent-line .rating-cell {
+.game-to-join-metadata-line .rating-cell {
     color: #555;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .game-to-join-metadata-line {
@@ -184,7 +184,7 @@ h1 {
     align-items: center;
     flex-wrap: wrap;
     margin-top: 4px;
-    gap: 14px;
+    gap: 6px;
 }
 
 .game-to-join-metadata-item {
@@ -193,10 +193,6 @@ h1 {
     gap: 3px;
     color: #3a3a3a;
     font-size: 13px;
-}
-
-.game-to-join-item .color-cell {
-    min-width: 56px;
 }
 
 .game-to-join-item .join-button-cell {

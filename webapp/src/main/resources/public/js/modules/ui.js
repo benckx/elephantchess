@@ -247,9 +247,10 @@ function buildGuestUserSpan(id, maxLength = null) {
  * @param username {string|null}
  * @param userType {string}
  * @param maxLength {number|null}
+ * @param removeGuestPrefix {boolean} whether to remove the "guest" prefix for guest users (e.g. "guest #1234" becomes "1234")
  * @returns {HTMLElement}
  */
-function buildUsernameSpan(userId, username, userType, maxLength = null) {
+function buildUsernameSpan(userId, username, userType, maxLength = null, removeGuestPrefix = false) {
     switch (userType) {
         case UserType.AUTHENTICATED:
             if (username != null) {
@@ -258,6 +259,13 @@ function buildUsernameSpan(userId, username, userType, maxLength = null) {
             break;
         case UserType.GUEST:
             if (userId != null) {
+                if (removeGuestPrefix) {
+                    const span = document.createElement('span');
+                    span.className = 'guest-name';
+                    const rawId = String(userId).replace(/^guest\s+/i, '').trim();
+                    span.innerText = maxLength != null ? cropText(rawId, maxLength) : rawId;
+                    return span;
+                }
                 return buildGuestUserSpan(userId, maxLength);
             }
             break;
