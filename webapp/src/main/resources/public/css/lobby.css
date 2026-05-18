@@ -372,6 +372,10 @@ iframe {
         width: 100%;
     }
 
+    #games-to-join-list-table-container {
+        padding-top: 0;
+    }
+
     #games-to-join-list {
         gap: 0;
     }
@@ -466,12 +470,21 @@ iframe {
         margin-left: 6px;
     }
 
+    .game-to-join-opponent-line {
+        min-width: 0;
+    }
+
     .game-to-join-opponent-line .username-cell {
-        max-width: 380px;
-        font-size: 26px;
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: 250px;
+        font-size: 24px;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .game-to-join-opponent-line .rating-cell {
+        flex: 0 0 auto;
         font-size: 24px;
     }
 
@@ -488,13 +501,13 @@ iframe {
     }
 
     .game-to-join-rating-mode-cell {
-        font-size: 20px;
+        font-size: 22px;
         gap: 2px;
     }
 
     .game-to-join-rating-mode-icon {
-        width: 34px;
-        height: 34px;
+        width: 36px;
+        height: 36px;
     }
 
     #online-users-and-rating {
@@ -503,15 +516,18 @@ iframe {
     }
 
     .join-buttons {
-        width: 58px;
+        width: 46px;
         height: 54px;
-        font-size: 22px;
-        padding: 0 8px;
+        font-size: 20px;
+        padding: 0 4px;
     }
 
     .game-to-join-item .online-status-indicator {
         width: 16px;
         height: 16px;
+        min-width: 16px;
+        min-height: 16px;
+        flex: 0 0 16px;
         border-radius: 50%;
         margin-right: 6px;
     }
