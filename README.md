@@ -26,6 +26,29 @@ The webapp offers the following features:
 - By default, users are assigned a temporary guest user id. They can also sign up with an email and password to keep
   their data across devices and access all features.
 
+## Suggested GitHub topics
+
+GitHub topics tend to work better when they describe the primary scope of the repository instead of adjacent chess
+concepts. For this repository, a tighter topic list would be:
+
+- `xiangqi`
+- `chinese-chess`
+- `xiangqi-online`
+- `chinese-chess-online`
+- `xiangqi-puzzles`
+- `chinese-chess-puzzles`
+- `xiangqi-analysis`
+- `xiangqi-database`
+- `kotlin`
+- `ktor`
+- `postgresql`
+- `websocket`
+
+I'd drop or de-prioritize `chess-engine`, `uci-chess-engine`, `chess-engine-gui`, `chess-gui`, `chess-server`,
+`chinese-chess-ai`, and `chinese-chess-game`, because elephantchess is primarily a xiangqi platform that integrates
+engines rather than shipping one. If broader discovery is still desired, `chess`, `chess-puzzle`, `chess-analysis`,
+and `chess-database` are more accurate generic fallbacks than the engine-oriented tags.
+
 ## Principles
 
 - Keep the webapp free to use
