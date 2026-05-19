@@ -684,7 +684,7 @@ Under `webapp/src/main/resources/public/js` there's usually a sub-folder for eac
 - etc.
 
 Complex app like PvP is usually organized with a **page** which updates the GUI, a **controller** which connects to
-WebSockets and/or calls REST endpoints, and sometimes a DTO file
+WebSockets and/or calls REST endpoints, sometimes a DTO file and/or a separate REST client file.
 
 ## JavaScript Libraries
 
