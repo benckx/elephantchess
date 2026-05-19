@@ -5,6 +5,7 @@ import kotlinx.html.a
 import kotlinx.html.p
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class KtorHtmlBuilderTagResolverTest {
 
@@ -15,7 +16,9 @@ class KtorHtmlBuilderTagResolverTest {
             a(href = url) { +url }
         }
 
-        assertEquals(listOf("""<a href="$url">$url</a>"""), resolver.resolveContent())
+        val resolved = resolver.resolveContent()
+        assertEquals(listOf("""<a href="$url">$url</a>"""), resolved)
+        assertFalse(resolved.single().endsWith("\n"))
     }
 
     @Test
