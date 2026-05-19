@@ -13,8 +13,10 @@ import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.a
 import kotlinx.html.li
+import kotlinx.html.meta
 import kotlinx.html.p
 import kotlinx.html.style
+import kotlinx.html.stream.createHTML
 import kotlinx.html.unsafe
 import kotlin.time.Duration.Companion.hours
 
@@ -79,7 +81,10 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         val authorMeta = CallbackTagResolver("author_meta") {
             val editors = fetchEditorsUsername()
             if (editors.isNotEmpty()) {
-                meta("author", editors.sorted().joinToString(", "))
+                createHTML().meta {
+                    name = "author"
+                    content = editors.sorted().joinToString(", ")
+                }
             } else {
                 ""
             }

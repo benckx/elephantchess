@@ -8,6 +8,8 @@ import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter.ofPattern
 import java.util.Locale
+import kotlinx.html.meta
+import kotlinx.html.stream.createHTML
 import kotlin.math.floor
 
 private const val COST_IN_EUR_PER_DAY = 4
@@ -34,15 +36,15 @@ fun formatNewLinesToHtmlParagraphs(str: String): List<String> {
         .filter { it.isNotEmpty() }
 }
 
-fun meta(name: String, content: String) =
-    """<meta name="$name" content="${stripHtml(content)}">"""
-
 fun descriptionMeta(description: String): String {
-    return meta(
-        "description", description
-            .replace("\n", " ")
-            .replace("\r", "")
-    )
+    return createHTML().meta {
+        name = "description"
+        content = stripHtml(
+            description
+                .replace("\n", " ")
+                .replace("\r", "")
+        )
+    }
 }
 
 fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
