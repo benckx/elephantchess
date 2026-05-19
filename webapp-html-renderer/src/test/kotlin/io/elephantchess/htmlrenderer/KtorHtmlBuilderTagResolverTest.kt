@@ -27,6 +27,7 @@ class KtorHtmlBuilderTagResolverTest {
             p { +"Hello from builder" }
         }
 
+        // kotlinx.html keeps a trailing newline for this block-level tag.
         assertEquals(listOf("<p>Hello from builder</p>\n"), resolver.resolveContent())
     }
 
