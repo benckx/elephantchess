@@ -333,6 +333,7 @@ project(":webapp") {
         implementation("io.ktor:ktor-server-default-headers:$kTorVersion")
         implementation("io.ktor:ktor-server-content-negotiation:$kTorVersion")
         implementation("io.ktor:ktor-server-caching-headers:$kTorVersion")
+        implementation("io.ktor:ktor-server-html-builder:$kTorVersion")
         implementation("io.ktor:ktor-serialization-jackson:$kTorVersion")
         implementation("io.ktor:ktor-serialization-kotlinx-json:$kTorVersion")
         implementation("io.ktor:ktor-server-websockets:$kTorVersion")

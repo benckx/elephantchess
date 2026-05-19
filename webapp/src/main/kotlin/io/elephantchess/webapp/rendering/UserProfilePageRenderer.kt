@@ -1,11 +1,15 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.HtmlRenderer
+import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.UserProfile
 import io.elephantchess.utils.cropToFirstNWords
 import io.ktor.http.encodeURLPath
+import kotlinx.html.div
+import kotlinx.html.id
+import kotlinx.html.img
 
 class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
@@ -50,11 +54,17 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
     }
 
     private fun flagPanelTagResolver(countryCode: String?): TagResolver {
-        return CallbackTagResolver("flag_header_panel") {
+        return KtorHtmlBuilderTagResolver("flag_header_panel") {
             if (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)) {
-                """<div id="flag-header-panel" class="profile-header-panel" data-country-code="$countryCode">
-                    |<img id="profile-flag" class="flag-icons" src="/images/flags/$countryCode.svg" alt="$countryCode"/>
-                    |</div>""".trimMargin()
+                div("profile-header-panel") {
+                    id = "flag-header-panel"
+                    attributes["data-country-code"] = countryCode
+                    img("flag-icons") {
+                        id = "profile-flag"
+                        attributes["src"] = "/images/flags/$countryCode.svg"
+                        alt = countryCode
+                    }
+                }
             } else {
                 ""
             }

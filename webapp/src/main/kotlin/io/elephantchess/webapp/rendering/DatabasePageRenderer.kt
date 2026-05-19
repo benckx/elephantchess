@@ -1,6 +1,7 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.HtmlRenderer
+import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.model.AnalysisStatus
@@ -10,6 +11,8 @@ import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.formatWithChineseName
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
+import kotlinx.html.a
+import kotlinx.html.li
 import kotlin.time.Duration.Companion.hours
 
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
@@ -41,11 +44,16 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             description?.let { formatNewLinesToHtmlParagraphs(it) }
         }
 
-        val sourcesResolver = CallbackTagResolver("player_profile_sources") {
+        val sourcesResolver = KtorHtmlBuilderTagResolver("player_profile_sources") {
             edit.sources
                 .sortedBy { it.index }
                 .joinToString("") { source ->
-                    """<li><a href="${source.url}" target="_blank" rel="noopener noreferrer">${source.title}</a></li>"""
+                    kotlinx.html.stream.createHTML().li {
+                        a(href = source.url, target = "_blank") {
+                            rel = "noopener noreferrer"
+                            +source.title
+                        }
+                    }
                 }
         }
 
