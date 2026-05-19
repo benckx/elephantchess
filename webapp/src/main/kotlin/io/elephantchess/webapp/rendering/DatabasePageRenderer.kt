@@ -46,13 +46,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
 
         val descriptionResolver = KtorHtmlBuilderTagResolver("player_profile_description") {
-            description?.let {
-                it.toParagraphs().forEach { paragraph ->
-                    p {
-                        +paragraph
-                    }
-                }
-            }
+            description?.toParagraphs()?.forEach { p { +it } }
         }
 
         val sourcesResolver = KtorHtmlBuilderTagResolver("player_profile_sources") {

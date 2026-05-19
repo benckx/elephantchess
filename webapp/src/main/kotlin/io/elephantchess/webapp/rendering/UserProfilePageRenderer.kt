@@ -60,10 +60,8 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 div("profile-header-panel") {
                     id = "flag-header-panel"
                     attributes["data-country-code"] = countryCode
-                    img(classes = "flag-icons") {
+                    img(alt = countryCode, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
                         id = "profile-flag"
-                        src = "/images/flags/$countryCode.svg"
-                        alt = countryCode
                     }
                 }
             }
@@ -75,11 +73,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
             if (!description.isNullOrBlank()) {
                 div {
                     id = "profile-description"
-                    description.toParagraphs().forEach { paragraph ->
-                        p {
-                            +paragraph
-                        }
-                    }
+                    description.toParagraphs().forEach { p { +it } }
                 }
             } else {
                 div("empty-block-placeholder") {
