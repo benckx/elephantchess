@@ -17,6 +17,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+const DEFAULT_DISPLAY = '';
+const FIRST_ROW_SIZE = 3;
+const PRE_RENDERED_THUMBS_COUNT = 6;
+
 class BrowseGamesPage extends InfiniteScrollPage {
 
     #gamesContainer;
@@ -129,7 +133,7 @@ class BrowseGamesPage extends InfiniteScrollPage {
         const isInitialBatch = this.#renderedCount === 0;
         entries.forEach((entry) => {
             if (this.#renderedCount < this.#initElementsCount) {
-                this.#initThumbDivs[this.#renderedCount].style.display = '';
+                this.#initThumbDivs[this.#renderedCount].style.display = DEFAULT_DISPLAY;
                 // Use pre-rendered thumbs for first batch
                 this.#initThumbs[this.#renderedCount].render(
                     entry,
@@ -145,7 +149,7 @@ class BrowseGamesPage extends InfiniteScrollPage {
         });
 
         if (isInitialBatch) {
-            this.#setSecondThumbRowVisibility(this.#renderedCount > 3);
+            this.#setSecondThumbRowVisibility(this.#renderedCount > FIRST_ROW_SIZE);
         }
     }
 
@@ -168,8 +172,8 @@ class BrowseGamesPage extends InfiniteScrollPage {
      * @param show {boolean}
      */
     #setSecondThumbRowVisibility(show) {
-        for (let i = 3; i < Math.min(6, this.#initThumbDivs.length); i++) {
-            this.#initThumbDivs[i].style.display = show ? '' : 'none';
+        for (let i = FIRST_ROW_SIZE; i < Math.min(PRE_RENDERED_THUMBS_COUNT, this.#initThumbDivs.length); i++) {
+            this.#initThumbDivs[i].style.display = show ? DEFAULT_DISPLAY : 'none';
         }
     }
 
