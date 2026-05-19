@@ -75,7 +75,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
             if (!description.isNullOrBlank()) {
                 div {
                     id = "profile-description"
-                    formatNewLinesToHtmlParagraphs(description).forEach { paragraph ->
+                    description.toParagraphs().forEach { paragraph ->
                         p {
                             +paragraph
                         }

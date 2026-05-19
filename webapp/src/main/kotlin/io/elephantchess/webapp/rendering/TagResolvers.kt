@@ -29,8 +29,8 @@ fun escapeHtml(s: String): String =
 fun escapeHtmlAttr(s: String): String =
     escapeHtml(s).replace("\"", "&quot;")
 
-fun formatNewLinesToHtmlParagraphs(str: String): List<String> {
-    return str
+fun String.toParagraphs(): List<String> {
+    return this
         .split("\n\n")
         .map { it.trim() }
         .filter { it.isNotEmpty() }

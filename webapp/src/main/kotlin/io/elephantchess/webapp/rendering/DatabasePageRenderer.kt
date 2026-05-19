@@ -47,7 +47,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         val descriptionResolver = KtorHtmlBuilderTagResolver("player_profile_description") {
             description?.let {
-                formatNewLinesToHtmlParagraphs(it).forEach { paragraph ->
+                it.toParagraphs().forEach { paragraph ->
                     p {
                         +paragraph
                     }
