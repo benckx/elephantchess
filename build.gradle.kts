@@ -277,6 +277,7 @@ project(":webapp-dao") {
 project(":webapp-html-renderer") {
     dependencies {
         implementation(project(":utils"))
+        implementation("io.ktor:ktor-server-html-builder:$kTorVersion")
         implementation("org.jsoup:jsoup:$jsoupVersion")
     }
 }
@@ -306,6 +307,7 @@ project(":webapp-service-layer") {
         implementation("io.ktor:ktor-client-logging:$kTorVersion")
         implementation("io.ktor:ktor-serialization-jackson:$kTorVersion")
         implementation("io.ktor:ktor-serialization-kotlinx-json:$kTorVersion")
+        implementation("io.ktor:ktor-server-html-builder:$kTorVersion")
         testImplementation(project(":xiangqi-core-test-utils"))
         testImplementation(project(":seven-kingdoms-core-test-utils"))
         testImplementation("org.apache.commons:commons-rng-simple:1.7")
@@ -331,6 +333,7 @@ project(":webapp") {
         implementation("io.ktor:ktor-server-default-headers:$kTorVersion")
         implementation("io.ktor:ktor-server-content-negotiation:$kTorVersion")
         implementation("io.ktor:ktor-server-caching-headers:$kTorVersion")
+        implementation("io.ktor:ktor-server-html-builder:$kTorVersion")
         implementation("io.ktor:ktor-serialization-jackson:$kTorVersion")
         implementation("io.ktor:ktor-serialization-kotlinx-json:$kTorVersion")
         implementation("io.ktor:ktor-server-websockets:$kTorVersion")
