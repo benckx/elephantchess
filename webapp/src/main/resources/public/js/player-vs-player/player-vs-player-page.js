@@ -429,19 +429,19 @@ class PlayGamePage extends BasePage {
     #updateClocksAndChatForSelectedMove() {
         const selectedNode = this.#moveTreeWidget.selectedNode;
 
-        // Compute the 0-based main-line position of the selected node, or null if
+        // Compute the 0-based main-line index of the selected node, or null if
         // the node is not on the main branch (i.e. is part of an analysis side line).
-        let position = null;
+        let moveIndex = null;
         if (selectedNode != null) {
             const nodesLeadingUp = selectedNode.getAllNodesLeadingUpTo();
             const allOnMainBranch = nodesLeadingUp.every(n => n.level === 0);
             if (allOnMainBranch) {
-                position = nodesLeadingUp.length - 1;
+                moveIndex = nodesLeadingUp.length - 1;
             }
         }
 
         const isLastMove = this.#moveTreeWidget.isLastMoveSelected();
-        if (position == null || isLastMove) {
+        if (moveIndex == null || isLastMove) {
             // Back to "live" view: rely on the gameDto clock and clear highlight.
             this.#updateClocks();
             if (this.#chatBoxWidget != null) {
@@ -450,12 +450,12 @@ class PlayGamePage extends BasePage {
             return;
         }
 
-        const historicalClock = this.#gameController.getClockAtMovePosition(position);
+        const historicalClock = this.#gameController.getClockAtMoveIndex(moveIndex);
         if (historicalClock != null) {
             this.#renderClock(historicalClock);
         }
 
-        const moveTs = this.#gameController.getMoveTimestampAt(position);
+        const moveTs = this.#gameController.getMoveTimestampAt(moveIndex);
         if (this.#chatBoxWidget != null) {
             this.#chatBoxWidget.highlightLatestMessageBefore(moveTs);
         }

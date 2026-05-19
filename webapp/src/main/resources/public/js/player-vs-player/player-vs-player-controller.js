@@ -307,42 +307,42 @@ class GameController {
     }
 
     /**
-     * Wall-clock timestamp (epoch millis) for the move at the given 0-based position
+     * Wall-clock timestamp (epoch millis) for the move at the given 0-based index
      * in the main line of the game. Returns null if timestamps are not available
-     * or the position is out of range.
+     * or the index is out of range.
      *
-     * @param position {number}
+     * @param moveIndex {number}
      * @return {number|null}
      */
-    getMoveTimestampAt(position) {
+    getMoveTimestampAt(moveIndex) {
         if (this.#moveTimestamps == null) {
             return null;
         }
-        if (position < 0 || position >= this.#moveTimestamps.length) {
+        if (moveIndex < 0 || moveIndex >= this.#moveTimestamps.length) {
             return null;
         }
-        return this.#moveTimestamps[position];
+        return this.#moveTimestamps[moveIndex];
     }
 
     /**
      * Compute the {@link TimeControlClock} state right after the move at the given
-     * 0-based main-line position has been played. Returns null if the data needed
+     * 0-based main-line index has been played. Returns null if the data needed
      * to reconstruct the historical clock is not available (e.g. unrated game with
-     * no time control, missing timestamps, position out of range).
+     * no time control, missing timestamps, index out of range).
      *
      * Mirrors the server-side logic in PlayerVsPlayerGameService#calculateTimeRemaining.
      *
-     * @param position {number}
+     * @param moveIndex {number}
      * @return {TimeControlClock|null}
      */
-    getClockAtMovePosition(position) {
+    getClockAtMoveIndex(moveIndex) {
         if (!this.#gameDto || !this.#gameDto.hasTimeControl()) {
             return null;
         }
         if (this.#moveTimestamps == null || this.#joinTime == null) {
             return null;
         }
-        if (position < 0 || position >= this.#moveTimestamps.length) {
+        if (moveIndex < 0 || moveIndex >= this.#moveTimestamps.length) {
             return null;
         }
 
@@ -361,7 +361,7 @@ class GameController {
         let redMs = baseMs;
         let blackMs = baseMs;
         let prev = this.#joinTime;
-        for (let i = 0; i <= position; i++) {
+        for (let i = 0; i <= moveIndex; i++) {
             const ts = this.#moveTimestamps[i];
             const elapsed = ts - prev;
             if (i % 2 === 0) {
