@@ -60,7 +60,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 div("profile-header-panel") {
                     id = "flag-header-panel"
                     attributes["data-country-code"] = countryCode
-                    img("flag-icons") {
+                    img(classes = "flag-icons") {
                         id = "profile-flag"
                         src = "/images/flags/$countryCode.svg"
                         alt = countryCode
