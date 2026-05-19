@@ -10,6 +10,7 @@ import io.ktor.http.encodeURLPath
 import kotlinx.html.div
 import kotlinx.html.id
 import kotlinx.html.img
+import kotlinx.html.unsafe
 
 class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
@@ -70,18 +71,18 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
     }
 
     private fun descriptionDivTagResolver(username: String, description: String?): TagResolver {
-        return CallbackTagResolver("user_profile_description") {
+        return KtorHtmlBuilderTagResolver("user_profile_description") {
             if (!description.isNullOrBlank()) {
-                buildString {
-                    append("""<div id="profile-description">""")
-                    append(formatNewLinesToHtmlParagraphs(description))
-                    append("""</div>""")
+                div {
+                    id = "profile-description"
+                    unsafe {
+                        +formatNewLinesToHtmlParagraphs(description)
+                    }
                 }
             } else {
-                buildString {
-                    append("""<div id="profile-description" class="empty-block-placeholder">""")
-                    append("$username has not filled their description yet.")
-                    append("""</div>""")
+                div("empty-block-placeholder") {
+                    id = "profile-description"
+                    +"$username has not filled their description yet."
                 }
             }
         }

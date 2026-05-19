@@ -13,6 +13,8 @@ import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.a
 import kotlinx.html.li
+import kotlinx.html.style
+import kotlinx.html.unsafe
 import kotlin.time.Duration.Companion.hours
 
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
@@ -57,11 +59,13 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 }
         }
 
-        val styleResolver = CallbackTagResolver("player_profile_description_style") {
+        val styleResolver = KtorHtmlBuilderTagResolver("player_profile_description_style") {
             if (description == null) {
-                "<style>#player-profile-description { display: none; }</style>"
-            } else {
-                ""
+                style {
+                    unsafe {
+                        +"#player-profile-description { display: none; }"
+                    }
+                }
             }
         }
 
