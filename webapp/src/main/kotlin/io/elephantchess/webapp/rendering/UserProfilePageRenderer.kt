@@ -61,12 +61,10 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
                     attributes["data-country-code"] = countryCode
                     img("flag-icons") {
                         id = "profile-flag"
-                        attributes["src"] = "/images/flags/$countryCode.svg"
+                        src = "/images/flags/$countryCode.svg"
                         alt = countryCode
                     }
                 }
-            } else {
-                ""
             }
         }
     }
