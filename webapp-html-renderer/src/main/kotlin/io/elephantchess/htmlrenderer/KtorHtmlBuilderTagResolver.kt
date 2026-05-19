@@ -8,15 +8,12 @@ import kotlinx.html.stream.appendHTML
  */
 class KtorHtmlBuilderTagResolver(
     override val tagName: String,
-    private val htmlBuilder: TagConsumer<StringBuilder>.() -> Any?,
+    private val htmlBuilder: TagConsumer<StringBuilder>.() -> Unit,
 ) : TagResolver {
 
     override suspend fun resolveContent() = listOf(
         buildString {
-            val rendered = appendHTML().run(htmlBuilder)
-            if (rendered is String) {
-                append(rendered)
-            }
+            appendHTML().run(htmlBuilder)
         }
     )
 
