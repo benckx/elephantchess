@@ -19,7 +19,6 @@
 
 const ANALYZE_BUTTON_TOOLTIP_ENABLED = 'You can analyse the game with the Analysis Board tool';
 const ANALYZE_BUTTON_TOOLTIP_DISABLED = `Game must be finished before you can analyze them. If you want to analyze this game now, you have to resign first.`;
-const MOVE_TREE_WIDGET_PAGE_KEY_PVB = 'pvb';
 
 class BotGameSpectatorWebSocketSession {
 
@@ -91,7 +90,7 @@ class PlayerVsBotPage extends BasePage {
     #boardGui = createWebappBoardGui();
     #moveTreeWidget = new MoveTreeWidget({
         containerId: 'move-tree-container',
-        ...moveTreeResizeCookiePersistence(MOVE_TREE_WIDGET_PAGE_KEY_PVB, 'move-tree-container')
+        ...moveTreeResizeCookiePersistence('pvb', 'move-tree-container')
     });
 
     #isOnlineIndicator = document.getElementById('online-status-indicator');
