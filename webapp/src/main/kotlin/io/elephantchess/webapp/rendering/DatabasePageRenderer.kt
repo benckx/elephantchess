@@ -16,7 +16,6 @@ import kotlinx.html.li
 import kotlinx.html.meta
 import kotlinx.html.p
 import kotlinx.html.style
-import kotlinx.html.stream.createHTML
 import kotlinx.html.unsafe
 import kotlin.time.Duration.Companion.hours
 
@@ -41,25 +40,24 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         fetchEditorsUsername: suspend () -> List<String>,
     ): String {
         val description = edit.profileText
+        val editors = fetchEditorsUsername()
 
         val playerNameEncodedResolver = SimpleValueTagResolver("player_name_encoded", databasePlayer.urlName)
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
 
         val descriptionResolver = KtorHtmlBuilderTagResolver("player_profile_description") {
-            description?.toParagraphs()?.forEach { p { +it } }
+            description?.toParagraphs()?.forEach { p { unsafe { +it } } }
         }
 
         val sourcesResolver = KtorHtmlBuilderTagResolver("player_profile_sources") {
-            edit.sources
-                .sortedBy { it.index }
-                .forEach { source ->
-                    li {
-                        a(href = source.url, target = "_blank") {
-                            rel = "noopener noreferrer"
-                            +source.title
-                        }
+            edit.sources.sortedBy { it.index }.forEach { source ->
+                li {
+                    a(href = source.url, target = "_blank") {
+                        rel = "noopener noreferrer"
+                        +source.title
                     }
                 }
+            }
         }
 
         val styleResolver = KtorHtmlBuilderTagResolver("player_profile_description_style") {
@@ -72,15 +70,13 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             }
         }
 
-        val authorMeta = CallbackTagResolver("author_meta") {
-            val editors = fetchEditorsUsername()
+        val authorMeta = KtorHtmlBuilderTagResolver("author_meta") {
             if (editors.isNotEmpty()) {
-                createHTML().meta {
+                val names = editors.sortedBy { it.lowercase() }.joinToString(", ")
+                meta {
                     name = "author"
-                    content = editors.sorted().joinToString(", ")
+                    content = names
                 }
-            } else {
-                ""
             }
         }
 
