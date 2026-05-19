@@ -13,6 +13,7 @@ import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.a
 import kotlinx.html.li
+import kotlinx.html.stream.appendHTML
 import kotlin.time.Duration.Companion.hours
 
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
@@ -45,16 +46,20 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         }
 
         val sourcesResolver = KtorHtmlBuilderTagResolver("player_profile_sources") {
-            edit.sources
-                .sortedBy { it.index }
-                .joinToString("") { source ->
-                    kotlinx.html.stream.createHTML().li {
-                        a(href = source.url, target = "_blank") {
-                            rel = "noopener noreferrer"
-                            +source.title
+            buildString {
+                appendHTML().run {
+                    edit.sources
+                        .sortedBy { it.index }
+                        .forEach { source ->
+                            li {
+                                a(href = source.url, target = "_blank") {
+                                    rel = "noopener noreferrer"
+                                    +source.title
+                                }
+                            }
                         }
-                    }
                 }
+            }
         }
 
         val styleResolver = CallbackTagResolver("player_profile_description_style") {
