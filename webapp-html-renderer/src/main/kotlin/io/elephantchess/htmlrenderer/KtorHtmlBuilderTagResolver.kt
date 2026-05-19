@@ -14,7 +14,7 @@ class KtorHtmlBuilderTagResolver(
     override suspend fun resolveContent() = listOf(
         buildString {
             val rendered = appendHTML().run(htmlBuilder)
-            if (isEmpty() && rendered is String) {
+            if (rendered is String) {
                 append(rendered)
             }
         }
