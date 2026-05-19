@@ -13,6 +13,7 @@ import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.a
 import kotlinx.html.li
+import kotlinx.html.p
 import kotlinx.html.style
 import kotlinx.html.unsafe
 import kotlin.time.Duration.Companion.hours
@@ -42,8 +43,14 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         val playerNameEncodedResolver = SimpleValueTagResolver("player_name_encoded", databasePlayer.urlName)
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
 
-        val descriptionResolver = CallbackTagResolver("player_profile_description") {
-            description?.let { formatNewLinesToHtmlParagraphs(it) }
+        val descriptionResolver = KtorHtmlBuilderTagResolver("player_profile_description") {
+            description?.let {
+                formatNewLinesToHtmlParagraphs(it).forEach { paragraph ->
+                    p {
+                        +paragraph
+                    }
+                }
+            }
         }
 
         val sourcesResolver = KtorHtmlBuilderTagResolver("player_profile_sources") {

@@ -10,7 +10,7 @@ import io.ktor.http.encodeURLPath
 import kotlinx.html.div
 import kotlinx.html.id
 import kotlinx.html.img
-import kotlinx.html.unsafe
+import kotlinx.html.p
 
 class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
@@ -75,8 +75,10 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
             if (!description.isNullOrBlank()) {
                 div {
                     id = "profile-description"
-                    unsafe {
-                        +formatNewLinesToHtmlParagraphs(description)
+                    formatNewLinesToHtmlParagraphs(description).forEach { paragraph ->
+                        p {
+                            +paragraph
+                        }
                     }
                 }
             } else {

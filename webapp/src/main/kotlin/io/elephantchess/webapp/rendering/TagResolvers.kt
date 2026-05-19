@@ -27,11 +27,11 @@ fun escapeHtml(s: String): String =
 fun escapeHtmlAttr(s: String): String =
     escapeHtml(s).replace("\"", "&quot;")
 
-fun formatNewLinesToHtmlParagraphs(str: String): String {
+fun formatNewLinesToHtmlParagraphs(str: String): List<String> {
     return str
         .split("\n\n")
-        .filter { it.trim().isNotEmpty() }
-        .joinToString("") { "<p>${it.trim()}</p>" }
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
 }
 
 fun meta(name: String, content: String) =
