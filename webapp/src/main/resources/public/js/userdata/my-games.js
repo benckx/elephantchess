@@ -35,7 +35,7 @@ class MyGamesPage extends InfiniteScrollPage {
         makeCheckboxesClickable();
 
         // listeners
-        function setUpCheckboxListeners(element, className) {
+        const setUpCheckboxListeners = (element, className) => {
             element.addEventListener('change', (e) => {
                 if (e.target.checked) {
                     getElementsByClassNameArray(className)
@@ -48,8 +48,9 @@ class MyGamesPage extends InfiniteScrollPage {
                             el.style.display = 'none';
                         });
                 }
+                this.#updateNoVisibleGameMessage();
             });
-        }
+        };
 
         setUpCheckboxListeners(this.#includeCanceledCheckbox, CANCELLED_ITEM_CLASS);
         setUpCheckboxListeners(this.#includeBelowMove3Checkbox, BELOW_MOVE_3_ITEM_CLASS);
@@ -332,6 +333,14 @@ class MyGamesPage extends InfiniteScrollPage {
                 buildDivWithTextAndClass(`move ${entry.fullMoveIndex}`, 'move-index')
             );
         });
+
+        this.#updateNoVisibleGameMessage();
+    }
+
+    #updateNoVisibleGameMessage() {
+        const visibleItems = getElementsByClassNameArray('my-game-item')
+            .filter((item) => window.getComputedStyle(item).display !== 'none');
+        this.showNoItem(visibleItems.length === 0);
     }
 
 }
