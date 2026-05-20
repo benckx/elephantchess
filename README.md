@@ -3,15 +3,13 @@
 [elephantchess.io](https://elephantchess.io) is a web application to play and
 study [Chinese chess](https://en.wikipedia.org/wiki/Xiangqi) (or xiangqi 象棋).
 
-Feel free to create issues to report bugs or request feature changes. The
-current [roadmap](https://github.com/users/benckx/projects/2/views/1) on this repo reflects the current priorities of
-the project. Feel free to comment and give your opinion the existing issues.
-
 By default, the project is under GPL-3.0 license. Libraries (like the Kotlin xiangqi-core or the
 JavaScript [board-gui](https://elephantchess.io/about/developers/board-gui-example)) are under LGPL-3.0 license to allow
 for a more permissive use (i.e. to re-use the libraries in a commercial application).
 
 We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
+
+[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml)
 
 ## Features
 
@@ -42,8 +40,8 @@ The webapp offers the following features:
 
 ## Glossary
 
-- The engines are AI (or bots) used for the Play-against-bot (PvB) or Analysis Board features. In the chess communinity,
-  the term "engine" is prefered over AI or bot.
+- The engines are AI (or bots) used for the Play-against-bot (PvB) or Analysis Board features. In the chess community,
+  the term "engine" is preferred over AI or bot.
 - In chess in general, the "columns" of the board are named "files" and the "rows" are named "ranks".
 - The Forsyth–Edwards Notation (or FEN) is a standard notation to represent chess positions as a single line of text. In
   Chinese chess, the starting position is encoded as
@@ -60,17 +58,10 @@ The webapp offers the following features:
   from that position with a search depth of 10.
 - The UCI move notation is similar to the algebraic notation, except that the ranks are 0-based. Therefore, any
   move can be encoded as 4 characters. For example, move h3e3 is encoded in UCI as h2e2.
-- The WXF notation is the traditional Chinese chess notation (e.g. `C2=5`), widely in use. It's not as convinient
-  technically because move can be ambiguous and the files are numbered from the right to the left relative to the player
-  and (so it's not the same numbers for the red and black players). Therefore it's not used in code.
-
-## Contribute
-
-So far I'm the only one working on this project. It was just recently made public. So I'm not sure yet how the
-contribution process might look like.
-
-Best is to join our [Discord server](https://discord.gg/WEGDqnWXNg) to discuss first how you would like to contribute,
-or to open or comment on the GitHub issues.
+- The WXF notation is the traditional Chinese chess notation (e.g. `C2=5`), widely in use. It's not as convenient
+  technically because move can be ambiguous and the files are numbered from the right to the left relative to the
+  player (so it's not the same numbers for the red and black players). Therefore, it's not used in code, expect for
+  labeling moves in the GUI.
 
 # Run Locally
 
@@ -255,22 +246,23 @@ Except for KTor, Koin, a Kubernetes client, Apache Commons, the project has few 
 
 ## Gradle Modules
 
-If you check the `settings.gradle` file, you will see that the project is made of several modules:
+If you check the `settings.gradle.kts` file, you will see that the project is made of several modules:
 
 ```
-include('utils')
-include('engine-api')
-include('xiangqi-core')
-include('xiangqi-core-test-utils')
-include('seven-kingdoms-core')
-include('seven-kingdoms-core-test-utils')
-include('webapp-config')
-include('webapp-dao')
-include('webapp-dao-migration')
-include('webapp-html-renderer')
-include('webapp-model-common')
-include('webapp-service-layer')
-include('webapp')
+include("utils")
+include("engine-api")
+include("xiangqi-core")
+include("xiangqi-core-test-utils")
+include("seven-kingdoms-core")
+include("seven-kingdoms-core-test-utils")
+include("webapp-config")
+include("webapp-dao")
+include("webapp-dao-migration")
+include("webapp-html-renderer")
+include("webapp-model-common")
+include("webapp-service-layer")
+include("webapp")
+include("scripts")
 ```
 
 ### utils
@@ -588,7 +580,7 @@ development.
 
 [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
 
-At the moment, you can use the libraries via JitPack. You only need to add the JitPack repository to your build.gradle
+At the moment, you can use the libraries via JitPack. You only need to add the JitPack repository to your build
 file:
 
 ```Groovy
@@ -692,7 +684,7 @@ Under `webapp/src/main/resources/public/js` there's usually a sub-folder for eac
 - etc.
 
 Complex app like PvP is usually organized with a **page** which updates the GUI, a **controller** which connects to
-WebSockets and/or calls REST endpoints, and sometimes a DTO file
+WebSockets and/or calls REST endpoints, sometimes a DTO file and/or a separate REST client file.
 
 ## JavaScript Libraries
 

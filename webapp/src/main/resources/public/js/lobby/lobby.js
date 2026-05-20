@@ -26,6 +26,7 @@ const YOUTUBE_EMBED = `
 /**
  * @return {HTMLInputElement}
  */
+// TODO: move to utils.js
 function makeAppButton(id, value) {
     const button = document.createElement('input');
     button.type = 'button';
@@ -35,11 +36,36 @@ function makeAppButton(id, value) {
     return button;
 }
 
+const KNOWN_TIME_CONTROL_IDS = new Set(
+    timeControlCategories.flatMap((category) => category.timeControls.map((timeControl) => timeControl.id))
+);
+
+const RATING_MODE_ICONS = {
+    rated: '/images/icons/trophy-football.png',
+    casual: '/images/icons/sunset.png',
+};
+
+/**
+ * @param entry {GameToPlayDto}
+ * @returns {string}
+ */
+function timeControlIconSource(entry) {
+    return `${ICON_PATH}/${timeControlCategoryIconMap.get(entry.timeControlCategory)}`
+}
+
+/**
+ * @param entry {GameToPlayDto}
+ * @returns {boolean}
+ */
+function isCustomTimeControl(entry) {
+    return entry.timeControl != null && !KNOWN_TIME_CONTROL_IDS.has(entry.timeControl.id);
+}
+
 class LobbyPage extends BasePage {
 
     #client = new LobbyClient();
 
-    #gameToJoinListTable = document.getElementById('games-to-join-list-table');
+    #gameToJoinList = document.getElementById('games-to-join-list');
     #createNewGameButton = document.getElementById('create-new-game-button');
 
     // no game to join message links
@@ -93,7 +119,7 @@ class LobbyPage extends BasePage {
         addEventListener('scroll', (_) => this.#renderYouTubeEmbed());
         addEventListener('resize', (_) => this.#renderYouTubeEmbed());
 
-        const settingsGui = new SettingsGui(this.#puzzleBoardGui, null);
+        const settingsGui = new SettingsGui(this.#puzzleBoardGui, null, false, false);
         new LiveGamesViewer(settingsGui);
     }
 
@@ -118,9 +144,7 @@ class LobbyPage extends BasePage {
      * @param entries {GameToPlayDto[]}
      */
     #renderGameList(entries) {
-        const table = this.#gameToJoinListTable;
-        const body = table.getElementsByTagName('tbody').item(0);
-        body.innerHTML = '';
+        this.#gameToJoinList.innerHTML = '';
 
         entries.sort(sortByOnline);
         // TODO: sort by rating most similar to user's
@@ -129,99 +153,139 @@ class LobbyPage extends BasePage {
             this.#noGameToJoinMessage.classList.add('no-game-to-join-message-visible');
         } else {
             this.#noGameToJoinMessage.classList.remove('no-game-to-join-message-visible');
-            let row = body.insertRow();
-            row.classList.add('col-spanner');
-            let cell = row.insertCell();
-            cell.setAttribute('colspan', '7');
         }
 
-        entries.forEach((entry, i) => {
-            // html elements
-            const row = body.insertRow();
+        entries.forEach((entry) => {
+            // skeleton
+            const variantPane = buildDivWithClass('game-to-join-variant-pane');
+            const timeControlPane = buildDivWithClass('game-to-join-time-control-pane');
+            const middlePane = buildDivWithClass('game-to-join-middle-pane');
+            const ratingPane = buildDivWithClass('game-to-join-rating-pane');
+            const rightPane = buildDivWithClass('game-to-join-right-pane');
 
-            // is online indicator
-            const isOnlineCell = row.insertCell();
-            isOnlineCell.className = 'online-cell';
+            const item = buildDivWithClass('game-to-join-item');
+            item.append(variantPane);
+            item.append(timeControlPane);
+            item.append(middlePane);
+            item.append(ratingPane);
+            item.append(rightPane);
 
-            const isOnlineIndicator = document.createElement('div');
-            isOnlineIndicator.className = 'online-status-indicator';
+            // variant
+            variantPane.append(
+                buildSpan(
+                    '象',
+                    'game-to-join-variant-symbol',
+                    'Xiangqi (Chinese chess)'
+                )
+            );
+
+            // opponent
+            const opponentLine = buildDivWithClass('game-to-join-opponent-line');
+            const metadataLine = buildDivWithClass('game-to-join-metadata-line');
+            const customTimeLine = buildDivWithClass('game-to-join-custom-time-line');
+
+            middlePane.append(opponentLine);
+            middlePane.append(metadataLine);
+            middlePane.append(customTimeLine);
+
+            const isOnlineIndicator = buildDivWithClass('online-status-indicator');
             if (entry.isOpponentOnline) {
                 isOnlineIndicator.classList.add(IS_ONLINE_CSS_CLASS);
             }
-            isOnlineCell.append(isOnlineIndicator);
+            opponentLine.append(isOnlineIndicator);
 
-            // username and rating
-            const usernameCell = row.insertCell();
+            // time control
+            const hasCustomTimeControl = isCustomTimeControl(entry);
+            let timeControlLabel;
+            if (hasCustomTimeControl) {
+                timeControlLabel = 'Custom';
+            } else if (entry.timeControl != null) {
+                timeControlLabel = entry.timeControl.printShort(' +');
+            } else {
+                timeControlLabel = '--'
+            }
+
+            const timeControlIcon = buildImg(timeControlIconSource(entry), 'time-control-icons');
+            const timeControlIconCell = buildDivWithClass('game-to-join-time-icon-cell')
+            timeControlIconCell.append(timeControlIcon);
+
+            const timeControlDurationCell = buildDivWithClass('game-to-join-time-duration-cell');
+            timeControlDurationCell.innerText = timeControlLabel;
+
+            timeControlPane.append(timeControlIconCell);
+            timeControlPane.append(timeControlDurationCell);
+
+            if (hasCustomTimeControl && entry.timeControl != null) {
+                customTimeLine.innerText = entry.timeControl.printShort(' +');
+            }
+
+            // opponent (username and rating)
+            // FIXME: class 'crop-text-ellipsis' doesn't actually making ellipsis but prevent line break
+            //  attributes should be move to 'username-cell' (it actually works on mobile but not desktop for some reason)
+            const usernameCell = document.createElement('div');
             usernameCell.classList.add('username-cell', 'crop-text-ellipsis');
+            opponentLine.append(usernameCell);
 
             usernameCell.append(
                 buildUsernameSpan(
                     entry.opponentUserId,
                     entry.opponentUsername,
-                    entry.opponentUserType
+                    entry.opponentUserType,
+                    null,
+                    false
                 )
             );
 
-            const ratingCell = row.insertCell();
+            const ratingCell = document.createElement('div');
             ratingCell.className = 'rating-cell';
-            ratingCell.innerText = entry.opponentRating.toString();
+            ratingCell.innerText = ` (${entry.opponentRating})`;
+            opponentLine.append(ratingCell);
 
-            // color
-            const colorCell = row.insertCell();
-            colorCell.className = 'color-cell';
-            colorCell.append(buildColorSpan(entry.opponentColor));
-
-            // time control
-            const timeControlIconCell = row.insertCell();
-            const timeControlCell = row.insertCell();
-            timeControlIconCell.className = 'time-control-icons-cell';
-            timeControlCell.classList.add('time-control-cell', 'crop-text-ellipsis');
-
-            const imageName = timeControlCategoryIconMap.get(entry.timeControlCategory);
-            const img = document.createElement('img');
-            img.className = 'time-control-icons';
-            img.src = `${ICON_PATH}/${imageName}`;
-            timeControlIconCell.append(img);
-
-            let timeControlLabel = '--';
-            if (entry.timeControl != null) {
-                timeControlLabel = entry.timeControl.printShort(' +');
+            // opponent (color and rating)
+            const colorCell = document.createElement('div');
+            colorCell.className = 'game-to-join-metadata-item color-cell';
+            const colorSpan = buildColorSpan(entry.opponentColor);
+            if (colorSpan.classList.contains('any-color')) {
+                colorSpan.innerText = 'Any color';
+                colorSpan.title = 'Colors will be assigned randomly at the start of the game';
+            } else if (entry.opponentColor === Color.RED) {
+                colorSpan.title = 'This player picked Red, you would play Black';
+            } else if (entry.opponentColor === Color.BLACK) {
+                colorSpan.title = 'This player picked Black, you would play Red';
             }
-            timeControlCell.innerText = timeControlLabel;
+            colorCell.append(colorSpan);
+            metadataLine.append(colorCell);
+            // metadataLine.append(ratingCell);
 
             // rating mode
-            const ratingModeCell = row.insertCell();
-            ratingModeCell.className = 'rating-mode-cell';
+            const ratingModeCell = document.createElement('div');
+            ratingModeCell.className = 'game-to-join-rating-mode-cell';
+            ratingPane.append(ratingModeCell);
+
+            const ratingModeIcon = document.createElement('img');
+            ratingModeIcon.className = 'game-to-join-rating-mode-icon';
+            ratingModeCell.append(ratingModeIcon);
 
             const ratingModeSpan = document.createElement('span');
             ratingModeCell.append(ratingModeSpan);
             if (entry.isRated) {
                 ratingModeSpan.innerText = 'Rated';
+                ratingModeIcon.src = RATING_MODE_ICONS.rated;
             } else {
                 ratingModeSpan.innerText = 'Casual';
+                ratingModeIcon.src = RATING_MODE_ICONS.casual;
             }
 
-            // some space
-            const separatorCell = row.insertCell();
-            separatorCell.className = 'separator-cell';
-
             // join button
-            const joinButtonCell = row.insertCell();
+            const joinButtonCell = document.createElement('div');
             joinButtonCell.className = 'join-button-cell';
+            rightPane.append(joinButtonCell);
 
             const joinButton = makeAppButton(`join-game-button-${entry.gameId}`, 'join');
             joinButtonCell.append(joinButton);
             joinButton.classList.add('join-buttons');
             joinButton.addEventListener('click', () => this.#handleClickJoinButton(entry));
-
-            // remove border for last row
-            // FIXME: this can be done in CSS
-            if (i === entries.length - 1) {
-                row.classList.add('last-row');
-                for (let i = 0; i < row.cells.length; i++) {
-                    row.cells[i].classList.add('last-row');
-                }
-            }
+            this.#gameToJoinList.append(item);
         });
     }
 

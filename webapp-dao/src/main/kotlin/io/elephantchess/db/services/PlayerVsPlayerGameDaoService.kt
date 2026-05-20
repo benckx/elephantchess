@@ -121,6 +121,24 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
+    suspend fun listLastGamesByUserId(userId: String, limit: Int, minMoveIndex: Int, beforeTs: Long?): List<Game> {
+        var sql = dslContext
+            .select()
+            .from(GAME)
+            .where(isPlaying(userId))
+            .and(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.CONTAINS_ERRORS.eq(false))
+
+        if (beforeTs != null) {
+            sql = sql.and(GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))
+        }
+
+        return sql
+            .orderBy(GAME.LAST_UPDATED.desc())
+            .limit(limit)
+            .awaitMappedRecords()
+    }
+
     suspend fun listPotentiallyFlaggedGames(): List<Game> {
         val now = Clock.System.now()
         val games = mutableListOf<Game>()
@@ -439,6 +457,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun fetchGameStates(gameIds: List<String>): Map<String, GameStateResult> {
+        // TODO: Flux.from() -> can we not use our shortcut thingy?
         return Flux.from(
             dslContext
                 .select(
@@ -1011,6 +1030,24 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     count = record.value3()
                 )
             }
+    }
+
+    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
+        dslContext.transactionCoroutine { cfg ->
+            val transaction = DSL.using(cfg)
+
+            transaction.update(GAME)
+                .set(GAME.INVITER, newUserId)
+                .set(GAME.GUEST_USER_ID, guestUserId)
+                .where(GAME.INVITER.eq(guestUserId))
+                .awaitExecute()
+
+            transaction.update(GAME)
+                .set(GAME.INVITEE, newUserId)
+                .set(GAME.GUEST_USER_ID, guestUserId)
+                .where(GAME.INVITEE.eq(guestUserId))
+                .awaitExecute()
+        }
     }
 
 }
