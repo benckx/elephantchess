@@ -2456,4 +2456,15 @@
             <column name="email_confirmed_at" type="timestamp with time zone"/>
         </addColumn>
     </changeSet>
+
+    <changeSet id="0099" author="benckx">
+        <comment>Add opt-in setting for offline opponent-flagged notifications</comment>
+        <addColumn tableName="user">
+            <column name="email_notification_enabled_opponent_flagged"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
