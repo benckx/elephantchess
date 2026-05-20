@@ -350,7 +350,7 @@ class GameThumb {
      * Refresh this thumb in-place from a {@link LatestGamesUpdateResponse} entry,
      * without re-rendering player names, ratings, ...
      *
-     * @param update {{gameId: GameId, status: string, fen: string, lastUpdated: number}}
+     * @param update {{gameId: GameId, status: string, fen: string, lastUpdated: number, outcome: string|null, isRedOnline: boolean, isBlackOnline: boolean}}
      */
     refresh(update) {
         this.boardGui.loadFen(update.fen, true);
@@ -367,6 +367,40 @@ class GameThumb {
         const lastUpdatedEl = this.#findFirst('game-thumb-last-updated');
         if (lastUpdatedEl != null && update.lastUpdated > 0) {
             lastUpdatedEl.innerHTML = formatTimestampToRelativeTime(update.lastUpdated);
+        }
+
+        // outcome (blue star)
+        const redPlayerWinsElement = this.#findFirst('red-player-wins');
+        const blackPlayerWinsElement = this.#findFirst('black-player-wins');
+        if (redPlayerWinsElement != null && blackPlayerWinsElement != null) {
+            redPlayerWinsElement.innerHTML = '';
+            blackPlayerWinsElement.innerHTML = '';
+            switch (update.outcome) {
+                case Outcome.RED_WINS:
+                    redPlayerWinsElement.innerHTML = WINNER_BLUE_STAR_HTML;
+                    break;
+                case Outcome.BLACK_WINS:
+                    blackPlayerWinsElement.innerHTML = WINNER_BLUE_STAR_HTML;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // online status
+        const redPlayerStatusIndicator = this.#findFirst('red-player-status-indicator');
+        const blackPlayerStatusIndicator = this.#findFirst('black-player-status-indicator');
+        if (redPlayerStatusIndicator != null && blackPlayerStatusIndicator != null) {
+            if (update.isRedOnline) {
+                redPlayerStatusIndicator.classList.add(IS_ONLINE_CSS_CLASS);
+            } else {
+                redPlayerStatusIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
+            }
+            if (update.isBlackOnline) {
+                blackPlayerStatusIndicator.classList.add(IS_ONLINE_CSS_CLASS);
+            } else {
+                blackPlayerStatusIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
+            }
         }
     }
 

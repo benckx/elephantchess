@@ -721,19 +721,34 @@ class GameDataService(
         val pvpGames = pvpGameDaoService.fetchCurrentStatusAndFen(idsByType[PVP].orEmpty())
         val pvbGames = pvbGameDaoService.fetchCurrentStatusAndFen(idsByType[PVB].orEmpty())
 
+        val pvpUserIds = pvpGames.flatMap { game -> listOf(game.redUserId(), game.blackUserId()) }.filterNotNull()
+        val pvbUserIds = pvbGames.mapNotNull { game -> game.userId }
+        val allUserIds = (pvpUserIds + pvbUserIds).distinct()
+        val onlineUserIds = if (allUserIds.isNotEmpty()) userService.areOnline(allUserIds).onlineUserIds else emptySet()
+
         val entries = pvpGames.map { game ->
+            val redUserId = game.redUserId()
+            val blackUserId = game.blackUserId()
             LatestGamesUpdateResponse.Entry(
                 gameId = GameId(PVP, game.id),
                 status = game.gameStatus,
                 fen = game.currentFen,
-                lastUpdated = game.lastUpdated.toEpochMilliseconds()
+                lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+                outcome = game.outcome,
+                isRedOnline = onlineUserIds.contains(redUserId),
+                isBlackOnline = onlineUserIds.contains(blackUserId),
             )
         } + pvbGames.map { game ->
+            val userId = game.userId
+            val isUserOnline = onlineUserIds.contains(userId)
             LatestGamesUpdateResponse.Entry(
                 gameId = GameId(PVB, game.id),
                 status = game.gameStatus,
                 fen = game.currentFen,
-                lastUpdated = game.lastUpdated.toEpochMilliseconds()
+                lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+                outcome = game.outcome,
+                isRedOnline = if (game.userColor == RED) isUserOnline else true,
+                isBlackOnline = if (game.userColor == BLACK) isUserOnline else true,
             )
         }
 

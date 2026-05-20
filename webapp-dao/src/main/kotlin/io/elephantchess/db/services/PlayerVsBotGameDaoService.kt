@@ -222,7 +222,10 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                     BOT_GAME.ID,
                     BOT_GAME.GAME_STATUS,
                     BOT_GAME.CURRENT_FEN,
-                    BOT_GAME.LAST_UPDATED
+                    BOT_GAME.LAST_UPDATED,
+                    BOT_GAME.OUTCOME,
+                    BOT_GAME.USER_ID,
+                    BOT_GAME.USER_COLOR,
                 )
                 .from(BOT_GAME)
                 .where(BOT_GAME.ID.`in`(gameIds))
