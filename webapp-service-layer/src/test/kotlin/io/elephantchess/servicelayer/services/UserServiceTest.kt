@@ -20,6 +20,7 @@ import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.user.DeleteUserSessionsRequest
 import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
+import io.elephantchess.servicelayer.dto.user.ProfileSettingsDto
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.dto.user.UserLoginRequest
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
@@ -303,6 +304,23 @@ class UserServiceTest : ServiceTest() {
 
         val after = userService.fetchEmailAddressSettings(userId)
         assertEquals(EmailValidityStatus.MANUALLY_CONFIRMED, after.validityStatus)
+    }
+
+    @Test
+    fun `updateProfileSettings should unset country when none is selected`() = runTest {
+        val (request, userId) = signUpTestUser()
+
+        userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "be"))
+        userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "none"))
+
+        val profile = userService.fetchProfile(request.username)
+        assertNull(profile.country)
+
+        val storedCountry: String? = dslContext.select(USER.COUNTRY)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue<String>()
+        assertNull(storedCountry)
     }
 
     @Test

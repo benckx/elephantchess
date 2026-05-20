@@ -1,6 +1,7 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.HtmlRenderer
+import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.model.AnalysisStatus
@@ -10,6 +11,12 @@ import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.formatWithChineseName
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
+import kotlinx.html.a
+import kotlinx.html.li
+import kotlinx.html.meta
+import kotlinx.html.p
+import kotlinx.html.style
+import kotlinx.html.unsafe
 import kotlin.time.Duration.Companion.hours
 
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
@@ -33,36 +40,43 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         fetchEditorsUsername: suspend () -> List<String>,
     ): String {
         val description = edit.profileText
+        val editors = fetchEditorsUsername()
 
         val playerNameEncodedResolver = SimpleValueTagResolver("player_name_encoded", databasePlayer.urlName)
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
 
-        val descriptionResolver = CallbackTagResolver("player_profile_description") {
-            description?.let { formatNewLinesToHtmlParagraphs(it) }
+        val descriptionResolver = KtorHtmlBuilderTagResolver("player_profile_description") {
+            description?.toParagraphs()?.forEach { p { unsafe { +it } } }
         }
 
-        val sourcesResolver = CallbackTagResolver("player_profile_sources") {
-            edit.sources
-                .sortedBy { it.index }
-                .joinToString("") { source ->
-                    """<li><a href="${source.url}" target="_blank" rel="noopener noreferrer">${source.title}</a></li>"""
+        val sourcesResolver = KtorHtmlBuilderTagResolver("player_profile_sources") {
+            edit.sources.sortedBy { it.index }.forEach { source ->
+                li {
+                    a(href = source.url, target = "_blank") {
+                        rel = "noopener noreferrer"
+                        +source.title
+                    }
                 }
-        }
-
-        val styleResolver = CallbackTagResolver("player_profile_description_style") {
-            if (description == null) {
-                "<style>#player-profile-description { display: none; }</style>"
-            } else {
-                ""
             }
         }
 
-        val authorMeta = CallbackTagResolver("author_meta") {
-            val editors = fetchEditorsUsername()
+        val styleResolver = KtorHtmlBuilderTagResolver("player_profile_description_style") {
+            if (description == null) {
+                style {
+                    unsafe {
+                        +"#player-profile-description { display: none; }"
+                    }
+                }
+            }
+        }
+
+        val authorMeta = KtorHtmlBuilderTagResolver("author_meta") {
             if (editors.isNotEmpty()) {
-                meta("author", editors.sorted().joinToString(", "))
-            } else {
-                ""
+                val names = editors.sortedBy { it.lowercase() }.joinToString(", ")
+                meta {
+                    name = "author"
+                    content = names
+                }
             }
         }
 
