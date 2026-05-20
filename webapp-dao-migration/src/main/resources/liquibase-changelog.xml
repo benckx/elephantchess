@@ -2456,4 +2456,11 @@
             <column name="email_confirmed_at" type="timestamp with time zone"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0099" author="benckx">
+        <addColumn tableName="bot_game">
+            <column name="opening_mode" type="varchar(50)" defaultValue="BY_FREQUENCY">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

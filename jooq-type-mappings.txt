@@ -27,4 +27,5 @@ seven_kingdoms_game.game_status, io.elephantchess.model.GameEventType
 seven_kingdoms_game.winner_color, io.elephantchess.sevenkingdoms.Color
 seven_kingdoms_game.color_to_play, io.elephantchess.sevenkingdoms.Color
 seven_kingdoms_game_event.event_type, io.elephantchess.model.GameEventType
+bot_game.opening_mode, io.elephantchess.model.OpeningMode
 reference_game_search_query.player_color, io.elephantchess.xiangqi.Color

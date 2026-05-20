@@ -18,6 +18,7 @@ import io.elephantchess.engines.protocol.model.InfoLinesResult
 import io.elephantchess.model.BotGameMoveType
 import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType.*
+import io.elephantchess.model.OpeningMode
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.botgame.*
 import io.elephantchess.servicelayer.dto.gamedata.GameMovesResponse
@@ -170,6 +171,7 @@ class PlayerVsBotGameService(
         gameRecord.currentHalfMoveIndex = 0
         gameRecord.created = now
         gameRecord.lastUpdated = now
+        gameRecord.openingMode = request.openingMode
 
         val statusRecord = BotGameStatusEvent()
         statusRecord.botGameId = gameId
@@ -188,7 +190,8 @@ class PlayerVsBotGameService(
                 position = 0,
                 engine = effectiveEngine,
                 depth = request.depth,
-                usesDefaultStartFen = usesDefaultStartFen
+                usesDefaultStartFen = usesDefaultStartFen,
+                openingMode = request.openingMode
             )
 
             if (botMove != null) {
@@ -288,7 +291,8 @@ class PlayerVsBotGameService(
                         position = gameRecord.currentHalfMoveIndex,
                         engine = gameRecord.engine,
                         depth = gameRecord.depth,
-                        usesDefaultStartFen = gameRecord.startFen == null
+                        usesDefaultStartFen = gameRecord.startFen == null,
+                        openingMode = gameRecord.openingMode ?: OpeningMode.BY_FREQUENCY
                     )
 
                     if (botMove != null) {
@@ -344,21 +348,26 @@ class PlayerVsBotGameService(
         engine: Engine,
         depth: Int,
         usesDefaultStartFen: Boolean,
+        openingMode: OpeningMode,
     ): BotMove? {
         suspend fun playWithEngine() = playWithEngine(gameId, botColor, startFen, fen, position, engine, depth)
 
         return if (usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX) {
-            playFromOpeningRepository(gameId, userMove) ?: playWithEngine()
+            playFromOpeningRepository(gameId, userMove, openingMode) ?: playWithEngine()
         } else {
             playWithEngine()
         }
     }
 
-    private suspend fun playFromOpeningRepository(gameId: String, userMove: String?): BotMove? {
+    private suspend fun playFromOpeningRepository(gameId: String, userMove: String?, openingMode: OpeningMode): BotMove? {
         val moves = pvbGameDaoService.listMoves(gameId) + listOfNotNull(userMove)
         val openingEntries = openingRepositoryDaoService.fetchNextMovesData(moves)
         return if (openingEntries.isNotEmpty()) {
-            val randomEntry = selectByProbability(openingEntries) { it.occurrences }
+            val randomEntry = if (openingMode == OpeningMode.RANDOM) {
+                openingEntries.random()
+            } else {
+                selectByProbability(openingEntries) { it.occurrences }
+            }
             logger.debug {
                 val totalOccurrences = openingEntries.sumOf { it.occurrences }
                 "[$gameId] playing from opening repository ${randomEntry.occurrences} / $totalOccurrences"
