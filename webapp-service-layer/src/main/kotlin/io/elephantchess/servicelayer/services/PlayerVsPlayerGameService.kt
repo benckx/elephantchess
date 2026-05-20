@@ -401,6 +401,7 @@ class PlayerVsPlayerGameService(
                     outcome = gameRecord.userOutcome(userId),
                     ratingFrom = ratingFrom,
                     ratingTo = ratingTo,
+                    isPreAnalyzed = gameRecord.analysisStatus == AnalysisStatus.COMPLETED,
                     created = gameRecord.created.toEpochMilliseconds(),
                     lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
                     numberOfMessages = numberOfMessages

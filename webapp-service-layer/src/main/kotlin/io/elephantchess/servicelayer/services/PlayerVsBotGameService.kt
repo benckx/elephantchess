@@ -15,6 +15,7 @@ import io.elephantchess.db.utils.nextMove
 import io.elephantchess.db.utils.plusSeconds
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.engines.protocol.model.InfoLinesResult
+import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.BotGameMoveType
 import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType.*
@@ -216,6 +217,7 @@ class PlayerVsBotGameService(
                     status = record.gameStatus,
                     outcome = record.outcome,
                     moveIndex = record.currentHalfMoveIndex,
+                    isPreAnalyzed = record.analysisStatus == AnalysisStatus.COMPLETED,
                     created = record.created.toEpochMilliseconds(),
                     lastUpdated = record.lastUpdated.toEpochMilliseconds(),
                 )
