@@ -100,6 +100,7 @@ class AnalysisBoardPage extends BasePage {
     #gameTypeIcon = document.getElementById('game-type-icon');
 
     #startFen = DEFAULT_START_FEN;
+    #isSaveAnalysisButtonLocked = false;
 
     constructor() {
         super();
@@ -167,7 +168,11 @@ class AnalysisBoardPage extends BasePage {
         UI.preloadModal(Modals.IMPORT_MOVES);
         this.#moveTreeWidget.importMovesCallback = () => {
             UI.showModalByName(Modals.IMPORT_MOVES, () => {
-                new ImportMovesHandler(this.#boardGui, this.#moveTreeWidget);
+                new ImportMovesHandler(
+                    this.#boardGui,
+                    this.#moveTreeWidget,
+                    () => this.#syncSaveAnalysisButtonState()
+                );
             });
         };
 
@@ -337,11 +342,13 @@ class AnalysisBoardPage extends BasePage {
     #handleSelectedStartFenFromPositionEditor(startFen) {
         if (this.#getCurrentStartFen() !== startFen) {
             if (this.#isAnalysisPersisted()) {
-                this.#saveAnalysisButton.classList.add('app-buttons-disabled');
+                this.#isSaveAnalysisButtonLocked = true;
+                this.#syncSaveAnalysisButtonState();
                 this.#client.updateStartFen(this.#analysisId, startFen, (response) => {
                     this.#updateStartFen(startFen);
                     this.#updateUiForSaveAnalysisResponse(response);
-                    this.#saveAnalysisButton.classList.remove('app-buttons-disabled');
+                    this.#isSaveAnalysisButtonLocked = false;
+                    this.#syncSaveAnalysisButtonState();
                     UI.pushInfoNotification(`Analysis saved with version ${response.version} and new starting position`, ANALYSIS_NOTIFICATION_TIMEOUT);
                 });
             } else {
@@ -359,7 +366,21 @@ class AnalysisBoardPage extends BasePage {
             }
 
             this.#persistOptionPanel.style.display = 'block';
+            this.#syncSaveAnalysisButtonState();
         }
+    }
+
+    #hasMovesToSave() {
+        return this.#moveTreeWidget.serializeToDtos().length > 0;
+    }
+
+    #setSaveAnalysisButtonEnabled(enabled) {
+        this.#saveAnalysisButton.disabled = !enabled;
+        this.#saveAnalysisButton.classList.toggle('app-buttons-disabled', !enabled);
+    }
+
+    #syncSaveAnalysisButtonState() {
+        this.#setSaveAnalysisButtonEnabled(this.#hasMovesToSave() && !this.#isSaveAnalysisButtonLocked);
     }
 
     /**
@@ -399,6 +420,7 @@ class AnalysisBoardPage extends BasePage {
     #showUpdateAnalysis() {
         this.#saveAnalysisButton.value = 'update analysis';
         this.#renameAnalysisButton.classList.remove('app-buttons-disabled');
+        this.#syncSaveAnalysisButtonState();
     }
 
     #renderGameMetaDataInfoPanel() {
@@ -464,8 +486,10 @@ class AnalysisBoardPage extends BasePage {
         });
 
         // persistence UI listeners
-        this.#saveAnalysisButton.addEventListener('click', () => {
-            this.#saveAnalysis();
+        this.#saveAnalysisButton.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('app-buttons-disabled')) {
+                this.#saveAnalysis();
+            }
         });
 
         // TODO: create a AppButton class and move all that logic there
@@ -557,16 +581,24 @@ class AnalysisBoardPage extends BasePage {
     #updateWidgets(movesUpToSelection) {
         this.#openingRepositoryWidget.fetchOpeningsNextMoves(movesUpToSelection);
         this.#engineAnalysisWidget.update(movesUpToSelection);
+        this.#syncSaveAnalysisButtonState();
     }
 
     #saveAnalysis() {
-        this.#saveAnalysisButton.classList.add('app-buttons-disabled');
+        const serializedNodes = this.#moveTreeWidget.serializeToDtos();
+        if (serializedNodes.length === 0) {
+            UI.pushErrorNotification('Analysis must contain at least one move', ANALYSIS_NOTIFICATION_TIMEOUT);
+            return;
+        }
+
+        this.#isSaveAnalysisButtonLocked = true;
+        this.#syncSaveAnalysisButtonState();
 
         this.#client.saveAnalysis(
             this.#analysisId,
             this.#analysisNameField.value,
             this.#gameMetadata?.gameId,
-            this.#moveTreeWidget.serializeToDtos(),
+            serializedNodes,
             this.#moveTreeWidget.selectedNode?.nodeId,
             this.#moveTreeWidget.listOpenBranchIds(),
             this.#analysisCache.serializeToDtos(),
@@ -577,7 +609,8 @@ class AnalysisBoardPage extends BasePage {
                 this.#analysisCache.analysisId = response.analysisId;
 
                 UI.pushInfoNotification('Analysis saved with version ' + response.version, ANALYSIS_NOTIFICATION_TIMEOUT);
-                this.#saveAnalysisButton.classList.remove('app-buttons-disabled');
+                this.#isSaveAnalysisButtonLocked = false;
+                this.#syncSaveAnalysisButtonState();
 
                 if (response.version === 1) {
                     this.#showUpdateAnalysis();

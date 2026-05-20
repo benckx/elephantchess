@@ -103,6 +103,10 @@ class AnalysisService(
 
         request.startFen?.let { validateFen(it) }
 
+        if (request.nodes.isEmpty()) {
+            throw BadRequestException("Analysis must contain at least one move")
+        }
+
         return if (request.analysisId == null) {
             // create new analysis
             val version = 1
