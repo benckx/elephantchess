@@ -1619,6 +1619,12 @@ table.info-box-sub-table td.values {
     padding-right: 6px;
 }
 
+.perpetual-checking-info-box-sub-boxes.perpetual-checking-limit-warning {
+    color: rgb(138 0 0);
+    background-color: rgb(255 0 0 / 12%);
+    border-radius: 4px;
+}
+
 .action-link {
     color: #0505f0;
     cursor: pointer;
