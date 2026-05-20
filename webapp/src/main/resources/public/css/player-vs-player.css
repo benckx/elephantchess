@@ -17,24 +17,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#red-player-info,
-#black-player-info,
-#red-player-info-placeholder,
-#black-player-info-placeholder,
-#inviter-player-info,
-tr#inviter-row,
 tr#outcome-row {
     display: none;
 }
 
-#red-player-info-placeholder,
-#black-player-info-placeholder {
-    font-weight: lighter;
-    color: #515151;
-}
-
 #game-info-info-box {
-    height: 200px;
+    height: 110px;
     display: flex;
 }
 
@@ -54,6 +42,21 @@ tr#outcome-row {
     margin-top: 18px;
     width: 70%;
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.clock-player-info {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 10px;
+    font-size: 16px;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.clock-player-info:empty {
+    display: none;
 }
 
 .time-counter {
@@ -175,12 +178,18 @@ tr#outcome-row {
         font-size: 46px;
     }
 
+    .clock-player-info {
+        font-size: 28px;
+        min-height: 40px;
+        padding: 8px 12px;
+    }
+
     #analysis-button-container-right-side {
         margin-top: 36px;
     }
 
     #game-info-info-box {
-        height: 420px;
+        height: 220px;
     }
 
     #perpetual-checking-tracker-info-box {

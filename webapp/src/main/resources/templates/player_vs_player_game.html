@@ -34,40 +34,6 @@
                     <td class="description-cell">
                         <table id="game-description-sub-table" class="info-box-sub-table">
                             <tbody>
-                            <tr id="inviter-row">
-                                <td class="labels">Inviter</td>
-                                <td class="values">
-                                    <div id="inviter-player-info">
-                                        <span id="inviter-online-status-indicator"
-                                              class="online-status-indicator online-status-indicator-smaller"></span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="labels">Red</td>
-                                <td class="values">
-                                    <div id="red-player-info">
-                                        <span id="red-online-status-indicator"
-                                              class="online-status-indicator online-status-indicator-smaller"></span>
-                                    </div>
-                                    <div id="red-player-info-placeholder">
-                                        not chosen yet
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="labels">Black</td>
-                                <td class="values">
-                                    <div id="black-player-info">
-                                        <span id="black-online-status-indicator"
-                                              class="online-status-indicator online-status-indicator-smaller">
-                                        </span>
-                                    </div>
-                                    <div id="black-player-info-placeholder">
-                                        not chosen yet
-                                    </div>
-                                </td>
-                            </tr>
                             <tr>
                                 <td class="labels">Created</td>
                                 <td class="values">
@@ -197,8 +163,10 @@
         {{perpetual_checking_tracker_info_box}}
         <div class="center-content-div">
             <div id="counter-box">
+                <div id="top-player-info" class="clock-player-info"></div>
                 <div id="top-counter" class="time-counter top-counter">--:--</div>
                 <div id="bottom-counter" class="time-counter bottom-counter">--:--</div>
+                <div id="bottom-player-info" class="clock-player-info"></div>
             </div>
         </div>
         <div id="analysis-button-container-right-side">
