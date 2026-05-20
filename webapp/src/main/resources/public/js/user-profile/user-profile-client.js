@@ -38,7 +38,7 @@ class UserProfileClient {
         this.#validateUserId();
         const url = `${USER_INFO_API}/game-ratings?userId=${this.#userId}`;
         getAndHandle(url, json => {
-            cb(new TimeCategoryStatsDto(json.ratings));
+            cb(new GameStatsDto(json));
         });
     }
 

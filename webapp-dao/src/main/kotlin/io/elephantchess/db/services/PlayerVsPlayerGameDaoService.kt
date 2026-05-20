@@ -387,6 +387,66 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return fetchRatingForUser(dslContext, userId, timeControlCategory)
     }
 
+    suspend fun fetchPlayerVsPlayerOutcomeStatsPerCategory(userId: String): List<PlayerVsPlayerOutcomeStatsPerCategoryRecord> {
+        val isInviter = GAME.INVITER.eq(userId)
+        val isInvitee = GAME.INVITEE.eq(userId)
+        val isUserPlaying = isInviter.or(isInvitee)
+
+        val inviterWinCondition =
+            GAME.INVITER_COLOR.eq(Color.RED).and(GAME.OUTCOME.eq(Outcome.RED_WINS))
+                .or(GAME.INVITER_COLOR.eq(Color.BLACK).and(GAME.OUTCOME.eq(Outcome.BLACK_WINS)))
+        val inviteeWinCondition =
+            GAME.INVITER_COLOR.eq(Color.RED).and(GAME.OUTCOME.eq(Outcome.BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(Color.BLACK).and(GAME.OUTCOME.eq(Outcome.RED_WINS)))
+
+        val inviterLossCondition =
+            GAME.INVITER_COLOR.eq(Color.RED).and(GAME.OUTCOME.eq(Outcome.BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(Color.BLACK).and(GAME.OUTCOME.eq(Outcome.RED_WINS)))
+        val inviteeLossCondition =
+            GAME.INVITER_COLOR.eq(Color.RED).and(GAME.OUTCOME.eq(Outcome.RED_WINS))
+                .or(GAME.INVITER_COLOR.eq(Color.BLACK).and(GAME.OUTCOME.eq(Outcome.BLACK_WINS)))
+
+        val winsField = DSL.sum(
+            DSL.`when`(
+                isInviter.and(inviterWinCondition)
+                    .or(isInvitee.and(inviteeWinCondition)),
+                1
+            ).otherwise(0)
+        ).`as`("wins")
+        val lossesField = DSL.sum(
+            DSL.`when`(
+                isInviter.and(inviterLossCondition)
+                    .or(isInvitee.and(inviteeLossCondition)),
+                1
+            ).otherwise(0)
+        ).`as`("losses")
+        val drawsField = DSL.sum(
+            DSL.`when`(GAME.OUTCOME.eq(Outcome.DRAW), 1).otherwise(0)
+        ).`as`("draws")
+
+        return dslContext
+            .select(
+                GAME.TIME_CONTROL_CATEGORY,
+                winsField,
+                lossesField,
+                drawsField
+            )
+            .from(GAME)
+            .where(isUserPlaying)
+            .and(GAME.OUTCOME.isNotNull)
+            .and(GAME.TIME_CONTROL_CATEGORY.isNotNull)
+            .groupBy(GAME.TIME_CONTROL_CATEGORY)
+            .awaitRecords()
+            .map { record ->
+                PlayerVsPlayerOutcomeStatsPerCategoryRecord(
+                    category = record.get(GAME.TIME_CONTROL_CATEGORY),
+                    wins = record.get(winsField) ?: 0,
+                    losses = record.get(lossesField) ?: 0,
+                    draws = record.get(drawsField) ?: 0
+                )
+            }
+    }
+
     private suspend fun fetchRatingForUser(
         context: DSLContext,
         userId: String,

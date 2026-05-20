@@ -130,6 +130,15 @@ h2 {
     font-weight: normal;
 }
 
+#ratings-table .category-label-row th {
+    text-align: center;
+    font-style: normal;
+}
+
+#ratings-table .category-label-row th:first-child {
+    text-align: right;
+}
+
 .online-status-indicator {
     margin-right: 0;
 }

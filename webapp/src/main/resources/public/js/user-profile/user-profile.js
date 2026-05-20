@@ -44,11 +44,29 @@ class UserProfilePage extends BasePage {
 
     #fetchGamesRatings() {
         this.#client.fetchGameRatings(stats => {
-            document.getElementById('rating-bullet').innerText = stats.bullet.toString();
-            document.getElementById('rating-blitz').innerText = stats.blitz.toString();
-            document.getElementById('rating-rapid').innerText = stats.rapid.toString();
-            document.getElementById('rating-classical').innerText = stats.classical.toString()
-            document.getElementById('rating-correspondence').innerText = stats.correspondence.toString();
+            document.getElementById('rating-bullet').innerText = stats.ratings.bullet.toString();
+            document.getElementById('rating-blitz').innerText = stats.ratings.blitz.toString();
+            document.getElementById('rating-rapid').innerText = stats.ratings.rapid.toString();
+            document.getElementById('rating-classical').innerText = stats.ratings.classical.toString()
+            document.getElementById('rating-correspondence').innerText = stats.ratings.correspondence.toString();
+
+            document.getElementById('wins-bullet').innerText = formatNumber(stats.pvp.bullet.wins);
+            document.getElementById('wins-blitz').innerText = formatNumber(stats.pvp.blitz.wins);
+            document.getElementById('wins-rapid').innerText = formatNumber(stats.pvp.rapid.wins);
+            document.getElementById('wins-classical').innerText = formatNumber(stats.pvp.classical.wins);
+            document.getElementById('wins-correspondence').innerText = formatNumber(stats.pvp.correspondence.wins);
+
+            document.getElementById('losses-bullet').innerText = formatNumber(stats.pvp.bullet.losses);
+            document.getElementById('losses-blitz').innerText = formatNumber(stats.pvp.blitz.losses);
+            document.getElementById('losses-rapid').innerText = formatNumber(stats.pvp.rapid.losses);
+            document.getElementById('losses-classical').innerText = formatNumber(stats.pvp.classical.losses);
+            document.getElementById('losses-correspondence').innerText = formatNumber(stats.pvp.correspondence.losses);
+
+            document.getElementById('draws-bullet').innerText = formatNumber(stats.pvp.bullet.draws);
+            document.getElementById('draws-blitz').innerText = formatNumber(stats.pvp.blitz.draws);
+            document.getElementById('draws-rapid').innerText = formatNumber(stats.pvp.rapid.draws);
+            document.getElementById('draws-classical').innerText = formatNumber(stats.pvp.classical.draws);
+            document.getElementById('draws-correspondence').innerText = formatNumber(stats.pvp.correspondence.draws);
         });
     }
 

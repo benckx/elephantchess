@@ -79,6 +79,120 @@ class TimeCategoryStatsDto {
 
 }
 
+class PlayerVsPlayerStatsDto {
+
+    #wins;
+    #losses;
+    #draws;
+
+    constructor(json) {
+        this.#wins = json.wins;
+        this.#losses = json.losses;
+        this.#draws = json.draws;
+    }
+
+    /**
+     * @returns {number}
+     */
+    get wins() {
+        return this.#wins;
+    }
+
+    /**
+     * @returns {number}
+     */
+    get losses() {
+        return this.#losses;
+    }
+
+    /**
+     * @returns {number}
+     */
+    get draws() {
+        return this.#draws;
+    }
+
+}
+
+class GameStatsDto {
+
+    #ratings;
+    #pvp;
+
+    constructor(json) {
+        this.#ratings = new TimeCategoryStatsDto(json.ratings);
+        this.#pvp = new TimeCategoryPlayerVsPlayerStatsDto(json.pvp);
+    }
+
+    /**
+     * @returns {TimeCategoryStatsDto}
+     */
+    get ratings() {
+        return this.#ratings;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get pvp() {
+        return this.#pvp;
+    }
+
+}
+
+class TimeCategoryPlayerVsPlayerStatsDto {
+
+    #bullet;
+    #blitz;
+    #rapid;
+    #classical;
+    #correspondence;
+
+    constructor(json) {
+        this.#bullet = new PlayerVsPlayerStatsDto(json.bullet);
+        this.#blitz = new PlayerVsPlayerStatsDto(json.blitz);
+        this.#rapid = new PlayerVsPlayerStatsDto(json.rapid);
+        this.#classical = new PlayerVsPlayerStatsDto(json.classical);
+        this.#correspondence = new PlayerVsPlayerStatsDto(json.correspondence);
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get bullet() {
+        return this.#bullet;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get blitz() {
+        return this.#blitz;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get rapid() {
+        return this.#rapid;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get classical() {
+        return this.#classical;
+    }
+
+    /**
+     * @returns {PlayerVsPlayerStatsDto}
+     */
+    get correspondence() {
+        return this.#correspondence;
+    }
+
+}
+
 class PuzzleSummaryStatsDto {
 
     #rating;
