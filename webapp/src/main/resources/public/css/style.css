@@ -2109,6 +2109,21 @@ img#navigation-end {
     font-weight: bold;
 }
 
+.move-tree-container .eval-placeholder.brilliant-annotation-label,
+.move-tree-container .eval-placeholder.good-annotation-label,
+.move-tree-container .eval-placeholder.interesting-annotation-label,
+.move-tree-container .eval-placeholder.inaccuracy-annotation-label,
+.move-tree-container .eval-placeholder.mistake-annotation-label,
+.move-tree-container .eval-placeholder.blunder-annotation-label {
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    box-sizing: border-box;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 4px;
+}
+
 /* little messages */
 
 .little-message {
