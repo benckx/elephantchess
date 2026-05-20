@@ -44,7 +44,8 @@ class AnalysisBoardPage extends BasePage {
     #moveTreeWidget = new MoveTreeWidget({
         containerId: 'move-tree-container',
         isContextualMenuEnabled: true,
-        isLoadingAnimationEnabled: true
+        isLoadingAnimationEnabled: true,
+        ...moveTreeResizeCookiePersistence('analysis', 'move-tree-container')
     });
 
     #boardGui = createWebappBoardGui({ svg: true });

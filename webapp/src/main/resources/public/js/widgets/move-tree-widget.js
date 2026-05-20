@@ -19,6 +19,7 @@
 
 const COLOR_DELTA_FOR_ONE_LEVEL = 10;
 const HOVERING_COLOR = '#01138a';
+const MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS = 150;
 
 const BRANCHES_COLORS = [
     '#01138a',
@@ -1255,6 +1256,13 @@ class MoveTreeWidget {
     #stopLoadingAnimationTimeout = null;
 
     #keyboardNavigation = true;
+    #resizeObserver = null;
+    #resizeSaveTimeout = null;
+    #lastSavedHeight = null;
+    #fallbackResizeListener = null;
+    #disposalObserver = null;
+    #loadPersistedHeight = null;
+    #persistHeight = null;
 
     constructor(options) {
         // options
@@ -1265,6 +1273,12 @@ class MoveTreeWidget {
         if (options.isLoadingAnimationEnabled !== undefined) {
             this.#isLoadingAnimationEnabled = options.isLoadingAnimationEnabled;
         }
+        if (options.loadPersistedHeight !== undefined) {
+            this.#loadPersistedHeight = options.loadPersistedHeight;
+        }
+        if (options.persistHeight !== undefined) {
+            this.#persistHeight = options.persistHeight;
+        }
 
         const containerId = options.containerId;
         if (containerId === undefined) {
@@ -1274,6 +1288,8 @@ class MoveTreeWidget {
         // init
         this.#mainContainer = document.getElementById(containerId);
         this.#mainContainer.innerHTML = '';
+        this.#applySavedHeight();
+        this.#setUpResizePersistence();
 
         // contextual menu if enabled
         if (this.#isContextualMenuEnabled) {
@@ -1301,6 +1317,92 @@ class MoveTreeWidget {
         }
 
         this.#addLoadingIconIfNeeded();
+    }
+
+    #applySavedHeight() {
+        if (this.#loadPersistedHeight === null) {
+            return;
+        }
+
+        const persistedHeight = this.#loadPersistedHeight();
+        if (persistedHeight === null) {
+            return;
+        }
+
+        if (
+            !Number.isFinite(persistedHeight)
+            || !Number.isInteger(persistedHeight)
+            || persistedHeight < this.#minResizeHeight()
+        ) {
+            return;
+        }
+
+        this.#mainContainer.style.height = `${persistedHeight}px`;
+        this.#lastSavedHeight = persistedHeight;
+    }
+
+    #minResizeHeight() {
+        const parsed = Number.parseInt(window.getComputedStyle(this.#mainContainer).minHeight, 10);
+        if (Number.isFinite(parsed) && parsed > 0) {
+            return parsed;
+        }
+        return 0;
+    }
+
+    #setUpResizePersistence() {
+        const saveHeight = () => {
+            if (this.#resizeSaveTimeout !== null) {
+                clearTimeout(this.#resizeSaveTimeout);
+            }
+
+            this.#resizeSaveTimeout = setTimeout(() => {
+                const height = this.#mainContainer.offsetHeight;
+                if (height >= this.#minResizeHeight() && height !== this.#lastSavedHeight) {
+                    if (this.#persistHeight !== null) {
+                        this.#persistHeight(height);
+                    }
+                    this.#lastSavedHeight = height;
+                }
+            }, MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS);
+        };
+
+        if (typeof ResizeObserver !== 'undefined') {
+            this.#resizeObserver = new ResizeObserver(() => saveHeight());
+            this.#resizeObserver.observe(this.#mainContainer);
+        } else {
+            this.#fallbackResizeListener = saveHeight;
+            this.#mainContainer.addEventListener('mouseup', this.#fallbackResizeListener);
+            this.#mainContainer.addEventListener('touchend', this.#fallbackResizeListener);
+        }
+
+        if (document.body !== null) {
+            this.#disposalObserver = new MutationObserver(() => {
+                if (!document.body.contains(this.#mainContainer)) {
+                    this.#teardownResizePersistence();
+                }
+            });
+            this.#disposalObserver.observe(document.body, {childList: true, subtree: true});
+        }
+    }
+
+    #teardownResizePersistence() {
+        if (this.#resizeObserver !== null) {
+            this.#resizeObserver.disconnect();
+            this.#resizeObserver = null;
+        }
+        if (this.#fallbackResizeListener !== null) {
+            this.#mainContainer.removeEventListener('mouseup', this.#fallbackResizeListener);
+            this.#mainContainer.removeEventListener('touchend', this.#fallbackResizeListener);
+            this.#fallbackResizeListener = null;
+        }
+        if (this.#resizeSaveTimeout !== null) {
+            clearTimeout(this.#resizeSaveTimeout);
+            this.#resizeSaveTimeout = null;
+        }
+        if (this.#disposalObserver !== null) {
+            this.#disposalObserver.disconnect();
+            this.#disposalObserver = null;
+        }
     }
 
     enableKeyboardNavigation() {
