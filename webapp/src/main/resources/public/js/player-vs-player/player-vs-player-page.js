@@ -307,6 +307,10 @@ class PlayGamePage extends BasePage {
     }
 
     #initBoard() {
+        if (this.#gameController.gameDto.isManchu) {
+            this.#moveTreeWidget.startFen = MANCHU_START_FEN;
+        }
+
         if (!this.#gameController.isGameFinished()) {
             this.#boardGui.addAfterMoveListener((move) => {
                 this.#gameController.registerPlayerMove(
@@ -520,6 +524,7 @@ class PlayGamePage extends BasePage {
         }
 
         this.#updateChatAuthorColor();
+        this.#updateVariantSymbols();
     }
 
     #updateChatAuthorColor() {
@@ -544,12 +549,22 @@ class PlayGamePage extends BasePage {
     #deleteAllNodesButOnlineIndicator(node) {
         const toKeep = [];
         for (let child of node.children) {
-            if (child.classList.contains('online-status-indicator')) {
+            if (child.classList.contains('online-status-indicator') || child.classList.contains('pvp-variant-symbol')) {
                 toKeep.push(child);
             }
         }
         node.innerHTML = '';
         toKeep.forEach(child => node.append(child));
+    }
+
+    #updateVariantSymbols() {
+        const isManchu = this.#gameController.gameDto.isManchu;
+        const symbol = isManchu ? '统' : '象';
+        const tooltip = isManchu ? 'Manchu chess (Yitong / 一统棋)' : 'Xiangqi (Chinese chess)';
+        document.querySelectorAll('.pvp-variant-symbol').forEach(el => {
+            el.innerText = symbol;
+            el.title = tooltip;
+        });
     }
 
     #updateGameStatusInfo() {

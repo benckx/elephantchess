@@ -316,6 +316,20 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
                 let newFile = fileAsWxf(color, move.to.x);
                 moveStr = `${currentFileStr}${direction}${newFile}`;
                 break;
+            case 'W':
+                if (move.isHorizontal()) {
+                    let fileStr = fileNumberOrSign(board, move);
+                    let newFile = fileAsWxf(color, move.to.x);
+                    moveStr = `${fileStr}${horizontalSeparator}${newFile}`;
+                } else if (move.isVertical()) {
+                    moveStr = `${fileNumberOrSign(board, move)}${verticalMove(color, move)}`;
+                } else {
+                    let currentFileStr = fileNumberOrSign(board, move);
+                    let direction = verticalMoveDirectionChar(color, move);
+                    let newFile = fileAsWxf(color, move.to.x);
+                    moveStr = `${currentFileStr}${direction}${newFile}`;
+                }
+                break;
         }
 
         let pieceCharacter;
