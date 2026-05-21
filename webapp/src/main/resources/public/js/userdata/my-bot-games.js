@@ -115,10 +115,14 @@ class MyBotGamesPage extends InfiniteScrollPage {
             const opponentDiv = document.createElement('div');
             opponentDiv.className = 'opponent';
             opponentDiv.innerText = `${entry.formattedEngine} (${entry.depth})`;
-            middlePane.append(
+            const middlePaneItems = [
                 opponentDiv,
                 wrapInDiv(buildColorSpan(entry.color)),
-            );
+            ];
+            if (entry.variant === 'MANCHU') {
+                middlePaneItems.push(buildDivWithTextAndClass('统', 'variant-label'));
+            }
+            middlePane.append(...middlePaneItems);
 
             if (entry.hasCustomStartFen) {
                 customFenIndicatorPane.append(buildCustomFenIcon(entry));

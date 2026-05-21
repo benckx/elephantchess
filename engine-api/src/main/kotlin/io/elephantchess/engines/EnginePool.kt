@@ -5,6 +5,7 @@ import io.elephantchess.engines.protocol.commands.EngineProcessLocator
 import io.elephantchess.engines.protocol.commands.LocalProcessLocator
 import io.elephantchess.engines.protocol.model.InfoLinesResult
 import io.elephantchess.engines.utils.EngineUtils.waitForCondition
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -43,9 +44,9 @@ class EnginePool(
         }
     }
 
-    suspend fun queryForDepth(fen: String, engineId: EngineId, depth: Int, timeout: Long = 20_000): InfoLinesResult? {
+    suspend fun queryForDepth(fen: String, engineId: EngineId, depth: Int, timeout: Long = 20_000, variant: Variant = Variant.XIANGQI): InfoLinesResult? {
         return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
-            lockableEngineProcess.queryForBestMove(fen, depth)
+            lockableEngineProcess.queryForBestMove(fen, depth, variant)
         }
     }
 
@@ -109,8 +110,8 @@ class EnginePool(
             engineProcess.quit()
         }
 
-        suspend fun queryForBestMove(fen: String, depth: Int): InfoLinesResult {
-            return engineProcess.queryForBestMove(fen, depth)
+        suspend fun queryForBestMove(fen: String, depth: Int, variant: Variant = Variant.XIANGQI): InfoLinesResult {
+            return engineProcess.queryForBestMove(fen, depth, variant)
         }
 
     }

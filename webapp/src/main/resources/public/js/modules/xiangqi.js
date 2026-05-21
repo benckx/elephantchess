@@ -20,9 +20,16 @@
 const BOARD_WIDTH = 9;
 const BOARD_HEIGHT = 10;
 const UCI_LETTER = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
-const PIECES_CHARS = ['c', 'r', 'n', 'b', 'a', 'k', 'p'];
+const PIECES_CHARS = ['c', 'r', 'n', 'b', 'a', 'k', 'p', 'w'];
 
 const DEFAULT_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0';
+
+/**
+ * Manchu chess (Yitong) start FEN.
+ * Red has only: general, 2 advisors, 2 elephants, 5 soldiers, and the super-chariot (W/w) at a1.
+ * The super-chariot combines the powers of the chariot, horse, and cannon.
+ */
+const MANCHU_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/W1BAKAB2 w - - 0 0';
 
 // Piece color enum. Lives here (rather than in enums.js) so that xiangqi.js
 // can be used standalone (together with board-gui.js) without pulling in the
@@ -308,6 +315,20 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
                 let direction = verticalMoveDirectionChar(color, move);
                 let newFile = fileAsWxf(color, move.to.x);
                 moveStr = `${currentFileStr}${direction}${newFile}`;
+                break;
+            case 'W':
+                if (move.isHorizontal()) {
+                    let fileStr = fileNumberOrSign(board, move);
+                    let newFile = fileAsWxf(color, move.to.x);
+                    moveStr = `${fileStr}${horizontalSeparator}${newFile}`;
+                } else if (move.isVertical()) {
+                    moveStr = `${fileNumberOrSign(board, move)}${verticalMove(color, move)}`;
+                } else {
+                    let currentFileStr = fileNumberOrSign(board, move);
+                    let direction = verticalMoveDirectionChar(color, move);
+                    let newFile = fileAsWxf(color, move.to.x);
+                    moveStr = `${currentFileStr}${direction}${newFile}`;
+                }
                 break;
         }
 
@@ -1134,6 +1155,8 @@ class Board {
                 return this.#listMovesForGeneral(position);
             case 'p':
                 return this.#listMovesForSoldier(position);
+            case 'w':
+                return this.#listMovesForSuperChariot(position);
             default:
                 throw new Error('Not implemented for ' + this.getPieceAt(position).pieceChar)
         }
@@ -1309,6 +1332,48 @@ class Board {
             return [];
         }
 
+        return result.filter(targetPosition =>
+            targetPosition.existsOnBoard() && !this.containSameColors(position, targetPosition)
+        );
+    }
+
+    /**
+     * Super-chariot (Manchu Banner): combines the powers of the chariot, horse, and cannon.
+     */
+    #listMovesForSuperChariot(position) {
+        let result = [];
+        // Chariot moves
+        result = result.concat(this.#filterMovesForChariot(position, position.getAllTop()));
+        result = result.concat(this.#filterMovesForChariot(position, position.getAllBottom()));
+        result = result.concat(this.#filterMovesForChariot(position, position.getAllLeft()));
+        result = result.concat(this.#filterMovesForChariot(position, position.getAllRight()));
+        // Cannon moves
+        result = result.concat(this.#filterMovesForCannon(position, position.getAllTop()));
+        result = result.concat(this.#filterMovesForCannon(position, position.getAllBottom()));
+        result = result.concat(this.#filterMovesForCannon(position, position.getAllLeft()));
+        result = result.concat(this.#filterMovesForCannon(position, position.getAllRight()));
+        // Horse moves
+        const top = position.getTop();
+        const bottom = position.getBottom();
+        const left = position.getLeft();
+        const right = position.getRight();
+        if (top.existsOnBoard() && !this.#hasPieceAt(top)) {
+            result.push(top.getTopLeft());
+            result.push(top.getTopRight());
+        }
+        if (bottom.existsOnBoard() && !this.#hasPieceAt(bottom)) {
+            result.push(bottom.getBottomLeft());
+            result.push(bottom.getBottomRight());
+        }
+        if (left.existsOnBoard() && !this.#hasPieceAt(left)) {
+            result.push(left.getTopLeft());
+            result.push(left.getBottomLeft());
+        }
+        if (right.existsOnBoard() && !this.#hasPieceAt(right)) {
+            result.push(right.getTopRight());
+            result.push(right.getBottomRight());
+        }
+        // Filter: must be on board and not capture same-color pieces
         return result.filter(targetPosition =>
             targetPosition.existsOnBoard() && !this.containSameColors(position, targetPosition)
         );

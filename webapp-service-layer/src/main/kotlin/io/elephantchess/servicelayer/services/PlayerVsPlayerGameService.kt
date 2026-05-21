@@ -39,6 +39,7 @@ import io.elephantchess.xiangqi.Board.Companion.isCheckmated
 import io.elephantchess.xiangqi.Board.Companion.isInCheck
 import io.elephantchess.xiangqi.Board.Companion.isMoveLegal
 import io.elephantchess.xiangqi.Board.Companion.isStalemated
+import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
@@ -307,13 +308,14 @@ class PlayerVsPlayerGameService(
         game.id = generateId()
         game.inviter = userId.id
         game.inviterColor = request.inviterColor
-        game.currentFen = DEFAULT_START_FEN
+        game.currentFen = Board.defaultFen(request.variant)
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
         game.alwaysVisibleInLobby = !request.privateInvite && request.alwaysVisibleInLobby
         game.privateInvite = request.privateInvite
         game.containsErrors = false
+        game.variant = request.variant
 
         val now = Clock.System.now()
         game.created = now
@@ -403,7 +405,8 @@ class PlayerVsPlayerGameService(
                     ratingTo = ratingTo,
                     created = gameRecord.created.toEpochMilliseconds(),
                     lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
-                    numberOfMessages = numberOfMessages
+                    numberOfMessages = numberOfMessages,
+                    variant = gameRecord.variant ?: Variant.XIANGQI,
                 )
             }
             .let { entries ->
@@ -520,7 +523,8 @@ class PlayerVsPlayerGameService(
             ratingUpdate = gameRecord.ratingUpdate(),
             gameEventType = gameRecord.gameStatus,
             outcome = gameRecord.outcome,
-            drawPropositionUser = gameRecord.drawPropositionUser
+            drawPropositionUser = gameRecord.drawPropositionUser,
+            variant = gameRecord.variant ?: Variant.XIANGQI,
         )
     }
 
@@ -1069,7 +1073,8 @@ class PlayerVsPlayerGameService(
             timeControlBase = game.timeControlBase,
             timeControlIncrement = game.timeControlIncrement,
             allowGuests = game.allowGuestsToJoin,
-            lastUpdated = game.lastUpdated.toEpochMilliseconds()
+            lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+            variant = game.variant ?: Variant.XIANGQI
         )
     }
 

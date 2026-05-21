@@ -21,6 +21,7 @@ const DEFAULT_DEPTH = 6;
 
 class PlayBotModalHandler extends ModalHandler {
 
+    #variantRadios = document.getElementsByName('play-bot-variant');
     #colorRadios = document.getElementsByName('play-bot-color');
     #engineRatios = document.getElementsByName('play-bot-engine');
     #levelRadios = document.getElementsByName('play-bot-level');
@@ -28,6 +29,9 @@ class PlayBotModalHandler extends ModalHandler {
     #startFenCustomRadio = document.getElementById('start-fen-custom');
     #startFenInput = document.getElementById('start-fen');
     #playBotButton = document.getElementById('play-bot-button');
+    #enginePikaContainer = document.getElementById('engine-pika-container');
+    #enginePikaRadio = document.getElementById('engine-pika');
+    #engineFairyRadio = document.getElementById('engine-fairy');
 
     constructor() {
         super();
@@ -39,6 +43,20 @@ class PlayBotModalHandler extends ModalHandler {
         });
         this.#playBotButton.addEventListener('click', () => {
             this.#handleCreateGameClickEvent()
+        });
+
+        // When Manchu variant is selected, disable Pikafish and switch to Fairy Stockfish
+        this.#variantRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === 'MANCHU') {
+                    this.#enginePikaRadio.disabled = true;
+                    this.#enginePikaContainer.classList.add('standard-radio-disabled');
+                    this.#engineFairyRadio.checked = true;
+                } else {
+                    this.#enginePikaRadio.disabled = false;
+                    this.#enginePikaContainer.classList.remove('standard-radio-disabled');
+                }
+            });
         });
 
         makeRadioClickable();
@@ -72,6 +90,14 @@ class PlayBotModalHandler extends ModalHandler {
                 return 1;
             } else {
                 return level * 2;
+            }
+        }
+
+        // variant param
+        let variant = 'XIANGQI';
+        for (let i = 0; i < this.#variantRadios.length; i++) {
+            if (this.#variantRadios[i].checked) {
+                variant = this.#variantRadios[i].value;
             }
         }
 
@@ -109,7 +135,8 @@ class PlayBotModalHandler extends ModalHandler {
                 'color': color,
                 'depth': depth,
                 'engine': engine,
-                'startFen': startFenValue
+                'startFen': startFenValue,
+                'variant': variant,
             };
             postAndHandle('/api/botgame/create', body, json => {
                 window.open('/playbot?id=' + json.gameId, '_self');

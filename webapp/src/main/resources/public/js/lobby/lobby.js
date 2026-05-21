@@ -171,11 +171,12 @@ class LobbyPage extends BasePage {
             item.append(rightPane);
 
             // variant
+            const isManchu = entry.variant === 'MANCHU';
             variantPane.append(
                 buildSpan(
-                    '象',
+                    isManchu ? '统' : '象',
                     'game-to-join-variant-symbol',
-                    'Xiangqi (Chinese chess)'
+                    isManchu ? 'Manchu chess (Yitong / 一统棋)' : 'Xiangqi (Chinese chess)'
                 )
             );
 

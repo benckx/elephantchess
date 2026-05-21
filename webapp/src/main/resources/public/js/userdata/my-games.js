@@ -291,11 +291,15 @@ class MyGamesPage extends InfiniteScrollPage {
             leftPane.append(iconDiv);
 
             // middle pane
-            middlePane.append(
+            const middlePaneItems = [
                 buildOpponentDiv(entry),
                 wrapInDiv(buildColorSpan(entry.color)),
                 buildRatingModeDiv(entry)
-            );
+            ];
+            if (entry.variant === 'MANCHU') {
+                middlePaneItems.push(buildDivWithTextAndClass('统', 'variant-label'));
+            }
+            middlePane.append(...middlePaneItems);
 
             // number of messages indicator pane
             const chatDiv = buildChatMessagesDiv(entry);

@@ -223,6 +223,7 @@ configure(publishableModules.map { project(":$it") }) {
 project(":engine-api") {
     dependencies {
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+        implementation(project(":xiangqi-core"))
         testImplementation(project(":xiangqi-core"))
     }
 }

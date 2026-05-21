@@ -5,10 +5,13 @@ import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.Position.Companion.getAllPositions
+import io.elephantchess.xiangqi.Variant.MANCHU
+import io.elephantchess.xiangqi.Variant.XIANGQI
 
 class Board(
     initFen: String = DEFAULT_START_FEN,
     private val keepHistory: Boolean = false,
+    val variant: Variant = inferVariantFromFen(initFen),
 ) {
 
     private val content: Array<Array<PhysicalPiece?>> = Array(WIDTH) { Array(HEIGHT) { null } }
@@ -230,6 +233,34 @@ class Board(
                     result
                 }
 
+                SUPER_CHARIOT -> {
+                    // The super-chariot combines the powers of chariot, horse, and cannon.
+                    val chariotMoves = piecePosition.getOrthogonalLines().flatMap { line -> filterChariotLine(line) }
+                    val cannonMoves = piecePosition.getOrthogonalLines().flatMap { line -> filterCannonLine(line) }
+                    val horseMoves = mutableListOf<Position>()
+                    val top = piecePosition.getTop()
+                    val bottom = piecePosition.getBottom()
+                    val left = piecePosition.getLeft()
+                    val right = piecePosition.getRight()
+                    if (top.existsOnBoard() && !hasPieceAt(top)) {
+                        horseMoves += top.getTopLeft()
+                        horseMoves += top.getTopRight()
+                    }
+                    if (bottom.existsOnBoard() && !hasPieceAt(bottom)) {
+                        horseMoves += bottom.getBottomLeft()
+                        horseMoves += bottom.getBottomRight()
+                    }
+                    if (left.existsOnBoard() && !hasPieceAt(left)) {
+                        horseMoves += left.getTopLeft()
+                        horseMoves += left.getBottomLeft()
+                    }
+                    if (right.existsOnBoard() && !hasPieceAt(right)) {
+                        horseMoves += right.getTopRight()
+                        horseMoves += right.getBottomRight()
+                    }
+                    (chariotMoves + cannonMoves + horseMoves).distinct()
+                }
+
                 ELEPHANT -> {
                     val result = mutableListOf<Position>()
                     if (!hasPieceAt(piecePosition.getTopLeft())) {
@@ -418,7 +449,7 @@ class Board(
     }
 
     fun copy(keepHistory: Boolean = false): Board {
-        val copy = Board(keepHistory = keepHistory)
+        val copy = Board(keepHistory = keepHistory, variant = variant)
         copy.clear()
         (0 until WIDTH).forEach { x ->
             (0 until HEIGHT).forEach { y ->
@@ -482,8 +513,28 @@ class Board(
         const val WIDTH = 9
         const val HEIGHT = 10
         const val DEFAULT_START_FEN = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
+
+        /**
+         * Manchu chess start FEN. Black pieces are set up as in standard xiangqi.
+         * Red has only: general, 2 advisors, 2 elephants, 5 soldiers, and the super-chariot (W) at a1.
+         * The super-chariot ('W'/'w') combines the powers of the chariot, horse, and cannon.
+         */
+        const val MANCHU_START_FEN = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/W1BAKAB2 w - - 0 0"
+
         const val PRINT_SEPARATOR = " "
         const val UCI_MOVE_REGEX_PATTERN = "[a-i][0-9][a-i][0-9]"
+
+        fun defaultFen(variant: Variant): String = when (variant) {
+            XIANGQI -> DEFAULT_START_FEN
+            MANCHU -> MANCHU_START_FEN
+        }
+
+        /**
+         * Infers the chess variant from a FEN string: if the piece section contains 'W' (super-chariot),
+         * it is Manchu chess; otherwise standard Xiangqi.
+         */
+        fun inferVariantFromFen(fen: String): Variant =
+            if (fen.substringBefore(' ').contains('W')) MANCHU else XIANGQI
 
         fun validateFen(fen: String) {
             try {

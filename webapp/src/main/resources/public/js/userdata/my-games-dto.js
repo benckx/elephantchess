@@ -34,6 +34,7 @@ class GameEntryDto {
     #ratingFrom;
     #ratingTo;
     #numberOfMessages;
+    #variant;
 
     /**
      * @type {number}
@@ -63,6 +64,7 @@ class GameEntryDto {
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
         this.#numberOfMessages = json.numberOfMessages;
+        this.#variant = json.variant ?? 'XIANGQI';
     }
 
     /**
@@ -234,6 +236,13 @@ class GameEntryDto {
      */
     get numberOfMessages() {
         return Number(this.#numberOfMessages);
+    }
+
+    /**
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
     }
 
 }

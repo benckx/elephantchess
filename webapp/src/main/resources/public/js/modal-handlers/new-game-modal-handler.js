@@ -20,6 +20,7 @@
 const OPTION_BUTTON_CLASS = 'option-button-div'
 const OPTION_BUTTON_SELECTED_CLASS = 'option-button-div-selected'
 const COLOR_OPTION_GROUP = 'color-option-button-div'
+const VARIANT_OPTION_GROUP = 'variant-option-button-div'
 const TIME_CONTROL_OPTION_GROUP = 'tc-option-button-div'
 const SECONDS_IN_ONE_DAY = 86_400;
 
@@ -30,7 +31,7 @@ class NewGameHandler extends ModalHandler {
      *
      * @type {string[]}
      */
-    #exclusionGroups = [COLOR_OPTION_GROUP, TIME_CONTROL_OPTION_GROUP];
+    #exclusionGroups = [COLOR_OPTION_GROUP, TIME_CONTROL_OPTION_GROUP, VARIANT_OPTION_GROUP];
 
     /**
      * @type {Element[]}
@@ -211,6 +212,24 @@ class NewGameHandler extends ModalHandler {
         }
     }
 
+    /**
+     * @return {string}
+     */
+    #getSelectedVariant() {
+        let variantId = null;
+        this.#optionsDivs
+            .filter(item => item.classList.contains(OPTION_BUTTON_SELECTED_CLASS))
+            .filter(item => item.classList.contains(VARIANT_OPTION_GROUP))
+            .forEach(item => variantId = item.id);
+
+        switch (variantId) {
+            case 'variant-manchu':
+                return 'MANCHU';
+            default:
+                return 'XIANGQI';
+        }
+    }
+
     #handleClickCreateNewGame() {
         const color = this.#getSelectedColor();
         const isRated = this.#isRatedCheckbox.checked;
@@ -230,6 +249,7 @@ class NewGameHandler extends ModalHandler {
         const allowGuests = this.#allowGuestsCheckBox.checked;
         const alwaysVisibleInLobby = this.#alwaysVisibleInLobbyCheckBox.checked;
         const privateInvite = this.#privateInvite.checked;
+        const variant = this.#getSelectedVariant();
 
         const request = {
             'inviterColor': color,
@@ -239,7 +259,8 @@ class NewGameHandler extends ModalHandler {
             'timeControlMode': timeControlMode,
             'allowGuests': allowGuests,
             'alwaysVisibleInLobby': alwaysVisibleInLobby,
-            'privateInvite': privateInvite
+            'privateInvite': privateInvite,
+            'variant': variant,
         };
 
         // TODO: also check color that comes from the response and event type
