@@ -22,7 +22,8 @@ class SimpleBoardPage extends BasePage {
     constructor() {
         super();
         const boardGui = createWebappBoardGui();
-        boardGui.loadFen(DEFAULT_START_FEN);
+        const isManchu = getQueryParam('variant') === 'manchu';
+        boardGui.loadFen(isManchu ? MANCHU_START_FEN : DEFAULT_START_FEN);
 
         const moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
         moveTreeWidget.addNavigationPanel({
