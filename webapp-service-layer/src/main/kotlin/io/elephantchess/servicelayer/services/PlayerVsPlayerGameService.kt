@@ -836,8 +836,6 @@ class PlayerVsPlayerGameService(
         }
 
         val playMoveCallback: (Game) -> PlayMoveCallbackResult = { gameRecord ->
-            val gameVariant = gameRecord.variant ?: Variant.XIANGQI
-
             // validate move can be parsed
             try {
                 parseMoveFromUci(request.move)
@@ -847,7 +845,7 @@ class PlayerVsPlayerGameService(
             }
 
             // validate move is legal
-            if (!isMoveLegal(gameRecord.currentFen, request.move, gameVariant)) {
+            if (!isMoveLegal(gameRecord.currentFen, request.move)) {
                 logger.warn { "[${request.gameId}] Move '${request.move}' is illegal" }
                 throw BadRequestException("Move '${request.move}' is illegal")
             }
@@ -860,17 +858,17 @@ class PlayerVsPlayerGameService(
             }
 
             // process played move
-            val updatedFen = calculateNewFen(gameRecord.currentFen, request.move, gameVariant)
+            val updatedFen = calculateNewFen(gameRecord.currentFen, request.move)
             val updatedIndex = gameRecord.currentHalfMoveIndex + 1
             val opponentColor = userColor.reverse()
             var result = PlayMoveCallbackResult(updatedFen, updatedIndex)
 
-            if (isCheckmated(updatedFen, gameVariant)) {
+            if (isCheckmated(updatedFen)) {
                 result = result.copy(
                     newGameEventType = CHECKMATED,
                     outcome = userColor.asWinnerOutcome()
                 )
-            } else if (isStalemated(updatedFen, gameVariant)) {
+            } else if (isStalemated(updatedFen)) {
                 result = result.copy(
                     newGameEventType = STALEMATED,
                     outcome = userColor.asWinnerOutcome()

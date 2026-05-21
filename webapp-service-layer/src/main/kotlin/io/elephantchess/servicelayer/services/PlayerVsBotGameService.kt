@@ -277,11 +277,11 @@ class PlayerVsBotGameService(
             val userColor = gameRecord.userColor
             val botColor = userColor.reverse()
 
-            val isLegalMove = Board.isMoveLegal(gameRecord.currentFen, userMove, gameVariant)
+            val isLegalMove = Board.isMoveLegal(gameRecord.currentFen, userMove)
 
             if (isLegalMove) {
                 // user plays their move
-                val board = Board(gameRecord.currentFen, variant = gameVariant)
+                val board = Board(gameRecord.currentFen)
                 board.registerMove(userMove)
 
                 val isBotCheckmated = board.isCheckmated(botColor)
@@ -402,12 +402,12 @@ class PlayerVsBotGameService(
 
         suspend fun findAlternativeMove(bestMove: String): String? {
             val cpMultiplier = if (botColor == RED) 1 else -1
-            val movesEvaluation = Board(fen, variant = variant)
+            val movesEvaluation = Board(fen)
                 .listLegalMoves(botColor)
                 .filterNot { move -> move.toUci() == bestMove }
                 .shuffled()
                 .take(LEGAL_MOVES_TO_EVAL_FOR_ALTERNATIVE)
-                .map { move -> move to calculateNewFen(fen, move.toUci(), variant) }
+                .map { move -> move to calculateNewFen(fen, move.toUci()) }
                 .mapNotNull { (move, moveFen) ->
                     queryEngine(moveFen)?.deepestResultCentiPawns()?.let { score ->
                         move.toUci() to score * cpMultiplier
@@ -429,13 +429,13 @@ class PlayerVsBotGameService(
 
         suspend fun validateForRepetitions(bestMove: String): String {
             if (position >= MIN_MOVE_INDEX_CHECK_REPETITION) {
-                val board = Board(fen, variant = variant)
+                val board = Board(fen)
                 board.registerMove(bestMove)
                 if (board.isInCheck(botColor.reverse())) {
                     logger.debug { "user in check -> check for repetitions" }
                     val bestMoveFen = resetFullMoveCount(board.outputFen())
                     val movesHistory = pvbGameDaoService.listMoves(gameId)
-                    val historyFens = moveToFens(movesHistory, startFen, variant = variant)
+                    val historyFens = moveToFens(movesHistory, startFen)
                         .takeLast(POSITIONS_TO_CONSIDER_TO_AVOID_REPETITIONS)
                         .map { resetFullMoveCount(it) }
                     val botFens = when (botColor) {

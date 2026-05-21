@@ -11,7 +11,7 @@ import io.elephantchess.xiangqi.Variant.XIANGQI
 class Board(
     initFen: String = DEFAULT_START_FEN,
     private val keepHistory: Boolean = false,
-    val variant: Variant = XIANGQI,
+    val variant: Variant = inferVariantFromFen(initFen),
 ) {
 
     private val content: Array<Array<PhysicalPiece?>> = Array(WIDTH) { Array(HEIGHT) { null } }
@@ -529,6 +529,13 @@ class Board(
             MANCHU -> MANCHU_START_FEN
         }
 
+        /**
+         * Infers the chess variant from a FEN string: if the piece section contains 'W' (super-chariot),
+         * it is Manchu chess; otherwise standard Xiangqi.
+         */
+        fun inferVariantFromFen(fen: String): Variant =
+            if (fen.substringBefore(' ').contains('W')) MANCHU else XIANGQI
+
         fun validateFen(fen: String) {
             try {
                 Board(fen)
@@ -542,29 +549,29 @@ class Board(
             return board.colorToPlay()
         }
 
-        fun isMoveLegal(currentFen: String, move: String, variant: Variant = XIANGQI): Boolean {
+        fun isMoveLegal(currentFen: String, move: String): Boolean {
             return try {
-                val board = Board(currentFen, variant = variant)
+                val board = Board(currentFen)
                 board.isLegalMove(parseMoveFromUci(move))
             } catch (e: Exception) {
                 false
             }
         }
 
-        fun calculateNewFen(oldFen: String, move: String, variant: Variant = XIANGQI): String {
-            val board = Board(oldFen, variant = variant)
+        fun calculateNewFen(oldFen: String, move: String): String {
+            val board = Board(oldFen)
             board.registerMove(move)
             return board.outputFen()
         }
 
-        fun isCheckmated(fen: String, variant: Variant = XIANGQI): Boolean {
-            val board = Board(fen, variant = variant)
+        fun isCheckmated(fen: String): Boolean {
+            val board = Board(fen)
             val colorToPlay = board.colorToPlay()
             return board.isCheckmated(colorToPlay)
         }
 
-        fun isStalemated(fen: String, variant: Variant = XIANGQI): Boolean {
-            val board = Board(fen, variant = variant)
+        fun isStalemated(fen: String): Boolean {
+            val board = Board(fen)
             val colorToPlay = board.colorToPlay()
             return board.isStalemated(colorToPlay)
         }
@@ -578,9 +585,8 @@ class Board(
             movesHistory: List<String>,
             startFen: String = DEFAULT_START_FEN,
             abridged: Boolean = false,
-            variant: Variant = XIANGQI,
         ): List<String> {
-            val board = Board(startFen, variant = variant)
+            val board = Board(startFen)
             val fens = mutableListOf<String>()
             fens += board.outputFen(abridged)
             movesHistory.forEach { move ->
