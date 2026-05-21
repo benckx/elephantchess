@@ -1073,7 +1073,8 @@ class PlayerVsPlayerGameService(
             timeControlBase = game.timeControlBase,
             timeControlIncrement = game.timeControlIncrement,
             allowGuests = game.allowGuestsToJoin,
-            lastUpdated = game.lastUpdated.toEpochMilliseconds()
+            lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+            variant = game.variant ?: Variant.XIANGQI
         )
     }
 
