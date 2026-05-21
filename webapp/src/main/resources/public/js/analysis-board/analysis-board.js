@@ -679,9 +679,10 @@ class AnalysisBoardPage extends BasePage {
     }
 
     #scheduleRenderAnalysisSummaryIfPossible() {
-        if (this.#analysisSummaryRenderTimeout != null) {
+        if (this.#analysisSummaryRenderTimeout !== null) {
             clearTimeout(this.#analysisSummaryRenderTimeout);
         }
+        // Coalesce rapid cache updates during startup into a single summary recomputation.
         this.#analysisSummaryRenderTimeout = setTimeout(() => {
             this.#analysisSummaryRenderTimeout = null;
             this.#renderAnalysisSummaryIfPossible();
