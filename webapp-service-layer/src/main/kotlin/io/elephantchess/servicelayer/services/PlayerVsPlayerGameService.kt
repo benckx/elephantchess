@@ -405,7 +405,8 @@ class PlayerVsPlayerGameService(
                     ratingTo = ratingTo,
                     created = gameRecord.created.toEpochMilliseconds(),
                     lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
-                    numberOfMessages = numberOfMessages
+                    numberOfMessages = numberOfMessages,
+                    variant = gameRecord.variant ?: Variant.XIANGQI,
                 )
             }
             .let { entries ->

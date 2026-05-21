@@ -140,6 +140,11 @@
     font-size: 13px;
 }
 
+.my-game-item .variant-label {
+    color: #3c3a3a;
+    font-size: 13px;
+}
+
 .my-game-item .game-status {
     color: #3c3a3a;
     font-size: 14px;
@@ -244,6 +249,10 @@
     }
 
     .my-game-item .rating-mode {
+        font-size: 22px;
+    }
+
+    .my-game-item .variant-label {
         font-size: 22px;
     }
 

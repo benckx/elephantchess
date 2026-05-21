@@ -229,6 +229,7 @@ class PlayerVsBotGameService(
                     moveIndex = record.currentHalfMoveIndex,
                     created = record.created.toEpochMilliseconds(),
                     lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+                    variant = record.variant ?: Variant.XIANGQI,
                 )
             }
             .let { entries ->

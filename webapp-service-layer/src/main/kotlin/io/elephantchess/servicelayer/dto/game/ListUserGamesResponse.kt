@@ -5,6 +5,7 @@ import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserOutcome
 import io.elephantchess.model.UserType
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 
 data class ListUserGamesResponse(val entries: List<Entry>) {
 
@@ -25,7 +26,8 @@ data class ListUserGamesResponse(val entries: List<Entry>) {
         val ratingTo: Int?,
         val created: Long,
         val lastUpdated: Long,
-        val numberOfMessages: Int
+        val numberOfMessages: Int,
+        val variant: Variant,
     )
 
 }
