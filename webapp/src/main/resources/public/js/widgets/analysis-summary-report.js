@@ -18,6 +18,8 @@
  */
 
 let scheduleEvalChartRenderTimeout = null;
+let evalLineChart = null;
+const EVAL_LINE_CHART_RENDER_DEBOUNCE_MS = 120;
 
 /**
  * @param nodes {MoveTreeNode[]}
@@ -37,9 +39,12 @@ function scheduleEvalChartRender(nodes, analysisMap, startFen) {
         }
 
         evalChartContainer.innerHTML = '';
-        const evalChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen);
-        evalChart.render();
-    }, 0);
+        if (evalLineChart != null) {
+            evalLineChart.destroy();
+        }
+        evalLineChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen);
+        evalLineChart.render();
+    }, EVAL_LINE_CHART_RENDER_DEBOUNCE_MS);
 }
 
 /**
@@ -223,6 +228,10 @@ function renderAnalysisSummaryReport(
         }
         const evalChartContainer = document.getElementById('eval-line-chart-container');
         if (evalChartContainer != null) {
+            if (evalLineChart != null) {
+                evalLineChart.destroy();
+                evalLineChart = null;
+            }
             evalChartContainer.innerHTML = '';
         }
         summaryBlock.style.display = 'none';
