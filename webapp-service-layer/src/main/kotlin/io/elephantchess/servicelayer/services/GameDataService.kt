@@ -30,6 +30,7 @@ import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -112,7 +113,8 @@ class GameDataService(
                                 blackPlayerName = blackPlayerName,
                                 finalFen = record.currentFen,
                                 outcome = record.outcome,
-                                analysisStatus = record.analysisStatus
+                                analysisStatus = record.analysisStatus,
+                                variant = record.variant ?: Variant.XIANGQI,
                             )
                         }
                 }
@@ -160,7 +162,8 @@ class GameDataService(
                                 outcome = record.outcome,
                                 analysisStatus = record.analysisStatus,
                                 engine = record.engine,
-                                depth = record.depth
+                                depth = record.depth,
+                                variant = record.variant ?: Variant.XIANGQI,
                             )
                         }
                 }
@@ -227,17 +230,26 @@ class GameDataService(
             if (shouldStart) {
                 when (gameId.type) {
                     PVP -> {
-                        val gameStatus = pvpGameDaoService.fetchGameStatus(gameId.id)
+                        val gameRecord = pvpGameDaoService.fetchById(gameId.id)
                             ?: throw NotFoundException("Game $gameId not found")
 
-                        if (gameStatus.isInProgress()) {
-                            throw stillInProgressException(gameId, gameStatus)
+                        if ((gameRecord.variant ?: Variant.XIANGQI) == Variant.MANCHU) {
+                            throw BadRequestException("Analysis is not supported for Manchu variant games")
+                        }
+
+                        if (gameRecord.gameStatus.isInProgress()) {
+                            throw stillInProgressException(gameId, gameRecord.gameStatus)
                         }
                     }
 
                     PVB -> {
                         val statusRecord = pvbGameDaoService.fetchGameStatus(gameId.id)
                             ?: throw NotFoundException("Game $gameId not found")
+
+                        val pvbRecord = pvbGameDaoService.fetchById(gameId.id)
+                        if (pvbRecord != null && (pvbRecord.variant ?: Variant.XIANGQI) == Variant.MANCHU) {
+                            throw BadRequestException("Analysis is not supported for Manchu variant games")
+                        }
 
                         if (statusRecord.isInProgress()) {
                             throw stillInProgressException(gameId, statusRecord.status)
@@ -582,7 +594,8 @@ class GameDataService(
             finalFen = gameRecord.currentFen,
             status = gameRecord.gameStatus,
             outcome = gameRecord.outcome,
-            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds()
+            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
+            variant = gameRecord.variant ?: Variant.XIANGQI,
         )
     }
 
@@ -653,7 +666,8 @@ class GameDataService(
                     finalFen = record.currentFen,
                     status = record.gameStatus,
                     outcome = record.outcome,
-                    lastUpdated = record.lastUpdated.toEpochMilliseconds()
+                    lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+                    variant = record.variant ?: Variant.XIANGQI,
                 )
             }
             .let { entries ->

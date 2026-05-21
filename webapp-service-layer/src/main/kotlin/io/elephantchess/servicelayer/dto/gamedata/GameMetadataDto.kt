@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.dto.gamedata
 
 import io.elephantchess.model.*
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 
 data class GameMetadataDto(
     val gameId: GameId,
@@ -27,4 +28,5 @@ data class GameMetadataDto(
     val depth: Int? = null,
     val lastUpdated: Long? = null,
     val paginationOffset: Int? = null,
+    val variant: Variant = Variant.XIANGQI,
 )

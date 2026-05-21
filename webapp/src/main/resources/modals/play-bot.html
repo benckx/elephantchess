@@ -4,6 +4,25 @@
         <tr>
             <td class="left-cell">
                 <div class="modal-form-label">
+                    <h3>Variant</h3>
+                    <div class="standard-radio">
+                        <span>
+                            <input type="radio" id="variant-xiangqi-bot" name="play-bot-variant" value="XIANGQI" checked="checked">
+                        </span>
+                        <span class="label-span">
+                            <label for="variant-xiangqi-bot">象 Xiangqi</label>
+                        </span>
+                    </div>
+                    <div class="standard-radio">
+                        <span>
+                            <input type="radio" id="variant-manchu-bot" name="play-bot-variant" value="MANCHU">
+                        </span>
+                        <span class="label-span">
+                            <label for="variant-manchu-bot">统 Manchu</label>
+                        </span>
+                    </div>
+                </div>
+                <div class="modal-form-label">
                     <h3>Color</h3>
                     <div class="standard-radio">
                         <span>
@@ -24,7 +43,7 @@
                 </div>
                 <div class="modal-form-label">
                     <h3>Engine</h3>
-                    <div class="standard-radio">
+                    <div class="standard-radio" id="engine-pika-container">
                         <span>
                             <input type="radio" id="engine-pika" name="play-bot-engine" value="PIKA" checked="checked">
                         </span>
