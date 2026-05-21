@@ -100,6 +100,7 @@ class AnalysisBoardPage extends BasePage {
     #gameTypeIcon = document.getElementById('game-type-icon');
 
     #startFen = DEFAULT_START_FEN;
+    #analysisSummaryRenderTimeout = null;
 
     constructor() {
         super();
@@ -120,7 +121,7 @@ class AnalysisBoardPage extends BasePage {
         // needs to be on top and not in 'createListeners', so we can display eval data when it's been loaded below
         this.#analysisCache.addNewPvListener(pv => {
             this.#pushNewInfoLineResultToMoveTreeWidget(pv);
-            this.#renderAnalysisSummaryIfPossible();
+            this.#scheduleRenderAnalysisSummaryIfPossible();
             this.#renderEngineArrows();
 
             // enable the loading animation when receiving new evaluation data in the background
@@ -675,6 +676,16 @@ class AnalysisBoardPage extends BasePage {
                 this.#gameMetadata?.outcome
             );
         }
+    }
+
+    #scheduleRenderAnalysisSummaryIfPossible() {
+        if (this.#analysisSummaryRenderTimeout != null) {
+            clearTimeout(this.#analysisSummaryRenderTimeout);
+        }
+        this.#analysisSummaryRenderTimeout = setTimeout(() => {
+            this.#analysisSummaryRenderTimeout = null;
+            this.#renderAnalysisSummaryIfPossible();
+        }, 120);
     }
 
     /**
