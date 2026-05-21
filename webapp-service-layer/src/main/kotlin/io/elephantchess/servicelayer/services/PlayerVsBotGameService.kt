@@ -362,7 +362,8 @@ class PlayerVsBotGameService(
     ): BotMove? {
         suspend fun playWithEngine() = playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
 
-        return if (usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI) {
+        val canUseOpeningRepository = usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
+        return if (canUseOpeningRepository) {
             playFromOpeningRepository(gameId, userMove) ?: playWithEngine()
         } else {
             playWithEngine()
