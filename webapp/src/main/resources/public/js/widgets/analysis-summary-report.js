@@ -17,6 +17,31 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+let scheduleEvalChartRenderTimeout = null;
+
+/**
+ * @param nodes {MoveTreeNode[]}
+ * @param analysisMap {Map<string, InfoLineResult>}
+ * @param startFen {string}
+ */
+function scheduleEvalChartRender(nodes, analysisMap, startFen) {
+    if (scheduleEvalChartRenderTimeout != null) {
+        clearTimeout(scheduleEvalChartRenderTimeout);
+    }
+
+    scheduleEvalChartRenderTimeout = setTimeout(() => {
+        scheduleEvalChartRenderTimeout = null;
+        const evalChartContainer = document.getElementById('eval-line-chart-container');
+        if (evalChartContainer == null) {
+            return;
+        }
+
+        evalChartContainer.innerHTML = '';
+        const evalChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen);
+        evalChart.render();
+    }, 0);
+}
+
 /**
  * @param gameId {GameId}
  * @param nodes {MoveTreeNode[]}
@@ -166,8 +191,7 @@ function renderAnalysisSummaryReport(
             row.cells.item(3).innerText = (counterBlack.get(symbolType) || 0).toString()
         }
 
-        const evalChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen);
-        evalChart.render();
+        scheduleEvalChartRender(nodes, analysisMap, startFen);
 
         if (redPlayerName != null) {
             document
@@ -193,6 +217,14 @@ function renderAnalysisSummaryReport(
 
         summaryBlock.style.display = 'block';
     } else {
+        if (scheduleEvalChartRenderTimeout != null) {
+            clearTimeout(scheduleEvalChartRenderTimeout);
+            scheduleEvalChartRenderTimeout = null;
+        }
+        const evalChartContainer = document.getElementById('eval-line-chart-container');
+        if (evalChartContainer != null) {
+            evalChartContainer.innerHTML = '';
+        }
         summaryBlock.style.display = 'none';
     }
 }
