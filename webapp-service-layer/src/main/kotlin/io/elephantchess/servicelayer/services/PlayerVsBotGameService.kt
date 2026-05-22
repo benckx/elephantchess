@@ -306,10 +306,6 @@ class PlayerVsBotGameService(
                         variant = gameVariant,
                     )
 
-                    // TODO: remove debug logging
-                    logger.info { "new fen: ${board.outputFen()} after user move $userMove" }
-                    logger.info { "bot plays ${botMove?.uci}" }
-
                     if (botMove != null) {
                         if (!Board.isMoveLegal(board.outputFen(), botMove.uci)) {
                             logger.error { "[${request.gameId}] bot returned illegal move ${botMove.uci} for FEN ${board.outputFen()}" }
