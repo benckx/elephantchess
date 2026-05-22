@@ -316,7 +316,7 @@ class GameThumb {
         // variant indicator
         const variantIndicator = this.#findFirst('game-thumb-variant');
         if (variantIndicator) {
-            variantIndicator.innerHTML = gameMetadataDto.variant === 'MANCHU' ? '统' : '';
+            variantIndicator.innerHTML = gameMetadataDto.variant === 'MANCHU' ? '统' : '象';
         }
 
         // is online

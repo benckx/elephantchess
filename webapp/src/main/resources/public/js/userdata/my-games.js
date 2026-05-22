@@ -294,11 +294,9 @@ class MyGamesPage extends InfiniteScrollPage {
             const middlePaneItems = [
                 buildOpponentDiv(entry),
                 wrapInDiv(buildColorSpan(entry.color)),
-                buildRatingModeDiv(entry)
+                buildRatingModeDiv(entry),
+                buildDivWithTextAndClass(entry.variant === 'MANCHU' ? '统' : '象', 'variant-label')
             ];
-            if (entry.variant === 'MANCHU') {
-                middlePaneItems.push(buildDivWithTextAndClass('统', 'variant-label'));
-            }
             middlePane.append(...middlePaneItems);
 
             // number of messages indicator pane
