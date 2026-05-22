@@ -20,16 +20,16 @@
 const BOARD_WIDTH = 9;
 const BOARD_HEIGHT = 10;
 const UCI_LETTER = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
-const PIECES_CHARS = ['c', 'r', 'n', 'b', 'a', 'k', 'p', 'w'];
+const PIECES_CHARS = ['c', 'r', 'n', 'b', 'a', 'k', 'p', 'm'];
 
 const DEFAULT_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0';
 
 /**
  * Manchu chess (Yitong) start FEN.
- * Red has only: general, 2 advisors, 2 elephants, 5 soldiers, and the super-chariot (W/w) at a1.
+ * Red has only: general, 2 advisors, 2 elephants, 5 soldiers, and the super-chariot (M/m) at a1.
  * The super-chariot combines the powers of the chariot, horse, and cannon.
  */
-const MANCHU_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/W1BAKAB2 w - - 0 0';
+const MANCHU_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/M1BAKAB2 w - - 0 0';
 
 // Piece color enum. Lives here (rather than in enums.js) so that xiangqi.js
 // can be used standalone (together with board-gui.js) without pulling in the
@@ -316,7 +316,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
                 let newFile = fileAsWxf(color, move.to.x);
                 moveStr = `${currentFileStr}${direction}${newFile}`;
                 break;
-            case 'W':
+            case 'M':
                 if (move.isHorizontal()) {
                     let fileStr = fileNumberOrSign(board, move);
                     let newFile = fileAsWxf(color, move.to.x);
@@ -1155,7 +1155,7 @@ class Board {
                 return this.#listMovesForGeneral(position);
             case 'p':
                 return this.#listMovesForSoldier(position);
-            case 'w':
+            case 'm':
                 return this.#listMovesForSuperChariot(position);
             default:
                 throw new Error('Not implemented for ' + this.getPieceAt(position).pieceChar)

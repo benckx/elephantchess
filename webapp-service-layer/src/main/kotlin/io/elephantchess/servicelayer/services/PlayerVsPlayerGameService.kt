@@ -886,7 +886,7 @@ class PlayerVsPlayerGameService(
                 gameId = request.gameId,
                 move = request.move,
                 playMoveCallback = playMoveCallback,
-                hasViolatedPerpetualCheckingRule = { moves -> hasViolatedPerpetualCheckingRuleCallback(moves) },
+                hasViolatedPerpetualCheckingRule = { game, moves -> hasViolatedPerpetualCheckingRuleCallback(game, moves) },
                 updateRatingsCallback = updateRatingsCallback
             )
 
@@ -935,8 +935,9 @@ class PlayerVsPlayerGameService(
     /**
      * Moves must include last one played
      */
-    private fun hasViolatedPerpetualCheckingRuleCallback(moves: List<String>): PerpetualCheckingCallbackResult? {
-        val board = Board(keepHistory = true)
+    private fun hasViolatedPerpetualCheckingRuleCallback(game: Game, moves: List<String>): PerpetualCheckingCallbackResult? {
+        val startFen = Board.defaultFen(game.variant ?: Variant.XIANGQI)
+        val board = Board(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val playerColor = board.colorToPlay().reverse()
         val history = board.getHistory()!!

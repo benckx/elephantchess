@@ -23,7 +23,7 @@ The webapp offers the following features:
   try to specify when we talk about the "PostgreSQL database" or the "Database" as a feature.
 - Analysis board, where users can create complex analysis, with engine evaluation, multiple embedded variations,
   annotations (i.e. `??`, `?!` symbols) and comments.
-- Manchu chess (Yitong 一统) variant: Red plays with a single super-chariot (Banner/统, FEN char `W`) instead of the
+- Manchu chess (Yitong 一统) variant: Red plays with a single super-chariot (Banner/统, FEN char `M`) instead of the
   usual chariots, horses and cannons. The super-chariot combines the movement powers of all three pieces. Supported in
   PvP and PvB (Fairy Stockfish only); analysis is not available for Manchu games.
 - By default, users are assigned a temporary guest user id. They can also sign up with an email and password to keep

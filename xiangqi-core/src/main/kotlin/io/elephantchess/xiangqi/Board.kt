@@ -516,10 +516,10 @@ class Board(
 
         /**
          * Manchu chess start FEN. Black pieces are set up as in standard xiangqi.
-         * Red has only: general, 2 advisors, 2 elephants, 5 soldiers, and the super-chariot (W) at a1.
-         * The super-chariot ('W'/'w') combines the powers of the chariot, horse, and cannon.
+         * Red has only: general, 2 advisors, 2 elephants, 5 soldiers, and the super-chariot (M) at a1.
+         * The super-chariot ('M'/'m') combines the powers of the chariot, horse, and cannon.
          */
-        const val MANCHU_START_FEN = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/W1BAKAB2 w - - 0 0"
+        const val MANCHU_START_FEN = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/M1BAKAB2 w - - 0 0"
 
         const val PRINT_SEPARATOR = " "
         const val UCI_MOVE_REGEX_PATTERN = "[a-i][0-9][a-i][0-9]"
@@ -530,11 +530,11 @@ class Board(
         }
 
         /**
-         * Infers the chess variant from a FEN string: if the piece section contains 'W' (super-chariot),
+         * Infers the chess variant from a FEN string: if the piece section contains 'M' (super-chariot),
          * it is Manchu chess; otherwise standard Xiangqi.
          */
         fun inferVariantFromFen(fen: String): Variant =
-            if (fen.substringBefore(' ').contains('W')) MANCHU else XIANGQI
+            if (fen.substringBefore(' ').contains('M')) MANCHU else XIANGQI
 
         fun validateFen(fen: String) {
             try {

@@ -371,12 +371,7 @@ class PlayerVsBotGameService(
         variant: Variant = Variant.XIANGQI,
     ): BotMove? {
         suspend fun playWithEngine(): BotMove? {
-            val movesHistory = if (variant == Variant.MANCHU) {
-                pvbGameDaoService.listMoves(gameId) + listOfNotNull(userMove)
-            } else {
-                emptyList()
-            }
-            return playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant, movesHistory)
+            return playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
         }
 
         val canUseOpeningRepository =
@@ -412,20 +407,9 @@ class PlayerVsBotGameService(
         engine: Engine,
         depth: Int,
         variant: Variant = Variant.XIANGQI,
-        movesHistory: List<String> = emptyList(),
     ): BotMove? {
         suspend fun queryEngine(fenToEngine: String): InfoLinesResult? {
             return enginesPool.safeQueryForDepth(fenToEngine, modelToProcess(engine), depth, 15_000, variant)
-        }
-
-        // For Manchu, pass the move history to the engine so it rebuilds the position step-by-step,
-        // avoiding a Fairy Stockfish parsing issue with mid-game Manchu FENs.
-        suspend fun queryEngineForMainMove(): InfoLinesResult? {
-            return if (variant == Variant.MANCHU && movesHistory.isNotEmpty()) {
-                enginesPool.safeQueryForDepth(startFen, modelToProcess(engine), depth, 15_000, variant, movesHistory)
-            } else {
-                queryEngine(fen)
-            }
         }
 
         suspend fun findAlternativeMove(bestMove: String): String? {
@@ -481,7 +465,7 @@ class PlayerVsBotGameService(
             return bestMove
         }
 
-        queryEngineForMainMove()?.bestMove?.let { bestMove ->
+        queryEngine(fen)?.bestMove?.let { bestMove ->
             return BotMove(validateForRepetitions(bestMove), BotGameMoveType.ENGINE)
         }
 

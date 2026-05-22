@@ -23,7 +23,7 @@ class FairyStockfishEngineProcess(
 
     override fun setVariant(variant: Variant) {
         if (variant != currentVariant) {
-            inputCommand("setoption name UCI_Variant value ${variant.fairyStockfishVariantName()}")
+            inputCommand("setoption UCI_Variant ${variant.fairyStockfishVariantName()}")
             currentVariant = variant
         }
     }

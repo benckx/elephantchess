@@ -184,13 +184,13 @@ class BotGameDto {
     }
 
     /**
-     * 'W' is the banner (super-chariot) piece, exclusive to Manchu chess.
-     * No standard Xiangqi FEN ever contains 'W', so its presence uniquely identifies Manchu games.
+     * 'M' is the banner (super-chariot) piece, exclusive to Manchu chess.
+     * No standard Xiangqi FEN ever contains 'M', so its presence uniquely identifies Manchu games.
      *
      * @return {boolean}
      */
     get isManchu() {
-        return this.#startFen != null && this.#startFen.includes('W');
+        return this.#startFen != null && this.#startFen.includes('M');
     }
 
     /**

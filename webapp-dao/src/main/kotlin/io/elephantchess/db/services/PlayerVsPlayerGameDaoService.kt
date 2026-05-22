@@ -778,7 +778,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         gameId: String,
         move: String,
         playMoveCallback: (Game) -> PlayMoveCallbackResult,
-        hasViolatedPerpetualCheckingRule: (List<String>) -> PerpetualCheckingCallbackResult?,
+        hasViolatedPerpetualCheckingRule: (Game, List<String>) -> PerpetualCheckingCallbackResult?,
         updateRatingsCallback: (Game, Outcome, Int, Int) -> UpdateRatingsCallbackResult?,
     ): TryEither<PlayMoveCallbackResult> {
         return dslContext.transactionalContextTry { transactional ->
@@ -818,7 +818,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     } else if (playMoveResult.mustCheckPerpetualChecking) {
                         // check if violated perpetual checking rule
                         val moves = listMoves(transactional, gameId)
-                        hasViolatedPerpetualCheckingRule(moves)?.let { perpetualCheckingResult ->
+                        hasViolatedPerpetualCheckingRule(gameRecord, moves)?.let { perpetualCheckingResult ->
                             persistVictory(perpetualCheckingResult.newGameEventType, perpetualCheckingResult.outcome)
                             playMoveResult = playMoveResult.copy(
                                 newGameEventType = perpetualCheckingResult.newGameEventType,

@@ -20,8 +20,8 @@ enum class AbstractPieceType(
 
     /**
      * The super-chariot (Banner) in Manchu chess: combines the powers of the chariot, horse, and cannon.
-     * Represented by 'w'/'W' in the FEN. Only used as Red's piece in the Manchu variant.
+     * Represented by 'm'/'M' in the FEN. Only used as Red's piece in the Manchu variant.
      */
-    SUPER_CHARIOT('w', '俥', '車', 1);
+    SUPER_CHARIOT('m', '俥', '車', 1);
 
 }
