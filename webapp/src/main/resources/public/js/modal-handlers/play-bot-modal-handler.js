@@ -45,18 +45,40 @@ class PlayBotModalHandler extends ModalHandler {
             this.#handleCreateGameClickEvent()
         });
 
-        // When Manchu variant is selected, disable Pikafish and switch to Fairy Stockfish
+        // When Manchu variant is selected, disable Pikafish, switch to Fairy Stockfish, and show Manchu start FEN
         this.#variantRadios.forEach(radio => {
             radio.addEventListener('change', () => {
                 if (radio.value === 'MANCHU') {
                     this.#enginePikaRadio.disabled = true;
                     this.#enginePikaContainer.classList.add('standard-radio-disabled');
                     this.#engineFairyRadio.checked = true;
+                    this.#startFenCustomRadio.checked = true;
+                    this.#startFenInput.disabled = false;
+                    this.#startFenInput.value = MANCHU_START_FEN;
                 } else {
                     this.#enginePikaRadio.disabled = false;
                     this.#enginePikaContainer.classList.remove('standard-radio-disabled');
+                    if (this.#startFenInput.value === MANCHU_START_FEN) {
+                        this.#startFenStandardRadio.checked = true;
+                        this.#startFenInput.disabled = true;
+                    }
                 }
             });
+        });
+
+        // Auto-detect Manchu variant from FEN: if piece section contains an 'M', select Manchu
+        this.#startFenInput.addEventListener('input', () => {
+            const piecePart = this.#startFenInput.value.split(' ')[0];
+            const isManchu = piecePart.includes('M');
+            this.#variantRadios.forEach(r => { r.checked = isManchu ? r.value === 'MANCHU' : r.value === 'XIANGQI'; });
+            if (isManchu) {
+                this.#enginePikaRadio.disabled = true;
+                this.#enginePikaContainer.classList.add('standard-radio-disabled');
+                this.#engineFairyRadio.checked = true;
+            } else {
+                this.#enginePikaRadio.disabled = false;
+                this.#enginePikaContainer.classList.remove('standard-radio-disabled');
+            }
         });
 
         makeRadioClickable();
