@@ -656,7 +656,7 @@ class PlayGamePage extends BasePage {
         } else {
             const tooltip = this.#gameController.gameDto.isManchu
                 ? 'Analysis is not supported for Manchu variant games'
-                : 'Game must be finished before you can analyze them. If you want to analyze this game now, you have to resign first.';
+                : 'Game must be finished before you can analyze it. If you want to analyze this game now, you have to resign first.';
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
                 addToolTip(button, tooltip);
