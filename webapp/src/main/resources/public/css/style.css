@@ -133,6 +133,17 @@ img.winner-icon {
     margin-right: 4px;
 }
 
+.game-thumb-left-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.game-thumb-variant {
+    font-size: 18px;
+    line-height: 1;
+}
+
 .game-thumb-status {
     display: flex;
     justify-content: end;
