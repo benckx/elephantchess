@@ -302,15 +302,18 @@ class PlayerVsBotPage extends BasePage {
     }
 
     #updateButtonsEnabled() {
-        if (isStatusFinished(this.#controller.gameStatus())) {
+        if (isStatusFinished(this.#controller.gameStatus()) && !this.#controller.isManchu()) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
             });
         } else {
+            const tooltip = this.#controller.isManchu()
+                ? 'Analysis is not supported for Manchu variant games'
+                : ANALYZE_BUTTON_TOOLTIP_DISABLED;
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
-                addToolTip(button, ANALYZE_BUTTON_TOOLTIP_DISABLED);
+                addToolTip(button, tooltip);
             });
         }
 

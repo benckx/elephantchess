@@ -648,13 +648,18 @@ class PlayGamePage extends BasePage {
             this.#showGameActionButtonsBlock(false);
         }
 
-        if (this.#gameController.isGameFinished()) {
+        if (this.#gameController.isGameFinished() && !this.#gameController.gameDto.isManchu) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
+                addToolTip(button, 'You can analyse the game with the Analysis Board tool');
             });
         } else {
+            const tooltip = this.#gameController.gameDto.isManchu
+                ? 'Analysis is not supported for Manchu variant games'
+                : 'Game must be finished before you can analyze them. If you want to analyze this game now, you have to resign first.';
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
+                addToolTip(button, tooltip);
             });
         }
     }

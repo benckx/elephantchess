@@ -236,6 +236,13 @@ class PlayerVsBotController {
     }
 
     /**
+     * @returns {boolean}
+     */
+    isManchu() {
+        return this.#botGameDto.isManchu;
+    }
+
+    /**
      * When watching as spectator and receiving updates via WebSocket
      *
      * @param status {string}
