@@ -311,19 +311,24 @@ class PlayerVsBotGameService(
                     logger.info { "bot plays ${botMove?.uci}" }
 
                     if (botMove != null) {
-                        board.registerMove(botMove.uci)
-                        logger.debug { "FEN after bot move: ${board.outputFen()}" }
-                        result = result.copy(botMove = botMove)
+                        if (!Board.isMoveLegal(board.outputFen(), botMove.uci)) {
+                            logger.error { "[${request.gameId}] bot returned illegal move ${botMove.uci} for FEN ${board.outputFen()}" }
+                            result = result.addError(BOT_MOVE_NOT_FOUND)
+                        } else {
+                            board.registerMove(botMove.uci)
+                            logger.debug { "FEN after bot move: ${board.outputFen()}" }
+                            result = result.copy(botMove = botMove)
 
-                        val isUserCheckmated = board.isCheckmated(userColor)
-                        val isUserStalemated = board.isStalemated(userColor)
+                            val isUserCheckmated = board.isCheckmated(userColor)
+                            val isUserStalemated = board.isStalemated(userColor)
 
-                        if (isUserCheckmated || isUserStalemated) {
-                            // bot has won against the player
-                            result = result.updateForBotVictory(botColor, isUserCheckmated, isUserStalemated)
+                            if (isUserCheckmated || isUserStalemated) {
+                                // bot has won against the player
+                                result = result.updateForBotVictory(botColor, isUserCheckmated, isUserStalemated)
+                            }
+
+                            result = result.copy(newPosition = gameRecord.currentHalfMoveIndex + 2)
                         }
-
-                        result = result.copy(newPosition = gameRecord.currentHalfMoveIndex + 2)
                     } else {
                         result = result.addError(BOT_MOVE_NOT_FOUND)
                     }
@@ -365,7 +370,14 @@ class PlayerVsBotGameService(
         usesDefaultStartFen: Boolean,
         variant: Variant = Variant.XIANGQI,
     ): BotMove? {
-        suspend fun playWithEngine() = playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
+        suspend fun playWithEngine(): BotMove? {
+            val movesHistory = if (variant == Variant.MANCHU) {
+                pvbGameDaoService.listMoves(gameId) + listOfNotNull(userMove)
+            } else {
+                emptyList()
+            }
+            return playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant, movesHistory)
+        }
 
         val canUseOpeningRepository =
             usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
@@ -400,9 +412,20 @@ class PlayerVsBotGameService(
         engine: Engine,
         depth: Int,
         variant: Variant = Variant.XIANGQI,
+        movesHistory: List<String> = emptyList(),
     ): BotMove? {
         suspend fun queryEngine(fenToEngine: String): InfoLinesResult? {
             return enginesPool.safeQueryForDepth(fenToEngine, modelToProcess(engine), depth, 15_000, variant)
+        }
+
+        // For Manchu, pass the move history to the engine so it rebuilds the position step-by-step,
+        // avoiding a Fairy Stockfish parsing issue with mid-game Manchu FENs.
+        suspend fun queryEngineForMainMove(): InfoLinesResult? {
+            return if (variant == Variant.MANCHU && movesHistory.isNotEmpty()) {
+                enginesPool.safeQueryForDepth(startFen, modelToProcess(engine), depth, 15_000, variant, movesHistory)
+            } else {
+                queryEngine(fen)
+            }
         }
 
         suspend fun findAlternativeMove(bestMove: String): String? {
@@ -458,7 +481,7 @@ class PlayerVsBotGameService(
             return bestMove
         }
 
-        queryEngine(fen)?.bestMove?.let { bestMove ->
+        queryEngineForMainMove()?.bestMove?.let { bestMove ->
             return BotMove(validateForRepetitions(bestMove), BotGameMoveType.ENGINE)
         }
 

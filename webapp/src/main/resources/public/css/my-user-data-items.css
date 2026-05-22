@@ -86,6 +86,7 @@
 }
 
 .my-game-item .left-pane,
+.my-game-item .variant-pane,
 .my-game-item .middle-pane,
 .my-game-item .right-pane {
     display: flex;
@@ -95,6 +96,16 @@
 
 .my-game-item .left-pane {
     width: 12%;
+}
+
+.my-game-item .variant-pane {
+    width: 36px;
+    flex-shrink: 0;
+}
+
+.my-game-item .variant-pane .variant-label {
+    font-size: 22px;
+    color: #343434;
 }
 
 .my-game-item .middle-pane {
@@ -136,11 +147,6 @@
 }
 
 .my-game-item .rating-mode {
-    color: #3c3a3a;
-    font-size: 13px;
-}
-
-.my-game-item .variant-label {
     color: #3c3a3a;
     font-size: 13px;
 }
@@ -252,8 +258,12 @@
         font-size: 22px;
     }
 
-    .my-game-item .variant-label {
-        font-size: 22px;
+    .my-game-item .variant-pane {
+        width: 48px;
+    }
+
+    .my-game-item .variant-pane .variant-label {
+        font-size: 30px;
     }
 
     .my-game-item .game-status {

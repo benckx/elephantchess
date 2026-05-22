@@ -260,6 +260,7 @@ class MyGamesPage extends InfiniteScrollPage {
         entries.forEach((entry) => {
             // structure
             const leftPane = buildDivWithClass('left-pane');
+            const variantPane = buildDivWithClass('variant-pane');
             const middlePane = buildDivWithClass('middle-pane');
             const chatIndicatorPane = buildDivWithClass('indicator-pane');
             const outcomeIndicatorPane = buildDivWithClass('indicator-pane');
@@ -269,6 +270,7 @@ class MyGamesPage extends InfiniteScrollPage {
 
             item.append(
                 leftPane,
+                variantPane,
                 middlePane,
                 chatIndicatorPane,
                 ratingDeltaIndicatorPane,
@@ -290,12 +292,14 @@ class MyGamesPage extends InfiniteScrollPage {
             const iconDiv = buildTimeControlCategoryIcon(entry);
             leftPane.append(iconDiv);
 
+            // variant pane
+            variantPane.append(buildDivWithTextAndClass(entry.variant === 'MANCHU' ? '统' : '象', 'variant-label'));
+
             // middle pane
             const middlePaneItems = [
                 buildOpponentDiv(entry),
                 wrapInDiv(buildColorSpan(entry.color)),
                 buildRatingModeDiv(entry),
-                buildDivWithTextAndClass(entry.variant === 'MANCHU' ? '统' : '象', 'variant-label')
             ];
             middlePane.append(...middlePaneItems);
 

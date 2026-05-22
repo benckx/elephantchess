@@ -53,6 +53,7 @@ suspend fun EnginePool.safeQueryForDepth(
     depth: Int,
     timeout: Long = 60_000,
     variant: Variant = Variant.XIANGQI,
+    moves: List<String> = emptyList(),
 ): InfoLinesResult? {
     var safeEngineId = engineId
     if (engineId == PikafishEngineId && (variant == Variant.MANCHU || isNonStandardFen(fen))) {
@@ -65,5 +66,6 @@ suspend fun EnginePool.safeQueryForDepth(
         depth = depth,
         timeout = timeout,
         variant = variant,
+        moves = moves,
     )
 }
