@@ -306,6 +306,10 @@ class PlayerVsBotGameService(
                         variant = gameVariant,
                     )
 
+                    // TODO: remove debug logging
+                    logger.info { "new fen: ${board.outputFen()} after user move $userMove" }
+                    logger.info { "bot plays ${botMove?.uci}" }
+
                     if (botMove != null) {
                         board.registerMove(botMove.uci)
                         logger.debug { "FEN after bot move: ${board.outputFen()}" }
@@ -363,7 +367,8 @@ class PlayerVsBotGameService(
     ): BotMove? {
         suspend fun playWithEngine() = playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
 
-        val canUseOpeningRepository = usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
+        val canUseOpeningRepository =
+            usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
         return if (canUseOpeningRepository) {
             playFromOpeningRepository(gameId, userMove) ?: playWithEngine()
         } else {
