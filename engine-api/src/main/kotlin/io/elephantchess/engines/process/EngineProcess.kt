@@ -49,18 +49,12 @@ abstract class EngineProcess(
         variant: Variant = Variant.XIANGQI,
         maxDelay: Long = DEFAULT_MAX_DELAY,
         checkPeriod: Long = DEFAULT_CHECK_PERIOD,
-        moves: List<String> = emptyList(),
     ): InfoLinesResult {
         val infoListener = InfoLineListener()
         lineListener = infoListener
 
         setVariant(variant)
-        val positionCommand = if (moves.isEmpty()) {
-            "position fen $fen"
-        } else {
-            "position fen $fen moves ${moves.joinToString(" ")}"
-        }
-        inputCommand(positionCommand)
+        inputCommand("position fen $fen")
         inputCommand("go depth $maxDepth")
         waitForCondition(maxDelay, checkPeriod) {
             infoListener.shouldStopSearch(maxDepth)
