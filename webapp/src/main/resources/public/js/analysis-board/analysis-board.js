@@ -217,7 +217,7 @@ class AnalysisBoardPage extends BasePage {
 
             this.#client.fetchAnalysisEngineDataCache(analysisId, entries => {
                 this.#analysisCache.populateCache(entries);
-                this.#renderAnalysisSummaryIfPossible();
+                this.#renderAnalysisSummaryIfLongEnough();
             });
 
             this.#moveTreeWidget.openBranchesByIds(analysis.openedBranchIds);
@@ -274,7 +274,7 @@ class AnalysisBoardPage extends BasePage {
 
                 this.#gameDataClient.fetchAnalysisData(entries => {
                     this.#analysisCache.populateCache(entries);
-                    this.#renderAnalysisSummaryIfPossible();
+                    this.#renderAnalysisSummaryIfLongEnough();
                     this.#startUpWidgets();
                 });
 
@@ -541,7 +541,7 @@ class AnalysisBoardPage extends BasePage {
                         // fetch the final analysis data
                         this.#gameDataClient.fetchAnalysisData(entries => {
                             this.#analysisCache.populateCache(entries);
-                            this.#renderAnalysisSummaryIfPossible();
+                            this.#renderAnalysisSummaryIfLongEnough();
                         });
                         break;
                     default:
@@ -664,7 +664,7 @@ class AnalysisBoardPage extends BasePage {
         return this.#analysisId != null;
     }
 
-    #renderAnalysisSummaryIfPossible() {
+    #renderAnalysisSummaryIfLongEnough() {
         const nodes = this.#moveTreeWidget.getMainBranchNodes();
         if (nodes.length > 6) {
             renderAnalysisSummaryReport(
@@ -685,7 +685,7 @@ class AnalysisBoardPage extends BasePage {
         // Coalesce rapid cache updates during startup into a single summary recomputation.
         this.#analysisSummaryRenderTimeout = setTimeout(() => {
             this.#analysisSummaryRenderTimeout = null;
-            this.#renderAnalysisSummaryIfPossible();
+            this.#renderAnalysisSummaryIfLongEnough();
         }, 120);
     }
 
