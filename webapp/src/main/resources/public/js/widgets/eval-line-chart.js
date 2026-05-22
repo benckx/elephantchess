@@ -36,8 +36,9 @@ class EvalLineChart extends ApexChartWidget {
             return;
         }
 
-        const evalData = [];
-        const categories = [];
+        const MAX_CHART_POINTS = 220;
+        let evalData = [];
+        let categories = [];
 
         // Add eval of the starting position
         const startFenKey = resetFenFullMovesCount(startFen);
@@ -57,6 +58,22 @@ class EvalLineChart extends ApexChartWidget {
                 categories.push(`${moveNum} (${isRedMove ? 'r' : 'b'})`);
             }
         });
+
+        if (evalData.length > MAX_CHART_POINTS) {
+            const sampledEvalData = [];
+            const sampledCategories = [];
+            const maxIndex = evalData.length - 1;
+            const intervals = Math.max(1, MAX_CHART_POINTS - 1);
+
+            for (let i = 0; i < MAX_CHART_POINTS; i++) {
+                const sampledIndex = Math.floor((i * maxIndex) / intervals);
+                sampledEvalData.push(evalData[sampledIndex]);
+                sampledCategories.push(categories[sampledIndex]);
+            }
+
+            evalData = sampledEvalData;
+            categories = sampledCategories;
+        }
 
         if (evalData.length > 1) {
             this.chartOptions = {
