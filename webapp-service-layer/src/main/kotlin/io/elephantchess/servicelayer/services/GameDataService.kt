@@ -30,11 +30,11 @@ import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -73,6 +73,11 @@ class GameDataService(
                 pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
     }
 
+    suspend fun countTotalManchuGames(): Int {
+        return pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
+                pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
+    }
+
     /**
      * Half moves or plies
      */
@@ -105,14 +110,15 @@ class GameDataService(
 
                             GameMetadataDto(
                                 gameId = gameId,
-                                lastUpdated = record.created.toEpochMilliseconds(),
+                                lastUpdated = record.lastUpdated.toEpochMilliseconds(),
                                 redPlayerId = redPlayerId,
                                 redPlayerName = redPlayerName,
                                 blackPlayerId = blackPlayerId,
                                 blackPlayerName = blackPlayerName,
                                 finalFen = record.currentFen,
                                 outcome = record.outcome,
-                                analysisStatus = record.analysisStatus
+                                analysisStatus = record.analysisStatus,
+                                variant = record.variant,
                             )
                         }
                 }
@@ -160,7 +166,8 @@ class GameDataService(
                                 outcome = record.outcome,
                                 analysisStatus = record.analysisStatus,
                                 engine = record.engine,
-                                depth = record.depth
+                                depth = record.depth,
+                                variant = record.variant
                             )
                         }
                 }
@@ -195,7 +202,8 @@ class GameDataService(
                                 outcome = record.outcome,
                                 analysisStatus = record.analysisStatus,
                                 eventId = event?.id,
-                                eventName = event?.name
+                                eventName = event?.name,
+                                variant = Variant.XIANGQI
                             )
                         }
                 }
@@ -227,17 +235,26 @@ class GameDataService(
             if (shouldStart) {
                 when (gameId.type) {
                     PVP -> {
-                        val gameStatus = pvpGameDaoService.fetchGameStatus(gameId.id)
+                        val gameRecord = pvpGameDaoService.fetchById(gameId.id)
                             ?: throw NotFoundException("Game $gameId not found")
 
-                        if (gameStatus.isInProgress()) {
-                            throw stillInProgressException(gameId, gameStatus)
+                        if (gameRecord.variant == Variant.MANCHU) {
+                            throw BadRequestException("Analysis is not supported for Manchu variant games")
+                        }
+
+                        if (gameRecord.gameStatus.isInProgress()) {
+                            throw stillInProgressException(gameId, gameRecord.gameStatus)
                         }
                     }
 
                     PVB -> {
                         val statusRecord = pvbGameDaoService.fetchGameStatus(gameId.id)
                             ?: throw NotFoundException("Game $gameId not found")
+
+                        val pvbRecord = pvbGameDaoService.fetchById(gameId.id)
+                        if (pvbRecord != null && (pvbRecord.variant == Variant.MANCHU)) {
+                            throw BadRequestException("Analysis is not supported for Manchu variant games")
+                        }
 
                         if (statusRecord.isInProgress()) {
                             throw stillInProgressException(gameId, statusRecord.status)
@@ -582,7 +599,8 @@ class GameDataService(
             finalFen = gameRecord.currentFen,
             status = gameRecord.gameStatus,
             outcome = gameRecord.outcome,
-            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds()
+            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
+            variant = gameRecord.variant
         )
     }
 
@@ -653,7 +671,8 @@ class GameDataService(
                     finalFen = record.currentFen,
                     status = record.gameStatus,
                     outcome = record.outcome,
-                    lastUpdated = record.lastUpdated.toEpochMilliseconds()
+                    lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+                    variant = record.variant,
                 )
             }
             .let { entries ->
@@ -708,7 +727,8 @@ class GameDataService(
                 finalFen = game.finalFen ?: DEFAULT_START_FEN,
                 outcome = game.outcome,
                 lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-                paginationOffset = (offset ?: 0) + i
+                paginationOffset = (offset ?: 0) + i,
+                variant = Variant.XIANGQI
             )
         }
     }

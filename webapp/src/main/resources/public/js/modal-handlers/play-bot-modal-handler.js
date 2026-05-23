@@ -21,6 +21,7 @@ const DEFAULT_DEPTH = 6;
 
 class PlayBotModalHandler extends ModalHandler {
 
+    #variantRadios = document.getElementsByName('play-bot-variant');
     #colorRadios = document.getElementsByName('play-bot-color');
     #engineRatios = document.getElementsByName('play-bot-engine');
     #levelRadios = document.getElementsByName('play-bot-level');
@@ -28,17 +29,54 @@ class PlayBotModalHandler extends ModalHandler {
     #startFenCustomRadio = document.getElementById('start-fen-custom');
     #startFenInput = document.getElementById('start-fen');
     #playBotButton = document.getElementById('play-bot-button');
+    #enginePikaContainer = document.getElementById('engine-pika-container');
+    #enginePikaRadio = document.getElementById('engine-pika');
+    #engineFairyRadio = document.getElementById('engine-fairy');
 
     constructor() {
         super();
         this.#startFenStandardRadio.addEventListener('click', () => {
             this.#startFenInput.disabled = true;
+            const selectedVariant = Array.from(this.#variantRadios).find(r => r.checked)?.value;
+            this.#startFenInput.value = selectedVariant === Variant.MANCHU ? MANCHU_START_FEN : DEFAULT_START_FEN;
         });
         this.#startFenCustomRadio.addEventListener('click', () => {
             this.#startFenInput.disabled = false
         });
         this.#playBotButton.addEventListener('click', () => {
             this.#handleCreateGameClickEvent()
+        });
+
+        // When variant is selected: disable/enable Pikafish, update FEN if in standard mode
+        this.#variantRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === Variant.MANCHU) {
+                    this.#enginePikaRadio.disabled = true;
+                    this.#enginePikaContainer.classList.add('standard-radio-disabled');
+                    this.#engineFairyRadio.checked = true;
+                } else {
+                    this.#enginePikaRadio.disabled = false;
+                    this.#enginePikaContainer.classList.remove('standard-radio-disabled');
+                }
+                if (this.#startFenStandardRadio.checked) {
+                    this.#startFenInput.value = radio.value === Variant.MANCHU ? MANCHU_START_FEN : DEFAULT_START_FEN;
+                }
+            });
+        });
+
+        // Auto-detect Manchu variant from FEN: if piece section contains an 'M', select Manchu
+        this.#startFenInput.addEventListener('input', () => {
+            const piecePart = this.#startFenInput.value.split(' ')[0];
+            const isManchu = piecePart.includes('M');
+            this.#variantRadios.forEach(r => { r.checked = isManchu ? r.value === Variant.MANCHU : r.value === Variant.XIANGQI; });
+            if (isManchu) {
+                this.#enginePikaRadio.disabled = true;
+                this.#enginePikaContainer.classList.add('standard-radio-disabled');
+                this.#engineFairyRadio.checked = true;
+            } else {
+                this.#enginePikaRadio.disabled = false;
+                this.#enginePikaContainer.classList.remove('standard-radio-disabled');
+            }
         });
 
         makeRadioClickable();
@@ -72,6 +110,14 @@ class PlayBotModalHandler extends ModalHandler {
                 return 1;
             } else {
                 return level * 2;
+            }
+        }
+
+        // variant param
+        let variant = Variant.XIANGQI;
+        for (let i = 0; i < this.#variantRadios.length; i++) {
+            if (this.#variantRadios[i].checked) {
+                variant = this.#variantRadios[i].value;
             }
         }
 
@@ -109,7 +155,8 @@ class PlayBotModalHandler extends ModalHandler {
                 'color': color,
                 'depth': depth,
                 'engine': engine,
-                'startFen': startFenValue
+                'startFen': startFenValue,
+                'variant': variant,
             };
             postAndHandle('/api/botgame/create', body, json => {
                 window.open('/playbot?id=' + json.gameId, '_self');

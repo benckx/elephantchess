@@ -6,6 +6,7 @@ import io.elephantchess.engines.protocol.LineListener
 import io.elephantchess.engines.protocol.commands.EngineProcessLocator
 import io.elephantchess.engines.protocol.model.InfoLinesResult
 import io.elephantchess.engines.utils.EngineUtils.waitForCondition
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.runBlocking
@@ -45,12 +46,14 @@ abstract class EngineProcess(
     suspend fun queryForBestMove(
         fen: String,
         maxDepth: Int,
+        variant: Variant = Variant.XIANGQI,
         maxDelay: Long = DEFAULT_MAX_DELAY,
         checkPeriod: Long = DEFAULT_CHECK_PERIOD,
     ): InfoLinesResult {
         val infoListener = InfoLineListener()
         lineListener = infoListener
 
+        setVariant(variant)
         inputCommand("position fen $fen")
         inputCommand("go depth $maxDepth")
         waitForCondition(maxDelay, checkPeriod) {
@@ -59,6 +62,12 @@ abstract class EngineProcess(
         inputCommand("stop")
         return infoListener.getResult()
     }
+
+    /**
+     * Override in engine implementations to set the variant before queries.
+     * Default implementation does nothing (for engines that do not support variants).
+     */
+    open fun setVariant(variant: Variant) {}
 
     fun inputCommandAndWaitBlocking(
         command: String,

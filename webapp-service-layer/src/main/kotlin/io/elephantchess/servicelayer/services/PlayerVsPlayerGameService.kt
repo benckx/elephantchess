@@ -33,7 +33,6 @@ import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
 import io.elephantchess.xiangqi.Board.Companion.isCheckmated
 import io.elephantchess.xiangqi.Board.Companion.isInCheck
@@ -44,6 +43,7 @@ import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.PerpetualCheckingRule.Companion.defaultPerpetualCheckingRules
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
@@ -290,7 +290,7 @@ class PlayerVsPlayerGameService(
         val allowGuests = userId.userType == UserType.GUEST || request.allowGuests
 
         val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
-        val userRating = getUserRating(userId.id, timeControlCategory)
+        val userRating = getUserRating(userId.id, timeControlCategory, request.variant)
 
         // if such a game already exists, join it instead of creating a new one
         if (!request.privateInvite) {
@@ -307,13 +307,14 @@ class PlayerVsPlayerGameService(
         game.id = generateId()
         game.inviter = userId.id
         game.inviterColor = request.inviterColor
-        game.currentFen = DEFAULT_START_FEN
+        game.currentFen = Board.defaultStartFen(request.variant)
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
         game.alwaysVisibleInLobby = !request.privateInvite && request.alwaysVisibleInLobby
         game.privateInvite = request.privateInvite
         game.containsErrors = false
+        game.variant = request.variant
 
         val now = Clock.System.now()
         game.created = now
@@ -342,16 +343,16 @@ class PlayerVsPlayerGameService(
         userRating: Int,
         request: CreateGameRequest,
     ): Game? {
-        return pvpGameDaoService
-            .listCompatibleGames(
-                inviterColor = request.inviterColor,
-                isRated = request.isRated,
-                timeControlMode = request.timeControlMode,
-                timeControlBase = request.timeControlBase,
-                timeControlIncrement = request.timeControlIncrement,
-                userType = userId.userType,
-                userId = userId.id
-            )
+        return pvpGameDaoService.listCompatibleGames(
+            inviterColor = request.inviterColor,
+            isRated = request.isRated,
+            timeControlMode = request.timeControlMode,
+            timeControlBase = request.timeControlBase,
+            timeControlIncrement = request.timeControlIncrement,
+            userType = userId.userType,
+            userId = userId.id,
+            variant = request.variant
+        )
             .filter { gameRecord -> isOnline(gameRecord.inviter) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
     }
@@ -395,6 +396,8 @@ class PlayerVsPlayerGameService(
                     color = color,
                     isRated = gameRecord.isRated,
                     timeControlCategory = gameRecord.timeControlCategory,
+                    timeControlBase = gameRecord.timeControlBase,
+                    timeControlIncrement = gameRecord.timeControlIncrement,
                     opponentUserType = opponentUserType,
                     opponentUserId = opponentUserId,
                     opponentUsername = opponentUsername,
@@ -403,7 +406,8 @@ class PlayerVsPlayerGameService(
                     ratingTo = ratingTo,
                     created = gameRecord.created.toEpochMilliseconds(),
                     lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
-                    numberOfMessages = numberOfMessages
+                    numberOfMessages = numberOfMessages,
+                    variant = gameRecord.variant,
                 )
             }
             .let { entries ->
@@ -520,7 +524,8 @@ class PlayerVsPlayerGameService(
             ratingUpdate = gameRecord.ratingUpdate(),
             gameEventType = gameRecord.gameStatus,
             outcome = gameRecord.outcome,
-            drawPropositionUser = gameRecord.drawPropositionUser
+            drawPropositionUser = gameRecord.drawPropositionUser,
+            variant = gameRecord.variant,
         )
     }
 
@@ -679,6 +684,7 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to join this game")
         } else {
             val timeControlCategory = pvpGameDaoService.fetchTimeControlCategory(gameId)!!
+            val variant = pvpGameDaoService.fetchVariant(gameId)!!
 
             if (userId.userType == UserType.GUEST && timeControlCategory == TimeControlCategory.CORRESPONDENCE) {
                 throw BadRequestException("Guest users are not allowed to join correspondence games")
@@ -694,7 +700,7 @@ class PlayerVsPlayerGameService(
                 inviteeColor = inviterColor.reverse()
                 logger.debug { "[$gameId] inviter had selected $inviterColor, invitee receives $inviteeColor" }
             }
-            val userRating = getUserRating(userId.id, timeControlCategory)
+            val userRating = getUserRating(userId.id, timeControlCategory, variant)
             val timeControlRecord = pvpGameDaoService.fetchTimeControl(gameId)
             pvpGameDaoService.joinGame(
                 userId = userId.id,
@@ -882,7 +888,9 @@ class PlayerVsPlayerGameService(
                 gameId = request.gameId,
                 move = request.move,
                 playMoveCallback = playMoveCallback,
-                hasViolatedPerpetualCheckingRule = { moves -> hasViolatedPerpetualCheckingRuleCallback(moves) },
+                hasViolatedPerpetualCheckingRule = { game, moves ->
+                    hasViolatedPerpetualCheckingRuleCallback(game, moves)
+                },
                 updateRatingsCallback = updateRatingsCallback
             )
 
@@ -931,8 +939,12 @@ class PlayerVsPlayerGameService(
     /**
      * Moves must include last one played
      */
-    private fun hasViolatedPerpetualCheckingRuleCallback(moves: List<String>): PerpetualCheckingCallbackResult? {
-        val board = Board(keepHistory = true)
+    private fun hasViolatedPerpetualCheckingRuleCallback(
+        game: Game,
+        moves: List<String>
+    ): PerpetualCheckingCallbackResult? {
+        val startFen = Board.defaultStartFen(game.variant ?: Variant.XIANGQI)
+        val board = Board(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val playerColor = board.colorToPlay().reverse()
         val history = board.getHistory()!!
@@ -961,8 +973,8 @@ class PlayerVsPlayerGameService(
     private suspend fun fetchPlayersAndStatus(gameId: String) =
         pvpGameDaoService.fetchPlayersAndStatus(gameId) ?: throw NotFoundException("Game $gameId not found")
 
-    private suspend fun getUserRating(userId: String, timeControlCategory: TimeControlCategory) =
-        pvpGameDaoService.fetchRatingForUser(userId, timeControlCategory) ?: 0
+    private suspend fun getUserRating(userId: String, timeControlCategory: TimeControlCategory, variant: Variant) =
+        pvpGameDaoService.fetchRatingForUser(userId, timeControlCategory, variant) ?: 0
 
     private suspend fun fetchRatingUpdateIfNecessary(gameId: String, gameEventType: GameEventType): RatingUpdate? =
         if (gameEndedStatuses.contains(gameEventType)) {
@@ -1069,7 +1081,8 @@ class PlayerVsPlayerGameService(
             timeControlBase = game.timeControlBase,
             timeControlIncrement = game.timeControlIncrement,
             allowGuests = game.allowGuestsToJoin,
-            lastUpdated = game.lastUpdated.toEpochMilliseconds()
+            lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+            variant = game.variant
         )
     }
 

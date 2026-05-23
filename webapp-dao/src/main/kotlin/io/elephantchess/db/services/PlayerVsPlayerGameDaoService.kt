@@ -23,6 +23,7 @@ import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
 import org.jooq.Condition
@@ -59,6 +60,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         timeControlIncrement: Int?,
         userType: UserType,
         userId: String,
+        variant: Variant,
     ): List<Game> {
         var query =
             dslContext
@@ -70,6 +72,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .and(GAME.IS_RATED.eq(isRated))
                 .and(GAME.INVITER.notEqual(userId))
                 .and(GAME.PRIVATE_INVITE.eq(false))
+                .and(GAME.VARIANT.eq(variant))
 
         query = when (timeControlIncrement) {
             null -> query.and(GAME.TIME_CONTROL_INCREMENT.isNull)
@@ -297,6 +300,15 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()!!
     }
 
+    suspend fun countManchuGames(minMoveIndex: Int): Int {
+        return dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.VARIANT.eq(Variant.MANCHU))
+            .awaitSingleValue()!!
+    }
+
     suspend fun countTotalMoves(): Int {
         return dslContext
             .selectCount()
@@ -383,17 +395,18 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchRatingForUser(userId: String, timeControlCategory: TimeControlCategory): Int? {
-        return fetchRatingForUser(dslContext, userId, timeControlCategory)
+    suspend fun fetchRatingForUser(userId: String, timeControlCategory: TimeControlCategory, variant: Variant): Int? {
+        return fetchRatingForUser(dslContext, userId, timeControlCategory, variant)
     }
 
     private suspend fun fetchRatingForUser(
         context: DSLContext,
         userId: String,
         timeControlCategory: TimeControlCategory,
+        variant: Variant,
     ): Int? {
         return context
-            .select(findRatingField(timeControlCategory))
+            .select(findRatingField(timeControlCategory, variant))
             .from(USER)
             .where(USER.ID.eq((userId)))
             .awaitSingleValue()
@@ -544,6 +557,14 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     suspend fun fetchTimeControlCategory(gameId: String): TimeControlCategory? {
         return dslContext
             .select(GAME.TIME_CONTROL_CATEGORY)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue()
+    }
+
+    suspend fun fetchVariant(gameId: String): Variant? {
+        return dslContext
+            .select(GAME.VARIANT)
             .from(GAME)
             .where(GAME.ID.eq(gameId))
             .awaitSingleValue()
@@ -778,7 +799,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         gameId: String,
         move: String,
         playMoveCallback: (Game) -> PlayMoveCallbackResult,
-        hasViolatedPerpetualCheckingRule: (List<String>) -> PerpetualCheckingCallbackResult?,
+        hasViolatedPerpetualCheckingRule: (Game, List<String>) -> PerpetualCheckingCallbackResult?,
         updateRatingsCallback: (Game, Outcome, Int, Int) -> UpdateRatingsCallbackResult?,
     ): TryEither<PlayMoveCallbackResult> {
         return dslContext.transactionalContextTry { transactional ->
@@ -818,7 +839,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     } else if (playMoveResult.mustCheckPerpetualChecking) {
                         // check if violated perpetual checking rule
                         val moves = listMoves(transactional, gameId)
-                        hasViolatedPerpetualCheckingRule(moves)?.let { perpetualCheckingResult ->
+                        hasViolatedPerpetualCheckingRule(gameRecord, moves)?.let { perpetualCheckingResult ->
                             persistVictory(perpetualCheckingResult.newGameEventType, perpetualCheckingResult.outcome)
                             playMoveResult = playMoveResult.copy(
                                 newGameEventType = perpetualCheckingResult.newGameEventType,
@@ -875,10 +896,11 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
         suspend fun persistRatingUpdate() {
             val timeControlCategory = gameRecord.timeControlCategory!!
-            val ratingField = findRatingField(timeControlCategory)
+            val variant = gameRecord.variant
+            val ratingField = findRatingField(timeControlCategory, variant)
             // we use the current rating instead of the rating the user had at the beginning of the game
-            val inviterRating = fetchRatingForUser(transactional, gameRecord.inviter, timeControlCategory)
-            val inviteeRating = fetchRatingForUser(transactional, gameRecord.invitee, timeControlCategory)
+            val inviterRating = fetchRatingForUser(transactional, gameRecord.inviter, timeControlCategory, variant)
+            val inviteeRating = fetchRatingForUser(transactional, gameRecord.invitee, timeControlCategory, variant)
             val updatedRatings = updateRatingsCallback(gameRecord, outcome, inviterRating!!, inviteeRating!!)
 
             suspend fun updateUserRating(userId: String, rating: Int) {
@@ -962,14 +984,25 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             return field
         }
 
-        fun findRatingField(timeControlCategory: TimeControlCategory): TableField<UserRecord, Int> {
-            return when (timeControlCategory) {
-                TimeControlCategory.BULLET -> return USER.GAME_RATING_BULLET
-                TimeControlCategory.BLITZ -> return USER.GAME_RATING_BLITZ
-                TimeControlCategory.RAPID -> return USER.GAME_RATING_RAPID
-                TimeControlCategory.CLASSICAL -> return USER.GAME_RATING_CLASSICAL
-                TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
-                TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
+        fun findRatingField(timeControlCategory: TimeControlCategory, variant: Variant): TableField<UserRecord, Int> {
+            return when (variant) {
+                Variant.XIANGQI -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
+                }
+
+                Variant.MANCHU -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_MANCHU_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_MANCHU_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_MANCHU_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_MANCHU_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_MANCHU_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_MANCHU_CORRESPONDENCE
+                }
             }
         }
 

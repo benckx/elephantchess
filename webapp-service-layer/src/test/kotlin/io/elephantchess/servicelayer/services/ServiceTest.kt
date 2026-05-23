@@ -6,6 +6,7 @@ import io.elephantchess.db.utils.getDslContext
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.serviceLayerModule
 import io.elephantchess.xiangqi.testutils.GameMovesDtoCache
+import io.elephantchess.xiangqi.testutils.ManchuGameMovesDtoCache
 import io.github.oshai.kotlinlogging.KotlinLogging
 import liquibase.resource.ClassLoaderResourceAccessor
 import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
@@ -21,6 +22,7 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
 
     protected val logger = KotlinLogging.logger {}
     protected val gameMovesCache by lazy { GameMovesDtoCache() }
+    protected val manchuGameMovesCache by lazy { ManchuGameMovesDtoCache() }
     protected val userService by inject<UserService>()
 
     @BeforeAll

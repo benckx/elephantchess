@@ -17,6 +17,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+const Variant = Object.freeze({
+    XIANGQI: 'XIANGQI',
+    MANCHU: 'MANCHU'
+});
+
 const GameEventType = Object.freeze({
     CREATED: 'CREATED',
     CANCELED: 'CANCELED',

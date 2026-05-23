@@ -22,6 +22,7 @@ import io.elephantchess.utils.generateNameVariations
 import io.elephantchess.utils.isChineseText
 import io.elephantchess.xiangqi.Board.Companion.validateFen
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import org.apache.commons.lang3.StringUtils
@@ -179,7 +180,8 @@ class DatabaseService(
                         finalFen = record.finalFen,
                         outcome = record.outcome,
                         analysisStatus = record.analysisStatus,
-                        paginationOffset = (offset ?: 1) + i
+                        paginationOffset = (offset ?: 1) + i,
+                        variant = Variant.XIANGQI
                     )
                 }
 

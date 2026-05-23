@@ -23,6 +23,9 @@ The webapp offers the following features:
   try to specify when we talk about the "PostgreSQL database" or the "Database" as a feature.
 - Analysis board, where users can create complex analysis, with engine evaluation, multiple embedded variations,
   annotations (i.e. `??`, `?!` symbols) and comments.
+- Manchu chess variant (also called Yitong): Black's pieces are set up and move the same as in xiangqi, but horses,
+  cannons, and one of the chariots are absent for Red. The remaining chariot has the combined powers of the chariot,
+  horse, and cannon.
 - By default, users are assigned a temporary guest user id. They can also sign up with an email and password to keep
   their data across devices and access all features.
 
@@ -508,7 +511,8 @@ best move: h2e2
 
 ### xiangqi-core
 
-Kotlin library providing a representation of a Chinese chess board.
+Kotlin library providing a representation of a Chinese chess board. Supports both standard Xiangqi and the Manchu
+chess (Yitong) variant.
 
 #### Example 1
 

@@ -171,13 +171,7 @@ class LobbyPage extends BasePage {
             item.append(rightPane);
 
             // variant
-            variantPane.append(
-                buildSpan(
-                    '象',
-                    'game-to-join-variant-symbol',
-                    'Xiangqi (Chinese chess)'
-                )
-            );
+            variantPane.append(buildVariantCell(entry.variant));
 
             // opponent
             const opponentLine = buildDivWithClass('game-to-join-opponent-line');

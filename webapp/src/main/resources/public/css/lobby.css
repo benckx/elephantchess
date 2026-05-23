@@ -120,13 +120,8 @@ h1 {
 }
 
 .game-to-join-variant-pane {
-    width: 34px;
+    width: 54px;
     justify-content: center;
-}
-
-.game-to-join-variant-symbol {
-    font-size: 26px;
-    color: #343434;
 }
 
 .game-to-join-time-control-pane {
@@ -436,11 +431,15 @@ iframe {
     }
 
     .game-to-join-variant-pane {
-        width: 58px;
+        width: 90px;
     }
 
-    .game-to-join-variant-symbol {
+    .game-to-join-variant-pane .variant-symbol {
         font-size: 48px;
+    }
+
+    .game-to-join-variant-pane .variant-name {
+        font-size: 18px;
     }
 
     #games-to-join-list-container {

@@ -70,6 +70,8 @@ pieceImageNames.set('R', 'red_chariot.png');
 pieceImageNames.set('r', 'black_chariot.png');
 pieceImageNames.set('P', 'red_soldier.png');
 pieceImageNames.set('p', 'black_soldier.png');
+// Manchu super-chariot (combines chariot + horse + cannon powers), red only, displayed as chariot
+pieceImageNames.set('M', 'red_chariot.png');
 
 const diagonalDescending = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="0" x2="100" y2="100" vector-effect="non-scaling-stroke" stroke="black" /></svg>';
 const diagonalRising = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="100" x2="100" y2="0" vector-effect="non-scaling-stroke" stroke="black"/></svg>';
