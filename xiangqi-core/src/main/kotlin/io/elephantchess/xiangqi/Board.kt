@@ -524,7 +524,7 @@ class Board(
         const val PRINT_SEPARATOR = " "
         const val UCI_MOVE_REGEX_PATTERN = "[a-i][0-9][a-i][0-9]"
 
-        fun defaultFen(variant: Variant): String = when (variant) {
+        fun defaultStartFen(variant: Variant): String = when (variant) {
             XIANGQI -> DEFAULT_START_FEN
             MANCHU -> MANCHU_START_FEN
         }

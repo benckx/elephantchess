@@ -33,18 +33,17 @@ import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
 import io.elephantchess.xiangqi.Board.Companion.isCheckmated
 import io.elephantchess.xiangqi.Board.Companion.isInCheck
 import io.elephantchess.xiangqi.Board.Companion.isMoveLegal
 import io.elephantchess.xiangqi.Board.Companion.isStalemated
-import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.PerpetualCheckingRule.Companion.defaultPerpetualCheckingRules
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
@@ -308,7 +307,7 @@ class PlayerVsPlayerGameService(
         game.id = generateId()
         game.inviter = userId.id
         game.inviterColor = request.inviterColor
-        game.currentFen = Board.defaultFen(request.variant)
+        game.currentFen = Board.defaultStartFen(request.variant)
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
@@ -408,7 +407,7 @@ class PlayerVsPlayerGameService(
                     created = gameRecord.created.toEpochMilliseconds(),
                     lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
                     numberOfMessages = numberOfMessages,
-                    variant = gameRecord.variant ?: Variant.XIANGQI,
+                    variant = gameRecord.variant,
                 )
             }
             .let { entries ->
@@ -685,7 +684,7 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to join this game")
         } else {
             val timeControlCategory = pvpGameDaoService.fetchTimeControlCategory(gameId)!!
-            val variant = pvpGameDaoService.fetchVariant(gameId) ?: Variant.XIANGQI
+            val variant = pvpGameDaoService.fetchVariant(gameId)!!
 
             if (userId.userType == UserType.GUEST && timeControlCategory == TimeControlCategory.CORRESPONDENCE) {
                 throw BadRequestException("Guest users are not allowed to join correspondence games")
@@ -944,7 +943,7 @@ class PlayerVsPlayerGameService(
         game: Game,
         moves: List<String>
     ): PerpetualCheckingCallbackResult? {
-        val startFen = Board.defaultFen(game.variant ?: Variant.XIANGQI)
+        val startFen = Board.defaultStartFen(game.variant ?: Variant.XIANGQI)
         val board = Board(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val playerColor = board.colorToPlay().reverse()
@@ -1083,7 +1082,7 @@ class PlayerVsPlayerGameService(
             timeControlIncrement = game.timeControlIncrement,
             allowGuests = game.allowGuestsToJoin,
             lastUpdated = game.lastUpdated.toEpochMilliseconds(),
-            variant = game.variant ?: Variant.XIANGQI
+            variant = game.variant
         )
     }
 

@@ -147,8 +147,8 @@ class PlayerVsBotGameService(
         val now = Clock.System.now()
         val gameId = generateId()
 
-        val actualStartFen = request.startFen ?: Board.defaultFen(request.variant)
-        val usesDefaultStartFen = actualStartFen == Board.defaultFen(request.variant)
+        val actualStartFen = request.startFen ?: Board.defaultStartFen(request.variant)
+        val usesDefaultStartFen = actualStartFen == Board.defaultStartFen(request.variant)
 
         // Manchu variant requires Fairy Stockfish.
         // If Pikafish is requested but the start FEN is non-standard, safeQueryForDepth will
@@ -249,7 +249,7 @@ class PlayerVsBotGameService(
                 userColor = game.userColor,
                 engine = game.engine,
                 depth = game.depth,
-                startFen = game.startFen ?: Board.defaultFen(game.variant ?: Variant.XIANGQI),
+                startFen = game.startFen ?: Board.defaultStartFen(game.variant ?: Variant.XIANGQI),
                 status = game.gameStatus,
                 moveIndex = game.currentHalfMoveIndex,
                 fen = game.currentFen,
@@ -298,7 +298,7 @@ class PlayerVsBotGameService(
                         botColor = botColor,
                         userMove = userMove,
                         fen = board.outputFen(),
-                        startFen = gameRecord.startFen ?: Board.defaultFen(gameVariant),
+                        startFen = gameRecord.startFen ?: Board.defaultStartFen(gameVariant),
                         position = gameRecord.currentHalfMoveIndex,
                         engine = gameRecord.engine,
                         depth = gameRecord.depth,
