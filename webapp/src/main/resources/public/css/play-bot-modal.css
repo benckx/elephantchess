@@ -74,7 +74,7 @@
     box-shadow: rgba(0, 0, 0, 0.09) 0 3px 3px, rgba(0, 0, 0, 0.12) 0 3px 3px;
     font-weight: bold;
     border-color: #124610;
-    border-width: 3px;
+    outline: 1px solid #124610;
 }
 
 #play-bot-modal .option-button-div-disabled {

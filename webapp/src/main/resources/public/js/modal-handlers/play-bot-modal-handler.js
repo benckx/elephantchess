@@ -28,7 +28,7 @@ const BOT_ENGINE_OPTION_GROUP = 'bot-engine-option-button-div';
 class PlayBotModalHandler extends ModalHandler {
 
     #exclusionGroups = [BOT_VARIANT_OPTION_GROUP, BOT_COLOR_OPTION_GROUP, BOT_ENGINE_OPTION_GROUP];
-    #optionsDivs = getElementsByClassNameArray(BOT_OPTION_BUTTON_CLASS);
+    #optionDivs = getElementsByClassNameArray(BOT_OPTION_BUTTON_CLASS);
     #startFenStandardRadio = document.getElementById('start-fen-standard');
     #startFenCustomRadio = document.getElementById('start-fen-custom');
     #startFenInput = document.getElementById('start-fen');
@@ -40,7 +40,7 @@ class PlayBotModalHandler extends ModalHandler {
     constructor() {
         super();
 
-        this.#optionsDivs.forEach(item => {
+        this.#optionDivs.forEach(item => {
             item.addEventListener('click', () => {
                 if (item.classList.contains(BOT_OPTION_BUTTON_DISABLED_CLASS)) {
                     return;
@@ -154,7 +154,7 @@ class PlayBotModalHandler extends ModalHandler {
      * @param group {string}
      */
     #unselectForGroup(group) {
-        this.#optionsDivs
+        this.#optionDivs
             .filter(item => item.classList.contains(group))
             .forEach(item => item.classList.remove(BOT_OPTION_BUTTON_SELECTED_CLASS));
     }
@@ -164,8 +164,10 @@ class PlayBotModalHandler extends ModalHandler {
      */
     #setSelectedVariant(variant) {
         this.#unselectForGroup(BOT_VARIANT_OPTION_GROUP);
-        const id = variant === Variant.MANCHU ? 'variant-manchu-bot' : 'variant-xiangqi-bot';
-        document.getElementById(id).classList.add(BOT_OPTION_BUTTON_SELECTED_CLASS);
+        this.#optionDivs
+            .filter(item => item.classList.contains(BOT_VARIANT_OPTION_GROUP))
+            .find(item => item.dataset.variant === variant)
+            ?.classList.add(BOT_OPTION_BUTTON_SELECTED_CLASS);
     }
 
     #setStartFenFromVariant() {
@@ -191,9 +193,10 @@ class PlayBotModalHandler extends ModalHandler {
      * @return {string}
      */
     #getSelectedVariant() {
-        return document.getElementById('variant-manchu-bot').classList.contains(BOT_OPTION_BUTTON_SELECTED_CLASS)
-            ? Variant.MANCHU
-            : Variant.XIANGQI;
+        return this.#optionDivs
+            .filter(item => item.classList.contains(BOT_VARIANT_OPTION_GROUP))
+            .find(item => item.classList.contains(BOT_OPTION_BUTTON_SELECTED_CLASS))
+            ?.dataset.variant ?? Variant.XIANGQI;
     }
 
     /**
