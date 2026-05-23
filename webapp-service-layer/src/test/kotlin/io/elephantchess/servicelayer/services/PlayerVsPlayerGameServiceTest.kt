@@ -285,6 +285,40 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(2, countGameByStatus(CREATED))
     }
 
+    /**
+     * A Manchu game and a Xiangqi game with compatible colors should NOT be matched together —
+     * variant must be part of the matching criteria.
+     */
+    @Test
+    fun joinMatchingGameIncompatibleTest07() = runTest {
+        val manchuRequest = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false,
+            variant = Variant.MANCHU
+        )
+
+        val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
+
+        val response1 = pvpGameService.createGame(userId1, manchuRequest)
+        val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
+
+        assertEquals(CREATED, response1.eventType)
+        assertEquals(RED, response1.color)
+
+        assertEquals(CREATED, response2.eventType)
+        assertEquals(BLACK, response2.color)
+
+        assertEquals(0, countGameByStatus(JOINED))
+        assertEquals(2, countGameByStatus(CREATED))
+    }
+
+
     @Test
     fun happyPathTest01() = runTest {
         val gameId = createAndJoinGame(RED)
@@ -530,46 +564,13 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     /**
-     * A Manchu game and a Xiangqi game with compatible colors should NOT be matched together —
-     * variant must be part of the matching criteria.
-     */
-    @Test
-    fun joinMatchingGameIncompatibleTest07() = runTest {
-        val manchuRequest = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false,
-            variant = Variant.MANCHU
-        )
-
-        val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
-
-        val response1 = pvpGameService.createGame(userId1, manchuRequest)
-        val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
-
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
-
-        assertEquals(CREATED, response2.eventType)
-        assertEquals(BLACK, response2.color)
-
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
-    }
-
-    /**
      * Play a rated Manchu game to completion and verify that only the Manchu rating columns
      * are updated — Xiangqi ratings must remain at the default 1000.
      */
     @Test
     fun happyPathManchuTest01() = runTest {
         val gameId = createAndJoinManchuGame(RED)
-        val manchuMoves = manchuGameMovesCache.listAll().first()
+        val manchuMoves = manchuGameMovesCache.listAll().random()
 
         manchuMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
             val result = pvpGameService.playMove(
@@ -592,6 +593,34 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(1_000, ratingUpdate.inviterRatingFrom)
         assertEquals(1_000, ratingUpdate.inviteeRatingFrom)
 
+        val gameData = pvpGameService.fetchGame(gameId)
+        assertNotNull(gameData.outcome)
+        assertNotEquals(Outcome.DRAW, gameData.outcome)
+
+        val inviterColor = gameData.inviterColor!!
+        val expectedWinnerRating = 1_000 + 8
+        val expectedLoserRating = 1_000 - 8
+
+        val inviterWins =
+            (gameData.outcome == RED_WINS && inviterColor == RED) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
+
+        val inviteeWins =
+            (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == RED)
+
+        when {
+            inviterWins -> {
+                assertEquals(expectedWinnerRating, ratingUpdate.inviterRatingTo)
+                assertEquals(expectedLoserRating, ratingUpdate.inviteeRatingTo)
+            }
+
+            inviteeWins -> {
+                assertEquals(expectedLoserRating, ratingUpdate.inviterRatingTo)
+                assertEquals(expectedWinnerRating, ratingUpdate.inviteeRatingTo)
+            }
+        }
+
         // Xiangqi RAPID rating must remain unchanged at 1000
         val xiangqiRating1 = dslContext
             .select(USER.GAME_RATING_RAPID)
@@ -606,7 +635,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(1_000, xiangqiRating1)
         assertEquals(1_000, xiangqiRating2)
 
-        // At least one Manchu RAPID rating must have changed
+        // Manchu RAPID ratings must reflect the exact +8 / -8 change
         val manchuRating1 = dslContext
             .select(USER.GAME_RATING_MANCHU_RAPID)
             .from(USER)
@@ -617,7 +646,29 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             .from(USER)
             .where(USER.ID.eq(userId2.id))
             .awaitSingleValue<Int>()!!
-        assertTrue(manchuRating1 != 1_000 || manchuRating2 != 1_000)
+
+        val userId1IsInviter = gameData.inviterId == userId1.id
+        when {
+            inviterWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedWinnerRating, manchuRating1)
+                    assertEquals(expectedLoserRating, manchuRating2)
+                } else {
+                    assertEquals(expectedLoserRating, manchuRating1)
+                    assertEquals(expectedWinnerRating, manchuRating2)
+                }
+            }
+
+            inviteeWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedLoserRating, manchuRating1)
+                    assertEquals(expectedWinnerRating, manchuRating2)
+                } else {
+                    assertEquals(expectedWinnerRating, manchuRating1)
+                    assertEquals(expectedLoserRating, manchuRating2)
+                }
+            }
+        }
     }
 
     private suspend fun createManchuGame(inviterColor: Color): String {
