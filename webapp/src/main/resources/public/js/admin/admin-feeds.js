@@ -38,19 +38,19 @@ class AdminFeedsPage extends BasePage {
 
     #fetchGames() {
         getAndHandle(`${ADMIN_URL_PREFIX}/list-games`, json => {
-            let tbody = emptyTable(this.#gamesTable);
+            const tbody = emptyTable(this.#gamesTable);
             GameAnalyticsDto.parseEntries(json).forEach(entry => {
-                let row = tbody.insertRow();
+                const row = tbody.insertRow();
 
                 if (!entry.isLegit()) {
                     row.classList.add('not-legit-game');
                 }
 
-                const gameIdCell = row.insertCell();
-                gameIdCell.append(entry.buildGameAnchor());
-
                 const variantCell = row.insertCell();
                 variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
+
+                const gameIdCell = row.insertCell();
+                gameIdCell.append(entry.buildGameAnchor());
 
                 const winnerSpan = document.createElement('span');
                 winnerSpan.innerHTML = HTML_WHITE_SPACE + '[v]';
@@ -123,21 +123,21 @@ class AdminFeedsPage extends BasePage {
      */
     #fetchBotGamesGeneric(endpoint, tableElement) {
         getAndHandle(ADMIN_URL_PREFIX + endpoint, json => {
-            let tbody = emptyTable(tableElement);
+            const tbody = emptyTable(tableElement);
             BotGameAnalyticsDto.parseEntries(json).forEach(entry => {
-                let row = tbody.insertRow();
+                const row = tbody.insertRow();
 
                 if (!entry.isLegit()) {
                     row.classList.add('not-legit-game');
                 }
 
-                const gameIdCell = row.insertCell();
-                gameIdCell.className = 'label-cell';
-                gameIdCell.append(entry.buildGameAnchor());
-
                 const variantCell = row.insertCell();
                 variantCell.className = 'label-cell';
                 variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
+
+                const gameIdCell = row.insertCell();
+                gameIdCell.className = 'label-cell';
+                gameIdCell.append(entry.buildGameAnchor());
 
                 if (!entry.isAnonymous()) {
                     const userCell = row.insertCell();

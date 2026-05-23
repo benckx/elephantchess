@@ -171,12 +171,7 @@ class LobbyPage extends BasePage {
             item.append(rightPane);
 
             // variant
-            variantPane.append(
-                buildVariantCell(
-                    entry.variant,
-                    entry.variant === Variant.MANCHU ? 'Manchu chess (or Yitong)' : 'Xiangqi (Chinese chess)'
-                )
-            );
+            variantPane.append(buildVariantCell(entry.variant));
 
             // opponent
             const opponentLine = buildDivWithClass('game-to-join-opponent-line');
