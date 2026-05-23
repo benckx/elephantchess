@@ -120,13 +120,30 @@ h1 {
 }
 
 .game-to-join-variant-pane {
-    width: 34px;
+    width: 54px;
     justify-content: center;
 }
 
+.game-to-join-variant-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
 .game-to-join-variant-symbol {
-    font-size: 26px;
+    font-size: 24px;
     color: #343434;
+    line-height: 1;
+}
+
+.game-to-join-variant-name-cell {
+    color: #3a3a3a;
+    font-size: 10px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 .game-to-join-time-control-pane {
@@ -436,11 +453,15 @@ iframe {
     }
 
     .game-to-join-variant-pane {
-        width: 58px;
+        width: 90px;
     }
 
     .game-to-join-variant-symbol {
         font-size: 48px;
+    }
+
+    .game-to-join-variant-name-cell {
+        font-size: 18px;
     }
 
     #games-to-join-list-container {

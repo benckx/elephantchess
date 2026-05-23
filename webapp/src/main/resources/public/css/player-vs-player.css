@@ -40,7 +40,6 @@ tr#outcome-row {
 }
 
 #game-info-info-box {
-    height: 200px;
     display: flex;
 }
 
@@ -183,10 +182,6 @@ tr#outcome-row {
 
     #analysis-button-container-right-side {
         margin-top: 36px;
-    }
-
-    #game-info-info-box {
-        height: 420px;
     }
 
     #perpetual-checking-tracker-info-box {

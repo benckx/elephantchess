@@ -44,6 +44,7 @@ class PlayGamePage extends BasePage {
     #createdLabel = document.getElementById('created-label');
     #timeControlBase = document.getElementById('time-control-base');
     #ratingMode = document.getElementById('rating-mode');
+    #variantRow = document.getElementById('variant-row');
     #variantLabel = document.getElementById('variant-label');
     #gameStatusSpan = document.getElementById('game-status');
     #gameOutcomeSpan = document.getElementById('game-outcome');
@@ -336,7 +337,13 @@ class PlayGamePage extends BasePage {
     #initOtherInfo() {
         this.#createdLabel.innerText = formatTimestampDefaultDateFormat(this.#gameController.gameDto.created);
         this.#ratingMode.innerText = this.#gameController.gameDto.isRated ? 'Rated' : 'Casual';
-        this.#variantLabel.innerText = this.#gameController.gameDto.isManchu ? 'Manchu' : 'Xiangqi';
+        if (this.#gameController.gameDto.isManchu) {
+            this.#variantLabel.innerText = 'Manchu';
+            this.#variantRow.style.display = '';
+        } else {
+            this.#variantLabel.innerText = '';
+            this.#variantRow.style.display = 'none';
+        }
     }
 
     #initClocks() {

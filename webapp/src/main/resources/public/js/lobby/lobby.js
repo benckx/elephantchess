@@ -172,13 +172,19 @@ class LobbyPage extends BasePage {
 
             // variant
             const isManchu = entry.variant === 'MANCHU';
-            variantPane.append(
+            const variantCell = buildDivWithClass('game-to-join-variant-cell');
+            variantCell.append(
                 buildSpan(
                     isManchu ? '统' : '象',
                     'game-to-join-variant-symbol',
-                    isManchu ? 'Manchu chess (Yitong / 一统棋)' : 'Xiangqi (Chinese chess)'
+                    isManchu ? 'Manchu chess (or Yitong)': 'Xiangqi (Chinese chess)'
                 )
             );
+
+            const variantNameCell = buildDivWithClass('game-to-join-variant-name-cell');
+            variantNameCell.innerText = isManchu ? 'Manchu' : 'Xiangqi';
+            variantCell.append(variantNameCell);
+            variantPane.append(variantCell);
 
             // opponent
             const opponentLine = buildDivWithClass('game-to-join-opponent-line');
