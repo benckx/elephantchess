@@ -344,17 +344,16 @@ class PlayerVsPlayerGameService(
         userRating: Int,
         request: CreateGameRequest,
     ): Game? {
-        return pvpGameDaoService
-            .listCompatibleGames(
-                inviterColor = request.inviterColor,
-                isRated = request.isRated,
-                timeControlMode = request.timeControlMode,
-                timeControlBase = request.timeControlBase,
-                timeControlIncrement = request.timeControlIncrement,
-                userType = userId.userType,
-                userId = userId.id,
-                variant = request.variant
-            )
+        return pvpGameDaoService.listCompatibleGames(
+            inviterColor = request.inviterColor,
+            isRated = request.isRated,
+            timeControlMode = request.timeControlMode,
+            timeControlBase = request.timeControlBase,
+            timeControlIncrement = request.timeControlIncrement,
+            userType = userId.userType,
+            userId = userId.id,
+            variant = request.variant
+        )
             .filter { gameRecord -> isOnline(gameRecord.inviter) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
     }
@@ -890,7 +889,9 @@ class PlayerVsPlayerGameService(
                 gameId = request.gameId,
                 move = request.move,
                 playMoveCallback = playMoveCallback,
-                hasViolatedPerpetualCheckingRule = { game, moves -> hasViolatedPerpetualCheckingRuleCallback(game, moves) },
+                hasViolatedPerpetualCheckingRule = { game, moves ->
+                    hasViolatedPerpetualCheckingRuleCallback(game, moves)
+                },
                 updateRatingsCallback = updateRatingsCallback
             )
 
@@ -939,7 +940,10 @@ class PlayerVsPlayerGameService(
     /**
      * Moves must include last one played
      */
-    private fun hasViolatedPerpetualCheckingRuleCallback(game: Game, moves: List<String>): PerpetualCheckingCallbackResult? {
+    private fun hasViolatedPerpetualCheckingRuleCallback(
+        game: Game,
+        moves: List<String>
+    ): PerpetualCheckingCallbackResult? {
         val startFen = Board.defaultFen(game.variant ?: Variant.XIANGQI)
         val board = Board(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })

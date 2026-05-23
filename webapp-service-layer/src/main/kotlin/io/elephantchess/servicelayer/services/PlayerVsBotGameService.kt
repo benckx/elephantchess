@@ -256,7 +256,7 @@ class PlayerVsBotGameService(
                 created = game.created.toEpochMilliseconds(),
                 lastUpdated = game.lastUpdated.toEpochMilliseconds(),
                 outcome = game.outcome,
-                variant = game.variant ?: Variant.XIANGQI,
+                variant = game.variant,
             )
         }
     }

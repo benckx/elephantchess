@@ -60,7 +60,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         timeControlIncrement: Int?,
         userType: UserType,
         userId: String,
-        variant: Variant = Variant.XIANGQI,
+        variant: Variant,
     ): List<Game> {
         var query =
             dslContext
@@ -395,7 +395,11 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchRatingForUser(userId: String, timeControlCategory: TimeControlCategory, variant: Variant): Int? {
+    suspend fun fetchRatingForUser(
+        userId: String,
+        timeControlCategory: TimeControlCategory,
+        variant: Variant
+    ): Int? {
         return fetchRatingForUser(dslContext, userId, timeControlCategory, variant)
     }
 
@@ -994,6 +998,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
                     TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
                 }
+
                 Variant.MANCHU -> when (timeControlCategory) {
                     TimeControlCategory.BULLET -> USER.GAME_RATING_MANCHU_BULLET
                     TimeControlCategory.BLITZ -> USER.GAME_RATING_MANCHU_BLITZ
