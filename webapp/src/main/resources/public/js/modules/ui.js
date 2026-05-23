@@ -279,7 +279,7 @@ function buildUsernameSpan(userId, username, userType, maxLength = null, removeG
                     const span = document.createElement('span');
                     span.className = 'guest-name';
                     const rawId = String(userId).replace(/^guest\s+/i, '').trim();
-                    span.innerText = maxLength != null ? cropText(rawId, maxLength) : rawId;
+                    span.innerText = '#' + (maxLength != null ? cropText(rawId, maxLength) : rawId);
                     return span;
                 }
                 return buildGuestUserSpan(userId, maxLength);
