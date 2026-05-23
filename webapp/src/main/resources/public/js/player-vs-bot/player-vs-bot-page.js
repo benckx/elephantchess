@@ -141,7 +141,7 @@ class PlayerVsBotPage extends BasePage {
                 document.getElementById('info-depth').innerText = botGameDto.depth.toString();
                 document.getElementById('info-created').innerText = botGameDto.formattedCreated;
                 if (botGameDto.isManchu) {
-                    document.getElementById('info-variant').innerText = 'Manchu (一统棋)';
+                    document.getElementById('info-variant').innerText = 'Manchu';
                     document.getElementById('info-variant-row').style.display = '';
                 }
                 this.#updateOutcomeLabel();

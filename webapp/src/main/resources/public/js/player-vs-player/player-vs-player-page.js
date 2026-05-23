@@ -44,6 +44,7 @@ class PlayGamePage extends BasePage {
     #createdLabel = document.getElementById('created-label');
     #timeControlBase = document.getElementById('time-control-base');
     #ratingMode = document.getElementById('rating-mode');
+    #variantLabel = document.getElementById('variant-label');
     #gameStatusSpan = document.getElementById('game-status');
     #gameOutcomeSpan = document.getElementById('game-outcome');
     #outcomeRow = document.getElementById('outcome-row');
@@ -335,6 +336,7 @@ class PlayGamePage extends BasePage {
     #initOtherInfo() {
         this.#createdLabel.innerText = formatTimestampDefaultDateFormat(this.#gameController.gameDto.created);
         this.#ratingMode.innerText = this.#gameController.gameDto.isRated ? 'Rated' : 'Casual';
+        this.#variantLabel.innerText = this.#gameController.gameDto.isManchu ? 'Manchu' : 'Xiangqi';
     }
 
     #initClocks() {
@@ -524,7 +526,6 @@ class PlayGamePage extends BasePage {
         }
 
         this.#updateChatAuthorColor();
-        this.#updateVariantSymbols();
     }
 
     #updateChatAuthorColor() {
@@ -549,7 +550,7 @@ class PlayGamePage extends BasePage {
     #deleteAllNodesButOnlineIndicator(node) {
         const toKeep = [];
         for (let child of node.children) {
-            if (child.classList.contains('online-status-indicator') || child.classList.contains('pvp-variant-symbol')) {
+            if (child.classList.contains('online-status-indicator')) {
                 toKeep.push(child);
             }
         }
@@ -557,15 +558,6 @@ class PlayGamePage extends BasePage {
         toKeep.forEach(child => node.append(child));
     }
 
-    #updateVariantSymbols() {
-        const isManchu = this.#gameController.gameDto.isManchu;
-        const symbol = isManchu ? '统' : '象';
-        const tooltip = isManchu ? 'Manchu chess (Yitong / 一统棋)' : 'Xiangqi (Chinese chess)';
-        document.querySelectorAll('.pvp-variant-symbol').forEach(el => {
-            el.innerText = symbol;
-            el.title = tooltip;
-        });
-    }
 
     #updateGameStatusInfo() {
         function colorToStatusText(color) {
