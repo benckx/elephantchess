@@ -158,14 +158,14 @@
     }
 
     #play-bot-modal #play-bot-depth-value-box {
-        margin-top: 12px;
+        margin-top: 36px;
         margin-bottom: 10px;
         font-size: 34px;
     }
 
     #play-bot-modal #deeper-levels-message {
         font-size: 34px;
-        margin-top: 20px;
+        margin-top: 36px;
         margin-bottom: 14px;
     }
 }
