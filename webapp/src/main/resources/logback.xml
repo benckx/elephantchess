@@ -14,7 +14,7 @@
     <logger name="io.ktor" level="INFO"/>
     <logger name="io.fabric8.kubernetes.client" level="INFO"/>
     <logger name="io.elephantchess.board.Board" level="INFO"/>
-    <logger name="io.elephantchess.engines" level="DEBUG"/>
+<!--    <logger name="io.elephantchess.engines" level="DEBUG"/>-->
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
