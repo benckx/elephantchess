@@ -208,6 +208,11 @@
         margin-right: 0;
     }
 
+    .game-thumb-variant {
+        font-size: 35px;
+        margin-right: 8px;
+    }
+
     .game-thumb-info-box {
         margin-bottom: 18px;
     }
