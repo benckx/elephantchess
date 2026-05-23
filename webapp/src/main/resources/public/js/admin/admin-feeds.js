@@ -49,6 +49,9 @@ class AdminFeedsPage extends BasePage {
                 const gameIdCell = row.insertCell();
                 gameIdCell.append(entry.buildGameAnchor());
 
+                const variantCell = row.insertCell();
+                variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
+
                 const winnerSpan = document.createElement('span');
                 winnerSpan.innerHTML = HTML_WHITE_SPACE + '[v]';
 
@@ -131,6 +134,10 @@ class AdminFeedsPage extends BasePage {
                 const gameIdCell = row.insertCell();
                 gameIdCell.className = 'label-cell';
                 gameIdCell.append(entry.buildGameAnchor());
+
+                const variantCell = row.insertCell();
+                variantCell.className = 'label-cell';
+                variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
 
                 if (!entry.isAnonymous()) {
                     const userCell = row.insertCell();
