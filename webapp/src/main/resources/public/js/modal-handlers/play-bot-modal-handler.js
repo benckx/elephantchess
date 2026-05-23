@@ -37,6 +37,8 @@ class PlayBotModalHandler extends ModalHandler {
         super();
         this.#startFenStandardRadio.addEventListener('click', () => {
             this.#startFenInput.disabled = true;
+            const selectedVariant = Array.from(this.#variantRadios).find(r => r.checked)?.value;
+            this.#startFenInput.value = selectedVariant === Variant.MANCHU ? MANCHU_START_FEN : DEFAULT_START_FEN;
         });
         this.#startFenCustomRadio.addEventListener('click', () => {
             this.#startFenInput.disabled = false
@@ -45,7 +47,7 @@ class PlayBotModalHandler extends ModalHandler {
             this.#handleCreateGameClickEvent()
         });
 
-        // When Manchu variant is selected, disable Pikafish and switch to Fairy Stockfish
+        // When variant is selected: disable/enable Pikafish, update FEN if in standard mode
         this.#variantRadios.forEach(radio => {
             radio.addEventListener('change', () => {
                 if (radio.value === Variant.MANCHU) {
@@ -55,6 +57,9 @@ class PlayBotModalHandler extends ModalHandler {
                 } else {
                     this.#enginePikaRadio.disabled = false;
                     this.#enginePikaContainer.classList.remove('standard-radio-disabled');
+                }
+                if (this.#startFenStandardRadio.checked) {
+                    this.#startFenInput.value = radio.value === Variant.MANCHU ? MANCHU_START_FEN : DEFAULT_START_FEN;
                 }
             });
         });
