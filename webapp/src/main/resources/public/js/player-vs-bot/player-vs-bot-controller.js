@@ -292,7 +292,7 @@ class PlayerVsBotController {
                 break;
         }
 
-        metadata.set('Variant', 'Xiangqi');
+        metadata.set('Variant', dto.isManchu ? 'Manchu' : 'Xiangqi');
 
         switch (dto.status) {
             case GameEventType.CHECKMATED:
