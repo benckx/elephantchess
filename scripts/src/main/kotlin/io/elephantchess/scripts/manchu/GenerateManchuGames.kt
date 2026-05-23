@@ -28,6 +28,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 
 object GenerateManchuGames {
 
@@ -90,8 +91,21 @@ object GenerateManchuGames {
     fun main(args: Array<String>): Unit = runBlocking {
         println("Generating $TOTAL_GAMES Manchu games in parallel...")
 
+        val startedAt = System.currentTimeMillis()
+        val completed = AtomicInteger(0)
+
         val allGames = (1..TOTAL_GAMES)
-            .map { async(Dispatchers.Default) { generateGame() } }
+            .map {
+                async(Dispatchers.Default) {
+                    val game = generateGame()
+                    val done = completed.incrementAndGet()
+                    if (done % 500 == 0 || done == TOTAL_GAMES) {
+                        val elapsedSeconds = (System.currentTimeMillis() - startedAt) / 1000
+                        println("Progress: $done/$TOTAL_GAMES (${done * 100 / TOTAL_GAMES}%) - ${elapsedSeconds}s elapsed")
+                    }
+                    game
+                }
+            }
             .awaitAll()
 
         val uniqueGames = allGames.distinctBy { movesKey(it) }
