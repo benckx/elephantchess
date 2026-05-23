@@ -18,6 +18,8 @@ data class ListUserGamesResponse(val entries: List<Entry>) {
         val color: Color?,
         val isRated: Boolean,
         val timeControlCategory: TimeControlCategory,
+        val timeControlBase: Int?,
+        val timeControlIncrement: Int?,
         val opponentUserType: UserType?,
         val opponentUserId: String?,
         val opponentUsername: String?,

@@ -397,6 +397,8 @@ class PlayerVsPlayerGameService(
                     color = color,
                     isRated = gameRecord.isRated,
                     timeControlCategory = gameRecord.timeControlCategory,
+                    timeControlBase = gameRecord.timeControlBase,
+                    timeControlIncrement = gameRecord.timeControlIncrement,
                     opponentUserType = opponentUserType,
                     opponentUserId = opponentUserId,
                     opponentUsername = opponentUsername,

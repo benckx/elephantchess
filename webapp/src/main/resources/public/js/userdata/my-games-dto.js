@@ -27,6 +27,7 @@ class GameEntryDto {
     #color;
     #isRated;
     #timeControlCategory;
+    #timeControl;
     #opponentUserType;
     #opponentUserId;
     #opponentUsername;
@@ -55,6 +56,11 @@ class GameEntryDto {
         this.#color = json.color;
         this.#isRated = json.isRated;
         this.#timeControlCategory = json.timeControlCategory;
+        try {
+            this.#timeControl = TimeControl.fromJson(json);
+        } catch (_) {
+            this.#timeControl = null;
+        }
         this.#opponentUserType = json.opponentUserType;
         this.#opponentUserId = json.opponentUserId;
         this.#opponentUsername = json.opponentUsername;
@@ -125,6 +131,13 @@ class GameEntryDto {
 
     get timeControlCategory() {
         return this.#timeControlCategory;
+    }
+
+    /**
+     * @return {TimeControl|null}
+     */
+    get timeControl() {
+        return this.#timeControl;
     }
 
     /**

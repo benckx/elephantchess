@@ -101,6 +101,23 @@ class MyGamesPage extends InfiniteScrollPage {
         }
 
         /**
+         * @param entry {GameEntryDto}
+         * @return {HTMLDivElement}
+         */
+        function buildTimeControlCell(entry) {
+            const cell = buildDivWithClass('time-control-cell');
+            const timeControlIcon = buildTimeControlCategoryIcon(entry);
+            const timeControlLabel = buildDivWithClass('time-control-duration-cell');
+            if (entry.timeControl != null) {
+                timeControlLabel.innerText = entry.timeControl.printShort(' +');
+            } else {
+                timeControlLabel.innerText = '--';
+            }
+            cell.append(timeControlIcon, timeControlLabel);
+            return cell;
+        }
+
+        /**
          * @param {GameEntryDto} entry
          * @return {string}
          */
@@ -289,8 +306,7 @@ class MyGamesPage extends InfiniteScrollPage {
             }
 
             // left pane
-            const iconDiv = buildTimeControlCategoryIcon(entry);
-            leftPane.append(iconDiv);
+            leftPane.append(buildTimeControlCell(entry));
 
             // variant pane
             const isManchu = entry.variant === 'MANCHU';

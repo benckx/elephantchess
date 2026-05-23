@@ -36,7 +36,8 @@
 }
 
 .my-game-item .indicator-pane {
-    width: 11%
+    width: 94px;
+    flex: 0 0 94px;
 }
 
 .my-game-item .is-ongoing-indicator-container {

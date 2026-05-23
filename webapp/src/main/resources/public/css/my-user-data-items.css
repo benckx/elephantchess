@@ -95,12 +95,31 @@
 }
 
 .my-game-item .left-pane {
-    width: 12%;
+    width: 74px;
+    flex: 0 0 74px;
+}
+
+.my-game-item .left-pane .time-control-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.my-game-item .left-pane .time-control-duration-cell {
+    color: #3a3a3a;
+    font-size: 11px;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .my-game-item .variant-pane {
-    width: 56px;
+    width: 62px;
     flex-shrink: 0;
+    justify-content: flex-start;
+    padding-left: 8px;
+    box-sizing: border-box;
 }
 
 .my-game-item .variant-pane .variant-cell {
@@ -138,12 +157,14 @@
 }
 
 .my-game-item .right-pane {
-    width: 16%;
+    width: 136px;
+    flex: 0 0 136px;
     flex-direction: column;
 }
 
 .my-game-item .indicator-pane {
-    width: 9%;
+    width: 82px;
+    flex: 0 0 82px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -257,8 +278,18 @@
         height: 40px;
     }
 
+    .my-game-item .left-pane {
+        width: 110px;
+        flex: 0 0 110px;
+    }
+
+    .my-game-item .left-pane .time-control-duration-cell {
+        font-size: 18px;
+    }
+
     .my-game-item .indicator-pane {
-        width: 16%;
+        width: 120px;
+        flex: 0 0 120px;
     }
 
     .my-game-item .outcome-label-holder {
@@ -268,7 +299,8 @@
     }
 
     .my-game-item .right-pane {
-        width: 19%;
+        width: 190px;
+        flex: 0 0 190px;
     }
 
     .my-game-item .rating-mode {
@@ -276,7 +308,8 @@
     }
 
     .my-game-item .variant-pane {
-        width: 86px;
+        width: 100px;
+        padding-left: 12px;
     }
 
     .my-game-item .variant-pane .variant-symbol {
