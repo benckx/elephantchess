@@ -20,9 +20,7 @@ import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.Variant
-import io.elephantchess.xiangqi.testutils.GameMovesDto
 import io.elephantchess.xiangqi.testutils.Ops.endsInCheckmate
-import io.elephantchess.xiangqi.testutils.ResourcesUtils
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
 import org.koin.core.component.inject
@@ -571,7 +569,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     @Test
     fun happyPathManchuTest01() = runTest {
         val gameId = createAndJoinManchuGame(RED)
-        val manchuMoves = loadFirstManchuGame()
+        val manchuMoves = manchuGameMovesCache.listAll().first()
 
         manchuMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
             val result = pvpGameService.playMove(
@@ -643,14 +641,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         val gameId = createManchuGame(inviterColor)
         pvpGameService.joinGame(userId2, JoinGameRequest(gameId))
         return gameId
-    }
-
-    private fun loadFirstManchuGame(): GameMovesDto {
-        val firstLine = ResourcesUtils.getResourceAsText("/manchu.txt")
-            .split("\n")
-            .first { it.isNotBlank() }
-        val (gameId, moves) = firstLine.split(";")
-        return GameMovesDto(gameId, moves.split(","))
     }
 
     private suspend fun createGame(inviterColor: Color): String {
