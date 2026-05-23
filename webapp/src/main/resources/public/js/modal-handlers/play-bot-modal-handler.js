@@ -28,7 +28,7 @@ const BOT_ENGINE_OPTION_GROUP = 'bot-engine-option-button-div';
 class PlayBotModalHandler extends ModalHandler {
 
     #exclusionGroups = [BOT_VARIANT_OPTION_GROUP, BOT_COLOR_OPTION_GROUP, BOT_ENGINE_OPTION_GROUP];
-    #optionDivs = getElementsByClassNameArray(BOT_OPTION_BUTTON_CLASS);
+    #optionDivs;
     #startFenStandardRadio = document.getElementById('start-fen-standard');
     #startFenCustomRadio = document.getElementById('start-fen-custom');
     #startFenInput = document.getElementById('start-fen');
@@ -39,6 +39,7 @@ class PlayBotModalHandler extends ModalHandler {
 
     constructor() {
         super();
+        this.#optionDivs = getElementsByClassNameArray(BOT_OPTION_BUTTON_CLASS);
 
         this.#optionDivs.forEach(item => {
             item.addEventListener('click', () => {
@@ -142,7 +143,7 @@ class PlayBotModalHandler extends ModalHandler {
 
     /**
      * @param item {Element}
-     * @return {string|null}
+     * @return {string|undefined}
      */
     #findExclusionGroup(item) {
         return this
@@ -164,10 +165,14 @@ class PlayBotModalHandler extends ModalHandler {
      */
     #setSelectedVariant(variant) {
         this.#unselectForGroup(BOT_VARIANT_OPTION_GROUP);
-        this.#optionDivs
+        const selectedVariantButton = this.#optionDivs
             .filter(item => item.classList.contains(BOT_VARIANT_OPTION_GROUP))
             .find(item => item.dataset.variant === variant)
-            ?.classList.add(BOT_OPTION_BUTTON_SELECTED_CLASS);
+        if (selectedVariantButton == null) {
+            document.getElementById('variant-xiangqi-bot').classList.add(BOT_OPTION_BUTTON_SELECTED_CLASS);
+        } else {
+            selectedVariantButton.classList.add(BOT_OPTION_BUTTON_SELECTED_CLASS);
+        }
     }
 
     #setStartFenFromVariant() {
