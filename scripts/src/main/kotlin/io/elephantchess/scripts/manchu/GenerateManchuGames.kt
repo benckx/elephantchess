@@ -31,9 +31,9 @@ import java.util.UUID
 
 object GenerateManchuGames {
 
-    private const val TOTAL_GAMES = 10_000
-    private const val GAMES_TO_KEEP = 500
-    private const val MIN_PER_RESULT_TYPE = 20
+    private const val TOTAL_GAMES = 20_000
+    private const val GAMES_TO_KEEP = 1_000
+    private const val MIN_PER_RESULT_TYPE = 100
     private const val MAX_MOVES_PER_GAME = 400
 
     private enum class GameResult {
@@ -50,6 +50,8 @@ object GenerateManchuGames {
         val result: GameResult,
     )
 
+    private fun movesKey(game: GeneratedGame): String = game.moves.joinToString(",")
+
     private fun generateGame(): GeneratedGame {
         val board = Board(Board.MANCHU_START_FEN)
         val moves = mutableListOf<HalfMove>()
@@ -59,13 +61,15 @@ object GenerateManchuGames {
 
             if (board.isCheckmated()) {
                 // colorToPlay is the one that is checkmated, so opponent wins
-                val result = if (colorToPlay == Color.RED) GameResult.BLACK_WINS_CHECKMATE else GameResult.RED_WINS_CHECKMATE
+                val result =
+                    if (colorToPlay == Color.RED) GameResult.BLACK_WINS_CHECKMATE else GameResult.RED_WINS_CHECKMATE
                 return GeneratedGame(randomId(), moves.map { it.toUci() }, result)
             }
 
             if (board.isStalemated()) {
                 // colorToPlay is the one that is stalemated, so opponent wins (Xiangqi rules)
-                val result = if (colorToPlay == Color.RED) GameResult.BLACK_WINS_STALEMATE else GameResult.RED_WINS_STALEMATE
+                val result =
+                    if (colorToPlay == Color.RED) GameResult.BLACK_WINS_STALEMATE else GameResult.RED_WINS_STALEMATE
                 return GeneratedGame(randomId(), moves.map { it.toUci() }, result)
             }
 
@@ -90,23 +94,30 @@ object GenerateManchuGames {
             .map { async(Dispatchers.Default) { generateGame() } }
             .awaitAll()
 
-        val byResult = allGames.groupBy { it.result }.mapValues { (_, games) -> games.sortedBy { it.moves.size } }
+        val uniqueGames = allGames.distinctBy { movesKey(it) }
+        println("Deduplicated ${allGames.size - uniqueGames.size} duplicate games")
+
+        val byResult = uniqueGames.groupBy { it.result }.mapValues { (_, games) -> games.sortedBy { it.moves.size } }
         println("Generated: ${byResult.mapValues { it.value.size }}")
 
-        val completedGames = allGames.filter { it.result != GameResult.TOO_LONG }
+        val completedGames = uniqueGames.filter { it.result != GameResult.TOO_LONG }
 
         // Pick a minimum from each terminal result type for variety
-        val selected = mutableSetOf<GeneratedGame>()
+        val selectedByMoves = linkedMapOf<String, GeneratedGame>()
         GameResult.entries.filter { it != GameResult.TOO_LONG }.forEach { resultType ->
-            selected.addAll((byResult[resultType] ?: emptyList()).take(MIN_PER_RESULT_TYPE))
+            (byResult[resultType] ?: emptyList())
+                .take(MIN_PER_RESULT_TYPE)
+                .forEach { game -> selectedByMoves.putIfAbsent(movesKey(game), game) }
         }
 
         // Fill remaining slots with the shortest completed games
         completedGames.sortedBy { it.moves.size }.forEach { game ->
-            if (selected.size < GAMES_TO_KEEP) selected.add(game)
+            if (selectedByMoves.size < GAMES_TO_KEEP) {
+                selectedByMoves.putIfAbsent(movesKey(game), game)
+            }
         }
 
-        val finalGames = selected.sortedBy { it.moves.size }.take(GAMES_TO_KEEP)
+        val finalGames = selectedByMoves.values.sortedBy { it.moves.size }.take(GAMES_TO_KEEP)
         println("Keeping ${finalGames.size} games: ${finalGames.groupBy { it.result }.mapValues { it.value.size }}")
 
         val outputPath = "xiangqi-core-test-utils/src/main/resources/manchu.txt"
