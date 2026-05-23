@@ -202,7 +202,7 @@ class GameDto {
             this.#ratingUpdate = new RatingUpdateDto(json.ratingUpdate);
         }
         this.#drawPropositionUser = json.drawPropositionUser;
-        this.#variant = json.variant ?? 'XIANGQI';
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
@@ -350,7 +350,7 @@ class GameDto {
      * @returns {boolean}
      */
     get isManchu() {
-        return this.#variant === 'MANCHU';
+        return this.#variant === Variant.MANCHU;
     }
 
     /**

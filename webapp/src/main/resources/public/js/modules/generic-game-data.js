@@ -155,7 +155,7 @@ class GameMetadataDto {
             this.#lastUpdated = null;
         }
         this.#paginationOffset = json.paginationOffset;
-        this.#variant = json.variant ?? 'XIANGQI';
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
@@ -422,7 +422,7 @@ class GameMetadataDto {
             }
         }
 
-        metadata.set('Variant', this.#variant === 'MANCHU' ? 'Manchu' : 'Xiangqi');
+        metadata.set('Variant', this.#variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi');
 
         // TODO: add date, tournament, etc.
 

@@ -116,7 +116,7 @@ class MyBotGamesPage extends InfiniteScrollPage {
             leftPane.append(buildBotIcon());
 
             // variant pane
-            const isManchu = entry.variant === 'MANCHU';
+            const isManchu = entry.variant === Variant.MANCHU;
             const variantCell = buildDivWithClass('variant-cell');
             const variantSymbol = buildDivWithTextAndClass(isManchu ? '统' : '象', 'variant-symbol');
             addToolTip(variantSymbol, isManchu ? 'Manchu chess (or Yitong)' : 'Xiangqi (Chinese chess)');

@@ -171,7 +171,7 @@ class LobbyPage extends BasePage {
             item.append(rightPane);
 
             // variant
-            const isManchu = entry.variant === 'MANCHU';
+            const isManchu = entry.variant === Variant.MANCHU;
             const variantCell = buildDivWithClass('game-to-join-variant-cell');
             variantCell.append(
                 buildSpan(

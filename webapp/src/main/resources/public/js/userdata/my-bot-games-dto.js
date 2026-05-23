@@ -52,7 +52,7 @@ class BotGameEntryDto {
         this.#moveIndex = json.moveIndex;
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
-        this.#variant = json.variant ?? 'XIANGQI';
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**

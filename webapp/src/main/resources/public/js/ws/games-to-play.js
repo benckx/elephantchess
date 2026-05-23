@@ -95,7 +95,7 @@ class GameToPlayDto {
         this.#timeControl = TimeControl.fromJson(json);
         this.#allowGuests = json.allowGuests;
         this.#lastUpdated = Number(json.lastUpdated);
-        this.#variant = json.variant ?? 'XIANGQI';
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**

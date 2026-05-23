@@ -224,9 +224,9 @@ class NewGameHandler extends ModalHandler {
 
         switch (variantId) {
             case 'variant-manchu':
-                return 'MANCHU';
+                return Variant.MANCHU;
             default:
-                return 'XIANGQI';
+                return Variant.XIANGQI;
         }
     }
 

@@ -48,7 +48,7 @@ class PlayBotModalHandler extends ModalHandler {
         // When Manchu variant is selected, disable Pikafish and switch to Fairy Stockfish
         this.#variantRadios.forEach(radio => {
             radio.addEventListener('change', () => {
-                if (radio.value === 'MANCHU') {
+                if (radio.value === Variant.MANCHU) {
                     this.#enginePikaRadio.disabled = true;
                     this.#enginePikaContainer.classList.add('standard-radio-disabled');
                     this.#engineFairyRadio.checked = true;
@@ -63,7 +63,7 @@ class PlayBotModalHandler extends ModalHandler {
         this.#startFenInput.addEventListener('input', () => {
             const piecePart = this.#startFenInput.value.split(' ')[0];
             const isManchu = piecePart.includes('M');
-            this.#variantRadios.forEach(r => { r.checked = isManchu ? r.value === 'MANCHU' : r.value === 'XIANGQI'; });
+            this.#variantRadios.forEach(r => { r.checked = isManchu ? r.value === Variant.MANCHU : r.value === Variant.XIANGQI; });
             if (isManchu) {
                 this.#enginePikaRadio.disabled = true;
                 this.#enginePikaContainer.classList.add('standard-radio-disabled');
@@ -109,7 +109,7 @@ class PlayBotModalHandler extends ModalHandler {
         }
 
         // variant param
-        let variant = 'XIANGQI';
+        let variant = Variant.XIANGQI;
         for (let i = 0; i < this.#variantRadios.length; i++) {
             if (this.#variantRadios[i].checked) {
                 variant = this.#variantRadios[i].value;

@@ -70,7 +70,7 @@ class GameEntryDto {
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
         this.#numberOfMessages = json.numberOfMessages;
-        this.#variant = json.variant ?? 'XIANGQI';
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
