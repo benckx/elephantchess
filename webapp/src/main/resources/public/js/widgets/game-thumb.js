@@ -166,14 +166,16 @@ class GameThumb {
             gameMetadataDto.redPlayerId,
             gameMetadataDto.redPlayerName,
             gameMetadataDto.redUserType,
-            maxUserNameLength
+            maxUserNameLength,
+            true
         );
 
         const buildBlackUsername = () => buildUsernameSpan(
             gameMetadataDto.blackPlayerId,
             gameMetadataDto.blackPlayerName,
             gameMetadataDto.blackUserType,
-            maxUserNameLength
+            maxUserNameLength,
+            true
         );
 
         // Safari

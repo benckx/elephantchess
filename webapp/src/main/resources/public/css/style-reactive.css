@@ -223,6 +223,10 @@
         font-size: 30px;
     }
 
+    .game-thumb-player-name {
+        max-width: 260px;
+    }
+
     .game-thumb-last-updated {
         font-size: 26px;
     }
