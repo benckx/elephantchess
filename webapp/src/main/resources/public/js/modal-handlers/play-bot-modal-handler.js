@@ -48,7 +48,7 @@ class PlayBotModalHandler extends ModalHandler {
 
                 const itemExclusionGroup = this.#findExclusionGroup(item);
                 if (itemExclusionGroup !== null) {
-                    this.#unselectedForGroup(itemExclusionGroup);
+                    this.#unselectForGroup(itemExclusionGroup);
                     item.classList.add(BOT_OPTION_BUTTON_SELECTED_CLASS);
                 }
 
@@ -153,7 +153,7 @@ class PlayBotModalHandler extends ModalHandler {
     /**
      * @param group {string}
      */
-    #unselectedForGroup(group) {
+    #unselectForGroup(group) {
         this.#optionsDivs
             .filter(item => item.classList.contains(group))
             .forEach(item => item.classList.remove(BOT_OPTION_BUTTON_SELECTED_CLASS));
@@ -163,7 +163,7 @@ class PlayBotModalHandler extends ModalHandler {
      * @param variant {string}
      */
     #setSelectedVariant(variant) {
-        this.#unselectedForGroup(BOT_VARIANT_OPTION_GROUP);
+        this.#unselectForGroup(BOT_VARIANT_OPTION_GROUP);
         const id = variant === Variant.MANCHU ? 'variant-manchu-bot' : 'variant-xiangqi-bot';
         document.getElementById(id).classList.add(BOT_OPTION_BUTTON_SELECTED_CLASS);
     }
@@ -179,7 +179,7 @@ class PlayBotModalHandler extends ModalHandler {
         if (isManchu) {
             pikaButton.classList.add(BOT_OPTION_BUTTON_DISABLED_CLASS);
             if (pikaButton.classList.contains(BOT_OPTION_BUTTON_SELECTED_CLASS)) {
-                this.#unselectedForGroup(BOT_ENGINE_OPTION_GROUP);
+                this.#unselectForGroup(BOT_ENGINE_OPTION_GROUP);
                 document.getElementById('engine-fairy').classList.add(BOT_OPTION_BUTTON_SELECTED_CLASS);
             }
         } else {
