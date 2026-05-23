@@ -269,8 +269,8 @@ class MyGamesPage extends InfiniteScrollPage {
             const item = buildAnchorWithClass(entry.gameUrl,null, 'my-game-item');
 
             item.append(
-                leftPane,
                 variantPane,
+                leftPane,
                 middlePane,
                 chatIndicatorPane,
                 ratingDeltaIndicatorPane,
@@ -293,7 +293,15 @@ class MyGamesPage extends InfiniteScrollPage {
             leftPane.append(iconDiv);
 
             // variant pane
-            variantPane.append(buildDivWithTextAndClass(entry.variant === 'MANCHU' ? '统' : '象', 'variant-label'));
+            const isManchu = entry.variant === 'MANCHU';
+            const variantCell = buildDivWithClass('variant-cell');
+            const variantSymbol = buildDivWithTextAndClass(isManchu ? '统' : '象', 'variant-symbol');
+            addToolTip(variantSymbol, isManchu ? 'Manchu chess (or Yitong)' : 'Xiangqi (Chinese chess)');
+            variantCell.append(
+                variantSymbol,
+                buildDivWithTextAndClass(isManchu ? 'Manchu' : 'Xiangqi', 'variant-name')
+            );
+            variantPane.append(variantCell);
 
             // middle pane
             const middlePaneItems = [

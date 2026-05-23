@@ -99,13 +99,30 @@
 }
 
 .my-game-item .variant-pane {
-    width: 36px;
+    width: 56px;
     flex-shrink: 0;
 }
 
-.my-game-item .variant-pane .variant-label {
-    font-size: 22px;
+.my-game-item .variant-pane .variant-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.my-game-item .variant-pane .variant-symbol {
+    font-size: 24px;
     color: #343434;
+    line-height: 1;
+}
+
+.my-game-item .variant-pane .variant-name {
+    color: #3a3a3a;
+    font-size: 10px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 .my-game-item .middle-pane {
@@ -259,11 +276,15 @@
     }
 
     .my-game-item .variant-pane {
-        width: 48px;
+        width: 86px;
     }
 
-    .my-game-item .variant-pane .variant-label {
-        font-size: 30px;
+    .my-game-item .variant-pane .variant-symbol {
+        font-size: 42px;
+    }
+
+    .my-game-item .variant-pane .variant-name {
+        font-size: 16px;
     }
 
     .my-game-item .game-status {
