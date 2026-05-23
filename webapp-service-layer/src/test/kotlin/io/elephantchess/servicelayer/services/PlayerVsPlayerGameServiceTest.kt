@@ -369,10 +369,12 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         val expectedLoserRating = 1_000 - 8
 
         val inviterWins =
-            (gameData.outcome == RED_WINS && inviterColor == RED) || (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
+            (gameData.outcome == RED_WINS && inviterColor == RED) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
 
         val inviteeWins =
-            (gameData.outcome == RED_WINS && inviterColor == BLACK) || (gameData.outcome == BLACK_WINS && inviterColor == RED)
+            (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == RED)
 
         when {
             inviterWins -> {
@@ -385,6 +387,37 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 assertEquals(expectedWinnerRating, ratingUpdate.inviteeRatingTo)
             }
         }
+
+        // Xiangqi RAPID DB ratings must reflect the exact +8 / -8 change
+        val xiangqiRating1 = fetchXiangqiRapidRating(userId1.id)
+        val xiangqiRating2 = fetchXiangqiRapidRating(userId2.id)
+
+        val userId1IsInviter = gameData.inviterId == userId1.id
+        when {
+            inviterWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedWinnerRating, xiangqiRating1)
+                    assertEquals(expectedLoserRating, xiangqiRating2)
+                } else {
+                    assertEquals(expectedLoserRating, xiangqiRating1)
+                    assertEquals(expectedWinnerRating, xiangqiRating2)
+                }
+            }
+
+            inviteeWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedLoserRating, xiangqiRating1)
+                    assertEquals(expectedWinnerRating, xiangqiRating2)
+                } else {
+                    assertEquals(expectedWinnerRating, xiangqiRating1)
+                    assertEquals(expectedLoserRating, xiangqiRating2)
+                }
+            }
+        }
+
+        // Manchu RAPID rating must remain unchanged at 1000
+        assertEquals(1_000, fetchManchuRapidRating(userId1.id))
+        assertEquals(1_000, fetchManchuRapidRating(userId2.id))
     }
 
     @Test
@@ -622,30 +655,12 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         }
 
         // Xiangqi RAPID rating must remain unchanged at 1000
-        val xiangqiRating1 = dslContext
-            .select(USER.GAME_RATING_RAPID)
-            .from(USER)
-            .where(USER.ID.eq(userId1.id))
-            .awaitSingleValue<Int>()!!
-        val xiangqiRating2 = dslContext
-            .select(USER.GAME_RATING_RAPID)
-            .from(USER)
-            .where(USER.ID.eq(userId2.id))
-            .awaitSingleValue<Int>()!!
-        assertEquals(1_000, xiangqiRating1)
-        assertEquals(1_000, xiangqiRating2)
+        assertEquals(1_000, fetchXiangqiRapidRating(userId1.id))
+        assertEquals(1_000, fetchXiangqiRapidRating(userId2.id))
 
         // Manchu RAPID ratings must reflect the exact +8 / -8 change
-        val manchuRating1 = dslContext
-            .select(USER.GAME_RATING_MANCHU_RAPID)
-            .from(USER)
-            .where(USER.ID.eq(userId1.id))
-            .awaitSingleValue<Int>()!!
-        val manchuRating2 = dslContext
-            .select(USER.GAME_RATING_MANCHU_RAPID)
-            .from(USER)
-            .where(USER.ID.eq(userId2.id))
-            .awaitSingleValue<Int>()!!
+        val manchuRating1 = fetchManchuRapidRating(userId1.id)
+        val manchuRating2 = fetchManchuRapidRating(userId2.id)
 
         val userId1IsInviter = gameData.inviterId == userId1.id
         when {
@@ -726,11 +741,25 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     private fun colorToPlay(currentHalfMoveIndex: Int) =
         if (currentHalfMoveIndex % 2 == 0) RED else BLACK
 
-    private suspend fun countGameByStatus(status: GameEventType) =
+    private suspend fun countGameByStatus(status: GameEventType): Int =
         dslContext
             .selectCount()
             .from(GAME)
             .where(GAME.GAME_STATUS.eq(status))
-            .awaitSingleValue<Int>()!!
+            .awaitSingleValue()!!
+
+    private suspend fun fetchXiangqiRapidRating(userId: String): Int =
+        dslContext
+            .select(USER.GAME_RATING_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()!!
+
+    private suspend fun fetchManchuRapidRating(userId: String): Int =
+        dslContext
+            .select(USER.GAME_RATING_MANCHU_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()!!
 
 }
