@@ -317,6 +317,9 @@ class GameThumb {
         const variantIndicator = this.#findFirst('game-thumb-variant');
         if (variantIndicator) {
             variantIndicator.innerHTML = gameMetadataDto.variant === Variant.MANCHU ? '统' : '象';
+            variantIndicator.title = gameMetadataDto.variant === Variant.MANCHU
+                ? 'Manchu chess (or Yitong)'
+                : 'Xiangqi (Chinese chess)';
         }
 
         // is online
@@ -396,8 +399,8 @@ class GameThumb {
         // Reset status and timestamp
         div.querySelector('.game-thumb-status').innerHTML = '--';
         div.querySelector('.game-thumb-last-updated').innerHTML = '--';
-        const variantEl = div.querySelector('.game-thumb-variant');
-        if (variantEl) variantEl.innerHTML = '';
+        const variantDiv = div.querySelector('.game-thumb-variant');
+        if (variantDiv) variantDiv.innerHTML = '';
 
         // Reset online indicators
         div.querySelector('.red-player-status-indicator').classList.remove(IS_ONLINE_CSS_CLASS);

@@ -565,7 +565,6 @@ class PlayGamePage extends BasePage {
         toKeep.forEach(child => node.append(child));
     }
 
-
     #updateGameStatusInfo() {
         function colorToStatusText(color) {
             switch (color) {
