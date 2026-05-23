@@ -33,6 +33,7 @@
 
 .my-game-item {
     width: 98%;
+    height: 84px;
 }
 
 .my-game-item .indicator-pane {
