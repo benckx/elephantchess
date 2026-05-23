@@ -407,12 +407,4 @@ project(":scripts") {
         classpath = sourceSets["main"].runtimeClasspath
         workingDir = rootProject.projectDir
     }
-
-    tasks.register<JavaExec>("generateManchuGames") {
-        group = "manchu"
-        description = "Generate random Manchu game test data and write to xiangqi-core-test-utils/src/main/resources/manchu.txt"
-        mainClass.set("io.elephantchess.scripts.manchu.GenerateManchuGames")
-        classpath = sourceSets["main"].runtimeClasspath
-        workingDir = rootProject.projectDir
-    }
 }

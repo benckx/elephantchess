@@ -44,7 +44,13 @@ class EnginePool(
         }
     }
 
-    suspend fun queryForDepth(fen: String, engineId: EngineId, depth: Int, timeout: Long = 20_000, variant: Variant = Variant.XIANGQI): InfoLinesResult? {
+    suspend fun queryForDepth(
+        fen: String,
+        engineId: EngineId,
+        depth: Int,
+        timeout: Long = 20_000,
+        variant: Variant = Variant.XIANGQI
+    ): InfoLinesResult? {
         return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
             lockableEngineProcess.queryForBestMove(fen, depth, variant)
         }
