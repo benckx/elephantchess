@@ -964,10 +964,10 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
         fun findRatingField(timeControlCategory: TimeControlCategory): TableField<UserRecord, Int> {
             return when (timeControlCategory) {
-                TimeControlCategory.BULLET -> return USER.GAME_RATING_BULLET
-                TimeControlCategory.BLITZ -> return USER.GAME_RATING_BLITZ
-                TimeControlCategory.RAPID -> return USER.GAME_RATING_RAPID
-                TimeControlCategory.CLASSICAL -> return USER.GAME_RATING_CLASSICAL
+                TimeControlCategory.BULLET -> USER.GAME_RATING_BULLET
+                TimeControlCategory.BLITZ -> USER.GAME_RATING_BLITZ
+                TimeControlCategory.RAPID -> USER.GAME_RATING_RAPID
+                TimeControlCategory.CLASSICAL -> USER.GAME_RATING_CLASSICAL
                 TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
                 TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
             }
