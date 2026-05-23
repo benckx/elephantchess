@@ -35,7 +35,6 @@ import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -111,7 +110,7 @@ class GameDataService(
 
                             GameMetadataDto(
                                 gameId = gameId,
-                                lastUpdated = record.created.toEpochMilliseconds(),
+                                lastUpdated = record.lastUpdated.toEpochMilliseconds(),
                                 redPlayerId = redPlayerId,
                                 redPlayerName = redPlayerName,
                                 blackPlayerId = blackPlayerId,
@@ -119,7 +118,7 @@ class GameDataService(
                                 finalFen = record.currentFen,
                                 outcome = record.outcome,
                                 analysisStatus = record.analysisStatus,
-                                variant = record.variant ?: Variant.XIANGQI,
+                                variant = record.variant,
                             )
                         }
                 }
@@ -168,7 +167,7 @@ class GameDataService(
                                 analysisStatus = record.analysisStatus,
                                 engine = record.engine,
                                 depth = record.depth,
-                                variant = record.variant ?: Variant.XIANGQI,
+                                variant = record.variant
                             )
                         }
                 }
@@ -203,7 +202,8 @@ class GameDataService(
                                 outcome = record.outcome,
                                 analysisStatus = record.analysisStatus,
                                 eventId = event?.id,
-                                eventName = event?.name
+                                eventName = event?.name,
+                                variant = Variant.XIANGQI
                             )
                         }
                 }
@@ -238,7 +238,7 @@ class GameDataService(
                         val gameRecord = pvpGameDaoService.fetchById(gameId.id)
                             ?: throw NotFoundException("Game $gameId not found")
 
-                        if ((gameRecord.variant ?: Variant.XIANGQI) == Variant.MANCHU) {
+                        if (gameRecord.variant == Variant.MANCHU) {
                             throw BadRequestException("Analysis is not supported for Manchu variant games")
                         }
 
@@ -252,7 +252,7 @@ class GameDataService(
                             ?: throw NotFoundException("Game $gameId not found")
 
                         val pvbRecord = pvbGameDaoService.fetchById(gameId.id)
-                        if (pvbRecord != null && (pvbRecord.variant ?: Variant.XIANGQI) == Variant.MANCHU) {
+                        if (pvbRecord != null && (pvbRecord.variant == Variant.MANCHU)) {
                             throw BadRequestException("Analysis is not supported for Manchu variant games")
                         }
 
@@ -672,7 +672,7 @@ class GameDataService(
                     status = record.gameStatus,
                     outcome = record.outcome,
                     lastUpdated = record.lastUpdated.toEpochMilliseconds(),
-                    variant = record.variant ?: Variant.XIANGQI,
+                    variant = record.variant,
                 )
             }
             .let { entries ->
@@ -727,7 +727,8 @@ class GameDataService(
                 finalFen = game.finalFen ?: DEFAULT_START_FEN,
                 outcome = game.outcome,
                 lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-                paginationOffset = (offset ?: 0) + i
+                paginationOffset = (offset ?: 0) + i,
+                variant = Variant.XIANGQI
             )
         }
     }
