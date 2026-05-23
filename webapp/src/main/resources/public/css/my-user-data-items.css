@@ -37,7 +37,7 @@
     background-color: #e0d2bd;
     margin-bottom: 8px;
     margin-top: 8px;
-    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
     border-radius: 3px;
     border: 1px solid #343434;
     width: 90%;
@@ -116,7 +116,6 @@
 }
 
 .my-game-item .variant-pane {
-    width: 62px;
     flex-shrink: 0;
     justify-content: flex-start;
     margin-left: 18px;
@@ -262,7 +261,8 @@
 
 @media (max-width: 1000px) {
     .my-game-item {
-        height: 120px;
+        min-height: 78px;
+        padding: 14px 0;
         border-radius: 0;
         width: 102%;
         font-size: 26px;
@@ -309,7 +309,6 @@
     }
 
     .my-game-item .variant-pane {
-        width: 100px;
         padding-left: 12px;
     }
 
