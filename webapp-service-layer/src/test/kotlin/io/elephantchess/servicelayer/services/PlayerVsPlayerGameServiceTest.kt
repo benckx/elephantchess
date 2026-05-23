@@ -2,7 +2,6 @@ package io.elephantchess.servicelayer.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitExecute
-import io.elephantchess.db.utils.awaitSingleRecord
 import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
