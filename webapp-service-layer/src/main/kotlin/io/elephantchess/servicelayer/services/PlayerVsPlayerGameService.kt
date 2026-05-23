@@ -291,7 +291,7 @@ class PlayerVsPlayerGameService(
         val allowGuests = userId.userType == UserType.GUEST || request.allowGuests
 
         val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
-        val userRating = getUserRating(userId.id, timeControlCategory)
+        val userRating = getUserRating(userId.id, timeControlCategory, request.variant)
 
         // if such a game already exists, join it instead of creating a new one
         if (!request.privateInvite) {
@@ -683,6 +683,7 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to join this game")
         } else {
             val timeControlCategory = pvpGameDaoService.fetchTimeControlCategory(gameId)!!
+            val variant = pvpGameDaoService.fetchVariant(gameId) ?: Variant.XIANGQI
 
             if (userId.userType == UserType.GUEST && timeControlCategory == TimeControlCategory.CORRESPONDENCE) {
                 throw BadRequestException("Guest users are not allowed to join correspondence games")
@@ -698,7 +699,7 @@ class PlayerVsPlayerGameService(
                 inviteeColor = inviterColor.reverse()
                 logger.debug { "[$gameId] inviter had selected $inviterColor, invitee receives $inviteeColor" }
             }
-            val userRating = getUserRating(userId.id, timeControlCategory)
+            val userRating = getUserRating(userId.id, timeControlCategory, variant)
             val timeControlRecord = pvpGameDaoService.fetchTimeControl(gameId)
             pvpGameDaoService.joinGame(
                 userId = userId.id,
@@ -966,8 +967,8 @@ class PlayerVsPlayerGameService(
     private suspend fun fetchPlayersAndStatus(gameId: String) =
         pvpGameDaoService.fetchPlayersAndStatus(gameId) ?: throw NotFoundException("Game $gameId not found")
 
-    private suspend fun getUserRating(userId: String, timeControlCategory: TimeControlCategory) =
-        pvpGameDaoService.fetchRatingForUser(userId, timeControlCategory) ?: 0
+    private suspend fun getUserRating(userId: String, timeControlCategory: TimeControlCategory, variant: Variant) =
+        pvpGameDaoService.fetchRatingForUser(userId, timeControlCategory, variant) ?: 0
 
     private suspend fun fetchRatingUpdateIfNecessary(gameId: String, gameEventType: GameEventType): RatingUpdate? =
         if (gameEndedStatuses.contains(gameEventType)) {

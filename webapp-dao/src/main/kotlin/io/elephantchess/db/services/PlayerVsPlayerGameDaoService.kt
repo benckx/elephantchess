@@ -23,6 +23,7 @@ import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
 import org.jooq.Condition
@@ -383,17 +384,18 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchRatingForUser(userId: String, timeControlCategory: TimeControlCategory): Int? {
-        return fetchRatingForUser(dslContext, userId, timeControlCategory)
+    suspend fun fetchRatingForUser(userId: String, timeControlCategory: TimeControlCategory, variant: Variant): Int? {
+        return fetchRatingForUser(dslContext, userId, timeControlCategory, variant)
     }
 
     private suspend fun fetchRatingForUser(
         context: DSLContext,
         userId: String,
         timeControlCategory: TimeControlCategory,
+        variant: Variant,
     ): Int? {
         return context
-            .select(findRatingField(timeControlCategory))
+            .select(findRatingField(timeControlCategory, variant))
             .from(USER)
             .where(USER.ID.eq((userId)))
             .awaitSingleValue()
@@ -544,6 +546,14 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     suspend fun fetchTimeControlCategory(gameId: String): TimeControlCategory? {
         return dslContext
             .select(GAME.TIME_CONTROL_CATEGORY)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue()
+    }
+
+    suspend fun fetchVariant(gameId: String): Variant? {
+        return dslContext
+            .select(GAME.VARIANT)
             .from(GAME)
             .where(GAME.ID.eq(gameId))
             .awaitSingleValue()
@@ -875,10 +885,11 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
         suspend fun persistRatingUpdate() {
             val timeControlCategory = gameRecord.timeControlCategory!!
-            val ratingField = findRatingField(timeControlCategory)
+            val variant = gameRecord.variant ?: Variant.XIANGQI
+            val ratingField = findRatingField(timeControlCategory, variant)
             // we use the current rating instead of the rating the user had at the beginning of the game
-            val inviterRating = fetchRatingForUser(transactional, gameRecord.inviter, timeControlCategory)
-            val inviteeRating = fetchRatingForUser(transactional, gameRecord.invitee, timeControlCategory)
+            val inviterRating = fetchRatingForUser(transactional, gameRecord.inviter, timeControlCategory, variant)
+            val inviteeRating = fetchRatingForUser(transactional, gameRecord.invitee, timeControlCategory, variant)
             val updatedRatings = updateRatingsCallback(gameRecord, outcome, inviterRating!!, inviteeRating!!)
 
             suspend fun updateUserRating(userId: String, rating: Int) {
@@ -962,14 +973,24 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             return field
         }
 
-        fun findRatingField(timeControlCategory: TimeControlCategory): TableField<UserRecord, Int> {
-            return when (timeControlCategory) {
-                TimeControlCategory.BULLET -> USER.GAME_RATING_BULLET
-                TimeControlCategory.BLITZ -> USER.GAME_RATING_BLITZ
-                TimeControlCategory.RAPID -> USER.GAME_RATING_RAPID
-                TimeControlCategory.CLASSICAL -> USER.GAME_RATING_CLASSICAL
-                TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
-                TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
+        fun findRatingField(timeControlCategory: TimeControlCategory, variant: Variant): TableField<UserRecord, Int> {
+            return when (variant) {
+                Variant.XIANGQI -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
+                }
+                Variant.MANCHU -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_MANCHU_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_MANCHU_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_MANCHU_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_MANCHU_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_MANCHU_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_MANCHU_CORRESPONDENCE
+                }
             }
         }
 

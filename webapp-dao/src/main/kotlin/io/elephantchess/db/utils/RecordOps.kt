@@ -6,6 +6,7 @@ import io.elephantchess.db.model.TimeControlRecord
 import io.elephantchess.model.*
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import org.apache.commons.lang3.BooleanUtils
 import io.elephantchess.sevenkingdoms.Color as Color7k
 
@@ -28,14 +29,24 @@ val User.roles: List<UserRole>
         return roles.toList()
     }
 
-fun User.rating(timeControlCategory: TimeControlCategory): Int {
-    return when (timeControlCategory) {
-        TimeControlCategory.BULLET -> gameRatingBullet
-        TimeControlCategory.BLITZ -> gameRatingBlitz
-        TimeControlCategory.RAPID -> gameRatingRapid
-        TimeControlCategory.CLASSICAL -> gameRatingClassical
-        TimeControlCategory.SEVERAL_DAYS -> gameRatingSeveralDays
-        TimeControlCategory.CORRESPONDENCE -> gameRatingCorrespondence
+fun User.rating(timeControlCategory: TimeControlCategory, variant: Variant = Variant.XIANGQI): Int {
+    return when (variant) {
+        Variant.XIANGQI -> when (timeControlCategory) {
+            TimeControlCategory.BULLET -> gameRatingBullet
+            TimeControlCategory.BLITZ -> gameRatingBlitz
+            TimeControlCategory.RAPID -> gameRatingRapid
+            TimeControlCategory.CLASSICAL -> gameRatingClassical
+            TimeControlCategory.SEVERAL_DAYS -> gameRatingSeveralDays
+            TimeControlCategory.CORRESPONDENCE -> gameRatingCorrespondence
+        }
+        Variant.MANCHU -> when (timeControlCategory) {
+            TimeControlCategory.BULLET -> gameRatingManchuBullet!!
+            TimeControlCategory.BLITZ -> gameRatingManchuBlitz!!
+            TimeControlCategory.RAPID -> gameRatingManchuRapid!!
+            TimeControlCategory.CLASSICAL -> gameRatingManchuClassical!!
+            TimeControlCategory.SEVERAL_DAYS -> gameRatingManchuSeveralDays!!
+            TimeControlCategory.CORRESPONDENCE -> gameRatingManchuCorrespondence!!
+        }
     }
 }
 
