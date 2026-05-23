@@ -60,6 +60,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         timeControlIncrement: Int?,
         userType: UserType,
         userId: String,
+        variant: Variant = Variant.XIANGQI,
     ): List<Game> {
         var query =
             dslContext
@@ -71,6 +72,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .and(GAME.IS_RATED.eq(isRated))
                 .and(GAME.INVITER.notEqual(userId))
                 .and(GAME.PRIVATE_INVITE.eq(false))
+                .and(GAME.VARIANT.eq(variant))
 
         query = when (timeControlIncrement) {
             null -> query.and(GAME.TIME_CONTROL_INCREMENT.isNull)

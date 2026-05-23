@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitExecute
+import io.elephantchess.db.utils.awaitSingleRecord
 import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
@@ -19,7 +20,10 @@ import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.testutils.GameMovesDto
 import io.elephantchess.xiangqi.testutils.Ops.endsInCheckmate
+import io.elephantchess.xiangqi.testutils.ResourcesUtils
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
 import org.koin.core.component.inject
@@ -494,6 +498,160 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         )
 
         assertEquals(PERPETUAL_CHECKING, response.gameEventType)
+    }
+
+    /**
+     * Two Manchu games with compatible colors should be matched together.
+     */
+    @Test
+    fun joinMatchingGameManchuTest01() = runTest {
+        val request1 = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false,
+            variant = Variant.MANCHU
+        )
+
+        val request2 = request1.copy(inviterColor = BLACK)
+
+        val response1 = pvpGameService.createGame(userId1, request1)
+        val response2 = pvpGameService.createGame(userId2, request2)
+
+        assertEquals(CREATED, response1.eventType)
+        assertEquals(RED, response1.color)
+
+        assertEquals(JOINED, response2.eventType)
+        assertEquals(BLACK, response2.color)
+
+        assertEquals(1, countGameByStatus(JOINED))
+        assertEquals(0, countGameByStatus(CREATED))
+    }
+
+    /**
+     * A Manchu game and a Xiangqi game with compatible colors should NOT be matched together —
+     * variant must be part of the matching criteria.
+     */
+    @Test
+    fun joinMatchingGameIncompatibleTest07() = runTest {
+        val manchuRequest = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false,
+            variant = Variant.MANCHU
+        )
+
+        val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
+
+        val response1 = pvpGameService.createGame(userId1, manchuRequest)
+        val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
+
+        assertEquals(CREATED, response1.eventType)
+        assertEquals(RED, response1.color)
+
+        assertEquals(CREATED, response2.eventType)
+        assertEquals(BLACK, response2.color)
+
+        assertEquals(0, countGameByStatus(JOINED))
+        assertEquals(2, countGameByStatus(CREATED))
+    }
+
+    /**
+     * Play a rated Manchu game to completion and verify that only the Manchu rating columns
+     * are updated — Xiangqi ratings must remain at the default 1000.
+     */
+    @Test
+    fun happyPathManchuTest01() = runTest {
+        val gameId = createAndJoinManchuGame(RED)
+        val manchuMoves = loadFirstManchuGame()
+
+        manchuMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
+            val result = pvpGameService.playMove(
+                userId = userIdToPlay(gameId),
+                request = PlayMoveRequest(gameId, move)
+            )
+            assertEquals(i + 1, result.updatedIndex)
+            assertNull(result.gameEventType)
+            assertNull(result.ratingUpdate)
+        }
+
+        val lastMoveResult = pvpGameService.playMove(
+            userId = userIdToPlay(gameId),
+            request = PlayMoveRequest(gameId, manchuMoves.uciMoves.last())
+        )
+
+        assertNotNull(lastMoveResult.gameEventType)
+        val ratingUpdate = lastMoveResult.ratingUpdate!!
+        assertEquals(true, ratingUpdate.isRated)
+        assertEquals(1_000, ratingUpdate.inviterRatingFrom)
+        assertEquals(1_000, ratingUpdate.inviteeRatingFrom)
+
+        // Xiangqi RAPID rating must remain unchanged at 1000
+        val xiangqiRating1 = dslContext
+            .select(USER.GAME_RATING_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId1.id))
+            .awaitSingleValue<Int>()!!
+        val xiangqiRating2 = dslContext
+            .select(USER.GAME_RATING_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId2.id))
+            .awaitSingleValue<Int>()!!
+        assertEquals(1_000, xiangqiRating1)
+        assertEquals(1_000, xiangqiRating2)
+
+        // At least one Manchu RAPID rating must have changed
+        val manchuRating1 = dslContext
+            .select(USER.GAME_RATING_MANCHU_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId1.id))
+            .awaitSingleValue<Int>()!!
+        val manchuRating2 = dslContext
+            .select(USER.GAME_RATING_MANCHU_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId2.id))
+            .awaitSingleValue<Int>()!!
+        assertTrue(manchuRating1 != 1_000 || manchuRating2 != 1_000)
+    }
+
+    private suspend fun createManchuGame(inviterColor: Color): String {
+        val request = CreateGameRequest(
+            inviterColor = inviterColor,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false,
+            variant = Variant.MANCHU
+        )
+
+        val response = pvpGameService.createGame(userId1, request)
+        return response.gameId
+    }
+
+    private suspend fun createAndJoinManchuGame(inviterColor: Color): String {
+        val gameId = createManchuGame(inviterColor)
+        pvpGameService.joinGame(userId2, JoinGameRequest(gameId))
+        return gameId
+    }
+
+    private fun loadFirstManchuGame(): GameMovesDto {
+        val firstLine = ResourcesUtils.getResourceAsText("/manchu.txt")
+            .split("\n")
+            .first { it.isNotBlank() }
+        val (gameId, moves) = firstLine.split(";")
+        return GameMovesDto(gameId, moves.split(","))
     }
 
     private suspend fun createGame(inviterColor: Color): String {

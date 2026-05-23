@@ -352,7 +352,8 @@ class PlayerVsPlayerGameService(
                 timeControlBase = request.timeControlBase,
                 timeControlIncrement = request.timeControlIncrement,
                 userType = userId.userType,
-                userId = userId.id
+                userId = userId.id,
+                variant = request.variant
             )
             .filter { gameRecord -> isOnline(gameRecord.inviter) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
