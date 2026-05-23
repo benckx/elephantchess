@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class SimpleBoardPage extends BasePage {
+class TestBoardPage extends BasePage {
 
     constructor() {
         super();
@@ -41,8 +41,12 @@ class SimpleBoardPage extends BasePage {
         });
 
         new SettingsGui(boardGui, moveTreeWidget);
+
+        if (isManchu) {
+            document.getElementById('manchu-explanation').style.display = 'block';
+        }
     }
 
 }
 
-window.onload = () => new SimpleBoardPage();
+window.onload = () => new TestBoardPage();

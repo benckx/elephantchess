@@ -2464,9 +2464,6 @@
         <addColumn tableName="bot_game">
             <column name="variant" type="varchar(20)" defaultValue="XIANGQI"/>
         </addColumn>
-    </changeSet>
-    <changeSet id="0100" author="benckx">
-        <comment>Add Manchu variant rating fields to user table</comment>
         <addColumn tableName="user">
             <column name="game_rating_manchu_bullet" type="int" defaultValueNumeric="1000">
                 <constraints nullable="false"/>
