@@ -600,7 +600,7 @@ class GameDataService(
             status = gameRecord.gameStatus,
             outcome = gameRecord.outcome,
             lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
-            variant = gameRecord.variant ?: Variant.XIANGQI,
+            variant = gameRecord.variant
         )
     }
 

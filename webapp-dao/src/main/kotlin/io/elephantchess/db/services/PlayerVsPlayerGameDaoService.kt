@@ -395,11 +395,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchRatingForUser(
-        userId: String,
-        timeControlCategory: TimeControlCategory,
-        variant: Variant
-    ): Int? {
+    suspend fun fetchRatingForUser(userId: String, timeControlCategory: TimeControlCategory, variant: Variant): Int? {
         return fetchRatingForUser(dslContext, userId, timeControlCategory, variant)
     }
 
@@ -900,7 +896,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
         suspend fun persistRatingUpdate() {
             val timeControlCategory = gameRecord.timeControlCategory!!
-            val variant = gameRecord.variant ?: Variant.XIANGQI
+            val variant = gameRecord.variant
             val ratingField = findRatingField(timeControlCategory, variant)
             // we use the current rating instead of the rating the user had at the beginning of the game
             val inviterRating = fetchRatingForUser(transactional, gameRecord.inviter, timeControlCategory, variant)

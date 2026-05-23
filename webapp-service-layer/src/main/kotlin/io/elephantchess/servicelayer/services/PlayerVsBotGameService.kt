@@ -153,14 +153,10 @@ class PlayerVsBotGameService(
         // Manchu variant requires Fairy Stockfish.
         // If Pikafish is requested but the start FEN is non-standard, safeQueryForDepth will
         // use Fairy Stockfish instead, so we persist the effective engine/version that will be used.
-        val effectiveEngine = if (request.variant == Variant.MANCHU ||
-            (request.engine == Engine.PIKAFISH && isNonStandardFen(actualStartFen))
-        ) {
-            Engine.FAIRYSTOCKFISH
-        } else {
-            request.engine
-        }
 
+        val isVariant = request.variant == Variant.MANCHU
+        val isUnsupportedByPikafish = isNonStandardFen(actualStartFen)
+        val effectiveEngine = if (isVariant || isUnsupportedByPikafish) Engine.FAIRYSTOCKFISH else request.engine
         val engineVersion = when (effectiveEngine) {
             Engine.PIKAFISH -> pikafishVersion
             Engine.FAIRYSTOCKFISH -> fairyStockfishVersion
@@ -273,7 +269,7 @@ class PlayerVsBotGameService(
 
         // TODO: use same pattern as in GameService with TryEither
         pvbGameDaoService.saveUserMoveResult(request.gameId, request.move) { gameRecord, userMove ->
-            val gameVariant = gameRecord.variant ?: Variant.XIANGQI
+            val gameVariant = gameRecord.variant
             val userColor = gameRecord.userColor
             val botColor = userColor.reverse()
 
@@ -372,6 +368,7 @@ class PlayerVsBotGameService(
 
         val canUseOpeningRepository =
             usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
+
         return if (canUseOpeningRepository) {
             playFromOpeningRepository(gameId, userMove) ?: playWithEngine()
         } else {
@@ -402,7 +399,7 @@ class PlayerVsBotGameService(
         position: Int,
         engine: Engine,
         depth: Int,
-        variant: Variant = Variant.XIANGQI,
+        variant: Variant,
     ): BotMove? {
         suspend fun queryEngine(fenToEngine: String): InfoLinesResult? {
             return enginesPool.safeQueryForDepth(fenToEngine, modelToProcess(engine), depth, 15_000, variant)

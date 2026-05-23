@@ -40,12 +40,12 @@ fun User.rating(timeControlCategory: TimeControlCategory, variant: Variant = Var
             TimeControlCategory.CORRESPONDENCE -> gameRatingCorrespondence
         }
         Variant.MANCHU -> when (timeControlCategory) {
-            TimeControlCategory.BULLET -> gameRatingManchuBullet!!
-            TimeControlCategory.BLITZ -> gameRatingManchuBlitz!!
-            TimeControlCategory.RAPID -> gameRatingManchuRapid!!
-            TimeControlCategory.CLASSICAL -> gameRatingManchuClassical!!
-            TimeControlCategory.SEVERAL_DAYS -> gameRatingManchuSeveralDays!!
-            TimeControlCategory.CORRESPONDENCE -> gameRatingManchuCorrespondence!!
+            TimeControlCategory.BULLET -> gameRatingManchuBullet
+            TimeControlCategory.BLITZ -> gameRatingManchuBlitz
+            TimeControlCategory.RAPID -> gameRatingManchuRapid
+            TimeControlCategory.CLASSICAL -> gameRatingManchuClassical
+            TimeControlCategory.SEVERAL_DAYS -> gameRatingManchuSeveralDays
+            TimeControlCategory.CORRESPONDENCE -> gameRatingManchuCorrespondence
         }
     }
 }
