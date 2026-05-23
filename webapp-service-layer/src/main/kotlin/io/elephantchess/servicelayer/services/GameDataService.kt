@@ -74,6 +74,11 @@ class GameDataService(
                 pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
     }
 
+    suspend fun countTotalManchuGames(): Int {
+        return pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
+                pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
+    }
+
     /**
      * Half moves or plies
      */

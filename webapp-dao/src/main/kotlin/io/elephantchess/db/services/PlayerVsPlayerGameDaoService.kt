@@ -298,6 +298,15 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()!!
     }
 
+    suspend fun countManchuGames(minMoveIndex: Int): Int {
+        return dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.VARIANT.eq(Variant.MANCHU))
+            .awaitSingleValue()!!
+    }
+
     suspend fun countTotalMoves(): Int {
         return dslContext
             .selectCount()

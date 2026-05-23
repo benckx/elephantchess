@@ -151,7 +151,8 @@ class GlobalAnalyticsService(
                 totalGames = totalGames,
                 totalInAppGames = totalInAppGames,
                 totalMoves = totalMoves,
-                totalInAppMoves = totalInAppMovesMap
+                totalInAppMoves = totalInAppMovesMap,
+                totalManchuGames = gameDataService.countTotalManchuGames()
             )
         }
 

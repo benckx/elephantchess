@@ -19,6 +19,7 @@ import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -272,6 +273,15 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .selectCount()
             .from(BOT_GAME)
             .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex))
+            .awaitSingleValue()!!
+    }
+
+    suspend fun countManchuGames(minIndex: Int): Int {
+        return dslContext
+            .selectCount()
+            .from(BOT_GAME)
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex))
+            .and(BOT_GAME.VARIANT.eq(Variant.MANCHU))
             .awaitSingleValue()!!
     }
 
