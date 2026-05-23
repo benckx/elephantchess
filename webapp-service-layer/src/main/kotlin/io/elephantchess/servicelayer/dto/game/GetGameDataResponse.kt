@@ -30,5 +30,5 @@ data class GetGameDataResponse(
     val outcome: Outcome?,
     val ratingUpdate: RatingUpdate?,
     val drawPropositionUser: String?,
-    val variant: Variant = Variant.XIANGQI,
+    val variant: Variant
 )

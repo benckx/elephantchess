@@ -526,7 +526,7 @@ class PlayerVsPlayerGameService(
             gameEventType = gameRecord.gameStatus,
             outcome = gameRecord.outcome,
             drawPropositionUser = gameRecord.drawPropositionUser,
-            variant = gameRecord.variant ?: Variant.XIANGQI,
+            variant = gameRecord.variant,
         )
     }
 
