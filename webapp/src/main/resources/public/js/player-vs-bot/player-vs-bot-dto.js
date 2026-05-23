@@ -89,6 +89,7 @@ class BotGameDto {
     #engine;
     #depth;
     #startFen;
+    #variant;
     #status;
     #moveIndex;
     #fen;
@@ -107,6 +108,7 @@ class BotGameDto {
         if (this.#startFen == null) {
             this.#startFen = DEFAULT_START_FEN;
         }
+        this.#variant = json.variant ?? Variant.XIANGQI;
         this.#status = json.status;
         this.#moveIndex = Number(json.moveIndex);
         this.#fen = json.fen;
@@ -184,13 +186,17 @@ class BotGameDto {
     }
 
     /**
-     * 'M' is the banner (super-chariot) piece, exclusive to Manchu chess.
-     * No standard Xiangqi FEN ever contains 'M', so its presence uniquely identifies Manchu games.
-     *
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
+    }
+
+    /**
      * @return {boolean}
      */
     get isManchu() {
-        return this.#startFen != null && this.#startFen.includes('M');
+        return this.#variant === Variant.MANCHU;
     }
 
     /**
