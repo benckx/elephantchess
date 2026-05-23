@@ -23,8 +23,9 @@ The webapp offers the following features:
   try to specify when we talk about the "PostgreSQL database" or the "Database" as a feature.
 - Analysis board, where users can create complex analysis, with engine evaluation, multiple embedded variations,
   annotations (i.e. `??`, `?!` symbols) and comments.
-- Manchu chess (or Yitong) variant: Red plays with a single super-chariot. Supported in PvP and PvB (Fairy Stockfish
-  only); analysis is not available for Manchu games at the moment.
+- Manchu chess variant (also called Yitong): Black's pieces are set up and move the same as in xiangqi, but horses,
+  cannons, and one of the chariots are absent for Red. The remaining chariot has the combined powers of the chariot,
+  horse, and cannon.
 - By default, users are assigned a temporary guest user id. They can also sign up with an email and password to keep
   their data across devices and access all features.
 
@@ -511,9 +512,7 @@ best move: h2e2
 ### xiangqi-core
 
 Kotlin library providing a representation of a Chinese chess board. Supports both standard Xiangqi and the Manchu
-chess (Yitong) variant. In Manchu chess, Red's starting position is
-`rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/M1BAKAB2 w - - 0 0`), where `M`is the super-chariot that combines
-chariot, horse and cannon movement.
+chess (Yitong) variant.
 
 #### Example 1
 

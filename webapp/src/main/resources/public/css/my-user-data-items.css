@@ -122,27 +122,6 @@
     box-sizing: border-box;
 }
 
-.my-game-item .variant-pane .variant-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-}
-
-.my-game-item .variant-pane .variant-symbol {
-    font-size: 24px;
-    color: #343434;
-    line-height: 1;
-}
-
-.my-game-item .variant-pane .variant-name {
-    color: #3a3a3a;
-    font-size: 10px;
-    line-height: 1;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
 
 .my-game-item .middle-pane {
     flex: 1;

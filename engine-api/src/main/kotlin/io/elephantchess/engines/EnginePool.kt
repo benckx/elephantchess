@@ -116,7 +116,7 @@ class EnginePool(
             engineProcess.quit()
         }
 
-        suspend fun queryForBestMove(fen: String, depth: Int, variant: Variant = Variant.XIANGQI): InfoLinesResult {
+        suspend fun queryForBestMove(fen: String, depth: Int, variant: Variant): InfoLinesResult {
             return engineProcess.queryForBestMove(fen, depth, variant)
         }
 
