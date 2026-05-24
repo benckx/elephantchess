@@ -2255,7 +2255,8 @@ img#navigation-end {
     padding-bottom: 6px;
 }
 
-.guest-message-box a {
+.guest-message-box a,
+.guest-message-box .action-link {
     font-weight: bold;
 }
 
