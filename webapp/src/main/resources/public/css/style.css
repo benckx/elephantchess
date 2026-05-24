@@ -1406,8 +1406,9 @@ table.info-box-sub-table td.values {
     text-decoration: underline;
     font-size: 14px;
     font-style: italic;
+    font-weight: bold;
     line-height: 1;
-    z-index: 1201;
+    z-index: 100;
 }
 
 #settings-info-box-container #advanced-settings-toggle:hover {
