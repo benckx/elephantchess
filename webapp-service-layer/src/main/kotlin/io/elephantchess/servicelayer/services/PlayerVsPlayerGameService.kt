@@ -5,6 +5,7 @@ import io.elephantchess.db.callback.PlayMoveCallbackResult
 import io.elephantchess.db.callback.UpdateRatingsCallbackResult
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.dao.codegen.tables.pojos.GameChatMessage
+import io.elephantchess.db.model.HasJoinedRecord
 import io.elephantchess.db.model.TimeControlRecord
 import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.db.services.GameChatTypingStatusDaoService
@@ -142,106 +143,117 @@ class PlayerVsPlayerGameService(
     private suspend fun refreshPlayerVsPlayerSessions() {
         val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
         val stateMap = pvpGameDaoService.fetchGameStates(allGameIds)
+        val now = Clock.System.now()
 
         // chat
         val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
-        val chatTypingStatusCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
+        val chatTypingStatusCutOff = now - TYPING_FRESHNESS_WINDOW
         val chatTypingStatusMap = gameChatTypingStatusDaoService.fetchForGameIds(allGameIds, chatTypingStatusCutOff)
 
-        // TODO: not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
-        //   DAO access could be cached in Map and stuff
-        playerVsPlayerSessions
-            .forEach { session ->
-                val gameId = session.gameId
-                val gameState = stateMap[gameId]!!
-                val status = gameState.gameEventType
-                val index = gameState.index
+        val hasJoinedDataCache = mutableMapOf<String, CachedValue<HasJoinedRecord?>>()
+        val moveCache = mutableMapOf<String, CachedValue<NewMove?>>()
+        val timeRemainingCache = mutableMapOf<String, CachedValue<TimeRemaining?>>()
+        val drawPropositionUserCache = mutableMapOf<String, CachedValue<String?>>()
 
-                // update opponent if necessary
-                var hasJoinedEvent: HasJoined? = null
-                if (session.isWaitingToBeJoined()) {
-                    val hasJoinedRecord = pvpGameDaoService.fetchHasJoinedData(gameId)
-                    if (hasJoinedRecord?.invitee != null) {
-                        val inviteeId = hasJoinedRecord.invitee!!
-                        hasJoinedEvent = HasJoined(
-                            inviteeId = inviteeId,
-                            inviteeUsername = userCache.fetchUsernameOrDefault(inviteeId),
-                            inviteeRating = hasJoinedRecord.inviteeRating!!,
-                            inviteeUserType = userCache.fetchUserType(inviteeId)!!,
-                            inviterColor = hasJoinedRecord.inviterColor
-                        )
-                    }
+        playerVsPlayerSessions.forEach { session ->
+            val gameId = session.gameId
+            val gameState = stateMap[gameId]!!
+            val status = gameState.gameEventType
+            val index = gameState.index
+
+            // update opponent if necessary
+            var hasJoinedEvent: HasJoined? = null
+            if (session.isWaitingToBeJoined()) {
+                val hasJoinedRecord = hasJoinedDataCache.cachedGetOrPut(gameId) {
+                    pvpGameDaoService.fetchHasJoinedData(gameId)
                 }
+                if (hasJoinedRecord?.invitee != null) {
+                    val inviteeId = hasJoinedRecord.invitee!!
+                    hasJoinedEvent = HasJoined(
+                        inviteeId = inviteeId,
+                        inviteeUsername = userCache.fetchUsernameOrDefault(inviteeId),
+                        inviteeRating = hasJoinedRecord.inviteeRating!!,
+                        inviteeUserType = userCache.fetchUserType(inviteeId)!!,
+                        inviterColor = hasJoinedRecord.inviterColor
+                    )
+                }
+            }
 
-                // update new move if necessary
-                var newMove: NewMove? = null
-                if (session.currentIndex() < index) {
-                    newMove = NewMove(
-                        move = pvpGameDaoService.fetchMoveAt(gameId, index - 1)!!.uci,
+            // update new move if necessary
+            var newMove: NewMove? = null
+            if (session.currentIndex() < index) {
+                newMove = moveCache.cachedGetOrPut(gameId) {
+                    NewMove(
+                        move = pvpGameDaoService.fetchMoveAt(gameId, index - 1)!!,
                         updatedIndex = index,
                         updatedFen = gameState.fen,
                     )
                 }
+            }
 
-                // time remaining
-                var timeRemaining: TimeRemaining? = null
-                if (session.mustSyncTime(Clock.System.now())) {
-                    timeRemaining = fetchTimeRemaining(gameId)
-                }
-
-                val chatMessages = mutableListOf<ChatMessage>()
-                if (session.currentChatIndex() < chatIndexes[gameId]!!) {
-                    chatMessages.addAll(
-                        chatMessageDaoService
-                            .listMessagesAfterOrEqualToIndex(gameId, session.currentChatIndex())
-                            .map { record -> mapRecordToDto(record) }
-                    )
-                }
-
-                // typing: collect all fresh typing events in this game from other users.
-                // Stale entries are filtered out at the DAO layer (see
-                // [TypingStatusDaoService.fetchTypingStatuses]), and clients are
-                // responsible for de-duplicating / hiding the indicator on their side.
-                val typingUsers = chatTypingStatusMap[gameId]
-                    ?.filter { entry -> entry.userId != session.userId.id }
-                    ?.map { entry ->
-                        TypingUser(
-                            userId = entry.userId,
-                            username = userCache.fetchUsernameOrDefault(entry.userId),
-                            typedAt = entry.typedAt.toEpochMilliseconds(),
-                        )
-                    }
-                    .orEmpty()
-
-                val shouldUpdate =
-                    session.currentStatus() != status ||
-                            newMove != null ||
-                            hasJoinedEvent != null ||
-                            timeRemaining != null ||
-                            chatMessages.isNotEmpty() ||
-                            typingUsers.isNotEmpty()
-
-                // update session
-                if (shouldUpdate) {
-                    var drawPropositionUser: String? = null
-                    if (status == DRAW_PROPOSED) {
-                        drawPropositionUser = pvpGameDaoService.fetchDrawPropositionUser(gameId)
-                    }
-
-                    session.update(
-                        PlayerVsPlayerUpdate(
-                            status = status,
-                            hasJoined = hasJoinedEvent,
-                            drawPropositionUser = drawPropositionUser,
-                            newMove = newMove,
-                            ratingUpdate = fetchRatingUpdateIfNecessaryWs(session.gameId, status),
-                            timeRemaining = timeRemaining,
-                            chatMessages = chatMessages,
-                            typingUsers = typingUsers,
-                        )
-                    )
+            // time remaining
+            var timeRemaining: TimeRemaining? = null
+            if (session.mustSyncTime(now)) {
+                timeRemaining = timeRemainingCache.cachedGetOrPut(gameId) {
+                    fetchTimeRemaining(gameId)
                 }
             }
+
+            val chatMessages = mutableListOf<ChatMessage>()
+            if (session.currentChatIndex() < chatIndexes[gameId]!!) {
+                chatMessages.addAll(
+                    chatMessageDaoService
+                        .listMessagesAfterOrEqualToIndex(gameId, session.currentChatIndex())
+                        .map { record -> mapRecordToDto(record) }
+                )
+            }
+
+            // typing: collect all fresh typing events in this game from other users.
+            // Stale entries are filtered out at the DAO layer (see
+            // [TypingStatusDaoService.fetchTypingStatuses]), and clients are
+            // responsible for de-duplicating / hiding the indicator on their side.
+            val typingUsers = chatTypingStatusMap[gameId]
+                ?.filter { entry -> entry.userId != session.userId.id }
+                ?.map { entry ->
+                    TypingUser(
+                        userId = entry.userId,
+                        username = userCache.fetchUsernameOrDefault(entry.userId),
+                        typedAt = entry.typedAt.toEpochMilliseconds(),
+                    )
+                }
+                .orEmpty()
+
+            val shouldUpdate =
+                session.currentStatus() != status ||
+                        newMove != null ||
+                        hasJoinedEvent != null ||
+                        timeRemaining != null ||
+                        chatMessages.isNotEmpty() ||
+                        typingUsers.isNotEmpty()
+
+            // update session
+            if (shouldUpdate) {
+                var drawPropositionUser: String? = null
+                if (status == DRAW_PROPOSED) {
+                    drawPropositionUser = drawPropositionUserCache.cachedGetOrPut(gameId) {
+                        pvpGameDaoService.fetchDrawPropositionUser(gameId)
+                    }
+                }
+
+                session.update(
+                    PlayerVsPlayerUpdate(
+                        status = status,
+                        hasJoined = hasJoinedEvent,
+                        drawPropositionUser = drawPropositionUser,
+                        newMove = newMove,
+                        ratingUpdate = fetchRatingUpdateIfNecessaryWs(session.gameId, status),
+                        timeRemaining = timeRemaining,
+                        chatMessages = chatMessages,
+                        typingUsers = typingUsers,
+                    )
+                )
+            }
+        }
 
         // remove the sessions that are not active anymore
         playerVsPlayerSessions.removeIf { session ->
@@ -1097,6 +1109,15 @@ class PlayerVsPlayerGameService(
             messageTime = message.messageTime.toEpochMilliseconds(),
             content = message.content
         )
+    }
+
+    private data class CachedValue<T>(val value: T)
+
+    private inline fun <K, V> MutableMap<K, CachedValue<V?>>.cachedGetOrPut(
+        key: K,
+        defaultValue: () -> V?
+    ): V? {
+        return getOrPut(key) { CachedValue(defaultValue()) }.value
     }
 
     private companion object {
