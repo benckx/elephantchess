@@ -30,6 +30,7 @@ class UserTurnToPlayIndicatorWidget {
     #emptyListMessage = document.getElementById(`${TURN_TO_PLAY_GAMES_PREFIX}-empty-list-message`);
 
     #isFirstRefresh = true;
+    #settingsManager = new SettingsManager();
     #newNotificationsAudio = new Audio('/audio/542013__rob_marion__gasp_ui_notification_2.mp3');
 
     constructor() {
@@ -55,7 +56,7 @@ class UserTurnToPlayIndicatorWidget {
 
         // play audio notification if we didn't have any entries before and we have some now
         if (this.#nbrOfElements === 0 && entriesToRender.length > 0 && !this.#isFirstRefresh) {
-            if (isPlaySoundsEnabled()) {
+            if (this.#settingsManager.isPlaySoundsEnabled) {
                 this.#newNotificationsAudio
                     .play()
                     .catch(() => {
