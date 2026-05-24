@@ -66,7 +66,7 @@ class PlayerVsBotGameService(
     private val pikafishVersion = appConfig.pikafishVersion
     private val fairyStockfishVersion = appConfig.fairyStockfishVersion
 
-    private val sessionsRefresh = 4.seconds
+    private val sessionsRefresh = 2.seconds
     private val wsSessions = mutableListOf<PvbWebSocketSession>()
 
     private val refreshJob = launchAtFixedRate(
