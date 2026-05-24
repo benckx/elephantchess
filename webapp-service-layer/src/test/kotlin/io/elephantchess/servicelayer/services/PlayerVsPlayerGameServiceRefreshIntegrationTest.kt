@@ -214,7 +214,9 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
     }
 
     private fun waitForRefreshTick() {
-        Thread.sleep(800)
+        runBlocking {
+            pvpGameService.refreshPlayerVsPlayerSessionsForTest()
+        }
     }
 
     private fun Channel<PlayerVsPlayerUpdate>.drain() {
