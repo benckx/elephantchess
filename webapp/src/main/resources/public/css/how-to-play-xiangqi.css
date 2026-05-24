@@ -44,7 +44,11 @@
 }
 
 .board-container-about {
-    height: 570px;
+    width: 570px;
+}
+
+#settings-info-box-container {
+    width: 330px;
 }
 
 @media (max-width: 1000px) {
@@ -65,5 +69,13 @@
 
     .piece-row .explanation {
         padding-right: 0;
+    }
+
+    .board-container-about {
+        width: 84%;
+    }
+
+    #settings-info-box-container {
+        width: 660px;
     }
 }
