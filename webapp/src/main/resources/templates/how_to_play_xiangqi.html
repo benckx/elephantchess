@@ -2,7 +2,8 @@
 <head>
     {{header_init}}
     <title>Xiangqi and Manchu Pieces - elephantchess.io</title>
-    <meta name="description" content="How to play Chinese chess (xiangqi). Interactive play ground of all xiangqi pieces.">
+    <meta name="description"
+          content="How to play Chinese chess (xiangqi). Interactive play ground of all xiangqi pieces.">
     <script defer src="/js/modules/engine.js"></script>
     <script defer src="/js/widgets/board-gui.js"></script>
     <link rel="stylesheet" href="/css/how-to-play-xiangqi.css"/>
@@ -14,13 +15,20 @@
     <h1>How to Play</h1>
     <hr/>
     <p>
-        This page lists all xiangqi pieces with interactive boards. You can hover pieces to visualize legal moves and
-        click to play moves on each test position.
+        This page lists all xiangqi pieces with interactive boards. You can click on the pieces to visualize and play
+        moves on each test position.
     </p>
     <p>
-        You can also open the full <a href="/board?medium=xiangqi_about">Xiangqi test board</a> and the
-        <a href="/board?variant=manchu&medium=xiangqi_about">Manchu test board</a>.
+        You can also play with the following to get familiar with the pieces:
     </p>
+    <ul>
+        <li>
+            <a href="/board?medium=how-to-play">Test Board</a>
+        </li>
+        <li>
+            <a href="/board?variant=manchu&medium=how-to-play">Manchu Test Board</a>
+        </li>
+    </ul>
 
     <h1>Moves</h1>
     <hr/>
@@ -83,7 +91,8 @@
             <div class="explanation">
                 <h2 id="horse-moves">Horse (傌 / 馬)</h2>
                 <p>
-                    The Horse moves one point orthogonally then one point diagonally outward. It can be blocked.
+                    The Horse moves one point orthogonally then one point diagonally outward. It can be blocked if the
+                    orthogonal square is already occupied.
                 </p>
                 <p>
                     It is represented by the letter N in FEN.
@@ -156,8 +165,8 @@
             <div class="explanation">
                 <h2 id="manchu-chariot-moves">Manchu Super Chariot (M)</h2>
                 <p>
-                    In Manchu chess (Yitong), Red has one super chariot that combines the powers of chariot, horse,
-                    and cannon.
+                    In the Manchu variant (also called Yitong), Red has a single super chariot that combines the powers
+                    of chariot, horse, and cannon.
                 </p>
                 <p>
                     It is represented by the letter M in FEN.
