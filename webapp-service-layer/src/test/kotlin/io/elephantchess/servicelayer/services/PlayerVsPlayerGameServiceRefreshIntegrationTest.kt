@@ -15,6 +15,7 @@ import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.xiangqi.testutils.GameMovesDto
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import kotlin.test.AfterTest
@@ -202,38 +203,24 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         }
     }
 
-    private fun Channel<PlayerVsPlayerUpdate>.awaitUpdate(expectedMove: String, expectedIndex: Int): PlayerVsPlayerUpdate {
-        val deadline = System.currentTimeMillis() + 4_000
-
-        while (System.currentTimeMillis() < deadline) {
-            var update = tryReceive().getOrNull()
-            while (update != null) {
+    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitUpdate(expectedMove: String, expectedIndex: Int): PlayerVsPlayerUpdate {
+        return withTimeout(4_000) {
+            var result: PlayerVsPlayerUpdate? = null
+            while (result == null) {
+                val update = receive()
                 val move = update.newMove
                 if (move != null && move.move == expectedMove && move.updatedIndex == expectedIndex) {
-                    return update
+                    result = update
                 }
-                update = tryReceive().getOrNull()
             }
-
-            Thread.sleep(25)
+            result
         }
-
-        error("Timed out waiting for update move=$expectedMove index=$expectedIndex")
     }
 
-    private fun Channel<PlayerVsPlayerUpdate>.awaitNextUpdate(): PlayerVsPlayerUpdate {
-        val deadline = System.currentTimeMillis() + 4_000
-
-        while (System.currentTimeMillis() < deadline) {
-            val update = tryReceive().getOrNull()
-            if (update != null) {
-                return update
-            }
-
-            Thread.sleep(25)
+    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitNextUpdate(): PlayerVsPlayerUpdate {
+        return withTimeout(4_000) {
+            receive()
         }
-
-        error("Timed out waiting for websocket update")
     }
 
 
