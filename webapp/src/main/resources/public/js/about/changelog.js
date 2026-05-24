@@ -21,16 +21,24 @@ class ChangelogPage extends BasePage {
 
     constructor() {
         super();
-        document.querySelectorAll('.anchor-copy-link').forEach((el) => {
-            el.addEventListener('click', () => {
-                const target = el.dataset.anchorTarget;
-                if (!target) return;
-                const link = `${getFullHost()}${window.location.pathname}#${target}`;
-                copyTextToClipboardAndNotify(link, 'Link copied to clipboard!');
-            });
-        });
     }
 
 }
+
+// Use event delegation on the document so the binding cannot be lost if
+// `.anchor-copy-link` nodes are added later or if `BasePage`'s constructor
+// throws before the per-element listeners would have been attached.
+document.addEventListener('click', (event) => {
+    const link = event.target.closest('.anchor-copy-link');
+    if (!link) return;
+
+    event.preventDefault();
+
+    const target = link.dataset.anchorTarget;
+    if (!target) return;
+
+    const url = `${getFullHost()}${window.location.pathname}#${target}`;
+    copyTextToClipboardAndNotify(url, 'Link copied to clipboard!');
+});
 
 window.onload = () => new ChangelogPage();

@@ -99,7 +99,7 @@ tr#outcome-row {
     bottom: 8px;
     right: 8px;
     z-index: 400;
-    width: 300px;
+    width: 378px;
     box-shadow: rgba(0, 0, 0, 0.4) 0 4px 10px;
     border-radius: 4px;
     overflow: hidden;
@@ -178,6 +178,10 @@ tr#outcome-row {
 @media (max-width: 1000px) {
     .time-counter {
         font-size: 46px;
+    }
+
+    #counter-box {
+        max-width: 420px;
     }
 
     #analysis-button-container-right-side {
