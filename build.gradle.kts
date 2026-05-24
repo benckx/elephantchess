@@ -69,14 +69,14 @@ subprojects {
     }
 
     dependencies {
-        implementation("io.github.oshai:kotlin-logging-jvm:8.0.02")
+        implementation("io.github.oshai:kotlin-logging-jvm:8.0.03")
         implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
         implementation("ch.qos.logback:logback-classic:$logbackVersion")
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutineVersion")
         testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.3")
+        testImplementation("org.junit.jupiter:junit-jupiter-params:6.1.0")
     }
 
     val nettyVersion = "4.2.12.Final"
