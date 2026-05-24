@@ -73,6 +73,7 @@ private fun htmlRendering() = module {
 
 private fun pageRendererModule(eagerAllowed: Boolean) = module {
     singleAuto<SimplePageRenderer>(eager = eagerAllowed)
+    singleAuto<GamePageRenderer>(eager = eagerAllowed)
     singleAuto<UserProfilePageRenderer>(eager = eagerAllowed)
     singleAuto<DatabasePageRenderer>(eager = eagerAllowed)
     singleAuto<BoardGuiExampleRenderer>(eager = eagerAllowed)

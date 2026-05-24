@@ -22,7 +22,6 @@ private val simplePublicPageMapping = mapOf(
     "/401" to "401",
     "/403" to "403",
     "/404" to "404",
-    "/game" to "player_vs_player_game",
     "/puzzles" to "puzzles",
     "/board" to "test_board",
     "/database" to "database/database_search",
@@ -43,7 +42,6 @@ private val simplePublicPageMapping = mapOf(
 
 private val simplePublicPageMappingWithSupporterBanner = mapOf(
     "/" to "lobby",
-    "/playbot" to "player_vs_bot",
 )
 
 private val publicPageRedirection = mapOf(
@@ -92,12 +90,29 @@ fun Application.htmlRoutingModule() {
     routing {
         simpleMappings()
         simpleMappingsWithSupporterBanner()
+        gamePages()
         boardGuiExample()
         userProfile()
         modals()
         databasePages()
         aboutPages()
         emailSettingUpdatePages()
+    }
+}
+
+private fun Route.gamePages() {
+    val renderer by koin<GamePageRenderer>()
+    val kofiService by koin<KofiService>()
+
+    get("/game") {
+        val gameId = call.parameters["id"]
+        call.respondHtml(renderer.renderPvpGamePage(gameId))
+    }
+
+    get("/playbot") {
+        val gameId = call.parameters["id"]
+        val latestTipper = kofiService.fetchLatestSupporter()
+        call.respondHtml(renderer.renderPvbGamePage(gameId, latestTipper))
     }
 }
 
