@@ -439,7 +439,7 @@ iframe {
     }
 
     .game-to-join-variant-pane .variant-name {
-        font-size: 18px;
+        font-size: 20px;
     }
 
     #games-to-join-list-container {
@@ -491,16 +491,15 @@ iframe {
     }
 
     .game-to-join-custom-time-line {
-        font-size: 24px;
+        font-size: 30px;
     }
 
     .game-to-join-time-duration-cell {
-        font-size: 24px;
+        font-size: 28px;
     }
 
     .game-to-join-rating-mode-cell {
-        font-size: 24px;
-        gap: 2px;
+        font-size: 30px;
     }
 
     .game-to-join-rating-mode-icon {
