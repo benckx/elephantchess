@@ -193,11 +193,19 @@ class PlayerVsPlayerGameService(
                 var newMove: NewMove? = null
                 if (session.currentIndex() < index) {
                     newMove = moveCache.cachedGetOrPut(gameId) {
-                        NewMove(
-                            move = pvpGameDaoService.fetchMoveAt(gameId, index - 1)!!,
-                            updatedIndex = index,
-                            updatedFen = gameState.fen,
-                        )
+                        val move = pvpGameDaoService.fetchMoveAt(gameId, index - 1)
+                        if (move == null) {
+                            logger.warn {
+                                "Skipping newMove refresh for gameId=$gameId at index=${index - 1} because fetchMoveAt returned null"
+                            }
+                            null
+                        } else {
+                            NewMove(
+                                move = move,
+                                updatedIndex = index,
+                                updatedFen = gameState.fen,
+                            )
+                        }
                     }
                 }
 
