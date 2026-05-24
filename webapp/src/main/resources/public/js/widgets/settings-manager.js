@@ -27,6 +27,14 @@ const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
 const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
 
 /**
+ * @return {boolean}
+ */
+function isPlaySoundsEnabled() {
+    const cookieValue = getCookie(PLAY_SOUNDS_SETTING);
+    return cookieValue === null ? true : cookieValue === "true";
+}
+
+/**
  * User-facing style of the board coordinate labels.
  * Combines the WXF orientation and (for WXF) the numeral system used for file labels.
  */
@@ -109,8 +117,7 @@ class SettingsManager {
      * @return {boolean}
      */
     get isPlaySoundsEnabled() {
-        const cookieValue = getCookie(PLAY_SOUNDS_SETTING);
-        return cookieValue === null ? true : cookieValue === "true";
+        return isPlaySoundsEnabled();
     }
 
     /**

@@ -152,7 +152,7 @@ class PlayGamePage extends BasePage {
                     this.#updatePlayersInfo();
                     if (this.#gameController.gameDto.userStatus !== UserStatus.INVITEE) {
                         UI.pushInfoNotification(`${this.#gameController.gameDto.inviteeUsername} has joined the game`, 4_000);
-                        if (this.#isPlaySoundsEnabled()) {
+                        if (isPlaySoundsEnabled()) {
                             this.#joinAudio
                                 .play()
                                 .catch(() => {
@@ -301,13 +301,6 @@ class PlayGamePage extends BasePage {
                 this.#gameController.sendTypingEvent();
             }
         });
-    }
-
-    #isPlaySoundsEnabled() {
-        const playSoundsCookie = document.cookie
-            .split('; ')
-            .find(cookie => cookie.startsWith('setting.play.sounds='));
-        return playSoundsCookie == null || !playSoundsCookie.endsWith('false');
     }
 
     #updateGui() {

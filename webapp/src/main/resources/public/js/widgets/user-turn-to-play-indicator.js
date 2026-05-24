@@ -55,7 +55,7 @@ class UserTurnToPlayIndicatorWidget {
 
         // play audio notification if we didn't have any entries before and we have some now
         if (this.#nbrOfElements === 0 && entriesToRender.length > 0 && !this.#isFirstRefresh) {
-            if (this.#isPlaySoundsEnabled()) {
+            if (isPlaySoundsEnabled()) {
                 this.#newNotificationsAudio
                     .play()
                     .catch(() => {
@@ -67,13 +67,6 @@ class UserTurnToPlayIndicatorWidget {
         this.#nbrOfElements = entriesToRender.length;
         this.#renderList(entriesToRender);
         this.#isFirstRefresh = false;
-    }
-
-    #isPlaySoundsEnabled() {
-        const playSoundsCookie = document.cookie
-            .split('; ')
-            .find(cookie => cookie.startsWith('setting.play.sounds='));
-        return playSoundsCookie == null || !playSoundsCookie.endsWith('false');
     }
 
     /**
