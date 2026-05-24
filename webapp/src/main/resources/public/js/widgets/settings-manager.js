@@ -21,6 +21,7 @@ const PIECE_STYLE_SETTING = 'setting.piece.style';
 const SHOW_COORDINATES_SETTING = 'setting.show.coordinates';
 const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
 const MOVE_FORMAT_SETTING = 'setting.move.format';
+const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const MOVE_NODE_EVAL_FORMAT = 'setting.move.node.eval.format';
 const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
 const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
@@ -102,6 +103,21 @@ class SettingsManager {
      */
     set isShowCoordinatesEnabled(value) {
         setCookie(SHOW_COORDINATES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isPlaySoundsEnabled() {
+        const cookieValue = getCookie(PLAY_SOUNDS_SETTING);
+        return cookieValue === null ? true : cookieValue === "true";
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isPlaySoundsEnabled(value) {
+        setCookie(PLAY_SOUNDS_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
     }
 
     /**
@@ -262,6 +278,7 @@ function buildWebappBoardGuiOptions(overrides = {}) {
     // const isLocalHost = false;
     return {
         coordinatesOrientation: settingsManager.getCoordinatesOrientation(),
+        playSounds: settingsManager.isPlaySoundsEnabled,
         pieceStyle: settingsManager.pieceStyle,
         colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
         fileNumbersStyle: settingsManager.getFileNumbersStyle(),
@@ -327,6 +344,8 @@ class SettingsGui {
 
     #showCoordinatesEnabledRadio = document.getElementById('show-coordinates-enabled-radio');
     #showCoordinatesDisabledRadio = document.getElementById('show-coordinates-disabled-radio');
+    #playSoundsEnabledRadio = document.getElementById('play-sounds-enabled-radio');
+    #playSoundsDisabledRadio = document.getElementById('play-sounds-disabled-radio');
 
     #coordinatesStyleWxfArabicRadio = document.getElementById('coordinates-style-wxf-arabic-radio');
     #coordinatesStyleWxfChineseRadio = document.getElementById('coordinates-style-wxf-chinese-radio');
@@ -478,6 +497,30 @@ class SettingsGui {
             if (this.#colorblindFriendlyBlackPiecesDisabledRadio.checked) {
                 this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = false;
                 this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(false));
+            }
+        }
+
+        // play sounds
+        const updatePlaySoundsRadios = (enabled) => {
+            this.#playSoundsEnabledRadio.checked = enabled;
+            this.#playSoundsDisabledRadio.checked = !enabled;
+        }
+        const setPlaySoundsEnabled = (enabled) => {
+            if (this.#settingsManager.isPlaySoundsEnabled === enabled) {
+                return;
+            }
+            this.#settingsManager.isPlaySoundsEnabled = enabled;
+            this.#boardGuis.forEach(boardGui => boardGui.updatePlaySounds(enabled));
+        }
+        updatePlaySoundsRadios(this.#settingsManager.isPlaySoundsEnabled);
+        this.#playSoundsEnabledRadio.onchange = () => {
+            if (this.#playSoundsEnabledRadio.checked) {
+                setPlaySoundsEnabled(true);
+            }
+        }
+        this.#playSoundsDisabledRadio.onchange = () => {
+            if (this.#playSoundsDisabledRadio.checked) {
+                setPlaySoundsEnabled(false);
             }
         }
 

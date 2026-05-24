@@ -81,6 +81,7 @@ class PlayGamePage extends BasePage {
      */
     #shareLinkActions = getElementsByClassNameArray('share-link-mask-action');
 
+    #settingsManager = new SettingsManager();
     #joinAudio = new Audio('/audio/624598__eqylizer__high-pitched-two-note-notification.mp3');
 
     #hasRenderedJoinModal = false;
@@ -152,11 +153,13 @@ class PlayGamePage extends BasePage {
                     this.#updatePlayersInfo();
                     if (this.#gameController.gameDto.userStatus !== UserStatus.INVITEE) {
                         UI.pushInfoNotification(`${this.#gameController.gameDto.inviteeUsername} has joined the game`, 4_000);
-                        this.#joinAudio
-                            .play()
-                            .catch(() => {
-                                // ignored, spam error in console in dev
-                            });
+                        if (this.#settingsManager.isPlaySoundsEnabled) {
+                            this.#joinAudio
+                                .play()
+                                .catch(() => {
+                                    // ignored, spam error in console in dev
+                                });
+                        }
                     }
                     this.#updateBoardMaskMessage();
                 },
