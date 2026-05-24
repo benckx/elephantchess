@@ -49,7 +49,7 @@ class XiangqiAboutPage extends BasePage {
         this.#initResetButton('reset-soldier-board-button', () => this.#resetSoldierBoard());
         this.#initResetButton('reset-manchu-chariot-board-button', () => this.#resetManchuChariotBoard());
 
-        this.#settingsGui = new SettingsGui(this.#boardGuiGeneral, null, false, false);
+        this.#settingsGui = new SettingsGui(this.#boardGuiGeneral, null, false, true);
         this.#settingsGui.addBoardGui(this.#boardGuiAdvisor);
         this.#settingsGui.addBoardGui(this.#boardGuiElephant);
         this.#settingsGui.addBoardGui(this.#boardGuiHorse);
