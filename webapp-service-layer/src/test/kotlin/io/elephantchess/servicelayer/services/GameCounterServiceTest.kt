@@ -62,25 +62,29 @@ class GameCounterServiceTest : ServiceTest() {
 
     @Test
     fun `bot game counters include short checkmated games`() = runTest {
-        insertBotGame(CHECKMATED)
-        insertBotGame(CREATED)
+        insertBotGame(CHECKMATED, Variant.MANCHU)
+        insertBotGame(STALEMATED, Variant.XIANGQI)
+        insertBotGame(CREATED, Variant.MANCHU)
 
-        assertEquals(1, pvbGameDaoService.countTotalGames(GameDataService.MIN_MOVE_INDEX))
+        assertEquals(2, pvbGameDaoService.countTotalGames(GameDataService.MIN_MOVE_INDEX))
         assertEquals(1, pvbGameDaoService.countManchuGames(GameDataService.MIN_MOVE_INDEX))
     }
 
     @Test
     fun `player game counters include short stalemated games`() = runTest {
-        val countedGameId = createAndJoinManchuGame()
+        val countedGameId = createAndJoinGame(Variant.MANCHU)
         pvpGameDaoService.updateStatus(userId1.id, countedGameId, STALEMATED, RED_WINS)
 
-        createAndJoinManchuGame()
+        val xiangqiGameId = createAndJoinGame(Variant.XIANGQI)
+        pvpGameDaoService.updateStatus(userId1.id, xiangqiGameId, CHECKMATED, RED_WINS)
 
-        assertEquals(1, pvpGameDaoService.countTotalGames(GameDataService.MIN_MOVE_INDEX))
+        createAndJoinGame(Variant.MANCHU)
+
+        assertEquals(2, pvpGameDaoService.countTotalGames(GameDataService.MIN_MOVE_INDEX))
         assertEquals(1, pvpGameDaoService.countManchuGames(GameDataService.MIN_MOVE_INDEX))
     }
 
-    private suspend fun createAndJoinManchuGame(): String {
+    private suspend fun createAndJoinGame(variant: Variant): String {
         val gameId = pvpGameService.createGame(
             userId1,
             CreateGameRequest(
@@ -92,7 +96,7 @@ class GameCounterServiceTest : ServiceTest() {
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
                 privateInvite = false,
-                variant = Variant.MANCHU
+                variant = variant
             )
         ).gameId
 
@@ -101,7 +105,7 @@ class GameCounterServiceTest : ServiceTest() {
         return gameId
     }
 
-    private suspend fun insertBotGame(status: io.elephantchess.model.GameEventType) {
+    private suspend fun insertBotGame(status: io.elephantchess.model.GameEventType, variant: Variant) {
         val now = Clock.System.now()
         val gameId = randomAlphanumeric(12)
         val gameRecord = BotGame().apply {
@@ -112,7 +116,7 @@ class GameCounterServiceTest : ServiceTest() {
             engineVersion = "11.2"
             depth = 4
             startFen = null
-            variant = Variant.MANCHU
+            this.variant = variant
             gameStatus = status
             currentFen = DEFAULT_START_FEN
             currentHalfMoveIndex = 0

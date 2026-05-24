@@ -280,8 +280,11 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .selectCount()
             .from(BOT_GAME)
-            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex).or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
-            .and(BOT_GAME.VARIANT.eq(Variant.MANCHU))
+            .where(
+                BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex)
+                    .or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
+                    .and(BOT_GAME.VARIANT.eq(Variant.MANCHU))
+            )
             .awaitSingleValue()!!
     }
 
