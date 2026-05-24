@@ -19,6 +19,7 @@ import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.testutils.Ops.endsInCheckmate
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
@@ -284,6 +285,40 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(2, countGameByStatus(CREATED))
     }
 
+    /**
+     * A Manchu game and a Xiangqi game with compatible colors should NOT be matched together —
+     * variant must be part of the matching criteria.
+     */
+    @Test
+    fun joinMatchingGameIncompatibleTest07() = runTest {
+        val manchuRequest = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false,
+            variant = Variant.MANCHU
+        )
+
+        val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
+
+        val response1 = pvpGameService.createGame(userId1, manchuRequest)
+        val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
+
+        assertEquals(CREATED, response1.eventType)
+        assertEquals(RED, response1.color)
+
+        assertEquals(CREATED, response2.eventType)
+        assertEquals(BLACK, response2.color)
+
+        assertEquals(0, countGameByStatus(JOINED))
+        assertEquals(2, countGameByStatus(CREATED))
+    }
+
+
     @Test
     fun happyPathTest01() = runTest {
         val gameId = createAndJoinGame(RED)
@@ -334,10 +369,12 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         val expectedLoserRating = 1_000 - 8
 
         val inviterWins =
-            (gameData.outcome == RED_WINS && inviterColor == RED) || (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
+            (gameData.outcome == RED_WINS && inviterColor == RED) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
 
         val inviteeWins =
-            (gameData.outcome == RED_WINS && inviterColor == BLACK) || (gameData.outcome == BLACK_WINS && inviterColor == RED)
+            (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == RED)
 
         when {
             inviterWins -> {
@@ -350,6 +387,37 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 assertEquals(expectedWinnerRating, ratingUpdate.inviteeRatingTo)
             }
         }
+
+        // Xiangqi RAPID DB ratings must reflect the exact +8 / -8 change
+        val xiangqiRating1 = fetchXiangqiRapidRating(userId1.id)
+        val xiangqiRating2 = fetchXiangqiRapidRating(userId2.id)
+
+        val userId1IsInviter = gameData.inviterId == userId1.id
+        when {
+            inviterWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedWinnerRating, xiangqiRating1)
+                    assertEquals(expectedLoserRating, xiangqiRating2)
+                } else {
+                    assertEquals(expectedLoserRating, xiangqiRating1)
+                    assertEquals(expectedWinnerRating, xiangqiRating2)
+                }
+            }
+
+            inviteeWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedLoserRating, xiangqiRating1)
+                    assertEquals(expectedWinnerRating, xiangqiRating2)
+                } else {
+                    assertEquals(expectedWinnerRating, xiangqiRating1)
+                    assertEquals(expectedLoserRating, xiangqiRating2)
+                }
+            }
+        }
+
+        // Manchu RAPID rating must remain unchanged at 1000
+        assertEquals(1_000, fetchManchuRapidRating(userId1.id))
+        assertEquals(1_000, fetchManchuRapidRating(userId2.id))
     }
 
     @Test
@@ -496,6 +564,151 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(PERPETUAL_CHECKING, response.gameEventType)
     }
 
+    /**
+     * Two Manchu games with compatible colors should be matched together.
+     */
+    @Test
+    fun joinMatchingGameManchuTest01() = runTest {
+        val request1 = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false,
+            variant = Variant.MANCHU
+        )
+
+        val request2 = request1.copy(inviterColor = BLACK)
+
+        val response1 = pvpGameService.createGame(userId1, request1)
+        val response2 = pvpGameService.createGame(userId2, request2)
+
+        assertEquals(CREATED, response1.eventType)
+        assertEquals(RED, response1.color)
+
+        assertEquals(JOINED, response2.eventType)
+        assertEquals(BLACK, response2.color)
+
+        assertEquals(1, countGameByStatus(JOINED))
+        assertEquals(0, countGameByStatus(CREATED))
+    }
+
+    /**
+     * Play a rated Manchu game to completion and verify that only the Manchu rating columns
+     * are updated — Xiangqi ratings must remain at the default 1000.
+     */
+    @Test
+    fun happyPathManchuTest01() = runTest {
+        val gameId = createAndJoinManchuGame(RED)
+        val manchuMoves = manchuGameMovesCache.listAll().random()
+
+        manchuMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
+            val result = pvpGameService.playMove(
+                userId = userIdToPlay(gameId),
+                request = PlayMoveRequest(gameId, move)
+            )
+            assertEquals(i + 1, result.updatedIndex)
+            assertNull(result.gameEventType)
+            assertNull(result.ratingUpdate)
+        }
+
+        val lastMoveResult = pvpGameService.playMove(
+            userId = userIdToPlay(gameId),
+            request = PlayMoveRequest(gameId, manchuMoves.uciMoves.last())
+        )
+
+        assertNotNull(lastMoveResult.gameEventType)
+        val ratingUpdate = lastMoveResult.ratingUpdate!!
+        assertEquals(true, ratingUpdate.isRated)
+        assertEquals(1_000, ratingUpdate.inviterRatingFrom)
+        assertEquals(1_000, ratingUpdate.inviteeRatingFrom)
+
+        val gameData = pvpGameService.fetchGame(gameId)
+        assertNotNull(gameData.outcome)
+        assertNotEquals(Outcome.DRAW, gameData.outcome)
+
+        val inviterColor = gameData.inviterColor!!
+        val expectedWinnerRating = 1_000 + 8
+        val expectedLoserRating = 1_000 - 8
+
+        val inviterWins =
+            (gameData.outcome == RED_WINS && inviterColor == RED) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
+
+        val inviteeWins =
+            (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == RED)
+
+        when {
+            inviterWins -> {
+                assertEquals(expectedWinnerRating, ratingUpdate.inviterRatingTo)
+                assertEquals(expectedLoserRating, ratingUpdate.inviteeRatingTo)
+            }
+
+            inviteeWins -> {
+                assertEquals(expectedLoserRating, ratingUpdate.inviterRatingTo)
+                assertEquals(expectedWinnerRating, ratingUpdate.inviteeRatingTo)
+            }
+        }
+
+        // Xiangqi RAPID rating must remain unchanged at 1000
+        assertEquals(1_000, fetchXiangqiRapidRating(userId1.id))
+        assertEquals(1_000, fetchXiangqiRapidRating(userId2.id))
+
+        // Manchu RAPID ratings must reflect the exact +8 / -8 change
+        val manchuRating1 = fetchManchuRapidRating(userId1.id)
+        val manchuRating2 = fetchManchuRapidRating(userId2.id)
+
+        val userId1IsInviter = gameData.inviterId == userId1.id
+        when {
+            inviterWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedWinnerRating, manchuRating1)
+                    assertEquals(expectedLoserRating, manchuRating2)
+                } else {
+                    assertEquals(expectedLoserRating, manchuRating1)
+                    assertEquals(expectedWinnerRating, manchuRating2)
+                }
+            }
+
+            inviteeWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedLoserRating, manchuRating1)
+                    assertEquals(expectedWinnerRating, manchuRating2)
+                } else {
+                    assertEquals(expectedWinnerRating, manchuRating1)
+                    assertEquals(expectedLoserRating, manchuRating2)
+                }
+            }
+        }
+    }
+
+    private suspend fun createManchuGame(inviterColor: Color): String {
+        val request = CreateGameRequest(
+            inviterColor = inviterColor,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false,
+            variant = Variant.MANCHU
+        )
+
+        val response = pvpGameService.createGame(userId1, request)
+        return response.gameId
+    }
+
+    private suspend fun createAndJoinManchuGame(inviterColor: Color): String {
+        val gameId = createManchuGame(inviterColor)
+        pvpGameService.joinGame(userId2, JoinGameRequest(gameId))
+        return gameId
+    }
+
     private suspend fun createGame(inviterColor: Color): String {
         val request = CreateGameRequest(
             inviterColor = inviterColor,
@@ -528,11 +741,25 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     private fun colorToPlay(currentHalfMoveIndex: Int) =
         if (currentHalfMoveIndex % 2 == 0) RED else BLACK
 
-    private suspend fun countGameByStatus(status: GameEventType) =
+    private suspend fun countGameByStatus(status: GameEventType): Int =
         dslContext
             .selectCount()
             .from(GAME)
             .where(GAME.GAME_STATUS.eq(status))
-            .awaitSingleValue<Int>()!!
+            .awaitSingleValue()!!
+
+    private suspend fun fetchXiangqiRapidRating(userId: String): Int =
+        dslContext
+            .select(USER.GAME_RATING_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()!!
+
+    private suspend fun fetchManchuRapidRating(userId: String): Int =
+        dslContext
+            .select(USER.GAME_RATING_MANCHU_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()!!
 
 }

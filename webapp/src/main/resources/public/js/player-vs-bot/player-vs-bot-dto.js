@@ -89,6 +89,7 @@ class BotGameDto {
     #engine;
     #depth;
     #startFen;
+    #variant;
     #status;
     #moveIndex;
     #fen;
@@ -107,6 +108,7 @@ class BotGameDto {
         if (this.#startFen == null) {
             this.#startFen = DEFAULT_START_FEN;
         }
+        this.#variant = json.variant ?? Variant.XIANGQI;
         this.#status = json.status;
         this.#moveIndex = Number(json.moveIndex);
         this.#fen = json.fen;
@@ -181,6 +183,20 @@ class BotGameDto {
      */
     get startFen() {
         return this.#startFen;
+    }
+
+    /**
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isManchu() {
+        return this.#variant === Variant.MANCHU;
     }
 
     /**

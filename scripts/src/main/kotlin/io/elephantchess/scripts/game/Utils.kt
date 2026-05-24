@@ -48,6 +48,12 @@ object Utils : KoinComponent {
                 .set(USER.GAME_RATING_CLASSICAL.fixed(), nextInt(500, 2500))
                 .set(USER.GAME_RATING_SEVERAL_DAYS.fixed(), nextInt(500, 2500))
                 .set(USER.GAME_RATING_CORRESPONDENCE.fixed(), nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_BULLET.fixed(), nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_BLITZ.fixed(), nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_RAPID.fixed(), nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_CLASSICAL.fixed(), nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_SEVERAL_DAYS.fixed(), nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_CORRESPONDENCE.fixed(), nextInt(500, 2500))
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
