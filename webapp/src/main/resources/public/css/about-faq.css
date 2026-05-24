@@ -95,3 +95,9 @@
 .anchor-copy-link:hover img {
     opacity: 100%;
 }
+
+@media (max-width: 1000px) {
+    #page-toc li {
+        font-size: 30px;
+    }
+}
