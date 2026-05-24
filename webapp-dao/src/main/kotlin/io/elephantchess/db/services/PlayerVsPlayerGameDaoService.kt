@@ -23,6 +23,7 @@ import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
 import org.jooq.Condition
@@ -59,6 +60,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         timeControlIncrement: Int?,
         userType: UserType,
         userId: String,
+        variant: Variant,
     ): List<Game> {
         var query =
             dslContext
@@ -70,6 +72,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .and(GAME.IS_RATED.eq(isRated))
                 .and(GAME.INVITER.notEqual(userId))
                 .and(GAME.PRIVATE_INVITE.eq(false))
+                .and(GAME.VARIANT.eq(variant))
 
         query = when (timeControlIncrement) {
             null -> query.and(GAME.TIME_CONTROL_INCREMENT.isNull)
@@ -110,6 +113,24 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .select()
             .from(GAME)
             .where(isPlaying(userId))
+
+        if (beforeTs != null) {
+            sql = sql.and(GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))
+        }
+
+        return sql
+            .orderBy(GAME.LAST_UPDATED.desc())
+            .limit(limit)
+            .awaitMappedRecords()
+    }
+
+    suspend fun listLastGamesByUserId(userId: String, limit: Int, minMoveIndex: Int, beforeTs: Long?): List<Game> {
+        var sql = dslContext
+            .select()
+            .from(GAME)
+            .where(isPlaying(userId))
+            .and(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.CONTAINS_ERRORS.eq(false))
 
         if (beforeTs != null) {
             sql = sql.and(GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))
@@ -279,6 +300,15 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()!!
     }
 
+    suspend fun countManchuGames(minMoveIndex: Int): Int {
+        return dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.VARIANT.eq(Variant.MANCHU))
+            .awaitSingleValue()!!
+    }
+
     suspend fun countTotalMoves(): Int {
         return dslContext
             .selectCount()
@@ -365,8 +395,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchRatingForUser(userId: String, timeControlCategory: TimeControlCategory): Int? {
-        return fetchRatingForUser(dslContext, userId, timeControlCategory)
+    suspend fun fetchRatingForUser(userId: String, timeControlCategory: TimeControlCategory, variant: Variant): Int? {
+        return fetchRatingForUser(dslContext, userId, timeControlCategory, variant)
     }
 
     suspend fun fetchPlayerVsPlayerOutcomeStatsPerCategory(userId: String): List<PlayerVsPlayerOutcomeStatsPerCategoryRecord> {
@@ -433,9 +463,10 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         context: DSLContext,
         userId: String,
         timeControlCategory: TimeControlCategory,
+        variant: Variant,
     ): Int? {
         return context
-            .select(findRatingField(timeControlCategory))
+            .select(findRatingField(timeControlCategory, variant))
             .from(USER)
             .where(USER.ID.eq((userId)))
             .awaitSingleValue()
@@ -495,6 +526,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun fetchGameStates(gameIds: List<String>): Map<String, GameStateResult> {
+        // TODO: Flux.from() -> can we not use our shortcut thingy?
         return Flux.from(
             dslContext
                 .select(
@@ -585,6 +617,14 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     suspend fun fetchTimeControlCategory(gameId: String): TimeControlCategory? {
         return dslContext
             .select(GAME.TIME_CONTROL_CATEGORY)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue()
+    }
+
+    suspend fun fetchVariant(gameId: String): Variant? {
+        return dslContext
+            .select(GAME.VARIANT)
             .from(GAME)
             .where(GAME.ID.eq(gameId))
             .awaitSingleValue()
@@ -819,7 +859,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         gameId: String,
         move: String,
         playMoveCallback: (Game) -> PlayMoveCallbackResult,
-        hasViolatedPerpetualCheckingRule: (List<String>) -> PerpetualCheckingCallbackResult?,
+        hasViolatedPerpetualCheckingRule: (Game, List<String>) -> PerpetualCheckingCallbackResult?,
         updateRatingsCallback: (Game, Outcome, Int, Int) -> UpdateRatingsCallbackResult?,
     ): TryEither<PlayMoveCallbackResult> {
         return dslContext.transactionalContextTry { transactional ->
@@ -859,7 +899,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     } else if (playMoveResult.mustCheckPerpetualChecking) {
                         // check if violated perpetual checking rule
                         val moves = listMoves(transactional, gameId)
-                        hasViolatedPerpetualCheckingRule(moves)?.let { perpetualCheckingResult ->
+                        hasViolatedPerpetualCheckingRule(gameRecord, moves)?.let { perpetualCheckingResult ->
                             persistVictory(perpetualCheckingResult.newGameEventType, perpetualCheckingResult.outcome)
                             playMoveResult = playMoveResult.copy(
                                 newGameEventType = perpetualCheckingResult.newGameEventType,
@@ -916,10 +956,11 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
         suspend fun persistRatingUpdate() {
             val timeControlCategory = gameRecord.timeControlCategory!!
-            val ratingField = findRatingField(timeControlCategory)
+            val variant = gameRecord.variant
+            val ratingField = findRatingField(timeControlCategory, variant)
             // we use the current rating instead of the rating the user had at the beginning of the game
-            val inviterRating = fetchRatingForUser(transactional, gameRecord.inviter, timeControlCategory)
-            val inviteeRating = fetchRatingForUser(transactional, gameRecord.invitee, timeControlCategory)
+            val inviterRating = fetchRatingForUser(transactional, gameRecord.inviter, timeControlCategory, variant)
+            val inviteeRating = fetchRatingForUser(transactional, gameRecord.invitee, timeControlCategory, variant)
             val updatedRatings = updateRatingsCallback(gameRecord, outcome, inviterRating!!, inviteeRating!!)
 
             suspend fun updateUserRating(userId: String, rating: Int) {
@@ -1003,14 +1044,25 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             return field
         }
 
-        fun findRatingField(timeControlCategory: TimeControlCategory): TableField<UserRecord, Int> {
-            return when (timeControlCategory) {
-                TimeControlCategory.BULLET -> return USER.GAME_RATING_BULLET
-                TimeControlCategory.BLITZ -> return USER.GAME_RATING_BLITZ
-                TimeControlCategory.RAPID -> return USER.GAME_RATING_RAPID
-                TimeControlCategory.CLASSICAL -> return USER.GAME_RATING_CLASSICAL
-                TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
-                TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
+        fun findRatingField(timeControlCategory: TimeControlCategory, variant: Variant): TableField<UserRecord, Int> {
+            return when (variant) {
+                Variant.XIANGQI -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
+                }
+
+                Variant.MANCHU -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_MANCHU_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_MANCHU_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_MANCHU_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_MANCHU_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_MANCHU_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_MANCHU_CORRESPONDENCE
+                }
             }
         }
 
@@ -1067,6 +1119,24 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     count = record.value3()
                 )
             }
+    }
+
+    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
+        dslContext.transactionCoroutine { cfg ->
+            val transaction = DSL.using(cfg)
+
+            transaction.update(GAME)
+                .set(GAME.INVITER, newUserId)
+                .set(GAME.GUEST_USER_ID, guestUserId)
+                .where(GAME.INVITER.eq(guestUserId))
+                .awaitExecute()
+
+            transaction.update(GAME)
+                .set(GAME.INVITEE, newUserId)
+                .set(GAME.GUEST_USER_ID, guestUserId)
+                .where(GAME.INVITEE.eq(guestUserId))
+                .awaitExecute()
+        }
     }
 
 }

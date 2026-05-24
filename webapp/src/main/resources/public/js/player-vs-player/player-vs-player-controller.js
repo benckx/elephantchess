@@ -65,6 +65,7 @@ class GameController {
     #updateClocksCallback = () => console.log('update clocks');
     #fetchMovesCallback = (moves) => console.log('fetch moves ' + moves);
     #receivedChatMessages = (chatMessages, acks) => console.log('received chat messages ' + chatMessages);
+    #opponentTypingCallback = (typingUsers) => console.log('opponents are typing: ' + JSON.stringify(typingUsers));
 
     /**
      * @param gameId {string}
@@ -82,6 +83,7 @@ class GameController {
      * @param updateClocksCallback {function()}
      * @param fetchMovesCallback {function(HalfMove[])}
      * @param receivedChatMessages {function(ChatMessageDto[], number[])}
+     * @param opponentTypingCallback {function(Array<Object.<string,string, *>>)} Map of userId→username for users currently typing
      */
     constructor(
         gameId,
@@ -98,7 +100,9 @@ class GameController {
         drawDeclinedCallback,
         updateClocksCallback,
         fetchMovesCallback,
-        receivedChatMessages
+        receivedChatMessages,
+        opponentTypingCallback = (typingUsers) => {
+        }
     ) {
         this.#gameId = gameId;
         this.#inviteeJoinedCallback = inviteeJoinedCallback;
@@ -114,6 +118,7 @@ class GameController {
         this.#updateClocksCallback = updateClocksCallback;
         this.#fetchMovesCallback = fetchMovesCallback;
         this.#receivedChatMessages = receivedChatMessages;
+        this.#opponentTypingCallback = opponentTypingCallback;
         this.#client = new GameClient(gameId);
 
         this.#client.getData(gameDto => {
@@ -255,6 +260,9 @@ class GameController {
                         this.#updateClocksCallback();
                     }
                     this.#handleReceivedChatMessages(chatMessages);
+                    if (Array.isArray(json.typingUsers) && json.typingUsers.length > 0) {
+                        this.#opponentTypingCallback(json.typingUsers);
+                    }
                 }
             });
 
@@ -423,6 +431,12 @@ class GameController {
     sendChat(message) {
         if (this.#webSocket != null) {
             this.#webSocket.send(JSON.stringify({"message": message}));
+        }
+    }
+
+    sendTypingEvent() {
+        if (this.#webSocket != null) {
+            this.#webSocket.send(JSON.stringify({"isTyping": true}));
         }
     }
 

@@ -8,27 +8,43 @@ import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter.ofPattern
 import java.util.Locale
+import kotlinx.html.meta
+import kotlinx.html.stream.createHTML
 import kotlin.math.floor
 
 private const val COST_IN_EUR_PER_DAY = 4
 private val supportedCurrencies = setOf("USD", "EUR", "GBP")
 
-fun formatNewLinesToHtmlParagraphs(str: String): String {
-    return str
+/**
+ * HTML-escapes a string so it can be safely inlined as text content.
+ */
+fun escapeHtml(s: String): String =
+    s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+
+/**
+ * HTML-escapes a string so it can be safely used as an attribute value.
+ */
+fun escapeHtmlAttr(s: String): String =
+    escapeHtml(s).replace("\"", "&quot;")
+
+fun String.toParagraphs(): List<String> {
+    return this
         .split("\n\n")
-        .filter { it.trim().isNotEmpty() }
-        .joinToString("") { "<p>${it.trim()}</p>" }
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
 }
 
-fun meta(name: String, content: String) =
-    """<meta name="$name" content="${stripHtml(content)}">"""
-
 fun descriptionMeta(description: String): String {
-    return meta(
-        "description", description
-            .replace("\n", " ")
-            .replace("\r", "")
-    )
+    return createHTML().meta {
+        name = "description"
+        content = stripHtml(
+            description
+                .replace("\n", " ")
+                .replace("\r", "")
+        )
+    }
 }
 
 fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {

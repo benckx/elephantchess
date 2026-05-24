@@ -22,6 +22,7 @@ const NO_LABEL_DAYS = 50;
 class UserProfilePage extends BasePage {
 
     #userId = document.querySelector('body').dataset.userId;
+    #username = document.querySelector('body').dataset.username;
     #client = new UserProfileClient(this.#userId);
     #statusIndicator = document.getElementById('status-indicator');
     #puzzleStatsSection = document.getElementById('puzzle-stats-section');
@@ -29,6 +30,7 @@ class UserProfilePage extends BasePage {
     constructor() {
         super();
         this.#fetchGamesRatings();
+        this.#fetchLatestPvpGames();
         this.#fetchPuzzlesStatsSummary();
         this.#fetchPuzzlesStatsRating();
         this.#fetchPuzzlesStatsNumbers();
@@ -66,6 +68,12 @@ class UserProfilePage extends BasePage {
             document.getElementById('draws-classical').innerText = formatNumber(stats.pvp.classical.draws);
             document.getElementById('draws-correspondence').innerText = formatNumber(stats.pvp.correspondence.draws);
         });
+    }
+
+    #fetchLatestPvpGames() {
+        if (this.#username) {
+            new UserProfileGames(this.#username);
+        }
     }
 
     #fetchPuzzlesStatsSummary() {

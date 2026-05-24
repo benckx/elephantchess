@@ -5,15 +5,19 @@
     {{meta_no_index_conditional}}
     {{description_meta}}
     <link rel="stylesheet" href="/css/user-profile.css"/>
+    <link rel="stylesheet" href="/css/browse-games.css"/>
     {{apex_charts}}
     <script defer src="/js/modules/countries.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/widgets/game-thumb.js"></script>
     <script defer src="/js/user-profile/user-profile-client.js"></script>
     <script defer src="/js/user-profile/puzzle-rating-history-line-chart.js"></script>
     <script defer src="/js/user-profile/puzzle-numbers-bar-chart.js"></script>
+    <script defer src="/js/user-profile/user-profile-games.js"></script>
     <script defer src="/js/user-profile/user-profile-dto.js"></script>
     <script defer src="/js/user-profile/user-profile.js"></script>
 </head>
-<body data-user-id="{{user_id}}">
+<body data-user-id="{{user_id}}" data-username="{{username}}">
 {{body_init}}
 <div class="main-container-text">
     <div id="profile-header">
@@ -146,6 +150,19 @@
                 </td>
             </tr>
         </table>
+    </div>
+    <br/>
+    <div id="latest-games-section" style="display: none;">
+        <h1>Latest Games</h1>
+        <hr/>
+        <div id="pvp-games-container">
+            {{game_thumb}}[[iterations:4; {gameType: 'pvp', parentClass: 'pvp-game-thumb'}]]
+        </div>
+        <div class="center-content-div browse-more-link-container">
+            <a id="browse-more-games-link" href="/@/{{username}}/browse-pvp-games" class="browse-more-link">
+                Browse More Games
+            </a>
+        </div>
     </div>
     <div id="puzzle-stats-section">
         <br/>
