@@ -102,35 +102,7 @@
                 </div>
             </div>
         </div>
-        <div class="advanced-setting-row">
-            <img class="advanced-setting-icon"
-                 src="/images/icons/flash-squared.png"
-                 alt="Play sounds setting icon"
-                 loading="lazy">
-            <div class="advanced-setting-content">
-                <div class="advanced-setting-text">
-                    <div class="advanced-setting-title">Play sounds</div>
-                    <div class="advanced-setting-description">Play board sounds on opponent moves.</div>
-                </div>
-                <div class="advanced-setting-options">
-                    <label>
-                        <input type="radio"
-                               name="play-sounds-setting"
-                               id="play-sounds-enabled-radio"
-                               value="true">
-                        On
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="play-sounds-setting"
-                               id="play-sounds-disabled-radio"
-                               value="false">
-                        Off
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="advanced-setting-row">
+       <div class="advanced-setting-row">
             <img class="advanced-setting-icon"
                  src="/images/icons/coordinates2.png"
                  alt="Coordinates style setting icon"
@@ -188,7 +160,7 @@
                                name="coordinates-style-setting"
                                id="coordinates-style-algebraic-radio"
                                value="ALGEBRAIC">
-                         Algebraic (a–i, 1–10)
+                        Algebraic (a–i, 1–10)
                     </label>
                 </div>
                 <div id="coordinates-move-format-mismatch-warning"
@@ -196,6 +168,36 @@
                      hidden>
                     ⚠ Warning: the chosen coordinates don't match the move format family
                     (WXF vs Algebraic).
+                </div>
+            </div>
+        </div>
+        <div class="advanced-setting-row">
+            <img class="advanced-setting-icon"
+                 src="/images/icons/sound.png"
+                 alt="Play sounds setting icon"
+                 loading="lazy">
+            <div class="advanced-setting-content">
+                <div class="advanced-setting-text">
+                    <div class="advanced-setting-title">Play sounds</div>
+                    <div class="advanced-setting-description">
+                        Play board sounds when opponent joined the game, play a move, etc.
+                    </div>
+                </div>
+                <div class="advanced-setting-options">
+                    <label>
+                        <input type="radio"
+                               name="play-sounds-setting"
+                               id="play-sounds-enabled-radio"
+                               value="true">
+                        On
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="play-sounds-setting"
+                               id="play-sounds-disabled-radio"
+                               value="false">
+                        Off
+                    </label>
                 </div>
             </div>
         </div>
