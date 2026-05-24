@@ -63,7 +63,7 @@ class XiangqiAboutPage extends BasePage {
         }
         board.addPieceAt(pieceChar, piecePosition, false);
         blockerPositions.forEach(position => board.addPieceAt('p', position, false));
-        boardGui.loadFen(board.outputFen());
+        boardGui.loadFen(board.outputFen(), true);
     }
 
     #resetGeneralBoard() {
