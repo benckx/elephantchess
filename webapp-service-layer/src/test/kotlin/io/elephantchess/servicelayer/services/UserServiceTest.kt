@@ -41,7 +41,6 @@ class UserServiceTest : ServiceTest() {
     private val tokenManager by inject<TokenManager>()
     private val userDaoService by inject<UserDaoService>()
     private val userSessionDaoService by inject<UserSessionDaoService>()
-    private val pvpGameService by inject<PlayerVsPlayerGameService>()
     private val pvbGameDaoService by inject<PlayerVsBotGameDaoService>()
     private val dslContext by inject<DSLContext>()
 
