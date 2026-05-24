@@ -6,9 +6,13 @@ import io.elephantchess.db.dao.codegen.Tables.GAME_STATUS_EVENT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.model.UserType.AUTHENTICATED
+import io.elephantchess.servicelayer.dto.game.CreateGameRequest
+import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
+import io.elephantchess.servicelayer.dto.ws.PlayerVsPlayerInput
 import io.elephantchess.servicelayer.dto.ws.PlayerVsPlayerUpdate
 import io.elephantchess.servicelayer.model.UserId
+import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.testutils.GameMovesDto
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
@@ -18,7 +22,9 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.minutes
 
 class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
 
@@ -124,9 +130,74 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         }
     }
 
+    @Test
+    fun `chat and typing refresh to websocket sessions`() {
+        runBlocking {
+            val gameId = createAndJoinGame(userId1, userId2)
+            val sessionViewer = startSession(gameId, userId1)
+            val sessionActor = startSession(gameId, userId2)
+
+            try {
+                waitForRefreshTick()
+                sessionViewer.channel.drain()
+                sessionActor.channel.drain()
+
+                pvpGameService.handlePlayerVsPlayerInput(
+                    userId = userId2,
+                    gameId = gameId,
+                    input = PlayerVsPlayerInput(isTyping = true)
+                )
+                pvpGameService.handlePlayerVsPlayerInput(
+                    userId = userId2,
+                    gameId = gameId,
+                    input = PlayerVsPlayerInput(message = "hello from user 2")
+                )
+
+                val viewerUpdate = sessionViewer.channel.awaitNextUpdate()
+                val actorUpdate = sessionActor.channel.awaitNextUpdate()
+
+                assertEquals(1, viewerUpdate.chatMessages.size)
+                assertEquals("hello from user 2", viewerUpdate.chatMessages.single().content)
+                assertEquals(1, viewerUpdate.typingUsers.size)
+                assertEquals(userId2.id, viewerUpdate.typingUsers.single().userId)
+
+                assertEquals(1, actorUpdate.chatMessages.size)
+                assertEquals("hello from user 2", actorUpdate.chatMessages.single().content)
+                assertTrue(actorUpdate.typingUsers.isEmpty())
+
+                val chatHistory = pvpGameService.fetchChatHistory(gameId)
+                assertEquals(1, chatHistory.messages.size)
+                assertEquals("hello from user 2", chatHistory.messages.single().content)
+
+                assertNotNull(pvpGameService.fetchGame(gameId))
+            } finally {
+                listOf(sessionViewer, sessionActor).forEach { pvpGameService.closePlayerVsPlayerSession(it.sessionId) }
+            }
+        }
+    }
+
 
     private suspend fun playMove(gameId: String, userId: UserId, move: String) {
         pvpGameService.playMove(userId.id, PlayMoveRequest(gameId, move))
+    }
+
+    private suspend fun createAndJoinGame(inviter: UserId, invitee: UserId): String {
+        val response = pvpGameService.createGame(
+            inviter,
+            CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = io.elephantchess.model.TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = true,
+            )
+        )
+
+        pvpGameService.joinGame(invitee, JoinGameRequest(response.gameId))
+        return response.gameId
     }
 
     private suspend fun startSession(gameId: String, userId: UserId): SessionHandle {
@@ -165,6 +236,21 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         }
 
         error("Timed out waiting for update move=$expectedMove index=$expectedIndex")
+    }
+
+    private fun Channel<PlayerVsPlayerUpdate>.awaitNextUpdate(): PlayerVsPlayerUpdate {
+        val deadline = System.currentTimeMillis() + 4_000
+
+        while (System.currentTimeMillis() < deadline) {
+            val update = tryReceive().getOrNull()
+            if (update != null) {
+                return update
+            }
+
+            Thread.sleep(25)
+        }
+
+        error("Timed out waiting for websocket update")
     }
 
     private fun assertMoveUpdate(update: PlayerVsPlayerUpdate, moves: GameMovesDto, expectedIndex: Int) {
