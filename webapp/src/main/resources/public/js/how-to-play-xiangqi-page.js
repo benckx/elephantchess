@@ -19,14 +19,39 @@
 
 class XiangqiAboutPage extends BasePage {
 
-    #boardGuiGeneral = createWebappBoardGui({elementId: 'board-container-general-about'});
-    #boardGuiAdvisor = createWebappBoardGui({elementId: 'board-container-advisor-about'});
-    #boardGuiElephant = createWebappBoardGui({elementId: 'board-container-elephant-about'});
-    #boardGuiHorse = createWebappBoardGui({elementId: 'board-container-horse-about'});
-    #boardGuiChariot = createWebappBoardGui({elementId: 'board-container-chariot-about'});
-    #boardGuiCannon = createWebappBoardGui({elementId: 'board-container-cannon-about'});
-    #boardGuiSoldier = createWebappBoardGui({elementId: 'board-container-soldier-about'});
-    #boardGuiManchuChariot = createWebappBoardGui({elementId: 'board-container-manchu-chariot-about'});
+    #boardGuiGeneral = createWebappBoardGui({
+        elementId: 'board-container-general-about',
+        pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
+    });
+    #boardGuiAdvisor = createWebappBoardGui({
+        elementId: 'board-container-advisor-about',
+        pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
+    });
+    #boardGuiElephant = createWebappBoardGui({
+        elementId: 'board-container-elephant-about',
+        pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
+    });
+    #boardGuiHorse = createWebappBoardGui({
+        elementId: 'board-container-horse-about',
+        pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
+    });
+    #boardGuiChariot = createWebappBoardGui({
+        elementId: 'board-container-chariot-about',
+        pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
+    });
+    #boardGuiCannon = createWebappBoardGui({
+        elementId: 'board-container-cannon-about',
+        pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
+    });
+    #boardGuiSoldier = createWebappBoardGui({
+        elementId: 'board-container-soldier-about',
+        pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
+    });
+    #boardGuiManchuChariot = createWebappBoardGui({
+        elementId: 'board-container-manchu-chariot-about',
+        pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
+    });
+
     #settingsGui;
 
     constructor() {
