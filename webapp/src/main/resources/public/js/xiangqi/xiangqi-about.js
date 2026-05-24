@@ -55,6 +55,12 @@ class XiangqiAboutPage extends BasePage {
 
     #resetBoard(boardGui, pieceChar, piecePosition, blockerPositions = []) {
         const board = new Board();
+        if (pieceChar !== 'K') {
+            board.addPieceAt('K', new Position(3, 1), false);
+        }
+        if (pieceChar !== 'k') {
+            board.addPieceAt('k', new Position(5, 8), false);
+        }
         board.addPieceAt(pieceChar, piecePosition, false);
         blockerPositions.forEach(position => board.addPieceAt('p', position, false));
         boardGui.loadFen(board.outputFen());
