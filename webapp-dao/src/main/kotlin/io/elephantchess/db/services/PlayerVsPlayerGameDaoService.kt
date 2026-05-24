@@ -301,14 +301,14 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun countManchuGames(minMoveIndex: Int): Int {
+        val countCondition =
+            GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)
+                .or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
+
         return dslContext
             .selectCount()
             .from(GAME)
-            .where(
-                GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)
-                    .or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
-                    .and(GAME.VARIANT.eq(Variant.MANCHU))
-            )
+            .where(countCondition.and(GAME.VARIANT.eq(Variant.MANCHU)))
             .awaitSingleValue()!!
     }
 

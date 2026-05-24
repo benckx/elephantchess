@@ -65,8 +65,9 @@ class GameCounterServiceTest : ServiceTest() {
         insertBotGame(CHECKMATED, Variant.MANCHU)
         insertBotGame(STALEMATED, Variant.XIANGQI)
         insertBotGame(CREATED, Variant.MANCHU)
+        insertBotGame(CREATED, Variant.XIANGQI, GameDataService.MIN_MOVE_INDEX)
 
-        assertEquals(2, pvbGameDaoService.countTotalGames(GameDataService.MIN_MOVE_INDEX))
+        assertEquals(3, pvbGameDaoService.countTotalGames(GameDataService.MIN_MOVE_INDEX))
         assertEquals(1, pvbGameDaoService.countManchuGames(GameDataService.MIN_MOVE_INDEX))
     }
 
@@ -79,8 +80,14 @@ class GameCounterServiceTest : ServiceTest() {
         pvpGameDaoService.updateStatus(userId1.id, xiangqiGameId, CHECKMATED, RED_WINS)
 
         createAndJoinGame(Variant.MANCHU)
+        val longXiangqiGameId = createAndJoinGame(Variant.XIANGQI)
+        dslContext
+            .update(GAME)
+            .set(GAME.CURRENT_HALF_MOVE_INDEX, GameDataService.MIN_MOVE_INDEX)
+            .where(GAME.ID.eq(longXiangqiGameId))
+            .awaitExecute()
 
-        assertEquals(2, pvpGameDaoService.countTotalGames(GameDataService.MIN_MOVE_INDEX))
+        assertEquals(3, pvpGameDaoService.countTotalGames(GameDataService.MIN_MOVE_INDEX))
         assertEquals(1, pvpGameDaoService.countManchuGames(GameDataService.MIN_MOVE_INDEX))
     }
 
@@ -105,7 +112,11 @@ class GameCounterServiceTest : ServiceTest() {
         return gameId
     }
 
-    private suspend fun insertBotGame(status: io.elephantchess.model.GameEventType, variant: Variant) {
+    private suspend fun insertBotGame(
+        status: io.elephantchess.model.GameEventType,
+        variant: Variant,
+        currentHalfMoveIndex: Int = 0,
+    ) {
         val now = Clock.System.now()
         val gameId = randomAlphanumeric(12)
         val gameRecord = BotGame().apply {
@@ -119,7 +130,7 @@ class GameCounterServiceTest : ServiceTest() {
             this.variant = variant
             gameStatus = status
             currentFen = DEFAULT_START_FEN
-            currentHalfMoveIndex = 0
+            this.currentHalfMoveIndex = currentHalfMoveIndex
             created = now
             lastUpdated = now
         }
