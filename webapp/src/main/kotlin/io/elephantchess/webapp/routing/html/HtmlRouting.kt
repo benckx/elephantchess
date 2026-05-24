@@ -35,6 +35,7 @@ private val simplePublicPageMapping = mapOf(
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
     "/contact" to "contact_form",
+    "/xiangqi/about" to "xiangqi/xiangqi_about",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
     "/7k/playground" to "seven_kingdoms/seven_kingdoms_playground",
     "/7k/about" to "seven_kingdoms/seven_kingdoms_about",
@@ -46,6 +47,8 @@ private val simplePublicPageMappingWithSupporterBanner = mapOf(
 )
 
 private val publicPageRedirection = mapOf(
+    "/xiangqi" to "/xiangqi/about",
+    "/xiangqi/rules" to "/xiangqi/about",
     "/7k" to "/7k/about",
     "/7k/rules" to "/7k/about",
 )

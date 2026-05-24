@@ -1,0 +1,178 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Xiangqi and Manchu Pieces - elephantchess.io</title>
+    <meta name="description"
+          content="Interactive overview of all xiangqi pieces and the Manchu super chariot. Hover and move pieces to learn how they move.">
+    {{board_js}}
+    <link rel="stylesheet" href="/css/xiangqi/xiangqi-about.css"/>
+    <script defer src="/js/xiangqi/xiangqi-about.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>Xiangqi and Manchu Pieces</h1>
+    <hr/>
+    <p>
+        This page lists all xiangqi pieces with interactive boards. You can hover pieces to visualize legal moves and
+        click to play moves on each test position.
+    </p>
+    <p>
+        You can also open the full <a href="/board?medium=xiangqi_about">Xiangqi test board</a> and the
+        <a href="/board?variant=manchu&medium=xiangqi_about">Manchu test board</a>.
+    </p>
+
+    <h1>Moves</h1>
+    <hr/>
+    <div class="piece-rules">
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="general-moves">General (帅 / 将)</h2>
+                <p>
+                    The General moves one step orthogonally and must stay in the palace.
+                </p>
+                <p>
+                    It is represented by the letter K in FEN.
+                </p>
+                <p>
+                    <span id="reset-general-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-general-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="advisor-moves">Advisor (仕 / 士)</h2>
+                <p>
+                    The Advisor moves one step diagonally and also stays in the palace.
+                </p>
+                <p>
+                    It is represented by the letter A in FEN.
+                </p>
+                <p>
+                    <span id="reset-advisor-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-advisor-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="elephant-moves">Elephant (相 / 象)</h2>
+                <p>
+                    The Elephant moves two points diagonally, cannot jump, and cannot cross the river.
+                </p>
+                <p>
+                    It is represented by the letter B in FEN.
+                </p>
+                <p>
+                    <span id="reset-elephant-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-elephant-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="horse-moves">Horse (傌 / 馬)</h2>
+                <p>
+                    The Horse moves one point orthogonally then one point diagonally outward. It can be blocked.
+                </p>
+                <p>
+                    It is represented by the letter N in FEN.
+                </p>
+                <p>
+                    <span id="reset-horse-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-horse-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="chariot-moves">Chariot (俥 / 車)</h2>
+                <p>
+                    The Chariot moves any distance orthogonally (like a rook).
+                </p>
+                <p>
+                    It is represented by the letter R in FEN.
+                </p>
+                <p>
+                    <span id="reset-chariot-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-chariot-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="cannon-moves">Cannon (炮 / 砲)</h2>
+                <p>
+                    The Cannon moves like a Chariot, but captures only by jumping over exactly one piece.
+                </p>
+                <p>
+                    It is represented by the letter C in FEN.
+                </p>
+                <p>
+                    <span id="reset-cannon-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-cannon-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="soldier-moves">Soldier (兵 / 卒)</h2>
+                <p>
+                    Before crossing the river, a Soldier moves forward one point. After crossing, it can also move one
+                    point horizontally.
+                </p>
+                <p>
+                    It is represented by the letter P in FEN.
+                </p>
+                <p>
+                    <span id="reset-soldier-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-soldier-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="manchu-chariot-moves">Manchu Super Chariot (M)</h2>
+                <p>
+                    In Manchu chess (Yitong), Red has one super chariot that combines the powers of chariot, horse,
+                    and cannon.
+                </p>
+                <p>
+                    It is represented by the letter M in FEN.
+                </p>
+                <p>
+                    <span id="reset-manchu-chariot-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?variant=manchu&medium=xiangqi_about">Manchu test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-manchu-chariot-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{{footer}}
+</body>
+</html>

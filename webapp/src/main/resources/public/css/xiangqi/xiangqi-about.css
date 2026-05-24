@@ -1,0 +1,69 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.piece-rules {
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+    margin-top: 30px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.piece-row {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    flex-flow: row;
+    margin-bottom: 30px;
+}
+
+.piece-row .explanation {
+    width: 36%;
+    padding-right: 20px;
+}
+
+.piece-row .board {
+    width: 64%;
+}
+
+.board-container-about {
+    height: 520px;
+}
+
+@media (max-width: 1000px) {
+    .piece-row {
+        flex-flow: column;
+    }
+
+    .piece-row .explanation,
+    .piece-row .board,
+    .piece-rules {
+        width: 100%;
+    }
+
+    .piece-row,
+    .piece-rules {
+        margin-bottom: 60px;
+    }
+
+    .piece-row .explanation {
+        padding-left: 0;
+    }
+}

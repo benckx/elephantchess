@@ -23,6 +23,7 @@ class SiteMapService(
 ) {
 
     private val deployDay = LocalDate.now()
+    private val xiangqiPageLastChange = LocalDate.of(2026, 5, 24)
     private val sevenKingdomLastChange = LocalDate.of(2025, 12, 10)
 
     private val webHostTrimmed = appConfig.webHost.trimEnd('/')
@@ -93,6 +94,12 @@ class SiteMapService(
         SitemapEntry(
             loc = "$webHostTrimmed/database/players",
             lastmod = LocalDate.of(2026, 1, 25),
+            changefreq = MONTHLY,
+            priority = 0.8
+        ),
+        SitemapEntry(
+            loc = "$webHostTrimmed/xiangqi/about",
+            lastmod = xiangqiPageLastChange,
             changefreq = MONTHLY,
             priority = 0.8
         ),
