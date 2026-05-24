@@ -27,6 +27,7 @@ class XiangqiAboutPage extends BasePage {
     #boardGuiCannon = createWebappBoardGui({elementId: 'board-container-cannon-about'});
     #boardGuiSoldier = createWebappBoardGui({elementId: 'board-container-soldier-about'});
     #boardGuiManchuChariot = createWebappBoardGui({elementId: 'board-container-manchu-chariot-about'});
+    #settingsGui;
 
     constructor() {
         super();
@@ -47,6 +48,15 @@ class XiangqiAboutPage extends BasePage {
         this.#initResetButton('reset-cannon-board-button', () => this.#resetCannonBoard());
         this.#initResetButton('reset-soldier-board-button', () => this.#resetSoldierBoard());
         this.#initResetButton('reset-manchu-chariot-board-button', () => this.#resetManchuChariotBoard());
+
+        this.#settingsGui = new SettingsGui(this.#boardGuiGeneral, null, false, false);
+        this.#settingsGui.addBoardGui(this.#boardGuiAdvisor);
+        this.#settingsGui.addBoardGui(this.#boardGuiElephant);
+        this.#settingsGui.addBoardGui(this.#boardGuiHorse);
+        this.#settingsGui.addBoardGui(this.#boardGuiChariot);
+        this.#settingsGui.addBoardGui(this.#boardGuiCannon);
+        this.#settingsGui.addBoardGui(this.#boardGuiSoldier);
+        this.#settingsGui.addBoardGui(this.#boardGuiManchuChariot);
     }
 
     #initResetButton(elementId, callback) {
