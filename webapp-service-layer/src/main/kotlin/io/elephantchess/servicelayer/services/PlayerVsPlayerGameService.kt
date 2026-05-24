@@ -142,6 +142,9 @@ class PlayerVsPlayerGameService(
     }
 
     private suspend fun refreshPlayerVsPlayerSessions() {
+        // Drop already-closed sessions before fetching anything from DB.
+        removeClosedPlayerVsPlayerSessions()
+
         val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
 
         if (allGameIds.isEmpty()) {
@@ -261,18 +264,19 @@ class PlayerVsPlayerGameService(
                     )
                 }
             }
+    }
 
-        // remove the sessions that are not active anymore
+    internal suspend fun refreshPlayerVsPlayerSessionsForTest() {
+        refreshPlayerVsPlayerSessions()
+    }
+
+    private fun removeClosedPlayerVsPlayerSessions() {
         playerVsPlayerSessions.removeIf { session ->
             if (session.isClosed) logger.debug { "removing $session" }
             session.isClosed
         }
     }
 
-    internal suspend fun refreshPlayerVsPlayerSessionsForTest() {
-        playerVsPlayerSessions.removeIf { session -> session.isClosed }
-        refreshPlayerVsPlayerSessions()
-    }
 
     private suspend fun fetchAllGamesOpenToJoin(onlineUserIds: Set<String>) =
         pvpGameDaoService
