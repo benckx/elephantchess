@@ -77,11 +77,15 @@ class UserServiceTest : ServiceTest() {
 
         // user cannot log in with wrong password
         assertFailsWith<UnauthorizedException> {
-            userService.login(UserLoginRequest(email, randomAlphanumeric(10)))
+            userService.login(
+                UserLoginRequest(email, insecure().nextAlphanumeric(10))
+            )
         }
 
         assertFailsWith<UnauthorizedException> {
-            userService.login(UserLoginRequest(username, randomAlphanumeric(10)))
+            userService.login(
+                UserLoginRequest(username, insecure().nextAlphanumeric(10))
+            )
         }
 
         // userId can be extracted from token
@@ -324,32 +328,33 @@ class UserServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `signUp should generate an email confirmation code and confirmEmail should mark the email as confirmed`() = runTest {
-        val (_, userId) = signUpTestUser()
+    fun `signUp should generate an email confirmation code and confirmEmail should mark the email as confirmed`() =
+        runTest {
+            val (_, userId) = signUpTestUser()
 
-        // a confirmation code is generated at signup and the email is not yet confirmed
-        val userAfterSignup = userDaoService.findById(userId)!!
-        assertNotNull(userAfterSignup.emailConfirmationCode, "Confirmation code should be generated at signup")
-        assertNull(userAfterSignup.emailConfirmedAt, "Email should not be confirmed yet")
+            // a confirmation code is generated at signup and the email is not yet confirmed
+            val userAfterSignup = userDaoService.findById(userId)!!
+            assertNotNull(userAfterSignup.emailConfirmationCode, "Confirmation code should be generated at signup")
+            assertNull(userAfterSignup.emailConfirmedAt, "Email should not be confirmed yet")
 
-        // confirming with an unknown code does nothing
-        assertFalse(userService.confirmEmail("unknown-code"))
-        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+            // confirming with an unknown code does nothing
+            assertFalse(userService.confirmEmail("unknown-code"))
+            assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
 
-        // confirming with a blank code does nothing
-        assertFalse(userService.confirmEmail(""))
-        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+            // confirming with a blank code does nothing
+            assertFalse(userService.confirmEmail(""))
+            assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
 
-        // confirming with the right code marks the email as confirmed
-        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
-        val userAfterConfirmation = userDaoService.findById(userId)!!
-        assertNotNull(userAfterConfirmation.emailConfirmedAt, "Email should be confirmed")
+            // confirming with the right code marks the email as confirmed
+            assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+            val userAfterConfirmation = userDaoService.findById(userId)!!
+            assertNotNull(userAfterConfirmation.emailConfirmedAt, "Email should be confirmed")
 
-        // confirming again is idempotent
-        val firstConfirmedAt = userAfterConfirmation.emailConfirmedAt
-        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
-        assertEquals(firstConfirmedAt, userDaoService.findById(userId)!!.emailConfirmedAt)
-    }
+            // confirming again is idempotent
+            val firstConfirmedAt = userAfterConfirmation.emailConfirmedAt
+            assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+            assertEquals(firstConfirmedAt, userDaoService.findById(userId)!!.emailConfirmedAt)
+        }
 
     @Test
     fun `confirmEmail should reject an expired confirmation code`() = runTest {
