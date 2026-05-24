@@ -19,6 +19,7 @@ import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.utils.modelToProcess
 import io.elephantchess.utils.EloCalculator.calculateElo
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.math.ceil
 import kotlin.time.Clock
@@ -141,6 +142,7 @@ class PuzzleService(
                     analysisStatus = puzzleRecords.map { record -> record.get(REFERENCE_GAME.ANALYSIS_STATUS) }.first(),
                     outcome = outcome,
                     lastUpdated = date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
+                    variant = Variant.XIANGQI,
                 )
                 PuzzlesOriginalGameMetadataResponse.Entry(puzzleId, metadata)
             } else {

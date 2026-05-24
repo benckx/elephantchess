@@ -17,15 +17,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class SimpleBoardPage extends BasePage {
-
-    constructor() {
-        super();
-        const boardGui = createWebappBoardGui();
-        boardGui.loadFen(DEFAULT_START_FEN);
-        new SettingsGui(boardGui, null);
-    }
-
+#manchu-explanation {
+    display: none;
 }
-
-window.onload = () => new SimpleBoardPage();

@@ -19,7 +19,9 @@ import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -64,29 +66,55 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun listLastGamesByIdentifiedUsers(
+    suspend fun listLatestGamesByIdentifiedUsers(
         limit: Int,
         minMoveIndex: Int? = null,
-        beforeTs: Long? = null
+        beforeTs: Long? = null,
+        excludeAutoResigned: Boolean = false,
+        distinctByUsers: Boolean = false
     ): List<BotGame> {
-        var query =
-            dslContext
-                .select()
-                .from(BOT_GAME)
-                .where(BOT_GAME.USER_ID.isNotNull)
+        val conditions = mutableListOf<Condition>()
+        conditions += BOT_GAME.USER_ID.isNotNull
 
         if (minMoveIndex != null) {
-            query = query.and(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            conditions += BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)
         }
 
         if (beforeTs != null) {
-            query = query.and(BOT_GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))
+            conditions += BOT_GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs)
         }
 
-        return query
-            .orderBy(BOT_GAME.LAST_UPDATED.desc())
-            .limit(limit)
-            .awaitMappedRecords()
+        if (excludeAutoResigned) {
+            conditions += BOT_GAME.GAME_STATUS.ne(AUTO_RESIGNED)
+        }
+
+        return if (distinctByUsers) {
+            val rn = DSL.rowNumber()
+                .over(DSL.partitionBy(BOT_GAME.USER_ID).orderBy(BOT_GAME.LAST_UPDATED.desc()))
+                .`as`("rn")
+
+            val sub = dslContext
+                .select(BOT_GAME.asterisk(), rn)
+                .from(BOT_GAME)
+                .where(conditions)
+                .asTable("t")
+
+            dslContext
+                .select(sub.asterisk())
+                .from(sub)
+                .where(sub.field("rn", Int::class.java)!!.eq(1))
+                .orderBy(sub.field(BOT_GAME.LAST_UPDATED)!!.desc())
+                .limit(limit)
+                .awaitMappedRecords()
+        } else {
+            dslContext
+                .select()
+                .from(BOT_GAME)
+                .where(conditions)
+                .orderBy(BOT_GAME.LAST_UPDATED.desc())
+                .limit(limit)
+                .awaitMappedRecords()
+        }
     }
 
     suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<String, Instant>> {
@@ -248,6 +276,15 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()!!
     }
 
+    suspend fun countManchuGames(minIndex: Int): Int {
+        return dslContext
+            .selectCount()
+            .from(BOT_GAME)
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex))
+            .and(BOT_GAME.VARIANT.eq(Variant.MANCHU))
+            .awaitSingleValue()!!
+    }
+
     suspend fun countTotalMoves(): Int {
         return dslContext
             .selectCount()
@@ -403,6 +440,15 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                 .where(BOT_GAME.ID.eq(gameId))
                 .awaitExecute()
         }
+    }
+
+    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
+        dslContext
+            .update(BOT_GAME)
+            .set(BOT_GAME.USER_ID, newUserId)
+            .set(BOT_GAME.GUEST_USER_ID, guestUserId)
+            .where(BOT_GAME.USER_ID.eq(guestUserId))
+            .awaitExecute()
     }
 
 }

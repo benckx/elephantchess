@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.dto.ws
 import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 
 /**
  * To join or where it's user's turn to play
@@ -20,5 +21,6 @@ data class GameToPlay(
     val timeControlBase: Int?,
     val timeControlIncrement: Int?,
     val allowGuests: Boolean,
-    val lastUpdated: Long
+    val lastUpdated: Long,
+    val variant: Variant
 )
