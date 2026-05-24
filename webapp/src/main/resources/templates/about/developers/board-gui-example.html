@@ -42,12 +42,27 @@
 
     <div class="controls">
         <button id="btn-reset">Reset</button>
+        <button id="btn-reset-manchu">Reset (Manchu)</button>
         <button id="btn-flip">Flip</button>
         <button id="btn-clear">Clear</button>
         <button id="btn-random-move">Play random legal move</button>
         <button id="btn-style-romanized">Pieces: Romanized rounded</button>
         <button id="btn-style-traditional">Pieces: Traditional</button>
     </div>
+
+    <h2>Manchu chess (Yitong) variant</h2>
+    <p>
+        <code>xiangqi.js</code> also supports the <strong>Manchu chess</strong> (一统, Yitong) variant. In this variant,
+        Red plays with a single super-chariot (Banner/统, FEN char <code>M</code>) at a1 instead of the usual chariots,
+        horses and cannons. The super-chariot combines the movement powers of chariot, horse and cannon.
+    </p>
+    <p>
+        Use the constant <code>MANCHU_START_FEN</code> to load the Manchu starting position:
+    </p>
+    <pre><code class="language-javascript">boardGui.loadFen(MANCHU_START_FEN);</code></pre>
+    <p>
+        All legal-move and checkmate logic automatically handles the super-chariot, so no extra configuration is needed.
+    </p>
 
     <h2>Setup</h2>
     <pre><code class="language-html">{{snippet_setup}}</code></pre>
@@ -104,6 +119,8 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
         <li><code>calculateFen(moves, startFen)</code> – compute the FEN after a list of moves</li>
         <li><code>validateStartFen(fen)</code> – throws if the position is checkmate / stalemate / invalid</li>
         <li><code>exportMovesToPgnLine(moves)</code>, <code>translateMovesToWxf(...)</code>, etc.</li>
+        <li><code>DEFAULT_START_FEN</code> – standard Xiangqi starting position</li>
+        <li><code>MANCHU_START_FEN</code> – Manchu chess (Yitong) starting position</li>
     </ul>
 </div>
 <script>
@@ -138,6 +155,10 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
 
         document.getElementById('btn-reset').onclick = () => {
             boardGui.loadFen(DEFAULT_START_FEN, true);
+        }
+
+        document.getElementById('btn-reset-manchu').onclick = () => {
+            boardGui.loadFen(MANCHU_START_FEN, true);
         }
 
         document.getElementById('btn-flip').onclick = () => boardGui.flip();

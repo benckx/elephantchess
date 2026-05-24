@@ -6,6 +6,7 @@ import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
 import io.elephantchess.webapp.rendering.*
+import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -17,13 +18,13 @@ private val logger = logger {}
 
 internal val simplePageRenderer by koin<SimplePageRenderer>()
 
-private val publicPageMapping = mapOf(
+private val simplePublicPageMapping = mapOf(
     "/401" to "401",
     "/403" to "403",
     "/404" to "404",
     "/game" to "player_vs_player_game",
     "/puzzles" to "puzzles",
-    "/board" to "simple_board",
+    "/board" to "test_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
     "/browse/player-vs-player" to "browse_pvp_games",
@@ -39,7 +40,7 @@ private val publicPageMapping = mapOf(
     "/7k/about" to "seven_kingdoms/seven_kingdoms_about",
 )
 
-private val publicPageMappingWithSupporterBanner = mapOf(
+private val simplePublicPageMappingWithSupporterBanner = mapOf(
     "/" to "lobby",
     "/playbot" to "player_vs_bot",
 )
@@ -94,13 +95,13 @@ fun Application.htmlRoutingModule() {
         userProfile()
         modals()
         databasePages()
-        faqPage()
-        changelogPage()
+        aboutPages()
+        emailSettingUpdatePages()
     }
 }
 
 private fun Routing.simpleMappings() {
-    publicPageMapping.forEach { (path, templateName) ->
+    simplePublicPageMapping.forEach { (path, templateName) ->
         logger.info { "[public] mapping html file $templateName to path $path" }
         get(path) {
             call.respond(simplePageRenderer.renderTemplateHtml(templateName))
@@ -141,7 +142,7 @@ private fun Routing.simpleMappings() {
 private fun Routing.simpleMappingsWithSupporterBanner() {
     val kofiService by koin<KofiService>()
 
-    publicPageMappingWithSupporterBanner.forEach { (path, templateName) ->
+    simplePublicPageMappingWithSupporterBanner.forEach { (path, templateName) ->
         logger.info { "[public] mapping html file $templateName to path $path (with supporter banner)" }
         get(path) {
             val latestTipper = kofiService.fetchLatestSupporter()
@@ -175,19 +176,15 @@ private fun Route.userProfile() {
     }
 }
 
-private fun Route.faqPage() {
-    val renderer by koin<FaqPageRenderer>()
+private fun Route.aboutPages() {
+    val changelogPageRenderer by koin<ChangelogPageRenderer>()
+    val faqPageRenderer by koin<FaqPageRenderer>()
 
     get("/about/faq") {
-        call.respondHtml(renderer.renderFaqPage())
+        call.respondHtml(faqPageRenderer.renderFaqPage())
     }
-}
-
-private fun Route.changelogPage() {
-    val renderer by koin<ChangelogPageRenderer>()
-
     get("/about/changelog") {
-        call.respondHtml(renderer.renderChangelogPage())
+        call.respondHtml(changelogPageRenderer.renderChangelogPage())
     }
 }
 

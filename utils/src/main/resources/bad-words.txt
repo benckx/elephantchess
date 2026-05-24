@@ -1,4 +1,6 @@
 # found: https://www.cs.cmu.edu/~biglou/resources/bad-words.txt
+# obviously not all of those words are offensive per se,
+# but it's better to avoid them in generated guest id
 abbo
 abo
 abortion

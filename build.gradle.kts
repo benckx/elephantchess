@@ -3,31 +3,11 @@ import liquibase.Liquibase
 import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.DirectoryResourceAccessor
-import org.gradle.kotlin.dsl.DependencyHandlerScope
-import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.add
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.named
-import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.the
-import org.gradle.kotlin.dsl.withType
 import org.h2.Driver
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jooq.codegen.GenerationTool
-import org.jooq.meta.jaxb.Configuration
-import org.jooq.meta.jaxb.Database
-import org.jooq.meta.jaxb.ForcedType
-import org.jooq.meta.jaxb.Generate
-import org.jooq.meta.jaxb.Generator
-import org.jooq.meta.jaxb.Jdbc
+import org.jooq.meta.jaxb.*
 import org.jooq.meta.jaxb.Target
 import java.sql.Connection
 
@@ -243,6 +223,7 @@ configure(publishableModules.map { project(":$it") }) {
 project(":engine-api") {
     dependencies {
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+        implementation(project(":xiangqi-core"))
         testImplementation(project(":xiangqi-core"))
     }
 }
@@ -297,6 +278,7 @@ project(":webapp-dao") {
 project(":webapp-html-renderer") {
     dependencies {
         implementation(project(":utils"))
+        implementation("io.ktor:ktor-server-html-builder:$kTorVersion")
         implementation("org.jsoup:jsoup:$jsoupVersion")
     }
 }
@@ -326,6 +308,7 @@ project(":webapp-service-layer") {
         implementation("io.ktor:ktor-client-logging:$kTorVersion")
         implementation("io.ktor:ktor-serialization-jackson:$kTorVersion")
         implementation("io.ktor:ktor-serialization-kotlinx-json:$kTorVersion")
+        implementation("io.ktor:ktor-server-html-builder:$kTorVersion")
         testImplementation(project(":xiangqi-core-test-utils"))
         testImplementation(project(":seven-kingdoms-core-test-utils"))
         testImplementation("org.apache.commons:commons-rng-simple:1.7")
@@ -351,6 +334,7 @@ project(":webapp") {
         implementation("io.ktor:ktor-server-default-headers:$kTorVersion")
         implementation("io.ktor:ktor-server-content-negotiation:$kTorVersion")
         implementation("io.ktor:ktor-server-caching-headers:$kTorVersion")
+        implementation("io.ktor:ktor-server-html-builder:$kTorVersion")
         implementation("io.ktor:ktor-serialization-jackson:$kTorVersion")
         implementation("io.ktor:ktor-serialization-kotlinx-json:$kTorVersion")
         implementation("io.ktor:ktor-server-websockets:$kTorVersion")

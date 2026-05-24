@@ -33,8 +33,13 @@ tr#outcome-row {
     color: #515151;
 }
 
+.pvp-variant-symbol {
+    font-size: 14px;
+    margin-right: 4px;
+    color: #343434;
+}
+
 #game-info-info-box {
-    height: 200px;
     display: flex;
 }
 
@@ -177,10 +182,6 @@ tr#outcome-row {
 
     #analysis-button-container-right-side {
         margin-top: 36px;
-    }
-
-    #game-info-info-box {
-        height: 420px;
     }
 
     #perpetual-checking-tracker-info-box {

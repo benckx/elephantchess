@@ -242,6 +242,7 @@ class AnalysisCache {
                 }
             } else {
                 console.log('move has switched from ' + selectedNode + ' to ' + this.#selectedNode);
+                this.#isIdle = true;
             }
         });
     }

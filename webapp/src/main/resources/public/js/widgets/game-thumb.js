@@ -166,14 +166,16 @@ class GameThumb {
             gameMetadataDto.redPlayerId,
             gameMetadataDto.redPlayerName,
             gameMetadataDto.redUserType,
-            maxUserNameLength
+            maxUserNameLength,
+            true
         );
 
         const buildBlackUsername = () => buildUsernameSpan(
             gameMetadataDto.blackPlayerId,
             gameMetadataDto.blackPlayerName,
             gameMetadataDto.blackUserType,
-            maxUserNameLength
+            maxUserNameLength,
+            true
         );
 
         // Safari
@@ -313,6 +315,15 @@ class GameThumb {
             lastUpdatedDiv.innerHTML = '--';
         }
 
+        // variant indicator
+        const variantIndicator = this.#findFirst('game-thumb-variant');
+        if (variantIndicator) {
+            variantIndicator.innerHTML = gameMetadataDto.variant === Variant.MANCHU ? '统' : '象';
+            variantIndicator.title = gameMetadataDto.variant === Variant.MANCHU
+                ? 'Manchu chess (or Yitong)'
+                : 'Xiangqi (Chinese chess)';
+        }
+
         // is online
         const redPlayerStatusIndicator = this.#findFirst('red-player-status-indicator');
         const blackPlayerStatusIndicator = this.#findFirst('black-player-status-indicator');
@@ -390,6 +401,8 @@ class GameThumb {
         // Reset status and timestamp
         div.querySelector('.game-thumb-status').innerHTML = '--';
         div.querySelector('.game-thumb-last-updated').innerHTML = '--';
+        const variantDiv = div.querySelector('.game-thumb-variant');
+        if (variantDiv) variantDiv.innerHTML = '';
 
         // Reset online indicators
         div.querySelector('.red-player-status-indicator').classList.remove(IS_ONLINE_CSS_CLASS);
