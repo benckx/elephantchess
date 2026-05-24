@@ -100,4 +100,16 @@
     #page-toc li {
         font-size: 30px;
     }
+
+    #annotation-symbols-table th:nth-child(1) {
+        width: 170px;
+    }
+
+    #annotation-symbols-table th:nth-child(2) {
+        width: 230px;
+    }
+
+    #annotation-symbols-table th:nth-child(3) {
+        width: 80px;
+    }
 }
