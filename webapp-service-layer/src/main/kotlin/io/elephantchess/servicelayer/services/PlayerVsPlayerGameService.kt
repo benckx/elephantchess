@@ -72,24 +72,27 @@ class PlayerVsPlayerGameService(
     refresherScope: CoroutineScope
 ) {
 
-    private val sessionsRefresh = 500.milliseconds
-
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
     private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
     private val playerVsPlayerSessions = mutableListOf<PlayerVsPlayerWebSocketSession>()
 
-    private val refreshJob = launchAtFixedRate(
+    private val pvpSessionsRefreshJob = launchAtFixedRate(
         scope = refresherScope,
-        initialDelay = sessionsRefresh,
-        period = sessionsRefresh,
-        action = {
-            refreshGamesToPlaySessions()
-            refreshPlayerVsPlayerSessions()
-        }
+        initialDelay = 500.milliseconds,
+        period = 500.milliseconds,
+        action = { refreshPlayerVsPlayerSessions() }
+    )
+
+    private val gamesToPlayRefreshJob = launchAtFixedRate(
+        scope = refresherScope,
+        initialDelay = 4.seconds,
+        period = 4.seconds,
+        action = { refreshGamesToPlaySessions() }
     )
 
     fun cancel() {
-        refreshJob.cancel()
+        pvpSessionsRefreshJob.cancel()
+        gamesToPlayRefreshJob.cancel()
     }
 
     private suspend fun refreshGamesToPlaySessions() {
