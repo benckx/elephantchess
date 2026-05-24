@@ -1,6 +1,8 @@
 package io.elephantchess.servicelayer.services
 
 import io.elephantchess.db.dao.codegen.Tables.GAME
+import io.elephantchess.db.dao.codegen.Tables.GAME_CHAT_MESSAGE
+import io.elephantchess.db.dao.codegen.Tables.GAME_CHAT_TYPING_STATUS
 import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
 import io.elephantchess.db.dao.codegen.Tables.GAME_STATUS_EVENT
 import io.elephantchess.db.dao.codegen.Tables.USER
@@ -47,7 +49,7 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
 
     @AfterTest
     fun afterTest() = runBlocking {
-        listOf(GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
+        listOf(GAME_CHAT_TYPING_STATUS, GAME_CHAT_MESSAGE, GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
             .forEach { table ->
                 dslContext
                     .deleteFrom(table)
@@ -153,6 +155,8 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
                     input = PlayerVsPlayerInput(message = "hello from user 2")
                 )
 
+                pvpGameService.refreshPlayerVsPlayerSessionsForTest()
+
                 val viewerUpdate = sessionViewer.channel.awaitNextUpdate()
                 val actorUpdate = sessionActor.channel.awaitNextUpdate()
 
@@ -252,6 +256,7 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
 
         error("Timed out waiting for websocket update")
     }
+
 
     private fun assertMoveUpdate(update: PlayerVsPlayerUpdate, moves: GameMovesDto, expectedIndex: Int) {
         val newMove = requireNotNull(update.newMove)

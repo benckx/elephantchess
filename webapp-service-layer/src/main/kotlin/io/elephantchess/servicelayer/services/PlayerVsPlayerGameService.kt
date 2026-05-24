@@ -269,6 +269,11 @@ class PlayerVsPlayerGameService(
         }
     }
 
+    internal suspend fun refreshPlayerVsPlayerSessionsForTest() {
+        playerVsPlayerSessions.removeIf { session -> session.isClosed }
+        refreshPlayerVsPlayerSessions()
+    }
+
     private suspend fun fetchAllGamesOpenToJoin(onlineUserIds: Set<String>) =
         pvpGameDaoService
             .listGamesOpenToJoin()
