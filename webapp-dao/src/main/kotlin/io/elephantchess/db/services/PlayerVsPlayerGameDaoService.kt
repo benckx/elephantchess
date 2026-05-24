@@ -465,15 +465,6 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
-//    suspend fun fetchMoveAt(gameId: String, index: Int): GameMove? {
-//        return dslContext
-//            .select()
-//            .from(GAME_MOVE)
-//            .where(GAME_MOVE.GAME_ID.eq(gameId))
-//            .and(GAME_MOVE.POSITION.eq(index))
-//            .awaitSingleMappedRecord()
-//    }
-
     suspend fun fetchGameStates(gameIds: List<String>): Map<String, GameStateResult> {
         // TODO: Flux.from() -> can we not use our shortcut thingy?
         return Flux.from(
