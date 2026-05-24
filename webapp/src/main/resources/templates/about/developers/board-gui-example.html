@@ -50,20 +50,6 @@
         <button id="btn-style-traditional">Pieces: Traditional</button>
     </div>
 
-    <h2>Manchu chess (Yitong) variant</h2>
-    <p>
-        <code>xiangqi.js</code> also supports the <strong>Manchu chess</strong> (一统, Yitong) variant. In this variant,
-        Red plays with a single super-chariot (Banner/统, FEN char <code>M</code>) at a1 instead of the usual chariots,
-        horses and cannons. The super-chariot combines the movement powers of chariot, horse and cannon.
-    </p>
-    <p>
-        Use the constant <code>MANCHU_START_FEN</code> to load the Manchu starting position:
-    </p>
-    <pre><code class="language-javascript">boardGui.loadFen(MANCHU_START_FEN);</code></pre>
-    <p>
-        All legal-move and checkmate logic automatically handles the super-chariot, so no extra configuration is needed.
-    </p>
-
     <h2>Setup</h2>
     <pre><code class="language-html">{{snippet_setup}}</code></pre>
 
@@ -122,6 +108,19 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
         <li><code>DEFAULT_START_FEN</code> – standard Xiangqi starting position</li>
         <li><code>MANCHU_START_FEN</code> – Manchu chess (Yitong) starting position</li>
     </ul>
+    <h2>Manchu chess (Yitong) variant</h2>
+    <p>
+        <code>xiangqi.js</code> also supports the <strong>Manchu</strong> (or Yitong) variant. In this variant, Red
+        plays with a single super-chariot (FEN char <code>M</code>) at a1 instead of the usual chariots, horses and
+        cannons. The super-chariot combines the movement powers of chariot, horse and cannon.
+    </p>
+    <p>
+        Use the constant <code>MANCHU_START_FEN</code> to load the Manchu starting position:
+    </p>
+    <pre><code class="language-javascript">boardGui.loadFen(MANCHU_START_FEN);</code></pre>
+    <p>
+        All legal-move and checkmate logic automatically handles the super-chariot, so no extra configuration is needed.
+    </p>
 </div>
 <script>
     window.addEventListener('load', () => {
@@ -135,7 +134,8 @@ rnbakab1r/9/1c4nc1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKABNR w - - 0 1
         const boardGui = new BoardGui({
             elementId: 'board-container', // (default)
             showCoordinates: true,
-            assetsBaseUrl: assetsBaseUrl
+            assetsBaseUrl: assetsBaseUrl,
+            playSounds: true,
         });
 
         boardGui.loadFen(DEFAULT_START_FEN);
