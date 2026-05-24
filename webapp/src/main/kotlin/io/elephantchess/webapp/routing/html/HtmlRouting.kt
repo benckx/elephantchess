@@ -47,7 +47,7 @@ private val simplePublicPageMappingWithSupporterBanner = mapOf(
 )
 
 private val publicPageRedirection = mapOf(
-    "/xiangqi" to "/xiangqi/about",
+    "/how-to-play-xiangqi" to "how_to_play_xiangqi",
     "/xiangqi/rules" to "/xiangqi/about",
     "/7k" to "/7k/about",
     "/7k/rules" to "/7k/about",
