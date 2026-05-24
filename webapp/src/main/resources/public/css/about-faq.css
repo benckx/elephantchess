@@ -112,4 +112,8 @@
     #annotation-symbols-table th:nth-child(3) {
         width: 80px;
     }
+
+    .anchor-copy-link img {
+        width: 36px;
+    }
 }
