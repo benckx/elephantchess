@@ -5,14 +5,10 @@ import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
 import io.elephantchess.db.dao.codegen.Tables.GAME_STATUS_EVENT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.utils.awaitExecute
-import io.elephantchess.model.TimeControlMode
 import io.elephantchess.model.UserType.AUTHENTICATED
-import io.elephantchess.servicelayer.dto.game.CreateGameRequest
-import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
 import io.elephantchess.servicelayer.dto.ws.PlayerVsPlayerUpdate
 import io.elephantchess.servicelayer.model.UserId
-import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.testutils.GameMovesDto
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
@@ -23,12 +19,10 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.minutes
 
 class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
 
     private val dslContext by inject<DSLContext>()
-    private val pvpGameService by inject<PlayerVsPlayerGameService>()
 
     private lateinit var userId1: UserId
     private lateinit var userId2: UserId
@@ -130,22 +124,6 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         }
     }
 
-    private suspend fun createAndJoinGame(inviter: UserId, invitee: UserId): String {
-        val request = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = true,
-        )
-
-        val response = pvpGameService.createGame(inviter, request)
-        pvpGameService.joinGame(invitee, JoinGameRequest(response.gameId))
-        return response.gameId
-    }
 
     private suspend fun playMove(gameId: String, userId: UserId, move: String) {
         pvpGameService.playMove(userId.id, PlayMoveRequest(gameId, move))
@@ -201,4 +179,3 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
     )
 
 }
-

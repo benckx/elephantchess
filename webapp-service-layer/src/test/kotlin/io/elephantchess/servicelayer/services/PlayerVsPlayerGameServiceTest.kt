@@ -16,7 +16,6 @@ import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
-import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.Variant
@@ -30,7 +29,6 @@ import kotlin.time.Duration.Companion.minutes
 class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
     private val dslContext by inject<DSLContext>()
-    private val pvpGameService by inject<PlayerVsPlayerGameService>()
 
     private lateinit var userId1: UserId
     private lateinit var userId2: UserId
@@ -321,7 +319,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
     @Test
     fun happyPathTest01() = runTest {
-        val gameId = createAndJoinGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
         val gameMoves = gameMovesCache.findByGameId("4Q815fbI")
         assertTrue { gameMoves.endsInCheckmate() }
 
@@ -446,7 +444,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
     @Test
     fun playMoveErrorHandlingTest01() = runTest {
-        val gameId = createAndJoinGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
         val gameMoves = gameMovesCache.findByGameId("iaxeugSr")
 
         gameMoves.uciMoves.dropLast(10).forEach { move ->
@@ -508,7 +506,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     @Test
     fun playMoveErrorHandlingTest02() = runTest {
         val moves = listOf("c3c4", "b9c7", "g3g4", "h7g7", "h0g2", "g7g4", "g2f4", "g6g5", "b2e2")
-        val gameId = createAndJoinGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
 
         moves.forEach { move ->
             pvpGameService.playMove(
@@ -548,7 +546,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8"
         )
 
-        val gameId = createAndJoinGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
         moves.take(102).forEachIndexed { _, move ->
             pvpGameService.playMove(
                 userId = userIdToPlay(gameId),
@@ -602,7 +600,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
      */
     @Test
     fun happyPathManchuTest01() = runTest {
-        val gameId = createAndJoinManchuGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED, variant = Variant.MANCHU)
         val manchuMoves = manchuGameMovesCache.listAll().random()
 
         manchuMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
@@ -686,50 +684,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         }
     }
 
-    private suspend fun createManchuGame(inviterColor: Color): String {
-        val request = CreateGameRequest(
-            inviterColor = inviterColor,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false,
-            variant = Variant.MANCHU
-        )
-
-        val response = pvpGameService.createGame(userId1, request)
-        return response.gameId
-    }
-
-    private suspend fun createAndJoinManchuGame(inviterColor: Color): String {
-        val gameId = createManchuGame(inviterColor)
-        pvpGameService.joinGame(userId2, JoinGameRequest(gameId))
-        return gameId
-    }
-
-    private suspend fun createGame(inviterColor: Color): String {
-        val request = CreateGameRequest(
-            inviterColor = inviterColor,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
-
-        val response = pvpGameService.createGame(userId1, request)
-        return response.gameId
-    }
-
-    private suspend fun createAndJoinGame(inviterColor: Color): String {
-        val gameId = createGame(inviterColor)
-        pvpGameService.joinGame(userId2, JoinGameRequest(gameId))
-        return gameId
-    }
 
     private suspend fun userIdToPlay(gameId: String): String {
         val gameDataResponse = pvpGameService.fetchGame(gameId)
