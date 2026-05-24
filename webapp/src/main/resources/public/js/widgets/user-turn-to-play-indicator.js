@@ -55,11 +55,13 @@ class UserTurnToPlayIndicatorWidget {
 
         // play audio notification if we didn't have any entries before and we have some now
         if (this.#nbrOfElements === 0 && entriesToRender.length > 0 && !this.#isFirstRefresh) {
-            this.#newNotificationsAudio
-                .play()
-                .catch(() => {
-                    // ignored, spam error in console in dev
-                });
+            if (getCookie('setting.play.sounds') !== 'false') {
+                this.#newNotificationsAudio
+                    .play()
+                    .catch(() => {
+                        // ignored, spam error in console in dev
+                    });
+            }
         }
 
         this.#nbrOfElements = entriesToRender.length;

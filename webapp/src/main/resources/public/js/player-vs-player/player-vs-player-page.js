@@ -152,11 +152,13 @@ class PlayGamePage extends BasePage {
                     this.#updatePlayersInfo();
                     if (this.#gameController.gameDto.userStatus !== UserStatus.INVITEE) {
                         UI.pushInfoNotification(`${this.#gameController.gameDto.inviteeUsername} has joined the game`, 4_000);
-                        this.#joinAudio
-                            .play()
-                            .catch(() => {
-                                // ignored, spam error in console in dev
-                            });
+                        if (getCookie('setting.play.sounds') !== 'false') {
+                            this.#joinAudio
+                                .play()
+                                .catch(() => {
+                                    // ignored, spam error in console in dev
+                                });
+                        }
                     }
                     this.#updateBoardMaskMessage();
                 },
