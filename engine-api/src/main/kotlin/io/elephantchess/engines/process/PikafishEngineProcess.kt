@@ -19,7 +19,9 @@ class PikafishEngineProcess(
     }
 
     override fun setVariant(variant: Variant) {
-        logger.error { "Pikafish does not support variants, ignoring setVariant command" }
+        if (variant != Variant.XIANGQI) {
+            logger.error { "Pikafish does not support variants, ignoring setVariant command" }
+        }
     }
 
 }
