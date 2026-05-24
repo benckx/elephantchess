@@ -243,10 +243,10 @@ class GameThumb {
         redPlayerRatingElement.innerHTML = '';
         blackPlayerRatingElement.innerHTML = '';
         if (gameMetadataDto.redPlayerRating != null) {
-            redPlayerRatingElement.innerHTML = ` (${gameMetadataDto.redPlayerRating})`;
+            redPlayerRatingElement.innerHTML = `&nbsp;(${gameMetadataDto.redPlayerRating})`;
         }
         if (gameMetadataDto.blackPlayerRating != null) {
-            blackPlayerRatingElement.innerHTML = ` (${gameMetadataDto.blackPlayerRating})`;
+            blackPlayerRatingElement.innerHTML = `&nbsp;(${gameMetadataDto.blackPlayerRating})`;
         }
 
         // outcome

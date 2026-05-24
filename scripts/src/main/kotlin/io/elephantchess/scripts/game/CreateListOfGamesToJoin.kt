@@ -9,6 +9,7 @@ import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
 import kotlin.random.Random
@@ -112,6 +113,7 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
                 } else {
                     TimeControlMode.MOVE_TIME
                 }
+            val variant = if (rnd.nextInt(100) < 20) Variant.MANCHU else Variant.XIANGQI
 
             val request =
                 CreateGameRequest(
@@ -122,7 +124,8 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
                     timeControlMode = timeControlMode,
                     allowGuests = true,
                     alwaysVisibleInLobby = true,
-                    privateInvite = false
+                    privateInvite = false,
+                    variant = variant
                 )
 
             val createGameResponse = pvpGameService.createGame(UserId(AUTHENTICATED, user.id), request)
