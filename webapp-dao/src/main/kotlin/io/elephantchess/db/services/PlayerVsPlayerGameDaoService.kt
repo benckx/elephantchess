@@ -272,6 +272,19 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
+    suspend fun countCreatedGamesByUser(
+        userId: String,
+        timeControlCategory: TimeControlCategory,
+    ): Int {
+        return dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.INVITER.eq(userId))
+            .and(GAME.GAME_STATUS.eq(CREATED))
+            .and(GAME.TIME_CONTROL_CATEGORY.eq(timeControlCategory))
+            .awaitSingleValue() ?: 0
+    }
+
     suspend fun countLiveGames(duration: Duration): Int {
         return dslContext
             .selectCount()
