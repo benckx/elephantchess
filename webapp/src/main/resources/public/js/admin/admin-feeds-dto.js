@@ -35,6 +35,7 @@ class GameAnalyticsDto {
     #created;
     #lastUpdated;
     #sourceType;
+    #variant;
 
     constructor(json) {
         this.#gameId = json.gameId;
@@ -53,6 +54,7 @@ class GameAnalyticsDto {
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
         this.#sourceType = json.sourceType;
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
@@ -163,7 +165,7 @@ class GameAnalyticsDto {
     }
 
     /**
-     * @returns {string|null}
+     * @return {string}
      */
     get formattedSourceType() {
         switch (this.#sourceType) {
@@ -178,6 +180,13 @@ class GameAnalyticsDto {
             default:
                 return '--';
         }
+    }
+
+    /**
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
     }
 
     /**
@@ -237,6 +246,7 @@ class BotGameAnalyticsDto {
     #index;
     #created;
     #lastUpdated;
+    #variant;
 
     constructor(json) {
         this.#gameId = json.gameId;
@@ -252,6 +262,7 @@ class BotGameAnalyticsDto {
         this.#index = Number(json.index);
         this.#created = Number(json.created);
         this.#lastUpdated = Number(json.lastUpdated);
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
@@ -364,6 +375,13 @@ class BotGameAnalyticsDto {
      */
     get formattedLastUpdated() {
         return formatTimestampToDateTime(this.lastUpdated);
+    }
+
+    /**
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
     }
 
     /**

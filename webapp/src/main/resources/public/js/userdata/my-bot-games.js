@@ -81,6 +81,9 @@ class MyBotGamesPage extends InfiniteScrollPage {
             const leftPane = document.createElement('div');
             leftPane.className = 'left-pane';
 
+            const variantPane = document.createElement('div');
+            variantPane.className = 'variant-pane';
+
             const middlePane = document.createElement('div');
             middlePane.className = 'middle-pane';
 
@@ -98,6 +101,7 @@ class MyBotGamesPage extends InfiniteScrollPage {
             item.setAttribute('href', entry.gameUrl);
 
             item.append(
+                variantPane,
                 leftPane,
                 middlePane,
                 customFenIndicatorPane,
@@ -111,14 +115,18 @@ class MyBotGamesPage extends InfiniteScrollPage {
             // left pane
             leftPane.append(buildBotIcon());
 
+            // variant pane
+            variantPane.append(buildVariantCell(entry.variant));
+
             // middle pane
             const opponentDiv = document.createElement('div');
             opponentDiv.className = 'opponent';
             opponentDiv.innerText = `${entry.formattedEngine} (${entry.depth})`;
-            middlePane.append(
+            const middlePaneItems = [
                 opponentDiv,
                 wrapInDiv(buildColorSpan(entry.color)),
-            );
+            ];
+            middlePane.append(...middlePaneItems);
 
             if (entry.hasCustomStartFen) {
                 customFenIndicatorPane.append(buildCustomFenIcon(entry));

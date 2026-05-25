@@ -30,11 +30,11 @@ import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -53,6 +53,7 @@ class GameDataService(
     private val referencePlayerDaoService: ReferencePlayerDaoService,
     private val referenceEventDaoService: ReferenceEventDaoService,
     private val userDaoService: UserDaoService,
+    private val userService: UserService,
     private val userCache: UserCache,
     private val logger: KLogger,
 ) {
@@ -70,6 +71,11 @@ class GameDataService(
     suspend fun countTotalAppGames(): Int {
         return pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
                 pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
+    }
+
+    suspend fun countTotalManchuGames(): Int {
+        return pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
+                pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
     }
 
     /**
@@ -104,14 +110,15 @@ class GameDataService(
 
                             GameMetadataDto(
                                 gameId = gameId,
-                                lastUpdated = record.created.toEpochMilliseconds(),
+                                lastUpdated = record.lastUpdated.toEpochMilliseconds(),
                                 redPlayerId = redPlayerId,
                                 redPlayerName = redPlayerName,
                                 blackPlayerId = blackPlayerId,
                                 blackPlayerName = blackPlayerName,
                                 finalFen = record.currentFen,
                                 outcome = record.outcome,
-                                analysisStatus = record.analysisStatus
+                                analysisStatus = record.analysisStatus,
+                                variant = record.variant,
                             )
                         }
                 }
@@ -122,10 +129,30 @@ class GameDataService(
                         ?.let { record ->
                             val userId = record.userId
                             val userName = fetchUserName(userId)
-                            val redPlayerId = if (record.userColor == RED) userId else null
-                            val redPlayerName = if (record.userColor == RED) userName else null
-                            val blackPlayerId = if (record.userColor == BLACK) userId else null
-                            val blackPlayerName = if (record.userColor == BLACK) userName else null
+                            var blackPlayerId: String? = null
+                            var blackPlayerName: String? = null
+                            var redPlayerId: String? = null
+                            var redPlayerName: String? = null
+                            val engineName = record.prettyEngineName()
+
+                            when (record.userColor) {
+                                RED -> {
+                                    redPlayerId = userId
+                                    redPlayerName = userName
+                                    blackPlayerName = engineName
+                                }
+
+                                BLACK -> {
+                                    redPlayerName = engineName
+                                    blackPlayerId = userId
+                                    blackPlayerName = userName
+                                }
+
+                                else -> {
+                                    // should not happen, but in case of data inconsistency, we don't want to fail the whole request
+                                    logger.warn { "Game $gameId has invalid user color ${record.userColor}" }
+                                }
+                            }
 
                             GameMetadataDto(
                                 gameId = gameId,
@@ -139,7 +166,8 @@ class GameDataService(
                                 outcome = record.outcome,
                                 analysisStatus = record.analysisStatus,
                                 engine = record.engine,
-                                depth = record.depth
+                                depth = record.depth,
+                                variant = record.variant
                             )
                         }
                 }
@@ -174,7 +202,8 @@ class GameDataService(
                                 outcome = record.outcome,
                                 analysisStatus = record.analysisStatus,
                                 eventId = event?.id,
-                                eventName = event?.name
+                                eventName = event?.name,
+                                variant = Variant.XIANGQI
                             )
                         }
                 }
@@ -206,17 +235,26 @@ class GameDataService(
             if (shouldStart) {
                 when (gameId.type) {
                     PVP -> {
-                        val gameStatus = pvpGameDaoService.fetchGameStatus(gameId.id)
+                        val gameRecord = pvpGameDaoService.fetchById(gameId.id)
                             ?: throw NotFoundException("Game $gameId not found")
 
-                        if (gameStatus.isInProgress()) {
-                            throw stillInProgressException(gameId, gameStatus)
+                        if (gameRecord.variant == Variant.MANCHU) {
+                            throw BadRequestException("Analysis is not supported for Manchu variant games")
+                        }
+
+                        if (gameRecord.gameStatus.isInProgress()) {
+                            throw stillInProgressException(gameId, gameRecord.gameStatus)
                         }
                     }
 
                     PVB -> {
                         val statusRecord = pvbGameDaoService.fetchGameStatus(gameId.id)
                             ?: throw NotFoundException("Game $gameId not found")
+
+                        val pvbRecord = pvbGameDaoService.fetchById(gameId.id)
+                        if (pvbRecord != null && (pvbRecord.variant == Variant.MANCHU)) {
+                            throw BadRequestException("Analysis is not supported for Manchu variant games")
+                        }
 
                         if (statusRecord.isInProgress()) {
                             throw stillInProgressException(gameId, statusRecord.status)
@@ -495,60 +533,94 @@ class GameDataService(
             )
 
         val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
-        val lastOnlineByUserId = userDaoService.fetchLastOnline(userIds)
-        val isOnlineLimit = Clock.System.now().minusSeconds(15L)
+        val onlineUserIds = userService.areOnline(userIds).onlineUserIds
         val selectedGames = if (distinctByUsers) distinctByUserId(games) else games
 
         return selectedGames
             .take(actualLimit)
-            .map { gameRecord ->
-                val redUserId = gameRecord.redUserId()!!
-                val blackUserId = gameRecord.blackUserId()!!
-
-                GameMetadataDto(
-                    gameId = GameId(PVP, gameRecord.id),
-                    redPlayerId = redUserId,
-                    redPlayerName = fetchUserName(redUserId),
-                    redPlayerRating = gameRecord.redPlayerRating(),
-                    redUserType = userCache.fetchUserType(redUserId),
-                    isRedOnline = lastOnlineByUserId[redUserId]?.isAfter(isOnlineLimit) == true,
-                    blackPlayerId = blackUserId,
-                    blackPlayerName = fetchUserName(blackUserId),
-                    blackPlayerRating = gameRecord.blackPlayerRating(),
-                    blackUserType = userCache.fetchUserType(blackUserId),
-                    isBlackOnline = lastOnlineByUserId[blackUserId]?.isAfter(isOnlineLimit) == true,
-                    userColor = null,
-                    finalFen = gameRecord.currentFen,
-                    status = gameRecord.gameStatus,
-                    outcome = gameRecord.outcome,
-                    lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds()
-                )
-            }
+            .map { mapPvpGameToDto(it, onlineUserIds) }
             .let { entries ->
                 ListLastGamesResponse(entries)
             }
     }
 
-    suspend fun listLastPvbGames(
+    suspend fun listLastPvpGamesByUsername(
+        username: String,
+        requestedLimit: Int,
+        beforeTs: Long?
+    ): ListLastGamesResponse {
+        val user = userDaoService.findByUserName(username)
+            ?: throw NotFoundException("User $username could not be found")
+        return listLastPvpGamesByUserId(
+            userId = user.id,
+            requestedLimit = requestedLimit,
+            beforeTs = beforeTs
+        )
+    }
+
+    suspend fun listLastPvpGamesByUserId(
+        userId: String,
+        requestedLimit: Int,
+        beforeTs: Long?
+    ): ListLastGamesResponse {
+        val games = pvpGameDaoService.listLastGamesByUserId(
+            userId = userId,
+            limit = requestedLimit,
+            minMoveIndex = MIN_MOVE_INDEX,
+            beforeTs = beforeTs
+        )
+
+        val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
+        val onlineUserIds = userService.areOnline(userIds).onlineUserIds
+
+        return games
+            .map { mapPvpGameToDto(it, onlineUserIds) }
+            .let { entries ->
+                ListLastGamesResponse(entries)
+            }
+    }
+
+    private suspend fun mapPvpGameToDto(gameRecord: Game, onlineUserIds: Set<String>): GameMetadataDto {
+        val redUserId = gameRecord.redUserId()!!
+        val blackUserId = gameRecord.blackUserId()!!
+        return GameMetadataDto(
+            gameId = GameId(PVP, gameRecord.id),
+            redPlayerId = redUserId,
+            redPlayerName = fetchUserName(redUserId),
+            redPlayerRating = gameRecord.redPlayerRating(),
+            redUserType = userCache.fetchUserType(redUserId),
+            isRedOnline = onlineUserIds.contains(redUserId),
+            blackPlayerId = blackUserId,
+            blackPlayerName = fetchUserName(blackUserId),
+            blackPlayerRating = gameRecord.blackPlayerRating(),
+            blackUserType = userCache.fetchUserType(blackUserId),
+            isBlackOnline = onlineUserIds.contains(blackUserId),
+            userColor = null,
+            finalFen = gameRecord.currentFen,
+            status = gameRecord.gameStatus,
+            outcome = gameRecord.outcome,
+            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
+            variant = gameRecord.variant
+        )
+    }
+
+    suspend fun listLatestPvbGames(
         requestedLimit: Int,
         distinctByUsers: Boolean = true,
-        beforeTs: Long? = null
+        beforeTs: Long? = null,
+        excludeAutoResigned: Boolean
     ): ListLastGamesResponse {
-        val actualLimit = if (distinctByUsers) requestedLimit * 20 else requestedLimit
         val gameRecords = pvbGameDaoService
-            .listLastGamesByIdentifiedUsers(actualLimit, minMoveIndex = MIN_MOVE_INDEX, beforeTs = beforeTs)
-            .let { games ->
-                if (distinctByUsers) {
-                    games.distinctBy { game -> game.userId }
-                } else {
-                    games
-                }
-            }
-            .sortedByDescending { game -> game.lastUpdated }
+            .listLatestGamesByIdentifiedUsers(
+                limit = requestedLimit,
+                minMoveIndex = MIN_MOVE_INDEX,
+                beforeTs = beforeTs,
+                excludeAutoResigned = excludeAutoResigned,
+                distinctByUsers = distinctByUsers
+            )
 
         val userIds = gameRecords.map { game -> game.userId }.distinct().filterNotNull()
-        val lastOnlineByUserId = userDaoService.fetchLastOnline(userIds)
-        val isOnlineLimit = Clock.System.now().minusSeconds(15L)
+        val onlineUserIds = userService.areOnline(userIds).onlineUserIds
 
         return gameRecords
             .take(requestedLimit)
@@ -561,7 +633,7 @@ class GameDataService(
                 val blackPlayerName: String?
                 val blackPlayerRating: Int?
                 val blackUserType: UserType?
-                val isUserOnline = lastOnlineByUserId[record.userId]?.isAfter(isOnlineLimit) == true
+                val isUserOnline = onlineUserIds.contains(record.userId)
 
                 if (record.userColor == RED) {
                     redUserId = record.userId
@@ -569,13 +641,13 @@ class GameDataService(
                     redPlayerRating = null
                     redUserType = userCache.fetchUserType(record.userId)
                     blackUserId = null
-                    blackPlayerName = record.engine.toString()
-                    blackPlayerRating = record.depth
+                    blackPlayerName = record.prettyEngineName()
+                    blackPlayerRating = null
                     blackUserType = null
                 } else {
                     redUserId = null
-                    redPlayerName = record.engine.toString()
-                    redPlayerRating = record.depth
+                    redPlayerName = record.prettyEngineName()
+                    redPlayerRating = null
                     redUserType = null
                     blackUserId = record.userId
                     blackPlayerName = fetchUserName(record.userId)
@@ -599,7 +671,8 @@ class GameDataService(
                     finalFen = record.currentFen,
                     status = record.gameStatus,
                     outcome = record.outcome,
-                    lastUpdated = record.lastUpdated.toEpochMilliseconds()
+                    lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+                    variant = record.variant,
                 )
             }
             .let { entries ->
@@ -654,7 +727,8 @@ class GameDataService(
                 finalFen = game.finalFen ?: DEFAULT_START_FEN,
                 outcome = game.outcome,
                 lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-                paginationOffset = (offset ?: 0) + i
+                paginationOffset = (offset ?: 0) + i,
+                variant = Variant.XIANGQI
             )
         }
     }

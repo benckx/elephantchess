@@ -7,6 +7,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.dao.codegen.tables.pojos.GameChatMessage
 import io.elephantchess.db.model.TimeControlRecord
 import io.elephantchess.db.services.ChatMessageDaoService
+import io.elephantchess.db.services.GameChatTypingStatusDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.*
@@ -31,7 +32,6 @@ import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
 import io.elephantchess.xiangqi.Board.Companion.isCheckmated
 import io.elephantchess.xiangqi.Board.Companion.isInCheck
@@ -42,6 +42,7 @@ import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.PerpetualCheckingRule.Companion.defaultPerpetualCheckingRules
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
@@ -61,13 +62,14 @@ class PlayerVsPlayerGameService(
     private val mailService: MailService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
     private val chatMessageDaoService: ChatMessageDaoService,
+    private val gameChatTypingStatusDaoService: GameChatTypingStatusDaoService,
     private val userCache: UserCache,
     private val discordService: DiscordService,
     private val logger: KLogger,
     refresherScope: CoroutineScope
 ) {
 
-    private val sessionsRefresh = 2.seconds
+    private val sessionsRefresh = 1.seconds
 
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
     private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
@@ -139,9 +141,14 @@ class PlayerVsPlayerGameService(
     private suspend fun refreshPlayerVsPlayerSessions() {
         val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
         val stateMap = pvpGameDaoService.fetchGameStates(allGameIds)
-        val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
 
-        // not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
+        // chat
+        val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
+        val chatTypingStatusCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
+        val chatTypingStatusMap = gameChatTypingStatusDaoService.fetchForGameIds(allGameIds, chatTypingStatusCutOff)
+
+        // TODO: not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
+        //   DAO access could be cached in Map and stuff
         playerVsPlayerSessions
             .forEach { session ->
                 val gameId = session.gameId
@@ -190,12 +197,28 @@ class PlayerVsPlayerGameService(
                     )
                 }
 
+                // typing: collect all fresh typing events in this game from other users.
+                // Stale entries are filtered out at the DAO layer (see
+                // [TypingStatusDaoService.fetchTypingStatuses]), and clients are
+                // responsible for de-duplicating / hiding the indicator on their side.
+                val typingUsers = chatTypingStatusMap[gameId]
+                    ?.filter { entry -> entry.userId != session.userId.id }
+                    ?.map { entry ->
+                        TypingUser(
+                            userId = entry.userId,
+                            username = userCache.fetchUsernameOrDefault(entry.userId),
+                            typedAt = entry.typedAt.toEpochMilliseconds(),
+                        )
+                    }
+                    .orEmpty()
+
                 val shouldUpdate =
                     session.currentStatus() != status ||
                             newMove != null ||
                             hasJoinedEvent != null ||
                             timeRemaining != null ||
-                            chatMessages.isNotEmpty()
+                            chatMessages.isNotEmpty() ||
+                            typingUsers.isNotEmpty()
 
                 // update session
                 if (shouldUpdate) {
@@ -213,6 +236,7 @@ class PlayerVsPlayerGameService(
                             ratingUpdate = fetchRatingUpdateIfNecessaryWs(session.gameId, status),
                             timeRemaining = timeRemaining,
                             chatMessages = chatMessages,
+                            typingUsers = typingUsers,
                         )
                     )
                 }
@@ -260,12 +284,21 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to create correspondence games")
         }
 
+        // limit the number of CREATED games a user can have with the same settings
+        val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
+        val createdGamesCount = pvpGameDaoService.countCreatedGamesByUser(
+            userId.id,
+            timeControlCategory,
+        )
+        if (createdGamesCount >= MAX_CREATED_GAMES_PER_SETTINGS) {
+            throw BadRequestException("You already have $MAX_CREATED_GAMES_PER_SETTINGS pending games with the same settings")
+        }
+
         // if user is a guest, always allow guests to join
         // it should be disabled by UI already, so it's additional backend validation
         val allowGuests = userId.userType == UserType.GUEST || request.allowGuests
 
-        val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
-        val userRating = getUserRating(userId.id, timeControlCategory)
+        val userRating = getUserRating(userId.id, timeControlCategory, request.variant)
 
         // if such a game already exists, join it instead of creating a new one
         if (!request.privateInvite) {
@@ -282,13 +315,14 @@ class PlayerVsPlayerGameService(
         game.id = generateId()
         game.inviter = userId.id
         game.inviterColor = request.inviterColor
-        game.currentFen = DEFAULT_START_FEN
+        game.currentFen = Board.defaultStartFen(request.variant)
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
         game.alwaysVisibleInLobby = !request.privateInvite && request.alwaysVisibleInLobby
         game.privateInvite = request.privateInvite
         game.containsErrors = false
+        game.variant = request.variant
 
         val now = Clock.System.now()
         game.created = now
@@ -317,16 +351,16 @@ class PlayerVsPlayerGameService(
         userRating: Int,
         request: CreateGameRequest,
     ): Game? {
-        return pvpGameDaoService
-            .listCompatibleGames(
-                inviterColor = request.inviterColor,
-                isRated = request.isRated,
-                timeControlMode = request.timeControlMode,
-                timeControlBase = request.timeControlBase,
-                timeControlIncrement = request.timeControlIncrement,
-                userType = userId.userType,
-                userId = userId.id
-            )
+        return pvpGameDaoService.listCompatibleGames(
+            inviterColor = request.inviterColor,
+            isRated = request.isRated,
+            timeControlMode = request.timeControlMode,
+            timeControlBase = request.timeControlBase,
+            timeControlIncrement = request.timeControlIncrement,
+            userType = userId.userType,
+            userId = userId.id,
+            variant = request.variant
+        )
             .filter { gameRecord -> isOnline(gameRecord.inviter) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
     }
@@ -370,6 +404,8 @@ class PlayerVsPlayerGameService(
                     color = color,
                     isRated = gameRecord.isRated,
                     timeControlCategory = gameRecord.timeControlCategory,
+                    timeControlBase = gameRecord.timeControlBase,
+                    timeControlIncrement = gameRecord.timeControlIncrement,
                     opponentUserType = opponentUserType,
                     opponentUserId = opponentUserId,
                     opponentUsername = opponentUsername,
@@ -378,7 +414,8 @@ class PlayerVsPlayerGameService(
                     ratingTo = ratingTo,
                     created = gameRecord.created.toEpochMilliseconds(),
                     lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
-                    numberOfMessages = numberOfMessages
+                    numberOfMessages = numberOfMessages,
+                    variant = gameRecord.variant,
                 )
             }
             .let { entries ->
@@ -417,6 +454,7 @@ class PlayerVsPlayerGameService(
         val session =
             PlayerVsPlayerWebSocketSession(
                 gameId = gameId,
+                userId = userId,
                 status = gameState.gameEventType,
                 moveIndex = gameState.index,
                 chatIndex = chatMessageDaoService.currentIndex(gameId),
@@ -433,11 +471,15 @@ class PlayerVsPlayerGameService(
         val isAllowedToChat = gamePlayersStatus.status == CREATED || gamePlayersStatus.isPlaying(userId.id)
 
         if (isAllowedToChat) {
-            chatMessageDaoService.insertChat(
-                gameId = gameId,
-                userId = userId.id,
-                content = input.message.trim().take(MESSAGE_LENGTH_LIMIT)
-            )
+            if (input.message != null) {
+                chatMessageDaoService.insertChat(
+                    gameId = gameId,
+                    userId = userId.id,
+                    content = input.message.trim().take(MESSAGE_LENGTH_LIMIT)
+                )
+            } else if (input.isTyping) {
+                gameChatTypingStatusDaoService.upsertTypingStatus(gameId, userId.id)
+            }
         } else {
             logger.warn { "user $userId is not allowed to send message in game $gameId" }
         }
@@ -490,7 +532,8 @@ class PlayerVsPlayerGameService(
             ratingUpdate = gameRecord.ratingUpdate(),
             gameEventType = gameRecord.gameStatus,
             outcome = gameRecord.outcome,
-            drawPropositionUser = gameRecord.drawPropositionUser
+            drawPropositionUser = gameRecord.drawPropositionUser,
+            variant = gameRecord.variant,
         )
     }
 
@@ -653,6 +696,7 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to join this game")
         } else {
             val timeControlCategory = pvpGameDaoService.fetchTimeControlCategory(gameId)!!
+            val variant = pvpGameDaoService.fetchVariant(gameId)!!
 
             if (userId.userType == UserType.GUEST && timeControlCategory == TimeControlCategory.CORRESPONDENCE) {
                 throw BadRequestException("Guest users are not allowed to join correspondence games")
@@ -668,7 +712,7 @@ class PlayerVsPlayerGameService(
                 inviteeColor = inviterColor.reverse()
                 logger.debug { "[$gameId] inviter had selected $inviterColor, invitee receives $inviteeColor" }
             }
-            val userRating = getUserRating(userId.id, timeControlCategory)
+            val userRating = getUserRating(userId.id, timeControlCategory, variant)
             val timeControlRecord = pvpGameDaoService.fetchTimeControl(gameId)
             pvpGameDaoService.joinGame(
                 userId = userId.id,
@@ -856,7 +900,9 @@ class PlayerVsPlayerGameService(
                 gameId = request.gameId,
                 move = request.move,
                 playMoveCallback = playMoveCallback,
-                hasViolatedPerpetualCheckingRule = { moves -> hasViolatedPerpetualCheckingRuleCallback(moves) },
+                hasViolatedPerpetualCheckingRule = { game, moves ->
+                    hasViolatedPerpetualCheckingRuleCallback(game, moves)
+                },
                 updateRatingsCallback = updateRatingsCallback
             )
 
@@ -905,8 +951,12 @@ class PlayerVsPlayerGameService(
     /**
      * Moves must include last one played
      */
-    private fun hasViolatedPerpetualCheckingRuleCallback(moves: List<String>): PerpetualCheckingCallbackResult? {
-        val board = Board(keepHistory = true)
+    private fun hasViolatedPerpetualCheckingRuleCallback(
+        game: Game,
+        moves: List<String>
+    ): PerpetualCheckingCallbackResult? {
+        val startFen = Board.defaultStartFen(game.variant ?: Variant.XIANGQI)
+        val board = Board(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val playerColor = board.colorToPlay().reverse()
         val history = board.getHistory()!!
@@ -931,11 +981,12 @@ class PlayerVsPlayerGameService(
     /**
      * Only fetch the necessary fields to proceed to the basic requests validation
      */
+    // TODO: should we explicitly index the columns fetches in this call?
     private suspend fun fetchPlayersAndStatus(gameId: String) =
         pvpGameDaoService.fetchPlayersAndStatus(gameId) ?: throw NotFoundException("Game $gameId not found")
 
-    private suspend fun getUserRating(userId: String, timeControlCategory: TimeControlCategory) =
-        pvpGameDaoService.fetchRatingForUser(userId, timeControlCategory) ?: 0
+    private suspend fun getUserRating(userId: String, timeControlCategory: TimeControlCategory, variant: Variant) =
+        pvpGameDaoService.fetchRatingForUser(userId, timeControlCategory, variant) ?: 0
 
     private suspend fun fetchRatingUpdateIfNecessary(gameId: String, gameEventType: GameEventType): RatingUpdate? =
         if (gameEndedStatuses.contains(gameEventType)) {
@@ -1042,7 +1093,8 @@ class PlayerVsPlayerGameService(
             timeControlBase = game.timeControlBase,
             timeControlIncrement = game.timeControlIncrement,
             allowGuests = game.allowGuestsToJoin,
-            lastUpdated = game.lastUpdated.toEpochMilliseconds()
+            lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+            variant = game.variant
         )
     }
 
@@ -1063,6 +1115,15 @@ class PlayerVsPlayerGameService(
 
         val NOTIFICATIONS_OFFLINE_FOR = 2.minutes
         const val MESSAGE_LENGTH_LIMIT = 200
+        const val MAX_CREATED_GAMES_PER_SETTINGS = 3
+
+        /**
+         * Maximum age of a typing event we are willing to surface to a client.
+         * Older entries are considered stale (e.g. persisted in the DB from a
+         * previous session) and are filtered out so that, on refresh/reconnect,
+         * we do not re-trigger an "is typing…" indicator for stale events.
+         */
+        val TYPING_FRESHNESS_WINDOW = 2.seconds
 
         fun formatMillis(millis: Long): String {
             val hours = TimeUnit.MILLISECONDS.toHours(millis).toInt()

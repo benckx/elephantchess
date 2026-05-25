@@ -19,6 +19,8 @@
 
 .main-container-text {
     margin-top: 0;
+    /* when profile is empty (no puzzle, no game), the footer looks huge */
+    min-height: 800px;
 }
 
 h1 {
@@ -128,13 +130,19 @@ h2 {
     font-weight: normal;
 }
 
-.online-status-indicator {
+#profile-header .online-status-indicator {
     margin-right: 0;
 }
 
 .puzzle-chart-container {
     flex-flow: column;
     width: 90%;
+}
+
+.browse-more-link-container {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
 @media (max-width: 1000px) {
@@ -198,5 +206,9 @@ h2 {
 
     .puzzle-chart-container {
         width: 98%;
+    }
+
+    .main-container-text {
+        min-height: unset;
     }
 }
