@@ -5,7 +5,7 @@ import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.UserProfile
-import io.elephantchess.servicelayer.dto.user.TimeCategoryStatsResponse
+import io.elephantchess.servicelayer.dto.user.GameStatsResponse
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.utils.cropToFirstNWords
 import io.ktor.http.encodeURLPath
@@ -96,18 +96,7 @@ class UserProfilePageRenderer(
         }
     }
 
-    private fun gameStatsTableTagResolver(gameStats: TimeCategoryStatsResponse): TagResolver {
-        data class Category(
-            val key: String,
-            val label: String,
-            val iconPath: String,
-            val iconAlt: String,
-            val rating: Int,
-            val wins: Int,
-            val draws: Int,
-            val losses: Int,
-        )
-
+    private fun gameStatsTableTagResolver(gameStats: GameStatsResponse): TagResolver {
         val categories = listOf(
             Category(
                 key = "bullet",
@@ -222,5 +211,16 @@ class UserProfilePageRenderer(
             specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
         )
     }
+
+    private data class Category(
+        val key: String,
+        val label: String,
+        val iconPath: String,
+        val iconAlt: String,
+        val rating: Int,
+        val wins: Int,
+        val draws: Int,
+        val losses: Int,
+    )
 
 }

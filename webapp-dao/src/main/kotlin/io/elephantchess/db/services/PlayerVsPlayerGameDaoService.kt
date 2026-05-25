@@ -21,8 +21,12 @@ import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
+import io.elephantchess.model.Outcome.BLACK_WINS
+import io.elephantchess.model.Outcome.RED_WINS
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Color.BLACK
+import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
@@ -80,8 +84,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
 
         query = when (inviterColor) {
-            Color.RED -> query.and(GAME.INVITER_COLOR.eq(Color.BLACK))
-            Color.BLACK -> query.and(GAME.INVITER_COLOR.eq(Color.RED))
+            RED -> query.and(GAME.INVITER_COLOR.eq(BLACK))
+            BLACK -> query.and(GAME.INVITER_COLOR.eq(RED))
             else -> query
         }
 
@@ -421,36 +425,26 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val isUserPlaying = isInviter.or(isInvitee)
 
         val inviterWinCondition =
-            GAME.INVITER_COLOR.eq(Color.RED).and(GAME.OUTCOME.eq(Outcome.RED_WINS))
-                .or(GAME.INVITER_COLOR.eq(Color.BLACK).and(GAME.OUTCOME.eq(Outcome.BLACK_WINS)))
+            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
         val inviteeWinCondition =
-            GAME.INVITER_COLOR.eq(Color.RED).and(GAME.OUTCOME.eq(Outcome.BLACK_WINS))
-                .or(GAME.INVITER_COLOR.eq(Color.BLACK).and(GAME.OUTCOME.eq(Outcome.RED_WINS)))
+            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
 
         val inviterLossCondition =
-            GAME.INVITER_COLOR.eq(Color.RED).and(GAME.OUTCOME.eq(Outcome.BLACK_WINS))
-                .or(GAME.INVITER_COLOR.eq(Color.BLACK).and(GAME.OUTCOME.eq(Outcome.RED_WINS)))
+            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
         val inviteeLossCondition =
-            GAME.INVITER_COLOR.eq(Color.RED).and(GAME.OUTCOME.eq(Outcome.RED_WINS))
-                .or(GAME.INVITER_COLOR.eq(Color.BLACK).and(GAME.OUTCOME.eq(Outcome.BLACK_WINS)))
+            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
 
-        val winsField = DSL.sum(
-            DSL.`when`(
-                isInviter.and(inviterWinCondition)
-                    .or(isInvitee.and(inviteeWinCondition)),
-                1
-            ).otherwise(0)
-        ).`as`("wins")
-        val lossesField = DSL.sum(
-            DSL.`when`(
-                isInviter.and(inviterLossCondition)
-                    .or(isInvitee.and(inviteeLossCondition)),
-                1
-            ).otherwise(0)
-        ).`as`("losses")
-        val drawsField = DSL.sum(
-            DSL.`when`(GAME.OUTCOME.eq(Outcome.DRAW), 1).otherwise(0)
-        ).`as`("draws")
+        val winCondition = isInviter.and(inviterWinCondition).or(isInvitee.and(inviteeWinCondition))
+        val lossCondition = isInviter.and(inviterLossCondition).or(isInvitee.and(inviteeLossCondition))
+        val drawCondition = GAME.OUTCOME.eq(Outcome.DRAW)
+
+        val winsField = DSL.sum(DSL.`when`(winCondition, 1).otherwise(0)).`as`("wins")
+        val lossesField = DSL.sum(DSL.`when`(lossCondition, 1).otherwise(0)).`as`("losses")
+        val drawsField = DSL.sum(DSL.`when`(drawCondition, 1).otherwise(0)).`as`("draws")
 
         return dslContext
             .select(
@@ -463,7 +457,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .where(isUserPlaying)
             .and(GAME.OUTCOME.isNotNull)
             .and(GAME.TIME_CONTROL_CATEGORY.isNotNull)
-            .groupBy(GAME.TIME_CONTROL_CATEGORY)
+            .groupBy(GAME.TIME_CONTROL_CATEGORY)    private suspend fun fetchPlayerVsPlayerStatsByCategory(userId: String): TimeCategoryPlayerVsPlayerStatsDto {
             .awaitRecords()
             .map { record ->
                 PlayerVsPlayerOutcomeStatsPerCategoryRecord(

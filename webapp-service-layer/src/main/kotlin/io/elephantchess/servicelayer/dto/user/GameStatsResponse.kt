@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.dto.user
 
-data class TimeCategoryStatsResponse(
+data class GameStatsResponse(
     val ratings: TimeCategoryStatsDto,
     val pvp: TimeCategoryPlayerVsPlayerStatsDto,
 )
