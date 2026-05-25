@@ -402,8 +402,8 @@ class PlayerVsPlayerGameService(
             val joinerId = joinerGame.inviter
             val joinerUserType = userCache.fetchUserType(joinerId) ?: continue
 
-            val timeControlCategory = TimeControlCategory.fromSeconds(joinerGame.timeControlBase)
-            val joinerVariant = joinerGame.variant ?: Variant.XIANGQI
+            val timeControlCategory = joinerGame.timeControlCategory
+            val joinerVariant = joinerGame.variant
             val joinerRating = getUserRating(joinerId, timeControlCategory, joinerVariant)
 
             val joinerRequest = CreateGameRequest(
