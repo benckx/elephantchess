@@ -368,6 +368,13 @@ class GameDto {
     }
 
     /**
+     * @return {string|null}
+     */
+    get timeControlMode() {
+        return this.#timeControlMode;
+    }
+
+    /**
      * @returns {string|null}
      */
     get outcome() {
