@@ -1,8 +1,11 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.HtmlRenderer
+import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
+import io.elephantchess.model.AnalysisStatus
+import io.elephantchess.model.Outcome
 import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.formatWithChineseName
@@ -12,6 +15,13 @@ import java.time.Instant
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import io.ktor.http.*
+import kotlinx.html.a
+import kotlinx.html.li
+import kotlinx.html.meta
+import kotlinx.html.p
+import kotlinx.html.style
+import kotlinx.html.unsafe
 import kotlin.time.Duration.Companion.hours
 
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
@@ -46,31 +56,37 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         val playerNameEncodedResolver = SimpleValueTagResolver("player_name_encoded", databasePlayer.urlName)
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
 
-        val descriptionResolver = CallbackTagResolver("player_profile_description") {
-            description?.let { formatNewLinesToHtmlParagraphs(it) }
+        val descriptionResolver = KtorHtmlBuilderTagResolver("player_profile_description") {
+            description?.toParagraphs()?.forEach { p { unsafe { +it } } }
         }
 
-        val sourcesResolver = CallbackTagResolver("player_profile_sources") {
-            edit.sources
-                .sortedBy { it.index }
-                .joinToString("") { source ->
-                    """<li><a href="${source.url}" target="_blank" rel="noopener noreferrer">${source.title}</a></li>"""
+        val sourcesResolver = KtorHtmlBuilderTagResolver("player_profile_sources") {
+            edit.sources.sortedBy { it.index }.forEach { source ->
+                li {
+                    a(href = source.url, target = "_blank") {
+                        rel = "noopener noreferrer"
+                        +source.title
+                    }
                 }
-        }
-
-        val styleResolver = CallbackTagResolver("player_profile_description_style") {
-            if (description == null) {
-                "<style>#player-profile-description { display: none; }</style>"
-            } else {
-                ""
             }
         }
 
-        val authorMeta = CallbackTagResolver("author_meta") {
+        val styleResolver = KtorHtmlBuilderTagResolver("player_profile_description_style") {
+            if (description == null) {
+                style {
+                    unsafe {
+                        +"#player-profile-description { display: none; }"
+                    }
+                }
+            }
+        }
+
+        val authorMeta = KtorHtmlBuilderTagResolver("author_meta") {
             if (contributors.isNotEmpty()) {
-                meta("author", contributorsForMeta)
-            } else {
-                ""
+                meta {
+                    name = "author"
+                    content = contributorsForMeta
+                }
             }
         }
 
@@ -288,7 +304,136 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         }
     }
 
+    suspend fun renderGamePage(summary: DatabaseGameSummary, orientation: String? = null): String {
+        fun formatName(canonicalName: String?, chineseName: String?): String {
+            return if (!canonicalName.isNullOrBlank()) {
+                formatWithChineseName(canonicalName, chineseName)
+            } else {
+                "<unknown>"
+            }
+        }
+
+        val redDisplay = formatName(summary.redPlayerCanonicalName, summary.redPlayerChineseName)
+        val blackDisplay = formatName(summary.blackPlayerCanonicalName, summary.blackPlayerChineseName)
+
+        val title = "$redDisplay vs. $blackDisplay"
+
+        val outcomeText = when (summary.outcome) {
+            Outcome.RED_WINS -> "$redDisplay won (red)"
+            Outcome.BLACK_WINS -> "$blackDisplay won (black)"
+            Outcome.DRAW -> "draw"
+            null -> null
+        }
+
+        val description = buildString {
+            append("Chinese chess (Xiangqi) game between $redDisplay and $blackDisplay")
+            if (!summary.eventName.isNullOrBlank()) append(" at ${summary.eventName}")
+            summary.date?.let { append(", played on $it") }
+            append(".")
+            outcomeText?.let { append(" Outcome: $it.") }
+            when (summary.analysisStatus) {
+                AnalysisStatus.COMPLETED ->
+                    append(" Full engine analysis available.")
+
+                AnalysisStatus.PARTIALLY_COMPLETED ->
+                    append(" Partial engine analysis available.")
+
+                else -> {
+                    // not analyzed yet: don't mention it
+                }
+            }
+        }
+
+        fun playerLink(canonicalName: String?, displayName: String, colorClass: String): String {
+            val escapedName = escapeHtml(displayName)
+            return if (canonicalName.isNullOrBlank()) {
+                """<span class="$colorClass">$escapedName</span>"""
+            } else {
+                val urlName = canonicalName.replace(" ", "_").encodeURLPath()
+                """<a class="$colorClass" href="/database/player/$urlName">$escapedName</a>"""
+            }
+        }
+
+        val winnerStar =
+            """<img alt="winner" class="winner-icon" src="/images/icons/blue-star-small.png">"""
+        val redWinnerSuffix = if (summary.outcome == Outcome.RED_WINS) " $winnerStar" else ""
+        val blackWinnerSuffix = if (summary.outcome == Outcome.BLACK_WINS) " $winnerStar" else ""
+
+        val playersInfoHtml = buildString {
+            append(
+                """<div>${
+                    playerLink(
+                        summary.redPlayerCanonicalName,
+                        redDisplay,
+                        "red-color"
+                    )
+                }$redWinnerSuffix</div>"""
+            )
+            append(
+                """<div>${
+                    playerLink(
+                        summary.blackPlayerCanonicalName,
+                        blackDisplay,
+                        "black-color"
+                    )
+                }$blackWinnerSuffix</div>"""
+            )
+        }
+
+        val dateInfoHtml = summary.date?.toString() ?: ""
+
+        val eventInfoHtml = summary.eventName?.let { name ->
+            val escapedName = escapeHtml(name)
+            val eventId = summary.eventId
+            if (!eventId.isNullOrBlank()) {
+                """<a href="/database/event?id=${eventId}">$escapedName</a>"""
+            } else {
+                escapedName
+            }
+        } ?: ""
+
+        // PGN-friendly fields (also surfaced as body data-* attributes so the JS
+        // does not need to fetch metadata to render the board or build the PGN download).
+        // Each resolver below renders the full `data-x="..."` attribute when the value
+        // is present, or an empty string when it isn't, so we don't pollute the body
+        // tag with empty attributes like `data-pgn-date=""`.
+        val pgnResult = when (summary.outcome) {
+            Outcome.RED_WINS -> "1-0"
+            Outcome.BLACK_WINS -> "0-1"
+            Outcome.DRAW -> "1/2-1/2"
+            null -> null
+        }
+        val pgnDate = summary.date?.let { d ->
+            "%04d.%02d.%02d".format(d.year, d.monthValue, d.dayOfMonth)
+        }
+
+        return htmlRenderer.renderHtml(
+            templatePath = "/templates/database/database_game_viewer.html",
+            specificTagResolvers = listOf(
+                SimpleValueTagResolver("page_title", title),
+                SimpleValueTagResolver("description_meta", descriptionMeta(description)),
+                SimpleValueTagResolver("players_info", playersInfoHtml),
+                SimpleValueTagResolver("game_date_info", dateInfoHtml),
+                SimpleValueTagResolver("game_event_info", eventInfoHtml),
+                SimpleValueTagResolver("body_data_attrs", buildString {
+                    append(dataAttr("game-id", summary.gameId))
+                    append(dataAttr("orientation", orientation))
+                    append(dataAttr("final-fen", summary.finalFen))
+                    append(dataAttr("pgn-red-player", summary.redPlayerCanonicalName))
+                    append(dataAttr("pgn-black-player", summary.blackPlayerCanonicalName))
+                    append(dataAttr("pgn-event", summary.eventName))
+                    append(dataAttr("pgn-date", pgnDate))
+                    append(dataAttr("pgn-result", pgnResult))
+                }),
+            ),
+            canonicalPath = "/database/game?id=${summary.gameId}"
+        )
+    }
+
     private companion object {
+
+        fun dataAttr(name: String, value: String?): String =
+            if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
 
         fun descriptionMeta(edit: DatabasePlayerProfileEdit): TagResolver {
             return CallbackTagResolver("description_meta") {

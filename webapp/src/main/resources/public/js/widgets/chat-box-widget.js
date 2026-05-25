@@ -19,6 +19,18 @@
 
 const UPDATE_TIMESTAMP_INTERVAL = 4_000;
 
+/**
+ * How long the "is typing…" indicator stays visible after the last typing event.
+ */
+const DISPLAY_IS_TYPING_FOR = 1_500;
+
+/**
+ * Cool-down (ms) after a chat message is added during which incoming typing
+ * notifications are ignored - this avoids flickering the indicator for typing
+ * events that were already in flight when the message was sent.
+ */
+const TYPING_COOL_DOWN_AFTER_CHAT = 1_500;
+
 class ChatBoxMessage {
 
     #message;
@@ -84,6 +96,7 @@ class ChatBoxWidget {
     #messagesContainer = document.getElementById('chat-box-messages-container');
     #input = document.getElementById('chat-box-input');
     #sendButton = document.getElementById('chat-box-send-message-button');
+    #typingIndicator = document.getElementById('chat-box-typing-indicator');
 
     /**
      * userId to color
@@ -100,6 +113,30 @@ class ChatBoxWidget {
      * @type {function()[]}
      */
     #inputLosesFocusListeners = [];
+
+    /**
+     * @type {function()[]}
+     */
+    #inputTypingListeners = [];
+
+    /**
+     * Debounce timer for the input typing event.
+     * @type {number|null}
+     */
+    #typingDebounceTimer = null;
+
+    /**
+     * Timer that hides the "is typing…" indicator after [DISPLAY_IS_TYPING_FOR].
+     * @type {number|null}
+     */
+    #hideIsTypingTimerId = null;
+
+    /**
+     * Timestamp (ms) until which incoming typing notifications are ignored
+     * (cool-down right after a chat message is added).
+     * @type {number}
+     */
+    #typingCoolDownUntil = 0;
 
     /**
      * @param sendMessageCb {function(string): void}
@@ -124,6 +161,16 @@ class ChatBoxWidget {
 
         this.#input.addEventListener('blur', () => {
             this.#inputLosesFocusListeners.forEach((listener) => listener());
+        });
+
+        this.#input.addEventListener('input', () => {
+            if (this.#input.value.length === 0) {
+                return;
+            }
+            clearTimeout(this.#typingDebounceTimer);
+            this.#typingDebounceTimer = setTimeout(() => {
+                this.#inputTypingListeners.forEach((listener) => listener());
+            }, 200);
         });
 
         // update relative time of messages every 5 seconds
@@ -180,6 +227,57 @@ class ChatBoxWidget {
     }
 
     /**
+     * @param listener {function()}
+     */
+    addInputTypingListener(listener) {
+        this.#inputTypingListeners.push(listener);
+    }
+
+    /**
+     * Display (or refresh) the "is typing…" indicator for the given users.
+     * Typing events arriving within the cool-down window after a chat message
+     * was added are silently ignored, so the indicator doesn't flicker for
+     * stale events that were in-flight when the message arrived.
+     *
+     * @param typingUsers {{userId: string, username: string, typedAt: *}[]}
+     */
+    notifyTypingUsers(typingUsers) {
+        // ignore typing events within the cool-down window after a chat message
+        if (Date.now() < this.#typingCoolDownUntil) {
+            return;
+        }
+
+        if (typingUsers == null || typingUsers.length === 0) {
+            this.#hideIsTypingIndicator();
+            return;
+        }
+
+        const names = typingUsers.map((user) => user.username);
+        let label;
+        if (names.length === 1) {
+            label = `${names[0]} is typing…`;
+        } else {
+            const allButLast = names.slice(0, -1).join(', ');
+            label = `${allButLast} and ${names[names.length - 1]} are typing…`;
+        }
+
+        this.#typingIndicator.innerText = label;
+        this.#typingIndicator.style.display = 'block';
+
+        clearTimeout(this.#hideIsTypingTimerId);
+        this.#hideIsTypingTimerId = setTimeout(() => {
+            this.#hideIsTypingIndicator();
+        }, DISPLAY_IS_TYPING_FOR);
+    }
+
+    #hideIsTypingIndicator() {
+        clearTimeout(this.#hideIsTypingTimerId);
+        this.#hideIsTypingTimerId = null;
+        this.#typingIndicator.style.display = 'none';
+        this.#typingIndicator.innerText = '';
+    }
+
+    /**
      *
      * @param colorMapping {Map<string, string>}
      */
@@ -201,6 +299,11 @@ class ChatBoxWidget {
      * @param message {ChatBoxMessage}
      */
     addMessage(message) {
+        // a message means the author is no longer typing: hide the indicator
+        // and start a cool-down to ignore in-flight typing notifications
+        this.#hideIsTypingIndicator();
+        this.#typingCoolDownUntil = Date.now() + TYPING_COOL_DOWN_AFTER_CHAT;
+
         const timestampId = randomId();
 
         const timestamp = document.createElement('div');
@@ -236,6 +339,7 @@ class ChatBoxWidget {
 
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-box-message');
+        messageElement.dataset.timestamp = String(message.timestamp);
         messageElement.appendChild(header);
         messageElement.appendChild(content);
 
@@ -243,6 +347,54 @@ class ChatBoxWidget {
         this.#messagesContainer.scrollTop = this.#messagesContainer.scrollHeight;
 
         this.#timestampsToUpdate.set(timestampId, message.timestamp);
+    }
+
+    /**
+     * Highlight the most recent chat message whose timestamp is less than or
+     * equal to {@param maxTimestamp}. Used to display the chat state at the
+     * moment of a given game move. Clears any previous highlight.
+     *
+     * Passing null clears the highlight without applying a new one.
+     *
+     * @param maxTimestamp {number|null}
+     */
+    highlightLatestMessageBefore(maxTimestamp) {
+        this.clearHighlightedMessage();
+        if (maxTimestamp == null) {
+            return;
+        }
+
+        const messageElements = this.#messagesContainer.getElementsByClassName('chat-box-message');
+        let candidate = null;
+        let candidateTs = -Infinity;
+        for (let i = 0; i < messageElements.length; i++) {
+            const el = messageElements[i];
+            const ts = Number(el.dataset.timestamp);
+            if (!Number.isNaN(ts) && ts <= maxTimestamp && ts > candidateTs) {
+                candidate = el;
+                candidateTs = ts;
+            }
+        }
+        if (candidate != null) {
+            candidate.classList.add('chat-box-message-highlighted');
+            // scroll the highlighted message into view (only if widget is visible)
+            if (isInViewport(this.#messagesContainer)) {
+                candidate.scrollIntoView({block: 'nearest', inline: 'start'});
+            }
+        }
+    }
+
+    /**
+     * Remove the 'chat-box-message-highlighted' class from any highlighted chat message.
+     */
+    clearHighlightedMessage() {
+        const highlighted = this.#messagesContainer.getElementsByClassName('chat-box-message-highlighted');
+        // collect first because the live HTMLCollection mutates as classes are removed
+        const toClear = [];
+        for (let i = 0; i < highlighted.length; i++) {
+            toClear.push(highlighted[i]);
+        }
+        toClear.forEach((el) => el.classList.remove('chat-box-message-highlighted'));
     }
 
     /**

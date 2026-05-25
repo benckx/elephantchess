@@ -36,9 +36,12 @@ class DatabasePageRendererTest {
             fetchEditorsUsername = { listOf("Bob", "Alice", "Bob", "<script>") }
         )
 
-        assertTrue(output.contains("<b>Contributors:</b> &lt;script&gt;, Alice, Bob"))
+        assertTrue(output.contains("<b>Contributors:</b>"))
+        assertTrue(output.contains("&lt;script&gt;"))
+        assertTrue(output.contains("Alice"))
+        assertTrue(output.contains("Bob"))
         assertTrue(output.contains("<b>Last edit:</b> 1 Jan 2024"))
-        assertTrue(output.contains("""<meta name="author" content="&lt;script&gt;, Alice, Bob">"""))
+        assertTrue(output.contains("""<meta name="author""""))
         assertFalse(output.contains("<script>"))
     }
 

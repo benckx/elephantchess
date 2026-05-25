@@ -22,13 +22,14 @@ const NO_LABEL_DAYS = 50;
 class UserProfilePage extends BasePage {
 
     #userId = document.querySelector('body').dataset.userId;
+    #username = document.querySelector('body').dataset.username;
     #client = new UserProfileClient(this.#userId);
     #statusIndicator = document.getElementById('status-indicator');
     #puzzleStatsSection = document.getElementById('puzzle-stats-section');
 
     constructor() {
         super();
-        this.#fetchGamesRatings();
+        this.#fetchLatestPvpGames();
         this.#fetchPuzzlesStatsSummary();
         this.#fetchPuzzlesStatsRating();
         this.#fetchPuzzlesStatsNumbers();
@@ -40,14 +41,10 @@ class UserProfilePage extends BasePage {
         }
     }
 
-    #fetchGamesRatings() {
-        this.#client.fetchGameRatings(stats => {
-            document.getElementById('rating-bullet').innerText = stats.bullet.toString();
-            document.getElementById('rating-blitz').innerText = stats.blitz.toString();
-            document.getElementById('rating-rapid').innerText = stats.rapid.toString();
-            document.getElementById('rating-classical').innerText = stats.classical.toString()
-            document.getElementById('rating-correspondence').innerText = stats.correspondence.toString();
-        });
+    #fetchLatestPvpGames() {
+        if (this.#username) {
+            new UserProfileGames(this.#username);
+        }
     }
 
     #fetchPuzzlesStatsSummary() {
