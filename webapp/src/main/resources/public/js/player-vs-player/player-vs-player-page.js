@@ -470,6 +470,19 @@ class PlayGamePage extends BasePage {
         }
 
         const isLastMove = this.#moveTreeWidget.isLastMoveSelected();
+        const isStartFenSelected = selectedNode == null && !isLastMove;
+        if (isStartFenSelected) {
+            const timeControl = this.#gameController.gameDto.timeControl;
+            if (timeControl != null) {
+                const baseMs = timeControl.base.toMillis();
+                this.#renderClock(new TimeControlClock(baseMs, baseMs));
+            }
+            if (this.#chatBoxWidget != null) {
+                this.#chatBoxWidget.clearHighlightedMessage();
+            }
+            return;
+        }
+
         if (moveIndex == null || isLastMove) {
             // Back to "live" view: rely on the gameDto clock and clear highlight.
             this.#updateClocks();
