@@ -2,6 +2,7 @@ package io.elephantchess.engines.process
 
 import io.elephantchess.engines.protocol.commands.EngineProcessLocator
 import io.elephantchess.engines.protocol.commands.LocalProcessLocator
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class PikafishEngineProcess(
@@ -15,6 +16,12 @@ class PikafishEngineProcess(
 
     override fun initEngine() {
         inputCommand("setoption name Threads value $numberOfThreads")
+    }
+
+    override fun setVariant(variant: Variant) {
+        if (variant != Variant.XIANGQI) {
+            logger.error { "Pikafish does not support variants, ignoring setVariant command" }
+        }
     }
 
 }

@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.dto.game
 
 import io.elephantchess.model.*
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 
 // TODO: restructure the 2 users
 data class GetGameDataResponse(
@@ -30,4 +31,5 @@ data class GetGameDataResponse(
     val outcome: Outcome?,
     val ratingUpdate: RatingUpdate?,
     val drawPropositionUser: String?,
+    val variant: Variant
 )

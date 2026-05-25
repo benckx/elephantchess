@@ -32,11 +32,12 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    column-gap: 9px;
     height: 78px;
     background-color: #e0d2bd;
     margin-bottom: 8px;
     margin-top: 8px;
-    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
     border-radius: 3px;
     border: 1px solid #343434;
     width: 90%;
@@ -86,6 +87,7 @@
 }
 
 .my-game-item .left-pane,
+.my-game-item .variant-pane,
 .my-game-item .middle-pane,
 .my-game-item .right-pane {
     display: flex;
@@ -94,8 +96,32 @@
 }
 
 .my-game-item .left-pane {
-    width: 12%;
+    width: 74px;
+    flex: 0 0 74px;
 }
+
+.my-game-item .left-pane .time-control-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.my-game-item .left-pane .time-control-duration-cell {
+    color: #3a3a3a;
+    font-size: 11px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.my-game-item .variant-pane {
+    flex-shrink: 0;
+    justify-content: flex-start;
+    margin-left: 18px;
+    box-sizing: border-box;
+}
+
 
 .my-game-item .middle-pane {
     flex: 1;
@@ -110,12 +136,14 @@
 }
 
 .my-game-item .right-pane {
-    width: 16%;
+    width: 136px;
+    flex: 0 0 136px;
     flex-direction: column;
 }
 
 .my-game-item .indicator-pane {
-    width: 9%;
+    width: 82px;
+    flex: 0 0 82px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -218,7 +246,8 @@
 
 @media (max-width: 1000px) {
     .my-game-item {
-        height: 120px;
+        min-height: 78px;
+        padding: 14px 0;
         border-radius: 0;
         width: 102%;
         font-size: 26px;
@@ -235,8 +264,18 @@
         height: 40px;
     }
 
+    .my-game-item .left-pane {
+        width: 110px;
+        flex: 0 0 110px;
+    }
+
+    .my-game-item .left-pane .time-control-duration-cell {
+        font-size: 18px;
+    }
+
     .my-game-item .indicator-pane {
-        width: 16%;
+        width: 120px;
+        flex: 0 0 120px;
     }
 
     .my-game-item .outcome-label-holder {
@@ -246,11 +285,24 @@
     }
 
     .my-game-item .right-pane {
-        width: 19%;
+        width: 190px;
+        flex: 0 0 190px;
     }
 
     .my-game-item .rating-mode {
         font-size: 22px;
+    }
+
+    .my-game-item .variant-pane {
+        padding-left: 12px;
+    }
+
+    .my-game-item .variant-pane .variant-symbol {
+        font-size: 42px;
+    }
+
+    .my-game-item .variant-pane .variant-name {
+        font-size: 16px;
     }
 
     .my-game-item .game-status {

@@ -1,12 +1,11 @@
 <html lang="en">
 <head>
     {{header_init}}
-    <title> Play Chinese Chess (Xiangqi) Online with Friends - elephantchess.io</title>
+    <title>Play Chinese Chess (Xiangqi) Online with Friends - elephantchess.io</title>
     <meta property="og:url" content="https://elephantchess.io/">
     <link rel="canonical" href="https://elephantchess.io/">
     <link rel="stylesheet" href="/css/lobby.css">
     <script defer src="/js/widgets/board-gui.js"></script>
-    <script defer src="/js/widgets/settings-manager.js"></script>
     <script defer src="/js/widgets/game-thumb.js"></script>
     <script defer src="/js/lobby/live-games-viewer.js"></script>
     <script defer src="/js/lobby/lobby-dto.js"></script>
@@ -20,22 +19,7 @@
         <h1>Lobby</h1>
         <div id="games-to-join-list-container">
             <div id="games-to-join-list-table-container">
-                <table id="games-to-join-list-table">
-                    <thead>
-                    <tr>
-                        <th class="online-cell"></th>
-                        <th class="username-cell">Player</th>
-                        <th class="rating-cell">Rating</th>
-                        <th class="color-cell">Color</th>
-                        <th class="time-control-icons-cell">Time</th>
-                        <th class="time-control-cell"></th>
-                        <th class="rating-mode-cell">Mode</th>
-                        <th class="separator-cell"></th>
-                        <th class="join-button-cell"></th>
-                    </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div id="games-to-join-list"></div>
                 <div id="no-game-to-join-message" class="empty-list-message">
                     <p>
                         There is no game to join at the moment. But you can
@@ -146,9 +130,9 @@
     <div class="flex-lobby-element">
         <h1>How to Play</h1>
         <p>
-            We're planning to create some nice help pages about the rules (in some distant future). In the
-            meantime, you can learn by following this YouTube tutorial or check the <a
-                href="https://en.wikipedia.org/wiki/Xiangqi" target="_blank">Wikipedia page</a>.
+            Check our <b><a href="/how-to-play-xiangqi">"how to" guide page</a></b> with interactive boards to learn the
+            pieces and the moves. You can also check this YouTube tutorial or the
+            <a href="https://en.wikipedia.org/wiki/Xiangqi" target="_blank">Wikipedia page</a>.
         </p>
         <div id="youtube-embed-container" class="center-content-div"></div>
     </div>
@@ -174,7 +158,7 @@
         </p>
         <p>
             If you want to play with a friend who is sitting next to you or if you just want to test positions,
-            you can use our <a href="/board?medium=lobby">Simple Board</a> tool.
+            you can use our <a href="/board?medium=lobby">Test Board</a> tool.
         </p>
         <p>
             And if you think some features are missing, don't hesitate to reach out on <a

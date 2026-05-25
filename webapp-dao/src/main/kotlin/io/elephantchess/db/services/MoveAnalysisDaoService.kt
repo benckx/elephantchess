@@ -1,5 +1,6 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.db.codegen.OffsetDateTimeInstantConverter
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.MoveAnalysisDao
 import io.elephantchess.db.dao.codegen.tables.pojos.MoveAnalysis
@@ -12,6 +13,7 @@ import io.elephantchess.model.GameType
 import io.elephantchess.model.GameType.*
 import org.jooq.*
 import org.jooq.impl.DSL
+import org.jooq.impl.SQLDataType
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -141,7 +143,12 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         val COALESCED_VIEW = DSL.table("move_analysis_coalesced")
         val GAME_TYPE = DSL.field("game_type", String::class.java)
         val GAME_ID = DSL.field("game_data_id", String::class.java)
-        val ENTRY_CREATION = DSL.field("entry_creation", Instant::class.java)
+
+        // jOOQ's DefaultDataType registry does not know about kotlin.time.Instant,
+        // so we attach the same converter the codegen uses for timestamptz columns.
+        val INSTANT_TYPE: DataType<Instant> =
+            SQLDataType.TIMESTAMPWITHTIMEZONE(6).asConvertedDataType(OffsetDateTimeInstantConverter())
+        val ENTRY_CREATION = DSL.field("entry_creation", INSTANT_TYPE)
 
         fun moveAnalysisTableIdCondition(gameId: GameId): Condition {
             return moveAnalysisTableIdField(gameId.type).eq(gameId.id)

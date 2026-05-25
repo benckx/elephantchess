@@ -49,6 +49,16 @@ class AdminPageViewStatsPage extends BasePage {
     #gadData = null;
 
     /**
+     * @type {MultipleTimeSeriesDto|null}
+     */
+    #userOwnProfileData = null;
+
+    /**
+     * @type {MultipleTimeSeriesDto|null}
+     */
+    #userOtherProfileData = null;
+
+    /**
      * @type {number}
      */
     #pendingRequests = 0;
@@ -64,12 +74,14 @@ class AdminPageViewStatsPage extends BasePage {
     }
 
     #fetchAllData() {
-        this.#pendingRequests = this.#eventPaths.length + 1; // +1 for GAD data
+        this.#pendingRequests = this.#eventPaths.length + 3; // +1 for GAD data, +2 for own/other profile data
         this.#totalRequests = this.#pendingRequests;
         this.#updateLoadingDisplay();
 
         // Fetch GAD data first
         this.#fetchGadData();
+        this.#fetchOwnUserProfileData();
+        this.#fetchOtherUserProfileData();
 
         this.#eventPaths.forEach(eventPath => {
             this.#fetchPageViewStats(eventPath);
@@ -81,6 +93,28 @@ class AdminPageViewStatsPage extends BasePage {
 
         getAndHandle(url, json => {
             this.#gadData = new MultipleTimeSeriesDto(json);
+            this.#pendingRequests--;
+            this.#updateLoadingDisplay();
+            this.#renderChartsIfReady();
+        });
+    }
+
+    #fetchOwnUserProfileData() {
+        const url = `${ADMIN_URL_PREFIX}/page-view-stats-user-profiles-own`;
+
+        getAndHandle(url, json => {
+            this.#userOwnProfileData = new MultipleTimeSeriesDto(json);
+            this.#pendingRequests--;
+            this.#updateLoadingDisplay();
+            this.#renderChartsIfReady();
+        });
+    }
+
+    #fetchOtherUserProfileData() {
+        const url = `${ADMIN_URL_PREFIX}/page-view-stats-user-profiles-other`;
+
+        getAndHandle(url, json => {
+            this.#userOtherProfileData = new MultipleTimeSeriesDto(json);
             this.#pendingRequests--;
             this.#updateLoadingDisplay();
             this.#renderChartsIfReady();
@@ -148,6 +182,42 @@ class AdminPageViewStatsPage extends BasePage {
 
             // Render GAD chart
             new PageViewStatsLineChart('chart-gad', 'Total page views', this.#gadData).render();
+        }
+
+        if (this.#userOwnProfileData && this.#userOwnProfileData.getAllPeriods().length > 0) {
+            const userProfileChartWrapper = document.createElement('div');
+            userProfileChartWrapper.style.marginBottom = '40px';
+
+            const userProfileChartDiv = document.createElement('div');
+            userProfileChartDiv.id = 'chart-user-own-profiles';
+            userProfileChartDiv.style.height = '400px';
+            userProfileChartWrapper.appendChild(userProfileChartDiv);
+
+            container.appendChild(userProfileChartWrapper);
+
+            new PageViewStatsLineChart(
+                'chart-user-own-profiles',
+                'Users looking at their own profile',
+                this.#userOwnProfileData
+            ).render();
+        }
+
+        if (this.#userOtherProfileData && this.#userOtherProfileData.getAllPeriods().length > 0) {
+            const userProfileChartWrapper = document.createElement('div');
+            userProfileChartWrapper.style.marginBottom = '40px';
+
+            const userProfileChartDiv = document.createElement('div');
+            userProfileChartDiv.id = 'chart-user-other-profiles';
+            userProfileChartDiv.style.height = '400px';
+            userProfileChartWrapper.appendChild(userProfileChartDiv);
+
+            container.appendChild(userProfileChartWrapper);
+
+            new PageViewStatsLineChart(
+                'chart-user-other-profiles',
+                'Users looking at other users\' profiles',
+                this.#userOtherProfileData
+            ).render();
         }
 
         this.#eventPaths.forEach((eventPath, index) => {

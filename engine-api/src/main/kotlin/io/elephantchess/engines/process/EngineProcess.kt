@@ -6,11 +6,13 @@ import io.elephantchess.engines.protocol.LineListener
 import io.elephantchess.engines.protocol.commands.EngineProcessLocator
 import io.elephantchess.engines.protocol.model.InfoLinesResult
 import io.elephantchess.engines.utils.EngineUtils.waitForCondition
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.BufferedWriter
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -45,12 +47,14 @@ abstract class EngineProcess(
     suspend fun queryForBestMove(
         fen: String,
         maxDepth: Int,
+        variant: Variant = Variant.XIANGQI,
         maxDelay: Long = DEFAULT_MAX_DELAY,
         checkPeriod: Long = DEFAULT_CHECK_PERIOD,
     ): InfoLinesResult {
         val infoListener = InfoLineListener()
         lineListener = infoListener
 
+        setVariant(variant)
         inputCommand("position fen $fen")
         inputCommand("go depth $maxDepth")
         waitForCondition(maxDelay, checkPeriod) {
@@ -59,6 +63,12 @@ abstract class EngineProcess(
         inputCommand("stop")
         return infoListener.getResult()
     }
+
+    /**
+     * Override in engine implementations to set the variant before queries.
+     * Default implementation does nothing (for engines that do not support variants).
+     */
+    open fun setVariant(variant: Variant) {}
 
     fun inputCommandAndWaitBlocking(
         command: String,
@@ -80,7 +90,17 @@ abstract class EngineProcess(
 
     fun quit(timeoutMs: Long = 10_000): Boolean {
         hasQuit = true
-        inputCommand("quit")
+        if (!process.isAlive) {
+            logger.info { "$engineId process already exited, skipping quit command" }
+            return true
+        }
+        try {
+            inputCommand("quit")
+        } catch (e: IOException) {
+            // The child process may have already terminated (e.g. when the JVM is shutting down
+            // and SIGTERM was propagated to children), in which case the output stream is closed.
+            logger.info { "could not send quit command to $engineId, process likely already terminated: ${e.message}" }
+        }
         return process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)
     }
 
