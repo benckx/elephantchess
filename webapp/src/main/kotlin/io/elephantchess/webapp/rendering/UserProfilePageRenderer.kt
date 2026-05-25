@@ -166,7 +166,10 @@ class UserProfilePageRenderer(
                 id = "ratings-table"
 
                 tr {
-                    th { +"category" }
+                    th {
+                        attributes["scope"] = "row"
+                        +"category"
+                    }
                     categories.forEach { category ->
                         td {
                             img(
@@ -180,11 +183,22 @@ class UserProfilePageRenderer(
                     }
                 }
                 tr("category-label-row") {
-                    th {}
-                    categories.forEach { category -> th { +category.label } }
+                    th {
+                        attributes["scope"] = "row"
+                        +"time control"
+                    }
+                    categories.forEach { category ->
+                        th {
+                            attributes["scope"] = "col"
+                            +category.label
+                        }
+                    }
                 }
                 tr {
-                    th { +"rating" }
+                    th {
+                        attributes["scope"] = "row"
+                        +"rating"
+                    }
                     categories.forEach { category ->
                         td {
                             span {
@@ -195,7 +209,10 @@ class UserProfilePageRenderer(
                     }
                 }
                 tr {
-                    th { +"W/D/L" }
+                    th {
+                        attributes["scope"] = "row"
+                        +"W/D/L"
+                    }
                     categories.forEach { category ->
                         td("wdl-cell") {
                             span("wdl-win") { +"W ${category.wins}" }
