@@ -11,6 +11,7 @@ import io.elephantchess.servicelayer.dto.game.RatingUpdate
 import io.elephantchess.xiangqi.AbstractPieceType
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger("Ops")
@@ -51,16 +52,18 @@ suspend fun EnginePool.safeQueryForDepth(
     engineId: EngineId,
     depth: Int,
     timeout: Long = 60_000,
+    variant: Variant = Variant.XIANGQI,
 ): InfoLinesResult? {
     var safeEngineId = engineId
-    if (engineId == PikafishEngineId && isNonStandardFen(fen)) {
-        logger.warn { "non-standard FEN detected, forcing use of Fairy Stockfish instead of Pikafish $fen" }
+    if (engineId == PikafishEngineId && (variant == Variant.MANCHU || isNonStandardFen(fen))) {
+        logger.warn { "non-standard FEN or Manchu variant detected, forcing use of Fairy Stockfish instead of Pikafish $fen" }
         safeEngineId = FairyStockfishEngineId
     }
     return queryForDepth(
         fen = fen,
         engineId = safeEngineId,
         depth = depth,
-        timeout = timeout
+        timeout = timeout,
+        variant = variant,
     )
 }

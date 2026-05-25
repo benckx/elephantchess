@@ -44,6 +44,8 @@ class PlayGamePage extends BasePage {
     #createdLabel = document.getElementById('created-label');
     #timeControlBase = document.getElementById('time-control-base');
     #ratingMode = document.getElementById('rating-mode');
+    #variantRow = document.getElementById('variant-row');
+    #variantLabel = document.getElementById('variant-label');
     #gameStatusSpan = document.getElementById('game-status');
     #gameOutcomeSpan = document.getElementById('game-outcome');
     #outcomeRow = document.getElementById('outcome-row');
@@ -70,12 +72,16 @@ class PlayGamePage extends BasePage {
 
     #topCounter = document.getElementById('top-counter');
     #bottomCounter = document.getElementById('bottom-counter');
+    #miniCounterBox = document.getElementById('mini-counter-box');
+    #miniTopCounter = document.getElementById('mini-top-counter');
+    #miniBottomCounter = document.getElementById('mini-bottom-counter');
 
     /**
      * @type {HTMLElement[]}
      */
     #shareLinkActions = getElementsByClassNameArray('share-link-mask-action');
 
+    #settingsManager = new SettingsManager();
     #joinAudio = new Audio('/audio/624598__eqylizer__high-pitched-two-note-notification.mp3');
 
     #hasRenderedJoinModal = false;
@@ -111,6 +117,9 @@ class PlayGamePage extends BasePage {
         this.#moveTreeWidget.addNavigationListener(() => this.#handleNavigationEvent());
         new SettingsGui(this.#boardGui, this.#moveTreeWidget);
 
+        // hide the mobile mini timer when the main counter box is on screen
+        this.#setUpMiniCounterVisibility();
+
         // handle params
         const params = new URLSearchParams(window.location.search);
         const gameIdParam = params.get('id');
@@ -144,11 +153,13 @@ class PlayGamePage extends BasePage {
                     this.#updatePlayersInfo();
                     if (this.#gameController.gameDto.userStatus !== UserStatus.INVITEE) {
                         UI.pushInfoNotification(`${this.#gameController.gameDto.inviteeUsername} has joined the game`, 4_000);
-                        this.#joinAudio
-                            .play()
-                            .catch(() => {
-                                // ignored, spam error in console in dev
-                            });
+                        if (this.#settingsManager.isPlaySoundsEnabled) {
+                            this.#joinAudio
+                                .play()
+                                .catch(() => {
+                                    // ignored, spam error in console in dev
+                                });
+                        }
                     }
                     this.#updateBoardMaskMessage();
                 },
@@ -201,6 +212,9 @@ class PlayGamePage extends BasePage {
                 },
                 (chatMessages, acks) => {
                     this.#handleChatMessages(chatMessages, acks);
+                },
+                (typingUsers) => {
+                    this.#chatBoxWidget.notifyTypingUsers(typingUsers);
                 }
             );
 
@@ -231,9 +245,7 @@ class PlayGamePage extends BasePage {
 
             this.#cancelButton.addEventListener('click', (e) => {
                 if (isInfoBoxButtonEnabled(e)) {
-                    this.#gameController.cancel(() => {
-                        this.#updateBoardMaskMessage();
-                    });
+                    this.#handleCancelButtonClick();
                 }
             });
 
@@ -284,6 +296,12 @@ class PlayGamePage extends BasePage {
         this.#chatBoxWidget.addInputLosesFocusListener(() => {
             this.#moveTreeWidget.enableKeyboardNavigation();
         });
+
+        this.#chatBoxWidget.addInputTypingListener(() => {
+            if (this.#gameController != null) {
+                this.#gameController.sendTypingEvent();
+            }
+        });
     }
 
     #updateGui() {
@@ -294,6 +312,10 @@ class PlayGamePage extends BasePage {
     }
 
     #initBoard() {
+        if (this.#gameController.gameDto.isManchu) {
+            this.#moveTreeWidget.startFen = MANCHU_START_FEN;
+        }
+
         if (!this.#gameController.isGameFinished()) {
             this.#boardGui.addAfterMoveListener((move) => {
                 this.#gameController.registerPlayerMove(
@@ -318,6 +340,13 @@ class PlayGamePage extends BasePage {
     #initOtherInfo() {
         this.#createdLabel.innerText = formatTimestampDefaultDateFormat(this.#gameController.gameDto.created);
         this.#ratingMode.innerText = this.#gameController.gameDto.isRated ? 'Rated' : 'Casual';
+        if (this.#gameController.gameDto.isManchu) {
+            this.#variantLabel.innerText = 'Manchu';
+            this.#variantRow.style.display = '';
+        } else {
+            this.#variantLabel.innerText = '';
+            this.#variantRow.style.display = 'none';
+        }
     }
 
     #initClocks() {
@@ -620,13 +649,18 @@ class PlayGamePage extends BasePage {
             this.#showGameActionButtonsBlock(false);
         }
 
-        if (this.#gameController.isGameFinished()) {
+        if (this.#gameController.isGameFinished() && !this.#gameController.gameDto.isManchu) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
+                addToolTip(button, 'You can analyse the game with the Analysis Board tool');
             });
         } else {
+            const tooltip = this.#gameController.gameDto.isManchu
+                ? 'Analysis is not supported for Manchu variant games'
+                : 'Game must be finished before you can analyze it. If you want to analyze this game now, you have to resign first.';
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
+                addToolTip(button, tooltip);
             });
         }
     }
@@ -660,14 +694,38 @@ class PlayGamePage extends BasePage {
             case Color.RED:
                 this.#topCounter.classList.add('black-counter');
                 this.#bottomCounter.classList.add('red-counter');
+                this.#miniTopCounter.classList.add('black-counter');
+                this.#miniBottomCounter.classList.add('red-counter');
                 break;
             case Color.BLACK:
                 this.#topCounter.classList.add('red-counter');
                 this.#bottomCounter.classList.add('black-counter');
+                this.#miniTopCounter.classList.add('red-counter');
+                this.#miniBottomCounter.classList.add('black-counter');
                 break;
             default:
                 throw new Error('Incorrect color: ' + color);
         }
+    }
+
+    #setUpMiniCounterVisibility() {
+        const mainCounterBox = document.getElementById('counter-box');
+        if (mainCounterBox == null || this.#miniCounterBox == null) {
+            return;
+        }
+        if (typeof IntersectionObserver === 'undefined') {
+            return;
+        }
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    this.#miniCounterBox.classList.add('mini-counter-box-hidden');
+                } else {
+                    this.#miniCounterBox.classList.remove('mini-counter-box-hidden');
+                }
+            });
+        });
+        observer.observe(mainCounterBox);
     }
 
     /**
@@ -767,6 +825,17 @@ class PlayGamePage extends BasePage {
         UI.showConfirmationModal(text, yesCallback, yesButtonText, noCallback, noButtonText);
     }
 
+    #handleCancelButtonClick() {
+        const text = buildSimpleSpan('Are you sure you want to cancel this game?');
+        const yesCallback = () => this.#gameController.cancel(() => {
+            this.#updateBoardMaskMessage();
+        });
+        const yesButtonText = 'yes';
+        const noCallback = () => UI.hideModal(null);
+        const noButtonText = 'no';
+        UI.showConfirmationModal(text, yesCallback, yesButtonText, noCallback, noButtonText);
+    }
+
     #handleDrawPropositionReceived() {
         const text = buildSimpleSpan('Your opponent has proposed a draw. Do you accept?');
         const yesCallback = () => this.#gameController.respondToDrawProposition(true);
@@ -793,7 +862,9 @@ class PlayGamePage extends BasePage {
         if (this.#gameController.isGameFinished()) {
             renderAnalysisSummaryReportGeneric(
                 new GameId(GameType.PVP, this.#gameController.gameId),
-                this.#moveTreeWidget.getMainBranchNodes()
+                this.#moveTreeWidget.getMainBranchNodes(),
+                DEFAULT_START_FEN,
+                this.#moveTreeWidget
             );
         }
     }

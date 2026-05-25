@@ -116,7 +116,7 @@
     width: 20px;
 }
 
-#create-new-game-modal input[type=button].create-game-buttons {
+#create-new-game-modal .create-game-buttons {
     width: 150px;
     margin-bottom: 0;
 }

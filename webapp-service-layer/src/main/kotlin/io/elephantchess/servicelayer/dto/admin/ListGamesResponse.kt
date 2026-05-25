@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.dto.admin
 
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameJoinSource
+import io.elephantchess.xiangqi.Variant
 
 data class ListGamesResponse(val entries: List<Entry>) {
 
@@ -22,7 +23,8 @@ data class ListGamesResponse(val entries: List<Entry>) {
         val winnerUserId: String?,
         val created: Long,
         val lastUpdated: Long,
-        val sourceType: GameJoinSource?
+        val sourceType: GameJoinSource?,
+        val variant: Variant?,
     )
 
 }

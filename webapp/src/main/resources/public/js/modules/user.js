@@ -51,7 +51,7 @@ function getCookie(name) {
 }
 
 function eraseCookie(name) {
-    document.cookie = name + '=; Max-Age=-99999999;';
+    document.cookie = name + '=; Max-Age=-99999999; path=/';
 }
 
 /**
