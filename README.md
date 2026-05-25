@@ -701,7 +701,7 @@ If you want browser-level page tests, prefer **Playwright** over Selenium for th
 For PvP tests, run each player in a different private context so each one gets a different guest id:
 
 ```javascript
-import { test, expect, chromium } from '@playwright/test';
+import { test, chromium } from '@playwright/test';
 
 test('pvp with 2 guest sessions', async () => {
     const browser = await chromium.launch();
@@ -713,9 +713,6 @@ test('pvp with 2 guest sessions', async () => {
 
     await player1Page.goto('http://localhost:8080');
     await player2Page.goto('http://localhost:8080');
-
-    await expect(player1Page).toHaveURL(/.*/);
-    await expect(player2Page).toHaveURL(/.*/);
 
     await browser.close();
 });
