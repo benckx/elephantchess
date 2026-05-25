@@ -16,7 +16,7 @@ class GamePageRendererTest {
     @Test
     fun `pvp page title contains both player names`() {
         assertEquals(
-            "alice vs bob",
+            "alice vs. bob",
             GamePageRenderer.formatPvpPageTitle("alice", "bob", Color.RED)
         )
     }
@@ -24,7 +24,7 @@ class GamePageRendererTest {
     @Test
     fun `pvp page title keeps red first when inviter is black`() {
         assertEquals(
-            "bob vs alice",
+            "bob vs. alice",
             GamePageRenderer.formatPvpPageTitle("alice", "bob", Color.BLACK)
         )
     }
@@ -32,7 +32,7 @@ class GamePageRendererTest {
     @Test
     fun `pvp page title uses opponent fallback with red first when invitee is missing`() {
         assertEquals(
-            "opponent vs alice",
+            "<waiting> vs. alice",
             GamePageRenderer.formatPvpPageTitle("alice", null, Color.BLACK)
         )
     }
