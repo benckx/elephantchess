@@ -2312,4 +2312,7 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="0100" author="benckx">
+        <comment>Delete persisted analyses that contain no moves</comment>
+    </changeSet>
 </databaseChangeLog>

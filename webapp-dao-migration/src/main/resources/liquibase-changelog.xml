@@ -2485,4 +2485,67 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="0100" author="benckx">
+        <comment>Delete persisted analyses that contain no moves</comment>
+        <sql>
+            delete from analysis_node_annotation
+            where analysis_id in (
+                select a.id
+                from analysis a
+                where not exists (
+                    select 1
+                    from analysis_node n
+                    where n.analysis_id = a.id
+                )
+            );
+        </sql>
+        <sql>
+            delete from analysis_child_node
+            where analysis_id in (
+                select a.id
+                from analysis a
+                where not exists (
+                    select 1
+                    from analysis_node n
+                    where n.analysis_id = a.id
+                )
+            );
+        </sql>
+        <sql>
+            delete from analysis_version
+            where analysis_id in (
+                select a.id
+                from analysis a
+                where not exists (
+                    select 1
+                    from analysis_node n
+                    where n.analysis_id = a.id
+                )
+            );
+        </sql>
+        <sql>
+            delete from analysis_engine_data_cache
+            where analysis_id in (
+                select a.id
+                from analysis a
+                where not exists (
+                    select 1
+                    from analysis_node n
+                    where n.analysis_id = a.id
+                )
+            );
+        </sql>
+        <sql>
+            delete from analysis
+            where id in (
+                select a.id
+                from analysis a
+                where not exists (
+                    select 1
+                    from analysis_node n
+                    where n.analysis_id = a.id
+                )
+            );
+        </sql>
+    </changeSet>
 </databaseChangeLog>
