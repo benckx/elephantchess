@@ -49,6 +49,11 @@ class AdminPageViewStatsPage extends BasePage {
     #gadData = null;
 
     /**
+     * @type {MultipleTimeSeriesDto|null}
+     */
+    #userProfileData = null;
+
+    /**
      * @type {number}
      */
     #pendingRequests = 0;
@@ -64,12 +69,13 @@ class AdminPageViewStatsPage extends BasePage {
     }
 
     #fetchAllData() {
-        this.#pendingRequests = this.#eventPaths.length + 1; // +1 for GAD data
+        this.#pendingRequests = this.#eventPaths.length + 2; // +1 for GAD data, +1 for user profile data
         this.#totalRequests = this.#pendingRequests;
         this.#updateLoadingDisplay();
 
         // Fetch GAD data first
         this.#fetchGadData();
+        this.#fetchUserProfileData();
 
         this.#eventPaths.forEach(eventPath => {
             this.#fetchPageViewStats(eventPath);
@@ -81,6 +87,17 @@ class AdminPageViewStatsPage extends BasePage {
 
         getAndHandle(url, json => {
             this.#gadData = new MultipleTimeSeriesDto(json);
+            this.#pendingRequests--;
+            this.#updateLoadingDisplay();
+            this.#renderChartsIfReady();
+        });
+    }
+
+    #fetchUserProfileData() {
+        const url = `${ADMIN_URL_PREFIX}/page-view-stats-user-profiles`;
+
+        getAndHandle(url, json => {
+            this.#userProfileData = new MultipleTimeSeriesDto(json);
             this.#pendingRequests--;
             this.#updateLoadingDisplay();
             this.#renderChartsIfReady();
@@ -148,6 +165,24 @@ class AdminPageViewStatsPage extends BasePage {
 
             // Render GAD chart
             new PageViewStatsLineChart('chart-gad', 'Total page views', this.#gadData).render();
+        }
+
+        if (this.#userProfileData && this.#userProfileData.getAllPeriods().length > 0) {
+            const userProfileChartWrapper = document.createElement('div');
+            userProfileChartWrapper.style.marginBottom = '40px';
+
+            const userProfileChartDiv = document.createElement('div');
+            userProfileChartDiv.id = 'chart-user-profiles';
+            userProfileChartDiv.style.height = '400px';
+            userProfileChartWrapper.appendChild(userProfileChartDiv);
+
+            container.appendChild(userProfileChartWrapper);
+
+            new PageViewStatsLineChart(
+                'chart-user-profiles',
+                'Total user profile views',
+                this.#userProfileData
+            ).render();
         }
 
         this.#eventPaths.forEach((eventPath, index) => {

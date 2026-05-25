@@ -130,6 +130,11 @@ private fun Route.adminAnalyticsRoutes() {
             adminAnalyticsService.fetchPageViewStatsByEventPath(eventPath)
         }
     }
+    get("/page-view-stats-user-profiles") {
+        requireAdminRole { _ ->
+            adminAnalyticsService.fetchPageViewStatsForUserProfiles()
+        }
+    }
     get("/page-view-stats-gad") {
         requireAdminRole { _ ->
             adminAnalyticsService.fetchPageViewStatsByGad()
