@@ -66,7 +66,7 @@ class GamePageRenderer(
         internal const val DEFAULT_PVB_TITLE = "Play vs. Bot"
 
         internal fun formatPvpPageTitle(inviterUsername: String, inviteeUsername: String?): String {
-            return "$inviterUsername vs ${inviteeUsername ?: "<waiting>"}"
+            return "$inviterUsername vs. ${inviteeUsername ?: "<waiting>"}"
         }
 
         internal fun pvbPageTitle(username: String?, userColor: Color, engine: Engine, depth: Int): String {
