@@ -518,7 +518,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     @Test
-    fun guestPlayersCanPlayFullPvpGameFromUciSample() = runTest {
+    fun guestPlayersCanPlayFullPvPGameFromUciSample() = runTest {
         val request = CreateGameRequest(
             inviterColor = RED,
             isRated = false,
@@ -538,7 +538,10 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(1, countGameByStatus(JOINED))
         assertEquals(0, countGameByStatus(CREATED))
 
-        val gameMoves = gameMovesCache.findByGameId("4Q815fbI")
+        val gameMoves = assertNotNull(
+            gameMovesCache.listAll().firstOrNull { it.endsInCheckmate() },
+            "Expected at least one Xiangqi game in uci.txt that ends in checkmate"
+        )
         assertTrue { gameMoves.endsInCheckmate() }
 
         gameMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->

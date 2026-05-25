@@ -44,8 +44,28 @@ jobs:
       - name: Clean build
         run: ./gradlew clean build --no-daemon --stacktrace
 
-      - name: Verify guest PvP UCI regression test
-        run: ./gradlew --no-daemon :webapp-service-layer:test --tests io.elephantchess.servicelayer.services.PlayerVsPlayerGameServiceTest.guestPlayersCanPlayFullPvpGameFromUciSample
+      - name: Verify guest PvP UCI regression test ran in build
+        run: |
+          python - <<'PY'
+          import glob
+          import xml.etree.ElementTree as ET
+
+          test_name = "guestPlayersCanPlayFullPvPGameFromUciSample()"
+          files = glob.glob("webapp-service-layer/build/test-results/test/TEST-*.xml")
+
+          for path in files:
+              root = ET.parse(path).getroot()
+              for testcase in root.findall(".//testcase"):
+                  if testcase.attrib.get("name") == test_name:
+                      if testcase.find("failure") is not None:
+                          raise SystemExit(f"{test_name} failed in {path}")
+                      if testcase.find("skipped") is not None:
+                          raise SystemExit(f"{test_name} was skipped in {path}")
+                      print(f"Verified: {test_name} passed in {path}")
+                      raise SystemExit(0)
+
+          raise SystemExit(f"Could not find {test_name} in junit reports")
+          PY
 
       - name: Publish test report
         if: always()
