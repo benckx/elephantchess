@@ -542,7 +542,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             gameMovesCache.listAll().firstOrNull { it.endsInCheckmate() },
             "Expected at least one Xiangqi game in uci.txt that ends in checkmate"
         )
-        assertTrue { gameMoves.endsInCheckmate() }
 
         gameMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
             val result = pvpGameService.playMove(

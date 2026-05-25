@@ -64,7 +64,7 @@ jobs:
                       print(f"Verified: {test_name} passed in {path}")
                       raise SystemExit(0)
 
-          raise SystemExit(f"Could not find {test_name} in junit reports")
+          raise SystemExit(f"Could not find {test_name} in JUnit reports")
           PY
 
       - name: Publish test report
