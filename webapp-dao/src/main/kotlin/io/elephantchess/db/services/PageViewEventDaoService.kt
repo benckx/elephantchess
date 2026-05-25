@@ -112,7 +112,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
         return fetchMonthlyUserProfilePageViewsByCondition(
             excludedUserIds = excludedUserIds
         ) {
-            ownProfileViewCondition().not()
+            USER.ID.isNotNull.and(ownProfileViewCondition().not())
         }
     }
 
