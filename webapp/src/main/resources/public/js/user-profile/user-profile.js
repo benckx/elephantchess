@@ -29,7 +29,6 @@ class UserProfilePage extends BasePage {
 
     constructor() {
         super();
-        this.#fetchGamesRatings();
         this.#fetchLatestPvpGames();
         this.#fetchPuzzlesStatsSummary();
         this.#fetchPuzzlesStatsRating();
@@ -40,16 +39,6 @@ class UserProfilePage extends BasePage {
         if (flagHeaderPanel != null) {
             addCountryToolTip(flagHeaderPanel, flagHeaderPanel.dataset.countryCode);
         }
-    }
-
-    #fetchGamesRatings() {
-        this.#client.fetchGameRatings(stats => {
-            document.getElementById('rating-bullet').innerText = stats.bullet.toString();
-            document.getElementById('rating-blitz').innerText = stats.blitz.toString();
-            document.getElementById('rating-rapid').innerText = stats.rapid.toString();
-            document.getElementById('rating-classical').innerText = stats.classical.toString()
-            document.getElementById('rating-correspondence').innerText = stats.correspondence.toString();
-        });
     }
 
     #fetchLatestPvpGames() {
