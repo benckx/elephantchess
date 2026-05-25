@@ -469,6 +469,7 @@ class PlayGamePage extends BasePage {
             }
         }
 
+        // show initial time when selecting the initial state (start FEN)
         const isLastMove = this.#moveTreeWidget.isLastMoveSelected();
         const isStartFenSelected = selectedNode === null && !isLastMove;
         if (isStartFenSelected) {
