@@ -14,7 +14,7 @@ import io.ktor.server.routing.*
 
 private val simplePageRenderer by koin<SimplePageRenderer>()
 
-fun Application.emailSettingRoutes() {
+fun Application.emailSettingUpdatePages() {
     emailConfirmationRoutes()
     newsletterUnsubscriptionRoutes()
 }

@@ -44,6 +44,8 @@ class PlayGamePage extends BasePage {
     #createdLabel = document.getElementById('created-label');
     #timeControlBase = document.getElementById('time-control-base');
     #ratingMode = document.getElementById('rating-mode');
+    #variantRow = document.getElementById('variant-row');
+    #variantLabel = document.getElementById('variant-label');
     #gameStatusSpan = document.getElementById('game-status');
     #gameOutcomeSpan = document.getElementById('game-outcome');
     #outcomeRow = document.getElementById('outcome-row');
@@ -79,6 +81,7 @@ class PlayGamePage extends BasePage {
      */
     #shareLinkActions = getElementsByClassNameArray('share-link-mask-action');
 
+    #settingsManager = new SettingsManager();
     #joinAudio = new Audio('/audio/624598__eqylizer__high-pitched-two-note-notification.mp3');
 
     #hasRenderedJoinModal = false;
@@ -150,11 +153,13 @@ class PlayGamePage extends BasePage {
                     this.#updatePlayersInfo();
                     if (this.#gameController.gameDto.userStatus !== UserStatus.INVITEE) {
                         UI.pushInfoNotification(`${this.#gameController.gameDto.inviteeUsername} has joined the game`, 4_000);
-                        this.#joinAudio
-                            .play()
-                            .catch(() => {
-                                // ignored, spam error in console in dev
-                            });
+                        if (this.#settingsManager.isPlaySoundsEnabled) {
+                            this.#joinAudio
+                                .play()
+                                .catch(() => {
+                                    // ignored, spam error in console in dev
+                                });
+                        }
                     }
                     this.#updateBoardMaskMessage();
                 },
@@ -307,6 +312,10 @@ class PlayGamePage extends BasePage {
     }
 
     #initBoard() {
+        if (this.#gameController.gameDto.isManchu) {
+            this.#moveTreeWidget.startFen = MANCHU_START_FEN;
+        }
+
         if (!this.#gameController.isGameFinished()) {
             this.#boardGui.addAfterMoveListener((move) => {
                 this.#gameController.registerPlayerMove(
@@ -331,6 +340,13 @@ class PlayGamePage extends BasePage {
     #initOtherInfo() {
         this.#createdLabel.innerText = formatTimestampDefaultDateFormat(this.#gameController.gameDto.created);
         this.#ratingMode.innerText = this.#gameController.gameDto.isRated ? 'Rated' : 'Casual';
+        if (this.#gameController.gameDto.isManchu) {
+            this.#variantLabel.innerText = 'Manchu';
+            this.#variantRow.style.display = '';
+        } else {
+            this.#variantLabel.innerText = '';
+            this.#variantRow.style.display = 'none';
+        }
     }
 
     #initClocks() {
@@ -429,6 +445,48 @@ class PlayGamePage extends BasePage {
             this.#updateBoardTurnToPlay();
         } else {
             this.#boardGui.disablePlayerMove();
+        }
+        this.#updateClocksAndChatForSelectedMove();
+    }
+
+    /**
+     * When the user navigates the PvP game move tree, show the timer state and
+     * highlight the most recent chat message at that point in time. When the
+     * latest move is selected, restore the live clocks (driven by gameDto) and
+     * clear the chat highlight.
+     */
+    #updateClocksAndChatForSelectedMove() {
+        const selectedNode = this.#moveTreeWidget.selectedNode;
+
+        // Compute the 0-based main-line index of the selected node, or null if
+        // the node is not on the main branch (i.e. is part of an analysis side line).
+        let moveIndex = null;
+        if (selectedNode != null) {
+            const nodesLeadingUp = selectedNode.getAllNodesLeadingUpTo();
+            const allOnMainBranch = nodesLeadingUp.every(n => n.level === 0);
+            if (allOnMainBranch) {
+                moveIndex = nodesLeadingUp.length - 1;
+            }
+        }
+
+        const isLastMove = this.#moveTreeWidget.isLastMoveSelected();
+        if (moveIndex == null || isLastMove) {
+            // Back to "live" view: rely on the gameDto clock and clear highlight.
+            this.#updateClocks();
+            if (this.#chatBoxWidget != null) {
+                this.#chatBoxWidget.clearHighlightedMessage();
+            }
+            return;
+        }
+
+        const historicalClock = this.#gameController.getClockAtMoveIndex(moveIndex);
+        if (historicalClock != null) {
+            this.#renderClock(historicalClock);
+        }
+
+        const moveTs = this.#gameController.getMoveTimestampAt(moveIndex);
+        if (this.#chatBoxWidget != null) {
+            this.#chatBoxWidget.highlightLatestMessageBefore(moveTs);
         }
     }
 
@@ -633,29 +691,52 @@ class PlayGamePage extends BasePage {
             this.#showGameActionButtonsBlock(false);
         }
 
-        if (this.#gameController.isGameFinished()) {
+        if (this.#gameController.isGameFinished() && !this.#gameController.gameDto.isManchu) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
+                addToolTip(button, 'You can analyse the game with the Analysis Board tool');
             });
         } else {
+            const tooltip = this.#gameController.gameDto.isManchu
+                ? 'Analysis is not supported for Manchu variant games'
+                : 'Game must be finished before you can analyze it. If you want to analyze this game now, you have to resign first.';
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
+                addToolTip(button, tooltip);
             });
         }
     }
 
     #updateClocks() {
+        // Don't override the historical clock view when the user is navigating an
+        // earlier move; #updateClocksAndChatForSelectedMove() owns the display in
+        // that case and restores live clocks once the latest move is reselected.
+        if (this.#moveTreeWidget != null
+            && this.#moveTreeWidget.selectedNode != null
+            && !this.#moveTreeWidget.isLastMoveSelected()) {
+            return;
+        }
         const clock = this.#gameController.gameDto.timeControlClock;
         if (clock != null) {
-            const category = this.#gameController.gameDto.timeControlCategory;
-            const timeCounters = document.getElementsByClassName('time-counter');
-            for (let i = 0; i < timeCounters.length; i++) {
-                const timeCounter = timeCounters[i];
-                if (timeCounter.classList.contains('red-counter')) {
-                    timeCounter.innerText = clock.red.printCounter(category);
-                } else if (timeCounter.classList.contains('black-counter')) {
-                    timeCounter.innerText = clock.black.printCounter(category);
-                }
+            this.#renderClock(clock);
+        }
+    }
+
+    /**
+     * Render an arbitrary clock state (used for both the live clock and the
+     * historical clock shown when the user selects a past move).
+     *
+     * @param clock {TimeControlClock}
+     */
+    #renderClock(clock) {
+        const category = this.#gameController.gameDto.timeControlCategory;
+        const timeCounters = document.getElementsByClassName('time-counter');
+        for (let i = 0; i < timeCounters.length; i++) {
+            const timeCounter = timeCounters[i];
+            if (timeCounter.classList.contains('red-counter')) {
+                timeCounter.innerText = clock.red.printCounter(category);
+            } else if (timeCounter.classList.contains('black-counter')) {
+                timeCounter.innerText = clock.black.printCounter(category);
             }
         }
     }

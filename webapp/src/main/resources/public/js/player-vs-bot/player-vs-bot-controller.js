@@ -236,6 +236,13 @@ class PlayerVsBotController {
     }
 
     /**
+     * @returns {boolean}
+     */
+    isManchu() {
+        return this.#botGameDto.isManchu;
+    }
+
+    /**
      * When watching as spectator and receiving updates via WebSocket
      *
      * @param status {string}
@@ -285,7 +292,7 @@ class PlayerVsBotController {
                 break;
         }
 
-        metadata.set('Variant', 'Xiangqi');
+        metadata.set('Variant', dto.isManchu ? 'Manchu' : 'Xiangqi');
 
         switch (dto.status) {
             case GameEventType.CHECKMATED:

@@ -316,6 +316,7 @@ class AdminMonthlyMetricsPage extends BasePage {
         const sourceColors = {
             'LOBBY': '#008FFB',
             'MATCHED': '#00E396',
+            'DYNAMIC_MATCHED': '#26C281',
             'LINK': '#FEB019',
             'DISCORD_NOTIFICATION': '#FF4560',
             'UNKNOWN': '#775DD0'

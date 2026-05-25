@@ -101,6 +101,23 @@ class MyGamesPage extends InfiniteScrollPage {
         }
 
         /**
+         * @param entry {GameEntryDto}
+         * @return {HTMLDivElement}
+         */
+        function buildTimeControlCell(entry) {
+            const cell = buildDivWithClass('time-control-cell');
+            const timeControlIcon = buildTimeControlCategoryIcon(entry);
+            const timeControlLabel = buildDivWithClass('time-control-duration-cell');
+            if (entry.timeControl != null) {
+                timeControlLabel.innerText = entry.timeControl.printShort(' +');
+            } else {
+                timeControlLabel.innerText = '--';
+            }
+            cell.append(timeControlIcon, timeControlLabel);
+            return cell;
+        }
+
+        /**
          * @param {GameEntryDto} entry
          * @return {string}
          */
@@ -260,6 +277,7 @@ class MyGamesPage extends InfiniteScrollPage {
         entries.forEach((entry) => {
             // structure
             const leftPane = buildDivWithClass('left-pane');
+            const variantPane = buildDivWithClass('variant-pane');
             const middlePane = buildDivWithClass('middle-pane');
             const chatIndicatorPane = buildDivWithClass('indicator-pane');
             const outcomeIndicatorPane = buildDivWithClass('indicator-pane');
@@ -268,6 +286,7 @@ class MyGamesPage extends InfiniteScrollPage {
             const item = buildAnchorWithClass(entry.gameUrl,null, 'my-game-item');
 
             item.append(
+                variantPane,
                 leftPane,
                 middlePane,
                 chatIndicatorPane,
@@ -287,15 +306,18 @@ class MyGamesPage extends InfiniteScrollPage {
             }
 
             // left pane
-            const iconDiv = buildTimeControlCategoryIcon(entry);
-            leftPane.append(iconDiv);
+            leftPane.append(buildTimeControlCell(entry));
+
+            // variant pane
+            variantPane.append(buildVariantCell(entry.variant));
 
             // middle pane
-            middlePane.append(
+            const middlePaneItems = [
                 buildOpponentDiv(entry),
                 wrapInDiv(buildColorSpan(entry.color)),
-                buildRatingModeDiv(entry)
-            );
+                buildRatingModeDiv(entry),
+            ];
+            middlePane.append(...middlePaneItems);
 
             // number of messages indicator pane
             const chatDiv = buildChatMessagesDiv(entry);

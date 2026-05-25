@@ -171,6 +171,7 @@ class GameDto {
     #outcome = null;
     #drawPropositionUser = null;
     #ratingUpdate = null;
+    #variant;
 
     constructor(userId, json) {
         this.#userId = userId;
@@ -201,6 +202,7 @@ class GameDto {
             this.#ratingUpdate = new RatingUpdateDto(json.ratingUpdate);
         }
         this.#drawPropositionUser = json.drawPropositionUser;
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
@@ -338,6 +340,20 @@ class GameDto {
     }
 
     /**
+     * @returns {string}
+     */
+    get variant() {
+        return this.#variant;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    get isManchu() {
+        return this.#variant === Variant.MANCHU;
+    }
+
+    /**
      * @returns {number}
      */
     get moveIndex() {
@@ -349,6 +365,13 @@ class GameDto {
      */
     get timeControlClock() {
         return this.#timeControlClock;
+    }
+
+    /**
+     * @return {string|null}
+     */
+    get timeControlMode() {
+        return this.#timeControlMode;
     }
 
     /**
@@ -844,7 +867,7 @@ class GameDto {
             }
         }
 
-        metadata.set('Variant', 'Xiangqi');
+        metadata.set('Variant', this.isManchu ? 'Manchu' : 'Xiangqi');
 
         switch (this.status) {
             case GameEventType.FLAGGED:
