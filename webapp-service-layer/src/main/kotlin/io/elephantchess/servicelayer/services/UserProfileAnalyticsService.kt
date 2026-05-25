@@ -25,6 +25,21 @@ class UserProfileAnalyticsService(
     suspend fun fetchGameRatings(userId: String): TimeCategoryStatsResponse {
         val userRecord = userDaoService.fetchAllRatings(userId)
             ?: throw NotFoundException("User $userId could not be found")
+
+        return TimeCategoryStatsResponse(
+            ratings = TimeCategoryStatsDto(
+                bullet = userRecord.gameRatingBullet,
+                blitz = userRecord.gameRatingBlitz,
+                rapid = userRecord.gameRatingRapid,
+                classical = userRecord.gameRatingClassical,
+                severalDays = userRecord.gameRatingSeveralDays,
+                correspondence = userRecord.gameRatingCorrespondence
+            ),
+            pvp = fetchPlayerVsPlayerStatsByCategory(userId)
+        )
+    }
+
+    private suspend fun fetchPlayerVsPlayerStatsByCategory(userId: String): TimeCategoryPlayerVsPlayerStatsDto {
         val pvpStatsByCategory = playerVsPlayerGameDaoService.fetchPlayerVsPlayerOutcomeStatsPerCategory(userId)
             .associateBy { it.category }
         val noGamesStats = PlayerVsPlayerStatsDto(
@@ -42,23 +57,13 @@ class UserProfileAnalyticsService(
             )
         }
 
-        return TimeCategoryStatsResponse(
-            ratings = TimeCategoryStatsDto(
-                bullet = userRecord.gameRatingBullet,
-                blitz = userRecord.gameRatingBlitz,
-                rapid = userRecord.gameRatingRapid,
-                classical = userRecord.gameRatingClassical,
-                severalDays = userRecord.gameRatingSeveralDays,
-                correspondence = userRecord.gameRatingCorrespondence
-            ),
-            pvp = TimeCategoryPlayerVsPlayerStatsDto(
-                bullet = pvpStatsFor(TimeControlCategory.BULLET),
-                blitz = pvpStatsFor(TimeControlCategory.BLITZ),
-                rapid = pvpStatsFor(TimeControlCategory.RAPID),
-                classical = pvpStatsFor(TimeControlCategory.CLASSICAL),
-                severalDays = pvpStatsFor(TimeControlCategory.SEVERAL_DAYS),
-                correspondence = pvpStatsFor(TimeControlCategory.CORRESPONDENCE),
-            )
+        return TimeCategoryPlayerVsPlayerStatsDto(
+            bullet = pvpStatsFor(TimeControlCategory.BULLET),
+            blitz = pvpStatsFor(TimeControlCategory.BLITZ),
+            rapid = pvpStatsFor(TimeControlCategory.RAPID),
+            classical = pvpStatsFor(TimeControlCategory.CLASSICAL),
+            severalDays = pvpStatsFor(TimeControlCategory.SEVERAL_DAYS),
+            correspondence = pvpStatsFor(TimeControlCategory.CORRESPONDENCE),
         )
     }
 
