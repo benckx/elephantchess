@@ -272,16 +272,19 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .selectCount()
             .from(BOT_GAME)
-            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex))
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex).or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
             .awaitSingleValue()!!
     }
 
     suspend fun countManchuGames(minIndex: Int): Int {
+        val countCondition =
+            BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex)
+                .or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
+
         return dslContext
             .selectCount()
             .from(BOT_GAME)
-            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex))
-            .and(BOT_GAME.VARIANT.eq(Variant.MANCHU))
+            .where(countCondition.and(BOT_GAME.VARIANT.eq(Variant.MANCHU)))
             .awaitSingleValue()!!
     }
 

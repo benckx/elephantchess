@@ -139,7 +139,7 @@ h2 {
     text-align: right;
 }
 
-.online-status-indicator {
+#profile-header .online-status-indicator {
     margin-right: 0;
 }
 
