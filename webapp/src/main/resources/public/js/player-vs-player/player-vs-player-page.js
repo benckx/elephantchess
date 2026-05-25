@@ -470,7 +470,7 @@ class PlayGamePage extends BasePage {
         }
 
         const isLastMove = this.#moveTreeWidget.isLastMoveSelected();
-        const isStartFenSelected = selectedNode == null && !isLastMove;
+        const isStartFenSelected = selectedNode === null && !isLastMove;
         if (isStartFenSelected) {
             const timeControl = this.#gameController.gameDto.timeControl;
             if (timeControl != null) {
