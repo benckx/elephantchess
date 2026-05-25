@@ -1610,6 +1610,10 @@ table.info-box-sub-table td.values {
     padding-bottom: 6px;
 }
 
+.chat-box-message-highlighted {
+    background-color: #fff7cc;
+}
+
 .chat-box-message .header {
     display: flex;
     width: 100%;
