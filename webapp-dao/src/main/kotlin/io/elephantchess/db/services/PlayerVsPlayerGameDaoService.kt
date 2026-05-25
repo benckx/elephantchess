@@ -427,6 +427,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val inviterWinCondition =
             GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
+
         val inviteeWinCondition =
             GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
@@ -434,6 +435,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val inviterLossCondition =
             GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+
         val inviteeLossCondition =
             GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
@@ -457,7 +459,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .where(isUserPlaying)
             .and(GAME.OUTCOME.isNotNull)
             .and(GAME.TIME_CONTROL_CATEGORY.isNotNull)
-            .groupBy(GAME.TIME_CONTROL_CATEGORY)    private suspend fun fetchPlayerVsPlayerStatsByCategory(userId: String): TimeCategoryPlayerVsPlayerStatsDto {
+            .groupBy(GAME.TIME_CONTROL_CATEGORY)
             .awaitRecords()
             .map { record ->
                 PlayerVsPlayerOutcomeStatsPerCategoryRecord(
