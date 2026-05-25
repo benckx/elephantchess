@@ -71,8 +71,6 @@ class PlayerVsPlayerGameService(
     refresherScope: CoroutineScope
 ) {
 
-    private val dynamicMatchingPeriod = 5.seconds
-
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
     private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
     private val playerVsPlayerSessions = mutableListOf<PlayerVsPlayerWebSocketSession>()
@@ -93,8 +91,8 @@ class PlayerVsPlayerGameService(
 
     private val dynamicMatchingJob = launchAtFixedRate(
         scope = refresherScope,
-        initialDelay = dynamicMatchingPeriod,
-        period = dynamicMatchingPeriod,
+        initialDelay = 5.seconds,
+        period = 5.seconds,
         action = {
             val onlineUserIds = userService.onlineUserIds()
             if (onlineUserIds.size >= 2) {
