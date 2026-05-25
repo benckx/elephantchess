@@ -611,6 +611,67 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     /**
+     * User should not be able to create more than 3 CREATED PvP games with the same settings.
+     */
+    @Test
+    fun createGameLimitTest01() = runTest {
+        val request = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = false,
+            alwaysVisibleInLobby = false,
+            privateInvite = true
+        )
+
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+
+        assertEquals(3, countGameByStatus(CREATED))
+
+        val e = assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, request)
+        }
+        assertEquals("You already have 3 pending games with the same settings", e.message)
+
+        assertEquals(3, countGameByStatus(CREATED))
+    }
+
+    /**
+     * Limit is per time category: different category should allow new games, but different color should not.
+     */
+    @Test
+    fun createGameLimitTest02() = runTest {
+        val request = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = false,
+            alwaysVisibleInLobby = false,
+            privateInvite = true
+        )
+
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+
+        // different color but same time category: should still be rejected
+        assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, request.copy(inviterColor = BLACK))
+        }
+
+        // different time category (BLITZ vs RAPID): should succeed
+        pvpGameService.createGame(userId1, request.copy(timeControlBase = 3.minutes.inWholeSeconds.toInt()))
+        assertEquals(4, countGameByStatus(CREATED))
+        assertEquals(4, countGameByStatus(CREATED))
+    }
+
+    /**
      * Two Manchu games with compatible colors should be matched together.
      */
     @Test
