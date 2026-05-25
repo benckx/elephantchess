@@ -46,6 +46,7 @@ import io.elephantchess.xiangqi.Board.Companion.validateFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
@@ -125,6 +126,11 @@ class PlayerVsBotGameService(
             throw BadRequestException("You must be logged in to play with depth greater than 6")
         }
 
+        // Manchu variant requires Fairy Stockfish
+        if (request.variant == Variant.MANCHU && request.engine == Engine.PIKAFISH) {
+            throw BadRequestException("Pikafish does not support the Manchu variant. Please use Fairy Stockfish.")
+        }
+
         request.startFen?.let { fen ->
             try {
                 validateFen(fen)
@@ -142,17 +148,16 @@ class PlayerVsBotGameService(
         val now = Clock.System.now()
         val gameId = generateId()
 
-        val actualStartFen = request.startFen ?: DEFAULT_START_FEN
-        val usesDefaultStartFen = actualStartFen == DEFAULT_START_FEN
+        val actualStartFen = request.startFen ?: Board.defaultStartFen(request.variant)
+        val usesDefaultStartFen = actualStartFen == Board.defaultStartFen(request.variant)
 
+        // Manchu variant requires Fairy Stockfish.
         // If Pikafish is requested but the start FEN is non-standard, safeQueryForDepth will
         // use Fairy Stockfish instead, so we persist the effective engine/version that will be used.
-        val effectiveEngine = if (request.engine == Engine.PIKAFISH && isNonStandardFen(actualStartFen)) {
-            Engine.FAIRYSTOCKFISH
-        } else {
-            request.engine
-        }
 
+        val isVariant = request.variant == Variant.MANCHU
+        val isUnsupportedByPikafish = isNonStandardFen(actualStartFen)
+        val effectiveEngine = if (isVariant || isUnsupportedByPikafish) Engine.FAIRYSTOCKFISH else request.engine
         val engineVersion = when (effectiveEngine) {
             Engine.PIKAFISH -> pikafishVersion
             Engine.FAIRYSTOCKFISH -> fairyStockfishVersion
@@ -172,6 +177,7 @@ class PlayerVsBotGameService(
         gameRecord.created = now
         gameRecord.lastUpdated = now
         gameRecord.openingMode = request.openingMode
+        gameRecord.variant = request.variant
 
         val statusRecord = BotGameStatusEvent()
         statusRecord.botGameId = gameId
@@ -191,7 +197,8 @@ class PlayerVsBotGameService(
                 engine = effectiveEngine,
                 depth = request.depth,
                 usesDefaultStartFen = usesDefaultStartFen,
-                openingMode = request.openingMode
+                openingMode = request.openingMode,
+                variant = request.variant,
             )
 
             if (botMove != null) {
@@ -221,6 +228,7 @@ class PlayerVsBotGameService(
                     moveIndex = record.currentHalfMoveIndex,
                     created = record.created.toEpochMilliseconds(),
                     lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+                    variant = record.variant ?: Variant.XIANGQI,
                 )
             }
             .let { entries ->
@@ -240,13 +248,14 @@ class PlayerVsBotGameService(
                 userColor = game.userColor,
                 engine = game.engine,
                 depth = game.depth,
-                startFen = game.startFen ?: DEFAULT_START_FEN,
+                startFen = game.startFen ?: Board.defaultStartFen(game.variant ?: Variant.XIANGQI),
                 status = game.gameStatus,
                 moveIndex = game.currentHalfMoveIndex,
                 fen = game.currentFen,
                 created = game.created.toEpochMilliseconds(),
                 lastUpdated = game.lastUpdated.toEpochMilliseconds(),
-                outcome = game.outcome
+                outcome = game.outcome,
+                variant = game.variant,
             )
         }
     }
@@ -263,6 +272,7 @@ class PlayerVsBotGameService(
 
         // TODO: use same pattern as in GameService with TryEither
         pvbGameDaoService.saveUserMoveResult(request.gameId, request.move) { gameRecord, userMove ->
+            val gameVariant = gameRecord.variant
             val userColor = gameRecord.userColor
             val botColor = userColor.reverse()
 
@@ -287,28 +297,34 @@ class PlayerVsBotGameService(
                         botColor = botColor,
                         userMove = userMove,
                         fen = board.outputFen(),
-                        startFen = gameRecord.startFen ?: DEFAULT_START_FEN,
+                        startFen = gameRecord.startFen ?: Board.defaultStartFen(gameVariant),
                         position = gameRecord.currentHalfMoveIndex,
                         engine = gameRecord.engine,
                         depth = gameRecord.depth,
                         usesDefaultStartFen = gameRecord.startFen == null,
-                        openingMode = gameRecord.openingMode ?: OpeningMode.BY_FREQUENCY
+                openingMode = gameRecord.openingMode ?: OpeningMode.BY_FREQUENCY,
+                variant = gameVariant,
                     )
 
                     if (botMove != null) {
-                        board.registerMove(botMove.uci)
-                        logger.debug { "FEN after bot move: ${board.outputFen()}" }
-                        result = result.copy(botMove = botMove)
+                        if (!Board.isMoveLegal(board.outputFen(), botMove.uci)) {
+                            logger.error { "[${request.gameId}] bot returned illegal move ${botMove.uci} for FEN ${board.outputFen()}" }
+                            result = result.addError(BOT_MOVE_NOT_FOUND)
+                        } else {
+                            board.registerMove(botMove.uci)
+                            logger.debug { "FEN after bot move: ${board.outputFen()}" }
+                            result = result.copy(botMove = botMove)
 
-                        val isUserCheckmated = board.isCheckmated(userColor)
-                        val isUserStalemated = board.isStalemated(userColor)
+                            val isUserCheckmated = board.isCheckmated(userColor)
+                            val isUserStalemated = board.isStalemated(userColor)
 
-                        if (isUserCheckmated || isUserStalemated) {
-                            // bot has won against the player
-                            result = result.updateForBotVictory(botColor, isUserCheckmated, isUserStalemated)
+                            if (isUserCheckmated || isUserStalemated) {
+                                // bot has won against the player
+                                result = result.updateForBotVictory(botColor, isUserCheckmated, isUserStalemated)
+                            }
+
+                            result = result.copy(newPosition = gameRecord.currentHalfMoveIndex + 2)
                         }
-
-                        result = result.copy(newPosition = gameRecord.currentHalfMoveIndex + 2)
                     } else {
                         result = result.addError(BOT_MOVE_NOT_FOUND)
                     }
@@ -349,10 +365,16 @@ class PlayerVsBotGameService(
         depth: Int,
         usesDefaultStartFen: Boolean,
         openingMode: OpeningMode,
+        variant: Variant = Variant.XIANGQI,
     ): BotMove? {
-        suspend fun playWithEngine() = playWithEngine(gameId, botColor, startFen, fen, position, engine, depth)
+        suspend fun playWithEngine(): BotMove? {
+            return playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
+        }
 
-        return if (usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX) {
+        val canUseOpeningRepository =
+            usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
+
+        return if (canUseOpeningRepository) {
             playFromOpeningRepository(gameId, userMove, openingMode) ?: playWithEngine()
         } else {
             playWithEngine()
@@ -386,9 +408,10 @@ class PlayerVsBotGameService(
         position: Int,
         engine: Engine,
         depth: Int,
+        variant: Variant,
     ): BotMove? {
         suspend fun queryEngine(fenToEngine: String): InfoLinesResult? {
-            return enginesPool.safeQueryForDepth(fenToEngine, modelToProcess(engine), depth, 15_000)
+            return enginesPool.safeQueryForDepth(fenToEngine, modelToProcess(engine), depth, 15_000, variant)
         }
 
         suspend fun findAlternativeMove(bestMove: String): String? {

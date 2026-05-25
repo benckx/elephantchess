@@ -4,6 +4,7 @@ import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.Outcome
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 
 data class ListUserBotGamesDto(val entries: List<Entry>) {
 
@@ -19,6 +20,7 @@ data class ListUserBotGamesDto(val entries: List<Entry>) {
         val moveIndex: Int,
         val created: Long,
         val lastUpdated: Long,
+        val variant: Variant,
     )
 
 }

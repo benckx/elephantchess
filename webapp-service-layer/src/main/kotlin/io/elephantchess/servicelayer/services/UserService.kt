@@ -3,13 +3,7 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.PasswordRecoveryAttempt
 import io.elephantchess.db.dao.codegen.tables.pojos.User
-import io.elephantchess.db.services.PasswordRecoveryAttemptsDaoService
-import io.elephantchess.db.services.PlayerVsBotGameDaoService
-import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
-import io.elephantchess.db.services.PuzzleResultDaoService
-import io.elephantchess.db.services.ReferenceGameDaoService
-import io.elephantchess.db.services.UserDaoService
-import io.elephantchess.db.services.UserSessionDaoService
+import io.elephantchess.db.services.*
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.ContactFormRequest
@@ -22,13 +16,14 @@ import io.elephantchess.servicelayer.model.AuthenticatedToken
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.TokenManager.Companion.RENEW_SESSION_INTERVAL
+import io.elephantchess.servicelayer.services.UserService.Companion.EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRateStartImmediately
 import io.elephantchess.utils.stripHtml
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
-import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
+import org.apache.commons.lang3.RandomStringUtils.insecure
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import kotlin.time.Clock
@@ -50,6 +45,11 @@ class UserService(
     refresherScope: CoroutineScope,
     private val logger: KLogger,
 ) {
+
+    private fun normalizeCountry(country: String?): String? =
+        country
+            ?.trim()
+            ?.takeUnless { it.isBlank() || it.equals("none", ignoreCase = true) }
 
     @Volatile
     private var onlineUserIds: Set<String> = emptySet()
@@ -262,7 +262,7 @@ class UserService(
             if (mailService.isEmailAddressValid(request.email)) {
                 val attemptRecord = PasswordRecoveryAttempt()
                 attemptRecord.emailProvided = request.email
-                attemptRecord.recoveryCode = randomAlphanumeric(64)
+                attemptRecord.recoveryCode = insecure().nextAlphanumeric(64)
                 attemptRecord.matchingUserId = user.id
                 passwordRecoveryRequestDaoService.save(attemptRecord)
 
@@ -324,7 +324,7 @@ class UserService(
             UserProfile(
                 userId = user.id,
                 username = user.handle,
-                country = user.country,
+                country = normalizeCountry(user.country),
                 profileDescription = user.description,
                 puzzleRating = user.puzzleRating
             )
@@ -355,7 +355,8 @@ class UserService(
         }
 
         val description = stripHtml(removeSuperfluousLineBreaks(request.description))
-        userDaoService.updateProfileSettings(userId, description, request.country)
+        val country = normalizeCountry(request.country)
+        userDaoService.updateProfileSettings(userId, description, country)
     }
 
     suspend fun fetchNotificationsSettings(userId: String): NotificationsSettingsDto {

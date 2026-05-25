@@ -54,6 +54,10 @@ class UserProfileGames {
             return new GameThumb(div, boardGui);
         });
 
+        for (let i = 2; i < this.#thumbDivs.length; i++) {
+            this.#thumbDivs[i].classList.add('only-desktop-flex');
+        }
+
         this.#fetchGames();
     }
 

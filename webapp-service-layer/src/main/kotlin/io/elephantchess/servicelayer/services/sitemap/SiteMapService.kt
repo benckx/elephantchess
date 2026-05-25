@@ -1,11 +1,11 @@
-package io.elephantchess.webapp.sitemap
+package io.elephantchess.servicelayer.services.sitemap
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.services.DatabaseService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
-import io.elephantchess.webapp.sitemap.ChangeFrequency.MONTHLY
-import io.elephantchess.webapp.sitemap.ChangeFrequency.WEEKLY
+import io.elephantchess.servicelayer.services.sitemap.ChangeFrequency.MONTHLY
+import io.elephantchess.servicelayer.services.sitemap.ChangeFrequency.WEEKLY
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +23,7 @@ class SiteMapService(
 ) {
 
     private val deployDay = LocalDate.now()
+    private val howToPlayLastPageChange = LocalDate.of(2026, 5, 24)
     private val sevenKingdomLastChange = LocalDate.of(2025, 12, 10)
 
     private val webHostTrimmed = appConfig.webHost.trimEnd('/')
@@ -42,7 +43,6 @@ class SiteMapService(
         logger.info { "refreshed sitemap of ${xml.length} chars. in memory" }
     }
 
-    // TODO: actually call
     fun cancel() {
         refreshJob.cancel()
     }
@@ -93,6 +93,12 @@ class SiteMapService(
         SitemapEntry(
             loc = "$webHostTrimmed/database/players",
             lastmod = LocalDate.of(2026, 1, 25),
+            changefreq = MONTHLY,
+            priority = 0.8
+        ),
+        SitemapEntry(
+            loc = "$webHostTrimmed/how-to-play-xiangqi",
+            lastmod = howToPlayLastPageChange,
             changefreq = MONTHLY,
             priority = 0.8
         ),

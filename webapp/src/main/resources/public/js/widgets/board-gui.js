@@ -70,6 +70,8 @@ pieceImageNames.set('R', 'red_chariot.png');
 pieceImageNames.set('r', 'black_chariot.png');
 pieceImageNames.set('P', 'red_soldier.png');
 pieceImageNames.set('p', 'black_soldier.png');
+// Manchu super-chariot (combines chariot + horse + cannon powers), red only, displayed as chariot
+pieceImageNames.set('M', 'red_chariot.png');
 
 const diagonalDescending = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="0" x2="100" y2="100" vector-effect="non-scaling-stroke" stroke="black" /></svg>';
 const diagonalRising = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="100" x2="100" y2="0" vector-effect="non-scaling-stroke" stroke="black"/></svg>';
@@ -129,7 +131,7 @@ const EngineArrowType = Object.freeze({
  */
 const CoordinatesOrientation = Object.freeze({
     WXF: 'WXF',
-    UCI: 'UCI',
+    ALGEBRAIC: 'ALGEBRAIC',
 });
 
 // Chinese numerals for files 1..9, used to label files in WXF mode when the
@@ -138,7 +140,7 @@ const CHINESE_FILE_DIGITS = ['一', '二', '三', '四', '五', '六', '七', '�
 
 /**
  * How file numbers are rendered around the board in WXF mode. Only affects the
- * file-number labels; the UCI orientation (a..i letters) is unaffected.
+ * file-number labels; the algebraic orientation (a..i letters) is unaffected.
  */
 const FileNumbersStyle = Object.freeze({
     /** Arabic numerals (1..9) on both sides of the board. */
@@ -147,6 +149,12 @@ const FileNumbersStyle = Object.freeze({
     CHINESE_BOTH: 'CHINESE_BOTH',
     /** Chinese numerals on red's side; Arabic numerals on black's side (default). */
     CHINESE_RED_ONLY: 'CHINESE_RED_ONLY',
+    /** Chinese numerals on black's side; Arabic numerals on red's side. */
+    CHINESE_BLACK_ONLY: 'CHINESE_BLACK_ONLY',
+    /** Chinese numerals on the bottom (lower) side of the screen; Arabic on the top side. */
+    CHINESE_LOWER_ONLY: 'CHINESE_LOWER_ONLY',
+    /** Chinese numerals on the top side of the screen; Arabic on the bottom side. */
+    CHINESE_TOP_ONLY: 'CHINESE_TOP_ONLY',
     DEFAULT: 'CHINESE_RED_ONLY',
 });
 
@@ -171,6 +179,7 @@ const PieceStyleSetting = Object.freeze({
  * @property {boolean}     [mini]                   - whether this is a mini (thumb) board
  * @property {boolean}     [forceRenderChecks]      - render checks even on mini boards
  * @property {boolean}     [svg]                    - enable the SVG overlay (used for engine arrows)
+ * @property {boolean}     [playSounds]             - whether board sounds are enabled
  * @property {string}      [assetsBaseUrl]          - base URL prepended to every static asset path
  *                                                    (images, audio). Default: `https://elephantchess.io`.
  *                                                    Pass an empty string to use relative paths (e.g. when
@@ -191,6 +200,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     mini: false,
     forceRenderChecks: false,
     svg: false,
+    playSounds: true,
     assetsBaseUrl: 'https://cdn.elephantchess.io/static',
     pieceStyle: PieceStyleSetting.DEFAULT,
     colorblindFriendlyBlackPieces: false,
@@ -416,11 +426,13 @@ class BoardGui {
             }
             this.updateHighlightedChecks();
             this.#resetDraggableCursors();
-            this.#clickSound
-                .play()
-                .catch(e => {
-                    // ignored, spam error in console in dev
-                });
+            if (this.#options.playSounds) {
+                this.#clickSound
+                    .play()
+                    .catch(e => {
+                        // ignored, spam error in console in dev
+                    });
+            }
             if (afterMoveCallback != null) {
                 afterMoveCallback()
             }
@@ -1210,16 +1222,23 @@ class BoardGui {
             const isSettingEnabled = orientation !== null;
             // when the user has disabled coordinates we still reserve the space (hidden labels),
             // so we must pick an arbitrary orientation for the (invisible) labels:
-            const isWfxOriented = orientation !== CoordinatesOrientation.UCI;
+            const isWfxOriented = orientation !== CoordinatesOrientation.ALGEBRAIC;
 
             const fileNumbersStyle = this.#options.fileNumbersStyle;
-            // For a given side ('red' | 'black'), should we render Chinese numerals?
-            const isChineseOnSide = (side) => {
+            // For a given side ('red' | 'black') and its screen position ('top' | 'bottom'),
+            // should we render Chinese numerals?
+            const isChineseOnSide = (side, position) => {
                 switch (fileNumbersStyle) {
                     case FileNumbersStyle.ARABIC_BOTH:
                         return false;
                     case FileNumbersStyle.CHINESE_BOTH:
                         return true;
+                    case FileNumbersStyle.CHINESE_BLACK_ONLY:
+                        return side === 'black';
+                    case FileNumbersStyle.CHINESE_LOWER_ONLY:
+                        return position === 'bottom';
+                    case FileNumbersStyle.CHINESE_TOP_ONLY:
+                        return position === 'top';
                     case FileNumbersStyle.CHINESE_RED_ONLY:
                     default:
                         return side === 'red';
@@ -1234,7 +1253,7 @@ class BoardGui {
                 }
                 // top row shows black's side when red is at the bottom, and red's side when flipped
                 const topSide = this.#flippedRed ? 'black' : 'red';
-                const topChinese = isChineseOnSide(topSide);
+                const topChinese = isChineseOnSide(topSide, 'top');
 
                 for (let x = 0; x < BOARD_WIDTH; x++) {
                     // actual text
@@ -1262,7 +1281,7 @@ class BoardGui {
             }
             // bottom row shows red's side when red is at the bottom, and black's side when flipped
             const bottomSide = this.#flippedRed ? 'red' : 'black';
-            const bottomChinese = isChineseOnSide(bottomSide);
+            const bottomChinese = isChineseOnSide(bottomSide, 'bottom');
             for (let x = 0; x < BOARD_WIDTH; x++) {
                 // actual text
                 let label;
@@ -1617,6 +1636,13 @@ class BoardGui {
     }
 
     /**
+     * @param playSoundsEnabled {boolean}
+     */
+    updatePlaySounds(playSoundsEnabled) {
+        this.#options = Object.freeze({...this.#options, playSounds: playSoundsEnabled});
+    }
+
+    /**
      * Change which numeral system is used for file coordinates in WXF mode.
      *
      * @param fileNumbersStyle {string} one of {@link FileNumbersStyle}
@@ -1630,7 +1656,7 @@ class BoardGui {
     }
 
     /**
-     * Change the orientation (WXF numerals vs UCI letters) of the board coordinates.
+     * Change the orientation (WXF numerals vs algebraic letters) of the board coordinates.
      *
      * @param coordinatesOrientation {string|null} one of {@link CoordinatesOrientation} or
      *                                             `null` to keep the labels hidden
@@ -1645,7 +1671,7 @@ class BoardGui {
 
     #redrawCoordinates() {
         // remove existing file-coordinate (top + bottom) and right-side rank labels
-        // (rank labels only exist in UCI mode but the selector is harmless if absent)
+        // (rank labels only exist in algebraic mode but the selector is harmless if absent)
         document.querySelectorAll(`#${this.#options.elementId} .file-coordinates-top,
                                    #${this.#options.elementId} .file-coordinates-bottom,
                                    #${this.#options.elementId} .rows-coordinates-right`)

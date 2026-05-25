@@ -1,168 +1,125 @@
 <div id="play-bot-modal" class="modal-content" data-nosnippet>
     <h2>Play Bot</h2>
-    <table id="play-bot-modal-table">
-        <tr>
-            <td class="left-cell">
-                <div class="modal-form-label">
-                    <h3>Color</h3>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="play-as-red" name="play-bot-color" value="Red" checked="checked">
-                        </span>
-                        <span class="label-span">
-                            <label for="play-as-red">Red</label><br>
-                        </span>
-                    </div>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="play-as-black" name="play-bot-color" value="Black">
-                        </span>
-                        <span class="label-span">
-                            <label for="play-as-black">Black</label><br>
-                        </span>
-                    </div>
+    <div class="new-game-main-container">
+        <div class="container-with-margin">
+            <table class="new-game-option-table">
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/dice.png"
+                                 class="time-control-icons"
+                                 alt="variant">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="variant-xiangqi-bot"
+                             data-variant="XIANGQI"
+                             class="option-button-div bot-variant-option-button-div option-button-div-selected">
+                            象 Xiangqi
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="variant-manchu-bot"
+                             data-variant="MANCHU"
+                             class="option-button-div bot-variant-option-button-div">
+                            统 Manchu
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/contrast-circle-symbol.png"
+                                 class="time-control-icons"
+                                 alt="color">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="play-as-red"
+                             class="option-button-div bot-color-option-button-div option-button-div-selected red-color">
+                            Red
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="play-as-black"
+                             class="option-button-div bot-color-option-button-div black-color">
+                            Black
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/bot-icon.png"
+                                 class="time-control-icons"
+                                 alt="engine">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="engine-pika"
+                             class="option-button-div bot-engine-option-button-div option-button-div-selected">
+                            Pikafish
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="engine-fairy"
+                             class="option-button-div bot-engine-option-button-div">
+                            Fairy
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div id="play-bot-depth-box">
+                <h3 class="add-asterisk">Depth</h3>
+                <input id="play-bot-depth" type="range" min="1" max="14" value="6">
+                <div id="play-bot-depth-value-box">
+                    Depth <span id="play-bot-depth-value">6</span>/<span id="play-bot-depth-max-value">14</span>
                 </div>
-                <div class="modal-form-label">
-                    <h3>Engine</h3>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="engine-pika" name="play-bot-engine" value="PIKA" checked="checked">
-                        </span>
-                        <span class="label-span">
-                            <label for="engine-pika">Pikafish</label>
-                        </span>
-                    </div>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="engine-fairy" name="play-bot-engine" value="FAIRY">
-                        </span>
-                        <span class="label-span">
-                            <label for="engine-fairy">Fairy Stockfish</label>
-                        </span>
-                    </div>
+            </div>
+            <div class="modal-form-label">
+                <h3>Starting Position</h3>
+                <div class="standard-radio">
+                    <span>
+                        <input type="radio" id="start-fen-standard" name="start-position-radio" value="Standard"
+                               checked="checked">
+                    </span>
+                    <span class="label-span">
+                        <label for="start-fen-standard">Standard</label>
+                    </span>
                 </div>
-            </td>
-            <td class="right-cell">
-                <div class="modal-form-label">
-                    <h3 class="add-asterisk">Level</h3>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="level-0" name="play-bot-level" value="Level 0">
-                        </span>
-                        <span class="label-span">
-                            <label for="level-0">Level 0 <span class="sub-text">depth 1</span></label>
-                        </span>
-                    </div>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="level-1" name="play-bot-level" value="Level 0">
-                        </span>
-                        <span class="label-span">
-                            <label for="level-1">Level 1 <span class="sub-text">depth 2</span></label>
-                        </span>
-                    </div>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="level-2" name="play-bot-level" value="Level 2">
-                        </span>
-                        <span class="label-span">
-                            <label for="level-2">Level 2 <span class="sub-text">depth 4</span></label>
-                        </span>
-                    </div>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="level-3" name="play-bot-level" value="Level 3" checked="checked">
-                        </span>
-                        <span class="label-span">
-                            <label for="level-3">Level 3 <span class="sub-text">depth 6</span></label>
-                        </span>
-                    </div>
-                    <div id="level-4-container" class="standard-radio standard-radio-disabled">
-                        <span>
-                            <input type="radio" id="level-4" name="play-bot-level" value="Level 4" disabled>
-                        </span>
-                        <span class="label-span">
-                            <label for="level-4">Level 4 <span class="sub-text">depth 8</span></label>
-                        </span>
-                    </div>
-                    <div id="level-5-container" class="standard-radio standard-radio-disabled">
-                        <span>
-                            <input type="radio" id="level-5" name="play-bot-level" value="Level 5" disabled>
-                        </span>
-                        <span class="label-span">
-                            <label for="level-5">Level 5 <span class="sub-text">depth 10</span></label>
-                        </span>
-                    </div>
-                    <div id="level-6-container" class="standard-radio standard-radio-disabled">
-                        <span>
-                            <input type="radio" id="level-6" name="play-bot-level" value="Level 6" disabled>
-                        </span>
-                        <span class="label-span">
-                            <label for="level-6">Level 6 <span class="sub-text">depth 12</span></label>
-                        </span>
-                    </div>
-                    <div id="level-7-container" class="standard-radio standard-radio-disabled">
-                        <span>
-                            <input type="radio" id="level-7" name="play-bot-level" value="Level 7" disabled>
-                        </span>
-                        <span class="label-span">
-                            <label for="level-7">Level 7 <span class="sub-text">depth 14</span></label>
-                        </span>
-                    </div>
+                <div class="standard-radio">
+                    <span>
+                        <input type="radio" id="start-fen-custom" name="start-position-radio" value="Custom">
+                    </span>
+                    <span class="label-span">
+                        <label for="start-fen-custom">Custom</label>
+                    </span>
                 </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="left-cell" colspan="2">
-                <div class="modal-form-label">
-                    <h3>Starting Position</h3>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="start-fen-standard" name="start-position-radio" value="Standard"
-                                   checked="checked">
-                        </span>
-                        <span class="label-span">
-                            <label for="start-fen-standard">Standard</label>
-                        </span>
-                    </div>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="start-fen-custom" name="start-position-radio" value="Custom">
-                        </span>
-                        <span class="label-span">
-                            <label for="start-fen-custom">Custom</label>
-                        </span>
-                    </div>
-                    <input id="start-fen" type="text"
-                           value="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
-                           style="margin-top: 5px" disabled/>
+                <input id="start-fen" type="text"
+                       value="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
+                       style="margin-top: 5px" disabled/>
+            </div>
+            <div class="modal-form-label">
+                <h3>Opening</h3>
+                <div class="standard-radio">
+                    <span>
+                        <input type="radio" id="opening-by-frequency" name="play-bot-opening" value="BY_FREQUENCY" checked="checked">
+                    </span>
+                    <span class="label-span">
+                        <label for="opening-by-frequency">Pick among most likely openings from repertoire</label>
+                    </span>
                 </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="left-cell" colspan="2">
-                <div class="modal-form-label">
-                    <h3>Opening</h3>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="opening-by-frequency" name="play-bot-opening" value="BY_FREQUENCY" checked="checked">
-                        </span>
-                        <span class="label-span">
-                            <label for="opening-by-frequency">Pick among most likely openings from repertoire</label>
-                        </span>
-                    </div>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="opening-random" name="play-bot-opening" value="RANDOM">
-                        </span>
-                        <span class="label-span">
-                            <label for="opening-random">Random opening from repertoire</label>
-                        </span>
-                    </div>
+                <div class="standard-radio">
+                    <span>
+                        <input type="radio" id="opening-random" name="play-bot-opening" value="RANDOM">
+                    </span>
+                    <span class="label-span">
+                        <label for="opening-random">Random opening from repertoire</label>
+                    </span>
                 </div>
-            </td>
-        </tr>
-    </table>
+            </div>
+        </div>
+    </div>
     <div class="modal-buttons-panel">
         <input id="play-bot-button" type="button" class="app-buttons" value="play">
     </div>

@@ -2284,6 +2284,35 @@
         </addColumn>
     </changeSet>
     <changeSet id="0099" author="benckx">
+        <comment>Add variant column to game and bot_game tables for Manchu variant support</comment>
+        <addColumn tableName="game">
+            <column name="variant" type="varchar(20)" defaultValue="XIANGQI"/>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="variant" type="varchar(20)" defaultValue="XIANGQI"/>
+        </addColumn>
+        <addColumn tableName="user">
+            <column name="game_rating_manchu_bullet" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_blitz" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_rapid" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_classical" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_several_days" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_correspondence" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0100" author="benckx">
         <addColumn tableName="bot_game">
             <column name="opening_mode" type="varchar(50)" defaultValue="BY_FREQUENCY">
                 <constraints nullable="false"/>
