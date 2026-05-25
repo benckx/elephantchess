@@ -101,6 +101,8 @@ class AnalysisBoardPage extends BasePage {
 
     #startFen = DEFAULT_START_FEN;
     #isSaveAnalysisButtonLocked = false;
+    #analysisSummaryRenderTimeout = null;
+    #moveTreeEvalRefreshTimeout = null;
 
     constructor() {
         super();
@@ -121,7 +123,8 @@ class AnalysisBoardPage extends BasePage {
         // needs to be on top and not in 'createListeners', so we can display eval data when it's been loaded below
         this.#analysisCache.addNewPvListener(pv => {
             this.#pushNewInfoLineResultToMoveTreeWidget(pv);
-            this.#renderAnalysisSummaryIfPossible();
+            this.#scheduleRenderAnalysisSummaryIfPossible();
+            this.#scheduleRefreshMoveTreeEvalFromCache();
             this.#renderEngineArrows();
 
             // enable the loading animation when receiving new evaluation data in the background
@@ -134,8 +137,6 @@ class AnalysisBoardPage extends BasePage {
                 this.#moveTreeWidget.startLoadingAnimation();
             }
 
-            // render "move annotation symbols" whenever new analysis data is available
-            this.#moveTreeWidget.refreshAllMoveNodeEval(this.#analysisCache.asMap());
         });
 
         // 1. attempt to load persisted analysis
@@ -221,7 +222,7 @@ class AnalysisBoardPage extends BasePage {
 
             this.#client.fetchAnalysisEngineDataCache(analysisId, entries => {
                 this.#analysisCache.populateCache(entries);
-                this.#renderAnalysisSummaryIfPossible();
+                this.#renderAnalysisSummaryIfLongEnough();
             });
 
             this.#moveTreeWidget.openBranchesByIds(analysis.openedBranchIds);
@@ -278,7 +279,7 @@ class AnalysisBoardPage extends BasePage {
 
                 this.#gameDataClient.fetchAnalysisData(entries => {
                     this.#analysisCache.populateCache(entries);
-                    this.#renderAnalysisSummaryIfPossible();
+                    this.#renderAnalysisSummaryIfLongEnough();
                     this.#startUpWidgets();
                 });
 
@@ -564,7 +565,7 @@ class AnalysisBoardPage extends BasePage {
                         // fetch the final analysis data
                         this.#gameDataClient.fetchAnalysisData(entries => {
                             this.#analysisCache.populateCache(entries);
-                            this.#renderAnalysisSummaryIfPossible();
+                            this.#renderAnalysisSummaryIfLongEnough();
                         });
                         break;
                     default:
@@ -696,7 +697,7 @@ class AnalysisBoardPage extends BasePage {
         return this.#analysisId != null;
     }
 
-    #renderAnalysisSummaryIfPossible() {
+    #renderAnalysisSummaryIfLongEnough() {
         const nodes = this.#moveTreeWidget.getMainBranchNodes();
         if (nodes.length > 6) {
             renderAnalysisSummaryReport(
@@ -708,6 +709,27 @@ class AnalysisBoardPage extends BasePage {
                 this.#gameMetadata?.outcome
             );
         }
+    }
+
+    #scheduleRenderAnalysisSummaryIfPossible() {
+        if (this.#analysisSummaryRenderTimeout !== null) {
+            clearTimeout(this.#analysisSummaryRenderTimeout);
+        }
+        // Coalesce rapid cache updates during startup into a single summary recomputation.
+        this.#analysisSummaryRenderTimeout = setTimeout(() => {
+            this.#analysisSummaryRenderTimeout = null;
+            this.#renderAnalysisSummaryIfLongEnough();
+        }, 120);
+    }
+
+    #scheduleRefreshMoveTreeEvalFromCache() {
+        if (this.#moveTreeEvalRefreshTimeout !== null) {
+            clearTimeout(this.#moveTreeEvalRefreshTimeout);
+        }
+        this.#moveTreeEvalRefreshTimeout = setTimeout(() => {
+            this.#moveTreeEvalRefreshTimeout = null;
+            this.#moveTreeWidget.refreshAllMoveNodeEval(this.#analysisCache.asMap());
+        }, 120);
     }
 
     /**

@@ -141,6 +141,10 @@ class PlayerVsBotPage extends BasePage {
                 document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
                 document.getElementById('info-depth').innerText = botGameDto.depth.toString();
                 document.getElementById('info-created').innerText = botGameDto.formattedCreated;
+                if (botGameDto.isManchu) {
+                    document.getElementById('info-variant').innerText = 'Manchu';
+                    document.getElementById('info-variant-row').style.display = '';
+                }
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
                 this.#enablePlayerMoveIfPermitted();
@@ -306,14 +310,19 @@ class PlayerVsBotPage extends BasePage {
     #updateButtonsEnabled() {
         const isFinished = isStatusFinished(this.#controller.gameStatus());
         const hasMoves = this.#moveTreeWidget.getMainBranchNodes().length > 0;
+        const isManchu = this.#controller.isManchu();
 
-        if (isFinished && hasMoves) {
+        if (isFinished && hasMoves && !isManchu) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
             });
         } else {
-            const tooltip = isFinished ? ANALYZE_BUTTON_TOOLTIP_DISABLED_NO_MOVES : ANALYZE_BUTTON_TOOLTIP_DISABLED;
+            const tooltip = isManchu
+                ? 'Analysis is not supported for Manchu variant games'
+                : isFinished
+                    ? ANALYZE_BUTTON_TOOLTIP_DISABLED_NO_MOVES
+                    : ANALYZE_BUTTON_TOOLTIP_DISABLED;
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
                 addToolTip(button, tooltip);
