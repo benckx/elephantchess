@@ -19,7 +19,6 @@ import io.elephantchess.model.Outcome.RED_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
-import io.elephantchess.servicelayer.dto.gamedata.GameMovesResponse
 import io.elephantchess.servicelayer.dto.ws.*
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.ForbiddenException
@@ -537,9 +536,13 @@ class PlayerVsPlayerGameService(
         )
     }
 
-    // TODO: use generic service instead
-    suspend fun fetchMoveHistory(gameId: String): GameMovesResponse {
-        return GameMovesResponse(pvpGameDaoService.listMoves(gameId))
+    suspend fun fetchMoveHistory(gameId: String): PvpMoveHistoryResponse {
+        val timedMoves = pvpGameDaoService.fetchTimedMoveHistory(gameId)
+        val joinTime = pvpGameDaoService.fetchJoinTime(gameId)
+        return PvpMoveHistoryResponse(
+            moves = timedMoves.map { GameMoveEntry(it.uci, it.eventTime.toEpochMilliseconds()) },
+            joinTime = joinTime?.toEpochMilliseconds(),
+        )
     }
 
     suspend fun fetchChatHistory(gameId: String): GetChatMessageHistoryResponse {

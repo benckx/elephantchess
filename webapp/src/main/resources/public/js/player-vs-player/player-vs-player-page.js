@@ -447,6 +447,48 @@ class PlayGamePage extends BasePage {
         } else {
             this.#boardGui.disablePlayerMove();
         }
+        this.#updateClocksAndChatForSelectedMove();
+    }
+
+    /**
+     * When the user navigates the PvP game move tree, show the timer state and
+     * highlight the most recent chat message at that point in time. When the
+     * latest move is selected, restore the live clocks (driven by gameDto) and
+     * clear the chat highlight.
+     */
+    #updateClocksAndChatForSelectedMove() {
+        const selectedNode = this.#moveTreeWidget.selectedNode;
+
+        // Compute the 0-based main-line index of the selected node, or null if
+        // the node is not on the main branch (i.e. is part of an analysis side line).
+        let moveIndex = null;
+        if (selectedNode != null) {
+            const nodesLeadingUp = selectedNode.getAllNodesLeadingUpTo();
+            const allOnMainBranch = nodesLeadingUp.every(n => n.level === 0);
+            if (allOnMainBranch) {
+                moveIndex = nodesLeadingUp.length - 1;
+            }
+        }
+
+        const isLastMove = this.#moveTreeWidget.isLastMoveSelected();
+        if (moveIndex == null || isLastMove) {
+            // Back to "live" view: rely on the gameDto clock and clear highlight.
+            this.#updateClocks();
+            if (this.#chatBoxWidget != null) {
+                this.#chatBoxWidget.clearHighlightedMessage();
+            }
+            return;
+        }
+
+        const historicalClock = this.#gameController.getClockAtMoveIndex(moveIndex);
+        if (historicalClock != null) {
+            this.#renderClock(historicalClock);
+        }
+
+        const moveTs = this.#gameController.getMoveTimestampAt(moveIndex);
+        if (this.#chatBoxWidget != null) {
+            this.#chatBoxWidget.highlightLatestMessageBefore(moveTs);
+        }
     }
 
     #updateBoardTurnToPlay() {
@@ -674,17 +716,35 @@ class PlayGamePage extends BasePage {
     }
 
     #updateClocks() {
+        // Don't override the historical clock view when the user is navigating an
+        // earlier move; #updateClocksAndChatForSelectedMove() owns the display in
+        // that case and restores live clocks once the latest move is reselected.
+        if (this.#moveTreeWidget != null
+            && this.#moveTreeWidget.selectedNode != null
+            && !this.#moveTreeWidget.isLastMoveSelected()) {
+            return;
+        }
         const clock = this.#gameController.gameDto.timeControlClock;
         if (clock != null) {
-            const category = this.#gameController.gameDto.timeControlCategory;
-            const timeCounters = document.getElementsByClassName('time-counter');
-            for (let i = 0; i < timeCounters.length; i++) {
-                const timeCounter = timeCounters[i];
-                if (timeCounter.classList.contains('red-counter')) {
-                    timeCounter.innerText = clock.red.printCounter(category);
-                } else if (timeCounter.classList.contains('black-counter')) {
-                    timeCounter.innerText = clock.black.printCounter(category);
-                }
+            this.#renderClock(clock);
+        }
+    }
+
+    /**
+     * Render an arbitrary clock state (used for both the live clock and the
+     * historical clock shown when the user selects a past move).
+     *
+     * @param clock {TimeControlClock}
+     */
+    #renderClock(clock) {
+        const category = this.#gameController.gameDto.timeControlCategory;
+        const timeCounters = document.getElementsByClassName('time-counter');
+        for (let i = 0; i < timeCounters.length; i++) {
+            const timeCounter = timeCounters[i];
+            if (timeCounter.classList.contains('red-counter')) {
+                timeCounter.innerText = clock.red.printCounter(category);
+            } else if (timeCounter.classList.contains('black-counter')) {
+                timeCounter.innerText = clock.black.printCounter(category);
             }
         }
     }
