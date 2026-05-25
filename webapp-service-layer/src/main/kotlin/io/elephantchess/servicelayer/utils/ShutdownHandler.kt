@@ -79,7 +79,7 @@ class ShutdownHandler(
             logger.info { "cancelling site map service..." }
             siteMapService.cancel()
         } catch (e: Exception) {
-            logger.error(e) { "error cancelling batch scheduler" }
+            logger.error(e) { "error cancelling site map service" }
         }
 
         try {
