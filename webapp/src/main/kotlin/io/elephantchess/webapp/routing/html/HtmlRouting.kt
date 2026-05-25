@@ -8,8 +8,10 @@ import io.elephantchess.webapp.ops.*
 import io.elephantchess.webapp.rendering.*
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
+import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.content.TextContent
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -101,18 +103,26 @@ fun Application.htmlRoutingModule() {
 }
 
 private fun Route.gamePages() {
-    val renderer by koin<GamePageRenderer>()
+    val gamePageRenderer by koin<GamePageRenderer>()
     val kofiService by koin<KofiService>()
 
     get("/game") {
         val gameId = call.parameters["id"]
-        call.respondHtml(renderer.renderPvpGamePage(gameId))
+        if (gameId == null) {
+            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+        } else {
+            call.respondHtml(gamePageRenderer.renderPvpGamePage(gameId))
+        }
     }
 
     get("/playbot") {
         val gameId = call.parameters["id"]
-        val latestTipper = kofiService.fetchLatestSupporter()
-        call.respondHtml(renderer.renderPvbGamePage(gameId, latestTipper))
+        if (gameId == null) {
+            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+        } else {
+            val latestTipper = kofiService.fetchLatestSupporter()
+            call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId, latestTipper))
+        }
     }
 }
 

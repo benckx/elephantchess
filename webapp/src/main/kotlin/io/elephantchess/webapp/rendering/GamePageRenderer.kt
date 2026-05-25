@@ -14,30 +14,30 @@ class GamePageRenderer(
     private val pvbGameService: PlayerVsBotGameService
 ) {
 
-    suspend fun renderPvpGamePage(gameId: String?): String {
-        val title = gameId?.let { id ->
+    suspend fun renderPvpGamePage(gameId: String): String {
+        val title = gameId.let { id ->
             runCatching {
                 val game = pvpGameService.fetchGame(id)
                 pvpPageTitle(game.inviterUsername, game.inviteeUsername)
             }.getOrDefault(DEFAULT_PVP_TITLE)
-        } ?: DEFAULT_PVP_TITLE
+        }
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/player_vs_player_game.html",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("page_title", escapeHtml(title))
             ),
-            canonicalPath = gameId?.let { "/game?id=$it" } ?: "/game"
+            canonicalPath = gameId.let { gameId -> "/game?id=$gameId" }
         )
     }
 
-    suspend fun renderPvbGamePage(gameId: String?, latestSupporter: LatestSupporter?): String {
-        val title = gameId?.let { id ->
+    suspend fun renderPvbGamePage(gameId: String, latestSupporter: LatestSupporter?): String {
+        val title = gameId.let { id ->
             runCatching {
                 val game = pvbGameService.fetchGameData(id)
                 pvbPageTitle(game.username, game.userColor, game.engine, game.depth)
             }.getOrDefault(DEFAULT_PVB_TITLE)
-        } ?: DEFAULT_PVB_TITLE
+        }
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/player_vs_bot.html",
@@ -45,7 +45,7 @@ class GamePageRenderer(
                 SimpleValueTagResolver("page_title", escapeHtml(title)),
                 latestSupporterTagResolver(latestSupporter)
             ),
-            canonicalPath = gameId?.let { "/playbot?id=$it" } ?: "/playbot"
+            canonicalPath = gameId.let { gameId -> "/playbot?id=$gameId" }
         )
     }
 
@@ -54,7 +54,7 @@ class GamePageRenderer(
         internal const val DEFAULT_PVB_TITLE = "Play vs. Bot"
 
         internal fun pvpPageTitle(inviterUsername: String, inviteeUsername: String?): String {
-            return "$inviterUsername vs ${inviteeUsername ?: "opponent"}"
+            return "$inviterUsername vs ${inviteeUsername ?: "<waiting>"}"
         }
 
         internal fun pvbPageTitle(username: String?, userColor: Color, engine: Engine, depth: Int): String {
@@ -62,8 +62,8 @@ class GamePageRenderer(
             val botPlayer = "${formatEngineName(engine)} ($depth)"
 
             return when (userColor) {
-                Color.RED -> "$humanPlayer vs $botPlayer"
-                Color.BLACK -> "$botPlayer vs $humanPlayer"
+                Color.RED -> "$humanPlayer vs. $botPlayer"
+                Color.BLACK -> "$botPlayer vs. $humanPlayer"
             }
         }
 
