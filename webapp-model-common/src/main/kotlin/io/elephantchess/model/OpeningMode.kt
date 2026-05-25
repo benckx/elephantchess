@@ -10,6 +10,11 @@ enum class OpeningMode {
     /**
      * Pick a random move from the opening repertoire.
      */
-    RANDOM
+    RANDOM,
+
+    /**
+     * Ignore the opening repertoire and let the engine play from the start.
+     */
+    ENGINE_ONLY
 
 }

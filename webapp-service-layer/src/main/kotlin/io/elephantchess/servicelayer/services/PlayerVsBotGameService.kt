@@ -373,6 +373,7 @@ class PlayerVsBotGameService(
 
         val canUseOpeningRepository =
             usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
+                && openingMode != OpeningMode.ENGINE_ONLY
 
         return if (canUseOpeningRepository) {
             playFromOpeningRepository(gameId, userMove, openingMode) ?: playWithEngine()
