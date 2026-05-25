@@ -215,7 +215,7 @@ class AdminPageViewStatsPage extends BasePage {
 
             new PageViewStatsLineChart(
                 'chart-user-other-profiles',
-                'Users looking at other users profiles',
+                'Users looking at other users\' profiles',
                 this.#userOtherProfileData
             ).render();
         }

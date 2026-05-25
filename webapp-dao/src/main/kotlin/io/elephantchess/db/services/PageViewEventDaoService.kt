@@ -102,20 +102,20 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun fetchMonthlyUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
-        return fetchMonthlyUserProfilePageViews(excludedUserIds) { DSL.noCondition() }
+        return fetchMonthlyUserProfilePageViewsByCondition(excludedUserIds) { DSL.noCondition() }
     }
 
     suspend fun fetchMonthlyOwnUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
-        return fetchMonthlyUserProfilePageViews(excludedUserIds) { ownProfileViewCondition() }
+        return fetchMonthlyUserProfilePageViewsByCondition(excludedUserIds) { ownProfileViewCondition() }
     }
 
     suspend fun fetchMonthlyOtherUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
-        return fetchMonthlyUserProfilePageViews(excludedUserIds) {
+        return fetchMonthlyUserProfilePageViewsByCondition(excludedUserIds) {
             USER.HANDLE.isNull.or(ownProfileViewCondition().not())
         }
     }
 
-    private suspend fun fetchMonthlyUserProfilePageViews(
+    private suspend fun fetchMonthlyUserProfilePageViewsByCondition(
         excludedUserIds: List<String>,
         additionalCondition: () -> Condition
     ): List<MonthlyPageViewRecord> {
