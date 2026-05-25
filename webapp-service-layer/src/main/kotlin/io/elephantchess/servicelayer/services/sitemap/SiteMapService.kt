@@ -1,11 +1,11 @@
-package io.elephantchess.webapp.sitemap
+package io.elephantchess.servicelayer.services.sitemap
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.services.DatabaseService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
-import io.elephantchess.webapp.sitemap.ChangeFrequency.MONTHLY
-import io.elephantchess.webapp.sitemap.ChangeFrequency.WEEKLY
+import io.elephantchess.servicelayer.services.sitemap.ChangeFrequency.MONTHLY
+import io.elephantchess.servicelayer.services.sitemap.ChangeFrequency.WEEKLY
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.CoroutineScope
@@ -43,7 +43,6 @@ class SiteMapService(
         logger.info { "refreshed sitemap of ${xml.length} chars. in memory" }
     }
 
-    // TODO: actually call
     fun cancel() {
         refreshJob.cancel()
     }
