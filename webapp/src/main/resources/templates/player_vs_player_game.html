@@ -1,9 +1,10 @@
 <html lang="en">
 <head>
     {{header_init}}
-    <title>Game</title>
+    <title>{{page_title}}</title>
     {{meta_no_index}}
     <link rel="stylesheet" href="/css/player-vs-player.css"/>
+    {{apex_charts}}
     {{board_js}}
     <script defer src="/js/widgets/perpetual-checking-tracker.js"></script>
     <script defer src="/js/widgets/chat-box-widget.js"></script>
@@ -16,6 +17,10 @@
 </head>
 <body>
 {{body_init}}
+<div id="mini-counter-box" class="mini-counter-box mini-counter-box-hidden only-mobile">
+    <div id="mini-top-counter" class="time-counter mini-time-counter top-counter">--:--</div>
+    <div id="mini-bottom-counter" class="time-counter mini-time-counter bottom-counter">--:--</div>
+</div>
 <div class="flex-triptych-container">
     <div class="flex-triptych-left-container">
         <div id="mobile-navigation-panel" class="navigation-panel mobile-navigation-panel only-mobile"></div>
@@ -79,6 +84,12 @@
                                 <td class="labels">Mode</td>
                                 <td class="values">
                                     <div id="rating-mode"></div>
+                                </td>
+                            </tr>
+                            <tr id="variant-row" style="display: none">
+                                <td class="labels">Variant</td>
+                                <td class="values">
+                                    <div id="variant-label"></div>
                                 </td>
                             </tr>
                             <tr>

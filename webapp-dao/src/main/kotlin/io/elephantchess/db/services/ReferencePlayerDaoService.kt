@@ -476,7 +476,10 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
                 REFERENCE_PLAYER.CHINESE_NAME
             )
             .from(REFERENCE_PLAYER)
-            .where(lower(REFERENCE_PLAYER.CANONICAL_NAME).startsWith(startsWith.lowercase()))
+            .where(
+                lower(REFERENCE_PLAYER.CANONICAL_NAME).startsWith(startsWith.lowercase())
+                    .or(REFERENCE_PLAYER.CHINESE_NAME.startsWith(startsWith))
+            )
             .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
             .orderBy(REFERENCE_PLAYER.CANONICAL_NAME)
             .limit(limit)
@@ -493,7 +496,10 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
                 REFERENCE_PLAYER.CHINESE_NAME
             )
             .from(REFERENCE_PLAYER)
-            .where(lower(REFERENCE_PLAYER.CANONICAL_NAME).contains(contains.lowercase()))
+            .where(
+                lower(REFERENCE_PLAYER.CANONICAL_NAME).contains(contains.lowercase())
+                    .or(REFERENCE_PLAYER.CHINESE_NAME.contains(contains))
+            )
             .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
             .orderBy(REFERENCE_PLAYER.CANONICAL_NAME)
             .limit(limit)
