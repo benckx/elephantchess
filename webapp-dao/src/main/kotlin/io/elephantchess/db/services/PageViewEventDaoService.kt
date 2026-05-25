@@ -105,21 +105,21 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
     suspend fun fetchMonthlyUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
         return fetchMonthlyUserProfilePageViewsByCondition(
             excludedUserIds = excludedUserIds,
-            includeUserJoin = false
+            userJoinMode = UserJoinMode.NONE
         ) { DSL.noCondition() }
     }
 
     suspend fun fetchMonthlyOwnUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
         return fetchMonthlyUserProfilePageViewsByCondition(
             excludedUserIds = excludedUserIds,
-            includeUserJoin = true
+            userJoinMode = UserJoinMode.INNER
         ) { ownProfileViewCondition() }
     }
 
     suspend fun fetchMonthlyOtherUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
         return fetchMonthlyUserProfilePageViewsByCondition(
             excludedUserIds = excludedUserIds,
-            includeUserJoin = true
+            userJoinMode = UserJoinMode.LEFT
         ) {
             ownProfileViewCondition().not()
         }
@@ -127,7 +127,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
 
     private suspend fun fetchMonthlyUserProfilePageViewsByCondition(
         excludedUserIds: List<String>,
-        includeUserJoin: Boolean,
+        userJoinMode: UserJoinMode,
         additionalCondition: () -> Condition
     ): List<MonthlyPageViewRecord> {
         val yearMonth = PAGE_VIEW_EVENT.EVENT_TIME.yearMonth("year_month")
@@ -138,10 +138,10 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             )
             .from(PAGE_VIEW_EVENT)
 
-        val query = if (includeUserJoin) {
-            baseQuery.leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
-        } else {
-            baseQuery
+        val query = when (userJoinMode) {
+            UserJoinMode.NONE -> baseQuery
+            UserJoinMode.LEFT -> baseQuery.leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
+            UserJoinMode.INNER -> baseQuery.join(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
         }
 
         return query
@@ -239,6 +239,11 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
     }
 
     private companion object {
+        enum class UserJoinMode {
+            NONE,
+            LEFT,
+            INNER
+        }
 
         // data collection starts ends of October 2025
         val startDate: Instant =
