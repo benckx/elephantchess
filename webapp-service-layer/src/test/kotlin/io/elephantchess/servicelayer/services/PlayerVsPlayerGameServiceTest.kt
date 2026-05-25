@@ -52,7 +52,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
     @AfterTest
     fun afterTest() = runTest {
-        listOf(GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
+        listOf(GAME_CHAT_MESSAGE, GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
             .forEach { table ->
                 dslContext
                     .deleteFrom(table)
