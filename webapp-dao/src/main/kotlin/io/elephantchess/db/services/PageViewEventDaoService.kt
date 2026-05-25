@@ -111,7 +111,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
 
     suspend fun fetchMonthlyOtherUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
         return fetchMonthlyUserProfilePageViewsByCondition(excludedUserIds) {
-            USER.HANDLE.isNull.or(ownProfileViewCondition().not())
+            ownProfileViewCondition().not()
         }
     }
 
@@ -148,13 +148,11 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
     }
 
     private fun ownProfileViewCondition(): Condition {
-        val ownPath = DSL.concat(DSL.inline("/@/"), USER.HANDLE)
-        val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), USER.HANDLE, DSL.inline("?%"))
-        return USER.HANDLE.isNotNull
-            .and(
-                PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
-                    .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
-            )
+        val safeHandle = DSL.coalesce(USER.HANDLE, DSL.inline(""))
+        val ownPath = DSL.concat(DSL.inline("/@/"), safeHandle)
+        val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), safeHandle, DSL.inline("?%"))
+        return PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
+            .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
     }
 
     suspend fun fetchHourlyPageViews(
