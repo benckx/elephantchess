@@ -34,14 +34,6 @@ class UserProfileClient {
         this.#userId = userId;
     }
 
-    fetchGameRatings(cb) {
-        this.#validateUserId();
-        const url = `${USER_INFO_API}/game-ratings?userId=${this.#userId}`;
-        getAndHandle(url, json => {
-            cb(new GameStatsDto(json));
-        });
-    }
-
     /**
      * @param cb {function(PuzzleSummaryStatsDto)}
      */
