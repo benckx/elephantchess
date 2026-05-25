@@ -1,6 +1,7 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.db.dao.codegen.Tables.*
+import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
+import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.daos.PageViewEventDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PageViewEvent
 import io.elephantchess.db.model.analytics.DailyValueRecord
@@ -102,32 +103,48 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun fetchMonthlyUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
-        return fetchMonthlyUserProfilePageViewsByCondition(excludedUserIds) { DSL.noCondition() }
+        return fetchMonthlyUserProfilePageViewsByCondition(
+            excludedUserIds = excludedUserIds,
+            includeUserJoin = false
+        ) { DSL.noCondition() }
     }
 
     suspend fun fetchMonthlyOwnUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
-        return fetchMonthlyUserProfilePageViewsByCondition(excludedUserIds) { ownProfileViewCondition() }
+        return fetchMonthlyUserProfilePageViewsByCondition(
+            excludedUserIds = excludedUserIds,
+            includeUserJoin = true
+        ) { ownProfileViewCondition() }
     }
 
     suspend fun fetchMonthlyOtherUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
-        return fetchMonthlyUserProfilePageViewsByCondition(excludedUserIds) {
+        return fetchMonthlyUserProfilePageViewsByCondition(
+            excludedUserIds = excludedUserIds,
+            includeUserJoin = true
+        ) {
             ownProfileViewCondition().not()
         }
     }
 
     private suspend fun fetchMonthlyUserProfilePageViewsByCondition(
         excludedUserIds: List<String>,
+        includeUserJoin: Boolean,
         additionalCondition: () -> Condition
     ): List<MonthlyPageViewRecord> {
         val yearMonth = PAGE_VIEW_EVENT.EVENT_TIME.yearMonth("year_month")
-
-        return dslContext
+        val baseQuery = dslContext
             .select(
                 yearMonth,
                 uniqueDailyPageViewsField()
             )
             .from(PAGE_VIEW_EVENT)
-            .leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
+
+        val query = if (includeUserJoin) {
+            baseQuery.leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
+        } else {
+            baseQuery
+        }
+
+        return query
             .where(PAGE_VIEW_EVENT.EVENT_PATH.like("/@/%"))
             .and(PAGE_VIEW_EVENT.EVENT_PATH.notLike("/@/%/%"))
             .and(PAGE_VIEW_EVENT.EVENT_TIME.greaterOrEqual(startDate))
