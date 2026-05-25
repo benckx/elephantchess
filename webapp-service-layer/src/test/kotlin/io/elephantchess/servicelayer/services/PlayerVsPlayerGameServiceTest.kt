@@ -564,7 +564,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `guests users not allowed to join games with option allowGuests == false`() = runTest {
+    fun `guest users not allowed to join games with option allowGuests == false`() = runTest {
         val request1 = CreateGameRequest(
             inviterColor = RED,
             isRated = true,
