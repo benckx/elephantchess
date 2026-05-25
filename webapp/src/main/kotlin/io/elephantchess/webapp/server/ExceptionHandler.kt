@@ -16,6 +16,7 @@ import io.ktor.server.response.*
 import io.ktor.utils.io.*
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
+import kotlin.coroutines.cancellation.CancellationException
 
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}
@@ -95,6 +96,7 @@ fun Application.exceptionHandler() {
                 while (current != null) {
                     if (current is ClosedChannelException ||
                         current is ClosedByteChannelException ||
+                        current is CancellationException ||
                         current is IOException && current.message?.contains("Broken pipe") == true ||
                         current is IOException && current.message?.contains("Connection reset") == true ||
                         current is UnsupportedOperationException && current.message?.contains("response was already completed") == true

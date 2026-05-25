@@ -130,6 +130,34 @@ h2 {
     font-weight: normal;
 }
 
+#ratings-table .category-label-row th {
+    text-align: center;
+    font-style: normal;
+}
+
+#ratings-table .category-label-row th:first-child {
+    text-align: right;
+}
+
+#ratings-table .wdl-cell {
+    white-space: nowrap;
+}
+
+#ratings-table .wdl-win {
+    color: #19681d;
+    font-weight: bold;
+}
+
+#ratings-table .wdl-draw {
+    color: #1a1a1a;
+    font-weight: bold;
+}
+
+#ratings-table .wdl-loss {
+    color: #b5180d;
+    font-weight: bold;
+}
+
 #profile-header .online-status-indicator {
     margin-right: 0;
 }

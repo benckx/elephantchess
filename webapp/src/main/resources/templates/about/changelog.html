@@ -27,6 +27,14 @@
             (<a href="https://github.com/benckx/elephantchess/pull/114" target="_blank">issue #114</a>)
         </li>
         <li>
+            Add visible warning when getting close to the perpetual checking rule limit
+            (related to <a href="https://github.com/benckx/elephantchess/issues/455" target="_blank">issue #455</a>)
+        </li>
+        <li>
+            User profile game stats (W / D / L)
+            (<a href="https://github.com/benckx/elephantchess/issues/628" target="_blank">issue #628</a>)
+        </li>
+        <li>
             CSS fix: scope profile online-indicator spacing override to restore username gap
             (<a href="https://github.com/benckx/elephantchess/issues/701" target="_blank">issue #701</a>)
         </li>
@@ -55,6 +63,13 @@
         <li>
             Add move timestamps to PvP game DTO; reflect clock + chat state when navigating moves
             (<a href="https://github.com/benckx/elephantchess/issues/556" target="_blank">issue #556</a>)
+        </li>
+        <li>
+            Dynamic matching of pending games when inviters come back online
+            (<a href="https://github.com/benckx/elephantchess/issues/420" target="_blank">issue #420</a>)
+        </li>
+        <li>
+            Technical changes (admin console, shutdown handler)
         </li>
     </ul>
     <h4>2026-05-24</h4>
@@ -286,6 +301,12 @@
         </li>
         <li>
             Decrease number of default game thumbs in all the "browse" pages
+        </li>
+        <li>
+            Dynamic matching: when users come back online, their pending games are now automatically paired
+            with other compatible pending games whose inviters are also online (whereas previously matching only
+            happened at game creation time)
+            (<a href="https://github.com/benckx/elephantchess/issues/420" target="_blank">issue #420</a>)
         </li>
     </ul>
     <h4>2026-05-12</h4>
