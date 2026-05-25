@@ -135,6 +135,16 @@ private fun Route.adminAnalyticsRoutes() {
             adminAnalyticsService.fetchPageViewStatsForUserProfiles()
         }
     }
+    get("/page-view-stats-user-profiles-own") {
+        requireAdminRole { _ ->
+            adminAnalyticsService.fetchPageViewStatsForOwnUserProfiles()
+        }
+    }
+    get("/page-view-stats-user-profiles-other") {
+        requireAdminRole { _ ->
+            adminAnalyticsService.fetchPageViewStatsForOtherUserProfiles()
+        }
+    }
     get("/page-view-stats-gad") {
         requireAdminRole { _ ->
             adminAnalyticsService.fetchPageViewStatsByGad()

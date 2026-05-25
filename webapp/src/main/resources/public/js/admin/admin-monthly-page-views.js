@@ -51,7 +51,12 @@ class AdminPageViewStatsPage extends BasePage {
     /**
      * @type {MultipleTimeSeriesDto|null}
      */
-    #userProfileData = null;
+    #userOwnProfileData = null;
+
+    /**
+     * @type {MultipleTimeSeriesDto|null}
+     */
+    #userOtherProfileData = null;
 
     /**
      * @type {number}
@@ -69,13 +74,14 @@ class AdminPageViewStatsPage extends BasePage {
     }
 
     #fetchAllData() {
-        this.#pendingRequests = this.#eventPaths.length + 2; // +1 for GAD data, +1 for user profile data
+        this.#pendingRequests = this.#eventPaths.length + 3; // +1 for GAD data, +2 for own/other profile data
         this.#totalRequests = this.#pendingRequests;
         this.#updateLoadingDisplay();
 
         // Fetch GAD data first
         this.#fetchGadData();
-        this.#fetchUserProfileData();
+        this.#fetchOwnUserProfileData();
+        this.#fetchOtherUserProfileData();
 
         this.#eventPaths.forEach(eventPath => {
             this.#fetchPageViewStats(eventPath);
@@ -93,11 +99,22 @@ class AdminPageViewStatsPage extends BasePage {
         });
     }
 
-    #fetchUserProfileData() {
-        const url = `${ADMIN_URL_PREFIX}/page-view-stats-user-profiles`;
+    #fetchOwnUserProfileData() {
+        const url = `${ADMIN_URL_PREFIX}/page-view-stats-user-profiles-own`;
 
         getAndHandle(url, json => {
-            this.#userProfileData = new MultipleTimeSeriesDto(json);
+            this.#userOwnProfileData = new MultipleTimeSeriesDto(json);
+            this.#pendingRequests--;
+            this.#updateLoadingDisplay();
+            this.#renderChartsIfReady();
+        });
+    }
+
+    #fetchOtherUserProfileData() {
+        const url = `${ADMIN_URL_PREFIX}/page-view-stats-user-profiles-other`;
+
+        getAndHandle(url, json => {
+            this.#userOtherProfileData = new MultipleTimeSeriesDto(json);
             this.#pendingRequests--;
             this.#updateLoadingDisplay();
             this.#renderChartsIfReady();
@@ -167,21 +184,39 @@ class AdminPageViewStatsPage extends BasePage {
             new PageViewStatsLineChart('chart-gad', 'Total page views', this.#gadData).render();
         }
 
-        if (this.#userProfileData && this.#userProfileData.getAllPeriods().length > 0) {
+        if (this.#userOwnProfileData && this.#userOwnProfileData.getAllPeriods().length > 0) {
             const userProfileChartWrapper = document.createElement('div');
             userProfileChartWrapper.style.marginBottom = '40px';
 
             const userProfileChartDiv = document.createElement('div');
-            userProfileChartDiv.id = 'chart-user-profiles';
+            userProfileChartDiv.id = 'chart-user-own-profiles';
             userProfileChartDiv.style.height = '400px';
             userProfileChartWrapper.appendChild(userProfileChartDiv);
 
             container.appendChild(userProfileChartWrapper);
 
             new PageViewStatsLineChart(
-                'chart-user-profiles',
-                'Total user profile views',
-                this.#userProfileData
+                'chart-user-own-profiles',
+                'Users looking at their own profile',
+                this.#userOwnProfileData
+            ).render();
+        }
+
+        if (this.#userOtherProfileData && this.#userOtherProfileData.getAllPeriods().length > 0) {
+            const userProfileChartWrapper = document.createElement('div');
+            userProfileChartWrapper.style.marginBottom = '40px';
+
+            const userProfileChartDiv = document.createElement('div');
+            userProfileChartDiv.id = 'chart-user-other-profiles';
+            userProfileChartDiv.style.height = '400px';
+            userProfileChartWrapper.appendChild(userProfileChartDiv);
+
+            container.appendChild(userProfileChartWrapper);
+
+            new PageViewStatsLineChart(
+                'chart-user-other-profiles',
+                'Users looking at other users profiles',
+                this.#userOtherProfileData
             ).render();
         }
 
