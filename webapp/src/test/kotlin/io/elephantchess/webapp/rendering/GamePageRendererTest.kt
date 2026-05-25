@@ -17,7 +17,7 @@ class GamePageRendererTest {
     fun `pvp page title contains both player names`() {
         assertEquals(
             "alice vs bob",
-            GamePageRenderer.pvpPageTitle("alice", "bob")
+            GamePageRenderer.formatPvpPageTitle("alice", "bob")
         )
     }
 
@@ -25,7 +25,7 @@ class GamePageRendererTest {
     fun `pvp page title uses fallback when invitee is missing`() {
         assertEquals(
             "alice vs opponent",
-            GamePageRenderer.pvpPageTitle("alice", null)
+            GamePageRenderer.formatPvpPageTitle("alice", null)
         )
     }
 

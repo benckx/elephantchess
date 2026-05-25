@@ -15,23 +15,42 @@ class GamePageRenderer(
 ) {
 
     suspend fun renderPvpGamePage(gameId: String): String {
-        val title = gameId.let { id ->
-            runCatching {
-                val game = pvpGameService.fetchGame(id)
-                pvpPageTitle(game.inviterUsername, game.inviteeUsername)
-            }.getOrDefault(DEFAULT_PVP_TITLE)
-        }
+        val title = fetchPvpTitle(gameId)
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/player_vs_player_game.html",
             specificTagResolvers = listOf(
-                SimpleValueTagResolver("page_title", escapeHtml(title))
+                SimpleValueTagResolver("page_title", title)
             ),
             canonicalPath = gameId.let { gameId -> "/game?id=$gameId" }
         )
     }
 
     suspend fun renderPvbGamePage(gameId: String, latestSupporter: LatestSupporter?): String {
+        val title = fetchPvbTitle(gameId)
+
+        return htmlRenderer.renderHtml(
+            templatePath = "/templates/player_vs_bot.html",
+            specificTagResolvers = listOf(
+                SimpleValueTagResolver("page_title", title),
+                latestSupporterTagResolver(latestSupporter)
+            ),
+            canonicalPath = gameId.let { gameId -> "/playbot?id=$gameId" }
+        )
+    }
+
+    private suspend fun fetchPvpTitle(gameId: String): String {
+        val title = gameId.let { id ->
+            runCatching {
+                val game = pvpGameService.fetchGame(id)
+                formatPvpPageTitle(game.inviterUsername, game.inviteeUsername)
+            }.getOrDefault(DEFAULT_PVP_TITLE)
+        }
+
+        return escapeHtml(title)
+    }
+
+    private suspend fun fetchPvbTitle(gameId: String): String {
         val title = gameId.let { id ->
             runCatching {
                 val game = pvbGameService.fetchGameData(id)
@@ -39,21 +58,14 @@ class GamePageRenderer(
             }.getOrDefault(DEFAULT_PVB_TITLE)
         }
 
-        return htmlRenderer.renderHtml(
-            templatePath = "/templates/player_vs_bot.html",
-            specificTagResolvers = listOf(
-                SimpleValueTagResolver("page_title", escapeHtml(title)),
-                latestSupporterTagResolver(latestSupporter)
-            ),
-            canonicalPath = gameId.let { gameId -> "/playbot?id=$gameId" }
-        )
+        return escapeHtml(title)
     }
 
     companion object {
         internal const val DEFAULT_PVP_TITLE = "Game"
         internal const val DEFAULT_PVB_TITLE = "Play vs. Bot"
 
-        internal fun pvpPageTitle(inviterUsername: String, inviteeUsername: String?): String {
+        internal fun formatPvpPageTitle(inviterUsername: String, inviteeUsername: String?): String {
             return "$inviterUsername vs ${inviteeUsername ?: "<waiting>"}"
         }
 
