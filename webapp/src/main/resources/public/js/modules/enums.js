@@ -74,6 +74,7 @@ const GameJoinSource = Object.freeze({
     DISCORD_NOTIFICATION: 'DISCORD_NOTIFICATION',
     LOBBY: 'LOBBY',
     MATCHED: 'MATCHED',
+    DYNAMIC_MATCHED: 'DYNAMIC_MATCHED',
     LINK: 'LINK'
 });
 
