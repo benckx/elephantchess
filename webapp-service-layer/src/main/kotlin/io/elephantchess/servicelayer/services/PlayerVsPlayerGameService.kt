@@ -426,7 +426,7 @@ class PlayerVsPlayerGameService(
                 ?: continue
 
             try {
-                joinGame(joinerUserId, JoinGameRequest(matchGame.id, GameJoinSource.MATCHED, null))
+                joinGame(joinerUserId, JoinGameRequest(matchGame.id, GameJoinSource.DYNAMIC_MATCHED, null))
                 autoCancelGame(joinerGame.id)
                 matched += joinerGame.id
                 matched += matchGame.id
