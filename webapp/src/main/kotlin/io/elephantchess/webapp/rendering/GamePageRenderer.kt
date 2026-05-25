@@ -67,15 +67,19 @@ class GamePageRenderer(
         internal const val DEFAULT_PVP_TITLE = "Game"
         internal const val DEFAULT_PVB_TITLE = "Play vs. Bot"
 
-        internal fun formatPvpPageTitle(inviterUsername: String, inviteeUsername: String?, inviterColor: Color?): String {
+        internal fun formatPvpPageTitle(
+            inviterUsername: String,
+            inviteeUsername: String?,
+            inviterColor: Color?
+        ): String {
             if (inviterColor == null) {
                 return "new game by $inviterUsername"
             }
 
-            val invitee = inviteeUsername ?: "opponent"
+            val invitee = inviteeUsername ?: "<waiting>"
             return when (inviterColor) {
-                Color.RED -> "$inviterUsername vs $invitee"
-                Color.BLACK -> "$invitee vs $inviterUsername"
+                Color.RED -> "$inviterUsername vs. $invitee"
+                Color.BLACK -> "$invitee vs. $inviterUsername"
             }
         }
 
