@@ -245,7 +245,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             INNER
         }
 
-        // data collection starts ends of October 2025
+        // data collection started at the end of October 2025
         val startDate: Instant =
             instantOfUtc(2025, 11, 1, 0, 0, 0)
 
