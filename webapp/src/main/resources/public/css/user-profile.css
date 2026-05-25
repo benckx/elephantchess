@@ -145,14 +145,17 @@ h2 {
 
 #ratings-table .wdl-win {
     color: #19681d;
+    font-weight: bold;
 }
 
 #ratings-table .wdl-draw {
     color: #1a1a1a;
+    font-weight: bold;
 }
 
 #ratings-table .wdl-loss {
     color: #b5180d;
+    font-weight: bold;
 }
 
 #profile-header .online-status-indicator {

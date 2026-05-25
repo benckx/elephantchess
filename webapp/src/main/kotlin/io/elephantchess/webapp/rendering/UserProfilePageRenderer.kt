@@ -182,18 +182,6 @@ class UserProfilePageRenderer(
                         }
                     }
                 }
-                tr("category-label-row") {
-                    th {
-                        attributes["scope"] = "row"
-                        +"time control"
-                    }
-                    categories.forEach { category ->
-                        th {
-                            attributes["scope"] = "col"
-                            +category.label
-                        }
-                    }
-                }
                 tr {
                     th {
                         attributes["scope"] = "row"
@@ -211,15 +199,15 @@ class UserProfilePageRenderer(
                 tr {
                     th {
                         attributes["scope"] = "row"
-                        +"W/D/L"
+                        +"W / D / L"
                     }
                     categories.forEach { category ->
                         td("wdl-cell") {
-                            span("wdl-win") { +"W ${category.wins}" }
+                            span("wdl-win") { +"${category.wins}" }
                             +" / "
-                            span("wdl-draw") { +"D ${category.draws}" }
+                            span("wdl-draw") { +"${category.draws}" }
                             +" / "
-                            span("wdl-loss") { +"L ${category.losses}" }
+                            span("wdl-loss") { +"${category.losses}" }
                         }
                     }
                 }
