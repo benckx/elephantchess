@@ -178,6 +178,7 @@ class UserProfilePageRenderer(
                                 classes = "time-control-icons time-control-icons-larger"
                             ) {
                                 id = "rating-${category.key}-icon"
+                                attributes["title"] = category.label
                             }
                         }
                     }
