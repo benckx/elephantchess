@@ -698,7 +698,7 @@ If you want browser-level page tests, prefer **Playwright** over Selenium for th
 - built-in waiting/retry behavior
 - isolated browser contexts for multi-user scenarios
 
-For PvP tests, run each player in a different private context so each one gets a different guest id:
+For PvP tests, run each player in a different private context so each one gets a different guest ID:
 
 ```javascript
 import { test, chromium } from '@playwright/test';
@@ -714,6 +714,8 @@ test('pvp with 2 guest sessions', async () => {
     await player1Page.goto('http://localhost:8080');
     await player2Page.goto('http://localhost:8080');
 
+    await player1Context.close();
+    await player2Context.close();
     await browser.close();
 });
 ```
