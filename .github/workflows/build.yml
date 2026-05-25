@@ -44,6 +44,9 @@ jobs:
       - name: Clean build
         run: ./gradlew clean build --no-daemon --stacktrace
 
+      - name: Verify guest PvP UCI regression test
+        run: ./gradlew --no-daemon :webapp-service-layer:test --tests io.elephantchess.servicelayer.services.PlayerVsPlayerGameServiceTest.guestPlayersCanPlayFullPvpGameFromUciSample
+
       - name: Publish test report
         if: always()
         uses: mikepenz/action-junit-report@v6
