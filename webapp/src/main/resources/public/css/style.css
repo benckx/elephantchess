@@ -133,6 +133,37 @@ img.winner-icon {
     margin-right: 4px;
 }
 
+.game-thumb-left-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+}
+
+.game-thumb-left-section > div {
+    min-width: 0;
+}
+
+.game-thumb-left-section > div > div {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.game-thumb-player-name {
+    display: inline-block;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.game-thumb-variant {
+    font-size: 18px;
+    line-height: 1;
+}
+
 .game-thumb-status {
     display: flex;
     justify-content: end;
@@ -237,6 +268,28 @@ img.winner-icon {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.variant-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.variant-symbol {
+    font-size: 24px;
+    color: #343434;
+    line-height: 1;
+}
+
+.variant-name {
+    color: #3a3a3a;
+    font-size: 10px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 table.standard-data-table {
@@ -807,11 +860,11 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     float: right;
 }
 
-input[type=button].app-buttons,
-input[type=button].app-buttons-red,
-input[type=button].app-buttons-smaller,
-input[type=button].app-buttons-bigger,
-input[type=button].app-buttons-much-bigger {
+.app-buttons,
+.app-buttons-red,
+.app-buttons-smaller,
+.app-buttons-bigger,
+.app-buttons-much-bigger {
     padding: 5px 20px;
     text-decoration: none;
     margin: 4px 2px;
@@ -823,68 +876,68 @@ input[type=button].app-buttons-much-bigger {
     height: 28px;
 }
 
-input[type=button].app-buttons,
-input[type=button].app-buttons-smaller,
-input[type=button].app-buttons-bigger,
-input[type=button].app-buttons-much-bigger {
+.app-buttons,
+.app-buttons-smaller,
+.app-buttons-bigger,
+.app-buttons-much-bigger {
     background-color: #054101;
     color: white;
 }
 
-input[type=button].app-buttons:hover,
-input[type=button].app-buttons-smaller,
-input[type=button].app-buttons-bigger:hover,
-input[type=button].app-buttons-much-bigger:hover {
+.app-buttons:hover,
+.app-buttons-smaller,
+.app-buttons-bigger:hover,
+.app-buttons-much-bigger:hover {
     background-color: #077d01;
     cursor: pointer;
 }
 
-input[type=button].app-buttons-red,
-input[type=button].app-buttons-bigger-red {
+.app-buttons-red,
+.app-buttons-bigger-red {
     background-color: #a80202;
     color: white;
 }
 
-input[type=button].app-buttons-red:hover,
-input[type=button].app-buttons-bigger-red:hover {
+.app-buttons-red:hover,
+.app-buttons-bigger-red:hover {
     background-color: #ce0707;
     cursor: pointer;
 }
 
-input[type=button].app-buttons-smaller {
+.app-buttons-smaller {
     font-size: 13px;
     height: 26px;
     margin-top: 2px;
     margin-bottom: 2px;
 }
 
-input[type=button].app-buttons-bigger {
+.app-buttons-bigger {
     font-size: 16px;
     height: 32px;
     margin-top: 14px;
     margin-bottom: 14px;
 }
 
-input[type=button].app-buttons-much-bigger {
+.app-buttons-much-bigger {
     font-size: 20px;
     height: 40px;
     margin-top: 22px;
     margin-bottom: 22px;
 }
 
-input[type=button].log-buttons {
+.log-buttons {
     width: 96px;
     min-width: 96px;
     display: block;
     margin-left: 10px;
 }
 
-input[type=button].app-buttons-disabled,
-input[type=button].app-buttons-disabled:hover {
+.app-buttons-disabled,
+.app-buttons-disabled:hover {
     background-color: #848484;
 }
 
-input[type=button].app-buttons-disabled:hover {
+.app-buttons-disabled:hover {
     cursor: unset;
 }
 
@@ -1353,8 +1406,9 @@ table.info-box-sub-table td.values {
     text-decoration: underline;
     font-size: 14px;
     font-style: italic;
+    font-weight: bold;
     line-height: 1;
-    z-index: 1201;
+    z-index: 100;
 }
 
 #settings-info-box-container #advanced-settings-toggle:hover {
@@ -1374,6 +1428,10 @@ table.info-box-sub-table td.values {
     box-shadow: rgba(0, 0, 0, 0.55) 0 4px 12px;
     padding: 12px 19px;
     box-sizing: border-box;
+}
+
+#settings-info-box-container #advanced-settings-close-button {
+    display: none;
 }
 
 #settings-info-box-container #advanced-settings-box.advanced-settings-box-open {
@@ -1432,6 +1490,13 @@ table.info-box-sub-table td.values {
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=radio] {
     cursor: pointer;
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-options .advanced-setting-option-disabled,
+#settings-info-box-container #advanced-settings-box .advanced-setting-options .advanced-setting-option-disabled input[type=radio] {
+    color: #9a9a9a;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-warning {
@@ -1545,6 +1610,10 @@ table.info-box-sub-table td.values {
     padding-bottom: 6px;
 }
 
+.chat-box-message-highlighted {
+    background-color: #fff7cc;
+}
+
 .chat-box-message .header {
     display: flex;
     width: 100%;
@@ -1606,6 +1675,12 @@ table.info-box-sub-table td.values {
     padding: 4px;
     padding-left: 6px;
     padding-right: 6px;
+}
+
+.perpetual-checking-info-box-sub-boxes.perpetual-checking-limit-warning {
+    color: rgb(138 0 0);
+    background-color: rgb(255 0 0 / 12%);
+    border-radius: 4px;
 }
 
 .action-link {
@@ -2191,13 +2266,14 @@ img#navigation-end {
     padding-bottom: 6px;
 }
 
-.guest-message-box a {
+.guest-message-box a,
+.guest-message-box .action-link {
     font-weight: bold;
 }
 
 .time-control-icons {
     width: 22px;
-    opacity: 78%;
+    opacity: 80%;
 }
 
 .time-control-icons-larger {
