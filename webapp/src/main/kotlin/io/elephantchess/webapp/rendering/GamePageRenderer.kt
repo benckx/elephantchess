@@ -45,7 +45,7 @@ class GamePageRenderer(
         val title = gameId.let { id ->
             runCatching {
                 val game = pvpGameService.fetchGame(id)
-                formatPvpPageTitle(game.inviterUsername, game.inviteeUsername)
+                formatPvpPageTitle(game.inviterUsername, game.inviteeUsername, game.inviterColor)
             }.getOrDefault(DEFAULT_PVP_TITLE)
         }
 
@@ -67,8 +67,16 @@ class GamePageRenderer(
         internal const val DEFAULT_PVP_TITLE = "Game"
         internal const val DEFAULT_PVB_TITLE = "Play vs. Bot"
 
-        internal fun formatPvpPageTitle(inviterUsername: String, inviteeUsername: String?): String {
-            return "$inviterUsername vs. ${inviteeUsername ?: "<waiting>"}"
+        internal fun formatPvpPageTitle(inviterUsername: String, inviteeUsername: String?, inviterColor: Color?): String {
+            if (inviterColor == null) {
+                return "new game by $inviterUsername"
+            }
+
+            val invitee = inviteeUsername ?: "opponent"
+            return when (inviterColor) {
+                Color.RED -> "$inviterUsername vs $invitee"
+                Color.BLACK -> "$invitee vs $inviterUsername"
+            }
         }
 
         internal fun pvbPageTitle(username: String?, userColor: Color, engine: Engine, depth: Int): String {

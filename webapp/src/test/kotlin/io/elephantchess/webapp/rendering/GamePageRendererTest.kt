@@ -17,15 +17,31 @@ class GamePageRendererTest {
     fun `pvp page title contains both player names`() {
         assertEquals(
             "alice vs bob",
-            GamePageRenderer.formatPvpPageTitle("alice", "bob")
+            GamePageRenderer.formatPvpPageTitle("alice", "bob", Color.RED)
         )
     }
 
     @Test
-    fun `pvp page title uses fallback when invitee is missing`() {
+    fun `pvp page title keeps red first when inviter is black`() {
         assertEquals(
-            "alice vs opponent",
-            GamePageRenderer.formatPvpPageTitle("alice", null)
+            "bob vs alice",
+            GamePageRenderer.formatPvpPageTitle("alice", "bob", Color.BLACK)
+        )
+    }
+
+    @Test
+    fun `pvp page title uses opponent fallback with red first when invitee is missing`() {
+        assertEquals(
+            "opponent vs alice",
+            GamePageRenderer.formatPvpPageTitle("alice", null, Color.BLACK)
+        )
+    }
+
+    @Test
+    fun `pvp page title uses new game label when colors are not picked yet`() {
+        assertEquals(
+            "new game by alice",
+            GamePageRenderer.formatPvpPageTitle("alice", null, null)
         )
     }
 
