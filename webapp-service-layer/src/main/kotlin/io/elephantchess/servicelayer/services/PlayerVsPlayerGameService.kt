@@ -71,6 +71,7 @@ class PlayerVsPlayerGameService(
 ) {
 
     private val sessionsRefresh = 1.seconds
+    private val dynamicMatchingPeriod = 5.seconds
 
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
     private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
@@ -86,18 +87,25 @@ class PlayerVsPlayerGameService(
         }
     )
 
+    private val dynamicMatchingJob = launchAtFixedRate(
+        scope = refresherScope,
+        initialDelay = dynamicMatchingPeriod,
+        period = dynamicMatchingPeriod,
+        action = {
+            val onlineUserIds = userService.onlineUserIds()
+            if (onlineUserIds.size >= 2) {
+                findDynamicMatches(onlineUserIds)
+            }
+        }
+    )
+
     fun cancel() {
         refreshJob.cancel()
+        dynamicMatchingJob.cancel()
     }
 
     private suspend fun refreshGamesToPlaySessions() {
         val onlineUserIds = userService.onlineUserIds()
-
-        // dynamic matching: pair together pending games whose inviters
-        // are now both online but did not match when the games were created
-        if (onlineUserIds.size >= 2) {
-            findDynamicMatches(onlineUserIds)
-        }
 
         // refresh games to play sessions
         if (gamesToPlaySessions.isNotEmpty() && onlineUserIds.isNotEmpty()) {
