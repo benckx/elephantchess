@@ -80,6 +80,7 @@ class GameToPlayDto {
     #timeControl;
     #allowGuests;
     #lastUpdated;
+    #variant;
 
     constructor(json) {
         this.#gameId = json.gameId;
@@ -94,6 +95,7 @@ class GameToPlayDto {
         this.#timeControl = TimeControl.fromJson(json);
         this.#allowGuests = json.allowGuests;
         this.#lastUpdated = Number(json.lastUpdated);
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
@@ -178,6 +180,13 @@ class GameToPlayDto {
      */
     get lastUpdated() {
         return this.#lastUpdated;
+    }
+
+    /**
+     * @returns {string}
+     */
+    get variant() {
+        return this.#variant;
     }
 
     get isCorrespondenceGame() {

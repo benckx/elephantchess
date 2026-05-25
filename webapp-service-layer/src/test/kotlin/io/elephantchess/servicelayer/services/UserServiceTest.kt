@@ -8,27 +8,19 @@ import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.db.utils.awaitExecute
-import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.db.utils.minusHours
-import io.elephantchess.model.Engine
-import io.elephantchess.model.GameEventType
-import io.elephantchess.model.PuzzleAlgo
-import io.elephantchess.model.PuzzleOutcome
-import io.elephantchess.model.TimeControlMode
+import io.elephantchess.model.*
 import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
-import io.elephantchess.servicelayer.dto.user.DeleteUserSessionsRequest
-import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
-import io.elephantchess.servicelayer.dto.user.SignUpRequest
-import io.elephantchess.servicelayer.dto.user.UserLoginRequest
+import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Color.RED
 import kotlinx.coroutines.test.runTest
-import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
+import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import kotlin.test.*
@@ -76,11 +68,15 @@ class UserServiceTest : ServiceTest() {
 
         // user cannot log in with wrong password
         assertFailsWith<UnauthorizedException> {
-            userService.login(UserLoginRequest(email, randomAlphanumeric(10)))
+            userService.login(
+                UserLoginRequest(email, insecure().nextAlphanumeric(10))
+            )
         }
 
         assertFailsWith<UnauthorizedException> {
-            userService.login(UserLoginRequest(username, randomAlphanumeric(10)))
+            userService.login(
+                UserLoginRequest(username, insecure().nextAlphanumeric(10))
+            )
         }
 
         // userId can be extracted from token
@@ -101,7 +97,7 @@ class UserServiceTest : ServiceTest() {
 
         for (email in invalidEmails) {
             val request = SignUpRequest(
-                username = "testuser${randomAlphanumeric(5)}",
+                username = "testuser${insecure().nextAlphanumeric(5)}",
                 email = email,
                 password = "validPassword123"
             )
@@ -125,7 +121,7 @@ class UserServiceTest : ServiceTest() {
 
         for (email in invalidEmails) {
             val request = SignUpRequest(
-                username = "testuser${randomAlphanumeric(5)}",
+                username = "testuser${insecure().nextAlphanumeric(5)}",
                 email = email,
                 password = "validPassword123"
             )
@@ -149,7 +145,7 @@ class UserServiceTest : ServiceTest() {
 
         for (email in validEmails) {
             val request = SignUpRequest(
-                username = "testuser${randomAlphanumeric(5)}",
+                username = "testuser${insecure().nextAlphanumeric(5)}",
                 email = email,
                 password = "validPassword123"
             )
@@ -162,7 +158,7 @@ class UserServiceTest : ServiceTest() {
     fun `signUp should reject username that is too short`() = runTest {
         val request = SignUpRequest(
             username = "abc",  // 3 chars, minimum is 4
-            email = "valid${randomAlphanumeric(5)}@example.com",
+            email = "valid${insecure().nextAlphanumeric(5)}@example.com",
             password = "validPassword123"
         )
         val result = userService.validateSignUp(request)
@@ -177,7 +173,7 @@ class UserServiceTest : ServiceTest() {
     fun `signUp should reject username that is too long`() = runTest {
         val request = SignUpRequest(
             username = "a".repeat(31),  // 31 chars, maximum is 30
-            email = "valid${randomAlphanumeric(5)}@example.com",
+            email = "valid${insecure().nextAlphanumeric(5)}@example.com",
             password = "validPassword123"
         )
         val result = userService.validateSignUp(request)
@@ -202,7 +198,7 @@ class UserServiceTest : ServiceTest() {
         for (username in invalidUsernames) {
             val request = SignUpRequest(
                 username = username,
-                email = "valid${randomAlphanumeric(5)}@example.com",
+                email = "valid${insecure().nextAlphanumeric(5)}@example.com",
                 password = "validPassword123"
             )
             val result = userService.validateSignUp(request)
@@ -231,7 +227,7 @@ class UserServiceTest : ServiceTest() {
         for (username in validUsernames) {
             val request = SignUpRequest(
                 username = username,
-                email = "valid${randomAlphanumeric(5)}@example.com",
+                email = "valid${insecure().nextAlphanumeric(5)}@example.com",
                 password = "validPassword123"
             )
             val result = userService.validateSignUp(request)
@@ -242,8 +238,8 @@ class UserServiceTest : ServiceTest() {
     @Test
     fun `signUp should reject password that is too short`() = runTest {
         val request = SignUpRequest(
-            username = "validuser${randomAlphanumeric(5)}",
-            email = "valid${randomAlphanumeric(5)}@example.com",
+            username = "validuser${insecure().nextAlphanumeric(5)}",
+            email = "valid${insecure().nextAlphanumeric(5)}@example.com",
             password = "abc"  // 3 chars, minimum is 4
         )
         val result = userService.validateSignUp(request)
@@ -257,8 +253,8 @@ class UserServiceTest : ServiceTest() {
     @Test
     fun `signUp should reject password that is too long`() = runTest {
         val request = SignUpRequest(
-            username = "validuser${randomAlphanumeric(5)}",
-            email = "valid${randomAlphanumeric(5)}@example.com",
+            username = "validuser${insecure().nextAlphanumeric(5)}",
+            email = "valid${insecure().nextAlphanumeric(5)}@example.com",
             password = "a".repeat(51)  // 51 chars, maximum is 50
         )
         val result = userService.validateSignUp(request)
@@ -279,8 +275,8 @@ class UserServiceTest : ServiceTest() {
 
         for (password in validPasswords) {
             val request = SignUpRequest(
-                username = "validuser${randomAlphanumeric(5)}",
-                email = "valid${randomAlphanumeric(5)}@example.com",
+                username = "validuser${insecure().nextAlphanumeric(5)}",
+                email = "valid${insecure().nextAlphanumeric(5)}@example.com",
                 password = password
             )
             val result = userService.validateSignUp(request)
@@ -306,32 +302,47 @@ class UserServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `signUp should generate an email confirmation code and confirmEmail should mark the email as confirmed`() = runTest {
-        val (_, userId) = signUpTestUser()
+    fun `updateProfileSettings should unset country when none is selected`() = runTest {
+        val (request, userId) = signUpTestUser()
 
-        // a confirmation code is generated at signup and the email is not yet confirmed
-        val userAfterSignup = userDaoService.findById(userId)!!
-        assertNotNull(userAfterSignup.emailConfirmationCode, "Confirmation code should be generated at signup")
-        assertNull(userAfterSignup.emailConfirmedAt, "Email should not be confirmed yet")
+        userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "be"))
+        userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "none"))
 
-        // confirming with an unknown code does nothing
-        assertFalse(userService.confirmEmail("unknown-code"))
-        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+        val profile = userService.fetchProfile(request.username)
+        assertNull(profile.country)
 
-        // confirming with a blank code does nothing
-        assertFalse(userService.confirmEmail(""))
-        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
-
-        // confirming with the right code marks the email as confirmed
-        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
-        val userAfterConfirmation = userDaoService.findById(userId)!!
-        assertNotNull(userAfterConfirmation.emailConfirmedAt, "Email should be confirmed")
-
-        // confirming again is idempotent
-        val firstConfirmedAt = userAfterConfirmation.emailConfirmedAt
-        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
-        assertEquals(firstConfirmedAt, userDaoService.findById(userId)!!.emailConfirmedAt)
+        val storedCountry = dslContext.fetchValueAsync(USER.COUNTRY, USER.ID.eq(userId))
+        assertNull(storedCountry)
     }
+
+    @Test
+    fun `signUp should generate an email confirmation code and confirmEmail should mark the email as confirmed`() =
+        runTest {
+            val (_, userId) = signUpTestUser()
+
+            // a confirmation code is generated at signup and the email is not yet confirmed
+            val userAfterSignup = userDaoService.findById(userId)!!
+            assertNotNull(userAfterSignup.emailConfirmationCode, "Confirmation code should be generated at signup")
+            assertNull(userAfterSignup.emailConfirmedAt, "Email should not be confirmed yet")
+
+            // confirming with an unknown code does nothing
+            assertFalse(userService.confirmEmail("unknown-code"))
+            assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+
+            // confirming with a blank code does nothing
+            assertFalse(userService.confirmEmail(""))
+            assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+
+            // confirming with the right code marks the email as confirmed
+            assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+            val userAfterConfirmation = userDaoService.findById(userId)!!
+            assertNotNull(userAfterConfirmation.emailConfirmedAt, "Email should be confirmed")
+
+            // confirming again is idempotent
+            val firstConfirmedAt = userAfterConfirmation.emailConfirmedAt
+            assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+            assertEquals(firstConfirmedAt, userDaoService.findById(userId)!!.emailConfirmedAt)
+        }
 
     @Test
     fun `confirmEmail should reject an expired confirmation code`() = runTest {
@@ -431,34 +442,18 @@ class UserServiceTest : ServiceTest() {
         val gameId = gameResponse.gameId
 
         // Verify the game is initially owned by the guest
-        val inviterBefore = dslContext.select(GAME.INVITER)
-            .from(GAME)
-            .where(GAME.ID.eq(gameId))
-            .awaitSingleValue<String>()
+        val inviterBefore = dslContext.fetchValueAsync(GAME.INVITER, GAME.ID.eq(gameId))
         assertEquals(guestId.id, inviterBefore)
 
         // Sign up and pass the verified guest ID (simulating routing-level token extraction)
-        val i = randomAlphanumeric(8)
-        val request = SignUpRequest(
-            username = "xfer$i",
-            email = "xfer$i@example.com",
-            password = "password",
-            transferGuestData = true
-        )
-        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+        val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The PvP game should now be owned by the new authenticated user
-        val inviterAfter = dslContext.select(GAME.INVITER)
-            .from(GAME)
-            .where(GAME.ID.eq(gameId))
-            .awaitSingleValue<String>()
+        val inviterAfter = dslContext.fetchValueAsync(GAME.INVITER, GAME.ID.eq(gameId))
         assertEquals(newUserId, inviterAfter)
 
         // The original guest user ID should be recorded on the game row
-        val guestUserIdAfter = dslContext.select(GAME.GUEST_USER_ID)
-            .from(GAME)
-            .where(GAME.ID.eq(gameId))
-            .awaitSingleValue<String>()
+        val guestUserIdAfter = dslContext.fetchValueAsync(GAME.GUEST_USER_ID, GAME.ID.eq(gameId))
         assertEquals(guestId.id, guestUserIdAfter)
     }
 
@@ -467,7 +462,7 @@ class UserServiceTest : ServiceTest() {
         val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
 
         // Create a PvB game owned by the guest directly via the DAO (avoids running the engine)
-        val gameId = randomAlphanumeric(12)
+        val gameId = insecure().nextAlphanumeric(12)
         val now = Clock.System.now()
 
         val gameRecord = BotGame().apply {
@@ -492,34 +487,18 @@ class UserServiceTest : ServiceTest() {
         pvbGameDaoService.insertGame(gameRecord, statusRecord)
 
         // Verify the bot game is initially owned by the guest
-        val userIdBefore = dslContext.select(BOT_GAME.USER_ID)
-            .from(BOT_GAME)
-            .where(BOT_GAME.ID.eq(gameId))
-            .awaitSingleValue<String>()
+        val userIdBefore = dslContext.fetchValueAsync(BOT_GAME.USER_ID, BOT_GAME.ID.eq(gameId))
         assertEquals(guestId.id, userIdBefore)
 
         // Sign up and pass the verified guest ID
-        val i = randomAlphanumeric(8)
-        val request = SignUpRequest(
-            username = "pvbxfer$i",
-            email = "pvbxfer$i@example.com",
-            password = "password",
-            transferGuestData = true
-        )
-        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+        val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The PvB game should now be owned by the new authenticated user
-        val userIdAfter = dslContext.select(BOT_GAME.USER_ID)
-            .from(BOT_GAME)
-            .where(BOT_GAME.ID.eq(gameId))
-            .awaitSingleValue<String>()
+        val userIdAfter = dslContext.fetchValueAsync(BOT_GAME.USER_ID, BOT_GAME.ID.eq(gameId))
         assertEquals(newUserId, userIdAfter)
 
         // The original guest user ID should be recorded on the bot game row
-        val guestUserIdAfter = dslContext.select(BOT_GAME.GUEST_USER_ID)
-            .from(BOT_GAME)
-            .where(BOT_GAME.ID.eq(gameId))
-            .awaitSingleValue<String>()
+        val guestUserIdAfter = dslContext.fetchValueAsync(BOT_GAME.GUEST_USER_ID, BOT_GAME.ID.eq(gameId))
         assertEquals(guestId.id, guestUserIdAfter)
     }
 
@@ -542,25 +521,13 @@ class UserServiceTest : ServiceTest() {
         val gameId = gameResponse.gameId
 
         // Sign up without passing a guest user ID (no transfer)
-        val i = randomAlphanumeric(8)
-        val request = SignUpRequest(
-            username = "noxfer$i",
-            email = "noxfer$i@example.com",
-            password = "password"
-        )
-        userService.signUp(request)
+        signUpTestUser()
 
         // The game should still belong to the guest
-        val inviterAfter = dslContext.select(GAME.INVITER)
-            .from(GAME)
-            .where(GAME.ID.eq(gameId))
-            .awaitSingleValue<String>()
+        val inviterAfter = dslContext.fetchValueAsync(GAME.INVITER, GAME.ID.eq(gameId))
         assertEquals(guestId.id, inviterAfter)
 
-        val guestUserId = dslContext.select(GAME.GUEST_USER_ID)
-            .from(GAME)
-            .where(GAME.ID.eq(gameId))
-            .awaitSingleValue<String>()
+        val guestUserId = dslContext.fetchValueAsync(GAME.GUEST_USER_ID, GAME.ID.eq(gameId))
         assertNull(guestUserId, "Guest user ID should be null since no transfer occurred")
     }
 
@@ -570,10 +537,7 @@ class UserServiceTest : ServiceTest() {
         val guestId = UserId(GUEST, guestTokenResponse.id)
 
         // Verify the guest starts with the default puzzle rating
-        val guestRatingBefore = dslContext.select(USER.PUZZLE_RATING)
-            .from(USER)
-            .where(USER.ID.eq(guestId.id))
-            .awaitSingleValue<Int>()
+        val guestRatingBefore = dslContext.fetchValueAsync(USER.PUZZLE_RATING, USER.ID.eq(guestId.id))
         assertEquals(800, guestRatingBefore)
 
         // Simulate the guest improving their puzzle rating
@@ -583,20 +547,10 @@ class UserServiceTest : ServiceTest() {
             .awaitExecute()
 
         // Sign up and transfer guest data
-        val i = randomAlphanumeric(8)
-        val request = SignUpRequest(
-            username = "elouser$i",
-            email = "elouser$i@example.com",
-            password = "password",
-            transferGuestData = true
-        )
-        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+        val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The new user should have the guest's puzzle rating
-        val newUserRating = dslContext.select(USER.PUZZLE_RATING)
-            .from(USER)
-            .where(USER.ID.eq(newUserId))
-            .awaitSingleValue<Int>()
+        val newUserRating = dslContext.fetchValueAsync(USER.PUZZLE_RATING, USER.ID.eq(newUserId))
         assertEquals(950, newUserRating)
     }
 
@@ -629,27 +583,20 @@ class UserServiceTest : ServiceTest() {
             .awaitExecute()
 
         // Sign up and transfer guest data
-        val i = randomAlphanumeric(8)
-        val request = SignUpRequest(
-            username = "pzlxfer$i",
-            email = "pzlxfer$i@example.com",
-            password = "password",
-            transferGuestData = true
-        )
-        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+        val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The puzzle result should now belong to the new user
-        val userIdAfter = dslContext.select(PUZZLE_RESULT.USER_ID)
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId))
-            .awaitSingleValue<String>()
+        val userIdAfter = dslContext.fetchValueAsync(
+            PUZZLE_RESULT.USER_ID,
+            PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId)
+        )
         assertEquals(newUserId, userIdAfter)
 
         // The original guest user ID should be recorded on the puzzle result row
-        val guestUserIdAfter = dslContext.select(PUZZLE_RESULT.GUEST_USER_ID)
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId))
-            .awaitSingleValue<String>()
+        val guestUserIdAfter = dslContext.fetchValueAsync(
+            PUZZLE_RESULT.GUEST_USER_ID,
+            PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId)
+        )
         assertEquals(guestId.id, guestUserIdAfter)
     }
 
@@ -658,7 +605,7 @@ class UserServiceTest : ServiceTest() {
         val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
 
         // Insert a reference game search query owned by the guest
-        val queryId = randomAlphanumeric(12)
+        val queryId = insecure().nextAlphanumeric(12)
         val now = Clock.System.now()
         dslContext.insertInto(REFERENCE_GAME_SEARCH_QUERY)
             .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID, queryId)
@@ -671,27 +618,20 @@ class UserServiceTest : ServiceTest() {
             .awaitExecute()
 
         // Sign up and transfer guest data
-        val i = randomAlphanumeric(8)
-        val request = SignUpRequest(
-            username = "srchxfer$i",
-            email = "srchxfer$i@example.com",
-            password = "password",
-            transferGuestData = true
-        )
-        val newUserId = userService.signUp(request, guestUserId = guestId.id).right().userId
+        val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The search query should now belong to the new user
-        val userIdAfter = dslContext.select(REFERENCE_GAME_SEARCH_QUERY.USER_ID)
-            .from(REFERENCE_GAME_SEARCH_QUERY)
-            .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId))
-            .awaitSingleValue<String>()
+        val userIdAfter = dslContext.fetchValueAsync(
+            REFERENCE_GAME_SEARCH_QUERY.USER_ID,
+            REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId),
+        )
         assertEquals(newUserId, userIdAfter)
 
         // The original guest user ID should be recorded on the search query row
-        val guestUserIdAfter = dslContext.select(REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID)
-            .from(REFERENCE_GAME_SEARCH_QUERY)
-            .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId))
-            .awaitSingleValue<String>()
+        val guestUserIdAfter = dslContext.fetchValueAsync(
+            REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID,
+            REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId),
+        )
         assertEquals(guestId.id, guestUserIdAfter)
     }
 

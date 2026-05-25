@@ -125,6 +125,7 @@ class GameMetadataDto {
     #depth;
     #lastUpdated;
     #paginationOffset;
+    #variant;
 
     constructor(json) {
         this.#gameId = GameId.fromJsonParent(json);
@@ -154,6 +155,7 @@ class GameMetadataDto {
             this.#lastUpdated = null;
         }
         this.#paginationOffset = json.paginationOffset;
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
@@ -317,6 +319,13 @@ class GameMetadataDto {
         return this.#paginationOffset;
     }
 
+    /**
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
+    }
+
     isLive() {
         // in PvB games, "CREATED" is ongoing
         // in PvP games, "CREATED" is not joined yet
@@ -413,7 +422,7 @@ class GameMetadataDto {
             }
         }
 
-        metadata.set('Variant', 'Xiangqi');
+        metadata.set('Variant', this.#variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi');
 
         // TODO: add date, tournament, etc.
 

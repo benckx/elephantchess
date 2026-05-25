@@ -47,6 +47,8 @@ class PlayGamePage extends BasePage {
     #createdLabel = document.getElementById('created-label');
     #timeControlBase = document.getElementById('time-control-base');
     #ratingMode = document.getElementById('rating-mode');
+    #variantRow = document.getElementById('variant-row');
+    #variantLabel = document.getElementById('variant-label');
     #gameStatusSpan = document.getElementById('game-status');
     #gameOutcomeSpan = document.getElementById('game-outcome');
     #outcomeRow = document.getElementById('outcome-row');
@@ -82,6 +84,7 @@ class PlayGamePage extends BasePage {
      */
     #shareLinkActions = getElementsByClassNameArray('share-link-mask-action');
 
+    #settingsManager = new SettingsManager();
     #joinAudio = new Audio('/audio/624598__eqylizer__high-pitched-two-note-notification.mp3');
 
     #hasRenderedJoinModal = false;
@@ -153,11 +156,13 @@ class PlayGamePage extends BasePage {
                     this.#updatePlayersInfo();
                     if (this.#gameController.gameDto.userStatus !== UserStatus.INVITEE) {
                         UI.pushInfoNotification(`${this.#gameController.gameDto.inviteeUsername} has joined the game`, 4_000);
-                        this.#joinAudio
-                            .play()
-                            .catch(() => {
-                                // ignored, spam error in console in dev
-                            });
+                        if (this.#settingsManager.isPlaySoundsEnabled) {
+                            this.#joinAudio
+                                .play()
+                                .catch(() => {
+                                    // ignored, spam error in console in dev
+                                });
+                        }
                     }
                     this.#updateBoardMaskMessage();
                 },
@@ -310,6 +315,10 @@ class PlayGamePage extends BasePage {
     }
 
     #initBoard() {
+        if (this.#gameController.gameDto.isManchu) {
+            this.#moveTreeWidget.startFen = MANCHU_START_FEN;
+        }
+
         if (!this.#gameController.isGameFinished()) {
             this.#boardGui.addAfterMoveListener((move) => {
                 this.#gameController.registerPlayerMove(
@@ -334,6 +343,13 @@ class PlayGamePage extends BasePage {
     #initOtherInfo() {
         this.#createdLabel.innerText = formatTimestampDefaultDateFormat(this.#gameController.gameDto.created);
         this.#ratingMode.innerText = this.#gameController.gameDto.isRated ? 'Rated' : 'Casual';
+        if (this.#gameController.gameDto.isManchu) {
+            this.#variantLabel.innerText = 'Manchu';
+            this.#variantRow.style.display = '';
+        } else {
+            this.#variantLabel.innerText = '';
+            this.#variantRow.style.display = 'none';
+        }
     }
 
     #initClocks() {
@@ -636,13 +652,18 @@ class PlayGamePage extends BasePage {
             this.#showGameActionButtonsBlock(false);
         }
 
-        if (this.#gameController.isGameFinished()) {
+        if (this.#gameController.isGameFinished() && !this.#gameController.gameDto.isManchu) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
+                addToolTip(button, 'You can analyse the game with the Analysis Board tool');
             });
         } else {
+            const tooltip = this.#gameController.gameDto.isManchu
+                ? 'Analysis is not supported for Manchu variant games'
+                : 'Game must be finished before you can analyze it. If you want to analyze this game now, you have to resign first.';
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
+                addToolTip(button, tooltip);
             });
         }
     }

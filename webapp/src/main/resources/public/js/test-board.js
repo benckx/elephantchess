@@ -17,12 +17,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class SimpleBoardPage extends BasePage {
+class TestBoardPage extends BasePage {
 
     constructor() {
         super();
         const boardGui = createWebappBoardGui();
-        boardGui.loadFen(DEFAULT_START_FEN);
+        const isManchu = getQueryParam('variant') === 'manchu';
+        boardGui.loadFen(isManchu ? MANCHU_START_FEN : DEFAULT_START_FEN);
 
         const moveTreeWidget = new MoveTreeWidget({
             containerId: 'move-tree-container',
@@ -43,8 +44,12 @@ class SimpleBoardPage extends BasePage {
         });
 
         new SettingsGui(boardGui, moveTreeWidget);
+
+        if (isManchu) {
+            document.getElementById('manchu-explanation').style.display = 'block';
+        }
     }
 
 }
 
-window.onload = () => new SimpleBoardPage();
+window.onload = () => new TestBoardPage();
