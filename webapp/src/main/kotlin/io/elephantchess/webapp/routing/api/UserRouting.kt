@@ -91,9 +91,6 @@ private fun Route.isOnlineIndicatorsRoutes() {
 
 private fun Route.publicProfileRoutes() {
     route("/api/user/info") {
-        get("/game-ratings") {
-            requireUserId { userProfileAnalyticsService.fetchGameRatings(it) }
-        }
         route("/puzzles") {
             route("/stats") {
                 get("/rating/{userId}") {

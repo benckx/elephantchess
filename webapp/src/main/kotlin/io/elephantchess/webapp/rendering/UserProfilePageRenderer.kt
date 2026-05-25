@@ -13,6 +13,11 @@ import kotlinx.html.div
 import kotlinx.html.id
 import kotlinx.html.img
 import kotlinx.html.p
+import kotlinx.html.span
+import kotlinx.html.table
+import kotlinx.html.td
+import kotlinx.html.th
+import kotlinx.html.tr
 
 class UserProfilePageRenderer(
     private val htmlRenderer: HtmlRenderer,
@@ -35,7 +40,8 @@ class UserProfilePageRenderer(
                 descriptionMeta(username, description),
                 flagPanelTagResolver(countryCode),
                 descriptionDivTagResolver(username, description),
-            ) + gameStatsTagResolvers(gameStats)
+                gameStatsTableTagResolver(gameStats),
+            )
         )
     }
 
@@ -90,29 +96,118 @@ class UserProfilePageRenderer(
         }
     }
 
-    private fun gameStatsTagResolvers(gameStats: TimeCategoryStatsResponse): List<TagResolver> {
-        return listOf(
-            SimpleValueTagResolver("rating_bullet", gameStats.ratings.bullet.toString()),
-            SimpleValueTagResolver("rating_blitz", gameStats.ratings.blitz.toString()),
-            SimpleValueTagResolver("rating_rapid", gameStats.ratings.rapid.toString()),
-            SimpleValueTagResolver("rating_classical", gameStats.ratings.classical.toString()),
-            SimpleValueTagResolver("rating_correspondence", gameStats.ratings.correspondence.toString()),
-            SimpleValueTagResolver("wins_bullet", gameStats.pvp.bullet.wins.toString()),
-            SimpleValueTagResolver("wins_blitz", gameStats.pvp.blitz.wins.toString()),
-            SimpleValueTagResolver("wins_rapid", gameStats.pvp.rapid.wins.toString()),
-            SimpleValueTagResolver("wins_classical", gameStats.pvp.classical.wins.toString()),
-            SimpleValueTagResolver("wins_correspondence", gameStats.pvp.correspondence.wins.toString()),
-            SimpleValueTagResolver("losses_bullet", gameStats.pvp.bullet.losses.toString()),
-            SimpleValueTagResolver("losses_blitz", gameStats.pvp.blitz.losses.toString()),
-            SimpleValueTagResolver("losses_rapid", gameStats.pvp.rapid.losses.toString()),
-            SimpleValueTagResolver("losses_classical", gameStats.pvp.classical.losses.toString()),
-            SimpleValueTagResolver("losses_correspondence", gameStats.pvp.correspondence.losses.toString()),
-            SimpleValueTagResolver("draws_bullet", gameStats.pvp.bullet.draws.toString()),
-            SimpleValueTagResolver("draws_blitz", gameStats.pvp.blitz.draws.toString()),
-            SimpleValueTagResolver("draws_rapid", gameStats.pvp.rapid.draws.toString()),
-            SimpleValueTagResolver("draws_classical", gameStats.pvp.classical.draws.toString()),
-            SimpleValueTagResolver("draws_correspondence", gameStats.pvp.correspondence.draws.toString()),
+    private fun gameStatsTableTagResolver(gameStats: TimeCategoryStatsResponse): TagResolver {
+        data class Category(
+            val key: String,
+            val label: String,
+            val iconPath: String,
+            val iconAlt: String,
+            val rating: Int,
+            val wins: Int,
+            val draws: Int,
+            val losses: Int,
         )
+
+        val categories = listOf(
+            Category(
+                key = "bullet",
+                label = "Bullet",
+                iconPath = "/images/icons/shuttle.png",
+                iconAlt = "bullet",
+                rating = gameStats.ratings.bullet,
+                wins = gameStats.pvp.bullet.wins,
+                draws = gameStats.pvp.bullet.draws,
+                losses = gameStats.pvp.bullet.losses
+            ),
+            Category(
+                key = "blitz",
+                label = "Blitz",
+                iconPath = "/images/icons/flash-squared.png",
+                iconAlt = "blitz",
+                rating = gameStats.ratings.blitz,
+                wins = gameStats.pvp.blitz.wins,
+                draws = gameStats.pvp.blitz.draws,
+                losses = gameStats.pvp.blitz.losses
+            ),
+            Category(
+                key = "rapid",
+                label = "Rapid",
+                iconPath = "/images/icons/run.png",
+                iconAlt = "rapid",
+                rating = gameStats.ratings.rapid,
+                wins = gameStats.pvp.rapid.wins,
+                draws = gameStats.pvp.rapid.draws,
+                losses = gameStats.pvp.rapid.losses
+            ),
+            Category(
+                key = "classical",
+                label = "Classical",
+                iconPath = "/images/icons/museum.png",
+                iconAlt = "classical",
+                rating = gameStats.ratings.classical,
+                wins = gameStats.pvp.classical.wins,
+                draws = gameStats.pvp.classical.draws,
+                losses = gameStats.pvp.classical.losses
+            ),
+            Category(
+                key = "correspondence",
+                label = "Correspondence",
+                iconPath = "/images/icons/email.png",
+                iconAlt = "correspondence",
+                rating = gameStats.ratings.correspondence,
+                wins = gameStats.pvp.correspondence.wins,
+                draws = gameStats.pvp.correspondence.draws,
+                losses = gameStats.pvp.correspondence.losses
+            ),
+        )
+
+        return KtorHtmlBuilderTagResolver("profile_game_stats_table") {
+            table {
+                id = "ratings-table"
+
+                tr {
+                    th { +"category" }
+                    categories.forEach { category ->
+                        td {
+                            img(
+                                alt = category.iconAlt,
+                                src = category.iconPath,
+                                classes = "time-control-icons time-control-icons-larger"
+                            ) {
+                                id = "rating-${category.key}-icon"
+                            }
+                        }
+                    }
+                }
+                tr("category-label-row") {
+                    th {}
+                    categories.forEach { category -> th { +category.label } }
+                }
+                tr {
+                    th { +"rating" }
+                    categories.forEach { category ->
+                        td {
+                            span {
+                                id = "rating-${category.key}"
+                                +category.rating.toString()
+                            }
+                        }
+                    }
+                }
+                tr {
+                    th { +"W/D/L" }
+                    categories.forEach { category ->
+                        td("wdl-cell") {
+                            span("wdl-win") { +"W ${category.wins}" }
+                            +" / "
+                            span("wdl-draw") { +"D ${category.draws}" }
+                            +" / "
+                            span("wdl-loss") { +"L ${category.losses}" }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     suspend fun renderUserBrowsePvpGames(username: String): String {

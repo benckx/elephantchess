@@ -139,6 +139,22 @@ h2 {
     text-align: right;
 }
 
+#ratings-table .wdl-cell {
+    white-space: nowrap;
+}
+
+#ratings-table .wdl-win {
+    color: #19681d;
+}
+
+#ratings-table .wdl-draw {
+    color: #535252;
+}
+
+#ratings-table .wdl-loss {
+    color: #b5180d;
+}
+
 #profile-header .online-status-indicator {
     margin-right: 0;
 }
