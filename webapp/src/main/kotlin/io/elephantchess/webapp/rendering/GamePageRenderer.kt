@@ -3,13 +3,14 @@ package io.elephantchess.webapp.rendering
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.model.Engine
-import io.elephantchess.servicelayer.dto.kofi.LatestSupporter
+import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.xiangqi.Color
 
 class GamePageRenderer(
     private val htmlRenderer: HtmlRenderer,
+    private val kofiService: KofiService,
     private val pvpGameService: PlayerVsPlayerGameService,
     private val pvbGameService: PlayerVsBotGameService
 ) {
@@ -22,12 +23,13 @@ class GamePageRenderer(
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("page_title", title)
             ),
-            canonicalPath = gameId.let { gameId -> "/game?id=$gameId" }
+            canonicalPath = "/game?id=$gameId"
         )
     }
 
-    suspend fun renderPvbGamePage(gameId: String, latestSupporter: LatestSupporter?): String {
+    suspend fun renderPvbGamePage(gameId: String): String {
         val title = fetchPvbTitle(gameId)
+        val latestSupporter = kofiService.fetchLatestSupporter()
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/player_vs_bot.html",
@@ -35,7 +37,7 @@ class GamePageRenderer(
                 SimpleValueTagResolver("page_title", title),
                 latestSupporterTagResolver(latestSupporter)
             ),
-            canonicalPath = gameId.let { gameId -> "/playbot?id=$gameId" }
+            canonicalPath = "/playbot?id=$gameId"
         )
     }
 

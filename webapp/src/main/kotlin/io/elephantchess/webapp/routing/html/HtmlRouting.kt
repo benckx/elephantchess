@@ -104,7 +104,6 @@ fun Application.htmlRoutingModule() {
 
 private fun Route.gamePages() {
     val gamePageRenderer by koin<GamePageRenderer>()
-    val kofiService by koin<KofiService>()
 
     get("/game") {
         val gameId = call.parameters["id"]
@@ -120,8 +119,7 @@ private fun Route.gamePages() {
         if (gameId == null) {
             call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
         } else {
-            val latestTipper = kofiService.fetchLatestSupporter()
-            call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId, latestTipper))
+            call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId))
         }
     }
 }
