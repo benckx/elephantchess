@@ -17,13 +17,45 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+let scheduleEvalChartRenderTimeout = null;
+let evalLineChart = null;
+const EVAL_LINE_CHART_RENDER_DEBOUNCE_MS = 120;
+
+/**
+ * @param nodes {MoveTreeNode[]}
+ * @param analysisMap {Map<string, InfoLineResult>}
+ * @param startFen {string}
+ */
+function scheduleEvalChartRender(nodes, analysisMap, startFen) {
+    if (scheduleEvalChartRenderTimeout != null) {
+        clearTimeout(scheduleEvalChartRenderTimeout);
+    }
+
+    scheduleEvalChartRenderTimeout = setTimeout(() => {
+        scheduleEvalChartRenderTimeout = null;
+        const evalChartContainer = document.getElementById('eval-line-chart-container');
+        if (evalChartContainer == null) {
+            return;
+        }
+
+        evalChartContainer.innerHTML = '';
+        if (evalLineChart != null) {
+            evalLineChart.destroy();
+        }
+        evalLineChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen);
+        evalLineChart.render();
+    }, EVAL_LINE_CHART_RENDER_DEBOUNCE_MS);
+}
+
 /**
  * @param gameId {GameId}
  * @param nodes {MoveTreeNode[]}
  * @param startFen {string}
+ * @param moveTreeWidget {MoveTreeWidget|null} optional widget on which annotation symbols (??, ?!, etc.) will be
+ *        applied to the move history once analysis data is fetched
  */
-function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_START_FEN) {
-    if (startFen != null) {
+function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_START_FEN, moveTreeWidget = null) {
+    if (startFen == null) {
         startFen = DEFAULT_START_FEN;
     }
 
@@ -45,6 +77,10 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
                         gameMetadata.blackPlayerName,
                         gameMetadata.outcome
                     );
+
+                    if (moveTreeWidget != null) {
+                        moveTreeWidget.applyAnnotationSymbolsFromCache(analysisMap);
+                    }
                 });
             });
         }
@@ -160,6 +196,8 @@ function renderAnalysisSummaryReport(
             row.cells.item(3).innerText = (counterBlack.get(symbolType) || 0).toString()
         }
 
+        scheduleEvalChartRender(nodes, analysisMap, startFen);
+
         if (redPlayerName != null) {
             document
                 .getElementById('analysis-summary-red-player-name')
@@ -184,6 +222,18 @@ function renderAnalysisSummaryReport(
 
         summaryBlock.style.display = 'block';
     } else {
+        if (scheduleEvalChartRenderTimeout != null) {
+            clearTimeout(scheduleEvalChartRenderTimeout);
+            scheduleEvalChartRenderTimeout = null;
+        }
+        const evalChartContainer = document.getElementById('eval-line-chart-container');
+        if (evalChartContainer != null) {
+            if (evalLineChart != null) {
+                evalLineChart.destroy();
+                evalLineChart = null;
+            }
+            evalChartContainer.innerHTML = '';
+        }
         summaryBlock.style.display = 'none';
     }
 }

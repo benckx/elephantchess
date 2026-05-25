@@ -52,6 +52,20 @@ class GameController {
      */
     #webSocket = null;
 
+    /**
+     * Wall-clock timestamps (epoch millis) for each move played in the game.
+     * Parallel to the moves list. Null until the moves history has been fetched.
+     * @type {number[]|null}
+     */
+    #moveTimestamps = null;
+
+    /**
+     * Wall-clock timestamp (epoch millis) at which the game started (invitee joined).
+     * Null until the moves history has been fetched (or if not applicable).
+     * @type {number|null}
+     */
+    #joinTime = null;
+
     #inviteeJoinedCallback = () => console.log('invitee joined');
     #stateUpdateCallback = () => console.log('state updated');
     #opponentMoveReceivedCallback = () => console.log('opponent move received');
@@ -65,6 +79,7 @@ class GameController {
     #updateClocksCallback = () => console.log('update clocks');
     #fetchMovesCallback = (moves) => console.log('fetch moves ' + moves);
     #receivedChatMessages = (chatMessages, acks) => console.log('received chat messages ' + chatMessages);
+    #opponentTypingCallback = (typingUsers) => console.log('opponents are typing: ' + JSON.stringify(typingUsers));
 
     /**
      * @param gameId {string}
@@ -82,6 +97,7 @@ class GameController {
      * @param updateClocksCallback {function()}
      * @param fetchMovesCallback {function(HalfMove[])}
      * @param receivedChatMessages {function(ChatMessageDto[], number[])}
+     * @param opponentTypingCallback {function(Array<Object.<string,string, *>>)} Map of userId→username for users currently typing
      */
     constructor(
         gameId,
@@ -98,7 +114,9 @@ class GameController {
         drawDeclinedCallback,
         updateClocksCallback,
         fetchMovesCallback,
-        receivedChatMessages
+        receivedChatMessages,
+        opponentTypingCallback = (typingUsers) => {
+        }
     ) {
         this.#gameId = gameId;
         this.#inviteeJoinedCallback = inviteeJoinedCallback;
@@ -114,6 +132,7 @@ class GameController {
         this.#updateClocksCallback = updateClocksCallback;
         this.#fetchMovesCallback = fetchMovesCallback;
         this.#receivedChatMessages = receivedChatMessages;
+        this.#opponentTypingCallback = opponentTypingCallback;
         this.#client = new GameClient(gameId);
 
         this.#client.getData(gameDto => {
@@ -129,7 +148,11 @@ class GameController {
                 this.#startUpdateClocks();
             }
 
-            this.#client.getMovesHistory(moves => this.#fetchMovesCallback(moves));
+            this.#client.getMovesHistory((moves, moveTimestamps, joinTime) => {
+                this.#moveTimestamps = moveTimestamps;
+                this.#joinTime = joinTime;
+                this.#fetchMovesCallback(moves);
+            });
             this.#client.getChatHistory(messages => {
                 this.#receivedChatMessages(messages, []);
             });
@@ -255,6 +278,9 @@ class GameController {
                         this.#updateClocksCallback();
                     }
                     this.#handleReceivedChatMessages(chatMessages);
+                    if (Array.isArray(json.typingUsers) && json.typingUsers.length > 0) {
+                        this.#opponentTypingCallback(json.typingUsers);
+                    }
                 }
             });
 
@@ -286,6 +312,78 @@ class GameController {
 
     get fen() {
         return this.#gameDto.fen;
+    }
+
+    /**
+     * Wall-clock timestamp (epoch millis) for the move at the given 0-based index
+     * in the main line of the game. Returns null if timestamps are not available
+     * or the index is out of range.
+     *
+     * @param moveIndex {number}
+     * @return {number|null}
+     */
+    getMoveTimestampAt(moveIndex) {
+        if (this.#moveTimestamps == null) {
+            return null;
+        }
+        if (moveIndex < 0 || moveIndex >= this.#moveTimestamps.length) {
+            return null;
+        }
+        return this.#moveTimestamps[moveIndex];
+    }
+
+    /**
+     * Compute the {@link TimeControlClock} state right after the move at the given
+     * 0-based main-line index has been played. Returns null if the data needed
+     * to reconstruct the historical clock is not available (e.g. unrated game with
+     * no time control, missing timestamps, index out of range).
+     *
+     * Mirrors the server-side logic in PlayerVsPlayerGameService#calculateTimeRemaining.
+     *
+     * @param moveIndex {number}
+     * @return {TimeControlClock|null}
+     */
+    getClockAtMoveIndex(moveIndex) {
+        if (!this.#gameDto || !this.#gameDto.hasTimeControl()) {
+            return null;
+        }
+        if (this.#moveTimestamps == null || this.#joinTime == null) {
+            return null;
+        }
+        if (moveIndex < 0 || moveIndex >= this.#moveTimestamps.length) {
+            return null;
+        }
+
+        const timeControl = this.#gameDto.timeControl;
+        const baseMs = timeControl.base.toMillis();
+        const incrementMs = timeControl.increment != null ? timeControl.increment.toMillis() : 0;
+
+        if (this.#gameDto.timeControlMode === TimeControlMode.MOVE_TIME) {
+            // In MOVE_TIME the per-move timer resets to base for the player about to play,
+            // and the player who just moved is no longer counting down, so the displayed
+            // clock right after any move is (base, base).
+            return new TimeControlClock(baseMs, baseMs);
+        }
+
+        // GAME_TIME
+        let redMs = baseMs;
+        let blackMs = baseMs;
+        let prev = this.#joinTime;
+        for (let i = 0; i <= moveIndex; i++) {
+            const ts = this.#moveTimestamps[i];
+            const elapsed = ts - prev;
+            if (i % 2 === 0) {
+                redMs -= elapsed;
+                redMs += incrementMs;
+            } else {
+                blackMs -= elapsed;
+                blackMs += incrementMs;
+            }
+            prev = ts;
+        }
+        if (redMs < 0) redMs = 0;
+        if (blackMs < 0) blackMs = 0;
+        return new TimeControlClock(redMs, blackMs);
     }
 
     /**
@@ -423,6 +521,12 @@ class GameController {
     sendChat(message) {
         if (this.#webSocket != null) {
             this.#webSocket.send(JSON.stringify({"message": message}));
+        }
+    }
+
+    sendTypingEvent() {
+        if (this.#webSocket != null) {
+            this.#webSocket.send(JSON.stringify({"isTyping": true}));
         }
     }
 

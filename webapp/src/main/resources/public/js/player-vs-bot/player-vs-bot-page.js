@@ -140,6 +140,10 @@ class PlayerVsBotPage extends BasePage {
                 document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
                 document.getElementById('info-depth').innerText = botGameDto.depth.toString();
                 document.getElementById('info-created').innerText = botGameDto.formattedCreated;
+                if (botGameDto.isManchu) {
+                    document.getElementById('info-variant').innerText = 'Manchu';
+                    document.getElementById('info-variant-row').style.display = '';
+                }
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
                 this.#enablePlayerMoveIfPermitted();
@@ -181,11 +185,7 @@ class PlayerVsBotPage extends BasePage {
 
         this.#cancelButton.addEventListener('click', (e) => {
             if (isInfoBoxButtonEnabled(e)) {
-                this.#controller.cancel(() => {
-                    this.#boardGui.disablePlayerMove();
-                    this.#updateOutcomeLabel();
-                    this.#updateButtonsEnabled();
-                });
+                this.#handleClickedCancelButton();
             }
         });
 
@@ -221,6 +221,22 @@ class PlayerVsBotPage extends BasePage {
         let yesButtonText = 'resign';
         let noCallback = () => UI.hideModal(null);
         let noButtonText = 'no';
+        UI.showConfirmationModal(span, yesCallback, yesButtonText, noCallback, noButtonText);
+    }
+
+    #handleClickedCancelButton() {
+        const span = document.createElement('span');
+        span.innerText = 'Are you sure you want to cancel this game?';
+        const yesCallback = () => {
+            this.#controller.cancel(() => {
+                this.#boardGui.disablePlayerMove();
+                this.#updateOutcomeLabel();
+                this.#updateButtonsEnabled();
+            });
+        };
+        const yesButtonText = 'yes';
+        const noCallback = () => UI.hideModal(null);
+        const noButtonText = 'no';
         UI.showConfirmationModal(span, yesCallback, yesButtonText, noCallback, noButtonText);
     }
 
@@ -290,15 +306,18 @@ class PlayerVsBotPage extends BasePage {
     }
 
     #updateButtonsEnabled() {
-        if (isStatusFinished(this.#controller.gameStatus())) {
+        if (isStatusFinished(this.#controller.gameStatus()) && !this.#controller.isManchu()) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
             });
         } else {
+            const tooltip = this.#controller.isManchu()
+                ? 'Analysis is not supported for Manchu variant games'
+                : ANALYZE_BUTTON_TOOLTIP_DISABLED;
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
-                addToolTip(button, ANALYZE_BUTTON_TOOLTIP_DISABLED);
+                addToolTip(button, tooltip);
             });
         }
 
@@ -364,6 +383,7 @@ class PlayerVsBotPage extends BasePage {
                 new GameId(GameType.PVB, this.#controller.gameId),
                 this.#moveTreeWidget.getMainBranchNodes(),
                 this.#controller.startFen(),
+                this.#moveTreeWidget
             );
         }
     }
