@@ -311,7 +311,7 @@ class UserServiceTest : ServiceTest() {
         val profile = userService.fetchProfile(request.username)
         assertNull(profile.country)
 
-        val storedCountry = dslContext.fetchValue<String>(USER.COUNTRY, USER.ID.eq(userId))
+        val storedCountry = dslContext.fetchValueAsync(USER.COUNTRY, USER.ID.eq(userId))
         assertNull(storedCountry)
     }
 
@@ -442,18 +442,18 @@ class UserServiceTest : ServiceTest() {
         val gameId = gameResponse.gameId
 
         // Verify the game is initially owned by the guest
-        val inviterBefore = dslContext.fetchValue(GAME.INVITER, GAME.ID.eq(gameId))
+        val inviterBefore = dslContext.fetchValueAsync(GAME.INVITER, GAME.ID.eq(gameId))
         assertEquals(guestId.id, inviterBefore)
 
         // Sign up and pass the verified guest ID (simulating routing-level token extraction)
         val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The PvP game should now be owned by the new authenticated user
-        val inviterAfter = dslContext.fetchValue(GAME.INVITER, GAME.ID.eq(gameId))
+        val inviterAfter = dslContext.fetchValueAsync(GAME.INVITER, GAME.ID.eq(gameId))
         assertEquals(newUserId, inviterAfter)
 
         // The original guest user ID should be recorded on the game row
-        val guestUserIdAfter = dslContext.fetchValue(GAME.GUEST_USER_ID, GAME.ID.eq(gameId))
+        val guestUserIdAfter = dslContext.fetchValueAsync(GAME.GUEST_USER_ID, GAME.ID.eq(gameId))
         assertEquals(guestId.id, guestUserIdAfter)
     }
 
@@ -487,18 +487,18 @@ class UserServiceTest : ServiceTest() {
         pvbGameDaoService.insertGame(gameRecord, statusRecord)
 
         // Verify the bot game is initially owned by the guest
-        val userIdBefore = dslContext.fetchValue<String>(BOT_GAME.USER_ID, BOT_GAME.ID.eq(gameId))
+        val userIdBefore = dslContext.fetchValueAsync(BOT_GAME.USER_ID, BOT_GAME.ID.eq(gameId))
         assertEquals(guestId.id, userIdBefore)
 
         // Sign up and pass the verified guest ID
         val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The PvB game should now be owned by the new authenticated user
-        val userIdAfter = dslContext.fetchValue<String>(BOT_GAME.USER_ID, BOT_GAME.ID.eq(gameId))
+        val userIdAfter = dslContext.fetchValueAsync(BOT_GAME.USER_ID, BOT_GAME.ID.eq(gameId))
         assertEquals(newUserId, userIdAfter)
 
         // The original guest user ID should be recorded on the bot game row
-        val guestUserIdAfter = dslContext.fetchValue(BOT_GAME.GUEST_USER_ID, BOT_GAME.ID.eq(gameId))
+        val guestUserIdAfter = dslContext.fetchValueAsync(BOT_GAME.GUEST_USER_ID, BOT_GAME.ID.eq(gameId))
         assertEquals(guestId.id, guestUserIdAfter)
     }
 
@@ -524,10 +524,10 @@ class UserServiceTest : ServiceTest() {
         signUpTestUser()
 
         // The game should still belong to the guest
-        val inviterAfter = dslContext.fetchValue(GAME.INVITER, GAME.ID.eq(gameId))
+        val inviterAfter = dslContext.fetchValueAsync(GAME.INVITER, GAME.ID.eq(gameId))
         assertEquals(guestId.id, inviterAfter)
 
-        val guestUserId = dslContext.fetchValue(GAME.GUEST_USER_ID, GAME.ID.eq(gameId))
+        val guestUserId = dslContext.fetchValueAsync(GAME.GUEST_USER_ID, GAME.ID.eq(gameId))
         assertNull(guestUserId, "Guest user ID should be null since no transfer occurred")
     }
 
@@ -537,7 +537,7 @@ class UserServiceTest : ServiceTest() {
         val guestId = UserId(GUEST, guestTokenResponse.id)
 
         // Verify the guest starts with the default puzzle rating
-        val guestRatingBefore = dslContext.fetchValue<Int>(USER.PUZZLE_RATING, USER.ID.eq(guestId.id))
+        val guestRatingBefore = dslContext.fetchValueAsync(USER.PUZZLE_RATING, USER.ID.eq(guestId.id))
         assertEquals(800, guestRatingBefore)
 
         // Simulate the guest improving their puzzle rating
@@ -550,7 +550,7 @@ class UserServiceTest : ServiceTest() {
         val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The new user should have the guest's puzzle rating
-        val newUserRating = dslContext.fetchValue<Int>(USER.PUZZLE_RATING, USER.ID.eq(newUserId))
+        val newUserRating = dslContext.fetchValueAsync(USER.PUZZLE_RATING, USER.ID.eq(newUserId))
         assertEquals(950, newUserRating)
     }
 
@@ -586,14 +586,14 @@ class UserServiceTest : ServiceTest() {
         val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The puzzle result should now belong to the new user
-        val userIdAfter = dslContext.fetchValue(
+        val userIdAfter = dslContext.fetchValueAsync(
             PUZZLE_RESULT.USER_ID,
             PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId)
         )
         assertEquals(newUserId, userIdAfter)
 
         // The original guest user ID should be recorded on the puzzle result row
-        val guestUserIdAfter = dslContext.fetchValue(
+        val guestUserIdAfter = dslContext.fetchValueAsync(
             PUZZLE_RESULT.GUEST_USER_ID,
             PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId)
         )
@@ -621,14 +621,14 @@ class UserServiceTest : ServiceTest() {
         val newUserId = signUpTestUser(transferGuestData = true, guestUserId = guestId.id).second
 
         // The search query should now belong to the new user
-        val userIdAfter = dslContext.fetchValue(
+        val userIdAfter = dslContext.fetchValueAsync(
             REFERENCE_GAME_SEARCH_QUERY.USER_ID,
             REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId),
         )
         assertEquals(newUserId, userIdAfter)
 
         // The original guest user ID should be recorded on the search query row
-        val guestUserIdAfter = dslContext.fetchValue(
+        val guestUserIdAfter = dslContext.fetchValueAsync(
             REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID,
             REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId),
         )

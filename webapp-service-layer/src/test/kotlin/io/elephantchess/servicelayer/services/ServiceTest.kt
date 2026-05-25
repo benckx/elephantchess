@@ -36,8 +36,8 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
                         val dbConfig = DbConfig(
                             dbName = "postgres",
                             url = container.jdbcUrl,
-                            user = "postgres",
-                            password = "postgres",
+                            user = dbUser,
+                            password = dbPassword,
                         )
 
                         getDslContext(
