@@ -269,11 +269,6 @@ class AdminAnalyticsService(
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
-    suspend fun fetchPageViewStatsForUserProfiles(): MultipleTimeSeriesResponse {
-        val records = pageViewEventDaoService.fetchMonthlyUserProfilePageViews(userIdsExcludedFromAnalytics)
-        return mapPageViewRecordsToMultipleTimeseries(records)
-    }
-
     suspend fun fetchPageViewStatsForOwnUserProfiles(): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyOwnUserProfilePageViews(userIdsExcludedFromAnalytics)
         return mapPageViewRecordsToMultipleTimeseries(records)
