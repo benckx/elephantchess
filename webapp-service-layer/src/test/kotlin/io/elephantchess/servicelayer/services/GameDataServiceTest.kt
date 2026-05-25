@@ -1,19 +1,11 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.Tables.GAME
 import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
 import io.elephantchess.db.dao.codegen.Tables.GAME_STATUS_EVENT
 import io.elephantchess.db.dao.codegen.Tables.MOVE_ANALYSIS
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.utils.awaitExecute
-import io.elephantchess.db.services.MoveAnalysisDaoService
-import io.elephantchess.db.services.PlayerVsBotGameDaoService
-import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
-import io.elephantchess.db.services.ReferenceEventDaoService
-import io.elephantchess.db.services.ReferenceGameDaoService
-import io.elephantchess.db.services.ReferencePlayerDaoService
-import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
@@ -36,42 +28,17 @@ import kotlin.time.Duration.Companion.minutes
 
 class GameDataServiceTest : ServiceTest() {
 
-    private val appConfig by inject<AppConfig>()
-    private val databaseService by inject<DatabaseService>()
-    private val dslContext by inject<DSLContext>()
-    private val engineCacheService by inject<EngineCacheService>()
-    private val moveAnalysisDaoService by inject<MoveAnalysisDaoService>()
-    private val pvbGameDaoService by inject<PlayerVsBotGameDaoService>()
-    private val pvpGameService by inject<PlayerVsPlayerGameService>()
-    private val pvpGameDaoService by inject<PlayerVsPlayerGameDaoService>()
-    private val referenceEventDaoService by inject<ReferenceEventDaoService>()
-    private val referenceGameDaoService by inject<ReferenceGameDaoService>()
-    private val referencePlayerDaoService by inject<ReferencePlayerDaoService>()
-    private val userCache by inject<UserCache>()
-    private val userDaoService by inject<UserDaoService>()
+    override val enginesPool: EnginePool = mock()
 
-    private lateinit var gameDataService: GameDataService
+    private val dslContext by inject<DSLContext>()
+    private val gameDataService by inject<GameDataService>()
+    private val pvpGameService by inject<PlayerVsPlayerGameService>()
+
     private lateinit var userId: UserId
 
     @BeforeTest
     fun before() = runTest {
         userId = UserId(AUTHENTICATED, signUpTestUser().second)
-        gameDataService = GameDataService(
-            appConfig = appConfig,
-            enginesPool = mock<EnginePool>(),
-            databaseService = databaseService,
-            engineCacheService = engineCacheService,
-            moveAnalysisDaoService = moveAnalysisDaoService,
-            pvbGameDaoService = pvbGameDaoService,
-            pvpGameDaoService = pvpGameDaoService,
-            referenceGameDaoService = referenceGameDaoService,
-            referencePlayerDaoService = referencePlayerDaoService,
-            referenceEventDaoService = referenceEventDaoService,
-            userDaoService = userDaoService,
-            userService = userService,
-            userCache = userCache,
-            logger = logger
-        )
     }
 
     @AfterTest

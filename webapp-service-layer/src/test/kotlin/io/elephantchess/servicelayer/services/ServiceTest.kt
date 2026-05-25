@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.config.ArgConfig
 import io.elephantchess.config.DbConfig
 import io.elephantchess.db.utils.getDslContext
+import io.elephantchess.engines.EnginePool
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.serviceLayerModule
 import io.elephantchess.xiangqi.testutils.GameMovesDtoCache
@@ -24,6 +25,7 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
     protected val gameMovesCache by lazy { GameMovesDtoCache() }
     protected val manchuGameMovesCache by lazy { ManchuGameMovesDtoCache() }
     protected val userService by inject<UserService>()
+    protected open val enginesPool: EnginePool? = null
 
     @BeforeAll
     override fun beforeAll() {
@@ -32,6 +34,7 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
             modules(
                 serviceLayerModule(
                     argConfig = ArgConfig("local", null),
+                    enginesPool = enginesPool,
                     dslBuilder = {
                         val dbConfig = DbConfig(
                             dbName = "postgres",
