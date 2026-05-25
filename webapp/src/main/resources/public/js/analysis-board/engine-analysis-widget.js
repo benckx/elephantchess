@@ -48,10 +48,15 @@ class EngineAnalysisWidget {
     #startFen = DEFAULT_START_FEN;
     #useDefaultFen = true;
 
+    #movesUpToSelection = [];
+
     #evalBarContainer = document.getElementById('eval-bar-container');
     #depthSpan = document.getElementById('engine-depth');
     #enginePvDiv = document.getElementById('engine-pv');
     #engineRawLine = document.getElementById('engine-raw-line');
+
+    #pvMiniBoardGui = null;
+    #pvMiniBoardDiv = null;
 
     /**
      * @param analysisCache {AnalysisCache}
@@ -78,6 +83,7 @@ class EngineAnalysisWidget {
      *  @param movesUpToSelection {HalfMove[]}
      */
     update(movesUpToSelection) {
+        this.#movesUpToSelection = movesUpToSelection;
         const fen = this.#moveTreeWidget.getFenAtSelection();
         const selectedNode = this.#moveTreeWidget.selectedNode;
 
@@ -133,6 +139,11 @@ class EngineAnalysisWidget {
                                 this.#boardGui.highlightDynamicMove(move);
                             });
                         }
+
+                        // show mini board with the resulting position
+                        const pvMoves = this.#findAllMovesBefore(e.target.id);
+                        const resultFen = calculateFen([...this.#movesUpToSelection, ...pvMoves], this.#startFen);
+                        this.#showPvMiniBoard(e, resultFen);
                     });
 
                     enginePvMoveDiv.addEventListener('mouseout', () => {
@@ -145,6 +156,9 @@ class EngineAnalysisWidget {
                         if (HIGHLIGHT_PV_MOVES) {
                             this.#boardGui.hideAllHighlightedDynamicMoves();
                         }
+
+                        // hide mini board
+                        this.#hidePvMiniBoard();
                     });
                 });
             } else {
@@ -205,6 +219,53 @@ class EngineAnalysisWidget {
         let indicator = new EvalBarIndicator(engineResponse.cp, engineResponse.mate, engineResponse.eval);
         this.#evalBarContainer.innerHTML = '';
         this.#evalBarContainer.append(indicator.render());
+    }
+
+    #ensurePvMiniBoard() {
+        if (this.#pvMiniBoardDiv) return;
+
+        const miniBoardId = 'engine-pv-mini-board';
+        this.#pvMiniBoardDiv = document.createElement('div');
+        this.#pvMiniBoardDiv.id = miniBoardId;
+        this.#pvMiniBoardDiv.classList.add(
+            'board-container',
+            'mini-board-container',
+            'mini-board-overview'
+        );
+        document.body.appendChild(this.#pvMiniBoardDiv);
+
+        this.#pvMiniBoardGui = createWebappBoardGui({
+            elementId: miniBoardId,
+            showCoordinates: false,
+            mini: true,
+            forceRenderChecks: true,
+        });
+        this.#pvMiniBoardGui.flipToColor(this.#boardGui.bottomColor);
+
+        // keep mini board orientation in sync with the main board
+        this.#boardGui.addAfterFlipListener(color => {
+            this.#pvMiniBoardGui.flipToColor(color);
+        });
+    }
+
+    /**
+     * @param mouseEvent {MouseEvent}
+     * @param fen {string}
+     */
+    #showPvMiniBoard(mouseEvent, fen) {
+        this.#ensurePvMiniBoard();
+        this.#pvMiniBoardGui.loadFen(fen);
+
+        const CURSOR_OFFSET = 16;
+        this.#pvMiniBoardDiv.style.top = `${mouseEvent.pageY + CURSOR_OFFSET}px`;
+        this.#pvMiniBoardDiv.style.left = `${mouseEvent.pageX}px`;
+        this.#pvMiniBoardDiv.style.display = 'block';
+    }
+
+    #hidePvMiniBoard() {
+        if (this.#pvMiniBoardDiv) {
+            this.#pvMiniBoardDiv.style.display = 'none';
+        }
     }
 
     /**

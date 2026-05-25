@@ -5,7 +5,6 @@
     <meta name="description"
           content="Browse Database (DB) games from tournaments and events.">
     <link rel="stylesheet" href="/css/browse-games.css"/>
-    <script defer src="/js/widgets/settings-manager.js"></script>
     <script defer src="/js/widgets/board-gui.js"></script>
     <script defer src="/js/widgets/game-thumb.js"></script>
     <script defer src="/js/infinite-scroll-page.js"></script>
@@ -19,7 +18,7 @@
     <h1>{{page_title}} Games</h1>
     <hr class="only-desktop"/>
     <div id="db-games-container">
-        {{game_thumb}}[[iterations:12; {gameType: 'db', parentClass: 'db-game-thumb'}]]
+        {{game_thumb}}[[iterations:6; {gameType: 'db', parentClass: 'db-game-thumb'}]]
     </div>
     <div id="is-loading-message" style="display: none;">
         Loading more games...
