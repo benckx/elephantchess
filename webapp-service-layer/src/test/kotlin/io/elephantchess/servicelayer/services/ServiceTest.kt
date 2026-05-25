@@ -56,10 +56,19 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
         super.afterAll()
     }
 
-    suspend fun signUpTestUser(i: Int = RandomUtils.nextInt(1_000, 1_000_000)): Pair<SignUpRequest, String> {
+    suspend fun signUpTestUser(
+        i: Int = RandomUtils.nextInt(1_000, 1_000_000),
+        transferGuestData: Boolean = false,
+        guestUserId: String? = null,
+    ): Pair<SignUpRequest, String> {
         val password = insecure().nextAlphanumeric(10)
-        val request = SignUpRequest("test$i", "test$i@gmail.com", password)
-        val either = userService.signUp(request)
+        val request = SignUpRequest(
+            username = "test$i",
+            email = "test$i@gmail.com",
+            password = password,
+            transferGuestData = transferGuestData,
+        )
+        val either = userService.signUp(request, guestUserId = guestUserId)
         return request to either.right().userId
     }
 
