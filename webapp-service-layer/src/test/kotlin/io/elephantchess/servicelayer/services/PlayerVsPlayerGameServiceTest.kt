@@ -668,7 +668,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         // different time category (BLITZ vs RAPID): should succeed
         pvpGameService.createGame(userId1, request.copy(timeControlBase = 3.minutes.inWholeSeconds.toInt()))
         assertEquals(4, countGameByStatus(CREATED))
-        assertEquals(4, countGameByStatus(CREATED))
     }
 
     /**
