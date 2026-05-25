@@ -6,9 +6,10 @@ import io.elephantchess.db.utils.getDslContext
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.serviceLayerModule
 import io.elephantchess.xiangqi.testutils.GameMovesDtoCache
+import io.elephantchess.xiangqi.testutils.ManchuGameMovesDtoCache
 import io.github.oshai.kotlinlogging.KotlinLogging
 import liquibase.resource.ClassLoaderResourceAccessor
-import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
+import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.koin.core.component.KoinComponent
@@ -21,6 +22,7 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
 
     protected val logger = KotlinLogging.logger {}
     protected val gameMovesCache by lazy { GameMovesDtoCache() }
+    protected val manchuGameMovesCache by lazy { ManchuGameMovesDtoCache() }
     protected val userService by inject<UserService>()
 
     @BeforeAll
@@ -34,8 +36,8 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
                         val dbConfig = DbConfig(
                             dbName = "postgres",
                             url = container.jdbcUrl,
-                            user = "postgres",
-                            password = "postgres",
+                            user = dbUser,
+                            password = dbPassword,
                         )
 
                         getDslContext(
@@ -54,11 +56,20 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
         super.afterAll()
     }
 
-    suspend fun signUpTestUser(i: Int = RandomUtils.nextInt(1_000, 1_000_000)): Pair<SignUpRequest, String> {
-        val password = randomAlphanumeric(10)
-        val testUserIdentifier = "$i-${randomAlphanumeric(6)}"
-        val request = SignUpRequest("test$testUserIdentifier", "test$testUserIdentifier@gmail.com", password)
-        val either = userService.signUp(request)
+    suspend fun signUpTestUser(
+        i: Int = RandomUtils.nextInt(1_000, 1_000_000),
+        transferGuestData: Boolean = false,
+        guestUserId: String? = null,
+    ): Pair<SignUpRequest, String> {
+        val password = insecure().nextAlphanumeric(10)
+        val testUserIdentifier = "$i-${insecure().nextAlphanumeric(6)}"
+        val request = SignUpRequest(
+            username = "test$testUserIdentifier",
+            email = "test$testUserIdentifier@gmail.com",
+            password = password,
+            transferGuestData = transferGuestData,
+        )
+        val either = userService.signUp(request, guestUserId = guestUserId)
         return request to either.right().userId
     }
 

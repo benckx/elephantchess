@@ -27,6 +27,7 @@ class GameEntryDto {
     #color;
     #isRated;
     #timeControlCategory;
+    #timeControl;
     #opponentUserType;
     #opponentUserId;
     #opponentUsername;
@@ -35,6 +36,7 @@ class GameEntryDto {
     #ratingTo;
     #numberOfMessages;
     #isPreAnalyzed;
+    #variant;
 
     /**
      * @type {number}
@@ -55,6 +57,11 @@ class GameEntryDto {
         this.#color = json.color;
         this.#isRated = json.isRated;
         this.#timeControlCategory = json.timeControlCategory;
+        try {
+            this.#timeControl = TimeControl.fromJson(json);
+        } catch (_) {
+            this.#timeControl = null;
+        }
         this.#opponentUserType = json.opponentUserType;
         this.#opponentUserId = json.opponentUserId;
         this.#opponentUsername = json.opponentUsername;
@@ -65,6 +72,7 @@ class GameEntryDto {
         this.#lastUpdated = json.lastUpdated;
         this.#numberOfMessages = json.numberOfMessages;
         this.#isPreAnalyzed = json.isPreAnalyzed;
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
@@ -125,6 +133,13 @@ class GameEntryDto {
 
     get timeControlCategory() {
         return this.#timeControlCategory;
+    }
+
+    /**
+     * @return {TimeControl|null}
+     */
+    get timeControl() {
+        return this.#timeControl;
     }
 
     /**
@@ -243,6 +258,13 @@ class GameEntryDto {
      */
     get isPreAnalyzed() {
         return this.#isPreAnalyzed;
+    }
+
+    /**
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
     }
 
 }

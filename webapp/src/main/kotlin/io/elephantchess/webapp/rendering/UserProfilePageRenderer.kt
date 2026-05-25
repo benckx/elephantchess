@@ -1,10 +1,16 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.HtmlRenderer
+import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.UserProfile
 import io.elephantchess.utils.cropToFirstNWords
+import io.ktor.http.encodeURLPath
+import kotlinx.html.div
+import kotlinx.html.id
+import kotlinx.html.img
+import kotlinx.html.p
 
 class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
@@ -15,6 +21,7 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/user_profile.html",
+            canonicalPath = "/@/${username.encodeURLPath()}",
             specificTagResolvers = listOf(
                 noIndexMeta(description),
                 SimpleValueTagResolver("user_id", userProfile.userId),
@@ -48,33 +55,40 @@ class UserProfilePageRenderer(private val htmlRenderer: HtmlRenderer) {
     }
 
     private fun flagPanelTagResolver(countryCode: String?): TagResolver {
-        return CallbackTagResolver("flag_header_panel") {
-            if (countryCode != null) {
-                """<div id="flag-header-panel" class="profile-header-panel" data-country-code="$countryCode">
-                    |<img id="profile-flag" class="flag-icons" src="/images/flags/$countryCode.svg" alt="$countryCode"/>
-                    |</div>""".trimMargin()
-            } else {
-                ""
+        return KtorHtmlBuilderTagResolver("flag_header_panel") {
+            if (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)) {
+                div("profile-header-panel") {
+                    id = "flag-header-panel"
+                    attributes["data-country-code"] = countryCode
+                    img(alt = countryCode, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
+                        id = "profile-flag"
+                    }
+                }
             }
         }
     }
 
     private fun descriptionDivTagResolver(username: String, description: String?): TagResolver {
-        return CallbackTagResolver("user_profile_description") {
-            if (description != null) {
-                buildString {
-                    append("""<div id="profile-description">""")
-                    append(formatNewLinesToHtmlParagraphs(description))
-                    append("""</div>""")
+        return KtorHtmlBuilderTagResolver("user_profile_description") {
+            if (!description.isNullOrBlank()) {
+                div {
+                    id = "profile-description"
+                    description.toParagraphs().forEach { p { +it } }
                 }
             } else {
-                buildString {
-                    append("""<div id="profile-description" class="empty-block-placeholder">""")
-                    append("$username has not filled their description yet.")
-                    append("""</div>""")
+                div("empty-block-placeholder") {
+                    id = "profile-description"
+                    +"$username has not filled their description yet."
                 }
             }
         }
+    }
+
+    suspend fun renderUserBrowsePvpGames(username: String): String {
+        return htmlRenderer.renderHtml(
+            "/templates/user_browse_pvp_games.html",
+            specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
+        )
     }
 
 }

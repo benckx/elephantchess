@@ -25,6 +25,7 @@ class ApexChartWidget {
     #container;
     #chartOptions = {};
     #shouldRender = false;
+    #chart = null;
 
     /**
      * @param containerId {string}
@@ -51,11 +52,20 @@ class ApexChartWidget {
      */
     render() {
         if (this.#shouldRender) {
+            this.destroy();
             // noinspection JSUnresolvedFunction
-            new ApexCharts(this.#container, this.#chartOptions).render();
+            this.#chart = new ApexCharts(this.#container, this.#chartOptions);
+            this.#chart.render();
             return true;
         } else {
             return false;
+        }
+    }
+
+    destroy() {
+        if (this.#chart != null) {
+            this.#chart.destroy();
+            this.#chart = null;
         }
     }
 

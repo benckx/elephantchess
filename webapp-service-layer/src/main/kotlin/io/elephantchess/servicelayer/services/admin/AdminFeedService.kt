@@ -92,7 +92,8 @@ class AdminFeedService(
                     winnerUserId = record.winnerUserId(),
                     created = record.created.toEpochMilliseconds(),
                     lastUpdated = record.lastUpdated.toEpochMilliseconds(),
-                    sourceType = record.joinSource
+                    sourceType = record.joinSource,
+                    variant = record.variant
                 )
             }
             .let { entries ->
@@ -103,7 +104,7 @@ class AdminFeedService(
     suspend fun listLastBotGames(): ListBotGamesResponse {
         val entries =
             pvbGameDaoService
-                .listLastGamesByIdentifiedUsers(80)
+                .listLatestGamesByIdentifiedUsers(80)
                 .map { gameRecord -> mapBotGameToDto(gameRecord) }
 
         return ListBotGamesResponse(entries)
@@ -125,6 +126,7 @@ class AdminFeedService(
             isPreAnalyzed = record.analysisStatus == AnalysisStatus.COMPLETED,
             created = record.created.toEpochMilliseconds(),
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+            variant = record.variant,
         )
     }
 
