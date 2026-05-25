@@ -20,6 +20,47 @@
         </a>
     </h1>
     <hr/>
+    <h4>2026-05-25</h4>
+    <ul>
+        <li>
+            User profile game stats (W / D / L)
+            (<a href="https://github.com/benckx/elephantchess/issues/628" target="_blank">issue #628</a>)
+        </li>
+        <li>
+            CSS fix: scope profile online-indicator spacing override to restore username gap
+            (<a href="https://github.com/benckx/elephantchess/issues/701" target="_blank">issue #701</a>)
+        </li>
+        <li>
+            On user profile, show only 2 latest PvP games on mobile
+            (<a href="https://github.com/benckx/elephantchess/issues/697" target="_blank">issue #697</a>)
+        </li>
+        <li>
+            Render dynamic PvP/PvB page titles from game participants
+            (<a href="https://github.com/benckx/elephantchess/issues/704" target="_blank">issue #704</a>)
+        </li>
+        <li>
+            Include short checkmated/stalemated games in total and Manchu counters in
+            <a href="/global?medium=changelog">Global</a> page
+            (<a href="https://github.com/benckx/elephantchess/issues/699" target="_blank">issue #699</a>)
+        </li>
+        <li>
+            <a href="/database?medium=changelog">Database</a> search: show player-relative WIN/LOSS outcomes for
+            player-specific queries
+            (<a href="https://github.com/benckx/elephantchess/issues/444" target="_blank">issue #444</a>)
+        </li>
+        <li>
+            Limit users to 3 new PvP games per time category
+            (<a href="https://github.com/benckx/elephantchess/issues/339" target="_blank">issue #339</a>)
+        </li>
+        <li>
+            Add move timestamps to PvP game DTO; reflect clock + chat state when navigating moves
+            (<a href="https://github.com/benckx/elephantchess/issues/556" target="_blank">issue #556</a>)
+        </li>
+        <li>
+            Dynamic matching of pending games when inviters come back online
+            (<a href="https://github.com/benckx/elephantchess/issues/420" target="_blank">issue #420</a>)
+        </li>
+    </ul>
     <h4>2026-05-24</h4>
     <ul>
         <li>
@@ -252,6 +293,12 @@
         </li>
         <li>
             Decrease number of default game thumbs in all the "browse" pages
+        </li>
+        <li>
+            Dynamic matching: when users come back online, their pending games are now automatically paired
+            with other compatible pending games whose inviters are also online (whereas previously matching only
+            happened at game creation time)
+            (<a href="https://github.com/benckx/elephantchess/issues/420" target="_blank">issue #420</a>)
         </li>
     </ul>
     <h4>2026-05-12</h4>

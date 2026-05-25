@@ -20,7 +20,6 @@ import io.elephantchess.model.Outcome.RED_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
-import io.elephantchess.servicelayer.dto.gamedata.GameMovesResponse
 import io.elephantchess.servicelayer.dto.ws.*
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.ForbiddenException
@@ -72,6 +71,8 @@ class PlayerVsPlayerGameService(
     refresherScope: CoroutineScope
 ) {
 
+    private val dynamicMatchingPeriod = 5.seconds
+
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
     private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
     private val playerVsPlayerSessions = mutableListOf<PlayerVsPlayerWebSocketSession>()
@@ -90,9 +91,22 @@ class PlayerVsPlayerGameService(
         action = { refreshGamesToPlaySessions() }
     )
 
+    private val dynamicMatchingJob = launchAtFixedRate(
+        scope = refresherScope,
+        initialDelay = dynamicMatchingPeriod,
+        period = dynamicMatchingPeriod,
+        action = {
+            val onlineUserIds = userService.onlineUserIds()
+            if (onlineUserIds.size >= 2) {
+                findDynamicMatches(onlineUserIds)
+            }
+        }
+    )
+
     fun cancel() {
         pvpSessionsRefreshJob.cancel()
         gamesToPlayRefreshJob.cancel()
+        dynamicMatchingJob.cancel()
     }
 
     private suspend fun refreshGamesToPlaySessions() {
@@ -324,11 +338,20 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to create correspondence games")
         }
 
+        // limit the number of CREATED games a user can have with the same settings
+        val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
+        val createdGamesCount = pvpGameDaoService.countCreatedGamesByUser(
+            userId.id,
+            timeControlCategory,
+        )
+        if (createdGamesCount >= MAX_CREATED_GAMES_PER_SETTINGS) {
+            throw BadRequestException("You already have $MAX_CREATED_GAMES_PER_SETTINGS pending games with the same settings")
+        }
+
         // if user is a guest, always allow guests to join
         // it should be disabled by UI already, so it's additional backend validation
         val allowGuests = userId.userType == UserType.GUEST || request.allowGuests
 
-        val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
         val userRating = getUserRating(userId.id, timeControlCategory, request.variant)
 
         // if such a game already exists, join it instead of creating a new one
@@ -394,6 +417,68 @@ class PlayerVsPlayerGameService(
         )
             .filter { gameRecord -> isOnline(gameRecord.inviter) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
+    }
+
+    /**
+     * Pair together pending games whose inviters are now both online but did
+     * not match when the games were created (e.g. because they were not online
+     * at the same time). For each pair, the newer game's inviter joins the
+     * older game and the newer game is auto-cancelled.
+     */
+    internal suspend fun findDynamicMatches(onlineUserIds: Set<String>) {
+        val candidates = pvpGameDaoService
+            .listGamesOpenToJoin()
+            .filter { game -> onlineUserIds.contains(game.inviter) }
+            .sortedBy { game -> game.created }
+
+        if (candidates.size < 2) return
+
+        val matched = mutableSetOf<String>()
+
+        // iterate newest first so the inviter who has been waiting the longest
+        // keeps their game (the newer inviter joins the older game)
+        for (joinerGame in candidates.reversed()) {
+            if (joinerGame.id in matched) continue
+            val joinerId = joinerGame.inviter
+            val joinerUserType = userCache.fetchUserType(joinerId) ?: continue
+
+            val timeControlCategory = joinerGame.timeControlCategory
+            val joinerVariant = joinerGame.variant
+            val joinerRating = getUserRating(joinerId, timeControlCategory, joinerVariant)
+
+            val joinerRequest = CreateGameRequest(
+                inviterColor = joinerGame.inviterColor,
+                isRated = joinerGame.isRated,
+                timeControlBase = joinerGame.timeControlBase,
+                timeControlIncrement = joinerGame.timeControlIncrement,
+                timeControlMode = joinerGame.timeControlMode,
+                allowGuests = joinerGame.allowGuestsToJoin,
+                alwaysVisibleInLobby = joinerGame.alwaysVisibleInLobby,
+                // candidates are guaranteed non-private by listGamesOpenToJoin,
+                // and listCompatibleGames also filters out private games
+                privateInvite = false,
+                variant = joinerVariant,
+            )
+
+            val joinerUserId = UserId(joinerUserType, joinerId)
+            val matchGame = findMatchingGame(joinerUserId, joinerRating, joinerRequest)
+                ?.takeIf { it.id !in matched }
+                ?: continue
+
+            try {
+                joinGame(joinerUserId, JoinGameRequest(matchGame.id, GameJoinSource.DYNAMIC_MATCHED, null))
+                autoCancelGame(joinerGame.id)
+                matched += joinerGame.id
+                matched += matchGame.id
+                logger.debug {
+                    "dynamic matching: user $joinerId's game ${joinerGame.id} matched with ${matchGame.id}"
+                }
+            } catch (e: Exception) {
+                logger.warn(e) {
+                    "dynamic matching failed for ${joinerGame.id} -> ${matchGame.id}"
+                }
+            }
+        }
     }
 
     /**
@@ -568,9 +653,13 @@ class PlayerVsPlayerGameService(
         )
     }
 
-    // TODO: use generic service instead
-    suspend fun fetchMoveHistory(gameId: String): GameMovesResponse {
-        return GameMovesResponse(pvpGameDaoService.listMoves(gameId))
+    suspend fun fetchMoveHistory(gameId: String): PvpMoveHistoryResponse {
+        val timedMoves = pvpGameDaoService.fetchTimedMoveHistory(gameId)
+        val joinTime = pvpGameDaoService.fetchJoinTime(gameId)
+        return PvpMoveHistoryResponse(
+            moves = timedMoves.map { GameMoveEntry(it.uci, it.eventTime.toEpochMilliseconds()) },
+            joinTime = joinTime?.toEpochMilliseconds(),
+        )
     }
 
     suspend fun fetchChatHistory(gameId: String): GetChatMessageHistoryResponse {
@@ -1151,6 +1240,7 @@ class PlayerVsPlayerGameService(
 
         val NOTIFICATIONS_OFFLINE_FOR = 2.minutes
         const val MESSAGE_LENGTH_LIMIT = 200
+        const val MAX_CREATED_GAMES_PER_SETTINGS = 3
 
         /**
          * Maximum age of a typing event we are willing to surface to a client.

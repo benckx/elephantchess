@@ -24,6 +24,8 @@ import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import kotlin.test.*
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 class PlayerVsPlayerGameServiceTest : ServiceTest() {
@@ -281,6 +283,101 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
         assertEquals(0, countGameByStatus(JOINED))
         assertEquals(2, countGameByStatus(CREATED))
+    }
+
+    /**
+     * Two users created compatible games while not being online at the same
+     * time (so the regular matching at creation time did not pair them).
+     * When both users come back online, the dynamic matching routine should
+     * pair the two games together.
+     */
+    @Test
+    fun dynamicMatchingTest01() = runTest {
+        // user2 is offline when user1 creates their game
+        setUserOffline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        val request1 = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+
+        val response1 = pvpGameService.createGame(userId1, request1)
+        assertEquals(CREATED, response1.eventType)
+
+        // user1 is offline when user2 creates their compatible game
+        setUserOffline(userId1.id)
+        setUserOnline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        val response2 = pvpGameService.createGame(userId2, request1.copy(inviterColor = BLACK))
+        assertEquals(CREATED, response2.eventType)
+
+        // both games remain pending because the other inviter was offline
+        assertEquals(0, countGameByStatus(JOINED))
+        assertEquals(2, countGameByStatus(CREATED))
+
+        // both users come back online → dynamic matching should pair them
+        setUserOnline(userId1.id)
+        setUserOnline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+
+        assertEquals(1, countGameByStatus(JOINED))
+        assertEquals(0, countGameByStatus(CREATED))
+        assertEquals(1, countGameByStatus(AUTO_CANCELED))
+    }
+
+    /**
+     * If two pending games are incompatible (e.g. both inviters want the same
+     * color) dynamic matching should not pair them, even when both inviters
+     * are online.
+     */
+    @Test
+    fun dynamicMatchingIncompatibleTest01() = runTest {
+        // user2 is offline when user1 creates their game
+        setUserOffline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        val request1 = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+
+        val response1 = pvpGameService.createGame(userId1, request1)
+        assertEquals(CREATED, response1.eventType)
+
+        // user1 is offline when user2 creates a game with the same color
+        setUserOffline(userId1.id)
+        setUserOnline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        val response2 = pvpGameService.createGame(userId2, request1.copy())
+        assertEquals(CREATED, response2.eventType)
+
+        // both back online; games are incompatible (both RED) → no match
+        setUserOnline(userId1.id)
+        setUserOnline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+
+        assertEquals(0, countGameByStatus(JOINED))
+        assertEquals(2, countGameByStatus(CREATED))
+        assertEquals(0, countGameByStatus(AUTO_CANCELED))
     }
 
     /**
@@ -563,6 +660,67 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     /**
+     * User should not be able to create more than 3 CREATED PvP games with the same settings.
+     */
+    @Test
+    fun createGameLimitTest01() = runTest {
+        val request = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = false,
+            alwaysVisibleInLobby = false,
+            privateInvite = true
+        )
+
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+
+        assertEquals(3, countGameByStatus(CREATED))
+
+        val e = assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, request)
+        }
+        assertEquals("You already have 3 pending games with the same settings", e.message)
+
+        assertEquals(3, countGameByStatus(CREATED))
+    }
+
+    /**
+     * Limit is per time category: different category should allow new games, but different color should not.
+     */
+    @Test
+    fun createGameLimitTest02() = runTest {
+        val request = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = false,
+            alwaysVisibleInLobby = false,
+            privateInvite = true
+        )
+
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+
+        // different color but same time category: should still be rejected
+        assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, request.copy(inviterColor = BLACK))
+        }
+
+        // different time category (BLITZ vs RAPID): should succeed
+        pvpGameService.createGame(userId1, request.copy(timeControlBase = 3.minutes.inWholeSeconds.toInt()))
+
+        assertEquals(4, countGameByStatus(CREATED))
+    }
+
+    /**
      * Two Manchu games with compatible colors should be matched together.
      */
     @Test
@@ -715,5 +873,21 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleValue()!!
+
+    private suspend fun setUserOffline(userId: String) {
+        dslContext
+            .update(USER)
+            .set(USER.LAST_ONLINE, Clock.System.now().minus(1.hours))
+            .where(USER.ID.eq(userId))
+            .awaitExecute()
+    }
+
+    private suspend fun setUserOnline(userId: String) {
+        dslContext
+            .update(USER)
+            .set(USER.LAST_ONLINE, Clock.System.now())
+            .where(USER.ID.eq(userId))
+            .awaitExecute()
+    }
 
 }
