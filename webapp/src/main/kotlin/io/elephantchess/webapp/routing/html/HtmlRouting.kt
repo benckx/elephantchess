@@ -8,8 +8,10 @@ import io.elephantchess.webapp.ops.*
 import io.elephantchess.webapp.rendering.*
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
+import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.content.TextContent
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -22,7 +24,6 @@ private val simplePublicPageMapping = mapOf(
     "/401" to "401",
     "/403" to "403",
     "/404" to "404",
-    "/game" to "player_vs_player_game",
     "/puzzles" to "puzzles",
     "/board" to "test_board",
     "/database" to "database/database_search",
@@ -35,6 +36,7 @@ private val simplePublicPageMapping = mapOf(
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
     "/contact" to "contact_form",
+    "/how-to-play-xiangqi" to "how_to_play_xiangqi",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
     "/7k/playground" to "seven_kingdoms/seven_kingdoms_playground",
     "/7k/about" to "seven_kingdoms/seven_kingdoms_about",
@@ -42,7 +44,6 @@ private val simplePublicPageMapping = mapOf(
 
 private val simplePublicPageMappingWithSupporterBanner = mapOf(
     "/" to "lobby",
-    "/playbot" to "player_vs_bot",
 )
 
 private val publicPageRedirection = mapOf(
@@ -91,12 +92,35 @@ fun Application.htmlRoutingModule() {
     routing {
         simpleMappings()
         simpleMappingsWithSupporterBanner()
+        gamePages()
         boardGuiExample()
         userProfile()
         modals()
         databasePages()
         aboutPages()
         emailSettingUpdatePages()
+    }
+}
+
+private fun Route.gamePages() {
+    val gamePageRenderer by koin<GamePageRenderer>()
+
+    get("/game") {
+        val gameId = call.parameters["id"]
+        if (gameId == null) {
+            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+        } else {
+            call.respondHtml(gamePageRenderer.renderPvpGamePage(gameId))
+        }
+    }
+
+    get("/playbot") {
+        val gameId = call.parameters["id"]
+        if (gameId == null) {
+            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+        } else {
+            call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId))
+        }
     }
 }
 
