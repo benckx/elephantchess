@@ -704,9 +704,9 @@ For PvP tests, run each player in a different private context so each one gets a
 import { test, chromium } from '@playwright/test';
 
 test('pvp with 2 guest sessions', async () => {
-    const browser = await chromium.launch();
-    const player1Context = await browser.newContext(); // isolated storage
-    const player2Context = await browser.newContext(); // isolated storage
+    const browser = await chromium.launch(); // `async ({ browser })` can be used with Playwright fixtures too
+    const player1Context = await browser.newContext();
+    const player2Context = await browser.newContext();
 
     const player1Page = await player1Context.newPage();
     const player2Page = await player2Context.newPage();
