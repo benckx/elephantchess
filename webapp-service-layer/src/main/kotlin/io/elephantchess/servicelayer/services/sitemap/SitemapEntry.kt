@@ -1,4 +1,4 @@
-package io.elephantchess.webapp.sitemap
+package io.elephantchess.servicelayer.services.sitemap
 
 import java.time.LocalDate
 
