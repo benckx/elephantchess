@@ -19,7 +19,6 @@
 
 let scheduleEvalChartRenderTimeout = null;
 let evalLineChart = null;
-let selectedNodeForEvalChart = undefined;
 const EVAL_LINE_CHART_RENDER_DEBOUNCE_MS = 120;
 
 /**
@@ -36,17 +35,6 @@ function buildEvalChartClickCallback(moveTreeWidget) {
             moveTreeWidget.navigateToStart();
         }
     };
-}
-
-/**
- * Stores the given node as the current selection and updates the eval chart indicator if the chart is visible.
- * Call this instead of {@code evalLineChart?.selectNode()} to ensure the selection survives chart re-creation.
- *
- * @param node {MoveTreeNode|null} the selected node, or null for the start position
- */
-function setEvalChartSelectedNode(node) {
-    selectedNodeForEvalChart = node;
-    evalLineChart?.selectNode(node);
 }
 
 /**
@@ -73,11 +61,6 @@ function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode = nul
         }
         evalLineChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen, onClickNode);
         evalLineChart.render();
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-            if (selectedNodeForEvalChart !== undefined) {
-                evalLineChart?.selectNode(selectedNodeForEvalChart);
-            }
-        }));
     }, EVAL_LINE_CHART_RENDER_DEBOUNCE_MS);
 }
 

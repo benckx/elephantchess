@@ -501,7 +501,6 @@ class AnalysisBoardPage extends BasePage {
         }
 
         this.#renderEngineArrows();
-        setEvalChartSelectedNode(this.#moveTreeWidget.selectedNode);
     }
 
     #startToPollAnalysisStatus() {

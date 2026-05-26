@@ -23,9 +23,6 @@
  */
 class EvalLineChart extends ApexChartWidget {
 
-    #nodesForDataPoints = [];
-    #indicator = null;
-
     /**
      * @param containerId {string}
      * @param nodes {MoveTreeNode[]}
@@ -90,8 +87,6 @@ class EvalLineChart extends ApexChartWidget {
             document.getElementById(containerId).style.cursor = 'pointer';
         }
 
-        this.#nodesForDataPoints = nodesForDataPoints;
-
         if (evalData.length > 1) {
             this.chartOptions = {
                 series: [
@@ -123,7 +118,6 @@ class EvalLineChart extends ApexChartWidget {
                     categories: categories,
                     tickAmount: Math.min(8, categories.length - 1),
                     tooltip: {enabled: false},
-                    crosshairs: {show: false},
                     labels: {
                         style: {colors: '#555555', fontSize: '10px'},
                         rotate: 0,
@@ -170,64 +164,28 @@ class EvalLineChart extends ApexChartWidget {
                         }
                     ]
                 },
-                tooltip: {enabled: false},
+                tooltip: {
+                    theme: 'dark',
+                    // Custom tooltip: display Black advantage as a positive value (e.g. "+0.9" instead of "-0.9").
+                    custom: ({dataPointIndex}) => {
+                        const cat = categories[dataPointIndex];
+                        const val = evalData[dataPointIndex];
+                        const isPositive = val >= 0;
+                        const color = '#022e7d';
+                        const label = isPositive ? 'Red advantage' : 'Black advantage';
+                        const display = '+' + Math.abs(val).toFixed(1);
+                        return '<div class="apexcharts-tooltip-title" style="font-size:12px;">' + cat + '</div>'
+                            + '<div style="padding:4px 10px 6px 10px;font-size:12px;">'
+                            + '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + color + ';margin-right:6px;vertical-align:middle;"></span>'
+                            + label + ':&nbsp;<strong>' + display + '</strong>'
+                            + '</div>';
+                    }
+                },
                 legend: {show: false}
             };
 
-            const indicator = document.createElement('div');
-            indicator.style.cssText = 'position:absolute;width:2px;background:#FF6B00;display:none;pointer-events:none;z-index:10';
-            const container = document.getElementById(containerId);
-            container.style.position = 'relative';
-            container.appendChild(indicator);
-            this.#indicator = indicator;
-
             this.enableRender();
         }
-    }
-
-    /**
-     * Moves the indicator overlay to the position of the given node.
-     * Passing null selects the start position. Passing undefined hides the indicator.
-     *
-     * @param node {MoveTreeNode|null|undefined}
-     */
-    selectNode(node) {
-        if (!this.#indicator) return;
-
-        if (node === undefined) {
-            this.#indicator.style.display = 'none';
-            return;
-        }
-
-        const idx = node == null
-            ? this.#nodesForDataPoints.indexOf(null)
-            : this.#nodesForDataPoints.findIndex(n => n != null && n.nodeId === node.nodeId);
-
-        if (idx < 0) {
-            this.#indicator.style.display = 'none';
-            return;
-        }
-
-        const container = this.#indicator.parentElement;
-        const gridEl = container?.querySelector('.apexcharts-grid');
-        if (!gridEl) {
-            this.#indicator.style.display = 'none';
-            return;
-        }
-
-        const containerRect = container.getBoundingClientRect();
-        const gridRect = gridEl.getBoundingClientRect();
-        const plotLeft = gridRect.left - containerRect.left;
-        const plotTop = gridRect.top - containerRect.top;
-        const plotWidth = gridRect.width;
-        const plotHeight = gridRect.height;
-        const N = this.#nodesForDataPoints.length;
-        const x = plotLeft + (N > 1 ? (idx / (N - 1)) * plotWidth : plotWidth / 2);
-
-        this.#indicator.style.left = Math.round(x - 1) + 'px';
-        this.#indicator.style.top = plotTop + 'px';
-        this.#indicator.style.height = plotHeight + 'px';
-        this.#indicator.style.display = 'block';
     }
 
 }
