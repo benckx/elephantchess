@@ -552,8 +552,7 @@ class UserService(
         const val MAX_DESCRIPTION_LENGTH = 1_000
 
         private val EMAIL_REGEX = "^[A-Za-z0-9][^\\s]*@[^\\s]+\\.[^\\s]+$".toRegex()
-        private val CONTENT_PAGE_ID_REGEX = Regex("^[a-z0-9]+(?:-[a-z0-9]+)*$")
-        private val CONTENT_SECTION_ID_REGEX = Regex("^[a-z0-9]+(?:-[a-z0-9]+)*$")
+        private val DASH_SEPARATED_ID_REGEX = Regex("^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
         private fun validatePassword(password: String): String? {
             return if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
@@ -573,10 +572,10 @@ class UserService(
             chars.matches(EMAIL_REGEX)
 
         private fun isContentPageIdValid(pageId: String): Boolean =
-            pageId.length <= 40 && CONTENT_PAGE_ID_REGEX.matches(pageId)
+            pageId.length <= 40 && DASH_SEPARATED_ID_REGEX.matches(pageId)
 
         private fun isContentSectionIdValid(sectionId: String): Boolean =
-            sectionId.length <= 80 && CONTENT_SECTION_ID_REGEX.matches(sectionId)
+            sectionId.length <= 80 && DASH_SEPARATED_ID_REGEX.matches(sectionId)
 
     }
 
