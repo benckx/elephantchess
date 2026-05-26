@@ -23,6 +23,9 @@
  */
 class EvalLineChart extends ApexChartWidget {
 
+    #nodesForDataPoints = [];
+    #categories = [];
+
     /**
      * @param containerId {string}
      * @param nodes {MoveTreeNode[]}
@@ -86,6 +89,9 @@ class EvalLineChart extends ApexChartWidget {
         if (onClickNode != null) {
             document.getElementById(containerId).style.cursor = 'pointer';
         }
+
+        this.#nodesForDataPoints = nodesForDataPoints;
+        this.#categories = categories;
 
         if (evalData.length > 1) {
             this.chartOptions = {
@@ -185,6 +191,28 @@ class EvalLineChart extends ApexChartWidget {
             };
 
             this.enableRender();
+        }
+    }
+
+    /**
+     * Draws a vertical indicator line on the chart at the position of the given node.
+     * Passing null selects the start position.
+     *
+     * @param node {MoveTreeNode|null}
+     */
+    selectNode(node) {
+        const idx = node == null
+            ? this.#nodesForDataPoints.indexOf(null)
+            : this.#nodesForDataPoints.findIndex(n => n != null && n.nodeId === node.nodeId);
+        if (idx >= 0) {
+            this.addXaxisAnnotation({
+                x: this.#categories[idx],
+                borderColor: '#888888',
+                strokeDashArray: 0,
+                borderWidth: 1
+            });
+        } else {
+            this.clearAnnotations();
         }
     }
 

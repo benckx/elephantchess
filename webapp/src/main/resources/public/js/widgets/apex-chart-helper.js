@@ -69,4 +69,20 @@ class ApexChartWidget {
         }
     }
 
+    /**
+     * @param options {object}
+     * @param clearPrevious {boolean}
+     */
+    addXaxisAnnotation(options, clearPrevious = true) {
+        if (this.#chart != null) {
+            this.#chart.addXaxisAnnotation(options, clearPrevious);
+        }
+    }
+
+    clearAnnotations() {
+        if (this.#chart != null) {
+            this.#chart.clearAnnotations();
+        }
+    }
+
 }
