@@ -1812,6 +1812,11 @@ class MoveTreeWidget {
         }
     }
 
+    navigateToStart() {
+        this.#renderStartFenToBoard();
+        this.#navigationListeners.forEach(listener => listener());
+    }
+
     /**
      * @param {number} position
      * @return {null|MoveTreeNode}

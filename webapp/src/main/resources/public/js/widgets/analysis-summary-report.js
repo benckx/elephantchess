@@ -25,8 +25,9 @@ const EVAL_LINE_CHART_RENDER_DEBOUNCE_MS = 120;
  * @param nodes {MoveTreeNode[]}
  * @param analysisMap {Map<string, InfoLineResult>}
  * @param startFen {string}
+ * @param onClickNode {function|null}
  */
-function scheduleEvalChartRender(nodes, analysisMap, startFen) {
+function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode = null) {
     if (scheduleEvalChartRenderTimeout != null) {
         clearTimeout(scheduleEvalChartRenderTimeout);
     }
@@ -42,7 +43,7 @@ function scheduleEvalChartRender(nodes, analysisMap, startFen) {
         if (evalLineChart != null) {
             evalLineChart.destroy();
         }
-        evalLineChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen);
+        evalLineChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen, onClickNode);
         evalLineChart.render();
     }, EVAL_LINE_CHART_RENDER_DEBOUNCE_MS);
 }
@@ -58,6 +59,14 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
     if (startFen == null) {
         startFen = DEFAULT_START_FEN;
     }
+
+    const onClickNode = moveTreeWidget != null ? (node) => {
+        if (node != null) {
+            moveTreeWidget.selectNodeById(node.nodeId);
+        } else {
+            moveTreeWidget.navigateToStart();
+        }
+    } : null;
 
     const client = new GameDataClient(gameId);
     client.fetchAnalysisStatus((analysisProgressStatus) => {
@@ -75,7 +84,8 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
                         startFen,
                         gameMetadata.redPlayerName,
                         gameMetadata.blackPlayerName,
-                        gameMetadata.outcome
+                        gameMetadata.outcome,
+                        onClickNode
                     );
 
                     if (moveTreeWidget != null) {
@@ -94,6 +104,7 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
  * @param redPlayerName {string|null}
  * @param blackPlayerName {string|null}
  * @param outcome {string|null}
+ * @param onClickNode {function|null}
  */
 function renderAnalysisSummaryReport(
     nodes,
@@ -101,7 +112,8 @@ function renderAnalysisSummaryReport(
     startFen,
     redPlayerName,
     blackPlayerName,
-    outcome
+    outcome,
+    onClickNode = null
 ) {
 
     /**
@@ -196,7 +208,7 @@ function renderAnalysisSummaryReport(
             row.cells.item(3).innerText = (counterBlack.get(symbolType) || 0).toString()
         }
 
-        scheduleEvalChartRender(nodes, analysisMap, startFen);
+        scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode);
 
         if (redPlayerName != null) {
             document

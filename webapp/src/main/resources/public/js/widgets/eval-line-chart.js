@@ -28,8 +28,10 @@ class EvalLineChart extends ApexChartWidget {
      * @param nodes {MoveTreeNode[]}
      * @param analysisMap {Map<string, InfoLineResult>}
      * @param startFen {string}
+     * @param onClickNode {function|null} optional callback invoked when a data point is clicked; receives the
+     *        corresponding {@link MoveTreeNode}, or null when the 'Start' position is clicked
      */
-    constructor(containerId, nodes, analysisMap, startFen) {
+    constructor(containerId, nodes, analysisMap, startFen, onClickNode = null) {
         super(containerId);
 
         if (!document.getElementById(containerId)) {
@@ -39,6 +41,7 @@ class EvalLineChart extends ApexChartWidget {
         const MAX_CHART_POINTS = 220;
         let evalData = [];
         let categories = [];
+        let nodesForDataPoints = [];
 
         // Add eval of the starting position
         const startFenKey = resetFenFullMovesCount(startFen);
@@ -46,6 +49,7 @@ class EvalLineChart extends ApexChartWidget {
         if (startInfoLine != null && startInfoLine.eval != null) {
             evalData.push(parseFloat(startInfoLine.eval.toFixed(1)));
             categories.push('Start');
+            nodesForDataPoints.push(null);
         }
 
         // Add eval for each played move
@@ -56,12 +60,14 @@ class EvalLineChart extends ApexChartWidget {
                 const moveNum = node.fullMoveCount;
                 const isRedMove = node.position % 2 === 0;
                 categories.push(`${moveNum} (${isRedMove ? 'r' : 'b'})`);
+                nodesForDataPoints.push(node);
             }
         });
 
         if (evalData.length > MAX_CHART_POINTS) {
             const sampledEvalData = [];
             const sampledCategories = [];
+            const sampledNodesForDataPoints = [];
             const maxIndex = evalData.length - 1;
             const intervals = Math.max(1, MAX_CHART_POINTS - 1);
 
@@ -69,10 +75,16 @@ class EvalLineChart extends ApexChartWidget {
                 const sampledIndex = Math.floor((i * maxIndex) / intervals);
                 sampledEvalData.push(evalData[sampledIndex]);
                 sampledCategories.push(categories[sampledIndex]);
+                sampledNodesForDataPoints.push(nodesForDataPoints[sampledIndex]);
             }
 
             evalData = sampledEvalData;
             categories = sampledCategories;
+            nodesForDataPoints = sampledNodesForDataPoints;
+        }
+
+        if (onClickNode != null) {
+            document.getElementById(containerId).style.cursor = 'pointer';
         }
 
         if (evalData.length > 1) {
@@ -85,7 +97,14 @@ class EvalLineChart extends ApexChartWidget {
                     height: 150,
                     toolbar: {show: false},
                     animations: {enabled: false},
-                    background: 'transparent'
+                    background: 'transparent',
+                    ...(onClickNode != null ? {
+                        events: {
+                            dataPointSelection: (event, chartContext, config) => {
+                                onClickNode(nodesForDataPoints[config.dataPointIndex]);
+                            }
+                        }
+                    } : {})
                 },
                 colors: ['#022e7d'],
                 stroke: {
