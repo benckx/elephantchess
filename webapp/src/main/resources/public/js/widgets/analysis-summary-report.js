@@ -60,14 +60,6 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
         startFen = DEFAULT_START_FEN;
     }
 
-    const onClickNode = moveTreeWidget != null ? (node) => {
-        if (node != null) {
-            moveTreeWidget.selectNodeById(node.nodeId);
-        } else {
-            moveTreeWidget.navigateToStart();
-        }
-    } : null;
-
     const client = new GameDataClient(gameId);
     client.fetchAnalysisStatus((analysisProgressStatus) => {
         if (analysisProgressStatus.status === AnalysisStatus.COMPLETED) {
@@ -85,7 +77,7 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
                         gameMetadata.redPlayerName,
                         gameMetadata.blackPlayerName,
                         gameMetadata.outcome,
-                        onClickNode
+                        moveTreeWidget
                     );
 
                     if (moveTreeWidget != null) {
@@ -104,7 +96,7 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
  * @param redPlayerName {string|null}
  * @param blackPlayerName {string|null}
  * @param outcome {string|null}
- * @param onClickNode {function|null}
+ * @param moveTreeWidget {MoveTreeWidget|null}
  */
 function renderAnalysisSummaryReport(
     nodes,
@@ -113,8 +105,15 @@ function renderAnalysisSummaryReport(
     redPlayerName,
     blackPlayerName,
     outcome,
-    onClickNode = null
+    moveTreeWidget = null
 ) {
+    const onClickNode = moveTreeWidget != null ? (node) => {
+        if (node != null) {
+            moveTreeWidget.selectNodeById(node.nodeId);
+        } else {
+            moveTreeWidget.navigateToStart();
+        }
+    } : null;
 
     /**
      * @param nodes {Array<MoveTreeNode>}
