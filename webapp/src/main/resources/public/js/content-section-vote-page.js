@@ -21,6 +21,7 @@ class ContentSectionVotePage extends BasePage {
 
     #votesBySectionId = new Map();
     #pageId;
+    #feedbackSubmitListener = null;
 
     constructor() {
         super();
@@ -109,9 +110,10 @@ class ContentSectionVotePage extends BasePage {
             sectionLabel.innerText = sectionTitle;
 
             const submitButton = document.getElementById('content-section-feedback-submit-button');
-            const submitButtonClone = submitButton.cloneNode(true);
-            submitButton.replaceWith(submitButtonClone);
-            submitButtonClone.addEventListener('click', () => {
+            if (this.#feedbackSubmitListener != null) {
+                submitButton.removeEventListener('click', this.#feedbackSubmitListener);
+            }
+            this.#feedbackSubmitListener = () => {
                 const textarea = document.getElementById('content-section-feedback-textarea');
                 const feedback = textarea.value.trim();
                 postAndHandle('/api/content-section-vote/submit', {
@@ -123,7 +125,8 @@ class ContentSectionVotePage extends BasePage {
                     UI.hideModal(null);
                     UI.pushInfoNotification('Thanks for telling us more!');
                 });
-            });
+            };
+            submitButton.addEventListener('click', this.#feedbackSubmitListener);
         });
     }
 

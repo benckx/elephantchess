@@ -470,8 +470,12 @@ class UserService(
     }
 
     suspend fun submitContentSectionVote(request: ContentSectionVoteRequest, userId: UserId) {
-        if (!isContentPageIdValid(request.pageId)) throw NotAcceptableException("invalid page id")
-        if (!isContentSectionIdValid(request.sectionId)) throw NotAcceptableException("invalid section id")
+        if (!isContentPageIdValid(request.pageId)) {
+            throw NotAcceptableException("invalid page id (lowercase dash-separated, max 40)")
+        }
+        if (!isContentSectionIdValid(request.sectionId)) {
+            throw NotAcceptableException("invalid section id (lowercase dash-separated, max 80)")
+        }
         val feedback = request.feedback?.trim()?.ifBlank { null }
         if (feedback != null && feedback.length > 1_000) throw NotAcceptableException("feedback too long")
 
