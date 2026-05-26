@@ -674,7 +674,13 @@ class AnalysisBoardPage extends BasePage {
                 this.#gameMetadata?.redPlayerName,
                 this.#gameMetadata?.blackPlayerName,
                 this.#gameMetadata?.outcome,
-                buildEvalChartClickCallback(this.#moveTreeWidget)
+                (node) => {
+                    if (node != null) {
+                        this.#moveTreeWidget.selectNodeById(node.nodeId);
+                    } else {
+                        this.#moveTreeWidget.navigateToStart();
+                    }
+                }
             );
         }
     }
