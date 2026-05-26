@@ -71,8 +71,13 @@ function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode = nul
         if (evalLineChart != null) {
             evalLineChart.destroy();
         }
-        evalLineChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen, onClickNode, selectedNodeForEvalChart);
+        evalLineChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen, onClickNode);
         evalLineChart.render();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (selectedNodeForEvalChart !== undefined) {
+                evalLineChart?.selectNode(selectedNodeForEvalChart);
+            }
+        }));
     }, EVAL_LINE_CHART_RENDER_DEBOUNCE_MS);
 }
 

@@ -24,7 +24,7 @@
 class EvalLineChart extends ApexChartWidget {
 
     #nodesForDataPoints = [];
-    #categories = [];
+    #indicator = null;
 
     /**
      * @param containerId {string}
@@ -33,10 +33,8 @@ class EvalLineChart extends ApexChartWidget {
      * @param startFen {string}
      * @param onClickNode {function|null} optional callback invoked when a data point is clicked; receives the
      *        corresponding {@link MoveTreeNode}, or null when the 'Start' position is clicked
-     * @param initialSelectedNode {MoveTreeNode|null|undefined} optional node to highlight immediately; undefined
-     *        means no indicator; null means the 'Start' position
      */
-    constructor(containerId, nodes, analysisMap, startFen, onClickNode = null, initialSelectedNode = undefined) {
+    constructor(containerId, nodes, analysisMap, startFen, onClickNode = null) {
         super(containerId);
 
         if (!document.getElementById(containerId)) {
@@ -93,7 +91,6 @@ class EvalLineChart extends ApexChartWidget {
         }
 
         this.#nodesForDataPoints = nodesForDataPoints;
-        this.#categories = categories;
 
         if (evalData.length > 1) {
             this.chartOptions = {
@@ -171,46 +168,66 @@ class EvalLineChart extends ApexChartWidget {
                             strokeDashArray: 3,
                             borderWidth: 1
                         }
-                    ],
-                    xaxis: this.#buildXaxisAnnotations(initialSelectedNode)
+                    ]
                 },
                 tooltip: {enabled: false},
                 legend: {show: false}
             };
+
+            const indicator = document.createElement('div');
+            indicator.style.cssText = 'position:absolute;width:2px;background:#FF6B00;display:none;pointer-events:none;z-index:10';
+            const container = document.getElementById(containerId);
+            container.style.position = 'relative';
+            container.appendChild(indicator);
+            this.#indicator = indicator;
 
             this.enableRender();
         }
     }
 
     /**
-     * Returns the xaxis annotation array for the given node, or an empty array if the node has no data point.
-     *
-     * @param node {MoveTreeNode|null|undefined}
-     * @returns {object[]}
-     */
-    #buildXaxisAnnotations(node) {
-        if (node === undefined) {
-            return [];
-        }
-        const idx = node == null
-            ? this.#nodesForDataPoints.indexOf(null)
-            : this.#nodesForDataPoints.findIndex(n => n != null && n.nodeId === node.nodeId);
-        return idx >= 0 ? [{
-            x: this.#categories[idx],
-            borderColor: '#FF6B00',
-            strokeDashArray: 0,
-            borderWidth: 2
-        }] : [];
-    }
-
-    /**
-     * Draws a vertical indicator line on the chart at the position of the given node.
-     * Passing null selects the start position. Passing undefined clears the indicator.
+     * Moves the indicator overlay to the position of the given node.
+     * Passing null selects the start position. Passing undefined hides the indicator.
      *
      * @param node {MoveTreeNode|null|undefined}
      */
     selectNode(node) {
-        this.updateOptions({annotations: {xaxis: this.#buildXaxisAnnotations(node)}});
+        if (!this.#indicator) return;
+
+        if (node === undefined) {
+            this.#indicator.style.display = 'none';
+            return;
+        }
+
+        const idx = node == null
+            ? this.#nodesForDataPoints.indexOf(null)
+            : this.#nodesForDataPoints.findIndex(n => n != null && n.nodeId === node.nodeId);
+
+        if (idx < 0) {
+            this.#indicator.style.display = 'none';
+            return;
+        }
+
+        const container = this.#indicator.parentElement;
+        const gridEl = container?.querySelector('.apexcharts-grid');
+        if (!gridEl) {
+            this.#indicator.style.display = 'none';
+            return;
+        }
+
+        const containerRect = container.getBoundingClientRect();
+        const gridRect = gridEl.getBoundingClientRect();
+        const plotLeft = gridRect.left - containerRect.left;
+        const plotTop = gridRect.top - containerRect.top;
+        const plotWidth = gridRect.width;
+        const plotHeight = gridRect.height;
+        const N = this.#nodesForDataPoints.length;
+        const x = plotLeft + (N > 1 ? (idx / (N - 1)) * plotWidth : plotWidth / 2);
+
+        this.#indicator.style.left = Math.round(x - 1) + 'px';
+        this.#indicator.style.top = plotTop + 'px';
+        this.#indicator.style.height = plotHeight + 'px';
+        this.#indicator.style.display = 'block';
     }
 
 }
