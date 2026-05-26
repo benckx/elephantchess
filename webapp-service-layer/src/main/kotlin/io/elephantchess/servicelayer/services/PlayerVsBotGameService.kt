@@ -18,6 +18,7 @@ import io.elephantchess.engines.protocol.model.InfoLinesResult
 import io.elephantchess.model.BotGameMoveType
 import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType.*
+import io.elephantchess.model.OpeningMode
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.botgame.*
 import io.elephantchess.servicelayer.dto.gamedata.GameMovesResponse
@@ -175,6 +176,7 @@ class PlayerVsBotGameService(
         gameRecord.currentHalfMoveIndex = 0
         gameRecord.created = now
         gameRecord.lastUpdated = now
+        gameRecord.openingMode = request.openingMode
         gameRecord.variant = request.variant
 
         val statusRecord = BotGameStatusEvent()
@@ -195,6 +197,7 @@ class PlayerVsBotGameService(
                 engine = effectiveEngine,
                 depth = request.depth,
                 usesDefaultStartFen = usesDefaultStartFen,
+                openingMode = request.openingMode,
                 variant = request.variant,
             )
 
@@ -269,7 +272,7 @@ class PlayerVsBotGameService(
 
         // TODO: use same pattern as in GameService with TryEither
         pvbGameDaoService.saveUserMoveResult(request.gameId, request.move) { gameRecord, userMove ->
-            val gameVariant = gameRecord.variant
+            val variant = gameRecord.variant
             val userColor = gameRecord.userColor
             val botColor = userColor.reverse()
 
@@ -294,12 +297,13 @@ class PlayerVsBotGameService(
                         botColor = botColor,
                         userMove = userMove,
                         fen = board.outputFen(),
-                        startFen = gameRecord.startFen ?: Board.defaultStartFen(gameVariant),
+                        startFen = gameRecord.startFen ?: Board.defaultStartFen(variant),
                         position = gameRecord.currentHalfMoveIndex,
                         engine = gameRecord.engine,
                         depth = gameRecord.depth,
                         usesDefaultStartFen = gameRecord.startFen == null,
-                        variant = gameVariant,
+                        openingMode = gameRecord.openingMode,
+                        variant = variant,
                     )
 
                     if (botMove != null) {
@@ -360,6 +364,7 @@ class PlayerVsBotGameService(
         engine: Engine,
         depth: Int,
         usesDefaultStartFen: Boolean,
+        openingMode: OpeningMode,
         variant: Variant = Variant.XIANGQI,
     ): BotMove? {
         suspend fun playWithEngine(): BotMove? {
@@ -368,19 +373,30 @@ class PlayerVsBotGameService(
 
         val canUseOpeningRepository =
             usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
+                && openingMode != OpeningMode.ENGINE_ONLY
 
         return if (canUseOpeningRepository) {
-            playFromOpeningRepository(gameId, userMove) ?: playWithEngine()
+            playFromOpeningRepository(gameId, userMove, openingMode) ?: playWithEngine()
         } else {
             playWithEngine()
         }
     }
 
-    private suspend fun playFromOpeningRepository(gameId: String, userMove: String?): BotMove? {
+    private suspend fun playFromOpeningRepository(
+        gameId: String,
+        userMove: String?,
+        openingMode: OpeningMode
+    ): BotMove? {
         val moves = pvbGameDaoService.listMoves(gameId) + listOfNotNull(userMove)
         val openingEntries = openingRepositoryDaoService.fetchNextMovesData(moves)
+
         return if (openingEntries.isNotEmpty()) {
-            val randomEntry = selectByProbability(openingEntries) { it.occurrences }
+            val randomEntry =
+                if (openingMode == OpeningMode.RANDOM) {
+                    openingEntries.random()
+                } else {
+                    selectByProbability(openingEntries) { it.occurrences }
+                }
             logger.debug {
                 val totalOccurrences = openingEntries.sumOf { it.occurrences }
                 "[$gameId] playing from opening repository ${randomEntry.occurrences} / $totalOccurrences"
@@ -401,9 +417,14 @@ class PlayerVsBotGameService(
         depth: Int,
         variant: Variant,
     ): BotMove? {
-        suspend fun queryEngine(fenToEngine: String): InfoLinesResult? {
-            return enginesPool.safeQueryForDepth(fenToEngine, modelToProcess(engine), depth, 15_000, variant)
-        }
+        suspend fun queryEngine(fenToEngine: String): InfoLinesResult? =
+            enginesPool.safeQueryForDepth(
+                fen = fenToEngine,
+                engineId = modelToProcess(engine),
+                depth = depth,
+                timeout = 15_000,
+                variant = variant
+            )
 
         suspend fun findAlternativeMove(bestMove: String): String? {
             val cpMultiplier = if (botColor == RED) 1 else -1

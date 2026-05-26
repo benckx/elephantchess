@@ -29,6 +29,7 @@ class PlayBotModalHandler extends ModalHandler {
 
     #exclusionGroups = [BOT_VARIANT_OPTION_GROUP, BOT_COLOR_OPTION_GROUP, BOT_ENGINE_OPTION_GROUP];
     #optionDivs;
+    #openingRadios = document.getElementsByName('play-bot-opening');
     #startFenStandardRadio = document.getElementById('start-fen-standard');
     #startFenCustomRadio = document.getElementById('start-fen-custom');
     #startFenInput = document.getElementById('start-fen');
@@ -116,6 +117,14 @@ class PlayBotModalHandler extends ModalHandler {
         const engine = this.#getSelectedEngine();
         const startFenValue = this.#readStartFenValue();
 
+        // opening mode param
+        let openingMode = 'BY_FREQUENCY';
+        for (let i = 0; i < this.#openingRadios.length; i++) {
+            if (this.#openingRadios[i].checked) {
+                openingMode = this.#openingRadios[i].value;
+            }
+        }
+
         try {
             if (startFenValue !== null) {
                 validateStartFen(startFenValue);
@@ -126,6 +135,7 @@ class PlayBotModalHandler extends ModalHandler {
                 'depth': depth,
                 'engine': engine,
                 'startFen': startFenValue,
+                'openingMode': openingMode,
                 'variant': variant,
             };
             postAndHandle('/api/botgame/create', body, json => {
