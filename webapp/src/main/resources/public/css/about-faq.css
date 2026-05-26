@@ -96,6 +96,62 @@
     opacity: 100%;
 }
 
+.main-container-text h1[id] {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.faq-vote-panel {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.faq-vote-button {
+    height: 23px;
+    cursor: pointer;
+    opacity: 0.5;
+    padding: 3px 6px;
+    border-radius: 5px;
+    background-color: #fbf7f0;
+    box-shadow: rgba(50, 50, 93, 0.25) 0 2px 5px -1px, rgba(0, 0, 0, 0.3) 0 1px 3px -1px;
+}
+
+.faq-vote-button:hover {
+    opacity: 0.9;
+}
+
+.faq-vote-button:active {
+    box-shadow: none;
+}
+
+.faq-vote-button.voted-for {
+    opacity: 1;
+}
+
+.faq-vote-button.voted-against {
+    opacity: 0.3;
+}
+
+.faq-feedback-link {
+    display: none;
+    margin-left: 4px;
+}
+
+.faq-feedback-link-visible {
+    display: inline;
+}
+
+#faq-feedback-modal {
+    width: 430px;
+}
+
+#faq-feedback-textarea {
+    height: 170px;
+}
+
 @media (max-width: 1000px) {
     #page-toc li {
         font-size: 30px;
@@ -115,5 +171,14 @@
 
     .anchor-copy-link img {
         width: 36px;
+    }
+
+    .main-container-text h1[id] {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .faq-vote-panel {
+        margin-left: 0;
     }
 }

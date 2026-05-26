@@ -7,6 +7,7 @@ import io.elephantchess.db.services.*
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.ContactFormRequest
+import io.elephantchess.servicelayer.dto.FaqVoteRequest
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
@@ -37,6 +38,7 @@ class UserService(
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
     private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
+    private val faqSectionVoteDaoService: FaqSectionVoteDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,
     private val userSessionService: UserSessionService,
     private val tokenManager: TokenManager,
@@ -467,6 +469,19 @@ class UserService(
         )
     }
 
+    suspend fun submitFaqVote(request: FaqVoteRequest, userId: UserId) {
+        if (!isFaqSectionIdValid(request.sectionId)) throw NotAcceptableException("invalid faq section id")
+        val feedback = request.feedback?.trim()?.ifBlank { null }
+        if (feedback != null && feedback.length > 1_000) throw NotAcceptableException("feedback too long")
+
+        faqSectionVoteDaoService.persistVote(
+            userId = userId.id,
+            faqSectionId = request.sectionId,
+            upVoted = request.upVoted,
+            feedback = feedback
+        )
+    }
+
     private suspend fun validateSignUpRequest(request: SignUpRequest): List<String> {
         val errors = mutableListOf<String>()
 
@@ -535,6 +550,7 @@ class UserService(
         const val MAX_DESCRIPTION_LENGTH = 1_000
 
         private val EMAIL_REGEX = "^[A-Za-z0-9][^\\s]*@[^\\s]+\\.[^\\s]+$".toRegex()
+        private val FAQ_SECTION_ID_REGEX = Regex("^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
         private fun validatePassword(password: String): String? {
             return if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
@@ -552,6 +568,9 @@ class UserService(
 
         private fun isEmailFormatValid(chars: String): Boolean =
             chars.matches(EMAIL_REGEX)
+
+        private fun isFaqSectionIdValid(sectionId: String): Boolean =
+            sectionId.length <= 80 && FAQ_SECTION_ID_REGEX.matches(sectionId)
 
     }
 

@@ -11,9 +11,11 @@ import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.minusHours
 import io.elephantchess.model.*
 import io.elephantchess.model.UserType.GUEST
+import io.elephantchess.servicelayer.dto.FaqVoteRequest
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.user.*
+import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
@@ -41,7 +43,7 @@ class UserServiceTest : ServiceTest() {
         listOf(
             GAME_MOVE, GAME_STATUS_EVENT, GAME,
             BOT_GAME_MOVE, BOT_GAME_STATUS_EVENT, BOT_GAME,
-            REFERENCE_GAME_SEARCH_QUERY,
+            REFERENCE_GAME_SEARCH_QUERY, FAQ_SECTION_VOTE,
             USER_SESSION, PUZZLE_RESULT, USER, PUZZLE
         )
             .forEach { table ->
@@ -633,6 +635,37 @@ class UserServiceTest : ServiceTest() {
             REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId),
         )
         assertEquals(guestId.id, guestUserIdAfter)
+    }
+
+    @Test
+    fun `submitFaqVote should upsert vote and feedback by section id`() = runTest {
+        val userId = signUpTestUser().second
+        val actor = UserId(UserType.AUTHENTICATED, userId)
+
+        userService.submitFaqVote(FaqVoteRequest("why-sign-up", true), actor)
+        userService.submitFaqVote(FaqVoteRequest("why-sign-up", false, "I could not find this quickly."), actor)
+
+        val upVoted = dslContext.fetchValueAsync(
+            FAQ_SECTION_VOTE.UP_VOTED,
+            FAQ_SECTION_VOTE.USER_ID.eq(userId).and(FAQ_SECTION_VOTE.FAQ_SECTION_ID.eq("why-sign-up")),
+        )
+        assertEquals(false, upVoted)
+
+        val feedback = dslContext.fetchValueAsync(
+            FAQ_SECTION_VOTE.FEEDBACK,
+            FAQ_SECTION_VOTE.USER_ID.eq(userId).and(FAQ_SECTION_VOTE.FAQ_SECTION_ID.eq("why-sign-up")),
+        )
+        assertEquals("I could not find this quickly.", feedback)
+    }
+
+    @Test
+    fun `submitFaqVote should reject invalid section ids`() = runTest {
+        val userId = signUpTestUser().second
+        val actor = UserId(UserType.AUTHENTICATED, userId)
+
+        assertFailsWith<NotAcceptableException> {
+            userService.submitFaqVote(FaqVoteRequest("invalid section id", true), actor)
+        }
     }
 
 }

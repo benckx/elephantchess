@@ -2319,4 +2319,24 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="0101" author="benckx">
+        <createTable tableName="faq_section_vote">
+            <column name="faq_section_id" type="varchar(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="up_voted" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feedback" type="varchar(1000)"/>
+            <column name="update_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="faq_section_id, user_id"
+                       constraintName="faq_section_vote_pkey"
+                       tableName="faq_section_vote"/>
+    </changeSet>
 </databaseChangeLog>

@@ -1,6 +1,7 @@
 package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.dto.ContactFormRequest
+import io.elephantchess.servicelayer.dto.FaqVoteRequest
 import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.model.GuestToken
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService
@@ -28,6 +29,7 @@ fun Route.userRoutes() {
     userSettingsRoutes()
     passwordRecoveryRoutes()
     contactFormRoutes()
+    faqVoteRoutes()
 }
 
 private fun Route.loginAndSignUpRoutes() {
@@ -201,6 +203,16 @@ private fun Route.contactFormRoutes() {
         post("/submit") {
             requireIdentificationWithBody<ContactFormRequest> { verifiedToken, request ->
                 userService.submitContact(request, verifiedToken.userId())
+            }
+        }
+    }
+}
+
+private fun Route.faqVoteRoutes() {
+    route("/api/faq/vote") {
+        post("/submit") {
+            requireIdentificationWithBody<FaqVoteRequest> { verifiedToken, request ->
+                userService.submitFaqVote(request, verifiedToken.userId())
             }
         }
     }
