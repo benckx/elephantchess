@@ -124,6 +124,25 @@
     width: 90%;
 }
 
+#play-bot-modal .openings-heading {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#play-bot-modal .openings-heading img {
+    height: 1em;
+    width: 1em;
+    vertical-align: middle;
+}
+
+@media (max-width: 1000px) {
+    #play-bot-modal .openings-heading img {
+        height: 1.2em;
+        width: 1.2em;
+    }
+}
+
 @media (max-width: 1000px) {
     #play-bot-modal {
         width: 100%;
