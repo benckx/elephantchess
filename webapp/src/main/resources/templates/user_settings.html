@@ -3,14 +3,16 @@
     {{header_init}}
     <title>Settings</title>
     {{meta_no_index}}
+    <link rel="stylesheet" href="/css/common/nice-table.css"/>
     <link rel="stylesheet" href="/css/user-settings.css"/>
     <script defer src="/js/modules/countries.js"></script>
     <script defer src="/js/user-settings/notification-settings-widget.js"></script>
+    <script defer src="/js/user-settings/user-sessions-widget.js"></script>
     <script defer src="/js/user-settings/user-settings.js"></script>
 </head>
 <body>
 {{body_init}}
-<div class="main-container-text">
+<div class="main-container-text-extended-smaller">
     <h1>Profile Settings</h1>
     <hr/>
     <h4 class="label">Description</h4>
@@ -49,22 +51,39 @@
     <input id="save-notifications-button" type="button" class="app-buttons-bigger" value="save">
     <h1>Email Address</h1>
     <hr/>
-    <div id="email-valid" class="little-message little-message-flattened valid-data hidden">
+    <div id="email-manually-confirmed" class="little-message little-message-flattened valid-data hidden">
         <div class="icon-container">
             <img src="/images/icons/right-icon.png" alt="valid"/>
         </div>
         <div class="message-container">
-            Your email address has been successfully verified.
+            Your email address has been manually confirmed.
         </div>
     </div>
-    <div id="email-invalid" class="little-message little-message-flattened invalid-data hidden">
+    <div id="email-automated-valid" class="little-message little-message-flattened valid-data hidden">
+        <div class="icon-container">
+            <img src="/images/icons/right-icon.png" alt="valid"/>
+        </div>
+        <div class="message-container">
+            Your email address has been automatically verified by our email validation service. You can also
+            confirm it manually by clicking the link we sent you at sign up.
+        </div>
+    </div>
+    <div id="email-automated-bounced" class="little-message little-message-flattened invalid-data hidden">
         <div class="icon-container">
             <img src="/images/icons/wrong-icon.png" alt="invalid"/>
         </div>
         <div class="message-container">
-            Your email has been flagged as invalid; it can be - for example - because it does not exist or the inbox is
-            full. Password recovery and notifications will not be sent. Please <a href="/about">contact us</a> if you
-            want to resolve this issue.
+            Emails sent to your address have bounced (the inbox may not exist or be full). Password recovery and
+            notifications will not be sent. Please <a href="/about">contact us</a> if you want to resolve this issue.
+        </div>
+    </div>
+    <div id="email-automated-invalid" class="little-message little-message-flattened invalid-data hidden">
+        <div class="icon-container">
+            <img src="/images/icons/wrong-icon.png" alt="invalid"/>
+        </div>
+        <div class="message-container">
+            Your email has been flagged as invalid by our email validation service. Password recovery and
+            notifications will not be sent. Please <a href="/about">contact us</a> if you want to resolve this issue.
         </div>
     </div>
     <div id="email-validity-unknown" class="little-message little-message-flattened unknown-data hidden">
@@ -72,13 +91,40 @@
             <img src="/images/icons/question.png" alt="unknown"/>
         </div>
         <div class="message-container">
-            It is not known whether your email is valid or not. Password recovery and notifications will not be sent.
+            It is not known yet whether your email is valid or not. You can confirm it by clicking the link we sent
+            you at sign up. Until your email is confirmed, password recovery and notifications will not be sent.
             Please <a href="/about">contact us</a> if you want to resolve this issue.
         </div>
     </div>
     <div id="email-address-container">
         <input id="email-address" type="text" disabled/>
     </div>
+    <div id="resend-email-confirmation-container" class="hidden">
+        <input id="resend-email-confirmation-button" type="button" class="app-buttons-bigger"
+               value="resend confirmation email"/>
+    </div>
+    <h1>Latest Sessions</h1>
+    <hr/>
+    <div id="user-sessions-table-container">
+        <table id="user-sessions-table" class="nice-table nice-table-striped nice-table-hover">
+            <thead>
+            <tr>
+                <th class="label-cell">os</th>
+                <th class="label-cell">agent</th>
+                <th class="label-cell">country</th>
+                <th class="label-cell">region</th>
+                <th class="label-cell">city</th>
+                <th class="label-cell">IP</th>
+                <th class="label-cell">created</th>
+                <th class="label-cell">updated</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <p id="user-sessions-empty-message" class="hidden">No sessions found.</p>
+    <a id="all-sessions-link" class="hidden" href="/user/settings/sessions">See all sessions</a>
 </div>
 </body>
 </html>

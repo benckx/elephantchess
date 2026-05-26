@@ -2,6 +2,8 @@ package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.dto.ContactFormRequest
 import io.elephantchess.servicelayer.dto.user.*
+import io.elephantchess.servicelayer.exceptions.NotAcceptableException
+import io.elephantchess.servicelayer.model.GuestToken
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.servicelayer.services.UserService
@@ -15,6 +17,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 
 private val userService by koin<UserService>()
 private val userProfileAnalyticsService by koin<UserProfileAnalyticsService>()
@@ -43,8 +46,15 @@ private fun Route.loginAndSignUpRoutes() {
             }
         }
         post("/signup") {
-            handleValidatedResponse<SignUpRequest, SignUpResponse> { request ->
-                userService.signUp(request)
+            requireIdentificationWithBody<SignUpRequest> { verifiedToken, request ->
+                val guestUserId =
+                    if (request.transferGuestData) {
+                        (verifiedToken as? GuestToken)?.userId
+                    } else {
+                        null
+                    }
+
+                handleEither(userService.signUp(request, guestUserId))
             }
         }
         get("/obtain-guest-user-token") {
@@ -85,9 +95,6 @@ private fun Route.isOnlineIndicatorsRoutes() {
 
 private fun Route.publicProfileRoutes() {
     route("/api/user/info") {
-        get("/game-ratings") {
-            requireUserId { userProfileAnalyticsService.fetchGameRatings(it) }
-        }
         route("/puzzles") {
             route("/stats") {
                 get("/rating/{userId}") {
@@ -151,6 +158,37 @@ private fun Route.userSettingsRoutes() {
                 userService.fetchEmailAddressSettings(verifiedToken.userId)
             }
         }
+        post("/email-address/resend-confirmation") {
+            requireAuthentication { verifiedToken ->
+                userService.resendEmailConfirmation(verifiedToken.userId)
+            }
+        }
+        get("/sessions") {
+            requireAuthentication { verifiedToken ->
+                val limit =
+                    call.request.queryParameters["limit"]
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(1)
+                        ?: 10
+                val offset =
+                    call.request.queryParameters["offset"]
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(0)
+                        ?: 0
+
+                userService.fetchUserSessions(verifiedToken.userId, limit, offset)
+            }
+        }
+        post("/sessions/delete") {
+            requireAuthenticationWithBody<DeleteUserSessionsRequest> { verifiedToken, request ->
+                userService.deleteUserSessions(verifiedToken.userId, request)
+            }
+        }
+        post("/sessions/delete-all") {
+            requireAuthentication { verifiedToken ->
+                userService.deleteAllUserSessions(verifiedToken.userId)
+            }
+        }
     }
 }
 
@@ -161,12 +199,14 @@ private data class ProfilePictureUpload(
 
 private suspend fun ApplicationCall.receiveProfilePictureUpload(): ProfilePictureUpload {
     var upload: ProfilePictureUpload? = null
+    val multipart = receiveMultipart()
 
-    receiveMultipart().forEachPart { part ->
+    while (true) {
+        val part = multipart.readPart() ?: break
         try {
             if (part is PartData.FileItem && upload == null) {
                 val fileName = part.originalFileName ?: throw NotAcceptableException("Missing profile picture file name")
-                upload = ProfilePictureUpload(fileName, part.streamProvider().readBytes())
+                upload = ProfilePictureUpload(fileName, part.provider().toByteArray())
             }
         } finally {
             part.dispose()

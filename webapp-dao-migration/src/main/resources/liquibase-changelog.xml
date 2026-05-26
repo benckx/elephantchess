@@ -2360,8 +2360,139 @@
         <addColumn tableName="bot_game">
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
+        <sql><![CDATA[
+            -- Fairy-Stockfish: always 11.2
+            UPDATE bot_game
+            SET engine_version = '11.2'
+            WHERE engine = 'FAIRYSTOCKFISH';
+
+            -- Pikafish before the 2024-04-28 upgrade
+            UPDATE bot_game
+            SET engine_version = '2022-12-26'
+            WHERE engine = 'PIKAFISH'
+            AND (created AT TIME ZONE 'UTC')::date < DATE '2024-04-28';
+
+            -- Pikafish after the 2024-04-28 upgrade
+            UPDATE bot_game
+            SET engine_version = '2023-03-05'
+            WHERE engine = 'PIKAFISH'
+            AND (created AT TIME ZONE 'UTC')::date > DATE '2024-04-28';
+
+            -- Pikafish games created on 2024-04-28 keep engine_version = NULL (unknown).
+        ]]></sql>
     </changeSet>
     <changeSet id="0094" author="benckx">
+        <addColumn tableName="reference_game_search_query">
+            <column name="update_time" type="timestamp with time zone"/>
+        </addColumn>
+        <update tableName="reference_game_search_query">
+            <column name="update_time" valueComputed="query_time"/>
+            <where>update_time IS NULL</where>
+        </update>
+        <addNotNullConstraint tableName="reference_game_search_query" columnName="update_time"
+                              columnDataType="timestamp with time zone"/>
+        <createIndex tableName="reference_game_search_query" indexName="idx_ref_game_search_query_user_update_time">
+            <column name="user_id"/>
+            <column name="update_time" descending="true"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0095" author="benckx">
+        <comment>Delete persisted "empty" searches (all criteria null/blank) that were stored before the
+            empty-criteria guard was added.
+        </comment>
+        <delete tableName="reference_game_search_query">
+            <where>
+                (player_name IS NULL OR player_name = '')
+                AND player_id IS NULL
+                AND player_color IS NULL
+                AND (event_name IS NULL OR event_name = '')
+                AND event_id IS NULL
+                AND search_start IS NULL
+                AND search_end IS NULL
+                AND (fen IS NULL OR fen = '')
+            </where>
+        </delete>
+    </changeSet>
+    <changeSet id="0096" author="benckx">
+        <createTable tableName="game_chat_typing_status">
+            <column name="game_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="typed_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="game_id, user_id"
+                       constraintName="game_chat_typing_status_pkey"
+                       tableName="game_chat_typing_status"/>
+        <addForeignKeyConstraint baseTableName="game_chat_typing_status"
+                                 baseColumnNames="game_id"
+                                 constraintName="game_typing_status_to_game_fk"
+                                 referencedTableName="game"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0097" author="benckx">
+        <addColumn tableName="game">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="puzzle_result">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="reference_game_search_query">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0098" author="benckx">
+        <comment>Add email confirmation fields to user table (separate from automated email_verification)</comment>
+        <addColumn tableName="user">
+            <column name="email_confirmation_code" type="varchar(64)"/>
+            <column name="email_confirmation_code_created_at" type="timestamp with time zone"/>
+            <column name="email_confirmed_at" type="timestamp with time zone"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0099" author="benckx">
+        <comment>Add variant column to game and bot_game tables for Manchu variant support</comment>
+        <addColumn tableName="game">
+            <column name="variant" type="varchar(20)" defaultValue="XIANGQI"/>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="variant" type="varchar(20)" defaultValue="XIANGQI"/>
+        </addColumn>
+        <addColumn tableName="user">
+            <column name="game_rating_manchu_bullet" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_blitz" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_rapid" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_classical" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_several_days" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_correspondence" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0100" author="benckx">
+        <addColumn tableName="bot_game">
+            <column name="opening_mode" type="varchar(50)" defaultValue="BY_FREQUENCY">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0101" author="benckx">
         <addColumn tableName="user">
             <column name="profile_picture_extension" type="varchar(10)"/>
         </addColumn>

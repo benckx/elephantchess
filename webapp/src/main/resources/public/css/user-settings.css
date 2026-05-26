@@ -48,6 +48,10 @@
     margin-left: 13px;
 }
 
+#resend-email-confirmation-container {
+    margin: 0 15px 15px 13px;
+}
+
 #email-address {
     font-size: 18px;
     height: 30px;
@@ -88,6 +92,51 @@
 .profile-picture-help {
     font-size: 15px;
     max-width: 500px;
+}
+
+#sessions-actions-container {
+    margin: 10px 0 12px 12px;
+}
+
+#sessions-actions-container input[type="button"] {
+    margin-left: 12px;
+}
+
+#user-sessions-table-container {
+    overflow-x: auto;
+}
+
+#user-sessions-table {
+    margin-left: 8px;
+}
+
+#user-sessions-table th,
+#user-sessions-table td {
+    white-space: nowrap;
+}
+
+
+.session-country-cell,
+.session-os-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.session-os-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    text-align: center;
+}
+
+#user-sessions-table .select-cell {
+    width: 26px;
+}
+
+#user-sessions-empty-message,
+#all-sessions-link {
+    margin-left: 12px;
 }
 
 .hidden {
@@ -137,5 +186,21 @@
 
     .profile-picture-help {
         font-size: 28px;
+    }
+
+    #sessions-actions-container {
+        font-size: 30px;
+        margin-left: 10px;
+    }
+
+
+    #sessions-actions-container input[type="button"] {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+    .session-os-icon {
+        width: 34px;
+        height: 34px;
+        height: 34px;
     }
 }

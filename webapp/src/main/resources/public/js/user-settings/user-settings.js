@@ -23,6 +23,7 @@ const USER_SETTINGS_API = '/api/user/settings';
 const PROFILE_URL = USER_SETTINGS_API + '/profile';
 const PROFILE_PICTURE_UPLOAD_URL = USER_SETTINGS_API + '/profile-picture';
 const EMAIL_SETTINGS_URL = USER_SETTINGS_API + '/email-address';
+const RESEND_EMAIL_CONFIRMATION_URL = EMAIL_SETTINGS_URL + '/resend-confirmation';
 
 const USERNAME_MAX_DESCRIPTION_LENGTH = 1_000;
 // Keep in sync with UserProfilePictureService.PROFILE_PICTURE_MAX_BYTES on the backend.
@@ -63,6 +64,9 @@ class UserSettingsPage extends BasePage {
     #profilePictureDragOffsetX = 0;
     #profilePictureDragOffsetY = 0;
 
+    // sessions section
+    #sessionsWidget = new UserSessionsWidget({limit: 8, selectable: false});
+
     constructor() {
         super();
 
@@ -93,11 +97,14 @@ class UserSettingsPage extends BasePage {
 
         // email address section
         this.#fetchEmailAddressSettings();
+
+        // sessions section
+        this.#sessionsWidget.fetchAndRender();
     }
 
     #fetchProfileSettings() {
         getAndHandle(PROFILE_URL, json => {
-            this.#descriptionField.value = json.description;
+            this.#descriptionField.value = json.description ?? '';
             this.#updateDescriptionCharacterCounter();
             this.#setProfilePicturePreview(json.profilePictureUrl);
             if (json.country != null) {
@@ -117,10 +124,12 @@ class UserSettingsPage extends BasePage {
         });
     }
 
-    // TODO: 'none' option selected
     #updateProfileSettings() {
         let description = this.#descriptionField.value;
         let country = this.#countryField.value;
+        if (country === 'none') {
+            country = '';
+        }
         let body = {'description': description, 'country': country};
         postAndHandle(PROFILE_URL, body, () => {
             UI.pushInfoNotification('Profile settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
@@ -368,18 +377,43 @@ class UserSettingsPage extends BasePage {
 
     #fetchEmailAddressSettings() {
         getAndHandle(EMAIL_SETTINGS_URL, json => {
-            let email = json.email;
-            let isValid = json.isValid;
-
-            this.#emailAddressField.value = email;
-            let elementId = 'email-validity-unknown';
-            if (isValid === true) {
-                elementId = 'email-valid';
-            } else if (isValid === false) {
-                elementId = 'email-invalid';
+            this.#emailAddressField.value = json.email;
+            let elementId;
+            switch (json.validityStatus) {
+                case 'MANUALLY_CONFIRMED':
+                    elementId = 'email-manually-confirmed';
+                    break;
+                case 'AUTOMATED_VALID':
+                    elementId = 'email-automated-valid';
+                    break;
+                case 'AUTOMATED_BOUNCED':
+                    elementId = 'email-automated-bounced';
+                    break;
+                case 'AUTOMATED_INVALID':
+                    elementId = 'email-automated-invalid';
+                    break;
+                default:
+                    elementId = 'email-validity-unknown';
             }
-
             document.getElementById(elementId).classList.remove('hidden');
+
+            // The resend button is shown for any status except MANUALLY_CONFIRMED, since manual
+            // confirmation is the strongest signal and a resend would not change anything.
+            if (json.validityStatus !== 'MANUALLY_CONFIRMED') {
+                const container = document.getElementById('resend-email-confirmation-container');
+                const button = document.getElementById('resend-email-confirmation-button');
+                container.classList.remove('hidden');
+                button.addEventListener('click', () => this.#resendEmailConfirmation());
+            }
+        });
+    }
+
+    #resendEmailConfirmation() {
+        const button = document.getElementById('resend-email-confirmation-button');
+        button.disabled = true;
+        postAndHandle(RESEND_EMAIL_CONFIRMATION_URL, null, () => {
+            UI.pushInfoNotification('Confirmation email sent!', UI_NOTIFICATION_TIMEOUT);
+            button.disabled = false;
         });
     }
 
