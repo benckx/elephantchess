@@ -11,7 +11,7 @@ import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.minusHours
 import io.elephantchess.model.*
 import io.elephantchess.model.UserType.GUEST
-import io.elephantchess.servicelayer.dto.FaqVoteRequest
+import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.user.*
@@ -43,7 +43,7 @@ class UserServiceTest : ServiceTest() {
         listOf(
             GAME_MOVE, GAME_STATUS_EVENT, GAME,
             BOT_GAME_MOVE, BOT_GAME_STATUS_EVENT, BOT_GAME,
-            REFERENCE_GAME_SEARCH_QUERY, FAQ_SECTION_VOTE,
+            REFERENCE_GAME_SEARCH_QUERY, CONTENT_SECTION_VOTE,
             USER_SESSION, PUZZLE_RESULT, USER, PUZZLE
         )
             .forEach { table ->
@@ -638,33 +638,43 @@ class UserServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `submitFaqVote should upsert vote and feedback by section id`() = runTest {
+    fun `submitContentSectionVote should upsert vote and feedback by page and section id`() = runTest {
         val userId = signUpTestUser().second
         val actor = UserId(UserType.AUTHENTICATED, userId)
 
-        userService.submitFaqVote(FaqVoteRequest("why-sign-up", true), actor)
-        userService.submitFaqVote(FaqVoteRequest("why-sign-up", false, "I could not find this quickly."), actor)
+        userService.submitContentSectionVote(ContentSectionVoteRequest("faq", "why-sign-up", true), actor)
+        userService.submitContentSectionVote(
+            ContentSectionVoteRequest("faq", "why-sign-up", false, "I could not find this quickly."),
+            actor
+        )
 
         val upVoted = dslContext.fetchValueAsync(
-            FAQ_SECTION_VOTE.UP_VOTED,
-            FAQ_SECTION_VOTE.USER_ID.eq(userId).and(FAQ_SECTION_VOTE.FAQ_SECTION_ID.eq("why-sign-up")),
+            CONTENT_SECTION_VOTE.UP_VOTED,
+            CONTENT_SECTION_VOTE.USER_ID.eq(userId)
+                .and(CONTENT_SECTION_VOTE.PAGE_ID.eq("faq"))
+                .and(CONTENT_SECTION_VOTE.SECTION_ID.eq("why-sign-up")),
         )
         assertEquals(false, upVoted)
 
         val feedback = dslContext.fetchValueAsync(
-            FAQ_SECTION_VOTE.FEEDBACK,
-            FAQ_SECTION_VOTE.USER_ID.eq(userId).and(FAQ_SECTION_VOTE.FAQ_SECTION_ID.eq("why-sign-up")),
+            CONTENT_SECTION_VOTE.FEEDBACK,
+            CONTENT_SECTION_VOTE.USER_ID.eq(userId)
+                .and(CONTENT_SECTION_VOTE.PAGE_ID.eq("faq"))
+                .and(CONTENT_SECTION_VOTE.SECTION_ID.eq("why-sign-up")),
         )
         assertEquals("I could not find this quickly.", feedback)
     }
 
     @Test
-    fun `submitFaqVote should reject invalid section ids`() = runTest {
+    fun `submitContentSectionVote should reject invalid page or section ids`() = runTest {
         val userId = signUpTestUser().second
         val actor = UserId(UserType.AUTHENTICATED, userId)
 
         assertFailsWith<NotAcceptableException> {
-            userService.submitFaqVote(FaqVoteRequest("invalid section id", true), actor)
+            userService.submitContentSectionVote(ContentSectionVoteRequest("faq", "invalid section id", true), actor)
+        }
+        assertFailsWith<NotAcceptableException> {
+            userService.submitContentSectionVote(ContentSectionVoteRequest("invalid/page", "why-sign-up", true), actor)
         }
     }
 

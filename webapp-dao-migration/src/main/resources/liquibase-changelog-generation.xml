@@ -2320,8 +2320,11 @@
         </addColumn>
     </changeSet>
     <changeSet id="0101" author="benckx">
-        <createTable tableName="faq_section_vote">
-            <column name="faq_section_id" type="varchar(80)">
+        <createTable tableName="content_section_vote">
+            <column name="page_id" type="varchar(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="section_id" type="varchar(80)">
                 <constraints nullable="false"/>
             </column>
             <column name="user_id" type="varchar(12)">
@@ -2335,8 +2338,8 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addPrimaryKey columnNames="faq_section_id, user_id"
-                       constraintName="faq_section_vote_pkey"
-                       tableName="faq_section_vote"/>
+        <addPrimaryKey columnNames="page_id, section_id, user_id"
+                       constraintName="content_section_vote_pkey"
+                       tableName="content_section_vote"/>
     </changeSet>
 </databaseChangeLog>

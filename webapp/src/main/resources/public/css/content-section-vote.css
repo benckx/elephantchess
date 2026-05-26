@@ -1,0 +1,66 @@
+.main-container-text h1[id] {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.content-section-vote-panel {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.content-section-vote-button {
+    height: 23px;
+    cursor: pointer;
+    opacity: 0.5;
+    padding: 3px 6px;
+    border-radius: 5px;
+    background-color: #fbf7f0;
+    box-shadow: rgba(50, 50, 93, 0.25) 0 2px 5px -1px, rgba(0, 0, 0, 0.3) 0 1px 3px -1px;
+}
+
+.content-section-vote-button:hover {
+    opacity: 0.9;
+}
+
+.content-section-vote-button:active {
+    box-shadow: none;
+}
+
+.content-section-vote-button.voted-for {
+    opacity: 1;
+}
+
+.content-section-vote-button.voted-against {
+    opacity: 0.3;
+}
+
+.content-section-feedback-link {
+    display: none;
+    margin-left: 4px;
+}
+
+.content-section-feedback-link-visible {
+    display: inline;
+}
+
+#content-section-feedback-modal {
+    width: 430px;
+}
+
+#content-section-feedback-textarea {
+    height: 170px;
+}
+
+@media (max-width: 1000px) {
+    .main-container-text h1[id] {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .content-section-vote-panel {
+        margin-left: 0;
+    }
+}

@@ -17,14 +17,20 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class FaqPage extends BasePage {
+class ContentSectionVotePage extends BasePage {
 
     #votesBySectionId = new Map();
+    #pageId;
 
     constructor() {
         super();
 
-        UI.preloadModal('faq-feedback');
+        this.#pageId = document.querySelector('.main-container-text')?.dataset.pageId;
+        if (!this.#pageId) {
+            return;
+        }
+
+        UI.preloadModal('content-section-feedback');
         const sections = document.querySelectorAll('.main-container-text h1[id]');
         sections.forEach((section) => this.#addVotePanel(section));
     }
@@ -34,11 +40,11 @@ class FaqPage extends BasePage {
      */
     #addVotePanel(section) {
         const votePanel = document.createElement('div');
-        votePanel.className = 'faq-vote-panel';
+        votePanel.className = 'content-section-vote-panel';
         votePanel.innerHTML = `
-            <img class="faq-vote-button" src="/images/icons/thumbs-up.png" alt="vote up" loading="lazy"/>
-            <img class="faq-vote-button" src="/images/icons/thumbs-down.png" alt="vote down" loading="lazy"/>
-            <span class="faq-feedback-link action-link">Tell me why</span>
+            <img class="content-section-vote-button" src="/images/icons/thumbs-up.png" alt="vote up" loading="lazy"/>
+            <img class="content-section-vote-button" src="/images/icons/thumbs-down.png" alt="vote down" loading="lazy"/>
+            <span class="content-section-feedback-link action-link">Tell me why</span>
         `;
         section.append(votePanel);
 
@@ -61,10 +67,10 @@ class FaqPage extends BasePage {
      * @param feedbackLink {HTMLElement}
      */
     #vote(sectionId, upVoted, upButton, downButton, feedbackLink) {
-        postAndHandle('/api/faq/vote/submit', {sectionId, upVoted}, () => {
+        postAndHandle('/api/content-section-vote/submit', {pageId: this.#pageId, sectionId, upVoted}, () => {
             this.#votesBySectionId.set(sectionId, upVoted);
             this.#renderVote(upVoted, upButton, downButton);
-            feedbackLink.classList.add('faq-feedback-link-visible');
+            feedbackLink.classList.add('content-section-feedback-link-visible');
             UI.pushInfoNotification('Thanks for your feedback!');
         });
     }
@@ -98,15 +104,16 @@ class FaqPage extends BasePage {
             return;
         }
 
-        UI.showModalByName('faq-feedback', () => {
-            const sectionLabel = document.getElementById('faq-feedback-section-label');
+        UI.showModalByName('content-section-feedback', () => {
+            const sectionLabel = document.getElementById('content-section-feedback-section-label');
             sectionLabel.innerText = sectionTitle;
 
-            const submitButton = document.getElementById('faq-feedback-submit-button');
+            const submitButton = document.getElementById('content-section-feedback-submit-button');
             submitButton.addEventListener('click', () => {
-                const textarea = document.getElementById('faq-feedback-textarea');
+                const textarea = document.getElementById('content-section-feedback-textarea');
                 const feedback = textarea.value.trim();
-                postAndHandle('/api/faq/vote/submit', {
+                postAndHandle('/api/content-section-vote/submit', {
+                    pageId: this.#pageId,
                     sectionId,
                     upVoted: this.#votesBySectionId.get(sectionId),
                     feedback,
@@ -120,4 +127,4 @@ class FaqPage extends BasePage {
 
 }
 
-window.onload = () => new FaqPage();
+window.onload = () => new ContentSectionVotePage();
