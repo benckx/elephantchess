@@ -71,17 +71,12 @@ class ApexChartWidget {
 
     /**
      * @param options {object}
-     * @param clearPrevious {boolean}
+     * @param redrawPaths {boolean}
+     * @param animate {boolean}
      */
-    addXaxisAnnotation(options, clearPrevious = true) {
+    updateOptions(options, redrawPaths = false, animate = false) {
         if (this.#chart != null) {
-            this.#chart.addXaxisAnnotation(options, clearPrevious);
-        }
-    }
-
-    clearAnnotations() {
-        if (this.#chart != null) {
-            this.#chart.clearAnnotations();
+            this.#chart.updateOptions(options, redrawPaths, animate);
         }
     }
 

@@ -33,8 +33,10 @@ class EvalLineChart extends ApexChartWidget {
      * @param startFen {string}
      * @param onClickNode {function|null} optional callback invoked when a data point is clicked; receives the
      *        corresponding {@link MoveTreeNode}, or null when the 'Start' position is clicked
+     * @param initialSelectedNode {MoveTreeNode|null|undefined} optional node to highlight immediately; undefined
+     *        means no indicator; null means the 'Start' position
      */
-    constructor(containerId, nodes, analysisMap, startFen, onClickNode = null) {
+    constructor(containerId, nodes, analysisMap, startFen, onClickNode = null, initialSelectedNode = undefined) {
         super(containerId);
 
         if (!document.getElementById(containerId)) {
@@ -168,7 +170,8 @@ class EvalLineChart extends ApexChartWidget {
                             strokeDashArray: 3,
                             borderWidth: 1
                         }
-                    ]
+                    ],
+                    xaxis: this.#buildXaxisAnnotations(initialSelectedNode)
                 },
                 tooltip: {
                     theme: 'dark',
@@ -195,25 +198,34 @@ class EvalLineChart extends ApexChartWidget {
     }
 
     /**
-     * Draws a vertical indicator line on the chart at the position of the given node.
-     * Passing null selects the start position.
+     * Returns the xaxis annotation array for the given node, or an empty array if the node has no data point.
      *
-     * @param node {MoveTreeNode|null}
+     * @param node {MoveTreeNode|null|undefined}
+     * @returns {object[]}
      */
-    selectNode(node) {
+    #buildXaxisAnnotations(node) {
+        if (node === undefined) {
+            return [];
+        }
         const idx = node == null
             ? this.#nodesForDataPoints.indexOf(null)
             : this.#nodesForDataPoints.findIndex(n => n != null && n.nodeId === node.nodeId);
-        if (idx >= 0) {
-            this.addXaxisAnnotation({
-                x: this.#categories[idx],
-                borderColor: '#888888',
-                strokeDashArray: 0,
-                borderWidth: 1
-            });
-        } else {
-            this.clearAnnotations();
-        }
+        return idx >= 0 ? [{
+            x: this.#categories[idx],
+            borderColor: '#888888',
+            strokeDashArray: 0,
+            borderWidth: 2
+        }] : [];
+    }
+
+    /**
+     * Draws a vertical indicator line on the chart at the position of the given node.
+     * Passing null selects the start position. Passing undefined clears the indicator.
+     *
+     * @param node {MoveTreeNode|null|undefined}
+     */
+    selectNode(node) {
+        this.updateOptions({annotations: {xaxis: this.#buildXaxisAnnotations(node)}});
     }
 
 }
