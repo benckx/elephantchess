@@ -130,8 +130,8 @@ fun eventGamesListTagResolver(
                 }
                 for (game in sortedGames) {
                     tr(classes = "game-row-hoverable") {
-                        attributes["data-fen"] = "${game.finalFen}"
-                        attributes["data-game-id"] = "${game.id}"
+                        attributes["data-fen"] = game.finalFen
+                        attributes["data-game-id"] = game.id
                         td { playerNameCell(game.redPlayerName, game.redPlayerSlug) }
                         td { outcomeAnchor(game) }
                         td { playerNameCell(game.blackPlayerName, game.blackPlayerSlug) }
@@ -190,12 +190,12 @@ fun eventGamesListTagResolver(
                 val (_, nameAndSlug, score) = triple
                 val (name, slug) = nameAndSlug
                 tr {
-                    td { +"${index + 1}" }
+                    td { +(index + 1).toString() }
                     td { playerNameCell(name, slug) }
-                    td { +"${stats.wins}" }
-                    td { +"${stats.draws}" }
-                    td { +"${stats.losses}" }
-                    td { +"$score" }
+                    td { +stats.wins.toString() }
+                    td { +stats.draws.toString() }
+                    td { +stats.losses.toString() }
+                    td { +score.toString() }
                 }
             }
         }
