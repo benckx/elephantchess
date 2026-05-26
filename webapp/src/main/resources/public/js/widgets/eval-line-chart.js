@@ -126,6 +126,7 @@ class EvalLineChart extends ApexChartWidget {
                     categories: categories,
                     tickAmount: Math.min(8, categories.length - 1),
                     tooltip: {enabled: false},
+                    crosshairs: {show: false},
                     labels: {
                         style: {colors: '#555555', fontSize: '10px'},
                         rotate: 0,
@@ -173,23 +174,7 @@ class EvalLineChart extends ApexChartWidget {
                     ],
                     xaxis: this.#buildXaxisAnnotations(initialSelectedNode)
                 },
-                tooltip: {
-                    theme: 'dark',
-                    // Custom tooltip: display Black advantage as a positive value (e.g. "+0.9" instead of "-0.9").
-                    custom: ({dataPointIndex}) => {
-                        const cat = categories[dataPointIndex];
-                        const val = evalData[dataPointIndex];
-                        const isPositive = val >= 0;
-                        const color = '#022e7d';
-                        const label = isPositive ? 'Red advantage' : 'Black advantage';
-                        const display = '+' + Math.abs(val).toFixed(1);
-                        return '<div class="apexcharts-tooltip-title" style="font-size:12px;">' + cat + '</div>'
-                            + '<div style="padding:4px 10px 6px 10px;font-size:12px;">'
-                            + '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + color + ';margin-right:6px;vertical-align:middle;"></span>'
-                            + label + ':&nbsp;<strong>' + display + '</strong>'
-                            + '</div>';
-                    }
-                },
+                tooltip: {enabled: false},
                 legend: {show: false}
             };
 
@@ -212,7 +197,7 @@ class EvalLineChart extends ApexChartWidget {
             : this.#nodesForDataPoints.findIndex(n => n != null && n.nodeId === node.nodeId);
         return idx >= 0 ? [{
             x: this.#categories[idx],
-            borderColor: '#888888',
+            borderColor: '#FF6B00',
             strokeDashArray: 0,
             borderWidth: 2
         }] : [];
