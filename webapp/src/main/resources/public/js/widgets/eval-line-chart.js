@@ -100,10 +100,10 @@ class EvalLineChart extends ApexChartWidget {
                     background: 'transparent',
                     ...(onClickNode != null ? {
                         events: {
-                            dataPointSelection: (event, chartContext, config) => {
-                                console.log('event: ' + event);
-                                console.log('config: ' + config);
-                                onClickNode(nodesForDataPoints[config.dataPointIndex]);
+                            click: (event, chartContext, config) => {
+                                if (config.dataPointIndex >= 0) {
+                                    onClickNode(nodesForDataPoints[config.dataPointIndex]);
+                                }
                             }
                         }
                     } : {})
