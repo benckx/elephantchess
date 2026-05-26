@@ -15,7 +15,7 @@ import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsNumbersResponse
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsRatingResponse
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsSummaryResponse
 import io.elephantchess.servicelayer.dto.user.NumberOfOutcomes
-import io.elephantchess.servicelayer.dto.user.NumberOfGamePerTimeCategory
+import io.elephantchess.servicelayer.dto.user.NumberOfGamesPerTimeCategory
 import io.elephantchess.servicelayer.dto.user.RatingsPerTimeCategory
 import io.elephantchess.servicelayer.dto.user.GameStatsResponse
 import io.elephantchess.servicelayer.exceptions.NotFoundException
@@ -45,7 +45,7 @@ class UserProfileAnalyticsService(
         )
     }
 
-    private suspend fun fetchPlayerVsPlayerStatsByCategory(userId: String): NumberOfGamePerTimeCategory {
+    private suspend fun fetchPlayerVsPlayerStatsByCategory(userId: String): NumberOfGamesPerTimeCategory {
         val pvpStatsByCategory = playerVsPlayerGameDaoService
             .fetchPlayerVsPlayerOutcomeStatsPerCategory(userId)
             .associateBy { it.category }
@@ -61,7 +61,7 @@ class UserProfileAnalyticsService(
             )
         }
 
-        return NumberOfGamePerTimeCategory(
+        return NumberOfGamesPerTimeCategory(
             bullet = pvpStatsFor(BULLET),
             blitz = pvpStatsFor(BLITZ),
             rapid = pvpStatsFor(RAPID),

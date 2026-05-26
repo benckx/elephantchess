@@ -2,7 +2,7 @@ package io.elephantchess.servicelayer.dto.user
 
 data class GameStatsResponse(
     val ratings: RatingsPerTimeCategory,
-    val pvp: NumberOfGamePerTimeCategory,
+    val pvp: NumberOfGamesPerTimeCategory,
 )
 
 data class RatingsPerTimeCategory(
@@ -14,7 +14,7 @@ data class RatingsPerTimeCategory(
     val correspondence: Int,
 )
 
-data class NumberOfGamePerTimeCategory(
+data class NumberOfGamesPerTimeCategory(
     val bullet: NumberOfOutcomes,
     val blitz: NumberOfOutcomes,
     val rapid: NumberOfOutcomes,
