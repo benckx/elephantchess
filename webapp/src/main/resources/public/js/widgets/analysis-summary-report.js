@@ -22,6 +22,22 @@ let evalLineChart = null;
 const EVAL_LINE_CHART_RENDER_DEBOUNCE_MS = 120;
 
 /**
+ * Builds a click callback for the eval chart that navigates the given {@link MoveTreeWidget} to the clicked node.
+ *
+ * @param moveTreeWidget {MoveTreeWidget}
+ * @returns {function}
+ */
+function buildEvalChartClickCallback(moveTreeWidget) {
+    return (node) => {
+        if (node != null) {
+            moveTreeWidget.selectNodeById(node.nodeId);
+        } else {
+            moveTreeWidget.navigateToStart();
+        }
+    };
+}
+
+/**
  * @param nodes {MoveTreeNode[]}
  * @param analysisMap {Map<string, InfoLineResult>}
  * @param startFen {string}
@@ -60,13 +76,7 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
         startFen = DEFAULT_START_FEN;
     }
 
-    const onClickNode = moveTreeWidget != null ? (node) => {
-        if (node != null) {
-            moveTreeWidget.selectNodeById(node.nodeId);
-        } else {
-            moveTreeWidget.navigateToStart();
-        }
-    } : null;
+    const onClickNode = moveTreeWidget != null ? buildEvalChartClickCallback(moveTreeWidget) : null;
 
     const client = new GameDataClient(gameId);
     client.fetchAnalysisStatus((analysisProgressStatus) => {
