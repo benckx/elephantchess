@@ -56,7 +56,7 @@ class GamePageRenderer(
         val title = gameId.let { id ->
             runCatching {
                 val game = pvbGameService.fetchGameData(id)
-                pvbPageTitle(game.username, game.userColor, game.engine, game.depth)
+                formatPvbPageTitle(game.username, game.userColor, game.engine, game.depth)
             }.getOrDefault(DEFAULT_PVB_TITLE)
         }
 
@@ -64,6 +64,7 @@ class GamePageRenderer(
     }
 
     companion object {
+
         internal const val DEFAULT_PVP_TITLE = "Game"
         internal const val DEFAULT_PVB_TITLE = "Play vs. Bot"
 
@@ -83,7 +84,7 @@ class GamePageRenderer(
             }
         }
 
-        internal fun pvbPageTitle(username: String?, userColor: Color, engine: Engine, depth: Int): String {
+        internal fun formatPvbPageTitle(username: String?, userColor: Color, engine: Engine, depth: Int): String {
             val humanPlayer = username ?: "anonymous"
             val botPlayer = "${formatEngineName(engine)} ($depth)"
 
