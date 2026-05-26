@@ -1,9 +1,12 @@
 package io.elephantchess.servicelayer.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
+import io.elephantchess.db.dao.codegen.tables.pojos.EmailVerification
+import io.elephantchess.db.dao.codegen.tables.pojos.EmailVerificationBounce
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGameStatusEvent
 import io.elephantchess.db.model.UserSessionRecord
+import io.elephantchess.db.services.EmailVerificationDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserSessionDaoService
@@ -32,6 +35,7 @@ class UserServiceTest : ServiceTest() {
     private val tokenManager by inject<TokenManager>()
     private val userDaoService by inject<UserDaoService>()
     private val userSessionDaoService by inject<UserSessionDaoService>()
+    private val emailVerificationDaoService by inject<EmailVerificationDaoService>()
     private val pvpGameService by inject<PlayerVsPlayerGameService>()
     private val pvbGameDaoService by inject<PlayerVsBotGameDaoService>()
     private val dslContext by inject<DSLContext>()
@@ -41,6 +45,7 @@ class UserServiceTest : ServiceTest() {
         listOf(
             GAME_MOVE, GAME_STATUS_EVENT, GAME,
             BOT_GAME_MOVE, BOT_GAME_STATUS_EVENT, BOT_GAME,
+            EMAIL_VERIFICATION, EMAIL_VERIFICATION_BOUNCE,
             REFERENCE_GAME_SEARCH_QUERY,
             USER_SESSION, PUZZLE_RESULT, USER, PUZZLE
         )
@@ -292,6 +297,7 @@ class UserServiceTest : ServiceTest() {
         val before = userService.fetchEmailAddressSettings(userId)
         assertEquals(request.email, before.email)
         assertEquals(EmailValidityStatus.UNKNOWN, before.validityStatus)
+        assertTrue(before.canResendConfirmation)
 
         // After the user clicks the confirmation link, the email is MANUALLY_CONFIRMED.
         val code = userDaoService.findById(userId)!!.emailConfirmationCode
@@ -299,6 +305,33 @@ class UserServiceTest : ServiceTest() {
 
         val after = userService.fetchEmailAddressSettings(userId)
         assertEquals(EmailValidityStatus.MANUALLY_CONFIRMED, after.validityStatus)
+        assertFalse(after.canResendConfirmation)
+    }
+
+    @Test
+    fun `fetchEmailAddressSettings should allow resending confirmation after automated verification failures`() = runTest {
+        val (request, userId) = signUpTestUser()
+
+        val verification = EmailVerification()
+        verification.id = insecure().nextAlphanumeric(12)
+        verification.email = request.email
+        verification.result = "invalid"
+        verification.serviceName = EmailVerifierService.EMAIL_LIST_VERIFY
+        verification.verificationTime = Clock.System.now()
+        emailVerificationDaoService.save(verification)
+
+        val automatedInvalid = userService.fetchEmailAddressSettings(userId)
+        assertEquals(EmailValidityStatus.AUTOMATED_INVALID, automatedInvalid.validityStatus)
+        assertTrue(automatedInvalid.canResendConfirmation)
+
+        val bounce = EmailVerificationBounce()
+        bounce.email = request.email
+        bounce.bouncedTime = Clock.System.now()
+        emailVerificationDaoService.insertOrUpdateBounced(listOf(bounce))
+
+        val automatedBounced = userService.fetchEmailAddressSettings(userId)
+        assertEquals(EmailValidityStatus.AUTOMATED_BOUNCED, automatedBounced.validityStatus)
+        assertTrue(automatedBounced.canResendConfirmation)
     }
 
     @Test

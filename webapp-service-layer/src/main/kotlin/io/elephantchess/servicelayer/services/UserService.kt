@@ -390,10 +390,12 @@ class UserService(
     suspend fun fetchEmailAddressSettings(userId: String): EmailAddressSettingsResponse {
         val email = userDaoService.fetchEmail(userId)
             ?: throw NotFoundException("email of user $userId could not be found")
+        val validityStatus = mailService.getEmailValidityDetails(email)
 
         return EmailAddressSettingsResponse(
             email = email,
-            validityStatus = mailService.getEmailValidityDetails(email),
+            validityStatus = validityStatus,
+            canResendConfirmation = validityStatus != EmailValidityStatus.MANUALLY_CONFIRMED,
         )
     }
 

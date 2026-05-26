@@ -131,7 +131,7 @@ class UserSettingsPage extends BasePage {
 
             // The resend button is shown for any status except MANUALLY_CONFIRMED, since manual
             // confirmation is the strongest signal and a resend would not change anything.
-            if (json.validityStatus !== 'MANUALLY_CONFIRMED') {
+            if (json.canResendConfirmation) {
                 const container = document.getElementById('resend-email-confirmation-container');
                 const button = document.getElementById('resend-email-confirmation-button');
                 container.classList.remove('hidden');
