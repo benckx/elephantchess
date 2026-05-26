@@ -109,7 +109,7 @@ class ContentSectionVotePage extends BasePage {
             sectionLabel.innerText = sectionTitle;
 
             const submitButton = document.getElementById('content-section-feedback-submit-button');
-            submitButton.addEventListener('click', () => {
+            submitButton.onclick = () => {
                 const textarea = document.getElementById('content-section-feedback-textarea');
                 const feedback = textarea.value.trim();
                 postAndHandle('/api/content-section-vote/submit', {
@@ -121,7 +121,7 @@ class ContentSectionVotePage extends BasePage {
                     UI.hideModal(null);
                     UI.pushInfoNotification('Thanks for telling us more!');
                 });
-            });
+            };
         });
     }
 
