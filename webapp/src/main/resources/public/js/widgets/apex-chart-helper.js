@@ -69,15 +69,4 @@ class ApexChartWidget {
         }
     }
 
-    /**
-     * @param options {object}
-     * @param redrawPaths {boolean}
-     * @param animate {boolean}
-     */
-    updateOptions(options, redrawPaths = false, animate = false) {
-        if (this.#chart != null) {
-            this.#chart.updateOptions(options, redrawPaths, animate);
-        }
-    }
-
 }

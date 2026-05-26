@@ -23,9 +23,6 @@
  */
 class EvalLineChart extends ApexChartWidget {
 
-    #nodesForDataPoints = [];
-    #indicator = null;
-
     /**
      * @param containerId {string}
      * @param nodes {MoveTreeNode[]}
@@ -89,8 +86,6 @@ class EvalLineChart extends ApexChartWidget {
         if (onClickNode != null) {
             document.getElementById(containerId).style.cursor = 'pointer';
         }
-
-        this.#nodesForDataPoints = nodesForDataPoints;
 
         if (evalData.length > 1) {
             this.chartOptions = {
@@ -191,51 +186,6 @@ class EvalLineChart extends ApexChartWidget {
 
             this.enableRender();
         }
-    }
-
-    /**
-     * Moves the indicator overlay to the position of the given node.
-     * Passing null selects the start position. Passing undefined hides the indicator.
-     *
-     * @param node {MoveTreeNode|null|undefined}
-     */
-    selectNode(node) {
-        if (!this.#indicator) return;
-
-        if (node === undefined) {
-            this.#indicator.style.display = 'none';
-            return;
-        }
-
-        const idx = node == null
-            ? this.#nodesForDataPoints.indexOf(null)
-            : this.#nodesForDataPoints.findIndex(n => n != null && n.nodeId === node.nodeId);
-
-        if (idx < 0) {
-            this.#indicator.style.display = 'none';
-            return;
-        }
-
-        const container = this.#indicator.parentElement;
-        const gridEl = container?.querySelector('.apexcharts-grid');
-        if (!gridEl) {
-            this.#indicator.style.display = 'none';
-            return;
-        }
-
-        const containerRect = container.getBoundingClientRect();
-        const gridRect = gridEl.getBoundingClientRect();
-        const plotLeft = gridRect.left - containerRect.left;
-        const plotTop = gridRect.top - containerRect.top;
-        const plotWidth = gridRect.width;
-        const plotHeight = gridRect.height;
-        const N = this.#nodesForDataPoints.length;
-        const x = plotLeft + (N > 1 ? (idx / (N - 1)) * plotWidth : plotWidth / 2);
-
-        this.#indicator.style.left = Math.round(x - 1) + 'px';
-        this.#indicator.style.top = plotTop + 'px';
-        this.#indicator.style.height = plotHeight + 'px';
-        this.#indicator.style.display = 'block';
     }
 
 }
