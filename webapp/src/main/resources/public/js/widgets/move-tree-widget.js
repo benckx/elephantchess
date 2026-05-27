@@ -1516,6 +1516,10 @@ class MoveTreeWidget {
         this.#moveTree.startFen = fen;
     }
 
+    get startFen() {
+        return this.#moveTree.startFen;
+    }
+
     // COMPLEX GETTERS/SETTERS
 
     /**

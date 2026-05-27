@@ -52,7 +52,7 @@ function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode = nul
  * @param gameId {GameId}
  * @param moveTreeWidget {MoveTreeWidget}
  */
-function renderAnalysisSummaryReportGeneric(gameId, moveTreeWidget) {
+function fetchDataAndrenderAnalysisSummaryReport(gameId, moveTreeWidget) {
     const client = new GameDataClient(gameId);
     client.fetchAnalysisStatus((analysisProgressStatus) => {
         if (analysisProgressStatus.status === AnalysisStatus.COMPLETED) {
@@ -94,16 +94,15 @@ function renderAnalysisSummaryReport(
     outcome,
     moveTreeWidget
 ) {
-    const nodes = this.#moveTreeWidget.getMainBranchNodes();
-    const startFen = this.#moveTreeWidget.getStartFen();
-
-    const onClickNode = moveTreeWidget != null ? (node) => {
+    const nodes = moveTreeWidget.getMainBranchNodes();
+    const startFen = moveTreeWidget.startFen;
+    const onClickNode = (node) => {
         if (node != null) {
             moveTreeWidget.selectNodeById(node.nodeId);
         } else {
             moveTreeWidget.navigateToStart();
         }
-    } : null;
+    };
 
     /**
      * @param nodes {Array<MoveTreeNode>}
