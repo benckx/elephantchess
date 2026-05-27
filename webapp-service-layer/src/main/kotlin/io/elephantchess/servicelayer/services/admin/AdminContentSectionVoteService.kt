@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.services.admin
 
 import io.elephantchess.db.services.ContentSectionVoteDaoService
+import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.admin.ListContentSectionVoteFeedbackResponse
 import io.elephantchess.servicelayer.services.UserCache
 
@@ -16,7 +17,7 @@ class AdminContentSectionVoteService(
                 ListContentSectionVoteFeedbackResponse.Entry(
                     userId = record.userId,
                     username = userCache.fetchUsernameOrDefault(record.userId),
-                    userType = userCache.fetchUserType(record.userId),
+                    userType = userCache.fetchUserType(record.userId) ?: UserType.GUEST,
                     pageId = record.pageId,
                     sectionId = record.sectionId,
                     upVoted = record.upVoted,
