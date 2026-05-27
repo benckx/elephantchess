@@ -668,9 +668,7 @@ class AnalysisBoardPage extends BasePage {
         const nodes = this.#moveTreeWidget.getMainBranchNodes();
         if (nodes.length > 6) {
             renderAnalysisSummaryReport(
-                nodes,
                 this.#analysisCache.asMap(),
-                this.#startFen,
                 this.#gameMetadata?.redPlayerName,
                 this.#gameMetadata?.blackPlayerName,
                 this.#gameMetadata?.outcome,

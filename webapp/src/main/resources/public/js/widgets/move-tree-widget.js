@@ -592,6 +592,14 @@ class MoveTree {
         this.#useDefaultFen = (value === DEFAULT_START_FEN);
     }
 
+    get startFen() {
+        if (this.#useDefaultFen) {
+            return DEFAULT_START_FEN;
+        } else {
+            return this.#startFen;
+        }
+    }
+
     isEmpty() {
         return this.#rootNode == null;
     }

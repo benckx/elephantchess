@@ -934,12 +934,8 @@ class PlayGamePage extends BasePage {
 
     #renderAnalysisSummaryReportIfAvailable() {
         if (this.#gameController.isGameFinished()) {
-            renderAnalysisSummaryReportGeneric(
-                new GameId(GameType.PVP, this.#gameController.gameId),
-                this.#moveTreeWidget.getMainBranchNodes(),
-                DEFAULT_START_FEN,
-                this.#moveTreeWidget
-            );
+            const gameId = new GameId(GameType.PVP, this.#gameController.gameId);
+            renderAnalysisSummaryReportGeneric(gameId, this.#moveTreeWidget);
         }
     }
 

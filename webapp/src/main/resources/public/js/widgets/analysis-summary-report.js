@@ -50,16 +50,9 @@ function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode = nul
 
 /**
  * @param gameId {GameId}
- * @param nodes {MoveTreeNode[]}
- * @param startFen {string}
- * @param moveTreeWidget {MoveTreeWidget|null} optional widget on which annotation symbols (??, ?!, etc.) will be
- *        applied to the move history once analysis data is fetched
+ * @param moveTreeWidget {MoveTreeWidget}
  */
-function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_START_FEN, moveTreeWidget = null) {
-    if (startFen == null) {
-        startFen = DEFAULT_START_FEN;
-    }
-
+function renderAnalysisSummaryReportGeneric(gameId, moveTreeWidget) {
     const client = new GameDataClient(gameId);
     client.fetchAnalysisStatus((analysisProgressStatus) => {
         if (analysisProgressStatus.status === AnalysisStatus.COMPLETED) {
@@ -71,9 +64,7 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
                     });
 
                     renderAnalysisSummaryReport(
-                        nodes,
                         analysisMap,
-                        startFen,
                         gameMetadata.redPlayerName,
                         gameMetadata.blackPlayerName,
                         gameMetadata.outcome,
@@ -90,23 +81,22 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
 }
 
 /**
- * @param nodes {MoveTreeNode[]}
  * @param analysisMap {Map<string, InfoLineResult>}
- * @param startFen {string}
  * @param redPlayerName {string|null}
  * @param blackPlayerName {string|null}
  * @param outcome {string|null}
- * @param moveTreeWidget {MoveTreeWidget|null}
+ * @param moveTreeWidget {MoveTreeWidget}
  */
 function renderAnalysisSummaryReport(
-    nodes,
     analysisMap,
-    startFen,
     redPlayerName,
     blackPlayerName,
     outcome,
-    moveTreeWidget = null
+    moveTreeWidget
 ) {
+    const nodes = this.#moveTreeWidget.getMainBranchNodes();
+    const startFen = this.#moveTreeWidget.getStartFen();
+
     const onClickNode = moveTreeWidget != null ? (node) => {
         if (node != null) {
             moveTreeWidget.selectNodeById(node.nodeId);
