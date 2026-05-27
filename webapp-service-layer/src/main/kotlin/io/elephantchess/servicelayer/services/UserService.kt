@@ -8,6 +8,7 @@ import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.ContactFormRequest
 import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
+import io.elephantchess.servicelayer.dto.ContentSectionVotesResponse
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
@@ -471,7 +472,7 @@ class UserService(
 
     suspend fun submitContentSectionVote(request: ContentSectionVoteRequest, userId: UserId) {
         if (!isContentPageIdValid(request.pageId)) {
-            throw NotAcceptableException("invalid page id (lowercase dash-separated, max 40)")
+            throw NotAcceptableException("invalid page id")
         }
         if (!isContentSectionIdValid(request.sectionId)) {
             throw NotAcceptableException("invalid section id (lowercase dash-separated, max 80)")
@@ -486,6 +487,24 @@ class UserService(
             upVoted = request.upVoted,
             feedback = feedback
         )
+    }
+
+    suspend fun fetchContentSectionVotes(pageId: String, userId: UserId): ContentSectionVotesResponse {
+        if (!isContentPageIdValid(pageId)) {
+            throw NotAcceptableException("invalid page id")
+        }
+
+        val entries = contentSectionVoteDaoService
+            .listVotesByUserAndPage(userId.id, pageId)
+            .map { record ->
+                ContentSectionVotesResponse.Entry(
+                    sectionId = record.sectionId,
+                    upVoted = record.upVoted,
+                    feedback = record.feedback
+                )
+            }
+
+        return ContentSectionVotesResponse(entries)
     }
 
     private suspend fun validateSignUpRequest(request: SignUpRequest): List<String> {
@@ -557,6 +576,7 @@ class UserService(
 
         private val EMAIL_REGEX = "^[A-Za-z0-9][^\\s]*@[^\\s]+\\.[^\\s]+$".toRegex()
         private val DASH_SEPARATED_ID_REGEX = Regex("^[a-z0-9]+(?:-[a-z0-9]+)*$")
+        private val ALLOWED_CONTENT_PAGE_IDS = setOf("faq", "roadmap")
 
         private fun validatePassword(password: String): String? {
             return if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
@@ -576,7 +596,7 @@ class UserService(
             chars.matches(EMAIL_REGEX)
 
         private fun isContentPageIdValid(pageId: String): Boolean =
-            pageId.length <= 40 && DASH_SEPARATED_ID_REGEX.matches(pageId)
+            pageId in ALLOWED_CONTENT_PAGE_IDS
 
         private fun isContentSectionIdValid(sectionId: String): Boolean =
             sectionId.length <= 80 && DASH_SEPARATED_ID_REGEX.matches(sectionId)

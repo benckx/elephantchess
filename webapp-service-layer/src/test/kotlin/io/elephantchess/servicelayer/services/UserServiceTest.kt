@@ -676,6 +676,40 @@ class UserServiceTest : ServiceTest() {
         assertFailsWith<NotAcceptableException> {
             userService.submitContentSectionVote(ContentSectionVoteRequest("invalid/page", "why-sign-up", true), actor)
         }
+        assertFailsWith<NotAcceptableException> {
+            userService.submitContentSectionVote(ContentSectionVoteRequest("about", "why-sign-up", true), actor)
+        }
+    }
+
+    @Test
+    fun `fetchContentSectionVotes should list votes and feedback for user and page`() = runTest {
+        val userId = signUpTestUser().second
+        val actor = UserId(UserType.AUTHENTICATED, userId)
+
+        userService.submitContentSectionVote(
+            ContentSectionVoteRequest("faq", "why-sign-up", true, "This answer is very useful."),
+            actor
+        )
+        userService.submitContentSectionVote(
+            ContentSectionVoteRequest("roadmap", "pre-move", false),
+            actor
+        )
+
+        val faqVotes = userService.fetchContentSectionVotes("faq", actor)
+        assertEquals(1, faqVotes.entries.size)
+        assertEquals("why-sign-up", faqVotes.entries[0].sectionId)
+        assertEquals(true, faqVotes.entries[0].upVoted)
+        assertEquals("This answer is very useful.", faqVotes.entries[0].feedback)
+
+        val roadmapVotes = userService.fetchContentSectionVotes("roadmap", actor)
+        assertEquals(1, roadmapVotes.entries.size)
+        assertEquals("pre-move", roadmapVotes.entries[0].sectionId)
+        assertEquals(false, roadmapVotes.entries[0].upVoted)
+        assertNull(roadmapVotes.entries[0].feedback)
+
+        assertFailsWith<NotAcceptableException> {
+            userService.fetchContentSectionVotes("about", actor)
+        }
     }
 
 }

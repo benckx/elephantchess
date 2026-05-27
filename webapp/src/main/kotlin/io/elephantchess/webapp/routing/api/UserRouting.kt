@@ -210,6 +210,12 @@ private fun Route.contactFormRoutes() {
 
 private fun Route.contentSectionVoteRoutes() {
     route("/api/content-section-vote") {
+        get("/list") {
+            requireIdentification { verifiedToken ->
+                val pageId = call.request.queryParameters["pageId"] ?: throw BadRequestException("missing pageId")
+                userService.fetchContentSectionVotes(pageId, verifiedToken.userId())
+            }
+        }
         post("/submit") {
             requireIdentificationWithBody<ContentSectionVoteRequest> { verifiedToken, request ->
                 userService.submitContentSectionVote(request, verifiedToken.userId())

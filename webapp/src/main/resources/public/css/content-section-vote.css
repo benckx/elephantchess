@@ -54,6 +54,14 @@
     height: 170px;
 }
 
+#content-section-feedback-character-counter {
+    display: block;
+    text-align: right;
+    color: #666;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
 @media (max-width: 1000px) {
     .main-container-text h1[id] {
         align-items: flex-start;

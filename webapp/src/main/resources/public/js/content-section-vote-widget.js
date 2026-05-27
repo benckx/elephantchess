@@ -17,15 +17,16 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class ContentSectionVotePage extends BasePage {
+const CONTENT_SECTION_FEEDBACK_MAX_LENGTH = 1_000;
+
+class ContentSectionVoteWidget {
 
     #votesBySectionId = new Map();
+    #votePanelBySectionId = new Map();
     #pageId;
     #feedbackSubmitListener = null;
 
     constructor() {
-        super();
-
         this.#pageId = document.querySelector('.main-container-text')?.dataset.pageId;
         if (!this.#pageId) {
             return;
@@ -34,6 +35,7 @@ class ContentSectionVotePage extends BasePage {
         UI.preloadModal('content-section-feedback');
         const sections = document.querySelectorAll('.main-container-text h1[id]');
         sections.forEach((section) => this.#addVotePanel(section));
+        this.#fetchCurrentVotes();
     }
 
     /**
@@ -45,7 +47,7 @@ class ContentSectionVotePage extends BasePage {
         votePanel.innerHTML = `
             <img class="content-section-vote-button" src="/images/icons/thumbs-up.png" alt="vote up" loading="lazy"/>
             <img class="content-section-vote-button" src="/images/icons/thumbs-down.png" alt="vote down" loading="lazy"/>
-            <span class="content-section-feedback-link action-link">Tell me why</span>
+            <span class="content-section-feedback-link action-link">Tell us more</span>
         `;
         section.append(votePanel);
 
@@ -55,9 +57,29 @@ class ContentSectionVotePage extends BasePage {
         const sectionId = section.id;
         const sectionTitle = section.textContent.trim();
 
+        this.#votePanelBySectionId.set(sectionId, {upButton, downButton, feedbackLink, sectionTitle});
+
         upButton.addEventListener('click', () => this.#vote(sectionId, true, upButton, downButton, feedbackLink));
         downButton.addEventListener('click', () => this.#vote(sectionId, false, upButton, downButton, feedbackLink));
         feedbackLink.addEventListener('click', () => this.#openFeedbackModal(sectionId, sectionTitle));
+    }
+
+    #fetchCurrentVotes() {
+        getAndHandle(`/api/content-section-vote/list?pageId=${encodeURIComponent(this.#pageId)}`, json => {
+            json.entries.forEach(entry => {
+                const votePanel = this.#votePanelBySectionId.get(entry.sectionId);
+                if (votePanel == null) {
+                    return;
+                }
+
+                this.#votesBySectionId.set(entry.sectionId, {
+                    upVoted: entry.upVoted,
+                    feedback: entry.feedback ?? '',
+                });
+                this.#renderVote(entry.upVoted, votePanel.upButton, votePanel.downButton);
+                votePanel.feedbackLink.classList.add('content-section-feedback-link-visible');
+            });
+        });
     }
 
     /**
@@ -69,7 +91,11 @@ class ContentSectionVotePage extends BasePage {
      */
     #vote(sectionId, upVoted, upButton, downButton, feedbackLink) {
         postAndHandle('/api/content-section-vote/submit', {pageId: this.#pageId, sectionId, upVoted}, () => {
-            this.#votesBySectionId.set(sectionId, upVoted);
+            const currentVote = this.#votesBySectionId.get(sectionId);
+            this.#votesBySectionId.set(sectionId, {
+                upVoted,
+                feedback: currentVote?.feedback ?? '',
+            });
             this.#renderVote(upVoted, upButton, downButton);
             feedbackLink.classList.add('content-section-feedback-link-visible');
             UI.pushInfoNotification('Thanks for your feedback!');
@@ -100,7 +126,8 @@ class ContentSectionVotePage extends BasePage {
      * @param sectionTitle {string}
      */
     #openFeedbackModal(sectionId, sectionTitle) {
-        if (!this.#votesBySectionId.has(sectionId)) {
+        const voteState = this.#votesBySectionId.get(sectionId);
+        if (voteState == null) {
             UI.pushErrorNotification('Please vote first.');
             return;
         }
@@ -108,28 +135,48 @@ class ContentSectionVotePage extends BasePage {
         UI.showModalByName('content-section-feedback', () => {
             const sectionLabel = document.getElementById('content-section-feedback-section-label');
             sectionLabel.innerText = sectionTitle;
+            const textarea = document.getElementById('content-section-feedback-textarea');
+            textarea.value = voteState.feedback;
+            this.#updateFeedbackCounter(textarea);
 
             const submitButton = document.getElementById('content-section-feedback-submit-button');
             if (this.#feedbackSubmitListener != null) {
                 submitButton.removeEventListener('click', this.#feedbackSubmitListener);
             }
             this.#feedbackSubmitListener = () => {
-                const textarea = document.getElementById('content-section-feedback-textarea');
                 const feedback = textarea.value.trim();
+                const latestVote = this.#votesBySectionId.get(sectionId);
+                if (latestVote == null) {
+                    UI.pushErrorNotification('Please vote first.');
+                    return;
+                }
                 postAndHandle('/api/content-section-vote/submit', {
                     pageId: this.#pageId,
                     sectionId,
-                    upVoted: this.#votesBySectionId.get(sectionId),
+                    upVoted: latestVote.upVoted,
                     feedback,
                 }, () => {
+                    this.#votesBySectionId.set(sectionId, {
+                        upVoted: latestVote.upVoted,
+                        feedback,
+                    });
                     UI.hideModal(null);
                     UI.pushInfoNotification('Thanks for telling us more!');
                 });
             };
             submitButton.addEventListener('click', this.#feedbackSubmitListener);
+            textarea.oninput = () => this.#updateFeedbackCounter(textarea);
         });
+    }
+
+    /**
+     * @param textarea {HTMLTextAreaElement}
+     */
+    #updateFeedbackCounter(textarea) {
+        const characterCounter = document.getElementById('content-section-feedback-character-counter');
+        characterCounter.innerText = `${textarea.value.length} / ${CONTENT_SECTION_FEEDBACK_MAX_LENGTH}`;
     }
 
 }
 
-window.onload = () => new ContentSectionVotePage();
+document.addEventListener('DOMContentLoaded', () => new ContentSectionVoteWidget());
