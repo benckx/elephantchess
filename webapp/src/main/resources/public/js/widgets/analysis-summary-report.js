@@ -25,9 +25,9 @@ const EVAL_LINE_CHART_RENDER_DEBOUNCE_MS = 120;
  * @param nodes {MoveTreeNode[]}
  * @param analysisMap {Map<string, InfoLineResult>}
  * @param startFen {string}
- * @param onClickNode {function|null}
+ * @param onClickNode {function(MoveTreeNode|null)}
  */
-function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode = null) {
+function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode) {
     if (scheduleEvalChartRenderTimeout != null) {
         clearTimeout(scheduleEvalChartRenderTimeout);
     }
@@ -43,7 +43,7 @@ function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode = nul
         if (evalLineChart != null) {
             evalLineChart.destroy();
         }
-        evalLineChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen, onClickNode);
+        evalLineChart = new EvalLineChart('eval-line-chart-container', analysisMap, startFen, nodes, onClickNode);
         evalLineChart.render();
     }, EVAL_LINE_CHART_RENDER_DEBOUNCE_MS);
 }

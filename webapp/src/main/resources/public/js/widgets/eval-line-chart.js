@@ -25,13 +25,12 @@ class EvalLineChart extends ApexChartWidget {
 
     /**
      * @param containerId {string}
-     * @param nodes {MoveTreeNode[]}
      * @param analysisMap {Map<string, InfoLineResult>}
      * @param startFen {string}
-     * @param onClickNode {function|null} optional callback invoked when a data point is clicked; receives the
-     *        corresponding {@link MoveTreeNode}, or null when the 'Start' position is clicked
+     * @param nodes {MoveTreeNode[]}
+     * @param onClickNode {function(MoveTreeNode|null)} callback invoked when a data point is clicked; receives the corresponding {@link MoveTreeNode}
      */
-    constructor(containerId, nodes, analysisMap, startFen, onClickNode = null) {
+    constructor(containerId, analysisMap, startFen, nodes, onClickNode) {
         super(containerId);
 
         if (!document.getElementById(containerId)) {
@@ -83,9 +82,7 @@ class EvalLineChart extends ApexChartWidget {
             nodesForDataPoints = sampledNodesForDataPoints;
         }
 
-        if (onClickNode != null) {
-            document.getElementById(containerId).style.cursor = 'pointer';
-        }
+        document.getElementById(containerId).style.cursor = 'pointer';
 
         if (evalData.length > 1) {
             this.chartOptions = {
@@ -98,7 +95,7 @@ class EvalLineChart extends ApexChartWidget {
                     toolbar: {show: false},
                     animations: {enabled: false},
                     background: 'transparent',
-                    ...(onClickNode != null ? {
+                    ...{
                         events: {
                             click: (event, chartContext, config) => {
                                 if (config.dataPointIndex >= 0) {
@@ -106,7 +103,7 @@ class EvalLineChart extends ApexChartWidget {
                                 }
                             }
                         }
-                    } : {})
+                    }
                 },
                 colors: ['#022e7d'],
                 stroke: {
