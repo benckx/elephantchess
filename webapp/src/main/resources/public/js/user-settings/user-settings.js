@@ -63,7 +63,6 @@ class UserSettingsPage extends BasePage {
     #isDraggingProfilePicture = false;
     #profilePictureDragOffsetX = 0;
     #profilePictureDragOffsetY = 0;
-
     // sessions section
     #sessionsWidget = new UserSessionsWidget({limit: 8, selectable: false});
 

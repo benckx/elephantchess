@@ -93,7 +93,6 @@
     font-size: 15px;
     max-width: 500px;
 }
-
 #sessions-actions-container {
     margin: 10px 0 12px 12px;
 }
@@ -187,7 +186,6 @@
     .profile-picture-help {
         font-size: 28px;
     }
-
     #sessions-actions-container {
         font-size: 30px;
         margin-left: 10px;
@@ -200,7 +198,6 @@
     }
     .session-os-icon {
         width: 34px;
-        height: 34px;
         height: 34px;
     }
 }

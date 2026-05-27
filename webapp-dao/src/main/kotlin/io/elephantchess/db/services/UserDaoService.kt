@@ -27,7 +27,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
-
     private val profilePictureExtensionField = DSL.field(DSL.name("profile_picture_extension"), String::class.java)
 
     suspend fun save(user: User): String {
