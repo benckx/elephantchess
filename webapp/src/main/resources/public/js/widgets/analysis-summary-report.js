@@ -110,32 +110,37 @@ function renderAnalysisSummaryReport(
      * @returns {boolean}
      */
     function isEngineDataComplete(nodes, analysisMap) {
+        const COMPLETENESS_THRESHOLD = 0.9;
+
         function hasDataForActualMoves() {
-            return nodes.map(node => node.fenKey).every(fenKey => analysisMap.has(fenKey));
+            const fenKeys = nodes.map(node => node.fenKey);
+            if (fenKeys.length === 0) return true;
+            const presentCount = fenKeys.filter(fenKey => analysisMap.has(fenKey)).length;
+            return presentCount / fenKeys.length >= COMPLETENESS_THRESHOLD;
         }
 
         function hasDataForBestEngineMoves() {
-            return nodes.every(node => {
+            let total = 0;
+            let present = 0;
+
+            nodes.forEach(node => {
                 if (node.hasPrevious()) {
                     const previousNodeData = analysisMap.get(node.previous.fenKey);
-                    if (previousNodeData == null) {
-                        return false;
-                    }
-
-                    if (previousNodeData.pv.length > 0) {
+                    if (previousNodeData != null && previousNodeData.pv.length > 0) {
+                        total++;
                         const bestMove = previousNodeData.pv[0];
                         const board = new Board();
                         board.loadFen(previousNodeData.fen);
                         board.registerMove(bestMove);
                         const resultingFen = resetFenFullMovesCount(board.outputFen());
-                        if (!analysisMap.has(resultingFen)) {
-                            return false;
+                        if (analysisMap.has(resultingFen)) {
+                            present++;
                         }
                     }
                 }
-
-                return true;
             });
+
+            return total === 0 || present / total >= COMPLETENESS_THRESHOLD;
         }
 
         function hasDataForStartPosition() {
@@ -161,10 +166,11 @@ function renderAnalysisSummaryReport(
                 previousNodeData = analysisMap.get(node.previous.fenKey);
             }
 
-            if (previousNodeData.colorToPlay === color) {
+            if (previousNodeData != null && previousNodeData.colorToPlay === color) {
                 const dataFromEngineBestMove = findAnalysisDataFromEngineBestMove(analysisMap, previousNodeData);
-                if (dataFromEngineBestMove != null) {
-                    const annotationValue = calculateAnnotationValue(dataFromEngineBestMove, analysisMap.get(node.fenKey));
+                const actualMoveData = analysisMap.get(node.fenKey);
+                if (dataFromEngineBestMove != null && actualMoveData != null) {
+                    const annotationValue = calculateAnnotationValue(dataFromEngineBestMove, actualMoveData);
                     if (annotationValue != null) {
                         counter.set(annotationValue, counter.get(annotationValue) + 1 || 1);
                     }
