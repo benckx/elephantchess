@@ -1,14 +1,8 @@
-.main-container-text h1[id] {
+.content-section-vote-panel {
     display: flex;
     align-items: center;
-    gap: 10px;
-}
-
-.content-section-vote-panel {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
     gap: 6px;
+    margin-bottom: 8px;
 }
 
 .content-section-vote-button {
@@ -54,21 +48,3 @@
     height: 170px;
 }
 
-#content-section-feedback-character-counter {
-    display: block;
-    text-align: right;
-    color: #666;
-    font-size: 13px;
-    margin-top: 5px;
-}
-
-@media (max-width: 1000px) {
-    .main-container-text h1[id] {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .content-section-vote-panel {
-        margin-left: 0;
-    }
-}

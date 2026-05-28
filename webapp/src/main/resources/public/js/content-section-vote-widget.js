@@ -26,8 +26,8 @@ class ContentSectionVoteWidget {
     #pageId;
     #feedbackSubmitListener = null;
 
-    constructor() {
-        this.#pageId = document.querySelector('.main-container-text')?.dataset.pageId;
+    constructor(pageId) {
+        this.#pageId = pageId;
         if (!this.#pageId) {
             return;
         }
@@ -42,6 +42,9 @@ class ContentSectionVoteWidget {
      * @param section {HTMLElement}
      */
     #addVotePanel(section) {
+        const sectionId = section.id;
+        const sectionTitle = section.textContent.trim();
+
         const votePanel = document.createElement('div');
         votePanel.className = 'content-section-vote-panel';
         votePanel.innerHTML = `
@@ -49,13 +52,11 @@ class ContentSectionVoteWidget {
             <img class="content-section-vote-button" src="/images/icons/thumbs-down.png" alt="vote down" loading="lazy"/>
             <span class="content-section-feedback-link action-link">Tell us more</span>
         `;
-        section.append(votePanel);
+        section.after(votePanel);
 
         const upButton = votePanel.children[0];
         const downButton = votePanel.children[1];
         const feedbackLink = votePanel.children[2];
-        const sectionId = section.id;
-        const sectionTitle = section.textContent.trim();
 
         this.#votePanelBySectionId.set(sectionId, {upButton, downButton, feedbackLink, sectionTitle});
 
@@ -179,4 +180,7 @@ class ContentSectionVoteWidget {
 
 }
 
-document.addEventListener('DOMContentLoaded', () => new ContentSectionVoteWidget());
+document.addEventListener('DOMContentLoaded', () => {
+    const pageId = document.querySelector('.main-container-text')?.dataset.pageId;
+    if (pageId) new ContentSectionVoteWidget(pageId);
+});
