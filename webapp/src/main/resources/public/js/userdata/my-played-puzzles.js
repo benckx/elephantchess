@@ -232,13 +232,11 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
         postAndHandle('/api/puzzle/original-games-metadata', {puzzleIds: puzzleIds}, json => {
             const puzzleIdsToMetadata = new Map();
             json.entries.forEach(entry => {
-                const parsedPuzzleRating = Number(entry.puzzleRating);
-                const puzzleRating = Number.isFinite(parsedPuzzleRating) ? parsedPuzzleRating : null;
                 puzzleIdsToMetadata.set(
                     entry.puzzleId,
                     {
                         gameMetadata: new GameMetadataDto(entry.gameMetadata),
-                        puzzleRating: puzzleRating,
+                        puzzleRating: entry.puzzleRating,
                     }
                 );
             });
