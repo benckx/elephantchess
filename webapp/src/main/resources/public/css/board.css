@@ -118,7 +118,11 @@ a.board-outer-container-link-mask {
     filter: invert(1);
 }
 
-.board-container.flip-opponent-pieces .piece-image-black {
+.board-container.flip-opponent-pieces-black .piece-image-black {
+    transform: rotate(180deg);
+}
+
+.board-container.flip-opponent-pieces-red .piece-image-red {
     transform: rotate(180deg);
 }
 

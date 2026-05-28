@@ -188,7 +188,7 @@ const PieceStyleSetting = Object.freeze({
  *                                                    image folder.
  * @property {boolean}     [colorblindFriendlyBlackPieces] - if true, black piece images get an invert
  *                                                    CSS filter for improved contrast.
- * @property {boolean}     [flipOpponentPieces]     - if true, opponent (black) piece images are rotated
+ * @property {boolean}     [flipOpponentPieces]     - if true, opponent piece images are rotated
  *                                                    180° to simulate the OTB appearance.
  * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
  *                                                    file numbers are rendered in WXF mode.
@@ -1591,6 +1591,7 @@ class BoardGui {
         this.#drawPieces();
         this.updateHighlightedChecks();
         this.#resetDraggableCursors();
+        this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
 
         const newColor = this.#flippedRed ? Color.RED : Color.BLACK;
         this.#afterFlipListeners.forEach(listener => listener(newColor));
@@ -1724,7 +1725,8 @@ class BoardGui {
      * @param enabled {boolean}
      */
     #renderFlipOpponentPiecesSetting(enabled) {
-        this.#boardContainer.classList.toggle('flip-opponent-pieces', enabled);
+        this.#boardContainer.classList.toggle('flip-opponent-pieces-black', enabled && this.#flippedRed);
+        this.#boardContainer.classList.toggle('flip-opponent-pieces-red', enabled && !this.#flippedRed);
     }
 
     #areCoordinatesVisible() {
