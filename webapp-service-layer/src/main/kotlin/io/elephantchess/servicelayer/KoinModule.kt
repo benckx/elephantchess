@@ -175,6 +175,7 @@ private fun applicativeModule(eagerAllowed: Boolean) = module {
 
     // users
     singleAuto<UserService>(eager = eagerAllowed)
+    singleAuto<UserProfilePictureService>()
     singleAuto<UserProfileAnalyticsService>()
     singleAuto<GlobalAnalyticsService>(eager = eagerAllowed)
     singleAuto<UserSessionService>()
