@@ -120,6 +120,7 @@ class PuzzleService(
             val blackPlayerId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.BLACK_PLAYER) }.firstOrNull()
             val outcome = puzzleRecords.map { record -> record.get(REFERENCE_GAME.OUTCOME) }.firstOrNull()
             val date = puzzleRecords.map { record -> record.get(REFERENCE_GAME.DATE) }.firstOrNull()
+            val puzzleRating = puzzleRecords.map { record -> record.get(PUZZLE.RATING) }.firstOrNull()
 
             val redPlayerName = puzzleRecords
                 .filter { redPlayerId != null && it.get(REFERENCE_PLAYER.ID) == redPlayerId }
@@ -144,7 +145,11 @@ class PuzzleService(
                     lastUpdated = date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
                     variant = Variant.XIANGQI,
                 )
-                PuzzlesOriginalGameMetadataResponse.Entry(puzzleId, metadata)
+                PuzzlesOriginalGameMetadataResponse.Entry(
+                    puzzleId = puzzleId,
+                    gameMetadata = metadata,
+                    puzzleRating = puzzleRating,
+                )
             } else {
                 null
             }

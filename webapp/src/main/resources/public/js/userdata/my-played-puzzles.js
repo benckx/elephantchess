@@ -186,11 +186,12 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
      */
     #updateOriginalGameMetadata(entries) {
         const puzzleIds = entries.map(entry => entry.puzzleId).filter(onlyUnique);
-        this.#fetchOriginalGamesMetadata(puzzleIds, puzzleIdsToGameMetadata => {
+        this.#fetchOriginalGamesMetadata(puzzleIds, puzzleIdsToMetadata => {
             for (const puzzleId of puzzleIds) {
                 getElementsByClassNameArray(`puzzle-metadata-${puzzleId}`).forEach(metadataDiv => {
-                    const gameMetadata = puzzleIdsToGameMetadata.get(puzzleId);
-                    if (gameMetadata != null) {
+                    const metadata = puzzleIdsToMetadata.get(puzzleId);
+                    if (metadata != null) {
+                        const gameMetadata = metadata.gameMetadata;
                         let color = null;
                         switch (gameMetadata.outcome) {
                             case Outcome.RED_WINS:
@@ -209,7 +210,11 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
                             link += `&orientation=${color.toUpperCase()}`;
                         }
 
-                        metadataDiv.innerText = gameMetadata.toStringPlayerNames();
+                        let text = gameMetadata.toStringPlayerNames();
+                        if (metadata.puzzleRating != null) {
+                            text += ` (${metadata.puzzleRating})`;
+                        }
+                        metadataDiv.innerText = text;
                         metadataDiv.setAttribute('href', link);
                     } else {
                         metadataDiv.innerText = 'No original game found';
@@ -221,16 +226,24 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
 
     /**
      * @param puzzleIds {string[]}
-     * @param cb {function(Map<string, GameMetadataDto>)}
+     * @param cb {function(Map<string, {gameMetadata: GameMetadataDto, puzzleRating: number|null}>)}
      */
     #fetchOriginalGamesMetadata(puzzleIds, cb) {
         postAndHandle('/api/puzzle/original-games-metadata', {puzzleIds: puzzleIds}, json => {
-            const puzzleIdsToGameMetadata = new Map();
+            const puzzleIdsToMetadata = new Map();
             json.entries.forEach(entry => {
-                puzzleIdsToGameMetadata.set(entry.puzzleId, new GameMetadataDto(entry.gameMetadata));
+                const parsedPuzzleRating = Number(entry.puzzleRating);
+                const puzzleRating = Number.isFinite(parsedPuzzleRating) ? parsedPuzzleRating : null;
+                puzzleIdsToMetadata.set(
+                    entry.puzzleId,
+                    {
+                        gameMetadata: new GameMetadataDto(entry.gameMetadata),
+                        puzzleRating: puzzleRating,
+                    }
+                );
             });
 
-            cb(puzzleIdsToGameMetadata);
+            cb(puzzleIdsToMetadata);
         });
     }
 
