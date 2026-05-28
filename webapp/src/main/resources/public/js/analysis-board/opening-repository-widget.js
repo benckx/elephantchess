@@ -98,6 +98,12 @@ class OpeningRepositoryWidget {
                             outcomeCell.innerHTML = '';
                             outcomeCell.append(indicator.render());
 
+                            let drawRate = Math.max(0, 1 - entry.redWinsRate - entry.blackWinsRate);
+                            let percentageLabel = document.createElement('div');
+                            percentageLabel.className = 'outcome-percentages';
+                            percentageLabel.innerText = `${(entry.redWinsRate * 100).toFixed(0)}% / ${(drawRate * 100).toFixed(0)}% / ${(entry.blackWinsRate * 100).toFixed(0)}%`;
+                            outcomeCell.append(percentageLabel);
+
                             tr.addEventListener('click', (e) => {
                                 if (this.#boardGui.isPlayerMoveEnabled) {
                                     let move = this.#findMoveFromMouseEvent(e);

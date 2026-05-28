@@ -123,6 +123,13 @@
     margin-bottom: 15px;
 }
 
+.outcome-percentages {
+    font-size: 11px;
+    text-align: center;
+    color: #555;
+    margin-top: 2px;
+}
+
 #opening-repository-container-loading-mask {
     position: absolute;
     width: 100%;
@@ -352,6 +359,11 @@ input[type='text']#fen-export-input {
 
     .bar-indicator-container {
         height: 26px;
+    }
+
+    .outcome-percentages {
+        font-size: 20px;
+        margin-top: 4px;
     }
 
     /* engine box */
