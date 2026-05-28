@@ -175,7 +175,9 @@ class ContentSectionVoteWidget {
      */
     #updateFeedbackCounter(textarea) {
         const characterCounter = document.getElementById('content-section-feedback-character-counter');
-        characterCounter.innerText = `${textarea.value.length} / ${CONTENT_SECTION_FEEDBACK_MAX_LENGTH}`;
+        if (characterCounter) {
+            characterCounter.innerText = `${textarea.value.length} / ${CONTENT_SECTION_FEEDBACK_MAX_LENGTH}`;
+        }
     }
 
 }
