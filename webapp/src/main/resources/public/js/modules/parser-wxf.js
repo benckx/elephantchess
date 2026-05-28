@@ -139,7 +139,7 @@ class WxfTokenParser extends SimpleTokenParser {
                     if (char === '}') {
                         this.state = TokenParserState.NONE;
                         if (tokens.length === 0) {
-                            throw new Error(`Annotation can not be matched for ${tokenAccumulator}`);
+                            throw new Error(`Annotation cannot be matched for ${tokenAccumulator}`);
                         }
                         tokens[tokens.length - 1].annotation = tokenAccumulator;
                         tokenAccumulator = '';
