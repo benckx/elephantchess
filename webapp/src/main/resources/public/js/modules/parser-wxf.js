@@ -105,6 +105,58 @@ class WxfTokenParser extends SimpleTokenParser {
         super(extractWxfLine(input));
     }
 
+    tokenize() {
+        let tokens = [];
+        let tokenAccumulator = '';
+
+        this.allChars.forEach(char => {
+            switch (this.state) {
+                case TokenParserState.NONE:
+                    if (isCharDigit(char)) {
+                        this.state = TokenParserState.MOVE_NUMBER;
+                    } else if (isCharLetter(char) || char === '+' || char === '-') {
+                        this.state = TokenParserState.MOVE;
+                        tokenAccumulator += char;
+                    } else if (char === '{') {
+                        this.state = TokenParserState.ANNOTATION;
+                    }
+                    break;
+                case TokenParserState.MOVE_NUMBER:
+                    if (char === '.' || char === ' ') {
+                        this.state = TokenParserState.NONE;
+                    }
+                    break;
+                case TokenParserState.MOVE:
+                    if (isCharDigit(char) || isCharLetter(char) || isWxfMoveChar(char)) {
+                        tokenAccumulator += char;
+                    } else if (char === ' ') {
+                        this.state = TokenParserState.NONE;
+                        tokens.push(new ParsingToken(normalizeWxfMove(tokenAccumulator), null));
+                        tokenAccumulator = '';
+                    }
+                    break;
+                case TokenParserState.ANNOTATION:
+                    if (char === '}') {
+                        this.state = TokenParserState.NONE;
+                        if (tokens.length === 0) {
+                            throw new Error(`Annotation can not be matched for ${tokenAccumulator}`);
+                        }
+                        tokens[tokens.length - 1].annotation = tokenAccumulator;
+                        tokenAccumulator = '';
+                    } else {
+                        tokenAccumulator += char;
+                    }
+                    break;
+            }
+        });
+
+        if (tokenAccumulator !== '') {
+            tokens.push(new ParsingToken(normalizeWxfMove(tokenAccumulator), null));
+        }
+
+        return tokens;
+    }
+
 }
 
 class WxfParser extends MoveParser {
@@ -396,6 +448,14 @@ function extractWxfLine(input) {
     } else {
         return linesToResult(moveLines);
     }
+}
+
+function normalizeWxfMove(move) {
+    if (/^[+-][A-Za-z][+=.-][1-9]$/.test(move)) {
+        return move[1] + move[0] + move.slice(2);
+    }
+
+    return move;
 }
 
 /**
