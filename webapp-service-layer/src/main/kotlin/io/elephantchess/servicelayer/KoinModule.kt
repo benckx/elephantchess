@@ -60,11 +60,11 @@ fun serviceLayerModule(
 private fun daoModule() = module {
     singleAuto<AnalysisDaoService>()
     singleAuto<ChatMessageDaoService>()
+    singleAuto<ContentSectionVoteDaoService>()
     singleAuto<DatabaseAdminDaoService>()
     singleAuto<DiscordGameNotificationDaoService>()
     singleAuto<EmailVerificationDaoService>()
     singleAuto<EngineCacheDaoService>()
-    singleAuto<ContentSectionVoteDaoService>()
     singleAuto<GameChatTypingStatusDaoService>()
     singleAuto<KofiEventDaoService>()
     singleAuto<MoveAnalysisDaoService>()
