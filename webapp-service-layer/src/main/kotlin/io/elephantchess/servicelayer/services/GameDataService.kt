@@ -741,6 +741,16 @@ class GameDataService(
         val pvpGames = pvpGameDaoService.fetchCurrentStatusAndFen(idsByType[PVP].orEmpty())
         val pvbGames = pvbGameDaoService.fetchCurrentStatusAndFen(idsByType[PVB].orEmpty())
 
+        val pvbNewMoves = if (request.pvbMoveIndexes.isNotEmpty()) {
+            val moveTuples = pvbGames
+                .filter { game -> request.pvbMoveIndexes.containsKey(game.id) }
+                .map { game -> game.id to request.pvbMoveIndexes[game.id]!! }
+            pvbGameDaoService.fetchNewMovesForGamesAndIndexes(moveTuples)
+                .groupBy { it.botGameId }
+        } else {
+            emptyMap()
+        }
+
         val entries = pvpGames.map { game ->
             LatestGamesUpdateResponse.Entry(
                 gameId = GameId(PVP, game.id),
@@ -749,11 +759,17 @@ class GameDataService(
                 lastUpdated = game.lastUpdated.toEpochMilliseconds()
             )
         } + pvbGames.map { game ->
+            val newMoves = pvbNewMoves[game.id]
+                ?.sortedBy { it.position }
+                ?.map { it.uci }
+                ?: emptyList()
             LatestGamesUpdateResponse.Entry(
                 gameId = GameId(PVB, game.id),
                 status = game.gameStatus,
                 fen = game.currentFen,
-                lastUpdated = game.lastUpdated.toEpochMilliseconds()
+                lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+                moveIndex = game.currentHalfMoveIndex,
+                newMoves = newMoves
             )
         }
 

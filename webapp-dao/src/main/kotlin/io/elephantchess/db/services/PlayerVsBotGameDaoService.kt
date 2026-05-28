@@ -223,6 +223,7 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                     BOT_GAME.ID,
                     BOT_GAME.GAME_STATUS,
                     BOT_GAME.CURRENT_FEN,
+                    BOT_GAME.CURRENT_HALF_MOVE_INDEX,
                     BOT_GAME.LAST_UPDATED
                 )
                 .from(BOT_GAME)

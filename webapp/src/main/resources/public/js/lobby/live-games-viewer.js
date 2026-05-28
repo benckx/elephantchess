@@ -78,6 +78,7 @@ class LiveGamesViewer {
             elementId: boardElementId,
             showCoordinates: false,
             mini: true,
+            playSounds: false,
         });
         this.#settingsGui.addBoardGui(boardGui);
         return new GameThumb(div, boardGui);
@@ -132,7 +133,12 @@ class LiveGamesViewer {
             let totalGames = 0;
             let liveGames = 0;
 
-            this.#client.fetchLatestGamesUpdate(gameIdsToUpdate, (updates) => {
+            const pvbMoveIndexes = {};
+            thumbs
+                .filter((t) => t.metadata.gameId.type === GameType.PVB && t.currentMoveIndex != null)
+                .forEach((t) => { pvbMoveIndexes[t.metadata.gameId.id] = t.currentMoveIndex; });
+
+            this.#client.fetchLatestGamesUpdate(gameIdsToUpdate, pvbMoveIndexes, (updates) => {
                 updates.forEach((update) => {
                     const thumb = thumbs.find((t) => t.metadata.gameId.toString() === update.gameId.toString());
                     if (thumb != null) {
