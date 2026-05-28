@@ -168,7 +168,10 @@ class AnalysisBoardPage extends BasePage {
         UI.preloadModal(Modals.IMPORT_MOVES);
         this.#moveTreeWidget.importMovesCallback = () => {
             UI.showModalByName(Modals.IMPORT_MOVES, () => {
-                new ImportMovesHandler(this.#boardGui, this.#moveTreeWidget);
+                new ImportMovesHandler(this.#boardGui, this.#moveTreeWidget, () => {
+                    this.#handleNodeSelected();
+                    this.#scheduleRenderAnalysisSummaryIfPossible();
+                });
             });
         };
 
@@ -178,7 +181,11 @@ class AnalysisBoardPage extends BasePage {
             this.#boardGui,
             this.#moveTreeWidget,
             () => this.#getCurrentStartFen(),
-            (fen) => this.#handleSelectedStartFenFromPositionEditor(fen)
+            (fen) => this.#handleSelectedStartFenFromPositionEditor(fen),
+            () => {
+                this.#handleNodeSelected();
+                this.#scheduleRenderAnalysisSummaryIfPossible();
+            }
         );
 
         // enable "edit position" button
