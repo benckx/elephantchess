@@ -118,6 +118,10 @@ a.board-outer-container-link-mask {
     filter: invert(1);
 }
 
+.board-container.flip-opponent-pieces .piece-image-black {
+    transform: rotate(180deg);
+}
+
 .piece-holder .piece-image-can-move {
     cursor: move;
 }

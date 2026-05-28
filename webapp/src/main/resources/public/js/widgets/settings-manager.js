@@ -25,6 +25,7 @@ const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const MOVE_NODE_EVAL_FORMAT = 'setting.move.node.eval.format';
 const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
 const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
+const FLIP_OPPONENT_PIECES_SETTING = 'setting.flip.opponent.pieces';
 
 /**
  * User-facing style of the board coordinate labels.
@@ -220,6 +221,21 @@ class SettingsManager {
     }
 
     /**
+     * @return {boolean}
+     */
+    get isFlipOpponentPiecesEnabled() {
+        const cookieValue = getCookie(FLIP_OPPONENT_PIECES_SETTING);
+        return cookieValue === 'true';
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isFlipOpponentPiecesEnabled(value) {
+        setCookie(FLIP_OPPONENT_PIECES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
      * Resolves the user's preference into a {@link CoordinatesOrientation} value
      * (or `null` if the user disabled the coordinates display).
      *
@@ -281,6 +297,7 @@ function buildWebappBoardGuiOptions(overrides = {}) {
         playSounds: settingsManager.isPlaySoundsEnabled,
         pieceStyle: settingsManager.pieceStyle,
         colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
+        flipOpponentPieces: settingsManager.isFlipOpponentPiecesEnabled,
         fileNumbersStyle: settingsManager.getFileNumbersStyle(),
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
@@ -358,6 +375,9 @@ class SettingsGui {
 
     #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
     #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
+
+    #flipOpponentPiecesEnabledRadio = document.getElementById('flip-opponent-pieces-enabled-radio');
+    #flipOpponentPiecesDisabledRadio = document.getElementById('flip-opponent-pieces-disabled-radio');
 
     // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
@@ -497,6 +517,25 @@ class SettingsGui {
             if (this.#colorblindFriendlyBlackPiecesDisabledRadio.checked) {
                 this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = false;
                 this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(false));
+            }
+        }
+
+        // flip opponent pieces
+        const updateFlipOpponentPiecesRadios = (enabled) => {
+            this.#flipOpponentPiecesEnabledRadio.checked = enabled;
+            this.#flipOpponentPiecesDisabledRadio.checked = !enabled;
+        }
+        updateFlipOpponentPiecesRadios(this.#settingsManager.isFlipOpponentPiecesEnabled);
+        this.#flipOpponentPiecesEnabledRadio.onchange = () => {
+            if (this.#flipOpponentPiecesEnabledRadio.checked) {
+                this.#settingsManager.isFlipOpponentPiecesEnabled = true;
+                this.#boardGuis.forEach(board => board.setFlipOpponentPiecesEnabled(true));
+            }
+        }
+        this.#flipOpponentPiecesDisabledRadio.onchange = () => {
+            if (this.#flipOpponentPiecesDisabledRadio.checked) {
+                this.#settingsManager.isFlipOpponentPiecesEnabled = false;
+                this.#boardGuis.forEach(board => board.setFlipOpponentPiecesEnabled(false));
             }
         }
 
