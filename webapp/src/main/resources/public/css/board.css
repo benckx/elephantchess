@@ -416,3 +416,14 @@ a.board-outer-container-link-mask {
         width: 552px;
     }
 }
+
+.color-to-play-dot {
+    position: absolute;
+    border-radius: 50%;
+    width: 3%;
+    aspect-ratio: 1;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    box-shadow: 0 0 2px 1px rgba(255, 255, 255, 0.5);
+}

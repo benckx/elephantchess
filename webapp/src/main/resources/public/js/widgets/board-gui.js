@@ -241,6 +241,12 @@ class BoardGui {
 
     #isSafari = false;
 
+    /** @type {HTMLElement|null} */
+    #colorToPlayDot = null;
+
+    /** @type {string|null} */
+    #currentColorToPlay = null;
+
     /**
      * @param {BoardGuiOptions} [options]
      */
@@ -363,6 +369,27 @@ class BoardGui {
      */
     forceColorToPlay(color) {
         this.#board.forceColorToPlay(color);
+    }
+
+    /**
+     * Returns the color that is currently to play on the board.
+     *
+     * @return {string}
+     */
+    get colorToPlayOnBoard() {
+        return this.#board.getColorToPlay();
+    }
+
+    /**
+     * Set the color whose turn it is, so the matching dot is displayed on the
+     * board. Pass {@code null} to hide the dot (e.g. when the game is over or
+     * when browsing move history).
+     *
+     * @param {string|null} color
+     */
+    set colorToPlay(color) {
+        this.#currentColorToPlay = color;
+        this.#renderColorToPlayDot();
     }
 
     get isPlayerMoveEnabled() {
@@ -1196,7 +1223,36 @@ class BoardGui {
             this.#boardContainer.append(svg);
         }
 
+        if (!this.#options.mini) {
+            const dot = document.createElement('div');
+            dot.className = 'color-to-play-dot';
+            this.#boardContainer.append(dot);
+            this.#colorToPlayDot = dot;
+            this.#renderColorToPlayDot();
+        }
+
         this.#forceSafariLayoutRefresh();
+    }
+
+    #renderColorToPlayDot() {
+        if (this.#colorToPlayDot == null) return;
+
+        const color = this.#currentColorToPlay;
+        if (color == null) {
+            this.#colorToPlayDot.style.display = 'none';
+            return;
+        }
+
+        const isAtBottom = (color === Color.RED) === this.#flippedRed;
+        this.#colorToPlayDot.style.display = 'block';
+        this.#colorToPlayDot.style.backgroundColor = color === Color.RED ? '#c0392b' : '#2c2c2c';
+        if (isAtBottom) {
+            this.#colorToPlayDot.style.bottom = '0.5%';
+            this.#colorToPlayDot.style.top = '';
+        } else {
+            this.#colorToPlayDot.style.top = '0.5%';
+            this.#colorToPlayDot.style.bottom = '';
+        }
     }
 
     // https://stackoverflow.com/questions/9628507/how-can-i-tell-google-translate-to-not-translate-a-section-of-a-website

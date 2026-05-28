@@ -152,13 +152,14 @@ class PlayerVsBotPage extends BasePage {
             },
             fen => {
                 this.#boardGui.loadFen(fen);
+                this.#updateColorToPlayDot();
             },
             moves => {
                 this.#moveTreeWidget.setMoves(moves);
                 this.#renderAnalysisSummaryReportIfAvailable();
             },
             (botMove) => {
-                this.#boardGui.registerOpponentMove(botMove, true, null);
+                this.#boardGui.registerOpponentMove(botMove, true, () => this.#updateColorToPlayDot());
                 this.#moveTreeWidget.addMoveAtTheEnd(botMove);
                 this.#updateButtonsEnabled();
                 this.#enablePlayerMoveIfPermitted();
@@ -171,6 +172,7 @@ class PlayerVsBotPage extends BasePage {
         this.#boardGui.addAfterMoveListener((move) => {
             this.#moveTreeWidget.addMoveAtTheEnd(move);
             this.#boardGui.disablePlayerMove();
+            this.#updateColorToPlayDot();
             this.#controller.playMove(move);
         });
         this.#moveTreeWidget.addClickedNodeListener(() => this.#handleNavigationEvent());
@@ -214,6 +216,7 @@ class PlayerVsBotPage extends BasePage {
         let yesCallback = () => {
             this.#controller.resign(() => {
                 this.#boardGui.disablePlayerMove();
+                this.#boardGui.colorToPlay = null;
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
             });
@@ -230,6 +233,7 @@ class PlayerVsBotPage extends BasePage {
         const yesCallback = () => {
             this.#controller.cancel(() => {
                 this.#boardGui.disablePlayerMove();
+                this.#boardGui.colorToPlay = null;
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
             });
@@ -251,6 +255,7 @@ class PlayerVsBotPage extends BasePage {
                 .addEventListener('click', () => UI.hideModal(null));
         });
         this.#boardGui.disablePlayerMove();
+        this.#boardGui.colorToPlay = null;
         this.#updateOutcomeLabel();
         this.#updateButtonsEnabled();
     }
@@ -258,8 +263,10 @@ class PlayerVsBotPage extends BasePage {
     #handleNavigationEvent() {
         if (this.#moveTreeWidget.isLastMoveSelected()) {
             this.#enablePlayerMoveIfPermitted();
+            this.#updateColorToPlayDot();
         } else {
             this.#boardGui.disablePlayerMove();
+            this.#boardGui.colorToPlay = null;
         }
     }
 
@@ -267,6 +274,12 @@ class PlayerVsBotPage extends BasePage {
         if (this.#controller.userCanPlay()) {
             this.#boardGui.enablePlayerMove();
         }
+    }
+
+    #updateColorToPlayDot() {
+        this.#boardGui.colorToPlay = isStatusInProgress(this.#controller.gameStatus())
+            ? this.#boardGui.colorToPlayOnBoard
+            : null;
     }
 
     #updateOutcomeLabel() {
