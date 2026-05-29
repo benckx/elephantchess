@@ -69,12 +69,14 @@ class LobbyClient {
 
     /**
      * @param gameIds {Array<GameId>}
+     * @param pvpMoveIndexes {Object<string, number>}
      * @param pvbMoveIndexes {Object<string, number>}
      * @param cb {function(Array<{gameId: GameId, status: string, fen: string, lastUpdated: number, moveIndex: number|null, newMoves: string[]}>)}
      */
-    fetchLatestGamesUpdate(gameIds, pvbMoveIndexes, cb) {
+    fetchLatestGamesUpdate(gameIds, pvpMoveIndexes, pvbMoveIndexes, cb) {
         const body = {
             gameIds: gameIds.map((gameId) => ({type: gameId.type, id: gameId.id})),
+            pvpMoveIndexes: pvpMoveIndexes,
             pvbMoveIndexes: pvbMoveIndexes,
         };
         postAndHandle('/api/lobby/latest-games-update', body, (json) => {

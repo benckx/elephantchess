@@ -4,5 +4,6 @@ import io.elephantchess.model.GameId
 
 data class LatestGamesUpdateRequest(
     val gameIds: List<GameId>,
+    val pvpMoveIndexes: Map<String, Int> = emptyMap(),
     val pvbMoveIndexes: Map<String, Int> = emptyMap()
 )

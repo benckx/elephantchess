@@ -133,12 +133,17 @@ class LiveGamesViewer {
             let totalGames = 0;
             let liveGames = 0;
 
+            const pvpMoveIndexes = {};
+            thumbs
+                .filter((t) => t.metadata.gameId.type === GameType.PVP && t.currentMoveIndex != null)
+                .forEach((t) => { pvpMoveIndexes[t.metadata.gameId.id] = t.currentMoveIndex; });
+
             const pvbMoveIndexes = {};
             thumbs
                 .filter((t) => t.metadata.gameId.type === GameType.PVB && t.currentMoveIndex != null)
                 .forEach((t) => { pvbMoveIndexes[t.metadata.gameId.id] = t.currentMoveIndex; });
 
-            this.#client.fetchLatestGamesUpdate(gameIdsToUpdate, pvbMoveIndexes, (updates) => {
+            this.#client.fetchLatestGamesUpdate(gameIdsToUpdate, pvpMoveIndexes, pvbMoveIndexes, (updates) => {
                 updates.forEach((update) => {
                     const thumb = thumbs.find((t) => t.metadata.gameId.toString() === update.gameId.toString());
                     if (thumb != null) {

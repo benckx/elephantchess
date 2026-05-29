@@ -407,12 +407,41 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     GAME.ID,
                     GAME.GAME_STATUS,
                     GAME.CURRENT_FEN,
+                    GAME.CURRENT_HALF_MOVE_INDEX,
                     GAME.LAST_UPDATED
                 )
                 .from(GAME)
                 .where(GAME.ID.`in`(gameIds))
                 .awaitMappedRecords<Game>()
         }
+    }
+
+    /**
+     * @param tuples list of gameId and half move index to request from
+     * @return list of moves for each gameId, position and uci
+     */
+    suspend fun fetchNewMovesForGamesAndIndexes(tuples: List<Pair<String, Int>>): List<GameMove> {
+        if (tuples.isEmpty()) {
+            return emptyList()
+        }
+
+        fun conditionForPair(gameId: String, moveIndex: Int) =
+            GAME_MOVE.GAME_ID.eq(gameId).and(GAME_MOVE.POSITION.ge(moveIndex))
+
+        val conditionForPairs =
+            tuples
+                .map { (gameId, moveIndex) -> conditionForPair(gameId, moveIndex) }
+                .reduce { acc, condition -> acc.or(condition) }
+
+        return dslContext
+            .select(
+                GAME_MOVE.GAME_ID,
+                GAME_MOVE.POSITION,
+                GAME_MOVE.UCI
+            )
+            .from(GAME_MOVE)
+            .where(conditionForPairs)
+            .awaitMappedRecords()
     }
 
     suspend fun fetchRatingForUser(userId: String, timeControlCategory: TimeControlCategory, variant: Variant): Int? {
