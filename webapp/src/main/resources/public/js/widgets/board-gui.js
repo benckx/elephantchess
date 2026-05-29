@@ -1727,8 +1727,15 @@ class BoardGui {
      * @param enabled {boolean}
      */
     #renderFlipOpponentPiecesSetting(enabled) {
-        this.#boardContainer.classList.toggle('flip-opponent-pieces-black', enabled && this.#flippedRed);
-        this.#boardContainer.classList.toggle('flip-opponent-pieces-red', enabled && !this.#flippedRed);
+        this.#boardContainer.classList.remove('flip-opponent-pieces-red', 'flip-opponent-pieces-black');
+
+        if (enabled) {
+            if (!this.#flippedRed) {
+                this.#boardContainer.classList.add('flip-opponent-pieces-red');
+            } else {
+                this.#boardContainer.classList.add('flip-opponent-pieces-black');
+            }
+        }
     }
 
     #areCoordinatesVisible() {
