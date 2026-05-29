@@ -4,11 +4,26 @@ import io.elephantchess.utils.ResourceUtils.resourceAsLines
 import java.time.LocalDate
 import java.time.YearMonth
 
+private fun loadWords(resourcePath: String) = resourceAsLines(resourcePath)
+    .map { it.trim().lowercase() }
+    .filterNot { it.isBlank() }
+    .filterNot { it.startsWith("#") }
+
 private val badWords by lazy {
-    resourceAsLines("/bad-words.txt")
-        .map { it.trim() }
-        .filterNot { it.isBlank() }
-        .filterNot { it.startsWith("#") }
+    loadWords("/bad-words.txt")
+}
+
+private val sensitiveWords by lazy {
+    loadWords("/sensitive-words.txt")
+}
+
+private val filteredWords by lazy {
+    badWords + sensitiveWords
+}
+
+internal fun mayBeOffensive(text: String): Boolean {
+    val normalizedText = text.lowercase()
+    return filteredWords.any { filteredWord -> normalizedText.contains(filteredWord) }
 }
 
 private val chars by lazy { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" }
@@ -45,10 +60,6 @@ fun safeRandomAlphaNumericString(min: Int, max: Int): String {
     val length = (min until max).random()
 
     fun generate() = (1..length).map { chars.random() }.joinToString("")
-
-    fun mayBeOffensive(generated: String): Boolean {
-        return badWords.any { badWord -> generated.lowercase().contains(badWord.lowercase()) }
-    }
 
     var result = generate()
     while (mayBeOffensive(result)) {
