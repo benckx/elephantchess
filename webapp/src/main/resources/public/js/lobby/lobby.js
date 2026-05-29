@@ -113,7 +113,7 @@ class LobbyPage extends BasePage {
 
     additionalGamesToJoinListeners() {
         return [update => {
-            this.#renderGameList(update.gamesToJoin);
+            this.#renderGamesToJoinList(update.gamesToJoin);
 
             switch (update.totalOnline) {
                 case 0:
@@ -131,7 +131,7 @@ class LobbyPage extends BasePage {
     /**
      * @param entries {GameToPlayDto[]}
      */
-    #renderGameList(entries) {
+    #renderGamesToJoinList(entries) {
         this.#gameToJoinList.innerHTML = '';
 
         entries.sort(sortByOnline);
@@ -199,7 +199,7 @@ class LobbyPage extends BasePage {
                     entry.opponentUserId,
                     entry.opponentUsername,
                     entry.opponentUserType,
-                    null,
+                    24,
                     false
                 )
             );
