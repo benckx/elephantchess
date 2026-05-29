@@ -1372,6 +1372,8 @@ class BoardGui {
         img.className = 'piece-image';
         if (isBlackPiece(pieceChar)) {
             img.classList.add('piece-image-black');
+        } else if (isRedPiece(pieceChar)) {
+            img.classList.add('piece-image-red');
         }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
         img.addEventListener('click', () => this.#clickedOnPiece(position));
