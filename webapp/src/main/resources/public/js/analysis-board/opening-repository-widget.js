@@ -71,6 +71,7 @@ class OpeningRepositoryWidget {
             if (this.#areMovesEqual(this.#requestedMovesAsUci, json.moves)) {
                 if (json.entries.length > 0) {
                     let tbody = this.#table.getElementsByTagName('tbody')[0];
+                    let totalOccurrences = json.entries.reduce((sum, e) => sum + e.occurrences, 0);
                     for (let i = 0; i < json.entries.length; i++) {
                         let entry = json.entries[i];
                         let nextMove = HalfMove.parseUci(entry.nextMove);
@@ -92,17 +93,17 @@ class OpeningRepositoryWidget {
 
                             // content
                             moveCell.innerText = moveLabel;
-                            occurrencesCell.innerText = formatNumber(entry.occurrences);
+
+                            let occurrencesCount = document.createElement('div');
+                            occurrencesCount.innerText = formatNumber(entry.occurrences);
+                            let occurrencePercentage = document.createElement('div');
+                            occurrencePercentage.className = 'outcome-percentages';
+                            occurrencePercentage.innerText = `${(entry.occurrences / totalOccurrences * 100).toFixed(0)}%`;
+                            occurrencesCell.append(occurrencesCount, occurrencePercentage);
 
                             let indicator = new GameOutcomeIndicator(entry.redWinsRate, entry.blackWinsRate);
                             outcomeCell.innerHTML = '';
                             outcomeCell.append(indicator.render());
-
-                            let drawRate = Math.max(0, 1 - entry.redWinsRate - entry.blackWinsRate);
-                            let percentageLabel = document.createElement('div');
-                            percentageLabel.className = 'outcome-percentages';
-                            percentageLabel.innerText = `${(entry.redWinsRate * 100).toFixed(0)}% / ${(drawRate * 100).toFixed(0)}% / ${(entry.blackWinsRate * 100).toFixed(0)}%`;
-                            outcomeCell.append(percentageLabel);
 
                             tr.addEventListener('click', (e) => {
                                 if (this.#boardGui.isPlayerMoveEnabled) {
