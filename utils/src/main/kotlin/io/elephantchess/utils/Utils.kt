@@ -21,9 +21,13 @@ private val filteredWords by lazy {
     badWords + sensitiveWords
 }
 
+private val filteredWordsLowercase by lazy {
+    filteredWords.map { it.lowercase() }
+}
+
 internal fun mayBeOffensive(text: String): Boolean {
     val normalizedText = text.lowercase()
-    return filteredWords.any { filteredWord -> normalizedText.contains(filteredWord.lowercase()) }
+    return filteredWordsLowercase.any { filteredWord -> normalizedText.contains(filteredWord) }
 }
 
 private val chars by lazy { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" }
