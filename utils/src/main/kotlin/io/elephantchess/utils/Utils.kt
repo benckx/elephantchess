@@ -5,7 +5,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 private fun loadWords(resourcePath: String) = resourceAsLines(resourcePath)
-    .map { it.trim().lowercase() }
+    .map { it.trim() }
     .filterNot { it.isBlank() }
     .filterNot { it.startsWith("#") }
 
@@ -23,7 +23,7 @@ private val filteredWords by lazy {
 
 internal fun mayBeOffensive(text: String): Boolean {
     val normalizedText = text.lowercase()
-    return filteredWords.any { filteredWord -> normalizedText.contains(filteredWord) }
+    return filteredWords.any { filteredWord -> normalizedText.contains(filteredWord.lowercase()) }
 }
 
 private val chars by lazy { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" }

@@ -1,5 +1,5 @@
-# sensitive words used for guest id generation filtering,
-# but not intended for strict profanity filtering
+# sensitive words used for guest id generation filtering
+# (for words we avoid in generated IDs but don't treat as profanity, e.g. religious/identity terms)
 alla
 allah
 lesbian
