@@ -84,8 +84,8 @@ class PlayerVsPlayerGameService(
 
     private val gamesToPlayRefreshJob = launchAtFixedRate(
         scope = refresherScope,
-        initialDelay = 4.seconds,
-        period = 4.seconds,
+        initialDelay = 3.seconds,
+        period = 3.seconds,
         action = { refreshGamesToPlaySessions() }
     )
 
