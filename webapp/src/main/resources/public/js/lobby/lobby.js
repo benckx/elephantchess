@@ -36,10 +36,6 @@ function makeAppButton(id, value) {
     return button;
 }
 
-const KNOWN_TIME_CONTROL_IDS = new Set(
-    timeControlCategories.flatMap((category) => category.timeControls.map((timeControl) => timeControl.id))
-);
-
 const RATING_MODE_ICONS = {
     rated: '/images/icons/trophy-football.png',
     casual: '/images/icons/sunset.png',
@@ -51,14 +47,6 @@ const RATING_MODE_ICONS = {
  */
 function timeControlIconSource(entry) {
     return `${ICON_PATH}/${timeControlCategoryIconMap.get(entry.timeControlCategory)}`
-}
-
-/**
- * @param entry {GameToPlayDto}
- * @returns {boolean}
- */
-function isCustomTimeControl(entry) {
-    return entry.timeControl != null && !KNOWN_TIME_CONTROL_IDS.has(entry.timeControl.id);
 }
 
 class LobbyPage extends BasePage {
@@ -189,27 +177,13 @@ class LobbyPage extends BasePage {
             opponentLine.append(isOnlineIndicator);
 
             // time control
-            const hasCustomTimeControl = isCustomTimeControl(entry);
-            let timeControlLabel;
-            if (hasCustomTimeControl) {
-                timeControlLabel = 'Custom';
-            } else if (entry.timeControl != null) {
-                timeControlLabel = entry.timeControl.printShort(' +');
-            } else {
-                timeControlLabel = '--'
-            }
-
             const timeControlIcon = buildImg(timeControlIconSource(entry), 'time-control-icons');
             const timeControlIconCell = buildDivWithClass('game-to-join-time-icon-cell')
             timeControlIconCell.append(timeControlIcon);
 
-            const timeControlDurationCell = buildDivWithClass('game-to-join-time-duration-cell');
-            timeControlDurationCell.innerText = timeControlLabel;
-
             timeControlPane.append(timeControlIconCell);
-            timeControlPane.append(timeControlDurationCell);
 
-            if (hasCustomTimeControl && entry.timeControl != null) {
+            if (entry.timeControl != null) {
                 customTimeLine.innerText = entry.timeControl.printShort(' +');
             }
 

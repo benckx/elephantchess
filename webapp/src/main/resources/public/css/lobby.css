@@ -125,7 +125,7 @@ h1 {
 }
 
 .game-to-join-time-control-pane {
-    width: 80px;
+    width: 36px;
     flex-direction: column;
     justify-content: center;
     gap: 4px;
