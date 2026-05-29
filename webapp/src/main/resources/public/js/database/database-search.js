@@ -48,6 +48,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
     #currentEventIds = [];
     #currentInterval = null;
     #currentFen = null;
+    #currentPlayerColor = null;
 
     constructor() {
         super();
@@ -72,6 +73,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             this.#currentEventIds = this.#eventSearchField.getSelectedId() != null ? [this.#eventSearchField.getSelectedId()] : [];
             this.#currentInterval = this.#dateRangePicker.getDates(DATE_FORMAT);
             this.#currentFen = this.#fenSearchField.value.trim() !== '' ? this.#fenSearchField.value.trim() : null;
+            this.#currentPlayerColor = document.querySelector('input[name="player-color"]:checked')?.value ?? 'both';
             this.fetchItems();
         });
 
@@ -142,6 +144,71 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             document.getElementById('player-color-any-label'),
             'When searching for a specific player, select this to not filter by playing color.'
         );
+
+        this.#initFromUrlParams();
+    }
+
+    /**
+     * Pre-fills the search form from URL query parameters and auto-triggers the search if any params are present.
+     * This allows linking directly to a search from e.g. "My DB Searches".
+     */
+    #initFromUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        const playerName = params.get('playerName');
+        const playerColor = params.get('playerColor');
+        const eventName = params.get('eventName');
+        const dateStart = params.get('dateStart');
+        const dateEnd = params.get('dateEnd');
+        const fen = params.get('fen');
+
+        if (!playerName && !eventName && !dateStart && !dateEnd && !fen) {
+            return;
+        }
+
+        if (playerName) {
+            this.#playerSearchField.setInputFieldValue(playerName);
+            this.#enablePlayerColorRadioButtons(true);
+        }
+        if (playerColor) {
+            const validColors = ['red', 'black', 'both'];
+            const normalizedColor = playerColor.toLowerCase();
+            if (validColors.includes(normalizedColor)) {
+                const radioInput = document.querySelector(`input[name="player-color"][value="${normalizedColor}"]`);
+                if (radioInput) {
+                    radioInput.checked = true;
+                }
+            }
+        }
+        if (eventName) {
+            this.#eventSearchField.setInputFieldValue(eventName);
+        }
+        if (dateStart || dateEnd) {
+            const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+            const startDate = (dateStart && datePattern.test(dateStart)) ? new Date(dateStart) : null;
+            const endDate = (dateEnd && datePattern.test(dateEnd)) ? new Date(dateEnd) : null;
+            const startValid = startDate && !isNaN(startDate.getTime());
+            const endValid = endDate && !isNaN(endDate.getTime());
+            if (startValid && endValid) {
+                this.#dateRangePicker.setDates(startDate, endDate);
+            } else if (startValid) {
+                this.#dateRangePicker.setDates(startDate, null);
+            } else if (endValid) {
+                this.#dateRangePicker.setDates(null, endDate);
+            }
+        }
+        if (fen) {
+            this.#fenSearchField.value = fen;
+        }
+
+        // auto-trigger the search
+        this.#setButtonEnabled(false);
+        this.#currentPlayerName = playerName;
+        this.#currentPlayerIds = [];
+        this.#currentEventName = eventName;
+        this.#currentEventIds = [];
+        this.#currentInterval = this.#dateRangePicker.getDates(DATE_FORMAT);
+        this.#currentFen = fen;
+        this.fetchItems();
     }
 
     /**
@@ -198,9 +265,8 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         if (this.#currentPlayerIds.length > 0) {
             params.set('playerIds', this.#currentPlayerIds.join(','));
         }
-        const selectedPlayerColor = document.querySelector('input[name="player-color"]:checked')?.value;
-        if (selectedPlayerColor && selectedPlayerColor !== 'both') {
-            params.set('playerColor', selectedPlayerColor.toUpperCase());
+        if (this.#currentPlayerColor && this.#currentPlayerColor !== 'both') {
+            params.set('playerColor', this.#currentPlayerColor.toUpperCase());
         }
         if (this.#currentEventName != null) {
             params.set('eventName', this.#currentEventName);
@@ -250,7 +316,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         // left pane
         const databaseIcon = document.createElement('img');
         databaseIcon.className = 'time-control-icons';
-        databaseIcon.src = '/images/icons/database.png';
+        databaseIcon.src = '/images/icons/data-search.png';
         databaseIcon.alt = 'Database Game';
         leftPane.append(wrapInDiv(databaseIcon));
 
@@ -268,24 +334,46 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         // outcome indicator pane
         if (entry.outcome) {
             const outcomeDiv = buildDivWithClass('outcome-label-holder');
+            const searchedPlayerColor = this.#resolveSearchedPlayerColor(entry);
 
-            // use the Outcome enum for proper type checking
-            switch (entry.outcome) {
-                case Outcome.RED_WINS:
-                    outcomeDiv.textContent = 'RED';
-                    outcomeDiv.classList.add('outcome-label-red-wins');
-                    break;
-                case Outcome.BLACK_WINS:
-                    outcomeDiv.textContent = 'BLACK';
-                    outcomeDiv.classList.add('outcome-label-black-wins');
-                    break;
-                case Outcome.DRAW:
-                    outcomeDiv.textContent = 'DRAW';
-                    outcomeDiv.classList.add('outcome-label-draw');
-                    break;
-                default:
-                    outcomeDiv.textContent = '??';
-                    break;
+            if (searchedPlayerColor != null) {
+                const userOutcome = gameOutcomeToUserOutcome(searchedPlayerColor, entry.outcome);
+                switch (userOutcome) {
+                    case UserOutcome.WIN:
+                        outcomeDiv.textContent = 'WIN';
+                        outcomeDiv.classList.add('outcome-label-win');
+                        break;
+                    case UserOutcome.LOSS:
+                        outcomeDiv.textContent = 'LOSS';
+                        outcomeDiv.classList.add('outcome-label-loss');
+                        break;
+                    case UserOutcome.DRAW:
+                        outcomeDiv.textContent = 'DRAW';
+                        outcomeDiv.classList.add('outcome-label-draw');
+                        break;
+                    default:
+                        outcomeDiv.textContent = '??';
+                        break;
+                }
+            } else {
+                // use the Outcome enum for proper type checking
+                switch (entry.outcome) {
+                    case Outcome.RED_WINS:
+                        outcomeDiv.textContent = 'RED';
+                        outcomeDiv.classList.add('outcome-label-red-wins');
+                        break;
+                    case Outcome.BLACK_WINS:
+                        outcomeDiv.textContent = 'BLACK';
+                        outcomeDiv.classList.add('outcome-label-black-wins');
+                        break;
+                    case Outcome.DRAW:
+                        outcomeDiv.textContent = 'DRAW';
+                        outcomeDiv.classList.add('outcome-label-draw');
+                        break;
+                    default:
+                        outcomeDiv.textContent = '??';
+                        break;
+                }
             }
 
             outcomeIndicatorPane.append(outcomeDiv);
@@ -313,6 +401,75 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         return gameItem;
     }
 
+    /**
+     * Checks whether the current query targets one specific player.
+     * @returns {boolean}
+     */
+    #isSearchingSpecificPlayer() {
+        return this.#normalizedCurrentPlayerName() != null;
+    }
+
+    /**
+     * Resolves the searched player's color for this game entry.
+     * @param entry {GameMetadataDto}
+     * @returns {Color|null}
+     */
+    #resolveSearchedPlayerColor(entry) {
+        if (!this.#isSearchingSpecificPlayer()) {
+            return null;
+        }
+
+        if (entry.userColor === Color.RED || entry.userColor === Color.BLACK) {
+            return entry.userColor;
+        }
+
+        if (this.#currentPlayerIds.length > 0) {
+            if (entry.redPlayerId != null && this.#currentPlayerIds.includes(entry.redPlayerId)) {
+                return Color.RED;
+            }
+            if (entry.blackPlayerId != null && this.#currentPlayerIds.includes(entry.blackPlayerId)) {
+                return Color.BLACK;
+            }
+        }
+
+        const searchedPlayerName = this.#normalizedCurrentPlayerName();
+        const redPlayerName = this.#normalizePlayerName(entry.redPlayerName);
+        const blackPlayerName = this.#normalizePlayerName(entry.blackPlayerName);
+        if (redPlayerName === searchedPlayerName) {
+            return Color.RED;
+        }
+        if (blackPlayerName === searchedPlayerName) {
+            return Color.BLACK;
+        }
+
+        if (this.#currentPlayerColor === 'red') {
+            return Color.RED;
+        }
+        if (this.#currentPlayerColor === 'black') {
+            return Color.BLACK;
+        }
+        return null;
+    }
+
+    /**
+     * @returns {string|null}
+     */
+    #normalizedCurrentPlayerName() {
+        return this.#normalizePlayerName(this.#currentPlayerName);
+    }
+
+    /**
+     * @param playerName {string|null}
+     * @returns {string|null}
+     */
+    #normalizePlayerName(playerName) {
+        if (playerName == null) {
+            return null;
+        }
+        const trimmedName = playerName.trim();
+        return trimmedName === '' ? null : trimmedName.toLowerCase();
+    }
+
     #clearResults() {
         // clear existing results
         this.#resultContainer.innerHTML = '';
@@ -325,6 +482,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         this.#currentEventIds = [];
         this.#currentInterval = null;
         this.#currentFen = null;
+        this.#currentPlayerColor = null;
 
         // remove all the existing mini-boards overview from the DOM
         getElementsByClassNameArray('mini-board-overview')

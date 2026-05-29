@@ -5,15 +5,19 @@
     {{meta_no_index_conditional}}
     {{description_meta}}
     <link rel="stylesheet" href="/css/user-profile.css"/>
+    <link rel="stylesheet" href="/css/browse-games.css"/>
     {{apex_charts}}
     <script defer src="/js/modules/countries.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <script defer src="/js/widgets/game-thumb.js"></script>
     <script defer src="/js/user-profile/user-profile-client.js"></script>
     <script defer src="/js/user-profile/puzzle-rating-history-line-chart.js"></script>
     <script defer src="/js/user-profile/puzzle-numbers-bar-chart.js"></script>
+    <script defer src="/js/user-profile/user-profile-games.js"></script>
     <script defer src="/js/user-profile/user-profile-dto.js"></script>
     <script defer src="/js/user-profile/user-profile.js"></script>
 </head>
-<body data-user-id="{{user_id}}">
+<body data-user-id="{{user_id}}" data-username="{{username}}">
 {{body_init}}
 <div class="main-container-text">
     <div id="profile-header">
@@ -31,53 +35,20 @@
     <h1>Game Stats</h1>
     <hr/>
     <div class="center-content-div">
-        <table id="ratings-table">
-            <tr>
-                <th>
-                    category
-                </th>
-                <td>
-                    <img id="rating-bullet-icon" src="/images/icons/shuttle.png"
-                         class="time-control-icons time-control-icons-larger" alt="bullet">
-                </td>
-                <td>
-                    <img id="rating-blitz-icon" src="/images/icons/flash-squared.png"
-                         class="time-control-icons time-control-icons-larger" alt="blitz">
-                </td>
-                <td>
-                    <img id="rating-rapid-icon" src="/images/icons/run.png"
-                         class="time-control-icons time-control-icons-larger" alt="rapid">
-                </td>
-                <td>
-                    <img id="rating-classical-icon" src="/images/icons/museum.png"
-                         class="time-control-icons time-control-icons-larger" alt="classical">
-                </td>
-                <td>
-                    <img id="rating-correspondence-icon" src="/images/icons/email.png"
-                         class="time-control-icons time-control-icons-larger" alt="correspondence">
-                </td>
-            </tr>
-            <tr>
-                <th>
-                    rating
-                </th>
-                <td>
-                    <span id="rating-bullet"></span>
-                </td>
-                <td>
-                    <span id="rating-blitz"></span>
-                </td>
-                <td>
-                    <span id="rating-rapid"></span>
-                </td>
-                <td>
-                    <span id="rating-classical"></span>
-                </td>
-                <td>
-                    <span id="rating-correspondence"></span>
-                </td>
-            </tr>
-        </table>
+        {{profile_game_stats_table}}
+    </div>
+    <br/>
+    <div id="latest-games-section" style="display: none;">
+        <h1>Latest Games</h1>
+        <hr/>
+        <div id="pvp-games-container">
+            {{game_thumb}}[[iterations:4; {gameType: 'pvp', parentClass: 'pvp-game-thumb'}]]
+        </div>
+        <div class="center-content-div browse-more-link-container">
+            <a id="browse-more-games-link" href="/@/{{username}}/browse-pvp-games" class="browse-more-link">
+                Browse More Games
+            </a>
+        </div>
     </div>
     <div id="puzzle-stats-section">
         <br/>

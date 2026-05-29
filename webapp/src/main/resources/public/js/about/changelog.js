@@ -17,15 +17,25 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class SimpleBoardPage extends BasePage {
+class ChangelogPage extends BasePage {
 
     constructor() {
         super();
-        const boardGui = createWebappBoardGui();
-        boardGui.loadFen(DEFAULT_START_FEN);
-        new SettingsGui(boardGui, null);
+
+        // copy-paste anchor url upon clicking on the icons
+        getElementsByClassNameArray('anchor-copy-link').forEach((link) => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+
+                const target = link.dataset.anchorTarget;
+                if (!target) return;
+
+                const url = `${getFullHost()}${window.location.pathname}#${target}`;
+                copyTextToClipboardAndNotify(url, 'Link copied to clipboard!');
+            });
+        });
     }
 
 }
 
-window.onload = () => new SimpleBoardPage();
+window.onload = () => new ChangelogPage();

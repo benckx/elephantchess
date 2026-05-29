@@ -21,36 +21,100 @@
     margin-top: 0;
 }
 
-#play-bot-modal #play-bot-modal-table {
+#play-bot-modal {
+    width: 320px;
+}
+
+#play-bot-modal .new-game-main-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+}
+
+#play-bot-modal .container-with-margin {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+}
+
+#play-bot-modal .new-game-option-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+#play-bot-modal .new-game-option-table td,
+#play-bot-modal .option-button-div {
+    height: 32px;
+}
+
+#play-bot-modal .new-game-option-table td.button-cells {
+    width: 114px;
+    padding: 0 4px;
+    height: 45px;
+}
+
+#play-bot-modal .option-button-div {
+    border: 2px solid #605f5f;
+    border-radius: 10px;
+    background-color: #f5eee5;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin: 0 auto;
+    cursor: pointer;
+}
+
+#play-bot-modal .option-button-div-selected {
+    background-color: #fcfaf8;
+    box-shadow: rgba(0, 0, 0, 0.09) 0 3px 3px, rgba(0, 0, 0, 0.12) 0 3px 3px;
+    font-weight: bold;
+    border-color: #124610;
+    outline: 1px solid #124610;
+}
+
+#play-bot-modal .option-button-div-disabled {
+    background-color: #c6c4c0;
+    cursor: not-allowed;
+    color: #5e5d5d;
+}
+
+#play-bot-modal .new-game-option-table td.icons-cells {
+    width: 45px;
+}
+
+#play-bot-modal img.time-control-icons {
+    width: 28px;
+}
+
+#play-bot-modal .container-with-margin .modal-form-label {
     width: 100%;
 }
 
-#play-bot-modal #play-bot-modal-table td {
-    padding: 5px;
-    vertical-align: top;
+#play-bot-modal #play-bot-depth-box {
+    width: 100%;
+    margin-top: 12px;
+    margin-bottom: 10px;
 }
 
-#play-bot-modal #play-bot-modal-table td.left-cell {
-    padding-left: 3px;
-    padding-right: 15px;
-    width: 45%;
+#play-bot-modal #play-bot-depth {
+    width: 100%;
+    cursor: pointer;
 }
 
-#play-bot-modal #play-bot-modal-table td.right-cell {
-    padding-left: 15px;
-    padding-right: 3px;
-    width: 45%;
+#play-bot-modal #play-bot-depth-value-box {
+    margin-top: 6px;
+    margin-bottom: 6px;
+    text-align: center;
 }
 
 #start-fen {
     width: 100%;
     text-align: center;
-}
-
-#play-bot-modal .standard-radio .label-span {
-    padding: 2px;
-    padding-left: 2px;
-    cursor: pointer;
 }
 
 #play-bot-modal #deeper-levels-message {
@@ -60,19 +124,67 @@
     width: 90%;
 }
 
+#play-bot-modal .openings-heading {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#play-bot-modal .openings-heading img {
+    height: 1em;
+    width: 1em;
+    vertical-align: middle;
+}
+
+@media (max-width: 1000px) {
+    #play-bot-modal .openings-heading img {
+        height: 1.2em;
+        width: 1.2em;
+    }
+}
+
 @media (max-width: 1000px) {
     #play-bot-modal {
-        padding-left: 14px;
-        padding-right: 14px;
+        width: 100%;
+    }
+
+    #play-bot-modal .container-with-margin {
+        width: 90%;
+    }
+
+    #play-bot-modal .option-button-div {
+        height: 64px;
+        font-size: 36px;
+    }
+
+    #play-bot-modal .new-game-option-table td.button-cells {
+        width: 200px;
+        padding-left: 6px;
+        padding-right: 6px;
+        height: 78px;
+    }
+
+    #play-bot-modal .new-game-option-table td.icons-cells {
+        width: 100px;
+    }
+
+    #play-bot-modal img.time-control-icons {
+        width: 50px;
     }
 
     #start-fen {
         font-size: 27px;
     }
 
+    #play-bot-modal #play-bot-depth-value-box {
+        margin-top: 36px;
+        margin-bottom: 10px;
+        font-size: 34px;
+    }
+
     #play-bot-modal #deeper-levels-message {
         font-size: 34px;
-        margin-top: 20px;
+        margin-top: 36px;
         margin-bottom: 14px;
     }
 }

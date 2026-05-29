@@ -592,6 +592,14 @@ class MoveTree {
         this.#useDefaultFen = (value === DEFAULT_START_FEN);
     }
 
+    get startFen() {
+        if (this.#useDefaultFen) {
+            return DEFAULT_START_FEN;
+        } else {
+            return this.#startFen;
+        }
+    }
+
     isEmpty() {
         return this.#rootNode == null;
     }
@@ -1074,6 +1082,10 @@ class NavigationPanelGui {
         });
 
         this.#downloadButtonContainer.addEventListener('click', (e) => {
+            // skip if the click already happened on the inner <a> (its own handler + browser default already triggers the download)
+            if (e.target.closest('a') === link) {
+                return;
+            }
             if (isButtonEnabled(e.target)) {
                 link.click();
             }
@@ -1504,6 +1516,10 @@ class MoveTreeWidget {
         this.#moveTree.startFen = fen;
     }
 
+    get startFen() {
+        return this.#moveTree.startFen;
+    }
+
     // COMPLEX GETTERS/SETTERS
 
     /**
@@ -1662,32 +1678,7 @@ class MoveTreeWidget {
                 break;
             case MoveNodeEvalFormat.ANNOTATION_SYMBOLS:
                 this.#moveTree.getAllNodesMatchingFenKey(fenKey).forEach((node) => {
-                    const nodeFenKey = node.fenKey;
-                    const previousNodeFenKey = node.hasPrevious() ? node.previous.fenKey : this.#startFen;
-
-                    if (analysisCache.has(previousNodeFenKey) && analysisCache.has(nodeFenKey)) {
-                        const previousNodeData = analysisCache.get(previousNodeFenKey);
-                        const engineBestMoveData = findAnalysisDataFromEngineBestMove(analysisCache, previousNodeData);
-                        if (engineBestMoveData != null) {
-                            const currentNodeData = analysisCache.get(nodeFenKey);
-                            const symbolEnumValue = calculateAnnotationValue(engineBestMoveData, currentNodeData);
-                            if (symbolEnumValue != null) {
-                                const cssClass = `${symbolEnumValue.toLowerCase()}-annotation-label`;
-                                node.eval = moveAnnotationEnumToSymbol(symbolEnumValue);
-                                node.addEvalCssClass(cssClass);
-                                this.#updateEvalPlaceholder(node);
-                            } else {
-                                node.eval = null;
-                                node.clearEvalCssClasses();
-                                this.#updateEvalPlaceholder(node);
-                            }
-                        } else {
-                            node.eval = null;
-                            node.clearEvalCssClasses();
-                            this.#updateEvalPlaceholder(node);
-                        }
-                    }
-
+                    this.#applyAnnotationSymbolToNode(node, analysisCache);
                 });
                 break;
             default:
@@ -1695,6 +1686,53 @@ class MoveTreeWidget {
         }
 
         this.#analysisCache = new Map(analysisCache);
+    }
+
+    /**
+     * Apply annotation symbols (??, ?!, etc.) to every node in the move tree, based on the provided analysis cache.
+     * This bypasses the `moveNodeEvalFormat` setting and is intended for pages that do not let the user toggle
+     * between raw eval and annotation symbols (PvP, PvB, database game viewer).
+     *
+     * @param analysisCache {Map<string, InfoLineResult>}
+     */
+    applyAnnotationSymbolsFromCache(analysisCache) {
+        this.#moveTree.getAllNodes().forEach((node) => {
+            this.#applyAnnotationSymbolToNode(node, analysisCache);
+        });
+        this.#analysisCache = new Map(analysisCache);
+    }
+
+    /**
+     * @param node {MoveTreeNode}
+     * @param analysisCache {Map<string, InfoLineResult>}
+     */
+    #applyAnnotationSymbolToNode(node, analysisCache) {
+        const nodeFenKey = node.fenKey;
+        const previousNodeFenKey = node.hasPrevious() ? node.previous.fenKey : this.#startFen;
+
+        if (analysisCache.has(previousNodeFenKey) && analysisCache.has(nodeFenKey)) {
+            const previousNodeData = analysisCache.get(previousNodeFenKey);
+            const engineBestMoveData = findAnalysisDataFromEngineBestMove(analysisCache, previousNodeData);
+            if (engineBestMoveData != null) {
+                const currentNodeData = analysisCache.get(nodeFenKey);
+                const symbolEnumValue = calculateAnnotationValue(engineBestMoveData, currentNodeData);
+                if (symbolEnumValue != null) {
+                    const cssClass = `${symbolEnumValue.toLowerCase()}-annotation-label`;
+                    node.eval = moveAnnotationEnumToSymbol(symbolEnumValue);
+                    node.clearEvalCssClasses();
+                    node.addEvalCssClass(cssClass);
+                    this.#updateEvalPlaceholder(node);
+                } else {
+                    node.eval = null;
+                    node.clearEvalCssClasses();
+                    this.#updateEvalPlaceholder(node);
+                }
+            } else {
+                node.eval = null;
+                node.clearEvalCssClasses();
+                this.#updateEvalPlaceholder(node);
+            }
+        }
     }
 
     /**
@@ -1784,6 +1822,11 @@ class MoveTreeWidget {
         if (node) {
             this.#handleClickEvent(node);
         }
+    }
+
+    navigateToStart() {
+        this.#renderStartFenToBoard();
+        this.#navigationListeners.forEach(listener => listener());
     }
 
     /**
