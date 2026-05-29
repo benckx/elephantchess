@@ -131,7 +131,9 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
                 sessionA2,
                 sessionB1,
                 sessionB2
-            ).forEach { pvpGameService.closePlayerVsPlayerSession(it.sessionId) }
+            ).forEach {
+                pvpGameService.closePlayerVsPlayerSession(it.sessionId)
+            }
         }
     }
 
