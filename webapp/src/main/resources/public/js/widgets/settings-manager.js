@@ -19,13 +19,13 @@
 
 const PIECE_STYLE_SETTING = 'setting.piece.style';
 const SHOW_COORDINATES_SETTING = 'setting.show.coordinates';
-const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
 const MOVE_FORMAT_SETTING = 'setting.move.format';
-const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const MOVE_NODE_EVAL_FORMAT = 'setting.move.node.eval.format';
 const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
 const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
 const FLIP_OPPONENT_PIECES_SETTING = 'setting.flip.opponent.pieces';
+const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
+const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
 
 /**
  * User-facing style of the board coordinate labels.
@@ -361,8 +361,6 @@ class SettingsGui {
 
     #showCoordinatesEnabledRadio = document.getElementById('show-coordinates-enabled-radio');
     #showCoordinatesDisabledRadio = document.getElementById('show-coordinates-disabled-radio');
-    #playSoundsEnabledRadio = document.getElementById('play-sounds-enabled-radio');
-    #playSoundsDisabledRadio = document.getElementById('play-sounds-disabled-radio');
 
     #coordinatesStyleWxfArabicRadio = document.getElementById('coordinates-style-wxf-arabic-radio');
     #coordinatesStyleWxfChineseRadio = document.getElementById('coordinates-style-wxf-chinese-radio');
@@ -373,11 +371,15 @@ class SettingsGui {
     #coordinatesStyleAlgebraicRadio = document.getElementById('coordinates-style-algebraic-radio');
     #coordinatesMoveFormatMismatchWarning = document.getElementById('coordinates-move-format-mismatch-warning');
 
-    #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
-    #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
 
     #flipOpponentPiecesEnabledRadio = document.getElementById('flip-opponent-pieces-enabled-radio');
     #flipOpponentPiecesDisabledRadio = document.getElementById('flip-opponent-pieces-disabled-radio');
+
+    #playSoundsEnabledRadio = document.getElementById('play-sounds-enabled-radio');
+    #playSoundsDisabledRadio = document.getElementById('play-sounds-disabled-radio');
+
+    #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
+    #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
 
     // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
