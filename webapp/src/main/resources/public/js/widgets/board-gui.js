@@ -188,6 +188,8 @@ const PieceStyleSetting = Object.freeze({
  *                                                    image folder.
  * @property {boolean}     [colorblindFriendlyBlackPieces] - if true, black piece images get an invert
  *                                                    CSS filter for improved contrast.
+ * @property {boolean}     [flipOpponentPieces]     - if true, opponent piece images are rotated
+ *                                                    180° to simulate the OTB appearance.
  * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
  *                                                    file numbers are rendered in WXF mode.
  */
@@ -204,6 +206,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     assetsBaseUrl: 'https://cdn.elephantchess.io/static',
     pieceStyle: PieceStyleSetting.DEFAULT,
     colorblindFriendlyBlackPieces: false,
+    flipOpponentPieces: false,
     fileNumbersStyle: FileNumbersStyle.DEFAULT,
 });
 
@@ -252,6 +255,7 @@ class BoardGui {
 
         this.#boardContainer = document.getElementById(this.#options.elementId);
         this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
+        this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
         this.#drawBoard();
         this.#drawPieces(); // FIXME: useful?
 
@@ -1368,6 +1372,8 @@ class BoardGui {
         img.className = 'piece-image';
         if (isBlackPiece(pieceChar)) {
             img.classList.add('piece-image-black');
+        } else if (isRedPiece(pieceChar)) {
+            img.classList.add('piece-image-red');
         }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
         img.addEventListener('click', () => this.#clickedOnPiece(position));
@@ -1587,6 +1593,7 @@ class BoardGui {
         this.#drawPieces();
         this.updateHighlightedChecks();
         this.#resetDraggableCursors();
+        this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
 
         const newColor = this.#flippedRed ? Color.RED : Color.BLACK;
         this.#afterFlipListeners.forEach(listener => listener(newColor));
@@ -1633,6 +1640,17 @@ class BoardGui {
         }
         this.#options = Object.freeze({...this.#options, colorblindFriendlyBlackPieces: enabled});
         this.#renderColorblindFriendlyBlackPiecesSetting(enabled);
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    setFlipOpponentPiecesEnabled(enabled) {
+        if (this.#options.flipOpponentPieces === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, flipOpponentPieces: enabled});
+        this.#renderFlipOpponentPiecesSetting(enabled);
     }
 
     /**
@@ -1703,6 +1721,21 @@ class BoardGui {
      */
     #renderColorblindFriendlyBlackPiecesSetting(enabled) {
         this.#boardContainer.classList.toggle('colorblind-friendly-black-pieces', enabled);
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderFlipOpponentPiecesSetting(enabled) {
+        this.#boardContainer.classList.remove('flip-opponent-pieces-red', 'flip-opponent-pieces-black');
+
+        if (enabled) {
+            if (!this.#flippedRed) {
+                this.#boardContainer.classList.add('flip-opponent-pieces-red');
+            } else {
+                this.#boardContainer.classList.add('flip-opponent-pieces-black');
+            }
+        }
     }
 
     #areCoordinatesVisible() {
