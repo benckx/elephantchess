@@ -67,7 +67,7 @@ class PlayerVsBotGameService(
     private val pikafishVersion = appConfig.pikafishVersion
     private val fairyStockfishVersion = appConfig.fairyStockfishVersion
 
-    private val sessionsRefresh = 4.seconds
+    private val sessionsRefresh = 2.seconds
     private val wsSessions = mutableListOf<PvbWebSocketSession>()
 
     private val refreshJob = launchAtFixedRate(
@@ -75,6 +75,12 @@ class PlayerVsBotGameService(
         initialDelay = sessionsRefresh,
         period = sessionsRefresh,
         action = {
+            // remove the sessions that are not active anymore
+            wsSessions.removeIf { session ->
+                if (session.isClosed) logger.debug { "removing $session" }
+                session.isClosed
+            }
+
             if (wsSessions.isNotEmpty()) {
                 // fetch new moves from SQL in a single query
                 val tuples = wsSessions.map { session -> session.gameId to session.currentMoveIndex }
@@ -103,12 +109,6 @@ class PlayerVsBotGameService(
                                 )
                             }
                     }
-
-                // remove the sessions that are not active anymore
-                wsSessions.removeIf { session ->
-                    if (session.isClosed) logger.debug { "removing $session" }
-                    session.isClosed
-                }
             }
         }
     )
