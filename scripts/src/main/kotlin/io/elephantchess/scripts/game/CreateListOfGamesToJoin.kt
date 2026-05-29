@@ -6,6 +6,7 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.scripts.game.Utils.createTestUserIfNotExists
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
+import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.xiangqi.Color
@@ -128,9 +129,17 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
                     variant = variant
                 )
 
-            val createGameResponse = pvpGameService.createGame(UserId(AUTHENTICATED, user.id), request)
-            val gameId = createGameResponse.gameId
-            println("created game $gameId by ${user.handle}")
+            try {
+                val createGameResponse = pvpGameService.createGame(UserId(AUTHENTICATED, user.id), request)
+                val gameId = createGameResponse.gameId
+                println("created game $gameId by ${user.handle}")
+            } catch (e: BadRequestException) {
+                if (e.message == "You already have 3 pending games with the same settings") {
+                    println("skipped creating game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"} because of too many pending games with the same settings")
+                } else {
+                    println("failed to create game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"}: ${e.message}")
+                }
+            }
         }
 
         exitProcess(0)

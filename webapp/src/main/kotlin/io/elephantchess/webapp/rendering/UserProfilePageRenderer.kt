@@ -97,58 +97,7 @@ class UserProfilePageRenderer(
     }
 
     private fun gameStatsTableTagResolver(gameStats: GameStatsResponse): TagResolver {
-        val categories = listOf(
-            Category(
-                key = "bullet",
-                label = "Bullet",
-                iconPath = "/images/icons/shuttle.png",
-                iconAlt = "bullet",
-                rating = gameStats.ratings.bullet,
-                wins = gameStats.pvp.bullet.wins,
-                draws = gameStats.pvp.bullet.draws,
-                losses = gameStats.pvp.bullet.losses
-            ),
-            Category(
-                key = "blitz",
-                label = "Blitz",
-                iconPath = "/images/icons/flash-squared.png",
-                iconAlt = "blitz",
-                rating = gameStats.ratings.blitz,
-                wins = gameStats.pvp.blitz.wins,
-                draws = gameStats.pvp.blitz.draws,
-                losses = gameStats.pvp.blitz.losses
-            ),
-            Category(
-                key = "rapid",
-                label = "Rapid",
-                iconPath = "/images/icons/run.png",
-                iconAlt = "rapid",
-                rating = gameStats.ratings.rapid,
-                wins = gameStats.pvp.rapid.wins,
-                draws = gameStats.pvp.rapid.draws,
-                losses = gameStats.pvp.rapid.losses
-            ),
-            Category(
-                key = "classical",
-                label = "Classical",
-                iconPath = "/images/icons/museum.png",
-                iconAlt = "classical",
-                rating = gameStats.ratings.classical,
-                wins = gameStats.pvp.classical.wins,
-                draws = gameStats.pvp.classical.draws,
-                losses = gameStats.pvp.classical.losses
-            ),
-            Category(
-                key = "correspondence",
-                label = "Correspondence",
-                iconPath = "/images/icons/email.png",
-                iconAlt = "correspondence",
-                rating = gameStats.ratings.correspondence,
-                wins = gameStats.pvp.correspondence.wins,
-                draws = gameStats.pvp.correspondence.draws,
-                losses = gameStats.pvp.correspondence.losses
-            ),
-        )
+        val categories = gameStatsToCategories(gameStats)
 
         return KtorHtmlBuilderTagResolver("profile_game_stats_table") {
             table {
@@ -212,15 +161,73 @@ class UserProfilePageRenderer(
         )
     }
 
-    private data class Category(
-        val key: String,
-        val label: String,
-        val iconPath: String,
-        val iconAlt: String,
-        val rating: Int,
-        val wins: Int,
-        val draws: Int,
-        val losses: Int,
-    )
+    private companion object {
+
+        data class TimeCategoryStats(
+            val key: String,
+            val label: String,
+            val iconPath: String,
+            val iconAlt: String,
+            val rating: Int,
+            val wins: Int,
+            val draws: Int,
+            val losses: Int,
+        )
+
+        fun gameStatsToCategories(gameStats: GameStatsResponse): List<TimeCategoryStats> {
+            return listOf(
+                TimeCategoryStats(
+                    key = "bullet",
+                    label = "Bullet",
+                    iconPath = "/images/icons/shuttle.png",
+                    iconAlt = "bullet",
+                    rating = gameStats.ratings.bullet,
+                    wins = gameStats.pvp.bullet.wins,
+                    draws = gameStats.pvp.bullet.draws,
+                    losses = gameStats.pvp.bullet.losses
+                ),
+                TimeCategoryStats(
+                    key = "blitz",
+                    label = "Blitz",
+                    iconPath = "/images/icons/flash-squared.png",
+                    iconAlt = "blitz",
+                    rating = gameStats.ratings.blitz,
+                    wins = gameStats.pvp.blitz.wins,
+                    draws = gameStats.pvp.blitz.draws,
+                    losses = gameStats.pvp.blitz.losses
+                ),
+                TimeCategoryStats(
+                    key = "rapid",
+                    label = "Rapid",
+                    iconPath = "/images/icons/run.png",
+                    iconAlt = "rapid",
+                    rating = gameStats.ratings.rapid,
+                    wins = gameStats.pvp.rapid.wins,
+                    draws = gameStats.pvp.rapid.draws,
+                    losses = gameStats.pvp.rapid.losses
+                ),
+                TimeCategoryStats(
+                    key = "classical",
+                    label = "Classical",
+                    iconPath = "/images/icons/museum.png",
+                    iconAlt = "classical",
+                    rating = gameStats.ratings.classical,
+                    wins = gameStats.pvp.classical.wins,
+                    draws = gameStats.pvp.classical.draws,
+                    losses = gameStats.pvp.classical.losses
+                ),
+                TimeCategoryStats(
+                    key = "correspondence",
+                    label = "Correspondence",
+                    iconPath = "/images/icons/email.png",
+                    iconAlt = "correspondence",
+                    rating = gameStats.ratings.correspondence,
+                    wins = gameStats.pvp.correspondence.wins,
+                    draws = gameStats.pvp.correspondence.draws,
+                    losses = gameStats.pvp.correspondence.losses
+                ),
+            )
+        }
+    }
 
 }
