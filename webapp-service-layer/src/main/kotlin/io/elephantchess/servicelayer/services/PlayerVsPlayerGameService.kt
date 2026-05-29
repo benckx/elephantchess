@@ -156,7 +156,8 @@ class PlayerVsPlayerGameService(
         userDaoService.updateLastOnline(gamesToPlaySessions.map { it.userId })
     }
 
-    private suspend fun refreshPlayerVsPlayerSessions() {
+    // visible for tests
+    internal suspend fun refreshPlayerVsPlayerSessions() {
         // Drop already-closed sessions before fetching anything from DB.
         removeClosedPlayerVsPlayerSessions()
 
@@ -287,10 +288,6 @@ class PlayerVsPlayerGameService(
                     )
                 }
             }
-    }
-
-    internal suspend fun refreshPlayerVsPlayerSessionsForTest() {
-        refreshPlayerVsPlayerSessions()
     }
 
     private fun removeClosedPlayerVsPlayerSessions() {

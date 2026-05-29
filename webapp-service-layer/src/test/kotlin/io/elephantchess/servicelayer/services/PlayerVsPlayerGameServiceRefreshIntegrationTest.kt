@@ -24,6 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
 
@@ -59,8 +60,8 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         val gameA = createAndJoinGame(userId1, userId2)
         val gameB = createAndJoinGame(userId3, userId4)
 
-        val movesA = gameMovesCache.findByGameId("iaxeugSr")
-        val movesB = gameMovesCache.findByGameId("NxJUgj53")
+        val movesA = gameMovesCache.randomGame()
+        val movesB = gameMovesCache.randomGame()
 
         val sessionA1 = startSession(gameA, userId1)
         val sessionA2 = startSession(gameA, userId2)
@@ -68,7 +69,7 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         val sessionB2 = startSession(gameB, userId4)
 
         try {
-            waitForRefreshTick()
+            pvpGameService.refreshPlayerVsPlayerSessions()
             listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { it.channel.drain() }
 
             // First synchronized refresh: both games receive their first moves.
@@ -89,7 +90,7 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
             assertEquals(1, pvpGameService.fetchGame(gameB).moveIndex)
 
             // Second synchronized refresh: both games advance again.
-            waitForRefreshTick()
+            pvpGameService.refreshPlayerVsPlayerSessions()
             listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { it.channel.drain() }
 
             playMove(gameA, userId2, movesA.uciMoves[1])
@@ -109,7 +110,7 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
             assertEquals(2, pvpGameService.fetchGame(gameB).moveIndex)
 
             // Third refresh: only game A advances; game B stays untouched.
-            waitForRefreshTick()
+            pvpGameService.refreshPlayerVsPlayerSessions()
             listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { it.channel.drain() }
 
             playMove(gameA, userId1, movesA.uciMoves[2])
@@ -125,7 +126,12 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
             assertEquals(3, pvpGameService.fetchGame(gameA).moveIndex)
             assertEquals(2, pvpGameService.fetchGame(gameB).moveIndex)
         } finally {
-            listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { pvpGameService.closePlayerVsPlayerSession(it.sessionId) }
+            listOf(
+                sessionA1,
+                sessionA2,
+                sessionB1,
+                sessionB2
+            ).forEach { pvpGameService.closePlayerVsPlayerSession(it.sessionId) }
         }
     }
 
@@ -137,7 +143,7 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
             val sessionActor = startSession(gameId, userId2)
 
             try {
-                waitForRefreshTick()
+                pvpGameService.refreshPlayerVsPlayerSessions()
                 sessionViewer.channel.drain()
                 sessionActor.channel.drain()
 
@@ -152,7 +158,7 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
                     input = PlayerVsPlayerInput(message = "hello from user 2")
                 )
 
-                pvpGameService.refreshPlayerVsPlayerSessionsForTest()
+                pvpGameService.refreshPlayerVsPlayerSessions()
 
                 val viewerUpdate = sessionViewer.channel.awaitNextUpdate()
                 val actorUpdate = sessionActor.channel.awaitNextUpdate()
@@ -177,7 +183,6 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         }
     }
 
-
     private suspend fun playMove(gameId: String, userId: UserId, move: String) {
         pvpGameService.playMove(userId.id, PlayMoveRequest(gameId, move))
     }
@@ -191,20 +196,17 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         return SessionHandle(sessionId = sessionId, channel = channel)
     }
 
-    private fun waitForRefreshTick() {
-        runBlocking {
-            pvpGameService.refreshPlayerVsPlayerSessionsForTest()
-        }
-    }
-
     private fun Channel<PlayerVsPlayerUpdate>.drain() {
         while (tryReceive().getOrNull() != null) {
             // drain all pending updates before the next phase
         }
     }
 
-    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitUpdate(expectedMove: String, expectedIndex: Int): PlayerVsPlayerUpdate {
-        return withTimeout(4_000) {
+    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitUpdate(
+        expectedMove: String,
+        expectedIndex: Int
+    ): PlayerVsPlayerUpdate {
+        return withTimeout(4.seconds) {
             var result: PlayerVsPlayerUpdate? = null
             while (result == null) {
                 val update = receive()
@@ -218,11 +220,10 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
     }
 
     private suspend fun Channel<PlayerVsPlayerUpdate>.awaitNextUpdate(): PlayerVsPlayerUpdate {
-        return withTimeout(4_000) {
+        return withTimeout(4.seconds) {
             receive()
         }
     }
-
 
     private fun assertMoveUpdate(update: PlayerVsPlayerUpdate, moves: GameMovesDto, expectedIndex: Int) {
         val newMove = requireNotNull(update.newMove)
