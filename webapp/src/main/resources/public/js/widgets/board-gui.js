@@ -1405,7 +1405,7 @@ class BoardGui {
         img.addEventListener('click', () => this.#clickedOnPiece(position));
         img.addEventListener('dragstart', (e) => this.#dragStart(e, position));
         img.addEventListener('dragend', () => this.#dragEnd());
-        img.addEventListener('touchstart', (e) => this.#touchDragStart(e, position), {passive: false});
+        // img.addEventListener('touchstart', (e) => this.#touchDragStart(e, position), {passive: false});
         square.prepend(img);
     }
 
