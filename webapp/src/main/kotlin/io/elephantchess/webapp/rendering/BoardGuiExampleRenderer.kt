@@ -20,8 +20,9 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
                     if (useCdn) "${CDN_BASE}/static" else ""
                 ),
                 SimpleValueTagResolver("dist_version", DIST_VERSION),
-                snippetTagResolver("snippet_setup", "board-gui-setup"),
-                snippetTagResolver("snippet_headless", "board-gui-headless")
+                snippetTagResolver("snippet_setup", "board-gui-setup.html"),
+                snippetTagResolver("snipped_config", "board-gui-config.js"),
+                snippetTagResolver("snippet_headless", "board-gui-headless.html")
             )
         )
     }
@@ -32,7 +33,7 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
      */
     private fun snippetTagResolver(tagName: String, snippetName: String): TagResolver =
         CallbackTagResolver(tagName) {
-            val raw = resourceAsString("/templates/about/developers/snippets/$snippetName.html")
+            val raw = resourceAsString("/templates/about/developers/snippets/$snippetName")
                 ?: return@CallbackTagResolver ""
 
             raw
