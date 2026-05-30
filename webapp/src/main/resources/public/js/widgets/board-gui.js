@@ -1023,6 +1023,18 @@ class BoardGui {
         }
     }
 
+    /**
+     * @param e {DragEvent}
+     * @param to {Position}
+     */
+    #handlePieceHolderDropEvent(e, to) {
+        const uci = e.dataTransfer.getData('text/plain');
+        const from = Position.parseUci(uci);
+        const move = new HalfMove(from, to);
+        this.registerMoveIfLegal(move, false);
+        this.#hideAllPiecePlaceHolders();
+    }
+
     #clickedOnPiece(position) {
         if (this.#isPlayerMoveEnabled) {
             let board = this.#board;
@@ -1454,8 +1466,6 @@ class BoardGui {
      * @param position {Position}
      */
     #dragStart(e, position) {
-        console.log('drag start');
-
         if (this.isPlayerMoveEnabled && this.#board.getColorAt(position) === this.#board.getColorToPlay()) {
             e.dataTransfer.setData('text/plain', position.toUci());
             this.#showSelectedPositionAndLegalMovesPlaceHolders(position);
@@ -1465,8 +1475,6 @@ class BoardGui {
     }
 
     #dragEnd() {
-        console.log('drag end');
-
         this.#hideAllPiecePlaceHolders();
     }
 
@@ -1565,18 +1573,6 @@ class BoardGui {
     #moveTouchGhost(ghost, clientX, clientY, width, height) {
         ghost.style.left = (clientX - width / 2) + 'px';
         ghost.style.top = (clientY - height / 2) + 'px';
-    }
-
-    /**
-     * @param e {DragEvent}
-     * @param to {Position}
-     */
-    #handlePieceHolderDropEvent(e, to) {
-        const uci = e.dataTransfer.getData('text/plain');
-        const from = Position.parseUci(uci);
-        const move = new HalfMove(from, to);
-        this.registerMoveIfLegal(move, false);
-        this.#hideAllPiecePlaceHolders();
     }
 
     #unDrawAllPieces() {
