@@ -451,7 +451,7 @@ class BoardGui {
             if (this.#options.playSounds) {
                 this.#clickSound
                     .play()
-                    .catch(e => {
+                    .catch(() => {
                         // ignored, spam error in console in dev
                     });
             }
@@ -662,11 +662,6 @@ class BoardGui {
     }
 
     /**
-     * Animate a single move by delegating to the generic diff-based animator
-     * {@link #animatePiecesTo}. The target position is computed on a copy of
-     * the current board so the real model is only mutated once the animation
-     * completes. This replaces the old xiangqi-shape-aware setInterval based
-     * {@code #animateMove}.
      *
      * @param move {HalfMove}
      * @param onDone {function}
@@ -1197,6 +1192,7 @@ class BoardGui {
             this.#boardContainer.appendChild(row);
         }
 
+        // TODO: looks like something that could be done in CSS
         // add bottom border to last row of visible squares
         if (this.#flippedRed) {
             for (let x = 0; x < BOARD_WIDTH - 1; x++) {
@@ -1642,9 +1638,13 @@ class BoardGui {
         this.#currentShowingLegalMovesFor = position;
     }
 
+    /**
+     * @param move {HalfMove}
+     * @param color {string} CSS color
+     */
     highlightDebugMove(move, color) {
-        let from = this.#locateLegalMovePlaceHolderAt(move.from);
-        let to = this.#locateLegalMovePlaceHolderAt(move.to);
+        const from = this.#locateLegalMovePlaceHolderAt(move.from);
+        const to = this.#locateLegalMovePlaceHolderAt(move.to);
         from.classList.add('highlighted-debug');
         from.style.backgroundColor = color;
         to.classList.add('highlighted-debug');
@@ -1653,7 +1653,7 @@ class BoardGui {
 
     hideAllDebugHighlight() {
         Position.getAll().forEach(position => {
-            let element = this.#locateLegalMovePlaceHolderAt(position);
+            const element = this.#locateLegalMovePlaceHolderAt(position);
             element.classList.remove('highlighted-debug');
             element.style.backgroundColor = null;
         });
@@ -1710,17 +1710,6 @@ class BoardGui {
         const newColor = this.#flippedRed ? Color.RED : Color.BLACK;
         this.#afterFlipListeners.forEach(listener => listener(newColor));
         this.#forceSafariLayoutRefresh();
-    }
-
-    /**
-     *
-     * @param moveFormat {string}
-     */
-    updateMoveFormat(moveFormat) {
-        // easy solution: complete redraw (TODO: can more subtle)
-        this.#boardContainer.innerHTML = '';
-        this.#drawBoard();
-        this.#drawPieces();
     }
 
     reRenderPieces() {
@@ -1802,6 +1791,7 @@ class BoardGui {
     #redrawCoordinates() {
         // remove existing file-coordinate (top + bottom) and right-side rank labels
         // (rank labels only exist in algebraic mode but the selector is harmless if absent)
+        // noinspection CssUnusedSymbol
         document.querySelectorAll(`#${this.#options.elementId} .file-coordinates-top,
                                    #${this.#options.elementId} .file-coordinates-bottom,
                                    #${this.#options.elementId} .rows-coordinates-right`)
