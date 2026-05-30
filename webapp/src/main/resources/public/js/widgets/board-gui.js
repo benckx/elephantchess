@@ -284,9 +284,9 @@ class BoardGui {
 
         // Touch drag-and-drop: listen at document level so the drag continues
         // even if the finger moves outside the board container.
-        document.addEventListener('touchmove', (e) => this.#touchDragMove(e), {passive: false});
-        document.addEventListener('touchend', (e) => this.#touchDragEnd(e));
-        document.addEventListener('touchcancel', () => this.#touchDragCancel());
+        // document.addEventListener('touchmove', (e) => this.#touchDragMove(e), {passive: false});
+        // document.addEventListener('touchend', (e) => this.#touchDragEnd(e));
+        // document.addEventListener('touchcancel', () => this.#touchDragCancel());
 
         if (this.#options.svg) {
             window.onresize = function () {
