@@ -284,9 +284,9 @@ class BoardGui {
 
         // Touch drag-and-drop: listen at document level so the drag continues
         // even if the finger moves outside the board container.
-        document.addEventListener('touchmove', (e) => this.#touchDragMove(e), {passive: false});
-        document.addEventListener('touchend', (e) => this.#touchDragEnd(e));
-        document.addEventListener('touchcancel', () => this.#touchDragCancel());
+        // document.addEventListener('touchmove', (e) => this.#touchDragMove(e), {passive: false});
+        // document.addEventListener('touchend', (e) => this.#touchDragEnd(e));
+        // document.addEventListener('touchcancel', () => this.#touchDragCancel());
 
         if (this.#options.svg) {
             window.onresize = function () {
@@ -1405,7 +1405,7 @@ class BoardGui {
         img.addEventListener('click', () => this.#clickedOnPiece(position));
         img.addEventListener('dragstart', (e) => this.#dragStart(e, position));
         img.addEventListener('dragend', () => this.#dragEnd());
-        img.addEventListener('touchstart', (e) => this.#touchDragStart(e, position), {passive: false});
+        // img.addEventListener('touchstart', (e) => this.#touchDragStart(e, position), {passive: false});
         square.prepend(img);
     }
 
