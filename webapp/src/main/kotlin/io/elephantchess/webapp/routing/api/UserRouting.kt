@@ -4,6 +4,7 @@ import io.elephantchess.servicelayer.dto.ContactFormRequest
 import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.model.GuestToken
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService
+import io.elephantchess.servicelayer.services.SettingPreferenceEventService
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
@@ -70,7 +71,9 @@ private fun Route.pingRoute() {
             requireIdentificationWithBody<PingSessionRequest> { verifiedToken, request ->
                 val headers = call.request.headers.toMap()
                 val remoteAddress = call.request.origin.remoteAddress
-                userService.pingUserSession(verifiedToken, request, remoteAddress, headers)
+                val settingCookies = SettingPreferenceEventService.SETTING_COOKIE_NAMES
+                    .associateWith { name -> call.request.cookies[name] }
+                userService.pingUserSession(verifiedToken, request, remoteAddress, headers, settingCookies)
             }
         }
     }

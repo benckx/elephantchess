@@ -79,6 +79,7 @@ private fun daoModule() = module {
     singleAuto<ReferenceEventDaoService>()
     singleAuto<ReferenceGameDaoService>()
     singleAuto<ReferencePlayerDaoService>()
+    singleAuto<SettingPreferenceEventDaoService>()
     singleAuto<SevenKingdomsGameDaoService>()
     singleAuto<ThrownExceptionDaoService>()
     singleAuto<UpcomingEventDaoService>()
@@ -125,6 +126,7 @@ private fun technicalModule(eagerAllowed: Boolean) = module {
     // others
     singleAuto<BatchesScheduler>(eager = eagerAllowed)
     singleAuto<PageViewEventService>()
+    singleAuto<SettingPreferenceEventService>()
     singleAuto<PodService>(eager = eagerAllowed)
     singleAuto<TokenManager>(eager = eagerAllowed)
     singleAuto<DiscordService>()
