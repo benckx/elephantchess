@@ -48,8 +48,8 @@ class ContentSectionVoteWidget {
         const votePanel = document.createElement('div');
         votePanel.className = 'content-section-vote-panel';
         votePanel.innerHTML = `
-            <img class="content-section-vote-button" src="/images/icons/thumbs-up.png" alt="vote up" loading="lazy"/>
-            <img class="content-section-vote-button" src="/images/icons/thumbs-down.png" alt="vote down" loading="lazy"/>
+            <img class="content-section-vote-button content-section-vote-button-up" src="/images/icons/thumbs-up-black.png" alt="vote up" loading="lazy"/>
+            <img class="content-section-vote-button content-section-vote-button-down" src="/images/icons/thumbs-up-black.png" alt="vote down" loading="lazy"/>
             <span class="content-section-feedback-link action-link">Tell us more</span>
         `;
 

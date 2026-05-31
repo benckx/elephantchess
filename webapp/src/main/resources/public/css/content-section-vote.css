@@ -6,25 +6,23 @@
 }
 
 .content-section-vote-button {
-    height: 23px;
+    height: 15px;
     cursor: pointer;
     opacity: 0.5;
-    padding: 3px 6px;
-    border-radius: 5px;
-    background-color: #fbf7f0;
-    box-shadow: rgba(50, 50, 93, 0.25) 0 2px 5px -1px, rgba(0, 0, 0, 0.3) 0 1px 3px -1px;
+    /* Tints the black icon to blue (#1a73e8) */
+    filter: invert(39%) sepia(82%) saturate(2087%) hue-rotate(202deg) brightness(97%) contrast(91%);
+}
+
+.content-section-vote-button-down {
+    transform: rotate(180deg);
 }
 
 .content-section-vote-button:hover {
-    opacity: 0.9;
-}
-
-.content-section-vote-button:active {
-    box-shadow: none;
+    opacity: 0.8;
 }
 
 .content-section-vote-button.voted-for {
-    opacity: 1;
+    opacity: 0.8;
 }
 
 .content-section-vote-button.voted-against {
@@ -47,4 +45,3 @@
 #content-section-feedback-textarea {
     height: 170px;
 }
-
