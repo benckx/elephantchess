@@ -38,11 +38,9 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
     suspend fun listLatestFeedback(limit: Int): List<ContentSectionVote> {
         return dslContext
             .selectFrom(CONTENT_SECTION_VOTE)
-            .where(CONTENT_SECTION_VOTE.FEEDBACK.isNotNull)
             .orderBy(CONTENT_SECTION_VOTE.UPDATE_TIME.desc())
             .limit(limit)
             .awaitMappedRecords<ContentSectionVote>()
-            .filter { !it.feedback.isNullOrBlank() }
     }
 
 }
