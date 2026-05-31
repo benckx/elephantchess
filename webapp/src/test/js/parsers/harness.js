@@ -146,7 +146,14 @@ function readFixture(relativePath) {
  * @return {string[]}
  */
 function toUciList(movesAndAnnotations) {
-    return movesAndAnnotations.map(moveAndAnnotation => moveAndAnnotation.move.toUci());
+    // Rebuild a host-realm array of host-realm strings. The parser output lives
+    // in the VM context, so its arrays/strings have a different prototype and
+    // would fail assert.deepStrictEqual's reference-equality checks otherwise.
+    const result = [];
+    movesAndAnnotations.forEach(moveAndAnnotation => {
+        result.push(String(moveAndAnnotation.move.toUci()));
+    });
+    return result;
 }
 
 module.exports = {
