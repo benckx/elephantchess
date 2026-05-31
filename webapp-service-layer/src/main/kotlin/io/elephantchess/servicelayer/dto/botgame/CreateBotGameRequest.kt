@@ -12,10 +12,4 @@ data class CreateBotGameRequest(
     val startFen: String?,
     val openingMode: OpeningMode = OpeningMode.BY_FREQUENCY,
     val variant: Variant = Variant.XIANGQI,
-) {
-    init {
-        require(variant != Variant.MANCHU || openingMode == OpeningMode.ENGINE_ONLY) {
-            "Manchu variant requires engine-only opening mode"
-        }
-    }
-}
+)

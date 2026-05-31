@@ -54,6 +54,12 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+internal fun validateManchuOpeningMode(variant: Variant, openingMode: OpeningMode) {
+    if (variant == Variant.MANCHU && openingMode != OpeningMode.ENGINE_ONLY) {
+        throw BadRequestException("Manchu variant requires engine-only opening mode")
+    }
+}
+
 class PlayerVsBotGameService(
     private val enginesPool: EnginePool,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
@@ -125,6 +131,8 @@ class PlayerVsBotGameService(
         if (userId.userType == UserType.GUEST && request.depth > 6) {
             throw BadRequestException("You must be logged in to play with depth greater than 6")
         }
+
+        validateManchuOpeningMode(request.variant, request.openingMode)
 
         // Manchu variant requires Fairy Stockfish
         if (request.variant == Variant.MANCHU && request.engine == Engine.PIKAFISH) {
