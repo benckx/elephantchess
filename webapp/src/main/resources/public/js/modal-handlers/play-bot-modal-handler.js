@@ -36,6 +36,7 @@ class PlayBotModalHandler extends ModalHandler {
 
     #openingRadios = document.getElementsByName('play-bot-opening');
     #openingRadioOptions = getElementsByClassNameArray('play-bot-opening-radio-option');
+    #openingByFrequencyRadio = document.getElementById('opening-by-frequency');
     #openingEngineOnlyRadio = document.getElementById('opening-engine-only');
 
     #startFenStandardRadio = document.getElementById('start-fen-standard');
@@ -230,6 +231,8 @@ class PlayBotModalHandler extends ModalHandler {
 
         if (isManchu) {
             this.#openingEngineOnlyRadio.checked = true;
+        } else {
+            this.#openingByFrequencyRadio.checked = true;
         }
     }
 
