@@ -3,17 +3,11 @@
  * file-number labels; the algebraic orientation (a..i letters) is unaffected.
  */
 const FileNumbersStyle = Object.freeze({
-    /** Arabic numerals (1..9) on both sides of the board. */
     ARABIC_BOTH: 'ARABIC_BOTH',
-    /** Chinese numerals (一..九) on both sides of the board. */
     CHINESE_BOTH: 'CHINESE_BOTH',
-    /** Chinese numerals on red's side; Arabic numerals on black's side (default). */
     CHINESE_RED_ONLY: 'CHINESE_RED_ONLY',
-    /** Chinese numerals on black's side; Arabic numerals on red's side. */
     CHINESE_BLACK_ONLY: 'CHINESE_BLACK_ONLY',
-    /** Chinese numerals on the bottom (lower) side of the screen; Arabic on the top side. */
     CHINESE_LOWER_ONLY: 'CHINESE_LOWER_ONLY',
-    /** Chinese numerals on the top side of the screen; Arabic on the bottom side. */
     CHINESE_TOP_ONLY: 'CHINESE_TOP_ONLY',
     DEFAULT: 'CHINESE_RED_ONLY',
 });
