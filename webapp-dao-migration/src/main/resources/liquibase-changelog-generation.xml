@@ -2334,6 +2334,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="feedback" type="varchar(1000)"/>
+            <column name="creation_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
             <column name="update_time" type="timestamp with time zone">
                 <constraints nullable="false"/>
             </column>

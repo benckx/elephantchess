@@ -7,8 +7,6 @@ import io.elephantchess.db.services.*
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.ContactFormRequest
-import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
-import io.elephantchess.servicelayer.dto.ContentSectionVotesResponse
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
@@ -39,7 +37,6 @@ class UserService(
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
     private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
-    private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,
     private val userSessionService: UserSessionService,
     private val tokenManager: TokenManager,
@@ -470,43 +467,6 @@ class UserService(
         )
     }
 
-    suspend fun submitContentSectionVote(request: ContentSectionVoteRequest, userId: UserId) {
-        if (!isContentPageIdValid(request.pageId)) {
-            throw NotAcceptableException("invalid page id")
-        }
-        if (!isContentSectionIdValid(request.sectionId)) {
-            throw NotAcceptableException("invalid section id (lowercase dash-separated, max 80)")
-        }
-        val feedback = request.feedback?.trim()?.ifBlank { null }
-        if (feedback != null && feedback.length > 1_000) throw NotAcceptableException("feedback too long")
-
-        contentSectionVoteDaoService.persistVote(
-            userId = userId.id,
-            pageId = request.pageId,
-            sectionId = request.sectionId,
-            upVoted = request.upVoted,
-            feedback = feedback
-        )
-    }
-
-    suspend fun fetchContentSectionVotes(pageId: String, userId: UserId): ContentSectionVotesResponse {
-        if (!isContentPageIdValid(pageId)) {
-            throw NotAcceptableException("invalid page id")
-        }
-
-        val entries = contentSectionVoteDaoService
-            .listVotesByUserAndPage(userId.id, pageId)
-            .map { record ->
-                ContentSectionVotesResponse.Entry(
-                    sectionId = record.sectionId,
-                    upVoted = record.upVoted,
-                    feedback = record.feedback
-                )
-            }
-
-        return ContentSectionVotesResponse(entries)
-    }
-
     private suspend fun validateSignUpRequest(request: SignUpRequest): List<String> {
         val errors = mutableListOf<String>()
 
@@ -575,8 +535,6 @@ class UserService(
         const val MAX_DESCRIPTION_LENGTH = 1_000
 
         private val EMAIL_REGEX = "^[A-Za-z0-9][^\\s]*@[^\\s]+\\.[^\\s]+$".toRegex()
-        private val DASH_SEPARATED_ID_REGEX = Regex("^[a-z0-9]+(?:-[a-z0-9]+)*$")
-        private val ALLOWED_CONTENT_PAGE_IDS = setOf("faq", "roadmap")
 
         private fun validatePassword(password: String): String? {
             return if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
@@ -594,12 +552,6 @@ class UserService(
 
         private fun isEmailFormatValid(chars: String): Boolean =
             chars.matches(EMAIL_REGEX)
-
-        private fun isContentPageIdValid(pageId: String): Boolean =
-            pageId in ALLOWED_CONTENT_PAGE_IDS
-
-        private fun isContentSectionIdValid(sectionId: String): Boolean =
-            sectionId.length <= 80 && DASH_SEPARATED_ID_REGEX.matches(sectionId)
 
     }
 

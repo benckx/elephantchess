@@ -4,6 +4,7 @@ import io.elephantchess.servicelayer.dto.ContactFormRequest
 import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
 import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.model.GuestToken
+import io.elephantchess.servicelayer.services.ContentSectionFeedbackService
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.servicelayer.services.UserService
@@ -19,6 +20,7 @@ import io.ktor.util.*
 private val userService by koin<UserService>()
 private val userProfileAnalyticsService by koin<UserProfileAnalyticsService>()
 private val globalAnalyticsService by koin<GlobalAnalyticsService>()
+private val contentSectionFeedbackService by koin<ContentSectionFeedbackService>()
 
 fun Route.userRoutes() {
     loginAndSignUpRoutes()
@@ -213,12 +215,12 @@ private fun Route.contentSectionVoteRoutes() {
         get("/list") {
             requireIdentification { verifiedToken ->
                 val pageId = call.request.queryParameters["pageId"] ?: throw BadRequestException("missing pageId")
-                userService.fetchContentSectionVotes(pageId, verifiedToken.userId())
+                contentSectionFeedbackService.fetchContentSectionVotes(pageId, verifiedToken.userId())
             }
         }
         post("/submit") {
             requireIdentificationWithBody<ContentSectionVoteRequest> { verifiedToken, request ->
-                userService.submitContentSectionVote(request, verifiedToken.userId())
+                contentSectionFeedbackService.submitContentSectionVote(request, verifiedToken.userId())
             }
         }
     }

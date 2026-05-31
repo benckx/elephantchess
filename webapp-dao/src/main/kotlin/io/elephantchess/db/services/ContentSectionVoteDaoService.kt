@@ -18,6 +18,7 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .set(CONTENT_SECTION_VOTE.SECTION_ID, sectionId)
             .set(CONTENT_SECTION_VOTE.UP_VOTED, upVoted)
             .set(CONTENT_SECTION_VOTE.FEEDBACK, feedback)
+            .set(CONTENT_SECTION_VOTE.CREATION_TIME, now)
             .set(CONTENT_SECTION_VOTE.UPDATE_TIME, now)
             .onConflict(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID, CONTENT_SECTION_VOTE.USER_ID)
             .doUpdate()

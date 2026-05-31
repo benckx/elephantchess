@@ -11,11 +11,9 @@ import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.minusHours
 import io.elephantchess.model.*
 import io.elephantchess.model.UserType.GUEST
-import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
 import io.elephantchess.servicelayer.dto.ValidatedResponse
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.user.*
-import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
@@ -634,81 +632,6 @@ class UserServiceTest : ServiceTest() {
             REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(queryId),
         )
         assertEquals(guestId.id, guestUserIdAfter)
-    }
-
-    @Test
-    fun `submitContentSectionVote should upsert vote and feedback by page and section id`() = runTest {
-        val userId = signUpTestUser().second
-        val actor = UserId(UserType.AUTHENTICATED, userId)
-
-        userService.submitContentSectionVote(ContentSectionVoteRequest("faq", "why-sign-up", true), actor)
-        userService.submitContentSectionVote(
-            ContentSectionVoteRequest("faq", "why-sign-up", false, "I could not find this quickly."),
-            actor
-        )
-
-        val upVoted = dslContext.fetchValueAsync(
-            CONTENT_SECTION_VOTE.UP_VOTED,
-            CONTENT_SECTION_VOTE.USER_ID.eq(userId)
-                .and(CONTENT_SECTION_VOTE.PAGE_ID.eq("faq"))
-                .and(CONTENT_SECTION_VOTE.SECTION_ID.eq("why-sign-up")),
-        )
-        assertEquals(false, upVoted)
-
-        val feedback = dslContext.fetchValueAsync(
-            CONTENT_SECTION_VOTE.FEEDBACK,
-            CONTENT_SECTION_VOTE.USER_ID.eq(userId)
-                .and(CONTENT_SECTION_VOTE.PAGE_ID.eq("faq"))
-                .and(CONTENT_SECTION_VOTE.SECTION_ID.eq("why-sign-up")),
-        )
-        assertEquals("I could not find this quickly.", feedback)
-    }
-
-    @Test
-    fun `submitContentSectionVote should reject invalid page or section ids`() = runTest {
-        val userId = signUpTestUser().second
-        val actor = UserId(UserType.AUTHENTICATED, userId)
-
-        assertFailsWith<NotAcceptableException> {
-            userService.submitContentSectionVote(ContentSectionVoteRequest("faq", "invalid section id", true), actor)
-        }
-        assertFailsWith<NotAcceptableException> {
-            userService.submitContentSectionVote(ContentSectionVoteRequest("invalid/page", "why-sign-up", true), actor)
-        }
-        assertFailsWith<NotAcceptableException> {
-            userService.submitContentSectionVote(ContentSectionVoteRequest("about", "why-sign-up", true), actor)
-        }
-    }
-
-    @Test
-    fun `fetchContentSectionVotes should list votes and feedback for user and page`() = runTest {
-        val userId = signUpTestUser().second
-        val actor = UserId(UserType.AUTHENTICATED, userId)
-
-        userService.submitContentSectionVote(
-            ContentSectionVoteRequest("faq", "why-sign-up", true, "This answer is very useful."),
-            actor
-        )
-        userService.submitContentSectionVote(
-            ContentSectionVoteRequest("roadmap", "pre-move", false),
-            actor
-        )
-
-        val faqVotes = userService.fetchContentSectionVotes("faq", actor)
-        assertEquals(1, faqVotes.entries.size)
-        assertEquals("why-sign-up", faqVotes.entries[0].sectionId)
-        assertEquals(true, faqVotes.entries[0].upVoted)
-        assertEquals("This answer is very useful.", faqVotes.entries[0].feedback)
-
-        val roadmapVotes = userService.fetchContentSectionVotes("roadmap", actor)
-        assertEquals(1, roadmapVotes.entries.size)
-        assertEquals("pre-move", roadmapVotes.entries[0].sectionId)
-        assertEquals(false, roadmapVotes.entries[0].upVoted)
-        assertNull(roadmapVotes.entries[0].feedback)
-
-        assertFailsWith<NotAcceptableException> {
-            userService.fetchContentSectionVotes("about", actor)
-        }
     }
 
 }
