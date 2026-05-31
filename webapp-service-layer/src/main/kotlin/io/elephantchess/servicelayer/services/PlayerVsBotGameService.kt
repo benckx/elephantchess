@@ -133,7 +133,7 @@ class PlayerVsBotGameService(
 
         // Manchu variant requires Fairy Stockfish
         if (request.variant == Variant.MANCHU && request.engine == Engine.PIKAFISH) {
-            throw BadRequestException("Pikafish does not support the Manchu variant. Please use Fairy Stockfish.")
+            throw BadRequestException("Pikafish does not support the Manchu variant. Please use Fairy Stockfish")
         }
 
         request.startFen?.let { fen ->

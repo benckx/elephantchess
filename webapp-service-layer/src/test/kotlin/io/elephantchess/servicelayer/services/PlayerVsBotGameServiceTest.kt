@@ -30,6 +30,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     private val refresherScope by inject<CoroutineScope>()
     private val mockEnginePool = mock<EnginePool>()
 
+    // mocked EnginePool
     private val service by lazy {
         PlayerVsBotGameService(
             enginesPool = mockEnginePool,
@@ -79,7 +80,25 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             service.create(userId, request)
         }
 
-        assertEquals("Pikafish does not support the Manchu variant. Please use Fairy Stockfish.", exception.message)
+        assertEquals("Pikafish does not support the Manchu variant. Please use Fairy Stockfish", exception.message)
+    }
+
+    @Test
+    fun `can not create a game with more 14 in depth`() = runTest {
+        val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+
+        val request = CreateBotGameRequest(
+            color = RED,
+            depth = 15,
+            engine = Engine.PIKAFISH,
+            startFen = null
+        )
+
+        val exception = assertFailsWith<BadRequestException> {
+            service.create(userId, request)
+        }
+
+        assertEquals("Depth must be between 1 and 14", exception.message)
     }
 
     @Test
