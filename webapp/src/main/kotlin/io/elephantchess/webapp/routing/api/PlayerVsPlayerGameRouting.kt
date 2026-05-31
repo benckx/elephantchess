@@ -105,7 +105,7 @@ fun Route.pvpGameWsRoutes() {
                 // tab reconnecting after a key rotation or after the guest token TTL expired).
                 // Close the socket cleanly instead of throwing, which would otherwise bubble up
                 // uncaught and be logged as an ERROR ("Websocket handler failed") with a full stack trace.
-                logger.info { "rejecting PvP game WebSocket for game $gameId: $result" }
+                logger.debug { "rejecting PvP game WebSocket for game $gameId: $result" }
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
                 return@webSocket
             }
