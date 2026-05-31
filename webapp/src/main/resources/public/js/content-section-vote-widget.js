@@ -52,7 +52,17 @@ class ContentSectionVoteWidget {
             <img class="content-section-vote-button" src="/images/icons/thumbs-down.png" alt="vote down" loading="lazy"/>
             <span class="content-section-feedback-link action-link">Tell us more</span>
         `;
-        section.after(votePanel);
+
+        // Insert the vote panel at the end of the section: walk the siblings
+        // following the heading until the next h1, then insert before it. If
+        // there is no following h1, append after the last sibling.
+        let lastSectionNode = section;
+        let nextNode = section.nextElementSibling;
+        while (nextNode != null && nextNode.tagName.toLowerCase() !== 'h1') {
+            lastSectionNode = nextNode;
+            nextNode = nextNode.nextElementSibling;
+        }
+        lastSectionNode.after(votePanel);
 
         const upButton = votePanel.children[0];
         const downButton = votePanel.children[1];
