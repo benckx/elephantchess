@@ -7,6 +7,7 @@ import io.elephantchess.engines.EnginePool
 import io.elephantchess.model.Engine
 import io.elephantchess.model.OpeningMode
 import io.elephantchess.model.UserType.AUTHENTICATED
+import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.botgame.CreateBotGameRequest
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
@@ -59,6 +60,44 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
         }
 
         assertEquals("Variants require engine-only opening mode", exception.message)
+    }
+
+    @Test
+    fun `manchu variant can not be played with Pikafish`() = runTest {
+        val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+
+        val request = CreateBotGameRequest(
+            color = RED,
+            depth = 5,
+            engine = Engine.PIKAFISH,
+            startFen = null,
+            openingMode = OpeningMode.ENGINE_ONLY,
+            variant = Variant.MANCHU,
+        )
+
+        val exception = assertFailsWith<BadRequestException> {
+            service.create(userId, request)
+        }
+
+        assertEquals("Pikafish does not support the Manchu variant. Please use Fairy Stockfish.", exception.message)
+    }
+
+    @Test
+    fun `guest can not create a game with depth greater than 6`() = runTest {
+        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+
+        val request = CreateBotGameRequest(
+            color = RED,
+            depth = 7,
+            engine = Engine.PIKAFISH,
+            startFen = null,
+        )
+
+        val exception = assertFailsWith<BadRequestException> {
+            service.create(guestId, request)
+        }
+
+        assertEquals("You must be authenticated in to play with depth greater than 6", exception.message)
     }
 
 }

@@ -123,10 +123,13 @@ class PlayerVsBotGameService(
         }
 
         if (userId.userType == UserType.GUEST && request.depth > 6) {
-            throw BadRequestException("You must be logged in to play with depth greater than 6")
+            throw BadRequestException("You must be authenticated in to play with depth greater than 6")
         }
 
-        validateOpeningModeVariantCombination(request.variant, request.openingMode)
+        // Manchu variant requires Engine only opening mode
+        if (request.variant == Variant.MANCHU && request.openingMode != OpeningMode.ENGINE_ONLY) {
+            throw BadRequestException("Variants require engine-only opening mode")
+        }
 
         // Manchu variant requires Fairy Stockfish
         if (request.variant == Variant.MANCHU && request.engine == Engine.PIKAFISH) {
@@ -373,11 +376,13 @@ class PlayerVsBotGameService(
             return playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
         }
 
-        val canUseOpeningRepository =
-            usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
-                    && openingMode != OpeningMode.ENGINE_ONLY
+        val useOpeningRepository =
+            usesDefaultStartFen &&
+                    position <= REPO_MAX_POSITION_INDEX &&
+                    variant == Variant.XIANGQI &&
+                    openingMode != OpeningMode.ENGINE_ONLY
 
-        return if (canUseOpeningRepository) {
+        return if (useOpeningRepository) {
             playFromOpeningRepository(gameId, userMove, openingMode) ?: playWithEngine()
         } else {
             playWithEngine()
@@ -559,12 +564,6 @@ class PlayerVsBotGameService(
         const val MIN_MOVE_INDEX_CHECK_REPETITION = 6 // after move 3
         const val POSITIONS_TO_CONSIDER_TO_AVOID_REPETITIONS = 10
         const val LEGAL_MOVES_TO_EVAL_FOR_ALTERNATIVE = 12
-
-        fun validateOpeningModeVariantCombination(variant: Variant, openingMode: OpeningMode) {
-            if (variant == Variant.MANCHU && openingMode != OpeningMode.ENGINE_ONLY) {
-                throw BadRequestException("Variants require engine-only opening mode")
-            }
-        }
 
     }
 
