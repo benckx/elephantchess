@@ -29,16 +29,20 @@ class PlayBotModalHandler extends ModalHandler {
 
     #exclusionGroups = [BOT_VARIANT_OPTION_GROUP, BOT_COLOR_OPTION_GROUP, BOT_ENGINE_OPTION_GROUP];
     #optionDivs;
-    #openingRadios = document.getElementsByName('play-bot-opening');
-    #openingRadioOptions = getElementsByClassNameArray('play-bot-opening-radio-option');
-    #openingEngineOnlyRadio = document.getElementById('opening-engine-only');
-    #startFenStandardRadio = document.getElementById('start-fen-standard');
-    #startFenCustomRadio = document.getElementById('start-fen-custom');
-    #startFenInput = document.getElementById('start-fen');
-    #playBotButton = document.getElementById('play-bot-button');
+
     #depthInput = document.getElementById('play-bot-depth');
     #depthValue = document.getElementById('play-bot-depth-value');
     #depthMaxValue = document.getElementById('play-bot-depth-max-value');
+
+    #openingRadios = document.getElementsByName('play-bot-opening');
+    #openingRadioOptions = getElementsByClassNameArray('play-bot-opening-radio-option');
+    #openingEngineOnlyRadio = document.getElementById('opening-engine-only');
+
+    #startFenStandardRadio = document.getElementById('start-fen-standard');
+    #startFenCustomRadio = document.getElementById('start-fen-custom');
+    #startFenInput = document.getElementById('start-fen');
+
+    #playBotButton = document.getElementById('play-bot-button');
 
     constructor() {
         super();
