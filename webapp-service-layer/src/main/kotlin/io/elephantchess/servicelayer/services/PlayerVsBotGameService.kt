@@ -131,10 +131,6 @@ class PlayerVsBotGameService(
             throw BadRequestException("Pikafish does not support the Manchu variant. Please use Fairy Stockfish.")
         }
 
-        if (request.variant == Variant.MANCHU && request.openingMode != OpeningMode.ENGINE_ONLY) {
-            throw BadRequestException("Manchu variant requires engine-only opening mode")
-        }
-
         request.startFen?.let { fen ->
             try {
                 validateFen(fen)
