@@ -65,6 +65,7 @@ The webapp offers the following features:
   technically because move can be ambiguous and the files are numbered from the right to the left relative to the
   player (so it's not the same numbers for the red and black players). Therefore, it's not used in code, expect for
   labeling moves in the GUI.
+- OTB: Over The Board, i.e. in-person chess games, as opposed to online games.
 
 # Run Locally
 
