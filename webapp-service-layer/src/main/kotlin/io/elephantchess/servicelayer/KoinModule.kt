@@ -175,6 +175,7 @@ private fun applicativeModule(eagerAllowed: Boolean) = module {
     singleAuto<EngineCacheService>()
 
     // users
+    singleAuto<ContentSectionFeedbackService>()
     singleAuto<UserService>(eager = eagerAllowed)
     singleAuto<UserProfileAnalyticsService>()
     singleAuto<GlobalAnalyticsService>(eager = eagerAllowed)
