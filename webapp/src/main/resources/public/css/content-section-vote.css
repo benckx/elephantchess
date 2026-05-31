@@ -9,8 +9,8 @@
     height: 15px;
     cursor: pointer;
     opacity: 0.5;
-    /* Tints the black icon to blue (#1a73e8) */
-    filter: invert(39%) sepia(82%) saturate(2087%) hue-rotate(202deg) brightness(97%) contrast(91%);
+    /* Tints the black icon to blue (#0505f0) */
+    filter: invert(11%) sepia(99%) saturate(7426%) hue-rotate(245deg) brightness(96%) contrast(143%);
 }
 
 .content-section-vote-button-down {

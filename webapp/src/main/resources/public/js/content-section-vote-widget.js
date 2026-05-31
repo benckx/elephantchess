@@ -172,7 +172,7 @@ class ContentSectionVoteWidget {
                         feedback,
                     });
                     UI.hideModal(null);
-                    UI.pushInfoNotification('Thanks for telling us more!');
+                    UI.pushInfoNotification('Thanks for your feedback!');
                 });
             };
             submitButton.addEventListener('click', this.#feedbackSubmitListener);
