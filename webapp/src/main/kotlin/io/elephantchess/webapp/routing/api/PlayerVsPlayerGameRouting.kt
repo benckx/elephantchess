@@ -3,18 +3,20 @@ package io.elephantchess.webapp.routing.api
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.ws.PlayerVsPlayerInput
-import io.elephantchess.servicelayer.exceptions.UnauthorizedException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.servicelayer.services.TokenManager
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 
 private val pvpGameService by koin<PlayerVsPlayerGameService>()
 private val tokenManager by koin<TokenManager>()
+private val logger = KotlinLogging.logger {}
 
 fun Route.pvpGameRoutes() {
     route("/api/game") {
@@ -98,7 +100,15 @@ fun Route.pvpGameWsRoutes() {
 
         val userId = when (val result = tokenManager.verifyToken(token)) {
             is VerifiedToken -> result.userId()
-            else -> throw UnauthorizedException("Invalid token")
+            else -> {
+                // An invalid/expired token on a WebSocket is normal client behaviour (e.g. a stale
+                // tab reconnecting after a key rotation or after the guest token TTL expired).
+                // Close the socket cleanly instead of throwing, which would otherwise bubble up
+                // uncaught and be logged as an ERROR ("Websocket handler failed") with a full stack trace.
+                logger.info { "rejecting PvP game WebSocket for game $gameId: $result" }
+                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
+                return@webSocket
+            }
         }
 
         handleBidirectionalWebSocketSession<PlayerVsPlayerInput>(
