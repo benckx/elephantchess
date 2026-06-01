@@ -691,6 +691,38 @@ Under `webapp/src/main/resources/public/js` there's usually a sub-folder for eac
 Complex app like PvP is usually organized with a **page** which updates the GUI, a **controller** which connects to
 WebSockets and/or calls REST endpoints, sometimes a DTO file and/or a separate REST client file.
 
+### Page tests (E2E)
+
+If you want browser-level page tests, prefer **Playwright** over Selenium for this project:
+
+- easier setup and test authoring
+- built-in waiting/retry behavior
+- isolated browser contexts for multi-user scenarios
+
+For PvP tests, run each player in a different private context so each one gets a different guest ID:
+
+```javascript
+import { test, chromium } from '@playwright/test';
+
+test('pvp with 2 guest sessions', async () => {
+    const browser = await chromium.launch(); // `async ({ browser })` can be used with Playwright fixtures too
+    const player1Context = await browser.newContext();
+    const player2Context = await browser.newContext();
+
+    const player1Page = await player1Context.newPage();
+    const player2Page = await player2Context.newPage();
+
+    await player1Page.goto('http://localhost:8080');
+    await player2Page.goto('http://localhost:8080');
+
+    await player1Context.close();
+    await player2Context.close();
+    await browser.close();
+});
+```
+
+Use two separate browsers only if you specifically need different browser engines (for example Chromium vs Firefox).
+
 ## JavaScript Libraries
 
 Some widgets from the [https://elephantchess.io](https://elephantchess.io) front-end are available as JavaScript

@@ -516,7 +516,53 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `guests users not allowed to join games with option allowGuests == false`() = runTest {
+    fun guestPlayersCanPlayFullPvPGameFromUciSample() = runTest {
+        val request = CreateGameRequest(
+            inviterColor = RED,
+            isRated = false,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+
+        val createResponse = pvpGameService.createGame(guestId1, request)
+        assertEquals(CREATED, createResponse.eventType)
+        assertEquals(RED, createResponse.color)
+
+        pvpGameService.joinGame(guestId2, JoinGameRequest(createResponse.gameId))
+        assertEquals(1, countGameByStatus(JOINED))
+        assertEquals(0, countGameByStatus(CREATED))
+
+        val gameMoves = assertNotNull(
+            gameMovesCache.listAll().firstOrNull { it.endsInCheckmate() },
+            "Expected at least one Xiangqi game in uci.txt that ends in checkmate"
+        )
+
+        gameMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
+            val result = pvpGameService.playMove(
+                userId = userIdToPlay(createResponse.gameId),
+                request = PlayMoveRequest(createResponse.gameId, move)
+            )
+
+            assertEquals(i + 1, result.updatedIndex)
+            assertNull(result.gameEventType)
+            assertNull(result.ratingUpdate)
+        }
+
+        val lastMoveResult = pvpGameService.playMove(
+            userId = userIdToPlay(createResponse.gameId),
+            request = PlayMoveRequest(createResponse.gameId, gameMoves.uciMoves.last())
+        )
+
+        assertEquals(CHECKMATED, lastMoveResult.gameEventType)
+        assertNull(lastMoveResult.ratingUpdate)
+    }
+
+    @Test
+    fun `guest users not allowed to join games with option allowGuests == false`() = runTest {
         val request1 = CreateGameRequest(
             inviterColor = RED,
             isRated = true,
