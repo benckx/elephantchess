@@ -65,7 +65,6 @@ private fun Route.adminOverviewRoutes() {
 
 private fun Route.adminFeedsRoutes() {
     val adminFeedService by koin<AdminFeedService>()
-    val adminContentSectionVoteService by koin<AdminContentSectionVoteService>()
 
     get("/list-games") {
         requireAdminRole { adminFeedService.listLastGames() }
@@ -80,7 +79,7 @@ private fun Route.adminFeedsRoutes() {
         requireAdminRole { adminFeedService.listLastUsersAnalysis() }
     }
     get("/content-section-feedback") {
-        requireAdminRole { adminContentSectionVoteService.listLatestFeedback() }
+        requireAdminRole { adminFeedService.listLatestFeedback() }
     }
 }
 

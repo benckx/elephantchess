@@ -191,7 +191,6 @@ private fun applicativeModule(eagerAllowed: Boolean) = module {
     singleAuto<AdminUserSessionService>()
     singleAuto<AdminAnalysisService>()
     singleAuto<AdminChatService>()
-    singleAuto<AdminContentSectionVoteService>()
     singleAuto<AdminDatabaseSearchService>()
     singleAuto<AdminPasswordRecoveryService>()
     singleAuto<AdminPostgresService>()
