@@ -108,14 +108,6 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
-    suspend fun listAllEvents(): List<ReferenceGameEventRecord> {
-        return dslContext
-            .select()
-            .from(REFERENCE_GAME_EVENT)
-            .orderBy(REFERENCE_GAME_EVENT.NAME)
-            .awaitMappedRecords()
-    }
-
     suspend fun listEvents(contains: String, limit: Int): List<EntityIdAndNameRecord> {
         return dslContext
             .selectDistinct(REFERENCE_GAME_EVENT.ID, REFERENCE_GAME_EVENT.NAME)
@@ -127,6 +119,14 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitRecords()
             .map { record2 -> EntityIdAndNameRecord(record2.value1(), record2.value2()) }
             .toList()
+    }
+
+    suspend fun listAllEvents(): List<ReferenceGameEventRecord> {
+        return dslContext
+            .select()
+            .from(REFERENCE_GAME_EVENT)
+            .orderBy(REFERENCE_GAME_EVENT.NAME)
+            .awaitMappedRecords()
     }
 
     suspend fun listAllOpenings(): List<ReferenceGameOpeningRecord> {

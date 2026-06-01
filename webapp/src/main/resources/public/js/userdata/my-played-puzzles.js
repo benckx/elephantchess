@@ -182,6 +182,11 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
             categoryDiv.className = 'puzzle-categories';
             categoryDiv.append(buildLink(entry.categoriesUrl, entry.formattedCategories.join(', ')));
 
+            // current puzzle rating, populated asynchronously next to the categories
+            const currentPuzzleRatingSpan = document.createElement('span');
+            currentPuzzleRatingSpan.classList.add('current-puzzle-rating', `current-puzzle-rating-${entry.puzzleId}`);
+            categoryDiv.append(currentPuzzleRatingSpan);
+
             middlePane.append(
                 puzzleMetadata,
                 wrapInDiv(buildColorSpan(entry.playerColor)),
@@ -213,8 +218,16 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
         const puzzleIds = entries.map(entry => entry.puzzleId).filter(onlyUnique);
         this.#fetchOriginalGamesMetadata(puzzleIds, puzzleIdsToMetadata => {
             for (const puzzleId of puzzleIds) {
+                const metadata = puzzleIdsToMetadata.get(puzzleId);
+
+                // current puzzle rating, shown next to the categories
+                getElementsByClassNameArray(`current-puzzle-rating-${puzzleId}`).forEach(ratingSpan => {
+                    if (metadata != null && metadata.puzzleRating != null) {
+                        ratingSpan.innerText = ` (${metadata.puzzleRating})`;
+                    }
+                });
+
                 getElementsByClassNameArray(`puzzle-metadata-${puzzleId}`).forEach(metadataDiv => {
-                    const metadata = puzzleIdsToMetadata.get(puzzleId);
                     if (metadata != null) {
                         const gameMetadata = metadata.gameMetadata;
                         let color = null;
@@ -235,11 +248,7 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
                             link += `&orientation=${color.toUpperCase()}`;
                         }
 
-                        let text = gameMetadata.toStringPlayerNames();
-                        if (metadata.puzzleRating != null) {
-                            text += ` (${metadata.puzzleRating})`;
-                        }
-                        metadataDiv.innerText = text;
+                        metadataDiv.innerText = gameMetadata.toStringPlayerNames();
                         metadataDiv.setAttribute('href', link);
                     } else {
                         metadataDiv.innerText = 'No original game found';
