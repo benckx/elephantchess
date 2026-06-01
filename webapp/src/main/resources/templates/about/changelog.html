@@ -3,7 +3,7 @@
     {{header_init}}
     <title>Changelog</title>
     <meta name="description"
-          content="Latest updates on elephantchess.io. The website is updated weekly. Last updated May 2026.">
+          content="Latest updates on elephantchess.io. The website is updated weekly. Last updated June 2026.">
     <meta property="og:url" content="https://elephantchess.io/about/changelog">
     <link rel="stylesheet" href="/css/about-faq.css"/>
     <script defer src="/js/about/changelog.js"></script>
@@ -14,12 +14,87 @@
     <h1>Changelog</h1>
     <hr/>
     {{changelog_toc}}
+    <h1 id="2026-06">June 2026
+        <a class="anchor-copy-link" data-anchor-target="2026-05" title="Copy link to this section">
+            <img src="/images/icons/link.png" alt="Copy link">
+        </a>
+    </h1>
+    <hr/>
+    <h4>2026-06-01</h4>
+    <ul>
+        <li>
+            Gather user feedback on
+            <a href="/about/faq?medium=changelog">FAQ</a> and
+            <a href="/about/roadmap?medium=changelog">roadmap</a> pages
+            (<a href="https://github.com/benckx/elephantchess/issues/720" target="_blank">issue #720</a>)
+        </li>
+        <li>
+            Technical changes (unit test for JavaScript move parsers)
+            (<a href="https://github.com/benckx/elephantchess/issues/752" target="_blank">issue #752</a>)
+        </li>
+        <li>
+            Technical changes (simplify enums for coordinates style - you might have lost your save preference)
+            (<a href="https://github.com/benckx/elephantchess/issues/748" target="_blank">issue #748</a>)
+        </li>
+        <li>
+            Technical changes (split "sensitive words" away from "bad words", might be useful later to implement a
+            profanity filter in the PvP chat)
+            (<a href="https://github.com/benckx/elephantchess/issues/739" target="_blank">issue #739</a>)
+        </li>
+        <li>
+            Technical changes (save cookies value in DB to gather data about used settings)
+            (<a href="https://github.com/benckx/elephantchess/issues/746" target="_blank">issue #746</a>)
+        </li>
+    </ul>
     <h1 id="2026-05">May 2026
         <a class="anchor-copy-link" data-anchor-target="2026-05" title="Copy link to this section">
             <img src="/images/icons/link.png" alt="Copy link">
         </a>
     </h1>
     <hr/>
+    <h4>2026-05-31</h4>
+    <ul>
+        <li>
+            Force Engine-Only opening mode for Manchu in Play Bot modal (UI + server-side validation)
+            (<a href="https://github.com/benckx/elephantchess/issues/741" target="_blank">issue #741</a>)
+        </li>
+        <li>
+            Minor changes to "How to Play" page
+            <a href="/how-to-play-xiangqi?medium=changelog">How to Play Xiangqi</a> page
+        </li>
+    </ul>
+    <h4>2026-05-30</h4>
+    <ul>
+        <li>
+            Drag-and-drop pieces on touch screen (mobile/tablet) (reverted)
+            (<a href="https://github.com/benckx/elephantchess/issues/615" target="_blank">issue #615</a>)
+        </li>
+        <li>
+            Distribution of <a href="/about/developers/board-gui-example">Board GUI</a> will be bumped to 0.1.1 to
+            include mobile drag-and-drop (reverted, not included in dist) and option to flip opponent pieces.
+        </li>
+        <li>
+            Improve <a href="/about/developers/board-gui-example">Board GUI</a> documentation page.
+        </li>
+        <li>
+            Hot fix on "latest PvB games" loading in the lobby.
+        </li>
+    </ul>
+    <h4>2026-05-29</h4>
+    <ul>
+        <li>
+            Style of "games to join" view on lobby on mobile
+            (<a href="https://github.com/benckx/elephantchess/issues/728" target="_blank">issue #728</a>)
+        </li>
+        <li>
+            Add "Flip opponent pieces" advanced setting to rotate opponent pieces 180° for a more realistic OTB
+            experience (or getting used to see the pieces rotated).
+            (<a href="https://github.com/benckx/elephantchess/issues/12" target="_blank">issue #12</a>)
+        </li>
+        <li>
+            Technical changes (optimize PvP data synchronization)
+        </li>
+    </ul>
     <h4>2026-05-27</h4>
     <ul>
         <li>
@@ -30,8 +105,8 @@
     <h4>2026-05-26</h4>
     <ul>
         <li>
-            <a href="/database/search?medium=changelog">Database search</a> results now show player names as
-            canonical + Chinese name in brackets
+            <a href="/database/search?medium=changelog">Database search</a> results now show player names as canonical +
+            Chinese name in brackets
             (<a href="https://github.com/benckx/elephantchess/issues/648" target="_blank">issue #648</a>)
         </li>
         <li>
