@@ -103,6 +103,8 @@ class PuzzleService(
                     outcome = record.outcome,
                     ratingFrom = record.ratingFrom,
                     ratingTo = record.ratingTo,
+                    puzzleRatingFrom = record.puzzleRatingFrom,
+                    puzzleRatingTo = record.puzzleRatingTo,
                     date = record.date.toEpochMilliseconds(),
                 )
             }

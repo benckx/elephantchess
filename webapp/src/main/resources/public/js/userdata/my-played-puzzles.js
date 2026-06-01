@@ -70,7 +70,7 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
          * @returns {HTMLDivElement}
          */
         function buildRatingDiv(entry) {
-            // rating
+            // user rating
             const ratingSpan = document.createElement('span');
             ratingSpan.className = 'rating-from';
             ratingSpan.innerText = entry.ratingFrom.toString();
@@ -87,8 +87,33 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
                 deltaSpan.innerHTML = HTML_WHITE_SPACE + 'n/a';
             }
 
+            const userRatingRow = document.createElement('div');
+            userRatingRow.className = 'user-rating-row';
+            userRatingRow.append(ratingSpan, deltaSpan);
+
+            // puzzle rating (smaller text, shown below the user rating)
+            const puzzleRatingSpan = document.createElement('span');
+            puzzleRatingSpan.className = 'puzzle-rating-from';
+            puzzleRatingSpan.innerText = entry.puzzleRatingFrom.toString();
+
+            const puzzleDeltaSpan = document.createElement('span');
+            puzzleDeltaSpan.classList.add('user-rating-delta-value-box', 'user-rating-delta-value-smaller');
+            if (entry.puzzleRatingDelta > 0) {
+                puzzleDeltaSpan.innerHTML = HTML_WHITE_SPACE + '+' + entry.puzzleRatingDelta;
+                puzzleDeltaSpan.classList.add('user-rating-delta-value-box-positive');
+            } else if (entry.puzzleRatingDelta < 0) {
+                puzzleDeltaSpan.innerHTML = HTML_WHITE_SPACE + entry.puzzleRatingDelta.toString();
+                puzzleDeltaSpan.classList.add('user-rating-delta-value-box-negative');
+            } else {
+                puzzleDeltaSpan.innerHTML = HTML_WHITE_SPACE + 'n/a';
+            }
+
+            const puzzleRatingRow = document.createElement('div');
+            puzzleRatingRow.className = 'puzzle-rating-row';
+            puzzleRatingRow.append(puzzleRatingSpan, puzzleDeltaSpan);
+
             const div = document.createElement('div');
-            div.append(ratingSpan, deltaSpan);
+            div.append(userRatingRow, puzzleRatingRow);
             return div;
         }
 
