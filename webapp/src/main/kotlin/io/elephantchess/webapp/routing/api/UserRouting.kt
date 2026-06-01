@@ -1,8 +1,10 @@
 package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.dto.ContactFormRequest
+import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
 import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.model.GuestToken
+import io.elephantchess.servicelayer.services.ContentSectionFeedbackService
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService
 import io.elephantchess.servicelayer.services.SettingPreferenceEventService
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
@@ -19,6 +21,7 @@ import io.ktor.util.*
 private val userService by koin<UserService>()
 private val userProfileAnalyticsService by koin<UserProfileAnalyticsService>()
 private val globalAnalyticsService by koin<GlobalAnalyticsService>()
+private val contentSectionFeedbackService by koin<ContentSectionFeedbackService>()
 
 fun Route.userRoutes() {
     loginAndSignUpRoutes()
@@ -29,6 +32,7 @@ fun Route.userRoutes() {
     userSettingsRoutes()
     passwordRecoveryRoutes()
     contactFormRoutes()
+    contentSectionVoteRoutes()
 }
 
 private fun Route.loginAndSignUpRoutes() {
@@ -204,6 +208,22 @@ private fun Route.contactFormRoutes() {
         post("/submit") {
             requireIdentificationWithBody<ContactFormRequest> { verifiedToken, request ->
                 userService.submitContact(request, verifiedToken.userId())
+            }
+        }
+    }
+}
+
+private fun Route.contentSectionVoteRoutes() {
+    route("/api/content-section-vote") {
+        get("/list") {
+            requireIdentification { verifiedToken ->
+                val pageId = call.request.queryParameters["pageId"] ?: throw BadRequestException("missing pageId")
+                contentSectionFeedbackService.fetchContentSectionVotes(pageId, verifiedToken.userId())
+            }
+        }
+        post("/submit") {
+            requireIdentificationWithBody<ContentSectionVoteRequest> { verifiedToken, request ->
+                contentSectionFeedbackService.submitContentSectionVote(request, verifiedToken.userId())
             }
         }
     }

@@ -2493,6 +2493,32 @@
         </addColumn>
     </changeSet>
     <changeSet id="0101" author="benckx">
+        <createTable tableName="content_section_vote">
+            <column name="page_id" type="varchar(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="section_id" type="varchar(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="up_voted" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feedback" type="varchar(1000)"/>
+            <column name="creation_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="page_id, section_id, user_id"
+                       constraintName="content_section_vote_pkey"
+                       tableName="content_section_vote"/>
+    </changeSet>
+    <changeSet id="0102" author="benckx">
         <comment>Anonymous sample of cookie-based user preferences</comment>
         <createTable tableName="setting_preference_event">
             <column name="event_id" type="varchar(12)">

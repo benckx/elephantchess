@@ -40,7 +40,7 @@ class UserServiceTest : ServiceTest() {
         listOf(
             GAME_MOVE, GAME_STATUS_EVENT, GAME,
             BOT_GAME_MOVE, BOT_GAME_STATUS_EVENT, BOT_GAME,
-            REFERENCE_GAME_SEARCH_QUERY,
+            REFERENCE_GAME_SEARCH_QUERY, CONTENT_SECTION_VOTE,
             USER_SESSION, PUZZLE_RESULT, USER, PUZZLE
         )
             .forEach { table ->

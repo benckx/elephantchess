@@ -1,0 +1,9 @@
+{
+  "name": "elephantchess-js-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "JavaScript unit tests for the elephantchess front-end move parsers.",
+  "scripts": {
+    "test": "node --test"
+  }
+}

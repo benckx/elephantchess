@@ -691,6 +691,22 @@ Under `webapp/src/main/resources/public/js` there's usually a sub-folder for eac
 Complex app like PvP is usually organized with a **page** which updates the GUI, a **controller** which connects to
 WebSockets and/or calls REST endpoints, sometimes a DTO file and/or a separate REST client file.
 
+### JavaScript tests
+
+The move parsers (`parser-common`, `parser-pgn`, `parser-uci`, `parser-iccs`, `parser-wxf`) are covered by JavaScript
+unit tests located under `webapp/src/test/js`. They rely only on Node's built-in test runner (no extra dependencies),
+loading the production parser scripts into a shared VM context (mirroring how the browser loads them as `<script>`
+tags). The fixtures under `webapp/src/test/js/parsers/fixtures` are real PGN / UCI / WXF games.
+
+Run them with Node (24+):
+
+```bash
+cd webapp/src/test/js
+node --test
+```
+
+The same command runs in the CI build.
+
 ## JavaScript Libraries
 
 Some widgets from the [https://elephantchess.io](https://elephantchess.io) front-end are available as JavaScript
