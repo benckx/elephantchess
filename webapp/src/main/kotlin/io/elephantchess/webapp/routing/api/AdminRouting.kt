@@ -78,6 +78,9 @@ private fun Route.adminFeedsRoutes() {
     get("/last-users-analysis") {
         requireAdminRole { adminFeedService.listLastUsersAnalysis() }
     }
+    get("/content-section-feedback") {
+        requireAdminRole { adminFeedService.listLatestFeedback() }
+    }
 }
 
 private fun Route.adminAnalyticsRoutes() {
