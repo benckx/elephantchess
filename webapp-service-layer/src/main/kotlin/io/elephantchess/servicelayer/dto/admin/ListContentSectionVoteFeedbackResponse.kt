@@ -13,6 +13,7 @@ data class ListContentSectionVoteFeedbackResponse(
         val sectionId: String,
         val upVoted: Boolean,
         val feedback: String,
+        val creationTime: Long,
         val updateTime: Long,
     )
 }

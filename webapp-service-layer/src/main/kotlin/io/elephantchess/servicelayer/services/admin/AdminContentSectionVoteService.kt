@@ -22,6 +22,7 @@ class AdminContentSectionVoteService(
                     sectionId = record.sectionId,
                     upVoted = record.upVoted,
                     feedback = record.feedback ?: "",
+                    creationTime = record.creationTime.toEpochMilliseconds(),
                     updateTime = record.updateTime.toEpochMilliseconds(),
                 )
             }

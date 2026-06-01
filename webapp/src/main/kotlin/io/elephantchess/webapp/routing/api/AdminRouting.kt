@@ -16,7 +16,6 @@ fun Route.adminConsoleRoutes() {
         adminFeedsRoutes()
         adminAnalyticsRoutes()
         adminChatRoutes()
-        adminContentSectionVoteRoutes()
         adminDatabaseSearchRoutes()
         adminPasswordRecoveryRoutes()
         adminUserSessionRoutes()
@@ -66,6 +65,7 @@ private fun Route.adminOverviewRoutes() {
 
 private fun Route.adminFeedsRoutes() {
     val adminFeedService by koin<AdminFeedService>()
+    val adminContentSectionVoteService by koin<AdminContentSectionVoteService>()
 
     get("/list-games") {
         requireAdminRole { adminFeedService.listLastGames() }
@@ -79,11 +79,6 @@ private fun Route.adminFeedsRoutes() {
     get("/last-users-analysis") {
         requireAdminRole { adminFeedService.listLastUsersAnalysis() }
     }
-}
-
-private fun Route.adminContentSectionVoteRoutes() {
-    val adminContentSectionVoteService by koin<AdminContentSectionVoteService>()
-
     get("/content-section-feedback") {
         requireAdminRole { adminContentSectionVoteService.listLatestFeedback() }
     }

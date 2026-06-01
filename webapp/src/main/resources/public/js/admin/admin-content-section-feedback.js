@@ -33,6 +33,7 @@ class AdminContentSectionFeedbackPage extends BasePage {
                 row.insertCell().innerText = entry.sectionId;
                 row.insertCell().innerText = entry.upVoted ? 'up' : 'down';
                 row.insertCell().innerText = entry.feedback;
+                row.insertCell().innerText = formatTimestampDefaultDateFormat(entry.creationTime);
                 row.insertCell().innerText = formatTimestampDefaultDateFormat(entry.updateTime);
             });
         });
