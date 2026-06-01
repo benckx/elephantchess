@@ -1,6 +1,4 @@
 # found: https://www.cs.cmu.edu/~biglou/resources/bad-words.txt
-# obviously not all of those words are offensive per se,
-# but it's better to avoid them in generated guest id
 anal
 analannie
 analsex
@@ -227,10 +225,7 @@ dego
 demon
 deposit
 desire
-destroy
 deth
-devil
-devilworshipper
 dick
 dickbrain
 dickforbrains
@@ -242,19 +237,12 @@ dickman
 dickwad
 dickweed
 diddle
-die
-died
-dies
 dike
 dildo
 dingleberry
 dink
 dipshit
 dipstick
-dirty
-disease
-diseases
-disturbed
 dive
 dix
 dixiedike
@@ -264,15 +252,12 @@ doggystyle
 dong
 doodoo
 doo-doo
-doom
-dope
 dragqueen
 dragqween
 dripdick
 drug
 drunk
 drunken
-dumb
 dumbass
 dumbbitch
 dumbfuck
@@ -288,13 +273,10 @@ ejaculated
 ejaculating
 ejaculation
 enema
-enemy
 erect
 erection
 ero
 escort
-ethiopian
-ethnic
 evl
 excrement
 execute
@@ -308,11 +290,6 @@ fag
 fagging
 faggot
 fagot
-failed
-failure
-fairies
-fairy
-faith
 fannyfucker
 fart
 farted
@@ -337,16 +314,12 @@ feltch
 feltcher
 feltching
 fetish
-fight
-filipina
 fingerfood
 fingerfuck
 fingerfucked
 fingerfucker
 fingerfuckers
 fingerfucking
-fire
-firing
 fister
 fistfuck
 fistfucked
@@ -372,12 +345,9 @@ forni
 fornicate
 foursome
 fourtwenty
-fraud
 freakfuck
 freakyfucker
 freefuck
-fu
-fubar
 fuc
 fucck
 fuck
@@ -459,7 +429,6 @@ goyim
 greaseball
 gringo
 groe
-gross
 grostulation
 gubba
 gummer
@@ -482,9 +451,6 @@ hebe
 heeb
 hell
 henhouse
-heroin
-herpes
-heterosexual
 hijack
 hijacker
 hijacking
@@ -558,8 +524,6 @@ japcrap
 jebus
 jeez
 jerkoff
-jesus
-jesuschrist
 jiga
 jigaboo
 jigg
@@ -599,7 +563,6 @@ kink
 kinky
 kissass
 kkk
-knife
 knockers
 kock
 kondum
@@ -646,8 +609,6 @@ liquor
 livesex
 loadedgun
 lolita
-looser
-loser
 lotion
 lovebone
 lovegoo
@@ -664,8 +625,6 @@ luckycammeltoe
 lugan
 lynch
 macaca
-mad
-mafia
 magicwand
 mams
 manhater
@@ -700,7 +659,6 @@ molester
 molestor
 moneyshot
 mooncricket
-mormon
 moron
 moslem
 mosshead
@@ -727,8 +685,6 @@ mufflikcer
 mulatto
 muncher
 munt
-murder
-murderer
 naked
 narcotic
 nasty
@@ -789,7 +745,6 @@ noonan
 nooner
 nude
 nudger
-nuke
 nutfucker
 nymph
 ontherag
@@ -885,9 +840,6 @@ pornking
 porno
 pornography
 pornprincess
-pot
-poverty
-premature
 pric
 prick
 prickhead
@@ -1147,7 +1099,6 @@ swalow
 swastika
 sweetness
 syphilis
-taboo
 taff
 tampon
 tang
@@ -1247,7 +1198,6 @@ wetspot
 whacker
 whash
 whigger
-whiskey
 whiskeydick
 whiskydick
 whit
