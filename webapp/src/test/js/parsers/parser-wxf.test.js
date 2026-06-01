@@ -71,3 +71,15 @@ test('WxfParser resolves a short cannon / horse opening', () => {
     assert.equal(moves.length, 4);
     assert.deepEqual(toUciList(moves), ['h2e2', 'h9g7', 'h0g2', 'i9h9']);
 });
+
+test('WxfParser accepts sign-prefixed WXF moves', () => {
+    const original = readFixture('wxf/no_tag_game1.wxf');
+    assert.match(original, /\bR\+=1\b/);
+
+    const signPrefixed = original.replace('R+=1', '+R=1');
+
+    assert.deepEqual(
+        toUciList(new ctx.WxfParser(signPrefixed).parse()),
+        toUciList(new ctx.WxfParser(original).parse())
+    );
+});
