@@ -186,6 +186,14 @@ class PuzzleService(
         return PuzzleVoteResponse(resultId != null)
     }
 
+    /**
+     * Builds the Elo transfer function applied on a puzzle outcome.
+     *
+     * Replaying a puzzle played within [RE_PLAYABILITY_DAYS] yields a smaller Elo gain when SOLVED
+     * (K is scaled down linearly by recency), but the same Elo loss when FAILED/SKIPPED (full K).
+     *
+     * If [visibleCategories] is `true`, the solving gain is additionally halved.
+     */
     private fun eloTransfer(visibleCategories: Boolean): (PuzzleOutcome, Int, Int, Instant?) -> Pair<Int, Int> {
         return { outcome, userRating, puzzleRating, lastPlayed ->
             val newUserRating: Int
