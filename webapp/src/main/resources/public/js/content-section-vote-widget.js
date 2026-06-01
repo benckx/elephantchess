@@ -58,7 +58,7 @@ class ContentSectionVoteWidget {
         // there is no following h1, append after the last sibling.
         let lastSectionNode = section;
         let nextNode = section.nextElementSibling;
-        while (nextNode != null && nextNode.tagName.toLowerCase() !== 'h1') {
+        while (nextNode != null && nextNode.tagName.toLowerCase() !== 'h1' && nextNode.tagName.toLowerCase() !== 'br') {
             lastSectionNode = nextNode;
             nextNode = nextNode.nextElementSibling;
         }
