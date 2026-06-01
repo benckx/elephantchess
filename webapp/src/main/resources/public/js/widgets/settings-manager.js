@@ -27,25 +27,6 @@ const FLIP_OPPONENT_PIECES_SETTING = 'setting.flip.opponent.pieces';
 const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
 
-/**
- * Legacy {@code CoordinatesStyle} cookie values (which combined the WXF orientation
- * and, for WXF, the numeral system used for file labels) mapped to the current
- * board-gui {@link FileNumbersStyle} values. These deprecated values are still read
- * for backward compatibility and rewritten to the clean value when detected.
- * The legacy {@code ALGEBRAIC} value is intentionally omitted: it already matches
- * {@link CoordinatesOrientation}.ALGEBRAIC and needs no rewriting. String literals
- * are used (rather than the board-gui enums) because this file is loaded before
- * board-gui.js, so the enums are not yet defined at module-load time.
- */
-const LEGACY_COORDINATES_STYLE_MIGRATION = Object.freeze({
-    WXF_ARABIC: 'ARABIC_BOTH',
-    WXF_CHINESE: 'CHINESE_BOTH',
-    WXF_CHINESE_RED_ONLY: 'CHINESE_RED_ONLY',
-    WXF_CHINESE_BLACK_ONLY: 'CHINESE_BLACK_ONLY',
-    WXF_CHINESE_LOWER_ONLY: 'CHINESE_LOWER_ONLY',
-    WXF_CHINESE_TOP_ONLY: 'CHINESE_TOP_ONLY',
-});
-
 const MoveFormatSetting = Object.freeze({
     WXF_DOT: 'WXF_DOT',
     WXF_EQUALS: 'WXF_EQUALS',
@@ -200,17 +181,10 @@ class SettingsManager {
      */
     get coordinatesStyle() {
         const cookieValue = getCookie(COORDINATES_STYLE_SETTING);
-        if (cookieValue !== null) {
-            const migratedValue = LEGACY_COORDINATES_STYLE_MIGRATION[cookieValue];
-            if (migratedValue !== undefined) {
-                // deprecated value detected: rewrite the clean board-gui value
-                this.coordinatesStyle = migratedValue;
-                return migratedValue;
-            }
-            if (cookieValue === CoordinatesOrientation.ALGEBRAIC
-                || Object.values(FileNumbersStyle).includes(cookieValue)) {
-                return cookieValue;
-            }
+        if (cookieValue !== null
+            && (cookieValue === CoordinatesOrientation.ALGEBRAIC
+                || Object.values(FileNumbersStyle).includes(cookieValue))) {
+            return cookieValue;
         }
         // backward-compat default: tie to the move format chosen by the user
         // (PGN/Algebraic users get algebraic letters; WXF users get the default WXF flavor)
