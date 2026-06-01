@@ -60,6 +60,7 @@ fun serviceLayerModule(
 private fun daoModule() = module {
     singleAuto<AnalysisDaoService>()
     singleAuto<ChatMessageDaoService>()
+    singleAuto<ContentSectionVoteDaoService>()
     singleAuto<DatabaseAdminDaoService>()
     singleAuto<DiscordGameNotificationDaoService>()
     singleAuto<EmailVerificationDaoService>()
@@ -174,6 +175,7 @@ private fun applicativeModule(eagerAllowed: Boolean) = module {
     singleAuto<EngineCacheService>()
 
     // users
+    singleAuto<ContentSectionFeedbackService>()
     singleAuto<UserService>(eager = eagerAllowed)
     singleAuto<UserProfileAnalyticsService>()
     singleAuto<GlobalAnalyticsService>(eager = eagerAllowed)

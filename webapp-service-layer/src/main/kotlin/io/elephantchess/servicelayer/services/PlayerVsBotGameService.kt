@@ -123,12 +123,17 @@ class PlayerVsBotGameService(
         }
 
         if (userId.userType == UserType.GUEST && request.depth > 6) {
-            throw BadRequestException("You must be logged in to play with depth greater than 6")
+            throw BadRequestException("You must be authenticated in to play with depth greater than 6")
+        }
+
+        // Manchu variant requires Engine only opening mode
+        if (request.variant == Variant.MANCHU && request.openingMode != OpeningMode.ENGINE_ONLY) {
+            throw BadRequestException("Variants require engine-only opening mode")
         }
 
         // Manchu variant requires Fairy Stockfish
         if (request.variant == Variant.MANCHU && request.engine == Engine.PIKAFISH) {
-            throw BadRequestException("Pikafish does not support the Manchu variant. Please use Fairy Stockfish.")
+            throw BadRequestException("Pikafish does not support the Manchu variant. Please use Fairy Stockfish")
         }
 
         request.startFen?.let { fen ->
@@ -371,11 +376,13 @@ class PlayerVsBotGameService(
             return playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
         }
 
-        val canUseOpeningRepository =
-            usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
-                && openingMode != OpeningMode.ENGINE_ONLY
+        val useOpeningRepository =
+            usesDefaultStartFen &&
+                    position <= REPO_MAX_POSITION_INDEX &&
+                    variant == Variant.XIANGQI &&
+                    openingMode != OpeningMode.ENGINE_ONLY
 
-        return if (canUseOpeningRepository) {
+        return if (useOpeningRepository) {
             playFromOpeningRepository(gameId, userMove, openingMode) ?: playWithEngine()
         } else {
             playWithEngine()
