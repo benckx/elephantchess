@@ -142,10 +142,13 @@ class DigitalOceanSpacesClient(
         val responseText = response.bodyAsText()
 
         // Parse folder names from XML response
-        val folderPattern = """<CommonPrefixes><Prefix>(\d{4}-\d{2}-\d{2})/</Prefix></CommonPrefixes>""".toRegex()
+        // Supports both date-only folders (yyyy-MM-dd) and date-time folders (yyyy-MM-dd-HH-mm).
+        val folderPattern =
+            """<CommonPrefixes><Prefix>(\d{4}-\d{2}-\d{2}(?:-\d{2}-\d{2})?)/</Prefix></CommonPrefixes>""".toRegex()
         val folders = folderPattern.findAll(responseText)
             .map { it.groupValues[1] }
             .toList()
+
 
         // Return the most recent (lexicographically last since dates are ISO format)
         return folders.maxOrNull()

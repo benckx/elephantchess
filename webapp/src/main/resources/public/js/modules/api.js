@@ -79,13 +79,17 @@ function isUsingDevPort() {
  * @returns {null|string}
  */
 function getToken() {
+    let token;
     if (isUserAuthenticated()) {
-        return getCookie(USER_TOKEN_FIELD);
+        token = getCookie(USER_TOKEN_FIELD);
     } else if (isUserIdentifiedAsGuest()) {
-        return getCookie(GUEST_USER_TOKEN_FIELD);
+        token = getCookie(GUEST_USER_TOKEN_FIELD);
     } else {
         return null;
     }
+    // Never return a blank token: an empty value would be sent as `token=` and rejected by the
+    // server ("token was expected to have 3 parts, but got 0"), causing an endless reconnect loop.
+    return token != null && token.trim().length > 0 ? token : null;
 }
 
 /**
