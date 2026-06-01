@@ -28,25 +28,22 @@ const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
 
 /**
- * User-facing style of the board coordinate labels.
- * Combines the WXF orientation and (for WXF) the numeral system used for file labels.
+ * Legacy {@code CoordinatesStyle} cookie values (which combined the WXF orientation
+ * and, for WXF, the numeral system used for file labels) mapped to the current
+ * board-gui {@link FileNumbersStyle} values. These deprecated values are still read
+ * for backward compatibility and rewritten to the clean value when detected.
+ * The legacy {@code ALGEBRAIC} value is intentionally omitted: it already matches
+ * {@link CoordinatesOrientation}.ALGEBRAIC and needs no rewriting. String literals
+ * are used (rather than the board-gui enums) because this file is loaded before
+ * board-gui.js, so the enums are not yet defined at module-load time.
  */
-const CoordinatesStyle = Object.freeze({
-    /** WXF: Arabic numerals (1..9) on both sides. */
-    WXF_ARABIC: 'WXF_ARABIC',
-    /** WXF: Chinese numerals (一..九) on both sides. */
-    WXF_CHINESE: 'WXF_CHINESE',
-    /** WXF: Chinese numerals on red's side; Arabic on black's side. */
-    WXF_CHINESE_RED_ONLY: 'WXF_CHINESE_RED_ONLY',
-    /** WXF: Chinese numerals on black's side; Arabic on red's side. */
-    WXF_CHINESE_BLACK_ONLY: 'WXF_CHINESE_BLACK_ONLY',
-    /** WXF: Chinese numerals on the bottom side of the screen only. */
-    WXF_CHINESE_LOWER_ONLY: 'WXF_CHINESE_LOWER_ONLY',
-    /** WXF: Chinese numerals on the top side of the screen only. */
-    WXF_CHINESE_TOP_ONLY: 'WXF_CHINESE_TOP_ONLY',
-    /** Algebraic: letters a..i for files and 1..10 for ranks. */
-    ALGEBRAIC: 'ALGEBRAIC',
-    DEFAULT: 'WXF_CHINESE_RED_ONLY',
+const LEGACY_COORDINATES_STYLE_MIGRATION = Object.freeze({
+    WXF_ARABIC: 'ARABIC_BOTH',
+    WXF_CHINESE: 'CHINESE_BOTH',
+    WXF_CHINESE_RED_ONLY: 'CHINESE_RED_ONLY',
+    WXF_CHINESE_BLACK_ONLY: 'CHINESE_BLACK_ONLY',
+    WXF_CHINESE_LOWER_ONLY: 'CHINESE_LOWER_ONLY',
+    WXF_CHINESE_TOP_ONLY: 'CHINESE_TOP_ONLY',
 });
 
 const MoveFormatSetting = Object.freeze({
@@ -199,18 +196,27 @@ class SettingsManager {
     }
 
     /**
-     * @return {string} one of {@link CoordinatesStyle}
+     * @return {string} one of {@link FileNumbersStyle} or {@link CoordinatesOrientation}.ALGEBRAIC
      */
     get coordinatesStyle() {
         const cookieValue = getCookie(COORDINATES_STYLE_SETTING);
-        if (cookieValue !== null && Object.values(CoordinatesStyle).includes(cookieValue)) {
-            return cookieValue;
+        if (cookieValue !== null) {
+            const migratedValue = LEGACY_COORDINATES_STYLE_MIGRATION[cookieValue];
+            if (migratedValue !== undefined) {
+                // deprecated value detected: rewrite the clean board-gui value
+                this.coordinatesStyle = migratedValue;
+                return migratedValue;
+            }
+            if (cookieValue === CoordinatesOrientation.ALGEBRAIC
+                || Object.values(FileNumbersStyle).includes(cookieValue)) {
+                return cookieValue;
+            }
         }
         // backward-compat default: tie to the move format chosen by the user
         // (PGN/Algebraic users get algebraic letters; WXF users get the default WXF flavor)
         const isWxfMoveFormat = this.moveFormat === MoveFormatSetting.WXF_DOT
             || this.moveFormat === MoveFormatSetting.WXF_EQUALS;
-        return isWxfMoveFormat ? CoordinatesStyle.DEFAULT : CoordinatesStyle.ALGEBRAIC;
+        return isWxfMoveFormat ? FileNumbersStyle.DEFAULT : CoordinatesOrientation.ALGEBRAIC;
     }
 
     /**
@@ -245,7 +251,7 @@ class SettingsManager {
         if (!this.isShowCoordinatesEnabled) {
             return null;
         }
-        return this.coordinatesStyle === CoordinatesStyle.ALGEBRAIC
+        return this.coordinatesStyle === CoordinatesOrientation.ALGEBRAIC
             ? CoordinatesOrientation.ALGEBRAIC
             : CoordinatesOrientation.WXF;
     }
@@ -257,22 +263,10 @@ class SettingsManager {
      * @return {string}
      */
     getFileNumbersStyle() {
-        switch (this.coordinatesStyle) {
-            case CoordinatesStyle.WXF_ARABIC:
-                return FileNumbersStyle.ARABIC_BOTH;
-            case CoordinatesStyle.WXF_CHINESE:
-                return FileNumbersStyle.CHINESE_BOTH;
-            case CoordinatesStyle.WXF_CHINESE_RED_ONLY:
-                return FileNumbersStyle.CHINESE_RED_ONLY;
-            case CoordinatesStyle.WXF_CHINESE_BLACK_ONLY:
-                return FileNumbersStyle.CHINESE_BLACK_ONLY;
-            case CoordinatesStyle.WXF_CHINESE_LOWER_ONLY:
-                return FileNumbersStyle.CHINESE_LOWER_ONLY;
-            case CoordinatesStyle.WXF_CHINESE_TOP_ONLY:
-                return FileNumbersStyle.CHINESE_TOP_ONLY;
-            default:
-                return FileNumbersStyle.DEFAULT;
-        }
+        const style = this.coordinatesStyle;
+        return Object.values(FileNumbersStyle).includes(style)
+            ? style
+            : FileNumbersStyle.DEFAULT;
     }
 
 }
@@ -415,13 +409,7 @@ class SettingsGui {
 
         // move format
         const isWxfMoveFormat = (mf) => mf === MoveFormatSetting.WXF_DOT || mf === MoveFormatSetting.WXF_EQUALS;
-        const isWxfCoordinatesStyle = (cs) =>
-            cs === CoordinatesStyle.WXF_ARABIC
-            || cs === CoordinatesStyle.WXF_CHINESE
-            || cs === CoordinatesStyle.WXF_CHINESE_RED_ONLY
-            || cs === CoordinatesStyle.WXF_CHINESE_BLACK_ONLY
-            || cs === CoordinatesStyle.WXF_CHINESE_LOWER_ONLY
-            || cs === CoordinatesStyle.WXF_CHINESE_TOP_ONLY;
+        const isWxfCoordinatesStyle = (cs) => cs !== CoordinatesOrientation.ALGEBRAIC;
         const updateCoordinatesMoveFormatMismatchWarning = () => {
             const mf = this.#settingsManager.moveFormat;
             const cs = this.#settingsManager.coordinatesStyle;
@@ -567,13 +555,13 @@ class SettingsGui {
 
         // coordinates style (WXF flavors + Algebraic letters)
         const coordinatesStyleRadios = {
-            [CoordinatesStyle.WXF_ARABIC]: this.#coordinatesStyleWxfArabicRadio,
-            [CoordinatesStyle.WXF_CHINESE]: this.#coordinatesStyleWxfChineseRadio,
-            [CoordinatesStyle.WXF_CHINESE_RED_ONLY]: this.#coordinatesStyleWxfChineseRedOnlyRadio,
-            [CoordinatesStyle.WXF_CHINESE_BLACK_ONLY]: this.#coordinatesStyleWxfChineseBlackOnlyRadio,
-            [CoordinatesStyle.WXF_CHINESE_LOWER_ONLY]: this.#coordinatesStyleWxfChineseLowerOnlyRadio,
-            [CoordinatesStyle.WXF_CHINESE_TOP_ONLY]: this.#coordinatesStyleWxfChineseTopOnlyRadio,
-            [CoordinatesStyle.ALGEBRAIC]: this.#coordinatesStyleAlgebraicRadio,
+            [FileNumbersStyle.ARABIC_BOTH]: this.#coordinatesStyleWxfArabicRadio,
+            [FileNumbersStyle.CHINESE_BOTH]: this.#coordinatesStyleWxfChineseRadio,
+            [FileNumbersStyle.CHINESE_RED_ONLY]: this.#coordinatesStyleWxfChineseRedOnlyRadio,
+            [FileNumbersStyle.CHINESE_BLACK_ONLY]: this.#coordinatesStyleWxfChineseBlackOnlyRadio,
+            [FileNumbersStyle.CHINESE_LOWER_ONLY]: this.#coordinatesStyleWxfChineseLowerOnlyRadio,
+            [FileNumbersStyle.CHINESE_TOP_ONLY]: this.#coordinatesStyleWxfChineseTopOnlyRadio,
+            [CoordinatesOrientation.ALGEBRAIC]: this.#coordinatesStyleAlgebraicRadio,
         };
         const applyCoordinatesStyle = (style) => {
             this.#settingsManager.coordinatesStyle = style;
@@ -587,7 +575,7 @@ class SettingsGui {
         };
         const currentCoordinatesStyle = coordinatesStyleRadios[this.#settingsManager.coordinatesStyle]
             ? this.#settingsManager.coordinatesStyle
-            : CoordinatesStyle.DEFAULT;
+            : FileNumbersStyle.DEFAULT;
         coordinatesStyleRadios[currentCoordinatesStyle].checked = true;
         Object.entries(coordinatesStyleRadios).forEach(([style, radio]) => {
             radio.onchange = () => {
