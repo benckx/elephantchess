@@ -108,7 +108,6 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
-
     suspend fun listAllEvents(): List<ReferenceGameEventRecord> {
         return dslContext
             .select()
@@ -160,6 +159,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             dslContext
                 .select(
                     PUZZLE.ID,
+                    PUZZLE.RATING,
                     REFERENCE_GAME.ID,
                     REFERENCE_GAME.FINAL_FEN,
                     REFERENCE_GAME.ANALYSIS_STATUS,
