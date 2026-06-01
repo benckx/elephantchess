@@ -45,3 +45,21 @@
 #content-section-feedback-textarea {
     height: 170px;
 }
+
+@media (max-width: 1000px) {
+    .content-section-vote-button {
+        height: 30px;
+    }
+
+    .content-section-vote-panel {
+        gap: 12px;
+    }
+
+    #content-section-feedback-modal {
+        width: 100%
+    }
+
+    #content-section-feedback-character-counter {
+        font-size: 26px;
+    }
+}
