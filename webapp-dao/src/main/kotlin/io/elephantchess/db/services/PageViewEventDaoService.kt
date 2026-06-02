@@ -1,6 +1,7 @@
 package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
+import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.daos.PageViewEventDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PageViewEvent
 import io.elephantchess.db.model.analytics.DailyValueRecord
@@ -101,6 +102,59 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             }
     }
 
+    suspend fun fetchMonthlyOwnUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
+        return fetchMonthlyUserProfilePageViewsByCondition(
+            excludedUserIds = excludedUserIds
+        ) { USER.ID.isNotNull.and(ownProfileViewCondition()) }
+    }
+
+    suspend fun fetchMonthlyOtherUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
+        return fetchMonthlyUserProfilePageViewsByCondition(
+            excludedUserIds = excludedUserIds
+        ) {
+            USER.ID.isNotNull.and(ownProfileViewCondition().not())
+        }
+    }
+
+    private suspend fun fetchMonthlyUserProfilePageViewsByCondition(
+        excludedUserIds: List<String>,
+        additionalCondition: () -> Condition
+    ): List<MonthlyPageViewRecord> {
+        val yearMonth = PAGE_VIEW_EVENT.EVENT_TIME.yearMonth("year_month")
+        return dslContext
+            .select(
+                yearMonth,
+                uniqueDailyPageViewsField()
+            )
+            .from(PAGE_VIEW_EVENT)
+            .leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
+            .where(PAGE_VIEW_EVENT.EVENT_PATH.like("/@/%"))
+            .and(PAGE_VIEW_EVENT.EVENT_PATH.notLike("/@/%/%"))
+            .and(PAGE_VIEW_EVENT.EVENT_TIME.greaterOrEqual(startDate))
+            .and(excludedUsersCondition(excludedUserIds))
+            .and(additionalCondition())
+            .groupBy(yearMonth)
+            .orderBy(yearMonth.desc())
+            .awaitRecords()
+            .map { record ->
+                val yearMonthStr = record.getValue("year_month", String::class.java)
+                val yearMonth = YearMonth.parse(yearMonthStr)
+                MonthlyPageViewRecord(
+                    yearMonth = yearMonth,
+                    label = "/@/{username}",
+                    uniquePageViews = record.getValue("unique_page_views", Int::class.java)
+                )
+            }
+    }
+
+    private fun ownProfileViewCondition(): Condition {
+        val safeHandle = DSL.coalesce(USER.HANDLE, DSL.inline(""))
+        val ownPath = DSL.concat(DSL.inline("/@/"), safeHandle)
+        val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), safeHandle, DSL.inline("?%"))
+        return PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
+            .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
+    }
+
     suspend fun fetchHourlyPageViews(
         hours: Int,
         excludedUserIds: List<String>
@@ -168,8 +222,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
     }
 
     private companion object {
-
-        // data collection starts ends of October 2025
+        // data collection started at the end of October 2025
         val startDate: Instant =
             instantOfUtc(2025, 11, 1, 0, 0, 0)
 

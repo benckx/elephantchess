@@ -1,35 +1,73 @@
 package io.elephantchess.servicelayer.services
 
 import io.elephantchess.db.services.PuzzleDaoService
+import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.model.PuzzleOutcome
+import io.elephantchess.model.TimeControlCategory
+import io.elephantchess.model.TimeControlCategory.BLITZ
+import io.elephantchess.model.TimeControlCategory.BULLET
+import io.elephantchess.model.TimeControlCategory.CLASSICAL
+import io.elephantchess.model.TimeControlCategory.CORRESPONDENCE
+import io.elephantchess.model.TimeControlCategory.RAPID
+import io.elephantchess.model.TimeControlCategory.SEVERAL_DAYS
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsNumbersResponse
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsRatingResponse
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsSummaryResponse
-import io.elephantchess.servicelayer.dto.user.TimeCategoryStatsDto
-import io.elephantchess.servicelayer.dto.user.TimeCategoryStatsResponse
+import io.elephantchess.servicelayer.dto.user.NumberOfOutcomes
+import io.elephantchess.servicelayer.dto.user.NumberOfGamesPerTimeCategory
+import io.elephantchess.servicelayer.dto.user.RatingsPerTimeCategory
+import io.elephantchess.servicelayer.dto.user.GameStatsResponse
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.UserService.Companion.PUZZLE_START_RATING
 import java.time.LocalDate
 
 class UserProfileAnalyticsService(
     private val userDaoService: UserDaoService,
+    private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
     private val puzzleDaoService: PuzzleDaoService
 ) {
 
-    suspend fun fetchGameRatings(userId: String): TimeCategoryStatsResponse {
+    suspend fun fetchGameRatings(userId: String): GameStatsResponse {
         val userRecord = userDaoService.fetchAllRatings(userId)
             ?: throw NotFoundException("User $userId could not be found")
 
-        return TimeCategoryStatsResponse(
-            TimeCategoryStatsDto(
+        return GameStatsResponse(
+            ratings = RatingsPerTimeCategory(
                 bullet = userRecord.gameRatingBullet,
                 blitz = userRecord.gameRatingBlitz,
                 rapid = userRecord.gameRatingRapid,
                 classical = userRecord.gameRatingClassical,
                 severalDays = userRecord.gameRatingSeveralDays,
                 correspondence = userRecord.gameRatingCorrespondence
+            ),
+            pvp = fetchPlayerVsPlayerStatsByCategory(userId)
+        )
+    }
+
+    private suspend fun fetchPlayerVsPlayerStatsByCategory(userId: String): NumberOfGamesPerTimeCategory {
+        val pvpStatsByCategory = playerVsPlayerGameDaoService
+            .fetchPlayerVsPlayerOutcomeStatsPerCategory(userId)
+            .associateBy { it.category }
+
+        val noGamesStats = NumberOfOutcomes(wins = 0, losses = 0, draws = 0)
+
+        fun pvpStatsFor(category: TimeControlCategory): NumberOfOutcomes {
+            val stats = pvpStatsByCategory[category] ?: return noGamesStats
+            return NumberOfOutcomes(
+                wins = stats.wins,
+                losses = stats.losses,
+                draws = stats.draws
             )
+        }
+
+        return NumberOfGamesPerTimeCategory(
+            bullet = pvpStatsFor(BULLET),
+            blitz = pvpStatsFor(BLITZ),
+            rapid = pvpStatsFor(RAPID),
+            classical = pvpStatsFor(CLASSICAL),
+            severalDays = pvpStatsFor(SEVERAL_DAYS),
+            correspondence = pvpStatsFor(CORRESPONDENCE),
         )
     }
 

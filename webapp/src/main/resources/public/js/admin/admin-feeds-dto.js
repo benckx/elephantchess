@@ -175,6 +175,8 @@ class GameAnalyticsDto {
                 return 'lobby';
             case 'MATCHED':
                 return 'matched';
+            case 'DYNAMIC_MATCHED':
+                return 'dyn. matched';
             case 'LINK':
                 return 'link';
             default:

@@ -382,12 +382,8 @@ class PlayerVsBotPage extends BasePage {
 
     #renderAnalysisSummaryReportIfAvailable() {
         if (isStatusFinished(this.#controller.gameStatus())) {
-            renderAnalysisSummaryReportGeneric(
-                new GameId(GameType.PVB, this.#controller.gameId),
-                this.#moveTreeWidget.getMainBranchNodes(),
-                this.#controller.startFen(),
-                this.#moveTreeWidget
-            );
+            const gameId = new GameId(GameType.PVB, this.#controller.gameId);
+            fetchDataAndrenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
         }
     }
 
