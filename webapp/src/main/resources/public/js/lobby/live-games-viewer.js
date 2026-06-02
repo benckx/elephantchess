@@ -40,8 +40,6 @@ class LiveGamesViewer {
      */
     #wsSession;
 
-    #totalRefresh = 0;
-
     /**
      * @param settingsGui {SettingsGui}
      */
@@ -54,7 +52,7 @@ class LiveGamesViewer {
         // move updates are pushed in real time over the WebSocket)
         setInterval(() => {
             this.#completeRefreshIfNeeded();
-        }, 1_000);
+        }, 60_000);
     }
 
     #initThumbs() {
@@ -145,22 +143,18 @@ class LiveGamesViewer {
     }
 
     /**
-     * Reload the latest games (and re-subscribe) every minute, unless we're
-     * already watching mostly live games, to avoid interrupting their animations.
+     * Reload the latest games (and re-subscribe), unless we're already watching
+     * mostly live games, to avoid interrupting their animations.
      */
     #completeRefreshIfNeeded() {
-        if (this.#totalRefresh % 60 === 0) {
-            const thumbs = this.#allThumbs().filter((t) => t.metadata != null);
-            const liveGames = thumbs.filter((t) => t.metadata.isLive()).length;
-            const mustSkipCompleteRefresh = thumbs.length > 0 && liveGames / thumbs.length > 0.5;
+        const thumbs = this.#allThumbs().filter((t) => t.metadata != null);
+        const liveGames = thumbs.filter((t) => t.metadata.isLive()).length;
+        const mustSkipCompleteRefresh = thumbs.length > 0 && liveGames / thumbs.length > 0.5;
 
-            if (!mustSkipCompleteRefresh) {
-                this.#loadLatestPvpGames();
-                this.#loadLatestPvbGames();
-            }
+        if (!mustSkipCompleteRefresh) {
+            this.#loadLatestPvpGames();
+            this.#loadLatestPvbGames();
         }
-
-        this.#totalRefresh++;
     }
 
     /**
