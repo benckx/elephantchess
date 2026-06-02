@@ -94,12 +94,15 @@ class OpeningRepositoryWidget {
                             // content
                             moveCell.innerText = moveLabel;
 
-                            let occurrencesCount = document.createElement('div');
-                            occurrencesCount.innerText = formatNumber(entry.occurrences);
+                            let occurrencesWrapper = document.createElement('div');
+                            occurrencesWrapper.className = 'occurrences-wrapper';
                             let occurrencePercentage = document.createElement('div');
                             occurrencePercentage.className = 'outcome-percentages';
                             occurrencePercentage.innerText = `${(entry.occurrences / totalOccurrences * 100).toFixed(0)}%`;
-                            occurrencesCell.append(occurrencesCount, occurrencePercentage);
+                            let occurrencesCount = document.createElement('div');
+                            occurrencesCount.innerText = formatNumber(entry.occurrences);
+                            occurrencesWrapper.append(occurrencePercentage, occurrencesCount);
+                            occurrencesCell.append(occurrencesWrapper);
 
                             let indicator = new GameOutcomeIndicator(entry.redWinsRate, entry.blackWinsRate);
                             outcomeCell.innerHTML = '';

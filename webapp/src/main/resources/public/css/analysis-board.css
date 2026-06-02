@@ -123,11 +123,17 @@
     margin-bottom: 15px;
 }
 
+.occurrences-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
 .outcome-percentages {
     font-size: 11px;
-    text-align: center;
     color: #555;
-    margin-top: 2px;
 }
 
 #opening-repository-container-loading-mask {
@@ -363,7 +369,6 @@ input[type='text']#fen-export-input {
 
     .outcome-percentages {
         font-size: 20px;
-        margin-top: 4px;
     }
 
     /* engine box */
