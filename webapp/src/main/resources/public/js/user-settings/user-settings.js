@@ -353,24 +353,10 @@ class UserSettingsPage extends BasePage {
             const formData = new FormData();
             formData.append('file', blob, `profile-picture.${this.#profilePictureExtension}`);
 
-            const requestHeaders = {'Accept': 'application/json'};
-            const token = getToken();
-            if (token != null) {
-                requestHeaders.Authorization = `Bearer ${token}`;
-            }
-
-            const handler = new SimpleResponseHandler(json => {
+            postAndHandle(PROFILE_PICTURE_UPLOAD_URL, formData, json => {
                 this.#setProfilePicturePreview(json.profilePictureUrl);
                 UI.pushInfoNotification('Profile picture successfully updated!', UI_NOTIFICATION_TIMEOUT);
             });
-
-            fetch(PROFILE_PICTURE_UPLOAD_URL, {
-                method: 'POST',
-                headers: requestHeaders,
-                body: formData
-            })
-                .then(response => handler.handle(response))
-                .catch(error => handler.handleCatchError(error));
         }, this.#profilePictureMimeType, PROFILE_PICTURE_JPEG_QUALITY);
     }
 
