@@ -134,6 +134,8 @@
 .outcome-percentages {
     font-size: 11px;
     color: #555;
+    width: 30px;
+    text-align: right;
 }
 
 #opening-repository-container-loading-mask {
@@ -369,6 +371,7 @@ input[type='text']#fen-export-input {
 
     .outcome-percentages {
         font-size: 20px;
+        width: 56px;
     }
 
     /* engine box */
