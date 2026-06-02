@@ -133,10 +133,11 @@ class LiveGamesViewer {
             let totalGames = 0;
             let liveGames = 0;
 
-            const moveIndexes = {};
-            thumbs
-                .filter((t) => t.currentMoveIndex != null)
-                .forEach((t) => { moveIndexes[t.metadata.gameId.id] = t.currentMoveIndex; });
+            const moveIndexes = Object.fromEntries(
+                thumbs
+                    .filter((t) => t.currentMoveIndex != null)
+                    .map((t) => [t.metadata.gameId.id, t.currentMoveIndex])
+            );
 
             this.#client.fetchLatestGamesUpdate(gameIdsToUpdate, moveIndexes, (updates) => {
                 updates.forEach((update) => {
