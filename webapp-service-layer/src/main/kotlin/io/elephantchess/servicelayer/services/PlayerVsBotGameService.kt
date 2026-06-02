@@ -126,6 +126,20 @@ class PlayerVsBotGameService(
             throw BadRequestException("You must be authenticated in to play with depth greater than 6")
         }
 
+        request.timeControlBase?.let { base ->
+            if (base <= 0) {
+                throw BadRequestException("Time control base must be positive")
+            }
+        }
+        request.timeControlIncrement?.let { increment ->
+            if (increment < 0) {
+                throw BadRequestException("Time control increment must be non-negative")
+            }
+            if (request.timeControlBase == null) {
+                throw BadRequestException("Time control increment requires a base time")
+            }
+        }
+
         // Manchu variant requires Engine only opening mode
         if (request.variant == Variant.MANCHU && request.openingMode != OpeningMode.ENGINE_ONLY) {
             throw BadRequestException("Variants require engine-only opening mode")
