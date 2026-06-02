@@ -244,6 +244,9 @@ class BoardGui {
 
     #isSafari = false;
 
+    /** @type {function():void|null} - cancels any in-flight animation */
+    #cancelAnimation = null;
+
     /** @type {Position|null} - source square of an in-progress touch drag */
     #touchDragFromPosition = null;
 
@@ -343,6 +346,13 @@ class BoardGui {
      * @param targetFen {string}
      */
     #drawPositionAnimated(targetFen) {
+        // Cancel any in-flight animation: commit its target immediately so the
+        // new animation can diff cleanly from a fully-drawn state.
+        if (this.#cancelAnimation) {
+            this.#cancelAnimation();
+            this.#cancelAnimation = null;
+        }
+
         this.#hideAllPiecePlaceHolders();
         this.#hideHighlightedLastMove();
 
@@ -352,13 +362,29 @@ class BoardGui {
         targetBoard.loadFen(targetFen);
         const targetPieces = targetBoard.listPiecePositions();
 
-        this.#animatePiecesTo(targetPieces, 200, () => {
+        let animationCompleted = false;
+        const cancelFn = this.#animatePiecesTo(targetPieces, 200, () => {
             // commit the new board state in the model
+            animationCompleted = true;
+            this.#cancelAnimation = null;
             this.#board.loadFen(targetFen);
             this.updateHighlightedChecks();
             this.#resetDraggableCursors();
             this.#afterDrawPositionsListeners.forEach(listener => listener());
         });
+
+        // Wrap cancelFn so that interrupting the animation also commits the
+        // target position synchronously, leaving the board in a clean state
+        // for the next animation to diff against.
+        // `animationCompleted` guards against the synchronous no-op bail-out
+        // path in #animatePiecesTo where onDone fires before this wrapper is
+        // assigned.
+        this.#cancelAnimation = () => {
+            if (!animationCompleted) {
+                cancelFn();
+                this.#drawPositionNoAnimation(targetFen);
+            }
+        };
     }
 
     outputFen() {
@@ -543,10 +569,10 @@ class BoardGui {
         const toRemove = currentBoardMisplacements.filter((_, i) => !usedCurrent.has(i));
         const toAdd = targetBoardMisplacements.filter((_, j) => !usedTarget.has(j));
 
-        // nothing to animate: bail out early
+        // nothing to animate: bail out early; return a no-op cancel function
         if (animatedMoves.length === 0 && toRemove.length === 0 && toAdd.length === 0) {
             onDone();
-            return;
+            return () => {};
         }
 
         const transitionStr = `transform ${durationMs}ms ease, opacity ${durationMs}ms ease`;
@@ -610,7 +636,7 @@ class BoardGui {
             }
         });
 
-        setTimeout(() => {
+        const timerId = setTimeout(() => {
             // drop transient animation images
             cleanups.forEach(c => c());
 
@@ -630,6 +656,12 @@ class BoardGui {
             onDone();
             this.#forceSafariLayoutRefresh();
         }, durationMs + 20);
+
+        return () => {
+            clearTimeout(timerId);
+            cleanups.forEach(c => c());
+            addedImages.forEach(img => img.remove());
+        };
     }
 
     /**
