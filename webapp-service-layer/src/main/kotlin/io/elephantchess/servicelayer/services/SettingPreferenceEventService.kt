@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.db.dao.codegen.tables.pojos.SettingPreferenceEvent
 import io.elephantchess.db.services.SettingPreferenceEventDaoService
 import io.elephantchess.db.utils.generateId
+import io.elephantchess.model.UserType
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.random.Random.Default.nextDouble
 
@@ -17,13 +18,14 @@ class SettingPreferenceEventService(
     private val logger: KLogger,
 ) {
 
-    suspend fun sampleSettingPreferences(cookies: Map<String, String?>) {
+    suspend fun sampleSettingPreferences(userType: UserType, cookies: Map<String, String?>) {
         if (nextDouble() > SAMPLE_RATE) {
             return
         }
 
         val record = SettingPreferenceEvent()
         record.eventId = generateId()
+        record.userType = userType.name
         record.pieceStyle = cookies[PIECE_STYLE_SETTING]
         record.showCoordinates = cookies[SHOW_COORDINATES_SETTING]
         record.moveFormat = cookies[MOVE_FORMAT_SETTING]
