@@ -60,6 +60,7 @@ fun serviceLayerModule(
 private fun daoModule() = module {
     singleAuto<AnalysisDaoService>()
     singleAuto<ChatMessageDaoService>()
+    singleAuto<ContentSectionVoteDaoService>()
     singleAuto<DatabaseAdminDaoService>()
     singleAuto<DiscordGameNotificationDaoService>()
     singleAuto<EmailVerificationDaoService>()
@@ -79,6 +80,7 @@ private fun daoModule() = module {
     singleAuto<ReferenceEventDaoService>()
     singleAuto<ReferenceGameDaoService>()
     singleAuto<ReferencePlayerDaoService>()
+    singleAuto<SettingPreferenceEventDaoService>()
     singleAuto<SevenKingdomsGameDaoService>()
     singleAuto<ThrownExceptionDaoService>()
     singleAuto<UpcomingEventDaoService>()
@@ -125,6 +127,7 @@ private fun technicalModule(eagerAllowed: Boolean) = module {
     // others
     singleAuto<BatchesScheduler>(eager = eagerAllowed)
     singleAuto<PageViewEventService>()
+    singleAuto<SettingPreferenceEventService>()
     singleAuto<PodService>(eager = eagerAllowed)
     singleAuto<TokenManager>(eager = eagerAllowed)
     singleAuto<DiscordService>()
@@ -174,6 +177,7 @@ private fun applicativeModule(eagerAllowed: Boolean) = module {
     singleAuto<EngineCacheService>()
 
     // users
+    singleAuto<ContentSectionFeedbackService>()
     singleAuto<UserService>(eager = eagerAllowed)
     singleAuto<UserProfilePictureService>()
     singleAuto<UserProfileAnalyticsService>()

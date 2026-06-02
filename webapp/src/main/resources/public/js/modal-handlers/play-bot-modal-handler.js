@@ -29,14 +29,21 @@ class PlayBotModalHandler extends ModalHandler {
 
     #exclusionGroups = [BOT_VARIANT_OPTION_GROUP, BOT_COLOR_OPTION_GROUP, BOT_ENGINE_OPTION_GROUP];
     #optionDivs;
-    #openingRadios = document.getElementsByName('play-bot-opening');
-    #startFenStandardRadio = document.getElementById('start-fen-standard');
-    #startFenCustomRadio = document.getElementById('start-fen-custom');
-    #startFenInput = document.getElementById('start-fen');
-    #playBotButton = document.getElementById('play-bot-button');
+
     #depthInput = document.getElementById('play-bot-depth');
     #depthValue = document.getElementById('play-bot-depth-value');
     #depthMaxValue = document.getElementById('play-bot-depth-max-value');
+
+    #openingRadios = document.getElementsByName('play-bot-opening');
+    #openingRadioOptions = getElementsByClassNameArray('play-bot-opening-radio-option');
+    #openingByFrequencyRadio = document.getElementById('opening-by-frequency');
+    #openingEngineOnlyRadio = document.getElementById('opening-engine-only');
+
+    #startFenStandardRadio = document.getElementById('start-fen-standard');
+    #startFenCustomRadio = document.getElementById('start-fen-custom');
+    #startFenInput = document.getElementById('start-fen');
+
+    #playBotButton = document.getElementById('play-bot-button');
 
     constructor() {
         super();
@@ -56,6 +63,7 @@ class PlayBotModalHandler extends ModalHandler {
 
                 if (item.classList.contains(BOT_VARIANT_OPTION_GROUP)) {
                     this.#updateEngineAvailabilityFromVariant();
+                    this.#updateOpeningModeAvailabilityFromVariant();
                     if (this.#startFenStandardRadio.checked) {
                         this.#setStartFenFromVariant();
                     }
@@ -83,6 +91,7 @@ class PlayBotModalHandler extends ModalHandler {
             const isManchu = piecePart.includes('M');
             this.#setSelectedVariant(isManchu ? Variant.MANCHU : Variant.XIANGQI);
             this.#updateEngineAvailabilityFromVariant();
+            this.#updateOpeningModeAvailabilityFromVariant();
         });
 
         makeRadioClickable();
@@ -108,6 +117,7 @@ class PlayBotModalHandler extends ModalHandler {
 
         this.#updateDepthInfo();
         this.#updateEngineAvailabilityFromVariant();
+        this.#updateOpeningModeAvailabilityFromVariant();
     }
 
     #handleCreateGameClickEvent() {
@@ -201,6 +211,28 @@ class PlayBotModalHandler extends ModalHandler {
             }
         } else {
             pikaButton.classList.remove(BOT_OPTION_BUTTON_DISABLED_CLASS);
+        }
+    }
+
+    #updateOpeningModeAvailabilityFromVariant() {
+        const isManchu = this.#getSelectedVariant() === Variant.MANCHU;
+
+        for (let i = 0; i < this.#openingRadios.length; i++) {
+            this.#openingRadios[i].disabled = isManchu;
+        }
+
+        this.#openingRadioOptions.forEach(option => {
+            if (isManchu) {
+                option.classList.add('standard-radio-disabled');
+            } else {
+                option.classList.remove('standard-radio-disabled');
+            }
+        });
+
+        if (isManchu) {
+            this.#openingEngineOnlyRadio.checked = true;
+        } else {
+            this.#openingByFrequencyRadio.checked = true;
         }
     }
 
