@@ -736,7 +736,7 @@ class GameDataService(
     suspend fun fetchLatestGamesUpdate(request: LatestGamesUpdateRequest): LatestGamesUpdateResponse {
         val idsByType = request
             .gameIds
-            .groupBy({ gameID -> gameID.type }, { gameId -> gameId.id })
+            .groupBy({ gameId -> gameId.type }, { gameId -> gameId.id })
 
         val pvpGames = pvpGameDaoService.fetchCurrentStatusAndFen(idsByType[PVP].orEmpty())
         val pvbGames = pvbGameDaoService.fetchCurrentStatusAndFen(idsByType[PVB].orEmpty())
