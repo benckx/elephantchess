@@ -123,7 +123,7 @@
     margin-bottom: 15px;
 }
 
-table#opening-repository-table td.occurrence-cell {
+td.occurrence-cell {
     width: 100px;
     text-align: center;
 }

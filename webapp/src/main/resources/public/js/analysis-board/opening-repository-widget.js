@@ -100,7 +100,7 @@ class OpeningRepositoryWidget {
                             occurrenceBarContainer.className = 'occurrence-bar-container';
                             let occurrenceBar = document.createElement('div');
                             occurrenceBar.className = 'occurrence-bar';
-                            occurrenceBar.style.width = `${(entry.occurrences / totalOccurrences * 100).toFixed(1)}%`;
+                            occurrenceBar.style.width = totalOccurrences > 0 ? `${(entry.occurrences / totalOccurrences * 100).toFixed(1)}%` : '0%';
                             occurrenceBarContainer.append(occurrenceBar);
                             occurrencesCell.append(occurrencesCount, occurrenceBarContainer);
 
