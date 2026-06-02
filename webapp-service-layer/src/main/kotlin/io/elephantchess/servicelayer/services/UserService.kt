@@ -251,7 +251,7 @@ class UserService(
         pageViewEventService.processPageViewEvent(verifiedToken, request.currentPage)
 
         // sample anonymous setting preferences (only a fraction of the time)
-        settingPreferenceEventService.sampleSettingPreferences(settingCookies)
+        settingPreferenceEventService.sampleSettingPreferences(verifiedToken.userId().userType, settingCookies)
 
         return PingResponse(renewedTokenString)
     }
