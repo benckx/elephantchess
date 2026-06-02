@@ -328,12 +328,12 @@ class UserService(
             throw NotFoundException("User $username could not be found")
         } else {
             UserProfile(
-                userId = record.value1(),
-                username = record.value2(),
-                country = normalizeCountry(record.value3()),
-                profileDescription = record.value4(),
-                puzzleRating = record.value5(),
-                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, record.value1(), record.value6())
+                userId = record.id,
+                username = record.handle,
+                country = normalizeCountry(record.country),
+                profileDescription = record.description,
+                puzzleRating = record.puzzleRating,
+                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, record.id, record.profilePictureExtension)
             )
         }
     }

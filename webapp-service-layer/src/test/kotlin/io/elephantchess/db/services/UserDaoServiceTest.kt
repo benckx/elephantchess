@@ -8,7 +8,10 @@ import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class UserDaoServiceTest : ServiceTest() {
@@ -44,6 +47,24 @@ class UserDaoServiceTest : ServiceTest() {
         val email = result.first.email
         userDaoService.unsubscribeFromAllEmailNotifications("  ${email.uppercase()} ")
         assertUnsubscribedToAll(email)
+    }
+
+    @Test
+    fun `fetchPublicProfile should map to user pojo`() = runTest {
+        val (request, userId) = signUpTestUser()
+
+        userDaoService.updateProfileSettings(userId, "about me", "be")
+        userDaoService.updateProfilePictureExtension(userId, "png")
+
+        val user = assertNotNull(userDaoService.fetchPublicProfile(request.username))
+
+        assertEquals(userId, user.id)
+        assertEquals(request.username, user.handle)
+        assertEquals("be", user.country)
+        assertEquals("about me", user.description)
+        assertEquals(800, user.puzzleRating)
+        assertEquals("png", user.profilePictureExtension)
+        assertNull(user.email)
     }
 
     private suspend fun assertUnsubscribedToAll(email: String) {

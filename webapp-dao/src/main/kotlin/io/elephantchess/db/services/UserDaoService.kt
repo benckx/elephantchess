@@ -16,7 +16,6 @@ import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
 import org.jooq.Record2
 import org.jooq.Record3
-import org.jooq.Record6
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -118,7 +117,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         }
     }
 
-    suspend fun fetchPublicProfile(username: String): Record6<String, String, String?, String?, Int, String?>? {
+    suspend fun fetchPublicProfile(username: String): User? {
         return dslContext
             .select(
                 USER.ID,
@@ -130,8 +129,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             )
             .from(USER)
             .where(USER.HANDLE.eqIgnoreCaseTrimmed(username))
-            .awaitRecords()
-            .firstOrNull()
+            .awaitSingleMappedRecord<User>()
     }
 
     suspend fun fetchNotificationSettings(userId: String): NotificationsSettingsRecord? {
