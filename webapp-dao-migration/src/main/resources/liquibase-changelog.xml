@@ -2527,6 +2527,9 @@
             <column name="event_time" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="user_type" type="varchar(24)">
+                <constraints nullable="false"/>
+            </column>
             <column name="piece_style" type="varchar(100)"/>
             <column name="show_coordinates" type="varchar(100)"/>
             <column name="move_format" type="varchar(100)"/>
