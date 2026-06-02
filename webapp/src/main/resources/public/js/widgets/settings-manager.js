@@ -26,6 +26,7 @@ const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
 const FLIP_OPPONENT_PIECES_SETTING = 'setting.flip.opponent.pieces';
 const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
+const MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX = 'moveTreeWidget.height';
 
 const MoveFormatSetting = Object.freeze({
     WXF_DOT: 'WXF_DOT',
@@ -271,6 +272,22 @@ function buildWebappBoardGuiOptions(overrides = {}) {
         // (otherwise default to the production CDN baked into BoardGui)
         ...(isLocalHost ? {assetsBaseUrl: ''} : {}),
         ...overrides,
+    };
+}
+
+function moveTreeResizeCookiePersistence(pageKey, containerId) {
+    const cookieName = `${MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX}.${pageKey}.${containerId}`;
+    return {
+        loadPersistedHeight: () => {
+            const rawValue = getCookie(cookieName);
+            if (rawValue === null) {
+                return null;
+            }
+            return Number.parseInt(rawValue, 10);
+        },
+        persistHeight: (height) => {
+            setCookie(cookieName, height.toString(), CHROME_COOKIE_MAX_TTL);
+        }
     };
 }
 

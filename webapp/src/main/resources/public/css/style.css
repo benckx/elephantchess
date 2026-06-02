@@ -1956,7 +1956,7 @@ img#navigation-end {
 .move-tree-container {
     margin-top: 10px;
     height: 440px;
-    min-height: 180px;
+    min-height: 32px;
     resize: vertical;
     overflow-y: scroll;
     overflow-x: hidden;

@@ -1264,12 +1264,19 @@ class MoveTreeWidget {
     #stopLoadingAnimationTimeout = null;
 
     #keyboardNavigation = true;
+    // ResizeObserver instance used when available to detect container height changes.
     #resizeObserver = null;
+    // Debounce timeout for persisting resized height.
     #resizeSaveTimeout = null;
+    // Last height saved to persistence to avoid duplicate writes.
     #lastSavedHeight = null;
+    // Mouse/touch fallback listener used when ResizeObserver is unavailable.
     #fallbackResizeListener = null;
+    // Observes DOM removal so resize listeners can be cleaned up.
     #disposalObserver = null;
+    // Optional callback to retrieve persisted container height.
     #loadPersistedHeight = null;
+    // Optional callback to persist container height updates.
     #persistHeight = null;
 
     constructor(options) {
