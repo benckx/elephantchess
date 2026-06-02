@@ -123,19 +123,23 @@
     margin-bottom: 15px;
 }
 
-.occurrences-wrapper {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
+table#opening-repository-table td.occurrence-cell {
+    width: 100px;
+    text-align: center;
 }
 
-.outcome-percentages {
-    font-size: 11px;
-    color: #555;
-    width: 30px;
-    text-align: right;
+.occurrence-bar-container {
+    width: 100%;
+    height: 5px;
+    margin-top: 3px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.occurrence-bar {
+    height: 100%;
+    background-color: #888;
+    border-radius: 2px;
 }
 
 #opening-repository-container-loading-mask {
@@ -369,9 +373,9 @@ input[type='text']#fen-export-input {
         height: 26px;
     }
 
-    .outcome-percentages {
-        font-size: 20px;
-        width: 56px;
+    .occurrence-bar-container {
+        height: 8px;
+        margin-top: 5px;
     }
 
     /* engine box */
