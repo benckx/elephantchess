@@ -37,6 +37,8 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
                 PUZZLE_RESULT.OUTCOME,
                 PUZZLE_RESULT.PLAYER_RATING_FROM,
                 PUZZLE_RESULT.PLAYER_RATING_TO,
+                PUZZLE_RESULT.PUZZLE_RATING_FROM,
+                PUZZLE_RESULT.PUZZLE_RATING_TO,
                 PUZZLE_RESULT.ENTRY_CREATION
             )
             .from(PUZZLE_RESULT, PUZZLE)
@@ -59,6 +61,8 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
                     outcome = record.get(PUZZLE_RESULT.OUTCOME),
                     ratingFrom = record.get(PUZZLE_RESULT.PLAYER_RATING_FROM),
                     ratingTo = record.get(PUZZLE_RESULT.PLAYER_RATING_TO),
+                    puzzleRatingFrom = record.get(PUZZLE_RESULT.PUZZLE_RATING_FROM),
+                    puzzleRatingTo = record.get(PUZZLE_RESULT.PUZZLE_RATING_TO),
                     date = record.get(PUZZLE_RESULT.ENTRY_CREATION),
                 )
             }

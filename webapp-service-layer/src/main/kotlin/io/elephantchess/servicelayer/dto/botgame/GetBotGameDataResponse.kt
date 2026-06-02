@@ -5,6 +5,7 @@ import io.elephantchess.model.GameEventType
 import io.elephantchess.model.Outcome
 import io.elephantchess.model.UserType
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 
 data class GetBotGameDataResponse(
     val userId: String?,
@@ -20,4 +21,5 @@ data class GetBotGameDataResponse(
     val created: Long,
     val lastUpdated: Long,
     val outcome: Outcome?,
+    val variant: Variant
 )

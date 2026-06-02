@@ -89,7 +89,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .firstOrNull()
     }
 
-    suspend fun updateProfileSettings(userId: String, description: String, country: String) {
+    suspend fun updateProfileSettings(userId: String, description: String, country: String?) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
@@ -304,6 +304,46 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .awaitSingleMappedRecord()
     }
 
+    suspend fun listManuallyConfirmedEmailAddresses(): List<String> {
+        return dslContext
+            .select(USER.EMAIL)
+            .from(USER)
+            .where(USER.EMAIL.isNotNull)
+            .and(USER.EMAIL_CONFIRMED_AT.isNotNull)
+            .awaitMappedRecords()
+    }
+
+    suspend fun findByEmailConfirmationCode(code: String): User? {
+        return dslContext
+            .select()
+            .from(USER)
+            .where(USER.EMAIL_CONFIRMATION_CODE.eq(code))
+            .awaitSingleMappedRecord()
+    }
+
+    suspend fun markEmailConfirmed(userId: String, confirmedAt: Instant) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL
+                .using(cfg)
+                .update(USER)
+                .set(USER.EMAIL_CONFIRMED_AT.fixed(), confirmedAt)
+                .where(USER.ID.eq(userId))
+                .awaitExecute()
+        }
+    }
+
+    suspend fun updateEmailConfirmationCode(userId: String, code: String, createdAt: Instant) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL
+                .using(cfg)
+                .update(USER)
+                .set(USER.EMAIL_CONFIRMATION_CODE, code)
+                .set(USER.EMAIL_CONFIRMATION_CODE_CREATED_AT.fixed(), createdAt)
+                .where(USER.ID.eq(userId))
+                .awaitExecute()
+        }
+    }
+
     suspend fun existsById(userId: String): Boolean {
         return dslContext
             .selectCount()
@@ -358,6 +398,12 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .set(USER.GAME_RATING_CLASSICAL, guestUser.gameRatingClassical)
                 .set(USER.GAME_RATING_SEVERAL_DAYS, guestUser.gameRatingSeveralDays)
                 .set(USER.GAME_RATING_CORRESPONDENCE, guestUser.gameRatingCorrespondence)
+                .set(USER.GAME_RATING_MANCHU_BULLET, guestUser.gameRatingManchuBullet)
+                .set(USER.GAME_RATING_MANCHU_BLITZ, guestUser.gameRatingManchuBlitz)
+                .set(USER.GAME_RATING_MANCHU_RAPID, guestUser.gameRatingManchuRapid)
+                .set(USER.GAME_RATING_MANCHU_CLASSICAL, guestUser.gameRatingManchuClassical)
+                .set(USER.GAME_RATING_MANCHU_SEVERAL_DAYS, guestUser.gameRatingManchuSeveralDays)
+                .set(USER.GAME_RATING_MANCHU_CORRESPONDENCE, guestUser.gameRatingManchuCorrespondence)
                 .where(USER.ID.eq(newUserId))
                 .awaitExecute()
         }
@@ -568,6 +614,12 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             fields += USER.GAME_RATING_CLASSICAL
             fields += USER.GAME_RATING_SEVERAL_DAYS
             fields += USER.GAME_RATING_CORRESPONDENCE
+            fields += USER.GAME_RATING_MANCHU_BULLET
+            fields += USER.GAME_RATING_MANCHU_BLITZ
+            fields += USER.GAME_RATING_MANCHU_RAPID
+            fields += USER.GAME_RATING_MANCHU_CLASSICAL
+            fields += USER.GAME_RATING_MANCHU_SEVERAL_DAYS
+            fields += USER.GAME_RATING_MANCHU_CORRESPONDENCE
             return fields
         }
 

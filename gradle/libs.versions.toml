@@ -1,0 +1,90 @@
+[versions]
+kotlin = "2.3.21"
+coroutines = "1.11.0"
+ktor = "3.5.0"
+koinCore = "4.2.1"
+postgresql = "42.7.11"
+liquibase = "5.0.3"
+jooq = "3.21.4"
+h2 = "2.4.240"
+jackson = "2.21.4"
+jsoup = "1.22.2"
+mockitoKotlin = "6.3.0"
+cache4k = "0.14.0"
+commonsLang3 = "3.20.0"
+javaxMail = "1.6.2"
+opencsv = "5.12.0"
+testcontainers = "1.21.4"
+guava = "33.6.0-jre"
+logback = "1.5.33"
+kotlinLogging = "8.0.4"
+junitJupiterParams = "6.1.0"
+checkerQual = "4.1.0"
+r2dbcPostgresql = "1.1.1.RELEASE"
+r2dbcPool = "1.0.2.RELEASE"
+commonsValidator = "1.10.1"
+javaJwt = "4.5.2"
+kubernetesClient = "7.7.0"
+commonsRngSimple = "1.7"
+commonsText = "1.15.0"
+commonsCli = "1.11.0"
+log4jCore = "2.26.0"
+versionsPlugin = "0.54.0"
+testLoggerPlugin = "4.0.0"
+
+[libraries]
+cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref = "cache4k" }
+commons-cli = { module = "commons-cli:commons-cli", version.ref = "commonsCli" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
+commons-rng-simple = { module = "org.apache.commons:commons-rng-simple", version.ref = "commonsRngSimple" }
+commons-text = { module = "org.apache.commons:commons-text", version.ref = "commonsText" }
+commons-validator = { module = "commons-validator:commons-validator", version.ref = "commonsValidator" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+h2 = { module = "com.h2database:h2", version.ref = "h2" }
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+java-jwt = { module = "com.auth0:java-jwt", version.ref = "javaJwt" }
+javax-mail = { module = "com.sun.mail:javax.mail", version.ref = "javaxMail" }
+jooq = { module = "org.jooq:jooq", version.ref = "jooq" }
+jooq-codegen = { module = "org.jooq:jooq-codegen", version.ref = "jooq" }
+jooq-kotlin = { module = "org.jooq:jooq-kotlin", version.ref = "jooq" }
+jooq-kotlin-coroutines = { module = "org.jooq:jooq-kotlin-coroutines", version.ref = "jooq" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junitJupiterParams" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinCore" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kubernetes-client = { module = "io.fabric8:kubernetes-client", version.ref = "kubernetesClient" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-serialization-jackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-server-caching-headers = { module = "io.ktor:ktor-server-caching-headers", version.ref = "ktor" }
+ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-default-headers = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktor" }
+ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4jCore" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsv" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+r2dbc-pool = { module = "io.r2dbc:r2dbc-pool", version.ref = "r2dbcPool" }
+r2dbc-postgresql = { module = "org.postgresql:r2dbc-postgresql", version.ref = "r2dbcPostgresql" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+
+[plugins]
+versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+test-logger = { id = "com.adarshr.test-logger", version.ref = "testLoggerPlugin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

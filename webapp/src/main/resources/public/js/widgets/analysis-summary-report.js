@@ -17,18 +17,42 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+let scheduleEvalChartRenderTimeout = null;
+let evalLineChart = null;
+const EVAL_LINE_CHART_RENDER_DEBOUNCE_MS = 120;
+
 /**
- * @param gameId {GameId}
  * @param nodes {MoveTreeNode[]}
+ * @param analysisMap {Map<string, InfoLineResult>}
  * @param startFen {string}
- * @param moveTreeWidget {MoveTreeWidget|null} optional widget on which annotation symbols (??, ?!, etc.) will be
- *        applied to the move history once analysis data is fetched
+ * @param onClickNode {function(MoveTreeNode|null)}
  */
-function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_START_FEN, moveTreeWidget = null) {
-    if (startFen == null) {
-        startFen = DEFAULT_START_FEN;
+function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode) {
+    if (scheduleEvalChartRenderTimeout != null) {
+        clearTimeout(scheduleEvalChartRenderTimeout);
     }
 
+    scheduleEvalChartRenderTimeout = setTimeout(() => {
+        scheduleEvalChartRenderTimeout = null;
+        const evalChartContainer = document.getElementById('eval-line-chart-container');
+        if (evalChartContainer == null) {
+            return;
+        }
+
+        evalChartContainer.innerHTML = '';
+        if (evalLineChart != null) {
+            evalLineChart.destroy();
+        }
+        evalLineChart = new EvalLineChart('eval-line-chart-container', analysisMap, startFen, nodes, onClickNode);
+        evalLineChart.render();
+    }, EVAL_LINE_CHART_RENDER_DEBOUNCE_MS);
+}
+
+/**
+ * @param gameId {GameId}
+ * @param moveTreeWidget {MoveTreeWidget}
+ */
+function fetchDataAndrenderAnalysisSummaryReport(gameId, moveTreeWidget) {
     const client = new GameDataClient(gameId);
     client.fetchAnalysisStatus((analysisProgressStatus) => {
         if (analysisProgressStatus.status === AnalysisStatus.COMPLETED) {
@@ -40,12 +64,11 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
                     });
 
                     renderAnalysisSummaryReport(
-                        nodes,
                         analysisMap,
-                        startFen,
                         gameMetadata.redPlayerName,
                         gameMetadata.blackPlayerName,
-                        gameMetadata.outcome
+                        gameMetadata.outcome,
+                        moveTreeWidget
                     );
 
                     if (moveTreeWidget != null) {
@@ -58,21 +81,28 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
 }
 
 /**
- * @param nodes {MoveTreeNode[]}
  * @param analysisMap {Map<string, InfoLineResult>}
- * @param startFen {string}
  * @param redPlayerName {string|null}
  * @param blackPlayerName {string|null}
  * @param outcome {string|null}
+ * @param moveTreeWidget {MoveTreeWidget}
  */
 function renderAnalysisSummaryReport(
-    nodes,
     analysisMap,
-    startFen,
     redPlayerName,
     blackPlayerName,
-    outcome
+    outcome,
+    moveTreeWidget
 ) {
+    const nodes = moveTreeWidget.getMainBranchNodes();
+    const startFen = moveTreeWidget.startFen;
+    const onClickNode = (node) => {
+        if (node != null) {
+            moveTreeWidget.selectNodeById(node.nodeId);
+        } else {
+            moveTreeWidget.navigateToStart();
+        }
+    };
 
     /**
      * @param nodes {Array<MoveTreeNode>}
@@ -166,8 +196,7 @@ function renderAnalysisSummaryReport(
             row.cells.item(3).innerText = (counterBlack.get(symbolType) || 0).toString()
         }
 
-        const evalChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen);
-        evalChart.render();
+        scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode);
 
         if (redPlayerName != null) {
             document
@@ -193,6 +222,18 @@ function renderAnalysisSummaryReport(
 
         summaryBlock.style.display = 'block';
     } else {
+        if (scheduleEvalChartRenderTimeout != null) {
+            clearTimeout(scheduleEvalChartRenderTimeout);
+            scheduleEvalChartRenderTimeout = null;
+        }
+        const evalChartContainer = document.getElementById('eval-line-chart-container');
+        if (evalChartContainer != null) {
+            if (evalLineChart != null) {
+                evalLineChart.destroy();
+                evalLineChart = null;
+            }
+            evalChartContainer.innerHTML = '';
+        }
         summaryBlock.style.display = 'none';
     }
 }

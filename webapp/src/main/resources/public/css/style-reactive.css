@@ -208,6 +208,11 @@
         margin-right: 0;
     }
 
+    .game-thumb-variant {
+        font-size: 35px;
+        margin-right: 8px;
+    }
+
     .game-thumb-info-box {
         margin-bottom: 18px;
     }
@@ -216,6 +221,10 @@
     .game-thumb-rating,
     .game-thumb-status {
         font-size: 30px;
+    }
+
+    .game-thumb-player-name {
+        max-width: 260px;
     }
 
     .game-thumb-last-updated {
@@ -358,39 +367,39 @@
         font-size: 30px;
     }
 
-    input[type=button].app-buttons,
-    input[type=button].app-buttons-red,
-    input[type=button].app-buttons-bigger,
-    input[type=button].app-buttons-much-bigger {
+    .app-buttons,
+    .app-buttons-red,
+    .app-buttons-bigger,
+    .app-buttons-much-bigger {
         border-radius: 6px;
     }
 
     /* use the color of :hover (since there is no hover on mobile) */
-    input[type=button].app-buttons,
-    input[type=button].app-buttons-bigger,
-    input[type=button].app-buttons-much-bigger {
+    .app-buttons,
+    .app-buttons-bigger,
+    .app-buttons-much-bigger {
         background-color: #077d01;
     }
 
-    input[type=button].app-buttons-disabled,
-    input[type=button].app-buttons-disabled:hover {
+    .app-buttons-disabled,
+    .app-buttons-disabled:hover {
         background-color: #848484;
     }
 
-    input[type=button].app-buttons,
-    input[type=button].app-buttons-red {
+    .app-buttons,
+    .app-buttons-red {
         font-size: 30px;
         height: 55px;
         min-width: 180px;
     }
 
-    input[type=button].app-buttons-bigger {
+    .app-buttons-bigger {
         font-size: 34px;
         height: 60px;
         min-width: 200px;
     }
 
-    input[type=button].app-buttons-much-bigger {
+    .app-buttons-much-bigger {
         font-size: 36px;
         height: 66px;
         margin-top: 30px;
@@ -398,7 +407,7 @@
         min-width: 220px;
     }
 
-    input[type=button].app-buttons-smaller {
+    .app-buttons-smaller {
         font-size: 20px;
         height: 54px;
     }
@@ -516,8 +525,41 @@
         width: 68px;
     }
 
+    #settings-info-box-container #advanced-settings-toggle {
+        font-size: 24px;
+    }
+
+    #settings-info-box-container #advanced-settings-box {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+        transform: translate(-50%, -50%);
+        z-index: 1202;
+        overflow-y: auto;
+        border-radius: 8px;
+        padding: 76px 34px 34px;
+    }
+
+    #settings-info-box-container #advanced-settings-close-button {
+        display: block;
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 40px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
     #settings-info-box img#flip-board-button,
     #settings-info-box img#show-coordinates-button,
+    #settings-info-box img#colorblind-friendly-black-pieces-button,
     #settings-info-box img#show-analytics-arrows {
         width: 55px;
     }
@@ -534,6 +576,32 @@
 
     #settings-info-box .setting-option-item {
         width: 88px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-row {
+        margin: 10px 0;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-icon {
+        width: 34px;
+        margin-right: 12px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-title {
+        font-size: 32px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-description {
+        font-size: 20px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options {
+        gap: 8px;
+        font-size: 30px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=radio] {
+        transform: scale(1.8);
     }
 
     #settings-info-box .setting-option-double-item {

@@ -3,15 +3,13 @@
 [elephantchess.io](https://elephantchess.io) is a web application to play and
 study [Chinese chess](https://en.wikipedia.org/wiki/Xiangqi) (or xiangqi 象棋).
 
-Feel free to create issues to report bugs or request feature changes. The
-current [roadmap](https://github.com/users/benckx/projects/2/views/1) on this repo reflects the current priorities of
-the project. Feel free to comment and give your opinion the existing issues.
-
 By default, the project is under GPL-3.0 license. Libraries (like the Kotlin xiangqi-core or the
 JavaScript [board-gui](https://elephantchess.io/about/developers/board-gui-example)) are under LGPL-3.0 license to allow
 for a more permissive use (i.e. to re-use the libraries in a commercial application).
 
 We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
+
+[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml)
 
 ## Features
 
@@ -25,6 +23,9 @@ The webapp offers the following features:
   try to specify when we talk about the "PostgreSQL database" or the "Database" as a feature.
 - Analysis board, where users can create complex analysis, with engine evaluation, multiple embedded variations,
   annotations (i.e. `??`, `?!` symbols) and comments.
+- Manchu chess variant (also called Yitong): Black's pieces are set up and move the same as in xiangqi, but horses,
+  cannons, and one of the chariots are absent for Red. The remaining chariot has the combined powers of the chariot,
+  horse, and cannon.
 - By default, users are assigned a temporary guest user id. They can also sign up with an email and password to keep
   their data across devices and access all features.
 
@@ -42,8 +43,8 @@ The webapp offers the following features:
 
 ## Glossary
 
-- The engines are AI (or bots) used for the Play-against-bot (PvB) or Analysis Board features. In the chess communinity,
-  the term "engine" is prefered over AI or bot.
+- The engines are AI (or bots) used for the Play-against-bot (PvB) or Analysis Board features. In the chess community,
+  the term "engine" is preferred over AI or bot.
 - In chess in general, the "columns" of the board are named "files" and the "rows" are named "ranks".
 - The Forsyth–Edwards Notation (or FEN) is a standard notation to represent chess positions as a single line of text. In
   Chinese chess, the starting position is encoded as
@@ -60,17 +61,11 @@ The webapp offers the following features:
   from that position with a search depth of 10.
 - The UCI move notation is similar to the algebraic notation, except that the ranks are 0-based. Therefore, any
   move can be encoded as 4 characters. For example, move h3e3 is encoded in UCI as h2e2.
-- The WXF notation is the traditional Chinese chess notation (e.g. `C2=5`), widely in use. It's not as convinient
-  technically because move can be ambiguous and the files are numbered from the right to the left relative to the player
-  and (so it's not the same numbers for the red and black players). Therefore it's not used in code.
-
-## Contribute
-
-So far I'm the only one working on this project. It was just recently made public. So I'm not sure yet how the
-contribution process might look like.
-
-Best is to join our [Discord server](https://discord.gg/WEGDqnWXNg) to discuss first how you would like to contribute,
-or to open or comment on the GitHub issues.
+- The WXF notation is the traditional Chinese chess notation (e.g. `C2=5`), widely in use. It's not as convenient
+  technically because move can be ambiguous and the files are numbered from the right to the left relative to the
+  player (so it's not the same numbers for the red and black players). Therefore, it's not used in code, expect for
+  labeling moves in the GUI.
+- OTB: Over The Board, i.e. in-person chess games, as opposed to online games.
 
 # Run Locally
 
@@ -517,7 +512,8 @@ best move: h2e2
 
 ### xiangqi-core
 
-Kotlin library providing a representation of a Chinese chess board.
+Kotlin library providing a representation of a Chinese chess board. Supports both standard Xiangqi and the Manchu
+chess (Yitong) variant.
 
 #### Example 1
 
@@ -693,7 +689,23 @@ Under `webapp/src/main/resources/public/js` there's usually a sub-folder for eac
 - etc.
 
 Complex app like PvP is usually organized with a **page** which updates the GUI, a **controller** which connects to
-WebSockets and/or calls REST endpoints, and sometimes a DTO file
+WebSockets and/or calls REST endpoints, sometimes a DTO file and/or a separate REST client file.
+
+### JavaScript tests
+
+The move parsers (`parser-common`, `parser-pgn`, `parser-uci`, `parser-iccs`, `parser-wxf`) are covered by JavaScript
+unit tests located under `webapp/src/test/js`. They rely only on Node's built-in test runner (no extra dependencies),
+loading the production parser scripts into a shared VM context (mirroring how the browser loads them as `<script>`
+tags). The fixtures under `webapp/src/test/js/parsers/fixtures` are real PGN / UCI / WXF games.
+
+Run them with Node (24+):
+
+```bash
+cd webapp/src/test/js
+node --test
+```
+
+The same command runs in the CI build.
 
 ## JavaScript Libraries
 

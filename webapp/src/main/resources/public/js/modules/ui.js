@@ -128,6 +128,21 @@ function buildSimpleSpan(text) {
 }
 
 /**
+ * @returns {HTMLSpanElement}
+ */
+function buildSpan(innerText, className = null, title = null) {
+    const span = document.createElement('span');
+    span.innerText = innerText;
+    if (className != null) {
+        span.classList.add(className);
+    }
+    if (title != null) {
+        span.title = title;
+    }
+    return span;
+}
+
+/**
  * @param src {string}
  * @param className {string|null}
  * @returns {HTMLImageElement}
@@ -178,6 +193,22 @@ function buildDivWithTextAndClasses(textContent, classNames) {
  */
 function buildDivWithTextAndClass(textContent, className) {
     return buildDivWithTextAndClasses(textContent, [className]);
+}
+
+/**
+ * Builds a variant cell div (symbol + name) for the given variant.
+ *
+ * @param variant {string} - Variant.MANCHU or Variant.XIANGQI
+ * @returns {HTMLDivElement}
+ */
+function buildVariantCell(variant) {
+    const isManchu = variant === Variant.MANCHU;
+    const cell = buildDivWithClass('variant-cell');
+    const symbol = buildDivWithTextAndClass(isManchu ? '统' : '象', 'variant-symbol');
+    symbol.title = isManchu ? 'Manchu chess (or Yitong)' : 'Xiangqi (Chinese chess)';
+    const textContent = isManchu ? 'Manchu' : 'Xiangqi';
+    cell.append(symbol, buildDivWithTextAndClass(textContent, 'variant-name'));
+    return cell;
 }
 
 /**
@@ -232,9 +263,10 @@ function buildGuestUserSpan(id, maxLength = null) {
  * @param username {string|null}
  * @param userType {string}
  * @param maxLength {number|null}
+ * @param removeGuestPrefix {boolean} whether to remove the "guest" prefix for guest users (e.g. "guest #1234" becomes "1234")
  * @returns {HTMLElement}
  */
-function buildUsernameSpan(userId, username, userType, maxLength = null) {
+function buildUsernameSpan(userId, username, userType, maxLength = null, removeGuestPrefix = false) {
     switch (userType) {
         case UserType.AUTHENTICATED:
             if (username != null) {
@@ -243,6 +275,13 @@ function buildUsernameSpan(userId, username, userType, maxLength = null) {
             break;
         case UserType.GUEST:
             if (userId != null) {
+                if (removeGuestPrefix) {
+                    const span = document.createElement('span');
+                    span.className = 'guest-name';
+                    const rawId = String(userId).replace(/^guest\s+/i, '').trim();
+                    span.innerText = '#' + (maxLength != null ? cropText(rawId, maxLength) : rawId);
+                    return span;
+                }
                 return buildGuestUserSpan(userId, maxLength);
             }
             break;

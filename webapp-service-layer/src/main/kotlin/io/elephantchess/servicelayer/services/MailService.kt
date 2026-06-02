@@ -11,10 +11,12 @@ import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.model.EmailVerifierService.EMAIL_LIST_VERIFY
 import io.elephantchess.servicelayer.clients.EmailListVerifyClient
+import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
 import io.elephantchess.servicelayer.model.Email
 import io.elephantchess.servicelayer.model.MatchingEmail
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.UserService.Companion.PASSWORD_RECOVERY_TIMEOUT_HOURS
+import io.elephantchess.servicelayer.services.resolvers.EmailConfirmationLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.GameLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.RecoveryLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.UnsubscribeTagResolver
@@ -58,25 +60,38 @@ class MailService(
     private val mailScope by lazy { CoroutineScope(Dispatchers.IO) }
 
     suspend fun isEmailAddressValid(email: String): Boolean {
-        return getEmailValidityStatus(email) == true
+        return getEmailValidityDetails(email).isValid
     }
 
     /**
-     * null means not checked yet
+     * Returns the full [EmailValidityStatus] for the given email.
+     *
+     * The check is layered: if a user owns this address and has clicked the confirmation
+     * link sent at signup, the address is considered [EmailValidityStatus.MANUALLY_CONFIRMED]
+     * (the strongest signal). Otherwise, we fall back to the automated verification.
      */
-    suspend fun getEmailValidityStatus(email: String): Boolean? {
+    suspend fun getEmailValidityDetails(email: String): EmailValidityStatus {
+        val user = userDaoService.findByEmail(email)
+        if (user?.emailConfirmedAt != null) {
+            return EmailValidityStatus.MANUALLY_CONFIRMED
+        }
+
         if (emailVerificationDaoService.hasEmailBounced(email)) {
-            return false
+            return EmailValidityStatus.AUTOMATED_BOUNCED
         }
 
         val automatedVerifications =
             emailVerificationDaoService.findAutomatedVerifications(email, emailValidityDuration)
 
         return when (automatedVerifications.size) {
-            0 -> null
+            0 -> EmailValidityStatus.UNKNOWN
             else -> {
                 val result = automatedVerifications.last().result
-                result == "ok" || result == "ok_for_all"
+                if (result == "ok" || result == "ok_for_all") {
+                    EmailValidityStatus.AUTOMATED_VALID
+                } else {
+                    EmailValidityStatus.AUTOMATED_INVALID
+                }
             }
         }
     }
@@ -145,22 +160,27 @@ class MailService(
 
     /**
      * List all emails that:
-     * - have been validated automatically by the external service
+     * - have a valid status (manually confirmed by the user, or automatically validated by the
+     *   external service)
      * - have not bounced
      * - consent to receive the newsletter (implicit)
      */
     suspend fun listNewsLetterRecipientEmails(): List<String> {
         val automaticallyValidated =
             emailVerificationDaoService.listAllAutomaticallyValidatedEmails(emailValidityDuration)
+        val manuallyConfirmed = userDaoService.listManuallyConfirmedEmailAddresses().toSet()
         val bounced = emailVerificationDaoService.listBouncedEmails()
         val newsletterRecipients = userDaoService
             .listNewsletterEmailAddresses()
-            .filter { emailAddress -> automaticallyValidated.contains(emailAddress) }
+            .filter { emailAddress ->
+                manuallyConfirmed.contains(emailAddress) || automaticallyValidated.contains(emailAddress)
+            }
             .filterNot { emailAddress -> bounced.contains(emailAddress) }
             .map { emailAddress -> emailAddress.trim() }
 
         logger.info {
-            "found ${automaticallyValidated.size} valid e-mail addresses, " +
+            "found ${automaticallyValidated.size} automatically validated e-mail addresses, " +
+                    "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
                     "${bounced.size} bounced e-mail addresses, " +
                     "${newsletterRecipients.size} total newsletter recipients"
         }
@@ -209,7 +229,7 @@ class MailService(
         )
     }
 
-    suspend fun sendNewUserNotification(user: User, guestTransferred: Boolean = false) {
+    suspend fun sendNewUserNotification(user: User, guestTransferred: Boolean) {
         resolveAndSend(
             recipient = ADMIN_GMAIL_EMAIL,
             subject = "new user",
@@ -218,7 +238,28 @@ class MailService(
                 SimpleValueTagResolver("username", user.handle),
                 SimpleValueTagResolver("email", user.email),
                 SimpleValueTagResolver("guest_transferred", if (guestTransferred) "yes" else "no")
-            )
+            ),
+            skipRecipientValidityCheck = true
+        )
+    }
+
+    suspend fun sendEmailConfirmation(recipient: String, code: String, showWelcomeMessage: Boolean) {
+        val subject = if (showWelcomeMessage) {
+            "Welcome to elephantchess - email address confirmation"
+        } else {
+            "elephantchess - email address confirmation"
+        }
+
+        resolveAndSend(
+            recipient = recipient,
+            subject = subject,
+            templateName = "email_confirmation",
+            resolvers = listOf(
+                EmailConfirmationLinkTagResolver(webHost, code)
+            ),
+            // The whole point of this email is to flip the recipient's status to MANUALLY_CONFIRMED,
+            // so we must not gate it on the address already being known-valid (it never is at signup).
+            skipRecipientValidityCheck = true,
         )
     }
 
@@ -327,6 +368,7 @@ class MailService(
         templateName: String,
         resolvers: List<TagResolver> = listOf(),
         copyToAdmin: Boolean = false,
+        skipRecipientValidityCheck: Boolean = false,
     ) {
         fun sendSafeAsync(email: Email) {
             mailScope.launch {
@@ -339,11 +381,11 @@ class MailService(
         }
 
         if (!sendMailNotifications) {
-            logger.debug { "not sending e-mail '$subject' because emails are disabled" }
+            logger.info { "not sending e-mail '$subject' because emails are disabled" }
             return
         }
 
-        if (!isEmailAddressValid(recipient)) {
+        if (!skipRecipientValidityCheck && !isEmailAddressValid(recipient)) {
             logger.debug { "not sending e-mail '$subject' because recipient $recipient is not valid" }
             return
         }

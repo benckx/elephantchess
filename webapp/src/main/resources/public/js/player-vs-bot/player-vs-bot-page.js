@@ -140,6 +140,10 @@ class PlayerVsBotPage extends BasePage {
                 document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
                 document.getElementById('info-depth').innerText = botGameDto.depth.toString();
                 document.getElementById('info-created').innerText = botGameDto.formattedCreated;
+                if (botGameDto.isManchu) {
+                    document.getElementById('info-variant').innerText = 'Manchu';
+                    document.getElementById('info-variant-row').style.display = '';
+                }
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
                 this.#enablePlayerMoveIfPermitted();
@@ -302,15 +306,18 @@ class PlayerVsBotPage extends BasePage {
     }
 
     #updateButtonsEnabled() {
-        if (isStatusFinished(this.#controller.gameStatus())) {
+        if (isStatusFinished(this.#controller.gameStatus()) && !this.#controller.isManchu()) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
             });
         } else {
+            const tooltip = this.#controller.isManchu()
+                ? 'Analysis is not supported for Manchu variant games'
+                : ANALYZE_BUTTON_TOOLTIP_DISABLED;
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
-                addToolTip(button, ANALYZE_BUTTON_TOOLTIP_DISABLED);
+                addToolTip(button, tooltip);
             });
         }
 
@@ -372,12 +379,8 @@ class PlayerVsBotPage extends BasePage {
 
     #renderAnalysisSummaryReportIfAvailable() {
         if (isStatusFinished(this.#controller.gameStatus())) {
-            renderAnalysisSummaryReportGeneric(
-                new GameId(GameType.PVB, this.#controller.gameId),
-                this.#moveTreeWidget.getMainBranchNodes(),
-                this.#controller.startFen(),
-                this.#moveTreeWidget
-            );
+            const gameId = new GameId(GameType.PVB, this.#controller.gameId);
+            fetchDataAndrenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
         }
     }
 

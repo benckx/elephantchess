@@ -50,13 +50,15 @@ h1 {
 }
 
 .flex-games-to-join-list-container {
+    flex: 2 1 800px;
     min-width: 400px;
-    max-width: 850px;
+    max-width: unset;
 }
 
 .flex-new-game-logo-container {
+    flex: 1 1 320px;
     min-width: 350px;
-    max-width: 500px;
+    max-width: unset;
 }
 
 #games-to-join-list-container {
@@ -69,12 +71,18 @@ h1 {
     align-items: start;
     border: 2px solid #323232;
     border-radius: 3px;
-    box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0 0.25em 1em;
+    box-shadow: rgba(67, 71, 85, 0.27) 0 0 0.25em, rgba(90, 125, 188, 0.05) 0 0.25em 1em;
 }
 
 #games-to-join-list-table-container {
     width: 100%;
-    padding: 12px 14px;
+    padding: 14px 16px;
+}
+
+#games-to-join-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .discrete-messages {
@@ -91,97 +99,148 @@ h1 {
     margin-top: 30px;
 }
 
-table#games-to-join-list-table {
-    border-collapse: separate;
-    border-spacing: 1px;
+.game-to-join-item {
+    display: flex;
+    align-items: center;
+    background-color: #ece5d8;
+    border: 1px solid #565656;
+    border-radius: 3px;
+    min-height: 64px;
+    padding: 6px 10px;
+    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px, rgba(0, 0, 0, 0.2) 0 1px 2px;
 }
 
-table#games-to-join-list-table th {
-    text-align: left;
-    font-weight: normal;
-    padding: 0;
+.game-to-join-variant-pane,
+.game-to-join-time-control-pane,
+.game-to-join-middle-pane,
+.game-to-join-right-pane,
+.game-to-join-rating-pane {
+    display: flex;
+    align-items: center;
+}
+
+.game-to-join-variant-pane {
+    width: 54px;
+    justify-content: center;
+}
+
+.game-to-join-time-control-pane {
+    width: 60px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.game-to-join-middle-pane {
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 10px;
+}
+
+.game-to-join-right-pane {
+    justify-content: flex-end;
+    margin-left: 12px;
+    margin-right: 8px;
+}
+
+.game-to-join-rating-pane {
+    justify-content: center;
+    margin-right: 20px;
+}
+
+.game-to-join-opponent-line {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.game-to-join-opponent-line .username-cell {
+    max-width: 280px;
+    font-size: 15px;
+}
+
+.game-to-join-opponent-line .rating-cell {
+    color: #555;
     font-size: 14px;
-    color: #434343;
 }
 
-/* col spanner exists so bottom line solid pattern isn't broken */
-table#games-to-join-list-table tr.col-spanner,
-table#games-to-join-list-table tr.col-spanner td {
-    border-bottom: 1px solid #474747;
-    height: 8px;
+.game-to-join-metadata-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    margin-top: 4px;
+    gap: 6px;
 }
 
-table#games-to-join-list-table tr td {
-    border-bottom: 1px dashed #605f5f;
-    height: 42px;
-}
-
-table#games-to-join-list-table tr.last-row td.last-row {
-    border-bottom-width: 0;
-}
-
-table#games-to-join-list-table td {
-    font-size: 16px;
-    vertical-align: middle;
-}
-
-table#games-to-join-list-table td.online-cell,
-table#games-to-join-list-table th.online-cell {
-    width: 22px;
-}
-
-table#games-to-join-list-table td.online-cell {
-    padding-left: 10px;
-}
-
-table#games-to-join-list-table td.username-cell,
-table#games-to-join-list-table th.username-cell {
-    width: 150px;
-    max-width: 150px;
-}
-
-table#games-to-join-list-table td.rating-cell,
-table#games-to-join-list-table th.rating-cell {
-    width: 82px;
-}
-
-table#games-to-join-list-table td.color-cell,
-table#games-to-join-list-table th.color-cell {
-    width: 82px;
-}
-
-table#games-to-join-list-table td.time-control-icons-cell,
-table#games-to-join-list-table th.time-control-icons-cell {
-    width: 34px;
-}
-
-table#games-to-join-list-table td.time-control-cell,
-table#games-to-join-list-table th.time-control-cell {
-    width: 130px;
-    max-width: 130px;
+.game-to-join-custom-time-line {
+    color: #555;
     font-size: 13px;
+    margin-top: 5px;
 }
 
-table#games-to-join-list-table td.rating-mode-cell,
-table#games-to-join-list-table th.rating-mode-cell {
-    width: 90px;
+.game-to-join-metadata-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: #3a3a3a;
+    font-size: 14px;
 }
 
-table#games-to-join-list-table td.separator-cell,
-table#games-to-join-list-table th.separator-cell {
-    width: 40px;
+.game-to-join-item .join-button-cell {
+    text-align: right;
 }
 
-table#games-to-join-list-table td.join-button-cell,
-table#games-to-join-list-table th.join-button-cell {
-    width: 110px;
+.game-to-join-rating-mode-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: #3a3a3a;
+    font-size: 14px;
     text-align: center;
 }
 
-input[type=button].join-buttons {
-    width: 90px;
-    height: 25px;
-    font-size: 12px;
+.game-to-join-rating-mode-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.game-to-join-time-icon-cell {
+    display: flex;
+    justify-content: center;
+}
+
+.game-to-join-item .time-control-icons {
+    width: 22px;
+}
+
+.game-to-join-time-duration-cell {
+    color: #3a3a3a;
+    font-size: 13px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.game-to-join-online-cell {
+    width: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0;
+}
+
+.game-to-join-online-cell .online-status-indicator {
+    margin-right: 3px;
+}
+
+.join-buttons {
+    height: 34px;
+    font-size: 13px;
+    padding: 0 15px;
 }
 
 .no-game-to-join-message {
@@ -236,7 +295,7 @@ img#kofi-logo {
     opacity: 82%;
 }
 
-input[type="button"]#create-new-game-button {
+#create-new-game-button {
     width: 250px;
     height: 45px;
     margin-top: 50px;
@@ -308,6 +367,14 @@ iframe {
         width: 100%;
     }
 
+    #games-to-join-list-table-container {
+        padding: 0;
+    }
+
+    #games-to-join-list {
+        gap: 0;
+    }
+
     .flex-lobby-element {
         margin-bottom: 56px;
         margin-left: 30px;
@@ -331,11 +398,11 @@ iframe {
         margin-top: 44px;
     }
 
-    input[type="button"]#create-new-game-button {
-        margin-top: 18px;
-        margin-bottom: 18px;
+    #create-new-game-button {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
         width: 380px;
-        height: 80px;
+        height: 90px;
     }
 
     #no-game-to-join-message {
@@ -359,47 +426,85 @@ iframe {
         font-size: 26px;
     }
 
-    .time-control-icons {
-        width: 30px;
-        margin-right: 8px;
+    .game-to-join-item .time-control-icons {
+        width: 48px;
     }
 
-    #games-to-join-list-container {
-        height: 550px;
-    }
-
-    table#games-to-join-list-table th {
-        font-size: 24px;
-    }
-
-    table#games-to-join-list-table td {
-        font-size: 36px;
-    }
-
-    table#games-to-join-list-table th.time-control-cell,
-    table#games-to-join-list-table td.time-control-cell {
-        font-size: 30px;
-        width: 100px;
-        max-width: 100px;
-    }
-
-    table#games-to-join-list-table td.rating-cell,
-    table#games-to-join-list-table th.rating-cell {
-        width: 105px;
-    }
-
-    table#games-to-join-list-table td.color-cell,
-    table#games-to-join-list-table th.color-cell {
-        width: 105px;
-    }
-
-    table#games-to-join-list-table td.join-button-cell,
-    table#games-to-join-list-table th.join-button-cell {
+    .game-to-join-variant-pane {
         width: 90px;
     }
 
-    table#games-to-join-list-table tr td {
-        height: 76px;
+    .game-to-join-variant-pane .variant-symbol {
+        font-size: 48px;
+    }
+
+    .game-to-join-variant-pane .variant-name {
+        font-size: 20px;
+    }
+
+    #games-to-join-list-container {
+        height: 642px;
+    }
+
+    .game-to-join-item {
+        border-radius: 0;
+        min-height: 140px;
+        padding: 10px 12px;
+    }
+
+    .game-to-join-time-control-pane {
+        width: 114px;
+    }
+
+    .game-to-join-middle-pane {
+        margin-left: 10px;
+    }
+
+    .game-to-join-right-pane {
+        margin-left: 12px;
+        margin-right: 8px;
+    }
+
+    .game-to-join-rating-pane {
+        width: 84px;
+        margin-left: 6px;
+    }
+
+    .game-to-join-opponent-line {
+        min-width: 0;
+    }
+
+    .game-to-join-opponent-line .username-cell {
+        max-width: unset;
+        font-size: 28px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .game-to-join-opponent-line .rating-cell {
+        flex: 0 0 auto;
+        font-size: 24px;
+    }
+
+    .game-to-join-metadata-item {
+        font-size: 28px;
+    }
+
+    .game-to-join-custom-time-line {
+        font-size: 30px;
+    }
+
+    .game-to-join-time-duration-cell {
+        font-size: 28px;
+    }
+
+    .game-to-join-rating-mode-cell {
+        font-size: 30px;
+    }
+
+    .game-to-join-rating-mode-icon {
+        width: 36px;
+        height: 36px;
     }
 
     #online-users-and-rating {
@@ -407,16 +512,23 @@ iframe {
         font-size: 28px;
     }
 
-    input[type=button].join-buttons {
-        width: 70px;
-        height: 68px;
-        font-size: 28px;
+    .join-buttons {
+        min-width: 110px !important;
+        max-width: 120px !important;
+        height: 80px;
+        font-size: 25px;
+        padding: 0 !important;
+        margin: 0;
+        box-sizing: border-box;
     }
 
-    table#games-to-join-list-table tr td .online-status-indicator {
+    .game-to-join-item .online-status-indicator {
         width: 16px;
         height: 16px;
-        border-radius: 6px;
+        min-width: 16px;
+        min-height: 16px;
+        flex: 0 0 16px;
+        border-radius: 50%;
         margin-right: 6px;
     }
 

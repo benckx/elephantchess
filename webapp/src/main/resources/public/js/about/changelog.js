@@ -17,31 +17,25 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class SimpleBoardPage extends BasePage {
+class ChangelogPage extends BasePage {
 
     constructor() {
         super();
-        const boardGui = createWebappBoardGui();
-        boardGui.loadFen(DEFAULT_START_FEN);
 
-        const moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
-        moveTreeWidget.addNavigationPanel({
-            containerId: 'mobile-navigation-panel',
-            isDownloadButtonEnabled: true
-        });
-        moveTreeWidget.addNavigationPanel({
-            containerId: 'move-history-navigation-panel',
-            isDownloadButtonEnabled: true
-        });
-        moveTreeWidget.boardWidget = boardGui;
+        // copy-paste anchor url upon clicking on the icons
+        getElementsByClassNameArray('anchor-copy-link').forEach((link) => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
 
-        boardGui.addAfterMoveListener((move) => {
-            moveTreeWidget.addMoveAtTheEnd(move);
-        });
+                const target = link.dataset.anchorTarget;
+                if (!target) return;
 
-        new SettingsGui(boardGui, moveTreeWidget);
+                const url = `${getFullHost()}${window.location.pathname}#${target}`;
+                copyTextToClipboardAndNotify(url, 'Link copied to clipboard!');
+            });
+        });
     }
 
 }
 
-window.onload = () => new SimpleBoardPage();
+window.onload = () => new ChangelogPage();
