@@ -68,33 +68,6 @@ class LobbyClient {
     }
 
     /**
-     * @param gameIds {Array<GameId>}
-     * @param moveIndexes {Object<string, number>}
-     * @param cb {function(Array<{gameId: GameId, status: string, fen: string, lastUpdated: number, moveIndex: number|null, newMoves: string[]}>)}
-     */
-    fetchLatestGamesUpdate(gameIds, moveIndexes, cb) {
-        const body = {
-            gameIds: gameIds.map((gameId) => ({type: gameId.type, id: gameId.id})),
-            moveIndexes: moveIndexes,
-        };
-        postAndHandle('/api/lobby/latest-games-update', body, (json) => {
-            const items = [];
-            for (let i = 0; i < json.entries.length; i++) {
-                const entry = json.entries[i];
-                items.push({
-                    gameId: new GameId(entry.gameId.type, entry.gameId.id),
-                    status: entry.status,
-                    fen: entry.fen,
-                    lastUpdated: Number(entry.lastUpdated),
-                    moveIndex: entry.moveIndex ?? null,
-                    newMoves: entry.newMoves ?? [],
-                });
-            }
-            cb(items);
-        });
-    }
-
-    /**
      * @param cb {function([UpcomingEventDto])}
      */
     listUpcomingEvents(cb) {
