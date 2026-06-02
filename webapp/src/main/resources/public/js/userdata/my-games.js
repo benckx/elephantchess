@@ -102,19 +102,13 @@ class MyGamesPage extends InfiniteScrollPage {
 
         /**
          * @param entry {GameEntryDto}
-         * @return {HTMLDivElement}
+         * @returns {HTMLDivElement|null}
          */
-        function buildTimeControlCell(entry) {
-            const cell = buildDivWithClass('time-control-cell');
-            const timeControlIcon = buildTimeControlCategoryIcon(entry);
-            const timeControlLabel = buildDivWithClass('time-control-duration-cell');
-            if (entry.timeControl != null) {
-                timeControlLabel.innerText = entry.timeControl.printShort(' +');
-            } else {
-                timeControlLabel.innerText = '--';
-            }
-            cell.append(timeControlIcon, timeControlLabel);
-            return cell;
+        function buildTimeControlDurationDiv(entry) {
+            if (entry.timeControl == null) return null;
+            const div = buildDivWithClass('time-control-duration-cell');
+            div.innerText = entry.timeControl.printShort(' +');
+            return div;
         }
 
         /**
@@ -306,7 +300,7 @@ class MyGamesPage extends InfiniteScrollPage {
             }
 
             // left pane
-            leftPane.append(buildTimeControlCell(entry));
+            leftPane.append(buildTimeControlCategoryIcon(entry));
 
             // variant pane
             variantPane.append(buildVariantCell(entry.variant));
@@ -315,8 +309,11 @@ class MyGamesPage extends InfiniteScrollPage {
             const middlePaneItems = [
                 buildOpponentDiv(entry),
                 wrapInDiv(buildColorSpan(entry.color)),
-                buildRatingModeDiv(entry),
             ];
+            const durationDiv = buildTimeControlDurationDiv(entry);
+            if (durationDiv != null) {
+                middlePaneItems.push(durationDiv);
+            }
             middlePane.append(...middlePaneItems);
 
             // number of messages indicator pane
@@ -326,10 +323,12 @@ class MyGamesPage extends InfiniteScrollPage {
             }
 
             // rating delta indicator pane
+            ratingDeltaIndicatorPane.classList.add('rating-pane');
             const ratingDiv = buildRatingDiv(entry);
             if (ratingDiv != null) {
                 ratingDeltaIndicatorPane.append(ratingDiv);
             }
+            ratingDeltaIndicatorPane.append(buildRatingModeDiv(entry));
 
             // outcome indicator pane
             const outcomeDiv = buildUserOutcomeDiv(entry);
