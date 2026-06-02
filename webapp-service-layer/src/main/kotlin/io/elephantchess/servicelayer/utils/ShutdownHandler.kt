@@ -89,7 +89,7 @@ class ShutdownHandler(
             logger.info { "cancelling LobbyService..." }
             lobbyService.cancel()
         } catch (e: Exception) {
-            logger.error(e) { "error cancelling batch LobbyService" }
+            logger.error(e) { "error cancelling LobbyService" }
         }
 
         try {
