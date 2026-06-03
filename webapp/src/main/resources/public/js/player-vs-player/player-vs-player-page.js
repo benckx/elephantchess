@@ -290,7 +290,10 @@ class PlayGamePage extends BasePage {
         }, IS_ONLINE_FETCH_INTERVAL);
 
         // create chat box widget
-        this.#chatBoxWidget = new ChatBoxWidget((msg) => this.#gameController.sendChat(msg));
+        this.#chatBoxWidget = new ChatBoxWidget(
+            (msg) => this.#gameController.sendChat(msg),
+            chatBoxResizeCookiePersistence()
+        );
 
         this.#chatBoxWidget.addInputGainsFocusListener(() => {
             this.#moveTreeWidget.disableKeyboardNavigation();

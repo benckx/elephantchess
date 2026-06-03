@@ -1565,6 +1565,11 @@ table.info-box-sub-table td.values {
     border: 1px solid black;
     margin-bottom: 15px;
     height: 270px;
+    min-height: 150px;
+    max-height: 600px;
+    resize: vertical;
+    overflow: hidden;
+    box-sizing: border-box;
     box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0px 0.25em 1em;
     background-color: #ece8e3;
     display: flex;

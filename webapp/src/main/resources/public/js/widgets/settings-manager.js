@@ -298,6 +298,30 @@ function moveTreeResizeCookiePersistence(pageKey, containerId) {
 }
 
 /**
+ * Returns cookie-backed persistence callbacks for the chat-box widget.
+ *
+ * A single cookie is shared across pages (the chat box only appears on one page),
+ * so no page key is part of the cookie name.
+ *
+ * @return {{loadPersistedHeight: function(): number|null, persistHeight: function(number): void}}
+ */
+function chatBoxResizeCookiePersistence() {
+    const cookieName = 'chat-box-container.height';
+    return {
+        loadPersistedHeight: () => {
+            const rawValue = getCookie(cookieName);
+            if (rawValue === null) {
+                return null;
+            }
+            return Number.parseInt(rawValue, 10);
+        },
+        persistHeight: (height) => {
+            setCookie(cookieName, height.toString(), CHROME_COOKIE_MAX_TTL);
+        }
+    };
+}
+
+/**
  * Convenience wrapper around {@link buildWebappBoardGuiOptions} that
  * instantiates a {@link BoardGui} with the resolved webapp defaults.
  *

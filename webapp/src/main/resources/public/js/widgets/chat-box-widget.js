@@ -99,6 +99,12 @@ class ChatBoxWidget {
     #typingIndicator = document.getElementById('chat-box-typing-indicator');
 
     /**
+     * Persists the chat-box container height across reloads (drag-resize support).
+     * @type {null|ResizePersistence}
+     */
+    #resizePersistence = null;
+
+    /**
      * userId to color
      * @type {Map<string, string>}
      */
@@ -140,10 +146,18 @@ class ChatBoxWidget {
 
     /**
      * @param sendMessageCb {function(string): void}
+     * @param resizePersistence {{loadPersistedHeight?: (function(): number|null), persistHeight?: (function(number): void)}}
      */
-    constructor(sendMessageCb) {
+    constructor(sendMessageCb, resizePersistence = {}) {
         this.#sendMessageCb = sendMessageCb;
         this.enable(false);
+
+        this.#resizePersistence = new ResizePersistence({
+            container: document.getElementById('chat-box-container'),
+            loadPersistedHeight: resizePersistence.loadPersistedHeight,
+            persistHeight: resizePersistence.persistHeight,
+        });
+        this.#resizePersistence.start();
 
         this.#sendButton.addEventListener('click', () => {
             this.#sendMessage();
