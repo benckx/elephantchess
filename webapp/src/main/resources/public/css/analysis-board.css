@@ -156,7 +156,7 @@ table#opening-repository-table td.occurrence-cell .occurrence-cell-content {
 table#opening-repository-table td.occurrence-cell .occurrence-pct {
     font-size: 0.8em;
     opacity: 0.7;
-    min-width: 30px;
+    min-width: 42px;
     text-align: right;
 }
 

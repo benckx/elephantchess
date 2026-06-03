@@ -104,7 +104,7 @@ class OpeningRepositoryWidget {
 
                             let pctSpan = document.createElement('span');
                             pctSpan.className = 'occurrence-pct';
-                            pctSpan.innerText = `${Math.round(pct)}%`;
+                            pctSpan.innerText = `${pct.toFixed(1)}%`;
 
                             let countSpan = document.createElement('span');
                             countSpan.className = 'occurrence-count';
