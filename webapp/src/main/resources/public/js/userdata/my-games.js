@@ -95,7 +95,7 @@ class MyGamesPage extends InfiniteScrollPage {
             // div with tooltip
             const div = wrapInDiv(iconImg);
             div.id = 'tc-' + entry.gameId;
-            div.style.position = 'relative';
+            // div.style.position = 'relative';
             addToolTip(div, entry.timeControlCategory.toString().toLowerCase());
             return div;
         }
@@ -270,7 +270,7 @@ class MyGamesPage extends InfiniteScrollPage {
 
         entries.forEach((entry) => {
             // structure
-            const leftPane = buildDivWithClass('left-pane');
+            const timeControlPane = buildDivWithClass('time-control-icon-pane');
             const variantPane = buildDivWithClass('variant-pane');
             const middlePane = buildDivWithClass('middle-pane');
             const chatIndicatorPane = buildDivWithClass('indicator-pane');
@@ -281,7 +281,7 @@ class MyGamesPage extends InfiniteScrollPage {
 
             item.append(
                 variantPane,
-                leftPane,
+                timeControlPane,
                 middlePane,
                 chatIndicatorPane,
                 ratingDeltaIndicatorPane,
@@ -300,7 +300,7 @@ class MyGamesPage extends InfiniteScrollPage {
             }
 
             // left pane
-            leftPane.append(buildTimeControlCategoryIcon(entry));
+            timeControlPane.append(buildTimeControlCategoryIcon(entry));
 
             // variant pane
             variantPane.append(buildVariantCell(entry.variant));
