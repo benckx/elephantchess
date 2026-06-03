@@ -34,7 +34,10 @@ class PlayGamePage extends BasePage {
     /**
      * @type {MoveTreeWidget}
      */
-    #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+    #moveTreeWidget = new MoveTreeWidget({
+        containerId: 'move-tree-container',
+        ...moveTreeResizeCookiePersistence('pvp', 'move-tree-container')
+    });
 
     #redPlayerInfo = document.getElementById('red-player-info');
     #blackPlayerInfo = document.getElementById('black-player-info');
