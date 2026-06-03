@@ -275,6 +275,13 @@ function buildWebappBoardGuiOptions(overrides = {}) {
     };
 }
 
+/**
+ * Returns cookie-backed persistence callbacks for a move-tree widget instance.
+ *
+ * @param {string} pageKey
+ * @param {string} containerId
+ * @return {{loadPersistedHeight: function(): number|null, persistHeight: function(number): void}}
+ */
 function moveTreeResizeCookiePersistence(pageKey, containerId) {
     const cookieName = `${MOVE_TREE_WIDGET_HEIGHT_COOKIE_PREFIX}.${pageKey}.${containerId}`;
     return {
