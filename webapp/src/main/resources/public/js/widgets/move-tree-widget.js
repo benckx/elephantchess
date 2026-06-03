@@ -1264,25 +1264,46 @@ class MoveTreeWidget {
     #stopLoadingAnimationTimeout = null;
 
     #keyboardNavigation = true;
-    // ResizeObserver instance watching the move-tree container so drag-resize changes
-    // can be detected immediately when the browser supports ResizeObserver.
+    /**
+     * ResizeObserver instance watching the move-tree container so drag-resize changes
+     * can be detected immediately when the browser supports ResizeObserver.
+     * @type {null|ResizeObserver}
+     */
     #resizeObserver = null;
-    // Debounce timer id used to avoid writing the cookie on every single resize tick.
+    /**
+     * Debounce timer id used to avoid writing the cookie on every single resize tick.
+     * @type {null|number}
+     */
     #resizeSaveTimeout = null;
-    // Last persisted pixel height so unchanged values are skipped and don't trigger
-    // redundant cookie writes.
+    /**
+     * Last persisted pixel height so unchanged values are skipped and don't trigger
+     * redundant cookie writes.
+     * @type {null|number}
+     */
     #lastSavedHeight = null;
-    // Mouse/touch fallback listener for older browsers where ResizeObserver is not
-    // available, so resize persistence still works after drag release.
+    /**
+     * Mouse/touch fallback listener for older browsers where ResizeObserver is not
+     * available, so resize persistence still works after drag release.
+     * @type {null|(() => void)}
+     */
     #fallbackResizeListener = null;
-    // MutationObserver used to detect widget removal from DOM and clean up all
-    // resize-related listeners/observers.
+    /**
+     * MutationObserver used to detect widget removal from DOM and clean up all
+     * resize-related listeners/observers.
+     * @type {null|MutationObserver}
+     */
     #disposalObserver = null;
-    // Optional callback provided by the host page to load a previously saved height
-    // (for example from cookies).
+    /**
+     * Optional callback provided by the host page to load a previously saved height
+     * (for example from cookies).
+     * @type {null|(() => number)}
+     */
     #loadPersistedHeight = null;
-    // Optional callback provided by the host page to persist new heights while this
-    // widget remains storage-agnostic.
+    /**
+     * Optional callback provided by the host page to persist new heights while this
+     * widget remains storage-agnostic.
+     * @type {null|((height: number) => void)}
+     */
     #persistHeight = null;
 
     constructor(options) {
