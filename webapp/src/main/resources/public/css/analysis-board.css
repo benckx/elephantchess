@@ -135,8 +135,12 @@ table#opening-repository-table td.occurrence-cell .occurrence-bar {
     top: 0;
     right: 0;
     height: 100%;
-    background-color: #c9b48f;
+    background-color: #b0aca5;
     z-index: 0;
+}
+
+table#opening-repository-table tr:hover td.occurrence-cell .occurrence-bar {
+    background-color: #4f5560;
 }
 
 table#opening-repository-table td.occurrence-cell .occurrence-cell-content {
