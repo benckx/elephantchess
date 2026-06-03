@@ -57,11 +57,11 @@ class SettingPreferenceEventService(
         const val FLIP_OPPONENT_PIECES_SETTING = "setting.flip.opponent.pieces"
         const val PLAY_SOUNDS_SETTING = "setting.play.sounds"
         const val COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = "setting.colorblind.friendly.black.pieces"
-        const val MOVE_TREE_WIDGET_HEIGHT_PVP = "moveTreeWidget.height.pvp.move-tree-container"
-        const val MOVE_TREE_WIDGET_HEIGHT_PVB = "moveTreeWidget.height.pvb.move-tree-container"
-        const val MOVE_TREE_WIDGET_HEIGHT_SIMPLE_BOARD = "moveTreeWidget.height.simple-board.move-tree-container"
-        const val MOVE_TREE_WIDGET_HEIGHT_ANALYSIS = "moveTreeWidget.height.analysis.move-tree-container"
-        const val MOVE_TREE_WIDGET_HEIGHT_DATABASE_VIEWER = "moveTreeWidget.height.database-viewer.move-tree-container"
+        const val MOVE_TREE_WIDGET_HEIGHT_PVP = "pvp.move-tree-container.height"
+        const val MOVE_TREE_WIDGET_HEIGHT_PVB = "pvb.move-tree-container.height"
+        const val MOVE_TREE_WIDGET_HEIGHT_SIMPLE_BOARD = "simple-board.move-tree-container.height"
+        const val MOVE_TREE_WIDGET_HEIGHT_ANALYSIS = "analysis.move-tree-container.height"
+        const val MOVE_TREE_WIDGET_HEIGHT_DATABASE_VIEWER = "database-viewer.move-tree-container.height"
 
         val SETTING_COOKIE_NAMES = listOf(
             PIECE_STYLE_SETTING,
