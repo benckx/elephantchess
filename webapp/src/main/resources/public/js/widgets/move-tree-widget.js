@@ -1393,6 +1393,7 @@ class MoveTreeWidget {
             }, MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS);
         };
 
+        // Prefer ResizeObserver when available; keep a listener fallback for older browsers.
         if (typeof ResizeObserver !== 'undefined') {
             this.#resizeObserver = new ResizeObserver(() => saveHeight());
             this.#resizeObserver.observe(this.#mainContainer);
@@ -1403,6 +1404,7 @@ class MoveTreeWidget {
         }
 
         if (document.body !== null) {
+            // Stop persistence observers if this widget container gets detached from the DOM.
             this.#disposalObserver = new MutationObserver(() => {
                 if (!document.body.contains(this.#mainContainer)) {
                     this.#teardownResizePersistence();
