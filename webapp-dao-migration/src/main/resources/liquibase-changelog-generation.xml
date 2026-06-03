@@ -2366,6 +2366,11 @@
             <column name="flip_opponent_pieces" type="varchar(100)"/>
             <column name="play_sounds" type="varchar(100)"/>
             <column name="colorblind_friendly_black_pieces" type="varchar(100)"/>
+            <column name="move_tree_widget_height_pvp" type="varchar(100)"/>
+            <column name="move_tree_widget_height_pvb" type="varchar(100)"/>
+            <column name="move_tree_widget_height_simple_board" type="varchar(100)"/>
+            <column name="move_tree_widget_height_analysis" type="varchar(100)"/>
+            <column name="move_tree_widget_height_database_viewer" type="varchar(100)"/>
         </createTable>
     </changeSet>
 </databaseChangeLog>

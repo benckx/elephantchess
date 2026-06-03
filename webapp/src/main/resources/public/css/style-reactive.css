@@ -496,6 +496,10 @@
         height: 55px;
     }
 
+    .move-tree-container {
+        min-height: 55px;
+    }
+
     .move-tree-container .full-move-index-label {
         font-size: 20px;
     }
