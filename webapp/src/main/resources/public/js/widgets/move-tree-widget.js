@@ -1264,19 +1264,25 @@ class MoveTreeWidget {
     #stopLoadingAnimationTimeout = null;
 
     #keyboardNavigation = true;
-    // ResizeObserver instance used when available to detect container height changes.
+    // ResizeObserver instance watching the move-tree container so drag-resize changes
+    // can be detected immediately when the browser supports ResizeObserver.
     #resizeObserver = null;
-    // Debounce timeout for persisting resized height.
+    // Debounce timer id used to avoid writing the cookie on every single resize tick.
     #resizeSaveTimeout = null;
-    // Last height saved to persistence to avoid duplicate writes.
+    // Last persisted pixel height so unchanged values are skipped and don't trigger
+    // redundant cookie writes.
     #lastSavedHeight = null;
-    // Mouse/touch fallback listener used when ResizeObserver is unavailable.
+    // Mouse/touch fallback listener for older browsers where ResizeObserver is not
+    // available, so resize persistence still works after drag release.
     #fallbackResizeListener = null;
-    // Observes DOM removal so resize listeners can be cleaned up.
+    // MutationObserver used to detect widget removal from DOM and clean up all
+    // resize-related listeners/observers.
     #disposalObserver = null;
-    // Optional callback to retrieve persisted container height.
+    // Optional callback provided by the host page to load a previously saved height
+    // (for example from cookies).
     #loadPersistedHeight = null;
-    // Optional callback to persist container height updates.
+    // Optional callback provided by the host page to persist new heights while this
+    // widget remains storage-agnostic.
     #persistHeight = null;
 
     constructor(options) {
