@@ -36,6 +36,13 @@
     height: 84px;
 }
 
+.my-game-item .middle-pane .time-control-duration-cell {
+    color: #3a3a3a;
+    font-size: 13px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 .my-game-item .time-control-icon-pane {
     display: flex;
     align-items: center;
@@ -91,5 +98,9 @@
 
     .my-game-item .time-control-icon-pane {
         min-width: 80px;
+    }
+
+    .my-game-item .middle-pane .time-control-duration-cell {
+        font-size: 22px;
     }
 }

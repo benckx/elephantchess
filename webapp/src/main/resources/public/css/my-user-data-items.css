@@ -106,13 +106,6 @@
     justify-content: center;
 }
 
-.my-game-item .middle-pane .time-control-duration-cell {
-    color: #3a3a3a;
-    font-size: 11px;
-    line-height: 1;
-    white-space: nowrap;
-}
-
 .my-game-item .indicator-pane.rating-pane {
     flex-direction: column;
     gap: 4px;
@@ -265,10 +258,6 @@
     .my-game-item .left-pane {
         width: 110px;
         flex: 0 0 110px;
-    }
-
-    .my-game-item .middle-pane .time-control-duration-cell {
-        font-size: 18px;
     }
 
     .my-game-item .indicator-pane {
