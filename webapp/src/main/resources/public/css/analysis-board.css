@@ -123,39 +123,40 @@
     margin-bottom: 15px;
 }
 
-td.occurrence-cell {
+table#opening-repository-table td.occurrence-cell {
     width: 100px;
     position: relative;
     overflow: hidden;
     padding: 0;
 }
 
-.occurrence-bar {
+table#opening-repository-table td.occurrence-cell .occurrence-bar {
     position: absolute;
     top: 0;
     right: 0;
     height: 100%;
-    background-color: rgba(100, 90, 70, 0.18);
+    background-color: #c9b48f;
+    z-index: 0;
 }
 
-.occurrence-cell-content {
+table#opening-repository-table td.occurrence-cell .occurrence-cell-content {
     position: relative;
     z-index: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 6px;
-    gap: 4px;
+    padding: 3px 9px;
+    gap: 6px;
 }
 
-.occurrence-pct {
-    font-size: 0.75em;
-    opacity: 0.65;
-    min-width: 28px;
+table#opening-repository-table td.occurrence-cell .occurrence-pct {
+    font-size: 0.8em;
+    opacity: 0.7;
+    min-width: 30px;
     text-align: right;
 }
 
-.occurrence-count {
+table#opening-repository-table td.occurrence-cell .occurrence-count {
     font-weight: bold;
 }
 
