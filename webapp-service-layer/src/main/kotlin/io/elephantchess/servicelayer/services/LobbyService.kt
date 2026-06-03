@@ -73,6 +73,12 @@ class LobbyService(
     }
 
     private suspend fun refreshLiveGamesSessions() {
+        // remove the sessions that are not active anymore before doing any work
+        liveGamesSessions.removeIf { session ->
+            if (session.isClosed) logger.debug { "removing $session" }
+            session.isClosed
+        }
+
         if (liveGamesSessions.isNotEmpty()) {
             // Lobby sessions watch mostly the same games, so fetch everything once: collect
             // all watched games and, per game, the lowest tracked move index across sessions
@@ -93,12 +99,6 @@ class LobbyService(
                 val response = gameDataService.fetchLatestGamesUpdate(request)
                 val batchUpdate = LiveGamesBatchUpdate(response, batchMoveIndexes)
                 liveGamesSessions.forEach { session -> session.update(batchUpdate) }
-            }
-
-            // remove the sessions that are not active anymore
-            liveGamesSessions.removeIf { session ->
-                if (session.isClosed) logger.debug { "removing $session" }
-                session.isClosed
             }
         }
     }
