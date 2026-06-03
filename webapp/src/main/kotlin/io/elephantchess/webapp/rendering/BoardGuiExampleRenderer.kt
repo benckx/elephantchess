@@ -1,9 +1,12 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.HtmlRenderer.Companion.CDN_BASE
+import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
+import kotlinx.html.link
+import kotlinx.html.script
 
 class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
@@ -17,8 +20,9 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
                     if (useCdn) "${CDN_BASE}/static" else ""
                 ),
                 SimpleValueTagResolver("dist_version", DIST_VERSION),
-                snippetTagResolver("snippet_setup", "board-gui-setup"),
-                snippetTagResolver("snippet_headless", "board-gui-headless")
+                snippetTagResolver("snippet_setup", "board-gui-setup.html"),
+                snippetTagResolver("snipped_config", "board-gui-config.js"),
+                snippetTagResolver("snippet_headless", "board-gui-headless.html")
             )
         )
     }
@@ -29,7 +33,7 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
      */
     private fun snippetTagResolver(tagName: String, snippetName: String): TagResolver =
         CallbackTagResolver(tagName) {
-            val raw = resourceAsString("/templates/about/developers/snippets/$snippetName.html")
+            val raw = resourceAsString("/templates/about/developers/snippets/$snippetName")
                 ?: return@CallbackTagResolver ""
 
             raw
@@ -37,22 +41,20 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
                 .let(::escapeHtml)
         }
 
-    private fun boardGuiAssetsTagResolver(useCdn: Boolean): TagResolver =
-        CallbackTagResolver("board_gui_assets") {
-            var distPath = "/dist/$DIST_VERSION"
-            if (useCdn) {
-                distPath = "${CDN_BASE}$distPath"
-            }
-            """
-            <link rel="stylesheet" href="$distPath/board.min.css"/>
-            <script defer src="$distPath/xiangqi.min.js"></script>
-            <script defer src="$distPath/board-gui.min.js"></script>
-            """.trimIndent()
+    private fun boardGuiAssetsTagResolver(useCdn: Boolean): TagResolver {
+        val distPath = if (useCdn) "${CDN_BASE}/dist/$DIST_VERSION" else "/dist/$DIST_VERSION"
+
+        return KtorHtmlBuilderTagResolver("board_gui_assets") {
+            link(rel = "stylesheet", href = "$distPath/board.min.css")
+            script(src = "$distPath/xiangqi.min.js") { defer = true }
+            script(src = "$distPath/board-gui.min.js") { defer = true }
         }
+    }
 
     companion object {
 
-        const val DIST_VERSION = "0.1.0"
+        const val DIST_VERSION = "0.1.1"
 
     }
+
 }

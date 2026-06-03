@@ -1,0 +1,222 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Roadmap | elephantchess.io</title>
+    <meta name="description"
+          content="Roadmap and upcoming features for elephantchess.io. Vote on the next improvements you want to see first."/>
+    <meta property="og:url" content="https://elephantchess.io/about/roadmap"/>
+    <link rel="canonical" href="https://elephantchess.io/about/roadmap"/>
+    <link rel="stylesheet" href="/css/content-section-vote.css"/>
+    <script defer src="/js/default-base-page.js"></script>
+    <script defer src="/js/content-section-vote-widget.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text" data-page-id="roadmap">
+    <h1>Roadmap</h1>
+    <hr/>
+    <p>
+        Here are feature ideas we are currently considering. Use thumbs up/down to vote on each one and click
+        <i>Tell us more</i> after voting if you want to share more details.
+    </p>
+
+    <br/><br/>
+
+    <!-- variants -->
+    <h1 id="manchu-analysis">Analysis for Manchu variant</h1>
+    <hr/>
+    <p>
+        Extend analysis board support to the Manchu variant (that would be with Fairy Stockfish).
+    </p>
+    <h1 id="mini-xiangqi-variant">Mini Xiangqi variant</h1>
+    <hr/>
+    <p>
+        Add <a href="https://playstrategy.org/variant/minixiangqi" target="_blank">Mini Xiangqi variant.</a>
+    </p>
+    <h1 id="janggi">Janggi</h1>
+    <hr/>
+    <p>
+        Add <a href="https://en.wikipedia.org/wiki/Janggi" target="_blank">Janggi</a> (Korean chess).
+    </p>
+    <h1 id="other-games">Other games or variant?</h1>
+    <hr/>
+    <p>
+        Please tell us more.
+    </p>
+    <h1 id="seven-kingdoms-variant">Game of the Seven Kingdoms</h1>
+    <hr/>
+    <p>
+        The <a href="/7k/about">Game of the Seven Kingdoms</a> is a xiangqi variant that include 7 players. The plan
+        would be to also allow players to play multiple armies, so they wouldn't have to find 7 people to play but just
+        2, 3 or 4. Later we would also consider adding a 8 armies variant, so the game would be more balanced with 2, 4
+        or 8 players.
+    </p>
+    <p>
+        Some work on this variant project has already been done but it's not yet possible to play live online.
+    </p>
+
+    <br/><br/>
+
+    <!-- Puzzles -->
+    <h1 id="new-types-of-puzzles">New Types of Puzzles</h1>
+    <hr/>
+    <p>
+        More varied type of puzzles than "find the shorted path to mate", more like "find the best move" in this
+        situation.
+    </p>
+    <h1 id="puzzle-mobile-experience">Better Puzzle Experience on Mobile</h1>
+    <hr/>
+    <p>
+        Make the puzzle page more intuitive on mobile, with a dedicated action block at the bottom of the screen
+        (next puzzle, watch the solution, re-attempt).
+    </p>
+
+    <br/><br/>
+
+    <!-- Board - PvP and PvB -->
+    <h1 id="pre-move">Pre-move in games</h1>
+    <hr/>
+    <p>
+        Add a pre-move system for live games so players can queue one move while waiting for the opponent's move.
+    </p>
+    <h1 id="cheating-detection">Basic Cheating Detection</h1>
+    <hr/>
+    <p>
+        Add a basic cheating detection that checks, for each player-vs-player game, whether the moves match a
+        player-vs-bot game.
+    </p>
+
+    <br/><br/>
+
+    <!-- PvP chat -->
+    <h1 id="chat-emojis">Emoji Reactions in Chat</h1>
+    <hr/>
+    <p>
+        Add an emoji box to the in-game chat so players can quickly react during their games.
+    </p>
+    <h1 id="chat-profanity-filter">Profanity filter in chat</h1>
+    <hr/>
+    <p>
+        Have an option to see or not see offensive words. In English or maybe in other languages.
+    </p>
+    <h1 id="chat-anti-spamming">Anti-spamming in Chat</h1>
+    <hr/>
+    <p>
+        Throttle spammers in the chat, avoid receiving the same annoying message in a short span of time. Or maybe even
+        mute the chat.
+    </p>
+    <h1 id="chat-in-the-lobby">Chat box in the Lobby</h1>
+    <hr/>
+    <p>
+        Add a little chat box in the Lobby (i.e. on the home page).
+    </p>
+
+    <br/><br/>
+
+    <!-- PvB -->
+    <h1 id="pvb-with-time-control">Time Control in PvB</h1>
+    <hr/>
+    <p>
+        Play-vs-Bot has no time limit right now (beside the auto-cancel after 2 or 7 days of inactivity). We could add
+        time control to PvB.
+    </p>
+    <h1 id="pvb-with-retake">Retakes in PvB</h1>
+    <hr/>
+    <p>
+        Allow player to backtrack one or multiple steps when playing against the bot.
+    </p>
+
+    <br/><br/>
+
+    <!-- Analysis -->
+    <h1 id="vertical-eval-bar">Vertical Evaluation Bar</h1>
+    <hr/>
+    <p>
+        Vertical orientation for the engine evaluation bar on the analysis board, or when the analysis data is visible
+        on PvP, PvB or DB pages.
+    </p>
+
+    <br/><br/>
+
+    <!-- Database -->
+    <h1 id="opening-by-player">Opening by Player</h1>
+    <hr/>
+    <p>
+        Show most played opening on Database player page. That would also allow to play in PvB against a certain player
+        opening later.
+    </p>
+    <h1 id="opening-classification">Opening Classification</h1>
+    <hr/>
+    <p>
+        Align the opening repertoire data (visible in the <a href="/analysis">Analysis Board</a>, on the top left) with
+        established opening classification system like ECCO.
+    </p>
+    <h1 id="events-players-search">Search in Events and Players Lists</h1>
+    <hr/>
+    <p>
+        Add a search box to the events list and the players list to make it easier to find a specific event or
+        player.
+    </p>
+    <h1 id="event-media">Media on Event Pages</h1>
+    <hr/>
+    <p>
+        Allow embedding videos and other media (for example YouTube broadcasts) on event pages.
+    </p>
+
+    <br/><br/>
+
+    <!-- new features -->
+    <h1 id="articles-and-blogs">Articles and Blogs posts</h1>
+    <hr/>
+    <p>
+        Allow users to create their articles or their own little blog on elephantchess.io.
+    </p>
+    <h1 id="tournaments">Tournaments</h1>
+    <hr/>
+    <p>
+        Add the possibility to create and host tournaments.
+    </p>
+    <h1 id="forums">Forums</h1>
+    <hr/>
+    <p>
+        Old school forums. Probably would have to be organized by languages.
+    </p>
+
+    <br/><br/>
+
+    <!-- generic -->
+    <h1 id="general-better-pvp">A better PvP feature in general?</h1>
+    <hr/>
+    <p>
+        Is there something missing in the Player-vs-Player feature? Do you have any idea to make it better?
+    </p>
+    <h1 id="general-better-pvb">A better PvB feature in general?</h1>
+    <hr/>
+    <p>
+        Is there something missing in the Player-vs-Bot feature? Do you have any idea to make it better?
+    </p>
+    <h1 id="general-better-puzzles">A better Puzzle feature in general?</h1>
+    <hr/>
+    <p>
+        Is there something missing in the puzzle feature? Do you have any idea to make it better?
+    </p>
+    <h1 id="general-better-analysis">A better Analysis feature in general?</h1>
+    <hr/>
+    <p>
+        Is there something missing in the Analysis feature? Do you have any idea to make it better?
+    </p>
+    <h1 id="general-better-database">A better Database feature in general?</h1>
+    <hr/>
+    <p>
+        Is there something missing in the Database feature? Do you have any idea to make it better?
+    </p>
+    <h1 id="general-better-mobile">A better Mobile experience in general?</h1>
+    <hr/>
+    <p>
+        Is there something missing in the mobile version of the site? Do you have any idea to make it better?
+    </p>
+</div>
+{{footer}}
+{{kofi_floating_widget}}
+</body>
+</html>
