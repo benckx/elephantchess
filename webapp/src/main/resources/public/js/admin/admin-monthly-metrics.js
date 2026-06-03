@@ -45,21 +45,19 @@ class AdminMonthlyMetricsPage extends BasePage {
     #yearlyMetrics = ['PvP > 3', 'PvB > 3', 'puzzles', 'new guests'];
 
     /**
+     * Number of visualizations still to be rendered.
      * @type {number}
      */
-    #pendingRequests = 0;
+    #pendingCharts = 0;
 
     /**
+     * Total number of visualizations to render.
      * @type {number}
      */
-    #totalRequests = 0;
+    #totalCharts = 0;
 
     constructor() {
         super();
-        this.#pendingRequests = 3;
-        this.#totalRequests = this.#pendingRequests;
-        this.#updateLoadingDisplay();
-
         this.#fetchMonthlyData();
         this.#fetchOnlineUsersData();
         this.#fetchPvpJoinSourceData();
@@ -68,8 +66,6 @@ class AdminMonthlyMetricsPage extends BasePage {
     #fetchMonthlyData() {
         getAndHandle(`${ADMIN_URL_PREFIX}/monthly-stats`, json => {
             this.#monthlyData = new MultipleTimeSeriesDto(json);
-            this.#pendingRequests--;
-            this.#updateLoadingDisplay();
             this.#renderChartsIfReady();
         });
     }
@@ -77,8 +73,6 @@ class AdminMonthlyMetricsPage extends BasePage {
     #fetchOnlineUsersData() {
         getAndHandle(`${ADMIN_URL_PREFIX}/online-users-stats-by-month?months=12`, json => {
             this.#onlineUsersData = json;
-            this.#pendingRequests--;
-            this.#updateLoadingDisplay();
             this.#renderChartsIfReady();
         });
     }
@@ -86,8 +80,6 @@ class AdminMonthlyMetricsPage extends BasePage {
     #fetchPvpJoinSourceData() {
         getAndHandle(`${ADMIN_URL_PREFIX}/pvp-join-source-stats`, json => {
             this.#pvpJoinSourceData = json;
-            this.#pendingRequests--;
-            this.#updateLoadingDisplay();
             this.#renderChartsIfReady();
         });
     }
@@ -97,17 +89,17 @@ class AdminMonthlyMetricsPage extends BasePage {
         const totalDisplay = document.getElementById('total-requests-display');
         const loadingStatus = document.getElementById('loading-status');
 
-        const completedRequests = this.#totalRequests - this.#pendingRequests;
+        const completedCharts = this.#totalCharts - this.#pendingCharts;
 
         if (completedDisplay) {
-            completedDisplay.textContent = completedRequests.toString();
+            completedDisplay.textContent = completedCharts.toString();
         }
         if (totalDisplay) {
-            totalDisplay.textContent = this.#totalRequests.toString();
+            totalDisplay.textContent = this.#totalCharts.toString();
         }
 
         // Hide loading status when complete
-        if (loadingStatus && this.#pendingRequests === 0) {
+        if (loadingStatus && this.#pendingCharts === 0) {
             loadingStatus.style.display = 'none';
         }
     }
@@ -190,57 +182,70 @@ class AdminMonthlyMetricsPage extends BasePage {
     #renderAllCharts() {
         const container = document.getElementById('charts-container');
 
-        // render the 2 online users charts first
-        this.#renderOnlineUsersCharts(container);
+        // Build the list of visualization render tasks so the loading counter
+        // reflects the number of charts to render, and render them one at a
+        // time so the counter visibly progresses while the UI stays responsive.
+        const renderTasks = [
+            () => this.#renderOnlineUserChart(container, 'online users (avg)', 'chart-online-avg', this.#extractOnlineUsersData('avgTotal')),
+            () => this.#renderOnlineUserChart(container, 'online users (max)', 'chart-online-max', this.#extractOnlineUsersData('maxTotal')),
+            () => this.#renderCombinedPvPPvBChart(container),
+            () => this.#renderPvpPercentageChart(container),
+            () => this.#renderPvpJoinSourceChart(container),
+            ...this.#metrics.map((metricName, index) => () => this.#renderMetricChart(container, metricName, index)),
+            () => this.#renderYearlyChart(container),
+        ];
 
-        // render combined PvP + PvB stacked chart
-        this.#renderCombinedPvPPvBChart(container);
+        this.#pendingCharts = renderTasks.length;
+        this.#totalCharts = renderTasks.length;
+        this.#updateLoadingDisplay();
 
-        // render PvP > 3 percentage chart
-        this.#renderPvpPercentageChart(container);
-
-        // render PvP > 3 by join source chart
-        this.#renderPvpJoinSourceChart(container);
-
-        // render PvP, PvB, puzzles, new users, new guests charts
-        this.#metrics.forEach((metricName, index) => {
-            // Create chart container
-            const chartWrapper = document.createElement('div');
-            chartWrapper.style.marginBottom = '40px';
-
-            const title = document.createElement('h2');
-            title.innerText = metricName;
-            chartWrapper.appendChild(title);
-
-            const hr = document.createElement('hr');
-            chartWrapper.appendChild(hr);
-
-            const chartDiv = document.createElement('div');
-            chartDiv.id = `chart-${index}`;
-            chartDiv.style.height = '300px';
-            chartWrapper.appendChild(chartDiv);
-
-            container.appendChild(chartWrapper);
-
-            // Render chart
-            const data = this.#extractLast12MonthsDataForMetric(metricName);
-            new SingleMetricBarChart(`chart-${index}`, metricName, data).render();
-        });
-
-        // Render yearly chart
-        this.#renderYearlyChart(container);
+        this.#runRenderTasks(renderTasks, 0);
     }
 
     /**
-     * Render online users average and maximum charts
-     * @param container {HTMLElement}
+     * Render visualizations one at a time, updating the loading counter after
+     * each so progress is visible and the browser can repaint between charts.
+     * @param tasks {Array<function(): void>}
+     * @param index {number}
      */
-    #renderOnlineUsersCharts(container) {
-        const avgData = this.#extractOnlineUsersData('avgTotal');
-        const maxData = this.#extractOnlineUsersData('maxTotal');
+    #runRenderTasks(tasks, index) {
+        if (index >= tasks.length) {
+            return;
+        }
 
-        this.#renderOnlineUserChart(container, 'online users (avg)', 'chart-online-avg', avgData);
-        this.#renderOnlineUserChart(container, 'online users (max)', 'chart-online-max', maxData);
+        tasks[index]();
+        this.#pendingCharts--;
+        this.#updateLoadingDisplay();
+
+        setTimeout(() => this.#runRenderTasks(tasks, index + 1), 0);
+    }
+
+    /**
+     * Render a single monthly metric chart
+     * @param container {HTMLElement}
+     * @param metricName {string}
+     * @param index {number}
+     */
+    #renderMetricChart(container, metricName, index) {
+        const chartWrapper = document.createElement('div');
+        chartWrapper.style.marginBottom = '40px';
+
+        const title = document.createElement('h2');
+        title.innerText = metricName;
+        chartWrapper.appendChild(title);
+
+        const hr = document.createElement('hr');
+        chartWrapper.appendChild(hr);
+
+        const chartDiv = document.createElement('div');
+        chartDiv.id = `chart-${index}`;
+        chartDiv.style.height = '300px';
+        chartWrapper.appendChild(chartDiv);
+
+        container.appendChild(chartWrapper);
+
+        const data = this.#extractLast12MonthsDataForMetric(metricName);
+        new SingleMetricBarChart(`chart-${index}`, metricName, data).render();
     }
 
     /**
