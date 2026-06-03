@@ -190,8 +190,7 @@ const PieceStyleSetting = Object.freeze({
  *                                                    CSS filter for improved contrast.
  * @property {boolean}     [flipOpponentPieces]     - if true, opponent piece images are rotated
  *                                                    180° to simulate the OTB appearance.
- * @property {boolean}     [showRiverAreaColor]     - if true, the river area is highlighted.
- * @property {boolean}     [showPalaceAreaColor]    - if true, palace areas are highlighted.
+ * @property {boolean}     [showColoredAreas]       - if true, river/palace areas are highlighted.
  * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
  *                                                    file numbers are rendered in WXF mode.
  */
@@ -209,8 +208,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     pieceStyle: PieceStyleSetting.DEFAULT,
     colorblindFriendlyBlackPieces: false,
     flipOpponentPieces: false,
-    showRiverAreaColor: false,
-    showPalaceAreaColor: false,
+    showColoredAreas: false,
     fileNumbersStyle: FileNumbersStyle.DEFAULT,
 });
 
@@ -275,8 +273,7 @@ class BoardGui {
         this.#boardContainer = document.getElementById(this.#options.elementId);
         this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
         this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
-        this.#renderRiverAreaColorSetting(this.#options.showRiverAreaColor);
-        this.#renderPalaceAreaColorSetting(this.#options.showPalaceAreaColor);
+        this.#renderColoredAreasSetting(this.#options.showColoredAreas);
         this.#drawBoard();
         this.#drawPieces(); // FIXME: useful?
 
@@ -1800,23 +1797,12 @@ class BoardGui {
     /**
      * @param enabled {boolean}
      */
-    setShowRiverAreaColorEnabled(enabled) {
-        if (this.#options.showRiverAreaColor === enabled) {
+    setShowColoredAreasEnabled(enabled) {
+        if (this.#options.showColoredAreas === enabled) {
             return;
         }
-        this.#options = Object.freeze({...this.#options, showRiverAreaColor: enabled});
-        this.#renderRiverAreaColorSetting(enabled);
-    }
-
-    /**
-     * @param enabled {boolean}
-     */
-    setShowPalaceAreaColorEnabled(enabled) {
-        if (this.#options.showPalaceAreaColor === enabled) {
-            return;
-        }
-        this.#options = Object.freeze({...this.#options, showPalaceAreaColor: enabled});
-        this.#renderPalaceAreaColorSetting(enabled);
+        this.#options = Object.freeze({...this.#options, showColoredAreas: enabled});
+        this.#renderColoredAreasSetting(enabled);
     }
 
     /**
@@ -1908,15 +1894,8 @@ class BoardGui {
     /**
      * @param enabled {boolean}
      */
-    #renderRiverAreaColorSetting(enabled) {
-        this.#boardContainer.classList.toggle('highlight-river-area', enabled);
-    }
-
-    /**
-     * @param enabled {boolean}
-     */
-    #renderPalaceAreaColorSetting(enabled) {
-        this.#boardContainer.classList.toggle('highlight-palace-area', enabled);
+    #renderColoredAreasSetting(enabled) {
+        this.#boardContainer.classList.toggle('highlight-colored-areas', enabled);
     }
 
     #areCoordinatesVisible() {
