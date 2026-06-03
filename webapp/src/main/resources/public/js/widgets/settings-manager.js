@@ -275,6 +275,29 @@ function buildWebappBoardGuiOptions(overrides = {}) {
 }
 
 /**
+ * Returns cookie-backed persistence callbacks for a move-tree widget instance.
+ *
+ * @param {string} pageKey
+ * @param {string} containerId
+ * @return {{loadPersistedHeight: function(): number|null, persistHeight: function(number): void}}
+ */
+function moveTreeResizeCookiePersistence(pageKey, containerId) {
+    const cookieName = `${pageKey}.${containerId}.height`;
+    return {
+        loadPersistedHeight: () => {
+            const rawValue = getCookie(cookieName);
+            if (rawValue === null) {
+                return null;
+            }
+            return Number.parseInt(rawValue, 10);
+        },
+        persistHeight: (height) => {
+            setCookie(cookieName, height.toString(), CHROME_COOKIE_MAX_TTL);
+        }
+    };
+}
+
+/**
  * Convenience wrapper around {@link buildWebappBoardGuiOptions} that
  * instantiates a {@link BoardGui} with the resolved webapp defaults.
  *
