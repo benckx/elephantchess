@@ -1340,6 +1340,8 @@ class MoveTreeWidget {
         this.#addLoadingIconIfNeeded();
     }
 
+    // Restores a previously persisted move-tree height when it is valid.
+    // Invalid, missing, or too-small values are ignored.
     #applySavedHeight() {
         if (this.#loadPersistedHeight === null) {
             return;
@@ -1362,6 +1364,8 @@ class MoveTreeWidget {
         this.#lastSavedHeight = persistedHeight;
     }
 
+    // Reads the widget's CSS min-height and returns it as a pixel integer.
+    // Falls back to 0 when parsing is not possible.
     #minResizeHeight() {
         const parsed = Number.parseInt(window.getComputedStyle(this.#mainContainer).minHeight, 10);
         if (Number.isFinite(parsed) && parsed > 0) {
@@ -1370,6 +1374,8 @@ class MoveTreeWidget {
         return 0;
     }
 
+    // Watches resize changes and saves height through the persistence callback.
+    // Cleans up observers/listeners when the widget leaves the DOM.
     #setUpResizePersistence() {
         const saveHeight = () => {
             if (this.#resizeSaveTimeout !== null) {
