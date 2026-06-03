@@ -7,6 +7,16 @@ import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateResponse
 import kotlinx.coroutines.channels.ChannelResult
 
 /**
+ * Batched update handed to every live games session: the [response] is fetched once
+ * for the union of all watched games (using the lowest tracked move index per game,
+ * see [batchMoveIndexes]) so each session can slice out only the moves it still needs.
+ */
+data class LiveGamesBatchUpdate(
+    val response: LatestGamesUpdateResponse,
+    val batchMoveIndexes: Map<String, Int>,
+)
+
+/**
  * WebSocket session for a lobby client watching the live games thumbnails.
  *
  * The client declares which games it watches via [updateSubscription]; the last
@@ -16,7 +26,7 @@ import kotlinx.coroutines.channels.ChannelResult
  */
 class LiveGamesWebSocketSession(
     private val sendCb: (LatestGamesUpdateResponse) -> ChannelResult<Unit>,
-) : WebSocketSession<LatestGamesUpdateResponse>() {
+) : WebSocketSession<LiveGamesBatchUpdate>() {
 
     private var subscribedGameIds: List<GameId> = emptyList()
     private val moveIndexes = mutableMapOf<String, Int>()
@@ -37,8 +47,13 @@ class LiveGamesWebSocketSession(
             moveIndexes = moveIndexes.toMap()
         )
 
-    override fun update(update: LatestGamesUpdateResponse) {
-        val changedEntries = update.entries.filter { entry ->
+    override fun update(update: LiveGamesBatchUpdate) {
+        val watchedIds = subscribedGameIds.map { it.id }.toSet()
+        val entries = update.response.entries
+            .filter { entry -> entry.gameId.id in watchedIds }
+            .map { entry -> sliceForSession(entry, update.batchMoveIndexes) }
+
+        val changedEntries = entries.filter { entry ->
             val id = entry.gameId.id
             val firstTime = id !in lastStatuses
             val statusChanged = lastStatuses[id] != entry.status
@@ -57,10 +72,29 @@ class LiveGamesWebSocketSession(
         }
 
         // advance the tracked indexes/statuses so the next request only asks for newer moves
-        update.entries.forEach { entry ->
+        entries.forEach { entry ->
             entry.moveIndex?.let { moveIndexes[entry.gameId.id] = it }
             lastStatuses[entry.gameId.id] = entry.status
         }
+    }
+
+    /**
+     * The batched moves start at [LiveGamesBatchUpdate.batchMoveIndexes] (the lowest index
+     * any session needed), so drop the moves this session has already seen. On the first
+     * update for a game (no tracked index yet) no moves are animated: the client loads the fen.
+     */
+    private fun sliceForSession(
+        entry: LatestGamesUpdateResponse.Entry,
+        batchMoveIndexes: Map<String, Int>,
+    ): LatestGamesUpdateResponse.Entry {
+        val tracked = moveIndexes[entry.gameId.id]
+        val batchFrom = batchMoveIndexes[entry.gameId.id]
+        val newMoves = when {
+            tracked == null -> emptyList()
+            batchFrom == null -> entry.newMoves
+            else -> entry.newMoves.drop(tracked - batchFrom)
+        }
+        return entry.copy(newMoves = newMoves)
     }
 
     override fun toString() =

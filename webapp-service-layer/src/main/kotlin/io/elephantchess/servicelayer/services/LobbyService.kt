@@ -4,7 +4,9 @@ import io.elephantchess.db.services.UpcomingEventDaoService
 import io.elephantchess.model.GameId
 import io.elephantchess.servicelayer.dto.lobby.GetUpcomingEventsResponse
 import io.elephantchess.servicelayer.dto.lobby.GetUpcomingEventsResponse.UpcomingEvent
+import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateRequest
 import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateResponse
+import io.elephantchess.servicelayer.services.ws.LiveGamesBatchUpdate
 import io.elephantchess.servicelayer.services.ws.LiveGamesWebSocketSession
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.github.oshai.kotlinlogging.KLogger
@@ -72,13 +74,25 @@ class LobbyService(
 
     private suspend fun refreshLiveGamesSessions() {
         if (liveGamesSessions.isNotEmpty()) {
-            // TODO: not very optimized: lobby sessions watch mostly the same games -> some
-            //  information is fetched once per session instead of being batched across sessions
-            liveGamesSessions.forEach { session ->
-                val request = session.currentRequest()
-                if (request.gameIds.isNotEmpty()) {
-                    session.update(gameDataService.fetchLatestGamesUpdate(request))
+            // Lobby sessions watch mostly the same games, so fetch everything once: collect
+            // all watched games and, per game, the lowest tracked move index across sessions
+            // (so the single fetch covers every move any session may still need). Each session
+            // then slices out only the moves it should actually receive.
+            val requests = liveGamesSessions.map { session -> session.currentRequest() }
+            val allGameIds = requests.flatMap { request -> request.gameIds }.distinct()
+
+            if (allGameIds.isNotEmpty()) {
+                val batchMoveIndexes = mutableMapOf<String, Int>()
+                requests.forEach { request ->
+                    request.moveIndexes.forEach { (gameId, index) ->
+                        batchMoveIndexes.merge(gameId, index, ::minOf)
+                    }
                 }
+
+                val request = LatestGamesUpdateRequest(allGameIds, batchMoveIndexes)
+                val response = gameDataService.fetchLatestGamesUpdate(request)
+                val batchUpdate = LiveGamesBatchUpdate(response, batchMoveIndexes)
+                liveGamesSessions.forEach { session -> session.update(batchUpdate) }
             }
 
             // remove the sessions that are not active anymore
