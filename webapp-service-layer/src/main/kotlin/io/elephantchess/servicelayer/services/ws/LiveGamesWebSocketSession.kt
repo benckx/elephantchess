@@ -92,7 +92,7 @@ class LiveGamesWebSocketSession(
         val newMoves = when {
             tracked == null -> emptyList()
             batchFrom == null -> entry.newMoves
-            else -> entry.newMoves.drop(tracked - batchFrom)
+            else -> entry.newMoves.drop(maxOf(0, tracked - batchFrom))
         }
         return entry.copy(newMoves = newMoves)
     }
