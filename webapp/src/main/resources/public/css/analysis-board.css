@@ -125,21 +125,38 @@
 
 td.occurrence-cell {
     width: 100px;
-    text-align: center;
-}
-
-.occurrence-bar-container {
-    width: 100%;
-    height: 5px;
-    margin-top: 3px;
-    display: flex;
-    justify-content: flex-end;
+    position: relative;
+    overflow: hidden;
+    padding: 0;
 }
 
 .occurrence-bar {
+    position: absolute;
+    top: 0;
+    right: 0;
     height: 100%;
-    background-color: #888;
-    border-radius: 2px;
+    background-color: rgba(100, 90, 70, 0.18);
+}
+
+.occurrence-cell-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 6px;
+    gap: 4px;
+}
+
+.occurrence-pct {
+    font-size: 0.75em;
+    opacity: 0.65;
+    min-width: 28px;
+    text-align: right;
+}
+
+.occurrence-count {
+    font-weight: bold;
 }
 
 #opening-repository-container-loading-mask {
@@ -371,11 +388,6 @@ input[type='text']#fen-export-input {
 
     .bar-indicator-container {
         height: 26px;
-    }
-
-    .occurrence-bar-container {
-        height: 8px;
-        margin-top: 5px;
     }
 
     /* engine box */

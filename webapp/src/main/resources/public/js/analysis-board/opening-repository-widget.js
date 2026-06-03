@@ -94,15 +94,24 @@ class OpeningRepositoryWidget {
                             // content
                             moveCell.innerText = moveLabel;
 
-                            let occurrencesCount = document.createElement('div');
-                            occurrencesCount.innerText = formatNumber(entry.occurrences);
-                            let occurrenceBarContainer = document.createElement('div');
-                            occurrenceBarContainer.className = 'occurrence-bar-container';
+                            let pct = totalOccurrences > 0 ? (entry.occurrences / totalOccurrences * 100) : 0;
                             let occurrenceBar = document.createElement('div');
                             occurrenceBar.className = 'occurrence-bar';
-                            occurrenceBar.style.width = totalOccurrences > 0 ? `${(entry.occurrences / totalOccurrences * 100).toFixed(1)}%` : '0%';
-                            occurrenceBarContainer.append(occurrenceBar);
-                            occurrencesCell.append(occurrencesCount, occurrenceBarContainer);
+                            occurrenceBar.style.width = `${pct.toFixed(1)}%`;
+
+                            let occurrenceCellContent = document.createElement('div');
+                            occurrenceCellContent.className = 'occurrence-cell-content';
+
+                            let pctSpan = document.createElement('span');
+                            pctSpan.className = 'occurrence-pct';
+                            pctSpan.innerText = `${Math.round(pct)}%`;
+
+                            let countSpan = document.createElement('span');
+                            countSpan.className = 'occurrence-count';
+                            countSpan.innerText = formatNumber(entry.occurrences);
+
+                            occurrenceCellContent.append(pctSpan, countSpan);
+                            occurrencesCell.append(occurrenceBar, occurrenceCellContent);
 
                             let indicator = new GameOutcomeIndicator(entry.redWinsRate, entry.blackWinsRate);
                             outcomeCell.innerHTML = '';
