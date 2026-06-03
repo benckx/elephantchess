@@ -111,8 +111,10 @@ class ResizePersistence {
         }
     }
 
-    // Restores a previously persisted height (when valid) and starts watching for
-    // further resize changes.
+    /**
+     * Restores a previously persisted height (when valid) and starts watching for
+     * further resize changes so they can be persisted.
+     */
     start() {
         this.#applySavedHeight();
         this.#setUp();
@@ -207,6 +209,11 @@ class ResizePersistence {
         }
     }
 
+    /**
+     * Stops all resize observers/listeners and clears any pending save timer.
+     * Called automatically when the container leaves the DOM, but can also be
+     * invoked explicitly by a host that disposes of the widget.
+     */
     teardown() {
         if (this.#resizeObserver !== null) {
             this.#resizeObserver.disconnect();
