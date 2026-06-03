@@ -26,6 +26,8 @@ const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
 const FLIP_OPPONENT_PIECES_SETTING = 'setting.flip.opponent.pieces';
 const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
+const SHOW_RIVER_AREA_COLOR_SETTING = 'setting.show.river.area.color';
+const SHOW_PALACE_AREA_COLOR_SETTING = 'setting.show.palace.area.color';
 
 const MoveFormatSetting = Object.freeze({
     WXF_DOT: 'WXF_DOT',
@@ -116,6 +118,34 @@ class SettingsManager {
      */
     set isColorblindFriendlyBlackPiecesEnabled(value) {
         setCookie(COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isRiverAreaColorEnabled() {
+        return getCookie(SHOW_RIVER_AREA_COLOR_SETTING) === 'true';
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isRiverAreaColorEnabled(value) {
+        setCookie(SHOW_RIVER_AREA_COLOR_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isPalaceAreaColorEnabled() {
+        return getCookie(SHOW_PALACE_AREA_COLOR_SETTING) === 'true';
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isPalaceAreaColorEnabled(value) {
+        setCookie(SHOW_PALACE_AREA_COLOR_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
     }
 
     /**
@@ -266,6 +296,8 @@ function buildWebappBoardGuiOptions(overrides = {}) {
         pieceStyle: settingsManager.pieceStyle,
         colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
         flipOpponentPieces: settingsManager.isFlipOpponentPiecesEnabled,
+        showRiverAreaColor: settingsManager.isRiverAreaColorEnabled,
+        showPalaceAreaColor: settingsManager.isPalaceAreaColorEnabled,
         fileNumbersStyle: settingsManager.getFileNumbersStyle(),
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
@@ -371,6 +403,10 @@ class SettingsGui {
 
     #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
     #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
+    #riverAreaColorEnabledRadio = document.getElementById('river-area-color-enabled-radio');
+    #riverAreaColorDisabledRadio = document.getElementById('river-area-color-disabled-radio');
+    #palaceAreaColorEnabledRadio = document.getElementById('palace-area-color-enabled-radio');
+    #palaceAreaColorDisabledRadio = document.getElementById('palace-area-color-disabled-radio');
 
     // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
@@ -506,6 +542,44 @@ class SettingsGui {
                 this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(false));
             }
         }
+
+        // river area color
+        const updateRiverAreaColorRadios = (enabled) => {
+            this.#riverAreaColorEnabledRadio.checked = enabled;
+            this.#riverAreaColorDisabledRadio.checked = !enabled;
+        };
+        updateRiverAreaColorRadios(this.#settingsManager.isRiverAreaColorEnabled);
+        this.#riverAreaColorEnabledRadio.onchange = () => {
+            if (this.#riverAreaColorEnabledRadio.checked) {
+                this.#settingsManager.isRiverAreaColorEnabled = true;
+                this.#boardGuis.forEach(board => board.setShowRiverAreaColorEnabled(true));
+            }
+        };
+        this.#riverAreaColorDisabledRadio.onchange = () => {
+            if (this.#riverAreaColorDisabledRadio.checked) {
+                this.#settingsManager.isRiverAreaColorEnabled = false;
+                this.#boardGuis.forEach(board => board.setShowRiverAreaColorEnabled(false));
+            }
+        };
+
+        // palace area color
+        const updatePalaceAreaColorRadios = (enabled) => {
+            this.#palaceAreaColorEnabledRadio.checked = enabled;
+            this.#palaceAreaColorDisabledRadio.checked = !enabled;
+        };
+        updatePalaceAreaColorRadios(this.#settingsManager.isPalaceAreaColorEnabled);
+        this.#palaceAreaColorEnabledRadio.onchange = () => {
+            if (this.#palaceAreaColorEnabledRadio.checked) {
+                this.#settingsManager.isPalaceAreaColorEnabled = true;
+                this.#boardGuis.forEach(board => board.setShowPalaceAreaColorEnabled(true));
+            }
+        };
+        this.#palaceAreaColorDisabledRadio.onchange = () => {
+            if (this.#palaceAreaColorDisabledRadio.checked) {
+                this.#settingsManager.isPalaceAreaColorEnabled = false;
+                this.#boardGuis.forEach(board => board.setShowPalaceAreaColorEnabled(false));
+            }
+        };
 
         // flip opponent pieces
         const updateFlipOpponentPiecesRadios = (enabled) => {

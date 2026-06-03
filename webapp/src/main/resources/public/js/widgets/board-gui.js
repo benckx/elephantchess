@@ -190,6 +190,8 @@ const PieceStyleSetting = Object.freeze({
  *                                                    CSS filter for improved contrast.
  * @property {boolean}     [flipOpponentPieces]     - if true, opponent piece images are rotated
  *                                                    180° to simulate the OTB appearance.
+ * @property {boolean}     [showRiverAreaColor]     - if true, the river area is highlighted.
+ * @property {boolean}     [showPalaceAreaColor]    - if true, palace areas are highlighted.
  * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
  *                                                    file numbers are rendered in WXF mode.
  */
@@ -207,6 +209,8 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     pieceStyle: PieceStyleSetting.DEFAULT,
     colorblindFriendlyBlackPieces: false,
     flipOpponentPieces: false,
+    showRiverAreaColor: false,
+    showPalaceAreaColor: false,
     fileNumbersStyle: FileNumbersStyle.DEFAULT,
 });
 
@@ -271,6 +275,8 @@ class BoardGui {
         this.#boardContainer = document.getElementById(this.#options.elementId);
         this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
         this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
+        this.#renderRiverAreaColorSetting(this.#options.showRiverAreaColor);
+        this.#renderPalaceAreaColorSetting(this.#options.showPalaceAreaColor);
         this.#drawBoard();
         this.#drawPieces(); // FIXME: useful?
 
@@ -1173,6 +1179,7 @@ class BoardGui {
                 if (y === 5) {
                     if (x === 0) {
                         const river = buildDivWithClass('large-river');
+                        river.classList.add('board-area-river');
 
                         if (!this.#options.mini) {
                             const riverOfTheChuContainer = buildDivWithClass('river-of-the-chu');
@@ -1194,6 +1201,10 @@ class BoardGui {
                     if (x < BOARD_WIDTH - 1 && y > 0) {
                         const visibleSquare = buildDivWithClass('visible-square');
                         pieceHolder.appendChild(visibleSquare);
+
+                        if ((x === 3 || x === 4) && (y === 1 || y === 2 || y === 8 || y === 9)) {
+                            visibleSquare.classList.add('board-area-palace');
+                        }
 
                         if ((x === 3 && y === 2) || (x === 4 && y === 1) || (x === 3 && y === 9) || (x === 4 && y === 8)) {
                             if (this.#options.mini) {
@@ -1787,6 +1798,28 @@ class BoardGui {
     }
 
     /**
+     * @param enabled {boolean}
+     */
+    setShowRiverAreaColorEnabled(enabled) {
+        if (this.#options.showRiverAreaColor === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, showRiverAreaColor: enabled});
+        this.#renderRiverAreaColorSetting(enabled);
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    setShowPalaceAreaColorEnabled(enabled) {
+        if (this.#options.showPalaceAreaColor === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, showPalaceAreaColor: enabled});
+        this.#renderPalaceAreaColorSetting(enabled);
+    }
+
+    /**
      * @param playSoundsEnabled {boolean}
      */
     updatePlaySounds(playSoundsEnabled) {
@@ -1870,6 +1903,20 @@ class BoardGui {
                 this.#boardContainer.classList.add('flip-opponent-pieces-black');
             }
         }
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderRiverAreaColorSetting(enabled) {
+        this.#boardContainer.classList.toggle('highlight-river-area', enabled);
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderPalaceAreaColorSetting(enabled) {
+        this.#boardContainer.classList.toggle('highlight-palace-area', enabled);
     }
 
     #areCoordinatesVisible() {

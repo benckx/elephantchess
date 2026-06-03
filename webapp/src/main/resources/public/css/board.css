@@ -214,6 +214,14 @@ a.board-outer-container-link-mask {
     height: 100%;
 }
 
+.highlight-river-area .board-area-river {
+    background-color: #dceeff;
+}
+
+.highlight-palace-area .board-area-palace {
+    background-color: #deefd8;
+}
+
 .visible-square-last-file,
 .large-river {
     border-right-width: 2px;
