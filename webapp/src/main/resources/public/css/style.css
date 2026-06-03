@@ -1428,6 +1428,7 @@ table.info-box-sub-table td.values {
     box-shadow: rgba(0, 0, 0, 0.55) 0 4px 12px;
     padding: 12px 19px;
     box-sizing: border-box;
+    height: 500px;
     max-height: calc(100vh - 120px);
     overflow-y: auto;
 }
