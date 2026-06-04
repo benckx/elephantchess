@@ -3,7 +3,7 @@
 	<g stroke="#000000" stroke-width="22" fill="none">
 		<rect x="11" y="11" width="219" height="219" rx="10"/>
 		<rect x="282" y="11" width="219" height="219" rx="10"/>
-		<rect x="11" y="282" width="219" height="219" rx="10"/>
+		<rect x="11" y="282" width="219" height="219" rx="10" fill="#d3d3d3"/>
 		<rect x="282" y="282" width="219" height="219" rx="10"/>
 	</g>
 </svg>
