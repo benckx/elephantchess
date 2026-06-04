@@ -26,6 +26,9 @@ const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
 const FLIP_OPPONENT_PIECES_SETTING = 'setting.flip.opponent.pieces';
 const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
 const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
+const SHOW_COLORED_AREAS_SETTING = 'setting.show.colored.areas';
+const SHOW_RIVER_AREA_COLOR_SETTING = 'setting.show.river.area.color';
+const SHOW_PALACE_AREA_COLOR_SETTING = 'setting.show.palace.area.color';
 
 const MoveFormatSetting = Object.freeze({
     WXF_DOT: 'WXF_DOT',
@@ -116,6 +119,25 @@ class SettingsManager {
      */
     set isColorblindFriendlyBlackPiecesEnabled(value) {
         setCookie(COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isColoredAreasEnabled() {
+        const cookieValue = getCookie(SHOW_COLORED_AREAS_SETTING);
+        if (cookieValue !== null) {
+            return cookieValue === 'true';
+        }
+        return getCookie(SHOW_RIVER_AREA_COLOR_SETTING) === 'true'
+            || getCookie(SHOW_PALACE_AREA_COLOR_SETTING) === 'true';
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isColoredAreasEnabled(value) {
+        setCookie(SHOW_COLORED_AREAS_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
     }
 
     /**
@@ -266,6 +288,7 @@ function buildWebappBoardGuiOptions(overrides = {}) {
         pieceStyle: settingsManager.pieceStyle,
         colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
         flipOpponentPieces: settingsManager.isFlipOpponentPiecesEnabled,
+        showColoredAreas: settingsManager.isColoredAreasEnabled,
         fileNumbersStyle: settingsManager.getFileNumbersStyle(),
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
@@ -371,6 +394,8 @@ class SettingsGui {
 
     #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
     #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
+    #coloredAreasEnabledRadio = document.getElementById('colored-areas-enabled-radio');
+    #coloredAreasDisabledRadio = document.getElementById('colored-areas-disabled-radio');
 
     // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
@@ -506,6 +531,25 @@ class SettingsGui {
                 this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(false));
             }
         }
+
+        // colored areas
+        const updateColoredAreasRadios = (enabled) => {
+            this.#coloredAreasEnabledRadio.checked = enabled;
+            this.#coloredAreasDisabledRadio.checked = !enabled;
+        };
+        updateColoredAreasRadios(this.#settingsManager.isColoredAreasEnabled);
+        this.#coloredAreasEnabledRadio.onchange = () => {
+            if (this.#coloredAreasEnabledRadio.checked) {
+                this.#settingsManager.isColoredAreasEnabled = true;
+                this.#boardGuis.forEach(board => board.setShowColoredAreasEnabled(true));
+            }
+        };
+        this.#coloredAreasDisabledRadio.onchange = () => {
+            if (this.#coloredAreasDisabledRadio.checked) {
+                this.#settingsManager.isColoredAreasEnabled = false;
+                this.#boardGuis.forEach(board => board.setShowColoredAreasEnabled(false));
+            }
+        };
 
         // flip opponent pieces
         const updateFlipOpponentPiecesRadios = (enabled) => {
