@@ -190,6 +190,7 @@ const PieceStyleSetting = Object.freeze({
  *                                                    CSS filter for improved contrast.
  * @property {boolean}     [flipOpponentPieces]     - if true, opponent piece images are rotated
  *                                                    180° to simulate the OTB appearance.
+ * @property {boolean}     [showColoredAreas]       - if true, river/palace areas are highlighted.
  * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
  *                                                    file numbers are rendered in WXF mode.
  */
@@ -207,6 +208,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     pieceStyle: PieceStyleSetting.DEFAULT,
     colorblindFriendlyBlackPieces: false,
     flipOpponentPieces: false,
+    showColoredAreas: false,
     fileNumbersStyle: FileNumbersStyle.DEFAULT,
 });
 
@@ -271,6 +273,7 @@ class BoardGui {
         this.#boardContainer = document.getElementById(this.#options.elementId);
         this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
         this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
+        this.#renderColoredAreasSetting(this.#options.showColoredAreas);
         this.#drawBoard();
         this.#drawPieces(); // FIXME: useful?
 
@@ -1173,6 +1176,7 @@ class BoardGui {
                 if (y === 5) {
                     if (x === 0) {
                         const river = buildDivWithClass('large-river');
+                        river.classList.add('board-area-river');
 
                         if (!this.#options.mini) {
                             const riverOfTheChuContainer = buildDivWithClass('river-of-the-chu');
@@ -1194,6 +1198,12 @@ class BoardGui {
                     if (x < BOARD_WIDTH - 1 && y > 0) {
                         const visibleSquare = buildDivWithClass('visible-square');
                         pieceHolder.appendChild(visibleSquare);
+
+                        // a palace square cell is bounded by two diagonally
+                        // opposite intersections that both sit inside a palace
+                        if (new Position(x, y).isInAnyPalace() && new Position(x + 1, y - 1).isInAnyPalace()) {
+                            visibleSquare.classList.add('board-area-palace');
+                        }
 
                         if ((x === 3 && y === 2) || (x === 4 && y === 1) || (x === 3 && y === 9) || (x === 4 && y === 8)) {
                             if (this.#options.mini) {
@@ -1787,6 +1797,17 @@ class BoardGui {
     }
 
     /**
+     * @param enabled {boolean}
+     */
+    setShowColoredAreasEnabled(enabled) {
+        if (this.#options.showColoredAreas === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, showColoredAreas: enabled});
+        this.#renderColoredAreasSetting(enabled);
+    }
+
+    /**
      * @param playSoundsEnabled {boolean}
      */
     updatePlaySounds(playSoundsEnabled) {
@@ -1870,6 +1891,13 @@ class BoardGui {
                 this.#boardContainer.classList.add('flip-opponent-pieces-black');
             }
         }
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderColoredAreasSetting(enabled) {
+        this.#boardContainer.classList.toggle('highlight-colored-areas', enabled);
     }
 
     #areCoordinatesVisible() {

@@ -530,14 +530,15 @@
     }
 
     #settings-info-box-container #advanced-settings-toggle {
-        font-size: 24px;
+        font-size: 34px;
     }
 
     #settings-info-box-container #advanced-settings-box {
         position: fixed;
         top: 50%;
         left: 50%;
-        width: calc(100vw - 24px);
+        width: 84vw;
+        height: auto;
         max-height: calc(100vh - 24px);
         transform: translate(-50%, -50%);
         z-index: 1202;
