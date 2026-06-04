@@ -1199,7 +1199,9 @@ class BoardGui {
                         const visibleSquare = buildDivWithClass('visible-square');
                         pieceHolder.appendChild(visibleSquare);
 
-                        if ((x === 3 || x === 4) && (y === 1 || y === 2 || y === 8 || y === 9)) {
+                        // a palace square cell is bounded by two diagonally
+                        // opposite intersections that both sit inside a palace
+                        if (new Position(x, y).isInPalace() && new Position(x + 1, y - 1).isInPalace()) {
                             visibleSquare.classList.add('board-area-palace');
                         }
 
