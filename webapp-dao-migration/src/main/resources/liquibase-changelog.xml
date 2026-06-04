@@ -2456,8 +2456,97 @@
             <column name="email_confirmed_at" type="timestamp with time zone"/>
         </addColumn>
     </changeSet>
-
     <changeSet id="0099" author="benckx">
+        <comment>Add variant column to game and bot_game tables for Manchu variant support</comment>
+        <addColumn tableName="game">
+            <column name="variant" type="varchar(20)" defaultValue="XIANGQI"/>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="variant" type="varchar(20)" defaultValue="XIANGQI"/>
+        </addColumn>
+        <addColumn tableName="user">
+            <column name="game_rating_manchu_bullet" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_blitz" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_rapid" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_classical" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_several_days" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_correspondence" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0100" author="benckx">
+        <addColumn tableName="bot_game">
+            <column name="opening_mode" type="varchar(50)" defaultValue="BY_FREQUENCY">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0101" author="benckx">
+        <createTable tableName="content_section_vote">
+            <column name="page_id" type="varchar(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="section_id" type="varchar(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="up_voted" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feedback" type="varchar(1000)"/>
+            <column name="creation_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="page_id, section_id, user_id"
+                       constraintName="content_section_vote_pkey"
+                       tableName="content_section_vote"/>
+    </changeSet>
+    <changeSet id="0102" author="benckx">
+        <comment>Anonymous sample of cookie-based user preferences</comment>
+        <createTable tableName="setting_preference_event">
+            <column name="event_id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="event_time" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_type" type="varchar(24)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="piece_style" type="varchar(100)"/>
+            <column name="show_coordinates" type="varchar(100)"/>
+            <column name="move_format" type="varchar(100)"/>
+            <column name="move_node_eval_format" type="varchar(100)"/>
+            <column name="show_analytics_arrows" type="varchar(100)"/>
+            <column name="coordinates_style" type="varchar(100)"/>
+            <column name="flip_opponent_pieces" type="varchar(100)"/>
+            <column name="play_sounds" type="varchar(100)"/>
+            <column name="colorblind_friendly_black_pieces" type="varchar(100)"/>
+            <column name="move_tree_widget_height_pvp" type="varchar(100)"/>
+            <column name="move_tree_widget_height_pvb" type="varchar(100)"/>
+            <column name="move_tree_widget_height_simple_board" type="varchar(100)"/>
+            <column name="move_tree_widget_height_analysis" type="varchar(100)"/>
+            <column name="move_tree_widget_height_database_viewer" type="varchar(100)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="0103" author="benckx">
         <comment>Add opt-in setting for offline opponent-flagged notifications</comment>
         <addColumn tableName="user">
             <column name="email_notification_enabled_opponent_flagged"

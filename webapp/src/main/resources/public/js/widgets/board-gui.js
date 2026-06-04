@@ -70,6 +70,8 @@ pieceImageNames.set('R', 'red_chariot.png');
 pieceImageNames.set('r', 'black_chariot.png');
 pieceImageNames.set('P', 'red_soldier.png');
 pieceImageNames.set('p', 'black_soldier.png');
+// Manchu super-chariot (combines chariot + horse + cannon powers), red only, displayed as chariot
+pieceImageNames.set('M', 'red_chariot.png');
 
 const diagonalDescending = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="0" x2="100" y2="100" vector-effect="non-scaling-stroke" stroke="black" /></svg>';
 const diagonalRising = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="100" x2="100" y2="0" vector-effect="non-scaling-stroke" stroke="black"/></svg>';
@@ -147,6 +149,12 @@ const FileNumbersStyle = Object.freeze({
     CHINESE_BOTH: 'CHINESE_BOTH',
     /** Chinese numerals on red's side; Arabic numerals on black's side (default). */
     CHINESE_RED_ONLY: 'CHINESE_RED_ONLY',
+    /** Chinese numerals on black's side; Arabic numerals on red's side. */
+    CHINESE_BLACK_ONLY: 'CHINESE_BLACK_ONLY',
+    /** Chinese numerals on the bottom (lower) side of the screen; Arabic on the top side. */
+    CHINESE_LOWER_ONLY: 'CHINESE_LOWER_ONLY',
+    /** Chinese numerals on the top side of the screen; Arabic on the bottom side. */
+    CHINESE_TOP_ONLY: 'CHINESE_TOP_ONLY',
     DEFAULT: 'CHINESE_RED_ONLY',
 });
 
@@ -171,6 +179,7 @@ const PieceStyleSetting = Object.freeze({
  * @property {boolean}     [mini]                   - whether this is a mini (thumb) board
  * @property {boolean}     [forceRenderChecks]      - render checks even on mini boards
  * @property {boolean}     [svg]                    - enable the SVG overlay (used for engine arrows)
+ * @property {boolean}     [playSounds]             - whether board sounds are enabled
  * @property {string}      [assetsBaseUrl]          - base URL prepended to every static asset path
  *                                                    (images, audio). Default: `https://elephantchess.io`.
  *                                                    Pass an empty string to use relative paths (e.g. when
@@ -179,6 +188,8 @@ const PieceStyleSetting = Object.freeze({
  *                                                    image folder.
  * @property {boolean}     [colorblindFriendlyBlackPieces] - if true, black piece images get an invert
  *                                                    CSS filter for improved contrast.
+ * @property {boolean}     [flipOpponentPieces]     - if true, opponent piece images are rotated
+ *                                                    180° to simulate the OTB appearance.
  * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
  *                                                    file numbers are rendered in WXF mode.
  */
@@ -191,9 +202,11 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     mini: false,
     forceRenderChecks: false,
     svg: false,
+    playSounds: true,
     assetsBaseUrl: 'https://cdn.elephantchess.io/static',
     pieceStyle: PieceStyleSetting.DEFAULT,
     colorblindFriendlyBlackPieces: false,
+    flipOpponentPieces: false,
     fileNumbersStyle: FileNumbersStyle.DEFAULT,
 });
 
@@ -231,6 +244,21 @@ class BoardGui {
 
     #isSafari = false;
 
+    /** @type {function():void|null} - cancels any in-flight animation */
+    #cancelAnimation = null;
+
+    /** @type {Position|null} - source square of an in-progress touch drag */
+    #touchDragFromPosition = null;
+
+    /** @type {HTMLElement|null} - floating ghost image that follows the finger */
+    #touchDragGhost = null;
+
+    /** @type {number} - cached width of the touch drag ghost in pixels */
+    #touchDragGhostWidth = 0;
+
+    /** @type {number} - cached height of the touch drag ghost in pixels */
+    #touchDragGhostHeight = 0;
+
     /**
      * @param {BoardGuiOptions} [options]
      */
@@ -242,6 +270,7 @@ class BoardGui {
 
         this.#boardContainer = document.getElementById(this.#options.elementId);
         this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
+        this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
         this.#drawBoard();
         this.#drawPieces(); // FIXME: useful?
 
@@ -255,6 +284,12 @@ class BoardGui {
                     boardGui.#hideAllPiecePlaceHolders();
                 }
             });
+
+        // Touch drag-and-drop: listen at document level so the drag continues
+        // even if the finger moves outside the board container.
+        // document.addEventListener('touchmove', (e) => this.#touchDragMove(e), {passive: false});
+        // document.addEventListener('touchend', (e) => this.#touchDragEnd(e));
+        // document.addEventListener('touchcancel', () => this.#touchDragCancel());
 
         if (this.#options.svg) {
             window.onresize = function () {
@@ -311,6 +346,13 @@ class BoardGui {
      * @param targetFen {string}
      */
     #drawPositionAnimated(targetFen) {
+        // Cancel any in-flight animation: commit its target immediately so the
+        // new animation can diff cleanly from a fully-drawn state.
+        if (this.#cancelAnimation) {
+            this.#cancelAnimation();
+            this.#cancelAnimation = null;
+        }
+
         this.#hideAllPiecePlaceHolders();
         this.#hideHighlightedLastMove();
 
@@ -320,13 +362,29 @@ class BoardGui {
         targetBoard.loadFen(targetFen);
         const targetPieces = targetBoard.listPiecePositions();
 
-        this.#animatePiecesTo(targetPieces, 200, () => {
+        let animationCompleted = false;
+        const cancelFn = this.#animatePiecesTo(targetPieces, 200, () => {
             // commit the new board state in the model
+            animationCompleted = true;
+            this.#cancelAnimation = null;
             this.#board.loadFen(targetFen);
             this.updateHighlightedChecks();
             this.#resetDraggableCursors();
             this.#afterDrawPositionsListeners.forEach(listener => listener());
         });
+
+        // Wrap cancelFn so that interrupting the animation also commits the
+        // target position synchronously, leaving the board in a clean state
+        // for the next animation to diff against.
+        // `animationCompleted` guards against the synchronous no-op bail-out
+        // path in #animatePiecesTo where onDone fires before this wrapper is
+        // assigned.
+        this.#cancelAnimation = () => {
+            if (!animationCompleted) {
+                cancelFn();
+                this.#drawPositionNoAnimation(targetFen);
+            }
+        };
     }
 
     outputFen() {
@@ -416,11 +474,13 @@ class BoardGui {
             }
             this.updateHighlightedChecks();
             this.#resetDraggableCursors();
-            this.#clickSound
-                .play()
-                .catch(e => {
-                    // ignored, spam error in console in dev
-                });
+            if (this.#options.playSounds) {
+                this.#clickSound
+                    .play()
+                    .catch(() => {
+                        // ignored, spam error in console in dev
+                    });
+            }
             if (afterMoveCallback != null) {
                 afterMoveCallback()
             }
@@ -509,10 +569,10 @@ class BoardGui {
         const toRemove = currentBoardMisplacements.filter((_, i) => !usedCurrent.has(i));
         const toAdd = targetBoardMisplacements.filter((_, j) => !usedTarget.has(j));
 
-        // nothing to animate: bail out early
+        // nothing to animate: bail out early; return a no-op cancel function
         if (animatedMoves.length === 0 && toRemove.length === 0 && toAdd.length === 0) {
             onDone();
-            return;
+            return () => {};
         }
 
         const transitionStr = `transform ${durationMs}ms ease, opacity ${durationMs}ms ease`;
@@ -576,7 +636,7 @@ class BoardGui {
             }
         });
 
-        setTimeout(() => {
+        const timerId = setTimeout(() => {
             // drop transient animation images
             cleanups.forEach(c => c());
 
@@ -596,6 +656,12 @@ class BoardGui {
             onDone();
             this.#forceSafariLayoutRefresh();
         }, durationMs + 20);
+
+        return () => {
+            clearTimeout(timerId);
+            cleanups.forEach(c => c());
+            addedImages.forEach(img => img.remove());
+        };
     }
 
     /**
@@ -628,11 +694,6 @@ class BoardGui {
     }
 
     /**
-     * Animate a single move by delegating to the generic diff-based animator
-     * {@link #animatePiecesTo}. The target position is computed on a copy of
-     * the current board so the real model is only mutated once the animation
-     * completes. This replaces the old xiangqi-shape-aware setInterval based
-     * {@code #animateMove}.
      *
      * @param move {HalfMove}
      * @param onDone {function}
@@ -989,6 +1050,18 @@ class BoardGui {
         }
     }
 
+    /**
+     * @param e {DragEvent}
+     * @param to {Position}
+     */
+    #handlePieceHolderDropEvent(e, to) {
+        const uci = e.dataTransfer.getData('text/plain');
+        const from = Position.parseUci(uci);
+        const move = new HalfMove(from, to);
+        this.registerMoveIfLegal(move, false);
+        this.#hideAllPiecePlaceHolders();
+    }
+
     #clickedOnPiece(position) {
         if (this.#isPlayerMoveEnabled) {
             let board = this.#board;
@@ -1151,6 +1224,7 @@ class BoardGui {
             this.#boardContainer.appendChild(row);
         }
 
+        // TODO: looks like something that could be done in CSS
         // add bottom border to last row of visible squares
         if (this.#flippedRed) {
             for (let x = 0; x < BOARD_WIDTH - 1; x++) {
@@ -1213,13 +1287,20 @@ class BoardGui {
             const isWfxOriented = orientation !== CoordinatesOrientation.ALGEBRAIC;
 
             const fileNumbersStyle = this.#options.fileNumbersStyle;
-            // For a given side ('red' | 'black'), should we render Chinese numerals?
-            const isChineseOnSide = (side) => {
+            // For a given side ('red' | 'black') and its screen position ('top' | 'bottom'),
+            // should we render Chinese numerals?
+            const isChineseOnSide = (side, position) => {
                 switch (fileNumbersStyle) {
                     case FileNumbersStyle.ARABIC_BOTH:
                         return false;
                     case FileNumbersStyle.CHINESE_BOTH:
                         return true;
+                    case FileNumbersStyle.CHINESE_BLACK_ONLY:
+                        return side === 'black';
+                    case FileNumbersStyle.CHINESE_LOWER_ONLY:
+                        return position === 'bottom';
+                    case FileNumbersStyle.CHINESE_TOP_ONLY:
+                        return position === 'top';
                     case FileNumbersStyle.CHINESE_RED_ONLY:
                     default:
                         return side === 'red';
@@ -1234,7 +1315,7 @@ class BoardGui {
                 }
                 // top row shows black's side when red is at the bottom, and red's side when flipped
                 const topSide = this.#flippedRed ? 'black' : 'red';
-                const topChinese = isChineseOnSide(topSide);
+                const topChinese = isChineseOnSide(topSide, 'top');
 
                 for (let x = 0; x < BOARD_WIDTH; x++) {
                     // actual text
@@ -1262,7 +1343,7 @@ class BoardGui {
             }
             // bottom row shows red's side when red is at the bottom, and black's side when flipped
             const bottomSide = this.#flippedRed ? 'red' : 'black';
-            const bottomChinese = isChineseOnSide(bottomSide);
+            const bottomChinese = isChineseOnSide(bottomSide, 'bottom');
             for (let x = 0; x < BOARD_WIDTH; x++) {
                 // actual text
                 let label;
@@ -1349,11 +1430,14 @@ class BoardGui {
         img.className = 'piece-image';
         if (isBlackPiece(pieceChar)) {
             img.classList.add('piece-image-black');
+        } else if (isRedPiece(pieceChar)) {
+            img.classList.add('piece-image-red');
         }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
         img.addEventListener('click', () => this.#clickedOnPiece(position));
         img.addEventListener('dragstart', (e) => this.#dragStart(e, position));
         img.addEventListener('dragend', () => this.#dragEnd());
+        // img.addEventListener('touchstart', (e) => this.#touchDragStart(e, position), {passive: false});
         square.prepend(img);
     }
 
@@ -1410,8 +1494,6 @@ class BoardGui {
      * @param position {Position}
      */
     #dragStart(e, position) {
-        console.log('drag start');
-
         if (this.isPlayerMoveEnabled && this.#board.getColorAt(position) === this.#board.getColorToPlay()) {
             e.dataTransfer.setData('text/plain', position.toUci());
             this.#showSelectedPositionAndLegalMovesPlaceHolders(position);
@@ -1421,21 +1503,104 @@ class BoardGui {
     }
 
     #dragEnd() {
-        console.log('drag end');
-
         this.#hideAllPiecePlaceHolders();
     }
 
+    // -------------------------------------------------------------------------
+    // Touch drag-and-drop (mobile support)
+    // -------------------------------------------------------------------------
+
     /**
-     * @param e {DragEvent}
-     * @param to {Position}
+     * @param e {TouchEvent}
+     * @param position {Position}
      */
-    #handlePieceHolderDropEvent(e, to) {
-        const uci = e.dataTransfer.getData('text/plain');
-        const from = Position.parseUci(uci);
-        const move = new HalfMove(from, to);
-        this.registerMoveIfLegal(move, false);
+    #touchDragStart(e, position) {
+        if (!this.isPlayerMoveEnabled || this.#board.getColorAt(position) !== this.#board.getColorToPlay()) {
+            return;
+        }
+
+        e.preventDefault(); // prevent page scroll while dragging a piece
+
+        const touch = e.touches[0];
+        this.#touchDragFromPosition = position;
+        this.#showSelectedPositionAndLegalMovesPlaceHolders(position);
+
+        // Build a floating ghost image that follows the finger
+        const img = e.currentTarget;
+        const rect = img.getBoundingClientRect();
+        const ghost = img.cloneNode(false);
+        ghost.className = 'piece-image touch-drag-ghost';
+        ghost.style.position = 'fixed';
+        ghost.style.pointerEvents = 'none';
+        ghost.style.zIndex = '1000';
+        ghost.style.width = rect.width + 'px';
+        ghost.style.height = rect.height + 'px';
+        ghost.style.margin = '0';
+        ghost.style.opacity = '0.85';
+        this.#moveTouchGhost(ghost, touch.clientX, touch.clientY, rect.width, rect.height);
+        document.body.appendChild(ghost);
+        this.#touchDragGhost = ghost;
+        this.#touchDragGhostWidth = rect.width;
+        this.#touchDragGhostHeight = rect.height;
+    }
+
+    /**
+     * @param e {TouchEvent}
+     */
+    #touchDragMove(e) {
+        if (this.#touchDragFromPosition === null) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        this.#moveTouchGhost(this.#touchDragGhost, touch.clientX, touch.clientY, this.#touchDragGhostWidth, this.#touchDragGhostHeight);
+    }
+
+    /**
+     * @param e {TouchEvent}
+     */
+    #touchDragEnd(e) {
+        if (this.#touchDragFromPosition === null) return;
+
+        // Remove the ghost before calling elementFromPoint so the ghost
+        // element does not obscure the target square.
+        if (this.#touchDragGhost) {
+            this.#touchDragGhost.remove();
+            this.#touchDragGhost = null;
+        }
+
+        const touch = e.changedTouches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (element != null) {
+            const square = element.closest('.piece-holder');
+            if (square != null && square.id) {
+                const to = parsePositionFromElementId(square.id);
+                const move = new HalfMove(this.#touchDragFromPosition, to);
+                this.registerMoveIfLegal(move, false);
+            }
+        }
+
         this.#hideAllPiecePlaceHolders();
+        this.#touchDragFromPosition = null;
+    }
+
+    #touchDragCancel() {
+        if (this.#touchDragGhost) {
+            this.#touchDragGhost.remove();
+            this.#touchDragGhost = null;
+        }
+        this.#hideAllPiecePlaceHolders();
+        this.#touchDragFromPosition = null;
+    }
+
+    /**
+     * @param ghost {HTMLElement}
+     * @param clientX {number}
+     * @param clientY {number}
+     * @param width {number}
+     * @param height {number}
+     */
+    #moveTouchGhost(ghost, clientX, clientY, width, height) {
+        ghost.style.left = (clientX - width / 2) + 'px';
+        ghost.style.top = (clientY - height / 2) + 'px';
     }
 
     #unDrawAllPieces() {
@@ -1505,9 +1670,13 @@ class BoardGui {
         this.#currentShowingLegalMovesFor = position;
     }
 
+    /**
+     * @param move {HalfMove}
+     * @param color {string} CSS color
+     */
     highlightDebugMove(move, color) {
-        let from = this.#locateLegalMovePlaceHolderAt(move.from);
-        let to = this.#locateLegalMovePlaceHolderAt(move.to);
+        const from = this.#locateLegalMovePlaceHolderAt(move.from);
+        const to = this.#locateLegalMovePlaceHolderAt(move.to);
         from.classList.add('highlighted-debug');
         from.style.backgroundColor = color;
         to.classList.add('highlighted-debug');
@@ -1516,7 +1685,7 @@ class BoardGui {
 
     hideAllDebugHighlight() {
         Position.getAll().forEach(position => {
-            let element = this.#locateLegalMovePlaceHolderAt(position);
+            const element = this.#locateLegalMovePlaceHolderAt(position);
             element.classList.remove('highlighted-debug');
             element.style.backgroundColor = null;
         });
@@ -1568,21 +1737,11 @@ class BoardGui {
         this.#drawPieces();
         this.updateHighlightedChecks();
         this.#resetDraggableCursors();
+        this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
 
         const newColor = this.#flippedRed ? Color.RED : Color.BLACK;
         this.#afterFlipListeners.forEach(listener => listener(newColor));
         this.#forceSafariLayoutRefresh();
-    }
-
-    /**
-     *
-     * @param moveFormat {string}
-     */
-    updateMoveFormat(moveFormat) {
-        // easy solution: complete redraw (TODO: can more subtle)
-        this.#boardContainer.innerHTML = '';
-        this.#drawBoard();
-        this.#drawPieces();
     }
 
     reRenderPieces() {
@@ -1617,6 +1776,24 @@ class BoardGui {
     }
 
     /**
+     * @param enabled {boolean}
+     */
+    setFlipOpponentPiecesEnabled(enabled) {
+        if (this.#options.flipOpponentPieces === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, flipOpponentPieces: enabled});
+        this.#renderFlipOpponentPiecesSetting(enabled);
+    }
+
+    /**
+     * @param playSoundsEnabled {boolean}
+     */
+    updatePlaySounds(playSoundsEnabled) {
+        this.#options = Object.freeze({...this.#options, playSounds: playSoundsEnabled});
+    }
+
+    /**
      * Change which numeral system is used for file coordinates in WXF mode.
      *
      * @param fileNumbersStyle {string} one of {@link FileNumbersStyle}
@@ -1646,6 +1823,7 @@ class BoardGui {
     #redrawCoordinates() {
         // remove existing file-coordinate (top + bottom) and right-side rank labels
         // (rank labels only exist in algebraic mode but the selector is harmless if absent)
+        // noinspection CssUnusedSymbol
         document.querySelectorAll(`#${this.#options.elementId} .file-coordinates-top,
                                    #${this.#options.elementId} .file-coordinates-bottom,
                                    #${this.#options.elementId} .rows-coordinates-right`)
@@ -1677,6 +1855,21 @@ class BoardGui {
      */
     #renderColorblindFriendlyBlackPiecesSetting(enabled) {
         this.#boardContainer.classList.toggle('colorblind-friendly-black-pieces', enabled);
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderFlipOpponentPiecesSetting(enabled) {
+        this.#boardContainer.classList.remove('flip-opponent-pieces-red', 'flip-opponent-pieces-black');
+
+        if (enabled) {
+            if (!this.#flippedRed) {
+                this.#boardContainer.classList.add('flip-opponent-pieces-red');
+            } else {
+                this.#boardContainer.classList.add('flip-opponent-pieces-black');
+            }
+        }
     }
 
     #areCoordinatesVisible() {

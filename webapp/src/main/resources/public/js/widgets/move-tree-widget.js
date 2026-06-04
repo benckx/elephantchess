@@ -19,6 +19,7 @@
 
 const COLOR_DELTA_FOR_ONE_LEVEL = 10;
 const HOVERING_COLOR = '#01138a';
+const MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS = 150;
 
 const BRANCHES_COLORS = [
     '#01138a',
@@ -590,6 +591,14 @@ class MoveTree {
     set startFen(value) {
         this.#startFen = value;
         this.#useDefaultFen = (value === DEFAULT_START_FEN);
+    }
+
+    get startFen() {
+        if (this.#useDefaultFen) {
+            return DEFAULT_START_FEN;
+        } else {
+            return this.#startFen;
+        }
     }
 
     isEmpty() {
@@ -1256,6 +1265,54 @@ class MoveTreeWidget {
 
     #keyboardNavigation = true;
 
+    /**
+     * ResizeObserver instance watching the move-tree container so drag-resize changes
+     * can be detected immediately when the browser supports ResizeObserver.
+     * @type {null|ResizeObserver}
+     */
+    #resizeObserver = null;
+
+    /**
+     * Debounce timer id used to avoid writing the cookie on every single resize tick.
+     * @type {null|number}
+     */
+    #resizeSaveTimeout = null;
+
+    /**
+     * Last persisted pixel height so unchanged values are skipped and don't trigger
+     * redundant cookie writes.
+     * @type {null|number}
+     */
+    #lastSavedHeight = null;
+
+    /**
+     * Mouse/touch fallback listener for older browsers where ResizeObserver is not
+     * available, so resize persistence still works after drag release.
+     * @type {null|(() => void)}
+     */
+    #fallbackResizeListener = null;
+
+    /**
+     * MutationObserver used to detect widget removal from DOM and clean up all
+     * resize-related listeners/observers.
+     * @type {null|MutationObserver}
+     */
+    #disposalObserver = null;
+
+    /**
+     * Optional callback provided by the host page to load a previously saved height
+     * (for example from cookies).
+     * @type {null|(() => number)}
+     */
+    #loadPersistedHeight = null;
+
+    /**
+     * Optional callback provided by the host page to persist new heights while this
+     * widget remains storage-agnostic.
+     * @type {null|((height: number) => void)}
+     */
+    #persistHeight = null;
+
     constructor(options) {
         // options
         if (options.isContextualMenuEnabled !== undefined) {
@@ -1264,6 +1321,12 @@ class MoveTreeWidget {
 
         if (options.isLoadingAnimationEnabled !== undefined) {
             this.#isLoadingAnimationEnabled = options.isLoadingAnimationEnabled;
+        }
+        if (options.loadPersistedHeight !== undefined) {
+            this.#loadPersistedHeight = options.loadPersistedHeight;
+        }
+        if (options.persistHeight !== undefined) {
+            this.#persistHeight = options.persistHeight;
         }
 
         const containerId = options.containerId;
@@ -1274,6 +1337,8 @@ class MoveTreeWidget {
         // init
         this.#mainContainer = document.getElementById(containerId);
         this.#mainContainer.innerHTML = '';
+        this.#applySavedHeight();
+        this.#setUpResizePersistence();
 
         // contextual menu if enabled
         if (this.#isContextualMenuEnabled) {
@@ -1301,6 +1366,100 @@ class MoveTreeWidget {
         }
 
         this.#addLoadingIconIfNeeded();
+    }
+
+    // Restores a previously persisted move-tree height when it is valid.
+    // Invalid, missing, or too-small values are ignored.
+    #applySavedHeight() {
+        if (this.#loadPersistedHeight === null) {
+            return;
+        }
+
+        const persistedHeight = this.#loadPersistedHeight();
+        if (persistedHeight === null) {
+            return;
+        }
+
+        if (
+            !Number.isFinite(persistedHeight)
+            || !Number.isInteger(persistedHeight)
+            || persistedHeight < this.#minResizeHeight()
+        ) {
+            return;
+        }
+
+        this.#mainContainer.style.height = `${persistedHeight}px`;
+        this.#lastSavedHeight = persistedHeight;
+    }
+
+    // Reads the widget's CSS min-height and returns it as a pixel integer.
+    // Falls back to 0 when parsing is not possible.
+    #minResizeHeight() {
+        const parsed = Number.parseInt(window.getComputedStyle(this.#mainContainer).minHeight, 10);
+        if (Number.isFinite(parsed) && parsed > 0) {
+            return parsed;
+        }
+        return 0;
+    }
+
+    // Watches resize changes and saves height through the persistence callback.
+    // Cleans up observers/listeners when the widget leaves the DOM.
+    #setUpResizePersistence() {
+        const saveHeight = () => {
+            if (this.#resizeSaveTimeout !== null) {
+                clearTimeout(this.#resizeSaveTimeout);
+            }
+
+            this.#resizeSaveTimeout = setTimeout(() => {
+                const height = this.#mainContainer.offsetHeight;
+                if (height >= this.#minResizeHeight() && height !== this.#lastSavedHeight) {
+                    if (this.#persistHeight !== null) {
+                        this.#persistHeight(height);
+                    }
+                    this.#lastSavedHeight = height;
+                }
+            }, MOVE_TREE_WIDGET_SAVE_DEBOUNCE_MS);
+        };
+
+        // Prefer ResizeObserver when available; keep a listener fallback for older browsers.
+        if (typeof ResizeObserver !== 'undefined') {
+            this.#resizeObserver = new ResizeObserver(() => saveHeight());
+            this.#resizeObserver.observe(this.#mainContainer);
+        } else {
+            this.#fallbackResizeListener = saveHeight;
+            this.#mainContainer.addEventListener('mouseup', this.#fallbackResizeListener);
+            this.#mainContainer.addEventListener('touchend', this.#fallbackResizeListener);
+        }
+
+        if (document.body !== null) {
+            // Stop persistence observers if this widget container gets detached from the DOM.
+            this.#disposalObserver = new MutationObserver(() => {
+                if (!document.body.contains(this.#mainContainer)) {
+                    this.#teardownResizePersistence();
+                }
+            });
+            this.#disposalObserver.observe(document.body, {childList: true, subtree: true});
+        }
+    }
+
+    #teardownResizePersistence() {
+        if (this.#resizeObserver !== null) {
+            this.#resizeObserver.disconnect();
+            this.#resizeObserver = null;
+        }
+        if (this.#fallbackResizeListener !== null) {
+            this.#mainContainer.removeEventListener('mouseup', this.#fallbackResizeListener);
+            this.#mainContainer.removeEventListener('touchend', this.#fallbackResizeListener);
+            this.#fallbackResizeListener = null;
+        }
+        if (this.#resizeSaveTimeout !== null) {
+            clearTimeout(this.#resizeSaveTimeout);
+            this.#resizeSaveTimeout = null;
+        }
+        if (this.#disposalObserver !== null) {
+            this.#disposalObserver.disconnect();
+            this.#disposalObserver = null;
+        }
     }
 
     enableKeyboardNavigation() {
@@ -1506,6 +1665,10 @@ class MoveTreeWidget {
         this.#startFen = fen;
         this.#useDefaultFen = (fen === DEFAULT_START_FEN);
         this.#moveTree.startFen = fen;
+    }
+
+    get startFen() {
+        return this.#moveTree.startFen;
     }
 
     // COMPLEX GETTERS/SETTERS
@@ -1810,6 +1973,11 @@ class MoveTreeWidget {
         if (node) {
             this.#handleClickEvent(node);
         }
+    }
+
+    navigateToStart() {
+        this.#renderStartFenToBoard();
+        this.#navigationListeners.forEach(listener => listener());
     }
 
     /**

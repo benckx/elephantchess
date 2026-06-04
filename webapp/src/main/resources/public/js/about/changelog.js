@@ -21,12 +21,17 @@ class ChangelogPage extends BasePage {
 
     constructor() {
         super();
-        document.querySelectorAll('.anchor-copy-link').forEach((el) => {
-            el.addEventListener('click', () => {
-                const target = el.dataset.anchorTarget;
+
+        // copy-paste anchor url upon clicking on the icons
+        getElementsByClassNameArray('anchor-copy-link').forEach((link) => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+
+                const target = link.dataset.anchorTarget;
                 if (!target) return;
-                const link = `${getFullHost()}${window.location.pathname}#${target}`;
-                copyTextToClipboardAndNotify(link, 'Link copied to clipboard!');
+
+                const url = `${getFullHost()}${window.location.pathname}#${target}`;
+                copyTextToClipboardAndNotify(url, 'Link copied to clipboard!');
             });
         });
     }

@@ -16,20 +16,21 @@ import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
-import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.testutils.Ops.endsInCheckmate
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import kotlin.test.*
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
     private val dslContext by inject<DSLContext>()
-    private val pvpGameService by inject<PlayerVsPlayerGameService>()
 
     private lateinit var userId1: UserId
     private lateinit var userId2: UserId
@@ -284,9 +285,138 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(2, countGameByStatus(CREATED))
     }
 
+    /**
+     * Two users created compatible games while not being online at the same
+     * time (so the regular matching at creation time did not pair them).
+     * When both users come back online, the dynamic matching routine should
+     * pair the two games together.
+     */
+    @Test
+    fun dynamicMatchingTest01() = runTest {
+        // user2 is offline when user1 creates their game
+        setUserOffline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        val request1 = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+
+        val response1 = pvpGameService.createGame(userId1, request1)
+        assertEquals(CREATED, response1.eventType)
+
+        // user1 is offline when user2 creates their compatible game
+        setUserOffline(userId1.id)
+        setUserOnline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        val response2 = pvpGameService.createGame(userId2, request1.copy(inviterColor = BLACK))
+        assertEquals(CREATED, response2.eventType)
+
+        // both games remain pending because the other inviter was offline
+        assertEquals(0, countGameByStatus(JOINED))
+        assertEquals(2, countGameByStatus(CREATED))
+
+        // both users come back online → dynamic matching should pair them
+        setUserOnline(userId1.id)
+        setUserOnline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+
+        assertEquals(1, countGameByStatus(JOINED))
+        assertEquals(0, countGameByStatus(CREATED))
+        assertEquals(1, countGameByStatus(AUTO_CANCELED))
+    }
+
+    /**
+     * If two pending games are incompatible (e.g. both inviters want the same
+     * color) dynamic matching should not pair them, even when both inviters
+     * are online.
+     */
+    @Test
+    fun dynamicMatchingIncompatibleTest01() = runTest {
+        // user2 is offline when user1 creates their game
+        setUserOffline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        val request1 = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+
+        val response1 = pvpGameService.createGame(userId1, request1)
+        assertEquals(CREATED, response1.eventType)
+
+        // user1 is offline when user2 creates a game with the same color
+        setUserOffline(userId1.id)
+        setUserOnline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        val response2 = pvpGameService.createGame(userId2, request1.copy())
+        assertEquals(CREATED, response2.eventType)
+
+        // both back online; games are incompatible (both RED) → no match
+        setUserOnline(userId1.id)
+        setUserOnline(userId2.id)
+        userService.refreshIsOnlineCache()
+
+        pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+
+        assertEquals(0, countGameByStatus(JOINED))
+        assertEquals(2, countGameByStatus(CREATED))
+        assertEquals(0, countGameByStatus(AUTO_CANCELED))
+    }
+
+    /**
+     * A Manchu game and a Xiangqi game with compatible colors should NOT be matched together —
+     * variant must be part of the matching criteria.
+     */
+    @Test
+    fun joinMatchingGameIncompatibleTest07() = runTest {
+        val manchuRequest = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false,
+            variant = Variant.MANCHU
+        )
+
+        val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
+
+        val response1 = pvpGameService.createGame(userId1, manchuRequest)
+        val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
+
+        assertEquals(CREATED, response1.eventType)
+        assertEquals(RED, response1.color)
+
+        assertEquals(CREATED, response2.eventType)
+        assertEquals(BLACK, response2.color)
+
+        assertEquals(0, countGameByStatus(JOINED))
+        assertEquals(2, countGameByStatus(CREATED))
+    }
+
+
     @Test
     fun happyPathTest01() = runTest {
-        val gameId = createAndJoinGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
         val gameMoves = gameMovesCache.findByGameId("4Q815fbI")
         assertTrue { gameMoves.endsInCheckmate() }
 
@@ -334,10 +464,12 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         val expectedLoserRating = 1_000 - 8
 
         val inviterWins =
-            (gameData.outcome == RED_WINS && inviterColor == RED) || (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
+            (gameData.outcome == RED_WINS && inviterColor == RED) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
 
         val inviteeWins =
-            (gameData.outcome == RED_WINS && inviterColor == BLACK) || (gameData.outcome == BLACK_WINS && inviterColor == RED)
+            (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == RED)
 
         when {
             inviterWins -> {
@@ -350,6 +482,37 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 assertEquals(expectedWinnerRating, ratingUpdate.inviteeRatingTo)
             }
         }
+
+        // Xiangqi RAPID DB ratings must reflect the exact +8 / -8 change
+        val xiangqiRating1 = fetchXiangqiRapidRating(userId1.id)
+        val xiangqiRating2 = fetchXiangqiRapidRating(userId2.id)
+
+        val userId1IsInviter = gameData.inviterId == userId1.id
+        when {
+            inviterWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedWinnerRating, xiangqiRating1)
+                    assertEquals(expectedLoserRating, xiangqiRating2)
+                } else {
+                    assertEquals(expectedLoserRating, xiangqiRating1)
+                    assertEquals(expectedWinnerRating, xiangqiRating2)
+                }
+            }
+
+            inviteeWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedLoserRating, xiangqiRating1)
+                    assertEquals(expectedWinnerRating, xiangqiRating2)
+                } else {
+                    assertEquals(expectedWinnerRating, xiangqiRating1)
+                    assertEquals(expectedLoserRating, xiangqiRating2)
+                }
+            }
+        }
+
+        // Manchu RAPID rating must remain unchanged at 1000
+        assertEquals(1_000, fetchManchuRapidRating(userId1.id))
+        assertEquals(1_000, fetchManchuRapidRating(userId2.id))
     }
 
     @Test
@@ -378,7 +541,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
     @Test
     fun playMoveErrorHandlingTest01() = runTest {
-        val gameId = createAndJoinGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
         val gameMoves = gameMovesCache.findByGameId("iaxeugSr")
 
         gameMoves.uciMoves.dropLast(10).forEach { move ->
@@ -440,7 +603,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     @Test
     fun playMoveErrorHandlingTest02() = runTest {
         val moves = listOf("c3c4", "b9c7", "g3g4", "h7g7", "h0g2", "g7g4", "g2f4", "g6g5", "b2e2")
-        val gameId = createAndJoinGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
 
         moves.forEach { move ->
             pvpGameService.playMove(
@@ -480,7 +643,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8"
         )
 
-        val gameId = createAndJoinGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
         moves.take(102).forEachIndexed { _, move ->
             pvpGameService.playMove(
                 userId = userIdToPlay(gameId),
@@ -496,27 +659,189 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(PERPETUAL_CHECKING, response.gameEventType)
     }
 
-    private suspend fun createGame(inviterColor: Color): String {
+    /**
+     * User should not be able to create more than 3 CREATED PvP games with the same settings.
+     */
+    @Test
+    fun createGameLimitTest01() = runTest {
         val request = CreateGameRequest(
-            inviterColor = inviterColor,
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = false,
+            alwaysVisibleInLobby = false,
+            privateInvite = true
+        )
+
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+
+        assertEquals(3, countGameByStatus(CREATED))
+
+        val e = assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, request)
+        }
+        assertEquals("You already have 3 pending games with the same settings", e.message)
+
+        assertEquals(3, countGameByStatus(CREATED))
+    }
+
+    /**
+     * Limit is per time category: different category should allow new games, but different color should not.
+     */
+    @Test
+    fun createGameLimitTest02() = runTest {
+        val request = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = false,
+            alwaysVisibleInLobby = false,
+            privateInvite = true
+        )
+
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+        pvpGameService.createGame(userId1, request)
+
+        // different color but same time category: should still be rejected
+        assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, request.copy(inviterColor = BLACK))
+        }
+
+        // different time category (BLITZ vs RAPID): should succeed
+        pvpGameService.createGame(userId1, request.copy(timeControlBase = 3.minutes.inWholeSeconds.toInt()))
+
+        assertEquals(4, countGameByStatus(CREATED))
+    }
+
+    /**
+     * Two Manchu games with compatible colors should be matched together.
+     */
+    @Test
+    fun joinMatchingGameManchuTest01() = runTest {
+        val request1 = CreateGameRequest(
+            inviterColor = RED,
             isRated = true,
             timeControlBase = 30.minutes.inWholeSeconds.toInt(),
             timeControlIncrement = null,
             timeControlMode = TimeControlMode.GAME_TIME,
             allowGuests = true,
             alwaysVisibleInLobby = false,
-            privateInvite = false
+            privateInvite = false,
+            variant = Variant.MANCHU
         )
 
-        val response = pvpGameService.createGame(userId1, request)
-        return response.gameId
+        val request2 = request1.copy(inviterColor = BLACK)
+
+        val response1 = pvpGameService.createGame(userId1, request1)
+        val response2 = pvpGameService.createGame(userId2, request2)
+
+        assertEquals(CREATED, response1.eventType)
+        assertEquals(RED, response1.color)
+
+        assertEquals(JOINED, response2.eventType)
+        assertEquals(BLACK, response2.color)
+
+        assertEquals(1, countGameByStatus(JOINED))
+        assertEquals(0, countGameByStatus(CREATED))
     }
 
-    private suspend fun createAndJoinGame(inviterColor: Color): String {
-        val gameId = createGame(inviterColor)
-        pvpGameService.joinGame(userId2, JoinGameRequest(gameId))
-        return gameId
+    /**
+     * Play a rated Manchu game to completion and verify that only the Manchu rating columns
+     * are updated — Xiangqi ratings must remain at the default 1000.
+     */
+    @Test
+    fun happyPathManchuTest01() = runTest {
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED, variant = Variant.MANCHU)
+        val manchuMoves = manchuGameMovesCache.listAll().random()
+
+        manchuMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
+            val result = pvpGameService.playMove(
+                userId = userIdToPlay(gameId),
+                request = PlayMoveRequest(gameId, move)
+            )
+            assertEquals(i + 1, result.updatedIndex)
+            assertNull(result.gameEventType)
+            assertNull(result.ratingUpdate)
+        }
+
+        val lastMoveResult = pvpGameService.playMove(
+            userId = userIdToPlay(gameId),
+            request = PlayMoveRequest(gameId, manchuMoves.uciMoves.last())
+        )
+
+        assertNotNull(lastMoveResult.gameEventType)
+        val ratingUpdate = lastMoveResult.ratingUpdate!!
+        assertEquals(true, ratingUpdate.isRated)
+        assertEquals(1_000, ratingUpdate.inviterRatingFrom)
+        assertEquals(1_000, ratingUpdate.inviteeRatingFrom)
+
+        val gameData = pvpGameService.fetchGame(gameId)
+        assertNotNull(gameData.outcome)
+        assertNotEquals(Outcome.DRAW, gameData.outcome)
+
+        val inviterColor = gameData.inviterColor!!
+        val expectedWinnerRating = 1_000 + 8
+        val expectedLoserRating = 1_000 - 8
+
+        val inviterWins =
+            (gameData.outcome == RED_WINS && inviterColor == RED) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
+
+        val inviteeWins =
+            (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
+                    (gameData.outcome == BLACK_WINS && inviterColor == RED)
+
+        when {
+            inviterWins -> {
+                assertEquals(expectedWinnerRating, ratingUpdate.inviterRatingTo)
+                assertEquals(expectedLoserRating, ratingUpdate.inviteeRatingTo)
+            }
+
+            inviteeWins -> {
+                assertEquals(expectedLoserRating, ratingUpdate.inviterRatingTo)
+                assertEquals(expectedWinnerRating, ratingUpdate.inviteeRatingTo)
+            }
+        }
+
+        // Xiangqi RAPID rating must remain unchanged at 1000
+        assertEquals(1_000, fetchXiangqiRapidRating(userId1.id))
+        assertEquals(1_000, fetchXiangqiRapidRating(userId2.id))
+
+        // Manchu RAPID ratings must reflect the exact +8 / -8 change
+        val manchuRating1 = fetchManchuRapidRating(userId1.id)
+        val manchuRating2 = fetchManchuRapidRating(userId2.id)
+
+        val userId1IsInviter = gameData.inviterId == userId1.id
+        when {
+            inviterWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedWinnerRating, manchuRating1)
+                    assertEquals(expectedLoserRating, manchuRating2)
+                } else {
+                    assertEquals(expectedLoserRating, manchuRating1)
+                    assertEquals(expectedWinnerRating, manchuRating2)
+                }
+            }
+
+            inviteeWins -> {
+                if (userId1IsInviter) {
+                    assertEquals(expectedLoserRating, manchuRating1)
+                    assertEquals(expectedWinnerRating, manchuRating2)
+                } else {
+                    assertEquals(expectedWinnerRating, manchuRating1)
+                    assertEquals(expectedLoserRating, manchuRating2)
+                }
+            }
+        }
     }
+
 
     private suspend fun userIdToPlay(gameId: String): String {
         val gameDataResponse = pvpGameService.fetchGame(gameId)
@@ -528,11 +853,41 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     private fun colorToPlay(currentHalfMoveIndex: Int) =
         if (currentHalfMoveIndex % 2 == 0) RED else BLACK
 
-    private suspend fun countGameByStatus(status: GameEventType) =
+    private suspend fun countGameByStatus(status: GameEventType): Int =
         dslContext
             .selectCount()
             .from(GAME)
             .where(GAME.GAME_STATUS.eq(status))
-            .awaitSingleValue<Int>()!!
+            .awaitSingleValue()!!
+
+    private suspend fun fetchXiangqiRapidRating(userId: String): Int =
+        dslContext
+            .select(USER.GAME_RATING_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()!!
+
+    private suspend fun fetchManchuRapidRating(userId: String): Int =
+        dslContext
+            .select(USER.GAME_RATING_MANCHU_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()!!
+
+    private suspend fun setUserOffline(userId: String) {
+        dslContext
+            .update(USER)
+            .set(USER.LAST_ONLINE, Clock.System.now().minus(1.hours))
+            .where(USER.ID.eq(userId))
+            .awaitExecute()
+    }
+
+    private suspend fun setUserOnline(userId: String) {
+        dslContext
+            .update(USER)
+            .set(USER.LAST_ONLINE, Clock.System.now())
+            .where(USER.ID.eq(userId))
+            .awaitExecute()
+    }
 
 }

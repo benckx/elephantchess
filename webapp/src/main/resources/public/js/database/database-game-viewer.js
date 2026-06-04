@@ -29,7 +29,10 @@ class DatabaseGameViewerPage extends BasePage {
     /**
      * @type {MoveTreeWidget}
      */
-    #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+    #moveTreeWidget = new MoveTreeWidget({
+        containerId: 'move-tree-container',
+        ...moveTreeResizeCookiePersistence('database-viewer', 'move-tree-container')
+    });
 
     constructor() {
         super();
@@ -87,12 +90,7 @@ class DatabaseGameViewerPage extends BasePage {
 
         this.#gameDataClient.fetchMoves(moves => {
             this.#moveTreeWidget.setMoves(moves);
-            renderAnalysisSummaryReportGeneric(
-                gameId,
-                this.#moveTreeWidget.getMainBranchNodes(),
-                DEFAULT_START_FEN,
-                this.#moveTreeWidget
-            );
+            fetchDataAndrenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
         });
     }
 

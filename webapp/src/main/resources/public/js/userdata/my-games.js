@@ -95,8 +95,19 @@ class MyGamesPage extends InfiniteScrollPage {
             // div with tooltip
             const div = wrapInDiv(iconImg);
             div.id = 'tc-' + entry.gameId;
-            div.style.position = 'relative';
+            // div.style.position = 'relative';
             addToolTip(div, entry.timeControlCategory.toString().toLowerCase());
+            return div;
+        }
+
+        /**
+         * @param entry {GameEntryDto}
+         * @returns {HTMLDivElement|null}
+         */
+        function buildTimeControlDurationDiv(entry) {
+            if (entry.timeControl == null) return null;
+            const div = buildDivWithClass('time-control-duration-cell');
+            div.innerText = entry.timeControl.printShort(' +');
             return div;
         }
 
@@ -259,7 +270,8 @@ class MyGamesPage extends InfiniteScrollPage {
 
         entries.forEach((entry) => {
             // structure
-            const leftPane = buildDivWithClass('left-pane');
+            const timeControlPane = buildDivWithClass('time-control-icon-pane');
+            const variantPane = buildDivWithClass('variant-pane');
             const middlePane = buildDivWithClass('middle-pane');
             const chatIndicatorPane = buildDivWithClass('indicator-pane');
             const outcomeIndicatorPane = buildDivWithClass('indicator-pane');
@@ -268,7 +280,8 @@ class MyGamesPage extends InfiniteScrollPage {
             const item = buildAnchorWithClass(entry.gameUrl,null, 'my-game-item');
 
             item.append(
-                leftPane,
+                variantPane,
+                timeControlPane,
                 middlePane,
                 chatIndicatorPane,
                 ratingDeltaIndicatorPane,
@@ -287,15 +300,21 @@ class MyGamesPage extends InfiniteScrollPage {
             }
 
             // left pane
-            const iconDiv = buildTimeControlCategoryIcon(entry);
-            leftPane.append(iconDiv);
+            timeControlPane.append(buildTimeControlCategoryIcon(entry));
+
+            // variant pane
+            variantPane.append(buildVariantCell(entry.variant));
 
             // middle pane
-            middlePane.append(
+            const middlePaneItems = [
                 buildOpponentDiv(entry),
                 wrapInDiv(buildColorSpan(entry.color)),
-                buildRatingModeDiv(entry)
-            );
+            ];
+            const durationDiv = buildTimeControlDurationDiv(entry);
+            if (durationDiv != null) {
+                middlePaneItems.push(durationDiv);
+            }
+            middlePane.append(...middlePaneItems);
 
             // number of messages indicator pane
             const chatDiv = buildChatMessagesDiv(entry);
@@ -304,10 +323,12 @@ class MyGamesPage extends InfiniteScrollPage {
             }
 
             // rating delta indicator pane
+            ratingDeltaIndicatorPane.classList.add('rating-pane');
             const ratingDiv = buildRatingDiv(entry);
             if (ratingDiv != null) {
                 ratingDeltaIndicatorPane.append(ratingDiv);
             }
+            ratingDeltaIndicatorPane.append(buildRatingModeDiv(entry));
 
             // outcome indicator pane
             const outcomeDiv = buildUserOutcomeDiv(entry);

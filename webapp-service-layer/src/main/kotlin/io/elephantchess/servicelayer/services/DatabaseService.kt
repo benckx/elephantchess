@@ -22,6 +22,7 @@ import io.elephantchess.utils.generateNameVariations
 import io.elephantchess.utils.isChineseText
 import io.elephantchess.xiangqi.Board.Companion.validateFen
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import org.apache.commons.lang3.StringUtils
@@ -172,14 +173,15 @@ class DatabaseService(
                         gameId = GameId(GameType.DB, record.id),
                         lastUpdated = record.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
                         redPlayerId = record.redPlayer,
-                        redPlayerName = playerIdToCanonicalName(record.redPlayer),
+                        redPlayerName = playerIdToDisplayName(record.redPlayer),
                         blackPlayerId = record.blackPlayer,
-                        blackPlayerName = playerIdToCanonicalName(record.blackPlayer),
+                        blackPlayerName = playerIdToDisplayName(record.blackPlayer),
                         eventName = idToEventName(record.event),
                         finalFen = record.finalFen,
                         outcome = record.outcome,
                         analysisStatus = record.analysisStatus,
-                        paginationOffset = (offset ?: 1) + i
+                        paginationOffset = (offset ?: 1) + i,
+                        variant = Variant.XIANGQI
                     )
                 }
 
@@ -229,13 +231,10 @@ class DatabaseService(
     private suspend fun playerIdToDisplayName(playerId: String?): String? {
         if (playerId != null) {
             val result = playerIdToDisplayNameCache.get(playerId) {
-                referencePlayerDaoService.findPlayer(playerId)?.let {
-                    if (it.isVisible) {
-                        formatWithChineseName(it.canonicalName, it.chineseName)
-                    } else {
-                        ""
-                    }
-                } ?: ""
+                referencePlayerDaoService
+                    .findPlayer(playerId)
+                    ?.let { player -> formatWithChineseName(player.canonicalName, player.chineseName) }
+                    ?: "<unknown>"
             }
 
             if (result.isNotBlank()) {

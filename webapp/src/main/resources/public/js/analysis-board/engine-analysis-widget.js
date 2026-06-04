@@ -254,7 +254,7 @@ class EngineAnalysisWidget {
      */
     #showPvMiniBoard(mouseEvent, fen) {
         this.#ensurePvMiniBoard();
-        this.#pvMiniBoardGui.loadFen(fen);
+        this.#pvMiniBoardGui.loadFen(fen, true);
 
         const CURSOR_OFFSET = 16;
         this.#pvMiniBoardDiv.style.top = `${mouseEvent.pageY + CURSOR_OFFSET}px`;

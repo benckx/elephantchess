@@ -90,7 +90,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .firstOrNull()
     }
 
-    suspend fun updateProfileSettings(userId: String, description: String, country: String) {
+    suspend fun updateProfileSettings(userId: String, description: String, country: String?) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
@@ -404,6 +404,12 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .set(USER.GAME_RATING_CLASSICAL, guestUser.gameRatingClassical)
                 .set(USER.GAME_RATING_SEVERAL_DAYS, guestUser.gameRatingSeveralDays)
                 .set(USER.GAME_RATING_CORRESPONDENCE, guestUser.gameRatingCorrespondence)
+                .set(USER.GAME_RATING_MANCHU_BULLET, guestUser.gameRatingManchuBullet)
+                .set(USER.GAME_RATING_MANCHU_BLITZ, guestUser.gameRatingManchuBlitz)
+                .set(USER.GAME_RATING_MANCHU_RAPID, guestUser.gameRatingManchuRapid)
+                .set(USER.GAME_RATING_MANCHU_CLASSICAL, guestUser.gameRatingManchuClassical)
+                .set(USER.GAME_RATING_MANCHU_SEVERAL_DAYS, guestUser.gameRatingManchuSeveralDays)
+                .set(USER.GAME_RATING_MANCHU_CORRESPONDENCE, guestUser.gameRatingManchuCorrespondence)
                 .where(USER.ID.eq(newUserId))
                 .awaitExecute()
         }
@@ -614,6 +620,12 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             fields += USER.GAME_RATING_CLASSICAL
             fields += USER.GAME_RATING_SEVERAL_DAYS
             fields += USER.GAME_RATING_CORRESPONDENCE
+            fields += USER.GAME_RATING_MANCHU_BULLET
+            fields += USER.GAME_RATING_MANCHU_BLITZ
+            fields += USER.GAME_RATING_MANCHU_RAPID
+            fields += USER.GAME_RATING_MANCHU_CLASSICAL
+            fields += USER.GAME_RATING_MANCHU_SEVERAL_DAYS
+            fields += USER.GAME_RATING_MANCHU_CORRESPONDENCE
             return fields
         }
 

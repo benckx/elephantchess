@@ -19,6 +19,7 @@ import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -92,8 +93,13 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                 .over(DSL.partitionBy(BOT_GAME.USER_ID).orderBy(BOT_GAME.LAST_UPDATED.desc()))
                 .`as`("rn")
 
+            // Use explicit fields instead of BOT_GAME.asterisk(): a literal "bot_game".* is expanded by
+            // Postgres to every physical column at runtime, but jOOQ maps the result positionally using its
+            // generated field list. If the generated schema is out of sync with the table, the extra physical
+            // column shifts "rn" onto the wrong column and decoding fails. Explicit fields keep the projection
+            // aligned with jOOQ's known schema.
             val sub = dslContext
-                .select(BOT_GAME.asterisk(), rn)
+                .select(listOf(*BOT_GAME.fields(), rn))
                 .from(BOT_GAME)
                 .where(conditions)
                 .asTable("t")
@@ -271,7 +277,19 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .selectCount()
             .from(BOT_GAME)
-            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex))
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex).or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
+            .awaitSingleValue()!!
+    }
+
+    suspend fun countManchuGames(minIndex: Int): Int {
+        val countCondition =
+            BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex)
+                .or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
+
+        return dslContext
+            .selectCount()
+            .from(BOT_GAME)
+            .where(countCondition.and(BOT_GAME.VARIANT.eq(Variant.MANCHU)))
             .awaitSingleValue()!!
     }
 

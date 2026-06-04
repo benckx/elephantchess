@@ -37,20 +37,20 @@ class GameClient {
     }
 
     /**
-     * @param cb {function(HalfMove[])}
+     * @param cb {function(HalfMove[], number[]|null, number|null)}
+     *           Receives the parsed moves, the parallel move timestamps (epoch millis),
+     *           and the game's join time (epoch millis). Timestamps and join time are
+     *           always present for PvP games when there is at least one move.
      */
     getMovesHistory(cb) {
-        /**
-         * @param movesAsUci {string[]}
-         * @return {HalfMove[]}
-         */
-        function parseUci(movesAsUci) {
-            // embedded in a function, otherwise IntelliJ shows a weird warning
-            return movesAsUci.map(uci => HalfMove.parseUci(uci));
-        }
-
         const url = `${GAME_API}/moves-history?gameId=${this.#gameId}`;
-        getAndHandle(url, (json) => cb(parseUci(json.moves)))
+        getAndHandle(url, (json) => {
+            const entries = Array.isArray(json.moves) ? json.moves : [];
+            const moves = entries.map(entry => HalfMove.parseUci(entry.move));
+            const moveTimestamps = entries.map(entry => entry.timestamp);
+            const joinTime = (typeof json.joinTime === 'number') ? json.joinTime : null;
+            cb(moves, moveTimestamps, joinTime);
+        })
     }
 
     /**
