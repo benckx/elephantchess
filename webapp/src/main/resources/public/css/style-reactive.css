@@ -537,9 +537,9 @@
         position: fixed;
         top: 50%;
         left: 50%;
-        width: calc(100vw - 24px);
-        height: calc(100vh - 24px);
-        max-height: calc(100vh - 24px);
+        width: 80vw;
+        height: 62vh;
+        max-height: 70vh;
         transform: translate(-50%, -50%);
         z-index: 1202;
         overflow-y: auto;
