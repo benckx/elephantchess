@@ -987,6 +987,10 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     margin-top: 14px;
 }
 
+.modal-close-button {
+    display: none;
+}
+
 #login-modal {
     width: 250px;
 }

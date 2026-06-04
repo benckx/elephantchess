@@ -162,16 +162,30 @@
     /*noinspection ALL*/
     .modal-content {
         font-size: 38px;
-        width: 100%;
-        border-radius: 0;
+        width: 90%;
+        position: relative;
+        border-radius: 8px;
         border-width: 3px;
-        border-left-width: 0;
-        border-right-width: 0;
-        padding-top: 40px;
+        padding-top: 76px;
         padding-bottom: 40px;
         padding-left: 0;
         padding-right: 0;
         box-shadow: rgba(0, 0, 0, 0.35) 0px 10px 25px;
+    }
+
+    .modal-close-button {
+        display: block;
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 40px;
+        line-height: 1;
+        cursor: pointer;
     }
 
     .modal-content h3 {
@@ -199,7 +213,7 @@
     #signup-modal,
     #play-bot-modal,
     #join-game-confirmation-modal {
-        width: 100%;
+        width: 90%;
     }
 
     .game-thumb {

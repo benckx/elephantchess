@@ -139,7 +139,7 @@
 
 @media (max-width: 1000px) {
     #create-new-game-modal {
-        width: 100%;
+        width: 90%;
     }
 
     #create-new-game-modal .container-with-margin {

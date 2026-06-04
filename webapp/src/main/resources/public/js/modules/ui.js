@@ -854,6 +854,24 @@ class UI {
     }
 
     /**
+     * Inject a close (×) button into the currently displayed modal. The button
+     * is hidden on desktop and only shown on mobile via CSS, mirroring the
+     * "advanced settings" box behaviour.
+     */
+    static #injectModalCloseButton() {
+        const modalContent = UI.#modalBackground.querySelector('.modal-content');
+        if (modalContent == null || modalContent.querySelector('.modal-close-button') != null) {
+            return;
+        }
+        const closeButton = document.createElement('button');
+        closeButton.className = 'modal-close-button';
+        closeButton.setAttribute('aria-label', 'Close');
+        closeButton.innerHTML = '&times;';
+        closeButton.addEventListener('click', () => UI.hideModal(null));
+        modalContent.prepend(closeButton);
+    }
+
+    /**
      * @param modalName {string}
      * @param loadedCallback {function}
      */
@@ -861,6 +879,7 @@ class UI {
         if (modalCache.has(modalName)) {
             UI.#modalBackground.innerHTML = modalCache.get(modalName);
             UI.#modalBackground.style.display = 'flex';
+            UI.#injectModalCloseButton();
             UI.#pushModalHistoryState();
             loadedCallback();
         } else {
@@ -869,6 +888,7 @@ class UI {
                 .then((modalHtml) => {
                     UI.#modalBackground.innerHTML = modalHtml;
                     UI.#modalBackground.style.display = 'flex';
+                    UI.#injectModalCloseButton();
                     UI.#pushModalHistoryState();
                     loadedCallback();
                     modalCache.set(modalName, modalHtml);

@@ -140,7 +140,7 @@
 
 @media (max-width: 1000px) {
     #position-editor-modal {
-        width: 100%;
+        width: 90%;
         height: 1180px;
     }
 }
