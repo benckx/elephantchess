@@ -1431,6 +1431,21 @@ table.info-box-sub-table td.values {
     height: 500px;
     max-height: calc(100vh - 120px);
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #8a7c66 transparent;
+}
+
+#settings-info-box-container #advanced-settings-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+#settings-info-box-container #advanced-settings-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#settings-info-box-container #advanced-settings-box::-webkit-scrollbar-thumb {
+    background-color: #8a7c66;
+    border-radius: 3px;
 }
 
 #settings-info-box-container #advanced-settings-close-button {
