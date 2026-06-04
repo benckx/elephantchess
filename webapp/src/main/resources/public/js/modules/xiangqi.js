@@ -473,7 +473,7 @@ class Position {
             this.y >= BOARD_HEIGHT - 3;
     }
 
-    isInPalace() {
+    isInAnyPalace() {
         return this.isInRedPalace() || this.isInBlackPalace();
     }
 

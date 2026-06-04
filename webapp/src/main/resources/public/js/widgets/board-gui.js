@@ -1201,7 +1201,7 @@ class BoardGui {
 
                         // a palace square cell is bounded by two diagonally
                         // opposite intersections that both sit inside a palace
-                        if (new Position(x, y).isInPalace() && new Position(x + 1, y - 1).isInPalace()) {
+                        if (new Position(x, y).isInAnyPalace() && new Position(x + 1, y - 1).isInAnyPalace()) {
                             visibleSquare.classList.add('board-area-palace');
                         }
 
