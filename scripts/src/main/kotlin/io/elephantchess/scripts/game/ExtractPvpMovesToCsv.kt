@@ -5,7 +5,6 @@ import io.elephantchess.db.dao.codegen.Tables.GAME
 import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.utils.awaitRecords
-import io.elephantchess.model.GameEventType
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.xiangqi.Color
 import kotlinx.coroutines.runBlocking
@@ -73,25 +72,33 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     val inviterColor = row.get(GAME.INVITER_COLOR)
                     val inviterHandle = row.get(inviterUser.HANDLE)
                     val inviteeHandle = row.get(inviteeUser.HANDLE)
-                    val redPlayerName = if (inviterColor == Color.RED) inviterHandle else inviteeHandle
-                    val blackPlayerName = if (inviterColor == Color.RED) inviteeHandle else inviterHandle
-                    val redEloBefore = if (inviterColor == Color.RED) row.get(GAME.INVITER_RATING_FROM) else row.get(GAME.INVITEE_RATING_FROM)
-                    val blackEloBefore = if (inviterColor == Color.RED) row.get(GAME.INVITEE_RATING_FROM) else row.get(GAME.INVITER_RATING_FROM)
-                    val redEloAfter = if (inviterColor == Color.RED) row.get(GAME.INVITER_RATING_TO) else row.get(GAME.INVITEE_RATING_TO)
-                    val blackEloAfter = if (inviterColor == Color.RED) row.get(GAME.INVITEE_RATING_TO) else row.get(GAME.INVITER_RATING_TO)
+                    val inviterIsRed = inviterColor == Color.RED
+                    val redPlayerName = if (inviterIsRed) inviterHandle else inviteeHandle
+                    val blackPlayerName = if (inviterIsRed) inviteeHandle else inviterHandle
+                    val redPlayerRating = if (inviterIsRed) {
+                        PlayerRating(row.get(GAME.INVITER_RATING_FROM), row.get(GAME.INVITER_RATING_TO))
+                    } else {
+                        PlayerRating(row.get(GAME.INVITEE_RATING_FROM), row.get(GAME.INVITEE_RATING_TO))
+                    }
+                    val blackPlayerRating = if (inviterIsRed) {
+                        PlayerRating(row.get(GAME.INVITEE_RATING_FROM), row.get(GAME.INVITEE_RATING_TO))
+                    } else {
+                        PlayerRating(row.get(GAME.INVITER_RATING_FROM), row.get(GAME.INVITER_RATING_TO))
+                    }
                     val position = row.get(GAME_MOVE.POSITION)
                     val isRedMove = position % 2 == 0
+                    val playerRating = if (isRedMove) redPlayerRating else blackPlayerRating
 
                     writer.writeNext(
                         arrayOf(
                             row.get(GAME_MOVE.EVENT_TIME).toString(),
                             row.get(GAME_MOVE.UCI),
-                            row.get(GAME.ID),
+                            row.get(GAME.ID).toString(),
                             redPlayerName ?: "",
                             blackPlayerName ?: "",
-                            (if (isRedMove) redEloBefore else blackEloBefore)?.toString() ?: "",
-                            (if (isRedMove) redEloAfter else blackEloAfter)?.toString() ?: "",
-                            row.get(GAME.GAME_STATUS)?.name ?: GameEventType.CREATED.name,
+                            playerRating.before?.toString() ?: "",
+                            playerRating.after?.toString() ?: "",
+                            row.get(GAME.GAME_STATUS)?.name ?: "",
                         )
                     )
                 }
@@ -100,4 +107,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
         println("wrote ${rows.size} rows to $outputPath")
     }
+
+    private data class PlayerRating(val before: Int?, val after: Int?)
 }
