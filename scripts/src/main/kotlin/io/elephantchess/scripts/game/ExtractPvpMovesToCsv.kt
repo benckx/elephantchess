@@ -42,6 +42,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 GAME.TIME_CONTROL_BASE,
                 GAME.TIME_CONTROL_INCREMENT,
                 GAME.TIME_CONTROL_CATEGORY,
+                GAME.OUTCOME,
                 GAME.INVITER_RATING_FROM,
                 GAME.INVITER_RATING_TO,
                 GAME.INVITEE_RATING_FROM,
@@ -49,6 +50,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 GAME_MOVE.POSITION,
                 GAME_MOVE.UCI,
                 GAME_MOVE.EVENT_TIME,
+                GAME_MOVE.POSITION,
                 inviterUser.ID,
                 inviterUser.HANDLE,
                 inviteeUser.ID,
@@ -68,6 +70,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 writer.writeNext(
                     arrayOf(
                         "timestamp",
+                        "move_index",
                         "move",
                         "game_id",
                         "red_player",
@@ -80,6 +83,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         "time_control_category",
                         "rating_mode",
                         "game_status",
+                        "outcome",
                     )
                 )
 
@@ -104,6 +108,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     writer.writeNext(
                         arrayOf(
                             row.get(GAME_MOVE.EVENT_TIME).toString(),
+                            row.get(GAME_MOVE.POSITION).toString(),
                             row.get(GAME_MOVE.UCI),
                             row.get(GAME.ID).toString(),
                             redPlayerName,
@@ -120,6 +125,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             row.get(GAME.TIME_CONTROL_CATEGORY)?.name ?: "",
                             if (row.get(GAME.IS_RATED) == true) "rated" else "casual",
                             row.get(GAME.GAME_STATUS)?.name ?: "",
+                            row.get(GAME.OUTCOME)?.name ?: "",
                         )
                     )
                 }
