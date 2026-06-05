@@ -66,8 +66,10 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         "gameId",
                         "redPlayerName",
                         "blackPlayerName",
-                        "eloBefore",
-                        "eloAfter",
+                        "redEloBefore",
+                        "redEloAfter",
+                        "blackEloBefore",
+                        "blackEloAfter",
                         "gameStatusAtEnd",
                     )
                 )
@@ -89,9 +91,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     } else {
                         PlayerRating(row.get(GAME.INVITER_RATING_FROM), row.get(GAME.INVITER_RATING_TO))
                     }
-                    val position = row.get(GAME_MOVE.POSITION)
-                    val isRedMove = position % 2 == 0
-                    val playerRating = if (isRedMove) redPlayerRating else blackPlayerRating
 
                     writer.writeNext(
                         arrayOf(
@@ -100,8 +99,10 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             row.get(GAME.ID).toString(),
                             redPlayerName,
                             blackPlayerName,
-                            playerRating.before?.toString() ?: "",
-                            playerRating.after?.toString() ?: "",
+                            redPlayerRating.before?.toString() ?: "",
+                            redPlayerRating.after?.toString() ?: "",
+                            blackPlayerRating.before?.toString() ?: "",
+                            blackPlayerRating.after?.toString() ?: "",
                             row.get(GAME.GAME_STATUS)?.name ?: "",
                         )
                     )
