@@ -42,6 +42,7 @@ class UserService(
     private val tokenManager: TokenManager,
     private val mailService: MailService,
     private val pageViewEventService: PageViewEventService,
+    private val settingPreferenceEventService: SettingPreferenceEventService,
     refresherScope: CoroutineScope,
     private val logger: KLogger,
 ) {
@@ -221,6 +222,7 @@ class UserService(
         request: PingSessionRequest,
         remoteAddress: String,
         headers: Map<String, List<String>>,
+        settingCookies: Map<String, String?> = emptyMap(),
     ): PingResponse {
         val userId = verifiedToken.userId
 
@@ -247,6 +249,9 @@ class UserService(
 
         // handle page view event
         pageViewEventService.processPageViewEvent(verifiedToken, request.currentPage)
+
+        // sample anonymous setting preferences (only a fraction of the time)
+        settingPreferenceEventService.sampleSettingPreferences(verifiedToken.userId().userType, settingCookies)
 
         return PingResponse(renewedTokenString)
     }

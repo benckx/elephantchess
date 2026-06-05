@@ -118,6 +118,14 @@ a.board-outer-container-link-mask {
     filter: invert(1);
 }
 
+.board-container.flip-opponent-pieces-black .piece-image-black {
+    transform: rotate(180deg);
+}
+
+.board-container.flip-opponent-pieces-red .piece-image-red {
+    transform: rotate(180deg);
+}
+
 .piece-holder .piece-image-can-move {
     cursor: move;
 }
@@ -204,6 +212,14 @@ a.board-outer-container-link-mask {
 .large-river {
     aspect-ratio: 8;
     height: 100%;
+}
+
+.highlight-colored-areas .board-area-river {
+    background-color: #b9dcff;
+}
+
+.highlight-colored-areas .board-area-palace {
+    background-color: #c9ebb0;
 }
 
 .visible-square-last-file,
@@ -415,4 +431,12 @@ a.board-outer-container-link-mask {
         height: 612px;
         width: 552px;
     }
+}
+
+/* Touch drag ghost: the floating piece image that follows the finger */
+.touch-drag-ghost {
+    border-radius: 100%;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 4px 10px;
+    user-select: none;
+    -webkit-user-select: none;
 }
