@@ -7,6 +7,7 @@ import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
@@ -50,6 +51,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             .leftJoin(inviterUser).on(inviterUser.ID.eq(GAME.INVITER))
             .leftJoin(inviteeUser).on(inviteeUser.ID.eq(GAME.INVITEE))
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(MIN_MOVE_INDEX))
+            .and(GAME.VARIANT.eq(Variant.XIANGQI))
             .orderBy(GAME.CREATED.asc(), GAME.ID.asc(), GAME_MOVE.POSITION.asc())
             .awaitRecords()
 
