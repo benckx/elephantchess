@@ -5,6 +5,7 @@ import io.elephantchess.db.dao.codegen.Tables.GAME
 import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.utils.awaitRecords
+import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
@@ -36,6 +37,11 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 GAME.CREATED,
                 GAME.GAME_STATUS,
                 GAME.INVITER_COLOR,
+                GAME.IS_RATED,
+                GAME.TIME_CONTROL_MODE,
+                GAME.TIME_CONTROL_BASE,
+                GAME.TIME_CONTROL_INCREMENT,
+                GAME.TIME_CONTROL_CATEGORY,
                 GAME.INVITER_RATING_FROM,
                 GAME.INVITER_RATING_TO,
                 GAME.INVITEE_RATING_FROM,
@@ -63,14 +69,17 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     arrayOf(
                         "timestamp",
                         "move",
-                        "gameId",
-                        "redPlayerName",
-                        "blackPlayerName",
-                        "redEloBefore",
-                        "redEloAfter",
-                        "blackEloBefore",
-                        "blackEloAfter",
-                        "gameStatusAtEnd",
+                        "game_id",
+                        "red_player",
+                        "black_player",
+                        "red_elo_before",
+                        "red_elo_after",
+                        "black_elo_before",
+                        "black_elo_after",
+                        "time_control",
+                        "time_control_category",
+                        "rating_mode",
+                        "game_status",
                     )
                 )
 
@@ -103,6 +112,13 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             redPlayerRating.after?.toString() ?: "",
                             blackPlayerRating.before?.toString() ?: "",
                             blackPlayerRating.after?.toString() ?: "",
+                            timeControl(
+                                row.get(GAME.TIME_CONTROL_MODE),
+                                row.get(GAME.TIME_CONTROL_BASE),
+                                row.get(GAME.TIME_CONTROL_INCREMENT),
+                            ),
+                            row.get(GAME.TIME_CONTROL_CATEGORY)?.name ?: "",
+                            if (row.get(GAME.IS_RATED) == true) "rated" else "casual",
                             row.get(GAME.GAME_STATUS)?.name ?: "",
                         )
                     )
@@ -115,5 +131,13 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
     private fun guestName(userId: String): String = "guest #$userId"
 
+    private fun timeControl(mode: TimeControlMode?, base: Int?, increment: Int?): String =
+        when (mode) {
+            TimeControlMode.GAME_TIME -> "${base ?: 0}+${increment ?: 0}"
+            TimeControlMode.MOVE_TIME -> "${base ?: 0}/move"
+            null -> ""
+        }
+
     private data class PlayerRating(val before: Int?, val after: Int?)
+
 }
