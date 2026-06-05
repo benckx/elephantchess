@@ -71,6 +71,7 @@ class OpeningRepositoryWidget {
             if (this.#areMovesEqual(this.#requestedMovesAsUci, json.moves)) {
                 if (json.entries.length > 0) {
                     let tbody = this.#table.getElementsByTagName('tbody')[0];
+                    let totalOccurrences = json.entries.reduce((sum, e) => sum + e.occurrences, 0);
                     for (let i = 0; i < json.entries.length; i++) {
                         let entry = json.entries[i];
                         let nextMove = HalfMove.parseUci(entry.nextMove);
@@ -92,7 +93,25 @@ class OpeningRepositoryWidget {
 
                             // content
                             moveCell.innerText = moveLabel;
-                            occurrencesCell.innerText = formatNumber(entry.occurrences);
+
+                            let pct = totalOccurrences > 0 ? (entry.occurrences / totalOccurrences * 100) : 0;
+                            let occurrenceBar = document.createElement('div');
+                            occurrenceBar.className = 'occurrence-bar';
+                            occurrenceBar.style.width = `${pct.toFixed(1)}%`;
+
+                            let occurrenceCellContent = document.createElement('div');
+                            occurrenceCellContent.className = 'occurrence-cell-content';
+
+                            let pctSpan = document.createElement('span');
+                            pctSpan.className = 'occurrence-pct';
+                            pctSpan.innerText = `${pct.toFixed(1)}%`;
+
+                            let countSpan = document.createElement('span');
+                            countSpan.className = 'occurrence-count';
+                            countSpan.innerText = formatNumber(entry.occurrences);
+
+                            occurrenceCellContent.append(pctSpan, countSpan);
+                            occurrencesCell.append(occurrenceBar, occurrenceCellContent);
 
                             let indicator = new GameOutcomeIndicator(entry.redWinsRate, entry.blackWinsRate);
                             outcomeCell.innerHTML = '';
