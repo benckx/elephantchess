@@ -43,7 +43,9 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 GAME_MOVE.POSITION,
                 GAME_MOVE.UCI,
                 GAME_MOVE.EVENT_TIME,
+                inviterUser.ID,
                 inviterUser.HANDLE,
+                inviteeUser.ID,
                 inviteeUser.HANDLE
             )
             .from(GAME)
@@ -72,8 +74,8 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
                 rows.forEach { row ->
                     val inviterColor = row.get(GAME.INVITER_COLOR)
-                    val inviterHandle = row.get(inviterUser.HANDLE)
-                    val inviteeHandle = row.get(inviteeUser.HANDLE)
+                    val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
+                    val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
                     val inviterIsRed = inviterColor == Color.RED
                     val redPlayerName = if (inviterIsRed) inviterHandle else inviteeHandle
                     val blackPlayerName = if (inviterIsRed) inviteeHandle else inviterHandle
@@ -96,8 +98,8 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             row.get(GAME_MOVE.EVENT_TIME).toString(),
                             row.get(GAME_MOVE.UCI),
                             row.get(GAME.ID).toString(),
-                            redPlayerName ?: "",
-                            blackPlayerName ?: "",
+                            redPlayerName,
+                            blackPlayerName,
                             playerRating.before?.toString() ?: "",
                             playerRating.after?.toString() ?: "",
                             row.get(GAME.GAME_STATUS)?.name ?: "",
@@ -109,6 +111,8 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
         println("wrote ${rows.size} rows to $outputPath")
     }
+
+    private fun guestName(userId: String): String = "guest #$userId"
 
     private data class PlayerRating(val before: Int?, val after: Int?)
 }
