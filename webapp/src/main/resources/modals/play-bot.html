@@ -1,6 +1,6 @@
 <div id="play-bot-modal" class="modal-content" data-nosnippet>
-    <h2>Play Bot</h2>
-    <div class="new-game-main-container">
+    <h2 id="play-bot-modal-title">Play Bot</h2>
+    <div id="play-bot-main-panel" class="new-game-main-container">
         <div class="container-with-margin">
             <table class="new-game-option-table">
                 <tr>
@@ -65,6 +65,21 @@
                         <div id="engine-fairy"
                              class="option-button-div bot-engine-option-button-div">
                             Fairy
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/shuttle.png"
+                                 class="time-control-icons"
+                                 alt="time control">
+                        </div>
+                    </td>
+                    <td class="button-cells" colspan="2">
+                        <div id="play-bot-time-control-button"
+                             class="option-button-div">
+                            <span id="play-bot-time-control-label">No time control</span>
                         </div>
                     </td>
                 </tr>
@@ -134,7 +149,120 @@
             </div>
         </div>
     </div>
+    <div id="play-bot-time-control-panel" class="new-game-main-container" style="display: none;">
+        <div class="container-with-margin">
+            <div class="small-text-explanation">
+                Times indicated below represent <b>total game time</b> given to each player.
+            </div>
+            <table class="new-game-option-table">
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/contrast-circle-symbol.png"
+                                 class="time-control-icons"
+                                 alt="no time control">
+                        </div>
+                    </td>
+                    <td class="button-cells" colspan="2">
+                        <div id="bot-tc-none"
+                             class="option-button-div bot-tc-option-button-div option-button-div-selected"
+                             data-tc-base=""
+                             data-tc-increment=""
+                             data-tc-label="No time control">
+                            No time control
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/shuttle.png"
+                                 class="time-control-icons"
+                                 alt="bullet">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="bot-tc-60"
+                             class="option-button-div bot-tc-option-button-div"
+                             data-tc-base="60"
+                             data-tc-increment=""
+                             data-tc-label="1m">
+                            1m
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="bot-tc-120-1"
+                             class="option-button-div bot-tc-option-button-div"
+                             data-tc-base="120"
+                             data-tc-increment="1"
+                             data-tc-label="2m +1s">
+                            2m +1s
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/flash.png"
+                                 class="time-control-icons blitz-time-control-icons"
+                                 alt="blitz">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="bot-tc-180"
+                             class="option-button-div bot-tc-option-button-div"
+                             data-tc-base="180"
+                             data-tc-increment=""
+                             data-tc-label="3m">
+                            3m
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="bot-tc-300"
+                             class="option-button-div bot-tc-option-button-div"
+                             data-tc-base="300"
+                             data-tc-increment=""
+                             data-tc-label="5m">
+                            5m
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="icons-cells">
+                        <div class="center-content-div">
+                            <img src="/images/icons/run.png"
+                                 class="time-control-icons"
+                                 alt="rapid">
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="bot-tc-600"
+                             class="option-button-div bot-tc-option-button-div"
+                             data-tc-base="600"
+                             data-tc-increment=""
+                             data-tc-label="10m">
+                            10m
+                        </div>
+                    </td>
+                    <td class="button-cells">
+                        <div id="bot-tc-1800"
+                             class="option-button-div bot-tc-option-button-div"
+                             data-tc-base="1800"
+                             data-tc-increment=""
+                             data-tc-label="30m">
+                            30m
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
     <div class="modal-buttons-panel">
+        <input id="play-bot-time-control-back-button"
+               type="button"
+               class="app-buttons"
+               value="back"
+               style="display: none;">
         <input id="play-bot-button" type="button" class="app-buttons" value="play">
     </div>
     <div class="center-content-div">
