@@ -29,6 +29,8 @@ class AdminPageViewStatsPage extends BasePage {
         '/about/changelog',
         '/global',
         '/database/search',
+        '/database/events',
+        '/database/players',
         '/browse/player-vs-player',
         '/browse/player-vs-bot',
         '/userdata/games',
