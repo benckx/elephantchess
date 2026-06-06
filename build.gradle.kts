@@ -46,9 +46,9 @@ plugins {
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "com.adarshr.test-logger")
-    apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+    pluginManager.apply("org.jetbrains.kotlin.jvm")
+    pluginManager.apply("com.adarshr.test-logger")
+    pluginManager.apply("org.jetbrains.kotlin.plugin.serialization")
 
     extensions.configure<KotlinJvmProjectExtension> {
         jvmToolchain(21)
@@ -191,7 +191,7 @@ project(":webapp-dao").tasks.named("compileKotlin") {
 }
 
 configure(publishableModules.map { project(":$it") }) {
-    apply(plugin = "maven-publish")
+    pluginManager.apply("maven-publish")
 
     group = "io.elephantchess"
     version = rootProject.findProperty("publishVersion") as String? ?: "1.0.0-SNAPSHOT"
