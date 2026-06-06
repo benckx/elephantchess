@@ -15,9 +15,19 @@ fun DependencyHandlerScope.api(dependencyNotation: Any) = add("api", dependencyN
 
 fun DependencyHandlerScope.implementation(dependencyNotation: Any) = add("implementation", dependencyNotation)
 
+fun DependencyHandlerScope.compileOnly(dependencyNotation: Any) = add("compileOnly", dependencyNotation)
+
 fun DependencyHandlerScope.testImplementation(dependencyNotation: Any) = add("testImplementation", dependencyNotation)
 
 val rootLibs = libs
+
+val publishableModules = listOf(
+    "engine-api",
+    "xiangqi-core",
+    "xiangqi-core-test-utils",
+    "seven-kingdoms-core",
+    "seven-kingdoms-core-test-utils",
+)
 
 buildscript {
     repositories {
@@ -38,9 +48,9 @@ plugins {
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "com.adarshr.test-logger")
-    apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+    pluginManager.apply("org.jetbrains.kotlin.jvm")
+    pluginManager.apply("com.adarshr.test-logger")
+    pluginManager.apply("org.jetbrains.kotlin.plugin.serialization")
 
     extensions.configure<KotlinJvmProjectExtension> {
         jvmToolchain(21)
@@ -52,10 +62,22 @@ subprojects {
     }
 
     dependencies {
-        implementation(rootLibs.kotlin.logging)
         implementation(rootLibs.kotlin.stdlib)
-        implementation(rootLibs.coroutines.core)
-        implementation(rootLibs.logback.classic)
+
+        // Logging and coroutines pollute the published library classpath, so only
+        // non-publishable modules get them by default. Publishable libraries declare
+        // exactly what they need (e.g. engine-api adds coroutines in its own block).
+        // Tests are never published, so publishable modules still get logging in test
+        // scope to keep release artifacts free of logging dependencies.
+        if (project.name !in publishableModules) {
+            implementation(rootLibs.kotlin.logging)
+            implementation(rootLibs.coroutines.core)
+            implementation(rootLibs.logback.classic)
+        } else {
+            testImplementation(rootLibs.kotlin.logging)
+            testImplementation(rootLibs.logback.classic)
+        }
+
         testImplementation(rootLibs.kotlin.test)
         testImplementation(rootLibs.coroutines.test)
         testImplementation(rootLibs.mockito.kotlin)
@@ -175,16 +197,8 @@ project(":webapp-dao").tasks.named("compileKotlin") {
     dependsOn(daoCodeGen)
 }
 
-val publishableModules = listOf(
-    "engine-api",
-    "xiangqi-core",
-    "xiangqi-core-test-utils",
-    "seven-kingdoms-core",
-    "seven-kingdoms-core-test-utils",
-)
-
 configure(publishableModules.map { project(":$it") }) {
-    apply(plugin = "maven-publish")
+    pluginManager.apply("maven-publish")
 
     group = "io.elephantchess"
     version = rootProject.findProperty("publishVersion") as String? ?: "1.0.0-SNAPSHOT"
@@ -206,8 +220,14 @@ configure(publishableModules.map { project(":$it") }) {
 project(":engine-api") {
     dependencies {
         implementation(rootLibs.coroutines.core)
-        implementation(project(":xiangqi-core"))
-        testImplementation(project(":xiangqi-core"))
+        // Logging facade is needed to compile (EnginePool/EngineProcess use KotlinLogging),
+        // but kept compileOnly so it stays out of the published artifact's runtime classpath.
+        // Consumers (and engine-api's own tests) supply logging on their classpath.
+        compileOnly(rootLibs.kotlin.logging)
+        // Exposed via api: Variant appears in engine-api's public signatures
+        // (EnginePool.queryForDepth, EngineProcess.queryForBestMove/setVariant),
+        // so consumers need it on their compile classpath transitively.
+        api(project(":xiangqi-core"))
     }
 }
 
