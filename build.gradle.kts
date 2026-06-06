@@ -65,10 +65,15 @@ subprojects {
         // Logging and coroutines pollute the published library classpath, so only
         // non-publishable modules get them by default. Publishable libraries declare
         // exactly what they need (e.g. engine-api adds coroutines in its own block).
+        // Tests are never published, so publishable modules still get logging in test
+        // scope to keep release artifacts free of logging dependencies.
         if (project.name !in publishableModules) {
             implementation(rootLibs.kotlin.logging)
             implementation(rootLibs.coroutines.core)
             implementation(rootLibs.logback.classic)
+        } else {
+            testImplementation(rootLibs.kotlin.logging)
+            testImplementation(rootLibs.logback.classic)
         }
 
         testImplementation(rootLibs.kotlin.test)
