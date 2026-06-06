@@ -15,6 +15,8 @@ fun DependencyHandlerScope.api(dependencyNotation: Any) = add("api", dependencyN
 
 fun DependencyHandlerScope.implementation(dependencyNotation: Any) = add("implementation", dependencyNotation)
 
+fun DependencyHandlerScope.compileOnly(dependencyNotation: Any) = add("compileOnly", dependencyNotation)
+
 fun DependencyHandlerScope.testImplementation(dependencyNotation: Any) = add("testImplementation", dependencyNotation)
 
 val rootLibs = libs
@@ -218,7 +220,10 @@ configure(publishableModules.map { project(":$it") }) {
 project(":engine-api") {
     dependencies {
         implementation(rootLibs.coroutines.core)
-        implementation(rootLibs.kotlin.logging)
+        // Logging facade is needed to compile (EnginePool/EngineProcess use KotlinLogging),
+        // but kept compileOnly so it stays out of the published artifact's runtime classpath.
+        // Consumers (and engine-api's own tests) supply logging on their classpath.
+        compileOnly(rootLibs.kotlin.logging)
         implementation(project(":xiangqi-core"))
     }
 }
