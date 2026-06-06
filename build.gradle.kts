@@ -8,7 +8,6 @@ import org.h2.Driver
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jooq.codegen.GenerationTool
 import org.jooq.meta.jaxb.*
-import org.jooq.meta.jaxb.Target
 import java.sql.Connection
 
 fun DependencyHandlerScope.api(dependencyNotation: Any) = add("api", dependencyNotation)
@@ -18,6 +17,14 @@ fun DependencyHandlerScope.implementation(dependencyNotation: Any) = add("implem
 fun DependencyHandlerScope.testImplementation(dependencyNotation: Any) = add("testImplementation", dependencyNotation)
 
 val rootLibs = libs
+
+val publishableModules = listOf(
+    "engine-api",
+    "xiangqi-core",
+    "xiangqi-core-test-utils",
+    "seven-kingdoms-core",
+    "seven-kingdoms-core-test-utils",
+)
 
 buildscript {
     repositories {
@@ -52,10 +59,17 @@ subprojects {
     }
 
     dependencies {
-        implementation(rootLibs.kotlin.logging)
         implementation(rootLibs.kotlin.stdlib)
-        implementation(rootLibs.coroutines.core)
-        implementation(rootLibs.logback.classic)
+
+        // Logging and coroutines pollute the published library classpath, so only
+        // non-publishable modules get them by default. Publishable libraries declare
+        // exactly what they need (e.g. engine-api adds coroutines in its own block).
+        if (project.name !in publishableModules) {
+            implementation(rootLibs.kotlin.logging)
+            implementation(rootLibs.coroutines.core)
+            implementation(rootLibs.logback.classic)
+        }
+
         testImplementation(rootLibs.kotlin.test)
         testImplementation(rootLibs.coroutines.test)
         testImplementation(rootLibs.mockito.kotlin)
@@ -175,14 +189,6 @@ project(":webapp-dao").tasks.named("compileKotlin") {
     dependsOn(daoCodeGen)
 }
 
-val publishableModules = listOf(
-    "engine-api",
-    "xiangqi-core",
-    "xiangqi-core-test-utils",
-    "seven-kingdoms-core",
-    "seven-kingdoms-core-test-utils",
-)
-
 configure(publishableModules.map { project(":$it") }) {
     apply(plugin = "maven-publish")
 
@@ -207,7 +213,6 @@ project(":engine-api") {
     dependencies {
         implementation(rootLibs.coroutines.core)
         implementation(project(":xiangqi-core"))
-        testImplementation(project(":xiangqi-core"))
     }
 }
 
