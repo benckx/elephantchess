@@ -220,13 +220,7 @@ configure(publishableModules.map { project(":$it") }) {
 project(":engine-api") {
     dependencies {
         implementation(rootLibs.coroutines.core)
-        // Logging facade is needed to compile (EnginePool/EngineProcess use KotlinLogging),
-        // but kept compileOnly so it stays out of the published artifact's runtime classpath.
-        // Consumers (and engine-api's own tests) supply logging on their classpath.
-        compileOnly(rootLibs.kotlin.logging)
-        // Exposed via api: Variant appears in engine-api's public signatures
-        // (EnginePool.queryForDepth, EngineProcess.queryForBestMove/setVariant),
-        // so consumers need it on their compile classpath transitively.
+        api(rootLibs.kotlin.logging)
         api(project(":xiangqi-core"))
     }
 }
