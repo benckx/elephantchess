@@ -597,11 +597,13 @@ repositories {
 Then you can use the dependencies:
 
 ```Groovy
-implementation "com.github.benckx.elephantchess:xiangqi-core:1.1.3"
-implementation "com.github.benckx.elephantchess:engine-api:1.1.3"
+implementation "com.github.benckx.elephantchess:xiangqi-core:2.0.0"
+implementation "com.github.benckx.elephantchess:engine-api:2.0.0"
+implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.0.0"
 ```
 
-_Note: I still have to check that it still works with the updated Gradle project._
+We added a sample project that uses the libraries
+https://github.com/benckx/elephantchess-library-usage
 
 # Front-End
 
