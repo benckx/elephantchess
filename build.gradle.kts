@@ -213,6 +213,7 @@ configure(publishableModules.map { project(":$it") }) {
 project(":engine-api") {
     dependencies {
         implementation(rootLibs.coroutines.core)
+        implementation(rootLibs.kotlin.logging)
         implementation(project(":xiangqi-core"))
     }
 }
