@@ -191,7 +191,6 @@ project(":webapp-dao").tasks.named("compileKotlin") {
 }
 
 configure(publishableModules.map { project(":$it") }) {
-configure(publishableModules.map { project(":$it") }) {
     apply(plugin = "maven-publish")
 
     group = "io.elephantchess"
