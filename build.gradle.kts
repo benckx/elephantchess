@@ -8,6 +8,7 @@ import org.h2.Driver
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jooq.codegen.GenerationTool
 import org.jooq.meta.jaxb.*
+import org.jooq.meta.jaxb.Target
 import java.sql.Connection
 
 fun DependencyHandlerScope.api(dependencyNotation: Any) = add("api", dependencyNotation)
@@ -189,6 +190,7 @@ project(":webapp-dao").tasks.named("compileKotlin") {
     dependsOn(daoCodeGen)
 }
 
+configure(publishableModules.map { project(":$it") }) {
 configure(publishableModules.map { project(":$it") }) {
     apply(plugin = "maven-publish")
 
