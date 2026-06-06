@@ -224,7 +224,10 @@ project(":engine-api") {
         // but kept compileOnly so it stays out of the published artifact's runtime classpath.
         // Consumers (and engine-api's own tests) supply logging on their classpath.
         compileOnly(rootLibs.kotlin.logging)
-        implementation(project(":xiangqi-core"))
+        // Exposed via api: Variant appears in engine-api's public signatures
+        // (EnginePool.queryForDepth, EngineProcess.queryForBestMove/setVariant),
+        // so consumers need it on their compile classpath transitively.
+        api(project(":xiangqi-core"))
     }
 }
 
