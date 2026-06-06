@@ -137,7 +137,7 @@ docker run -d --rm \
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=postgres \
     -e POSTGRES_DB=xiangqi \
-    postgres:17.6
+    postgres:18.4
 ```
 
 Once the container is running, you should see it in the list of running containers:
@@ -145,7 +145,7 @@ Once the container is running, you should see it in the list of running containe
 ```shell
 ➜  ~ docker ps
 CONTAINER ID   IMAGE           COMMAND                  CREATED         STATUS         PORTS                                         NAMES
-c4e5aa14100b   postgres:17.6   "docker-entrypoint.s…"   9 seconds ago   Up 8 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   xiangqi-db
+c4e5aa14100b   postgres:18.4   "docker-entrypoint.s…"   9 seconds ago   Up 8 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   xiangqi-db
 ```
 
 You can then import the dev database (which contains a few games, puzzles and test users):
