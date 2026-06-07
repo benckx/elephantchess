@@ -27,7 +27,7 @@ private val IS_WINDOWS = System.getProperty("os.name").orEmpty().lowercase().con
  * [ProcessBuilder] only looks at the JVM process `PATH`, which frequently omits
  * version-manager (nvm, fnm, asdf) and Homebrew directories — for example when the
  * task is launched from an IDE rather than an interactive shell. We therefore search
- * the `PATH` plus those common install locations, honour an explicit `NODE_BIN` /
+ * the `PATH` plus those common install locations, honor an explicit `NODE_BIN` /
  * `NPM_BIN` override, and account for the `.cmd` wrappers used on Windows.
  *
  * Falls back to the bare name (letting the OS resolve it) when nothing is found, so
@@ -51,14 +51,19 @@ private fun resolveNodeExecutable(name: String): String {
         File(home, ".local/share/fnm/node-versions"),
         File(home, ".asdf/installs/nodejs"),
     ).flatMap { root -> root.listFiles()?.toList().orEmpty() }
+        .filter { it.isDirectory }
         .flatMap { version -> listOf(File(version, "bin"), File(version, "installation/bin")) }
 
-    val commonDirs = listOf(
-        File("/usr/local/bin"),
-        File("/opt/homebrew/bin"),
-        File("/usr/bin"),
-        File(home, ".volta/bin"),
-    )
+    val commonDirs = if (IS_WINDOWS) {
+        emptyList()
+    } else {
+        listOf(
+            File("/usr/local/bin"),
+            File("/opt/homebrew/bin"),
+            File("/usr/bin"),
+            File(home, ".volta/bin"),
+        )
+    }
 
     (pathDirs + versionManagerBinDirs + commonDirs).forEach { dir ->
         candidateNames.forEach { candidate ->
