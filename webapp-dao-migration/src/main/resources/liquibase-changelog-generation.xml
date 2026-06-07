@@ -2376,4 +2376,7 @@
     <changeSet id="0103" author="benckx">
         <comment>Indexes to optimize page view analytics queries</comment>
     </changeSet>
+    <changeSet id="0104" author="benckx">
+        <comment>Delete persisted analyses that contain no moves</comment>
+    </changeSet>
 </databaseChangeLog>

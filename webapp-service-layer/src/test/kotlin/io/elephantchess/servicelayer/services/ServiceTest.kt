@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.config.ArgConfig
 import io.elephantchess.config.DbConfig
 import io.elephantchess.db.utils.getDslContext
+import io.elephantchess.engines.EnginePool
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.game.JoinGameRequest
@@ -32,6 +33,7 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
     protected val gameMovesCache by lazy { GameMovesDtoCache() }
     protected val manchuGameMovesCache by lazy { ManchuGameMovesDtoCache() }
     protected val userService by inject<UserService>()
+    protected open val enginesPool: EnginePool? = null
     protected val pvpGameService by inject<PlayerVsPlayerGameService>()
 
     @BeforeAll
@@ -41,6 +43,7 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
             modules(
                 serviceLayerModule(
                     argConfig = ArgConfig("local", null),
+                    enginesPool = enginesPool,
                     dslBuilder = {
                         val dbConfig = DbConfig(
                             dbName = "postgres",
@@ -71,14 +74,26 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
         guestUserId: String? = null,
     ): Pair<SignUpRequest, String> {
         val password = insecure().nextAlphanumeric(10)
-        val request = SignUpRequest(
+        var request = SignUpRequest(
             username = "test$i",
             email = "test$i@gmail.com",
             password = password,
             transferGuestData = transferGuestData,
         )
-        val either = userService.signUp(request, guestUserId = guestUserId)
-        return request to either.right().userId
+        repeat(5) { retry ->
+            val either = userService.signUp(request, guestUserId = guestUserId)
+            if (either.isRight()) {
+                return request to either.right().userId
+            }
+
+            val nextI = i + retry + 1
+            request = request.copy(
+                username = "test$nextI",
+                email = "test$nextI@gmail.com",
+            )
+        }
+
+        error("Could not sign up a unique test user after retries")
     }
 
     protected suspend fun createAndJoinGame(
