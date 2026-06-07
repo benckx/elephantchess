@@ -9,7 +9,7 @@ for a more permissive use (i.e. to re-use the libraries in a commercial applicat
 
 We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
 
-[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml)
+[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml) [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
 
 ## Features
 
