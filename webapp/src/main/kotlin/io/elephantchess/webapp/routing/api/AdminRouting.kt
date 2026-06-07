@@ -133,6 +133,11 @@ private fun Route.adminAnalyticsRoutes() {
             adminAnalyticsService.fetchPageViewStatsByEventPath(eventPath)
         }
     }
+    get("/page-view-stats-database-games") {
+        requireAdminRole { _ ->
+            adminAnalyticsService.fetchPageViewStatsForDatabaseGames()
+        }
+    }
     get("/page-view-stats-user-profiles-own") {
         requireAdminRole { _ ->
             adminAnalyticsService.fetchPageViewStatsForOwnUserProfiles()
