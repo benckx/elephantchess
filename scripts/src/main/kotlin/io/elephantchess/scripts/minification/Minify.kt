@@ -19,6 +19,62 @@ const val CSV_FILE = "minified_files.csv"
 private val MINIFIER_DIR = File("scripts/minifier")
 private val MINIFIER_SCRIPT = File(MINIFIER_DIR, "minify.mjs")
 
+private val IS_WINDOWS = System.getProperty("os.name").orEmpty().lowercase().contains("win")
+
+/**
+ * Resolves the absolute path of a Node executable (`node` or `npm`).
+ *
+ * [ProcessBuilder] only looks at the JVM process `PATH`, which frequently omits
+ * version-manager (nvm, fnm, asdf) and Homebrew directories — for example when the
+ * task is launched from an IDE rather than an interactive shell. We therefore search
+ * the `PATH` plus those common install locations, honour an explicit `NODE_BIN` /
+ * `NPM_BIN` override, and account for the `.cmd` wrappers used on Windows.
+ *
+ * Falls back to the bare name (letting the OS resolve it) when nothing is found, so
+ * setups that already work keep working.
+ */
+private fun resolveNodeExecutable(name: String): String {
+    System.getenv("${name.uppercase()}_BIN")
+        ?.takeIf { it.isNotBlank() }
+        ?.let { return it }
+
+    val candidateNames = if (IS_WINDOWS) listOf("$name.cmd", "$name.exe", name) else listOf(name)
+
+    val home = System.getProperty("user.home").orEmpty()
+    val pathDirs = System.getenv("PATH").orEmpty()
+        .split(File.pathSeparatorChar)
+        .filter { it.isNotBlank() }
+        .map { File(it) }
+
+    val versionManagerBinDirs = listOf(
+        File(home, ".nvm/versions/node"),
+        File(home, ".local/share/fnm/node-versions"),
+        File(home, ".asdf/installs/nodejs"),
+    ).flatMap { root -> root.listFiles()?.toList().orEmpty() }
+        .flatMap { version -> listOf(File(version, "bin"), File(version, "installation/bin")) }
+
+    val commonDirs = listOf(
+        File("/usr/local/bin"),
+        File("/opt/homebrew/bin"),
+        File("/usr/bin"),
+        File(home, ".volta/bin"),
+    )
+
+    (pathDirs + versionManagerBinDirs + commonDirs).forEach { dir ->
+        candidateNames.forEach { candidate ->
+            val file = File(dir, candidate)
+            if (file.isFile && file.canExecute()) {
+                return file.absolutePath
+            }
+        }
+    }
+
+    return candidateNames.first()
+}
+
+private val NODE_EXECUTABLE by lazy { resolveNodeExecutable("node") }
+private val NPM_EXECUTABLE by lazy { resolveNodeExecutable("npm") }
+
 private data class MinifyResult(
     val responseCode: Int,
 )
@@ -72,13 +128,16 @@ private fun ensureMinifierInstalled() {
 
     println("[minifier] installing dependencies in ${MINIFIER_DIR.path} ...")
     val exitCode = try {
-        ProcessBuilder("npm", "install")
+        ProcessBuilder(NPM_EXECUTABLE, "install")
             .directory(MINIFIER_DIR)
             .inheritIO()
             .start()
             .waitFor()
     } catch (e: java.io.IOException) {
-        println("ERROR: failed to start 'npm' (is Node.js/npm installed and on the PATH?): ${e.message}")
+        println(
+            "ERROR: failed to start '$NPM_EXECUTABLE' (is Node.js/npm installed and on the PATH?): ${e.message}. " +
+                "If npm is installed in a non-standard location, set the NPM_BIN environment variable to its full path.",
+        )
         exitProcess(1)
     }
 
@@ -94,9 +153,12 @@ private fun ensureMinifierInstalled() {
  */
 private fun minifyWithNode(file: File, outputFile: File, type: String): MinifyResult {
     val process = try {
-        ProcessBuilder("node", MINIFIER_SCRIPT.path, type).start()
+        ProcessBuilder(NODE_EXECUTABLE, MINIFIER_SCRIPT.path, type).start()
     } catch (e: java.io.IOException) {
-        println("ERROR: failed to start 'node' (is Node.js installed and on the PATH?): ${e.message}")
+        println(
+            "ERROR: failed to start '$NODE_EXECUTABLE' (is Node.js installed and on the PATH?): ${e.message}. " +
+                "If node is installed in a non-standard location, set the NODE_BIN environment variable to its full path.",
+        )
         exitProcess(1)
     }
 
