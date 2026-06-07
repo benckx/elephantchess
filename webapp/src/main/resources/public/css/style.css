@@ -991,6 +991,19 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     display: none;
 }
 
+#login-modal,
+#signup-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+}
+
+#login-modal .modal-form-label,
+#signup-modal .modal-form-label {
+    width: 90%;
+}
+
 #login-modal {
     width: 250px;
 }
