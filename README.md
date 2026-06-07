@@ -728,6 +728,3 @@ The minifier dependencies are installed automatically (`npm install`) the first 
 The task looks for `node` and `npm` on the `PATH` as well as common install locations (nvm, fnm, asdf,
 Homebrew). If they live somewhere else (or aren't picked up when running from an IDE), point the task at
 them explicitly with the `NODE_BIN` and `NPM_BIN` environment variables.
-
-To avoid reminifying the same files, we keep track of the checksum of the input files in a local
-`minified_files.csv` file, so unchanged assets are skipped on subsequent runs.

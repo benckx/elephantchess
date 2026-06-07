@@ -3,13 +3,7 @@ package io.elephantchess.scripts.minification
 import io.elephantchess.scripts.listAllCssFiles
 import io.elephantchess.scripts.listAllJsFiles
 import java.io.File
-import java.math.BigInteger
-import java.security.MessageDigest
 import kotlin.system.exitProcess
-import kotlin.time.Clock
-import kotlin.time.Instant
-
-const val CSV_FILE = "minified_files.csv"
 
 /**
  * Local Node project that minifies assets without any network round-trip:
@@ -83,25 +77,6 @@ private val NPM_EXECUTABLE by lazy { resolveNodeExecutable("npm") }
 private data class MinifyResult(
     val responseCode: Int,
 )
-
-private data class MinificationCsvEntry(
-    val filePath: String,
-    val checksum: String,
-    val dateTime: Instant,
-) {
-
-    override fun hashCode(): Int {
-        return filePath.hashCode()
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return other is MinificationCsvEntry && filePath == other.filePath
-    }
-
-    fun toCsv(): String {
-        return "$filePath,$checksum,$dateTime"
-    }
-}
 
 private fun minifiedFile(file: File): File {
     val extension = file.extension
@@ -182,35 +157,6 @@ private fun minifyWithNode(file: File, outputFile: File, type: String): MinifyRe
     return MinifyResult(500)
 }
 
-private fun checksum(file: File): String {
-    val md = MessageDigest.getInstance("MD5")
-    return BigInteger(1, md.digest(file.readBytes())).toString(16).padStart(32, '0')
-}
-
-/**
- * To ensure we don't minify multiple times the same file if it didn't change,
- * therefore speeding up the minification script.
- */
-private fun loadCsv(): List<MinificationCsvEntry> {
-    val csvFile = File(CSV_FILE)
-    val entries = mutableListOf<MinificationCsvEntry>()
-    if (csvFile.exists()) {
-        csvFile.readLines().forEach { line ->
-            val (filePath, checksum, dateTime) = line.split(",")
-            entries.add(MinificationCsvEntry(filePath, checksum, Instant.parse(dateTime)))
-        }
-    }
-    return entries.toList()
-}
-
-private fun writeCsv(entries: List<MinificationCsvEntry>) {
-    val csvFile = File(CSV_FILE)
-    csvFile.delete()
-    csvFile.createNewFile()
-    csvFile.writeText(entries.sortedBy { it.filePath }.joinToString("\n") { entry -> entry.toCsv() })
-    println("wrote ${entries.size} entries to $csvFile")
-}
-
 private fun sizeUnminified(files: List<File>): Long {
     return files.sumOf { file -> file.length() }
 }
@@ -224,73 +170,34 @@ private fun formatBytes(bytes: Long): String {
 }
 
 /**
- * Minifies the given files if they have no up-to-date minified counterpart.
- * A file is considered up-to-date when an entry exists in [CSV_FILE], the
- * minified file exists on disk, and the source checksum still matches.
+ * Minifies all the given files, overwriting any existing minified counterparts.
  */
-fun minifyIfNeeded(files: List<File>) {
+fun minifyAll(files: List<File>) {
     files.forEach { file -> println("[found] ${file.path}") }
 
-    val csvEntries = loadCsv().toMutableList()
+    println("files to minify -> ${files.size}")
 
-    csvEntries
-        .filterNot { entry -> File(entry.filePath).exists() }
-        .toList()
-        .forEach { entry ->
-            println("[file not found] ${entry.filePath}")
-            csvEntries.remove(entry)
-        }
-
-    val filesToMinify = files.filter { file ->
-        val entry = csvEntries.find { entry -> entry.filePath == file.path }
-        if (entry == null) {
-            println("[entry not found] ${file.path}")
-            true
-        } else if (!minifiedFile(file).exists()) {
-            println("[not minified] ${file.path}")
-            true
-        } else if (entry.checksum != checksum(file)) {
-            println("[checksum changed] ${file.path}")
-            true
-        } else {
-            false
-        }
+    if (files.isEmpty()) {
+        return
     }
 
-    println("input files -> ${files.size}")
-    println("files to minify -> ${filesToMinify.size}")
+    ensureMinifierInstalled()
 
-    if (filesToMinify.isNotEmpty()) {
-        ensureMinifierInstalled()
-    }
-
-    val chunkSize = 20
-
-    filesToMinify
-        .chunked(chunkSize)
-        .forEach { chunk ->
-            chunk.forEach { file ->
-                val result = minifyFile(file)
-                println("[${file.path}] -> ${result.responseCode}")
-                if (result.responseCode != 200) {
-                    println("ERROR: exiting due to code ${result.responseCode}")
-                    exitProcess(1)
-                }
-                csvEntries.removeIf { entry -> entry.filePath == file.path }
-                csvEntries += (MinificationCsvEntry(file.path, checksum(file), Clock.System.now()))
-            }
-            // checkpoint progress so a long run doesn't have to restart from scratch
-            writeCsv(csvEntries)
+    files.forEach { file ->
+        val result = minifyFile(file)
+        println("[${file.path}] -> ${result.responseCode}")
+        if (result.responseCode != 200) {
+            println("ERROR: exiting due to code ${result.responseCode}")
+            exitProcess(1)
         }
-
-    writeCsv(csvEntries)
+    }
 }
 
 fun main() {
     val allCss = listAllCssFiles()
     val allJs = listAllJsFiles()
 
-    minifyIfNeeded(allCss + allJs)
+    minifyAll(allCss + allJs)
 
     val cssUnminified = sizeUnminified(allCss)
     val cssMinified = sizeMinified(allCss)
