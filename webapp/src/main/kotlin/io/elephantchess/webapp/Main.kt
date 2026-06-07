@@ -4,6 +4,7 @@ import io.elephantchess.config.ArgConfig.Companion.parseArgs
 import io.elephantchess.servicelayer.serviceLayerModule
 import io.elephantchess.webapp.routing.html.htmlRoutingModule
 import io.elephantchess.webapp.routing.sitemapRoutingModule
+import io.elephantchess.webapp.routing.wellKnownRoutingModule
 import io.elephantchess.webapp.server.*
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.server.application.*
@@ -42,6 +43,7 @@ private fun Application.kTorModule() {
     apiServiceModule()
     htmlRoutingModule()
     sitemapRoutingModule()
+    wellKnownRoutingModule()
     shutdownModule()
     healthCheckModule()
 }

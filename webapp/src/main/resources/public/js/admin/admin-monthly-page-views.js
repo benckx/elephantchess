@@ -26,6 +26,7 @@ class AdminPageViewStatsPage extends BasePage {
         '/',
         '/about',
         '/about/faq',
+        '/about/roadmap',
         '/about/changelog',
         '/global',
         '/database/search',
@@ -268,7 +269,7 @@ class AdminPageViewStatsPage extends BasePage {
                 noDataDiv.style.marginBottom = '40px';
 
                 const message = document.createElement('p');
-                message.innerText = 'No data available for this path';
+                message.innerText = `No data available for this path: ${eventPath}`;
                 message.style.fontStyle = 'italic';
                 message.style.color = '#666';
                 noDataDiv.appendChild(message);
