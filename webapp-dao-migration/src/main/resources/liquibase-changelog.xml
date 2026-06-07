@@ -2553,4 +2553,14 @@
             CREATE INDEX page_view_event_event_path_index ON page_view_event (event_path text_pattern_ops);
         </sql>
     </changeSet>
+    <changeSet id="0104" author="benckx">
+        <comment>Add opt-in setting for offline opponent-flagged notifications</comment>
+        <addColumn tableName="user">
+            <column name="email_notification_enabled_opponent_flagged"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

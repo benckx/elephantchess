@@ -375,6 +375,7 @@ class UserService(
         return NotificationsSettingsDto(
             newsletter = record.newsletter,
             opponentJoinedGame = record.opponentJoinedGame,
+            opponentFlagged = record.opponentFlagged,
             opponentPlayedMove = record.opponentPlayedMove,
             opponentResigned = record.opponentResigned,
             opponentProposedDraw = record.opponentProposedDraw,
@@ -388,6 +389,7 @@ class UserService(
             userId = userId,
             newsletter = request.newsletter,
             opponentJoinedGame = request.opponentJoinedGame,
+            opponentFlagged = request.opponentFlagged,
             opponentPlayedMove = request.opponentPlayedMove,
             opponentResigned = request.opponentResigned,
             opponentProposedDraw = request.opponentProposedDraw,
