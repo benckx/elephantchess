@@ -1001,7 +1001,7 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
 
 #login-modal .modal-form-label,
 #signup-modal .modal-form-label {
-    width: 90%;
+    width: 100%;
 }
 
 #login-modal {
