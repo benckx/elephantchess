@@ -74,21 +74,17 @@ private fun resolveNodeExecutable(name: String): String {
 private val NODE_EXECUTABLE by lazy { resolveNodeExecutable("node") }
 private val NPM_EXECUTABLE by lazy { resolveNodeExecutable("npm") }
 
-private data class MinifyResult(
-    val responseCode: Int,
-)
-
 private fun minifiedFile(file: File): File {
     val extension = file.extension
     val outputName = "${file.nameWithoutExtension}.min.$extension"
     return File(file.parentFile, outputName)
 }
 
-private fun minifyFile(file: File): MinifyResult {
+private fun minifyFile(file: File) {
     val outputFile = minifiedFile(file)
     outputFile.delete()
 
-    return when (file.extension) {
+    when (file.extension) {
         "js" -> minifyWithNode(file, outputFile, "js")
         "css" -> minifyWithNode(file, outputFile, "css")
         else -> throw IllegalArgumentException("unsupported extension ${file.extension}")
@@ -129,9 +125,9 @@ private fun ensureMinifierInstalled() {
 
 /**
  * Minifies a file locally by piping its content through the Node [MINIFIER_SCRIPT],
- * which uses SWC for `js` and Lightning CSS for `css`. Returns code 200 on success.
+ * which uses SWC for `js` and Lightning CSS for `css`.
  */
-private fun minifyWithNode(file: File, outputFile: File, type: String): MinifyResult {
+private fun minifyWithNode(file: File, outputFile: File, type: String) {
     val process = try {
         ProcessBuilder(NODE_EXECUTABLE, MINIFIER_SCRIPT.path, type).start()
     } catch (e: java.io.IOException) {
@@ -148,13 +144,11 @@ private fun minifyWithNode(file: File, outputFile: File, type: String): MinifyRe
     val errors = process.errorStream.readBytes().decodeToString()
     val exitCode = process.waitFor()
 
-    if (exitCode == 0) {
-        outputFile.writeText(output)
-        return MinifyResult(200)
+    if (exitCode != 0) {
+        throw IllegalStateException("failed to minify ${file.path}: $errors")
     }
 
-    println("[minifier] failed to minify ${file.path}: $errors")
-    return MinifyResult(500)
+    outputFile.writeText(output)
 }
 
 private fun sizeUnminified(files: List<File>): Long {
@@ -184,12 +178,8 @@ fun minifyAll(files: List<File>) {
     ensureMinifierInstalled()
 
     files.forEach { file ->
-        val result = minifyFile(file)
-        println("[${file.path}] -> ${result.responseCode}")
-        if (result.responseCode != 200) {
-            println("ERROR: exiting due to code ${result.responseCode}")
-            exitProcess(1)
-        }
+        minifyFile(file)
+        println("[minified] ${file.path}")
     }
 }
 

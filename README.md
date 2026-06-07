@@ -718,12 +718,11 @@ https://elephantchess.io/about/developers/board-gui-example
 
 ## Minification
 
-JavaScript and CSS assets are minified locally without any network round-trip, via the small Node project
-in [`scripts/minifier`](scripts/minifier). JavaScript is minified with [SWC](https://swc.rs) (the same
-engine the previously used [Toptal endpoint](https://www.toptal.com/developers/javascript-minifier) is
-based on) and CSS with [Lightning CSS](https://lightningcss.dev). Running both locally removes the
-rate-limited network round-trips and handles modern syntax such as ES6 private class fields out of the box.
-The minifier dependencies are installed automatically (`npm install`) the first time the task runs.
+JavaScript and CSS assets are minified locally via the small Node project in
+[`scripts/minifier`](scripts/minifier): JavaScript with [SWC](https://swc.rs) and CSS with
+[Lightning CSS](https://lightningcss.dev). The minifier dependencies are installed automatically
+(`npm install`) the first time the task runs, which also handles modern syntax such as ES6 private
+class fields out of the box.
 
 The task looks for `node` and `npm` on the `PATH` as well as common install locations (nvm, fnm, asdf,
 Homebrew). If they live somewhere else (or aren't picked up when running from an IDE), point the task at
