@@ -74,14 +74,26 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
         guestUserId: String? = null,
     ): Pair<SignUpRequest, String> {
         val password = insecure().nextAlphanumeric(10)
-        val request = SignUpRequest(
+        var request = SignUpRequest(
             username = "test$i",
             email = "test$i@gmail.com",
             password = password,
             transferGuestData = transferGuestData,
         )
-        val either = userService.signUp(request, guestUserId = guestUserId)
-        return request to either.right().userId
+        repeat(5) { retry ->
+            val either = userService.signUp(request, guestUserId = guestUserId)
+            if (either.isRight()) {
+                return request to either.right().userId
+            }
+
+            val nextI = i + retry + 1
+            request = request.copy(
+                username = "test$nextI",
+                email = "test$nextI@gmail.com",
+            )
+        }
+
+        error("Could not sign up a unique test user after retries")
     }
 
     protected suspend fun createAndJoinGame(

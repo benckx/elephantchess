@@ -21,7 +21,7 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
                 ),
                 SimpleValueTagResolver("dist_version", DIST_VERSION),
                 snippetTagResolver("snippet_setup", "board-gui-setup.html"),
-                snippetTagResolver("snipped_config", "board-gui-config.js"),
+                snippetTagResolver("snippet_config", "board-gui-config.js"),
                 snippetTagResolver("snippet_headless", "board-gui-headless.html")
             )
         )

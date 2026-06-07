@@ -116,7 +116,6 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             service.create(guestId, request)
         }
 
-        assertEquals("You must be authenticated in to play with depth greater than 6", exception.message)
+        assertEquals("You must be authenticated to play with depth greater than 6", exception.message)
     }
-
 }

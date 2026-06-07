@@ -123,7 +123,7 @@ class PlayerVsBotGameService(
         }
 
         if (userId.userType == UserType.GUEST && request.depth > 6) {
-            throw BadRequestException("You must be authenticated in to play with depth greater than 6")
+            throw BadRequestException("You must be authenticated to play with depth greater than 6")
         }
 
         // Manchu variant requires Engine only opening mode
