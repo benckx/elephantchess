@@ -18,6 +18,17 @@ import java.io.IOException
 import java.nio.channels.ClosedChannelException
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * Well-known URIs that clients (mobile OSes, password managers, ...) probe automatically. We don't
+ * ship native apps or passkeys, so these always 404 - mute them to avoid noisy WARN logs.
+ */
+private val MUTED_WELL_KNOWN_URIS = setOf(
+    "/.well-known/assetlinks.json",
+    "/.well-known/apple-app-site-association",
+    "/apple-app-site-association",
+    "/.well-known/passkey-endpoints",
+)
+
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}
     val exceptionService by koin<ExceptionService>()
@@ -39,6 +50,15 @@ fun Application.exceptionHandler() {
                     "WebSocket path called without Upgrade header: $method $uri | User-Agent: ${userAgent?.take(100)}"
                 }
                 call.respond(HttpStatusCode.UpgradeRequired, ValidationErrorsResponse("WebSocket upgrade required"))
+                return@status
+            }
+
+            // Native-app / passkey association probes hit these standard well-known URIs automatically
+            // (Android App Links, iOS Universal Links, WebAuthn passkey discovery). We don't ship native
+            // apps or passkeys, so a 404 is the correct response - just don't spam WARN logs for them.
+            if (uri.substringBefore('?') in MUTED_WELL_KNOWN_URIS) {
+                logger.debug { "Ignoring well-known probe: $method $uri | User-Agent: ${userAgent?.take(100)}" }
+                call.respond(status, ValidationErrorsResponse("Not Found: $uri"))
                 return@status
             }
 
