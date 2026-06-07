@@ -78,6 +78,9 @@ private fun Route.adminFeedsRoutes() {
     get("/last-users-analysis") {
         requireAdminRole { adminFeedService.listLastUsersAnalysis() }
     }
+    get("/content-section-feedback") {
+        requireAdminRole { adminFeedService.listLatestFeedback() }
+    }
 }
 
 private fun Route.adminAnalyticsRoutes() {
@@ -128,6 +131,11 @@ private fun Route.adminAnalyticsRoutes() {
             val eventPath = URLDecoder.decode(encodedPath, "UTF-8")
 
             adminAnalyticsService.fetchPageViewStatsByEventPath(eventPath)
+        }
+    }
+    get("/page-view-stats-database-games") {
+        requireAdminRole { _ ->
+            adminAnalyticsService.fetchPageViewStatsForDatabaseGames()
         }
     }
     get("/page-view-stats-user-profiles-own") {

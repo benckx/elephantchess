@@ -103,6 +103,8 @@ class PuzzleService(
                     outcome = record.outcome,
                     ratingFrom = record.ratingFrom,
                     ratingTo = record.ratingTo,
+                    puzzleRatingFrom = record.puzzleRatingFrom,
+                    puzzleRatingTo = record.puzzleRatingTo,
                     date = record.date.toEpochMilliseconds(),
                 )
             }
@@ -120,6 +122,7 @@ class PuzzleService(
             val blackPlayerId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.BLACK_PLAYER) }.firstOrNull()
             val outcome = puzzleRecords.map { record -> record.get(REFERENCE_GAME.OUTCOME) }.firstOrNull()
             val date = puzzleRecords.map { record -> record.get(REFERENCE_GAME.DATE) }.firstOrNull()
+            val puzzleRating = puzzleRecords.map { record -> record.get(PUZZLE.RATING) }.firstOrNull()
 
             val redPlayerName = puzzleRecords
                 .filter { redPlayerId != null && it.get(REFERENCE_PLAYER.ID) == redPlayerId }
@@ -144,7 +147,11 @@ class PuzzleService(
                     lastUpdated = date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
                     variant = Variant.XIANGQI,
                 )
-                PuzzlesOriginalGameMetadataResponse.Entry(puzzleId, metadata)
+                PuzzlesOriginalGameMetadataResponse.Entry(
+                    puzzleId = puzzleId,
+                    gameMetadata = metadata,
+                    puzzleRating = puzzleRating,
+                )
             } else {
                 null
             }
@@ -179,6 +186,14 @@ class PuzzleService(
         return PuzzleVoteResponse(resultId != null)
     }
 
+    /**
+     * Builds the Elo transfer function applied on a puzzle outcome.
+     *
+     * Replaying a puzzle played within [RE_PLAYABILITY_DAYS] yields a smaller Elo gain when SOLVED
+     * (K is scaled down linearly by recency), but the same Elo loss when FAILED/SKIPPED (full K).
+     *
+     * If [visibleCategories] is `true`, the solving gain is additionally halved.
+     */
     private fun eloTransfer(visibleCategories: Boolean): (PuzzleOutcome, Int, Int, Instant?) -> Pair<Int, Int> {
         return { outcome, userRating, puzzleRating, lastPlayed ->
             val newUserRating: Int

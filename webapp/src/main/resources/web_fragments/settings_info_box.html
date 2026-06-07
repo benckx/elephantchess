@@ -102,7 +102,7 @@
                 </div>
             </div>
         </div>
-       <div class="advanced-setting-row">
+        <div class="advanced-setting-row">
             <img class="advanced-setting-icon"
                  src="/images/icons/coordinates2.png"
                  alt="Coordinates style setting icon"
@@ -117,42 +117,42 @@
                         <input type="radio"
                                name="coordinates-style-setting"
                                id="coordinates-style-wxf-arabic-radio"
-                               value="WXF_ARABIC">
+                               value="ARABIC_BOTH">
                         Arabic on both sides
                     </label>
                     <label>
                         <input type="radio"
                                name="coordinates-style-setting"
                                id="coordinates-style-wxf-chinese-radio"
-                               value="WXF_CHINESE">
+                               value="CHINESE_BOTH">
                         Chinese on both sides
                     </label>
                     <label>
                         <input type="radio"
                                name="coordinates-style-setting"
                                id="coordinates-style-wxf-chinese-red-only-radio"
-                               value="WXF_CHINESE_RED_ONLY">
+                               value="CHINESE_RED_ONLY">
                         Chinese on red side only
                     </label>
                     <label>
                         <input type="radio"
                                name="coordinates-style-setting"
                                id="coordinates-style-wxf-chinese-black-only-radio"
-                               value="WXF_CHINESE_BLACK_ONLY">
+                               value="CHINESE_BLACK_ONLY">
                         Chinese on black side only
                     </label>
                     <label>
                         <input type="radio"
                                name="coordinates-style-setting"
                                id="coordinates-style-wxf-chinese-lower-only-radio"
-                               value="WXF_CHINESE_LOWER_ONLY">
+                               value="CHINESE_LOWER_ONLY">
                         Chinese on lower side only
                     </label>
                     <label>
                         <input type="radio"
                                name="coordinates-style-setting"
                                id="coordinates-style-wxf-chinese-top-only-radio"
-                               value="WXF_CHINESE_TOP_ONLY">
+                               value="CHINESE_TOP_ONLY">
                         Chinese on top side only
                     </label>
                     <label>
@@ -168,6 +168,35 @@
                      hidden>
                     ⚠ Warning: the chosen coordinates don't match the move format family
                     (WXF vs Algebraic).
+                </div>
+            </div>
+        </div>
+        <div class="advanced-setting-row">
+            <img class="advanced-setting-icon"
+                 src="/images/icons/arrows-opposite-directions.png"
+                 alt="Flip opponent pieces setting icon"
+                 loading="lazy">
+            <div class="advanced-setting-content">
+                <div class="advanced-setting-text">
+                    <div class="advanced-setting-title">Flip opponent pieces</div>
+                    <div class="advanced-setting-description">Rotate opponent pieces 180° to match the OTB appearance.
+                    </div>
+                </div>
+                <div class="advanced-setting-options">
+                    <label>
+                        <input type="radio"
+                               name="flip-opponent-pieces-setting"
+                               id="flip-opponent-pieces-enabled-radio"
+                               value="true">
+                        On
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="flip-opponent-pieces-setting"
+                               id="flip-opponent-pieces-disabled-radio"
+                               value="false">
+                        Off
+                    </label>
                 </div>
             </div>
         </div>
@@ -223,6 +252,34 @@
                         <input type="radio"
                                name="colorblind-black-pieces-setting"
                                id="colorblind-friendly-black-pieces-disabled-radio"
+                               value="false">
+                        Off
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="advanced-setting-row">
+            <img class="advanced-setting-icon"
+                 src="/images/icons/grid-squares.svg"
+                 alt="Colored areas setting icon"
+                 loading="lazy">
+            <div class="advanced-setting-content">
+                <div class="advanced-setting-text">
+                    <div class="advanced-setting-title">Colored areas</div>
+                    <div class="advanced-setting-description">Highlight river (blue) and palace (green) areas.</div>
+                </div>
+                <div class="advanced-setting-options">
+                    <label>
+                        <input type="radio"
+                               name="colored-areas-setting"
+                               id="colored-areas-enabled-radio"
+                               value="true">
+                        On
+                    </label>
+                    <label>
+                        <input type="radio"
+                               name="colored-areas-setting"
+                               id="colored-areas-disabled-radio"
                                value="false">
                         Off
                     </label>

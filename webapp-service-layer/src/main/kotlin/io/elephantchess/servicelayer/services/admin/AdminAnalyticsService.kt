@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.IntDimensionValueRecord
 import io.elephantchess.db.model.MonthlyValueRecord
 import io.elephantchess.db.model.analytics.DailyValueRecord
@@ -13,9 +14,9 @@ import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.analytics.HourlyAvailableMetric
 import io.elephantchess.servicelayer.services.analytics.allMetrics
-import io.elephantchess.servicelayer.utils.userIdsExcludedFromAnalytics
 import io.elephantchess.utils.rangeOfDays
 import io.elephantchess.utils.rangeOfYearMonths
+import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
 import java.time.LocalDate
 import java.time.YearMonth
@@ -25,8 +26,16 @@ class AdminAnalyticsService(
     private val userStatsDaoService: UserStatsDaoService,
     private val pageViewEventDaoService: PageViewEventDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
-    private val dslContext: DSLContext
+    private val dslContext: DSLContext,
+    logger: KLogger,
+    appConfig: AppConfig,
 ) {
+
+    private val excludedUserIds = appConfig.loadListOfStrings("excluded.from.analytics")
+
+    init {
+        logger.info { "excludedUserIds = $excludedUserIds" }
+    }
 
     /**
      * Limit to 6 hours for now, so order is not an issue
@@ -260,29 +269,34 @@ class AdminAnalyticsService(
 
     suspend fun fetchPageViewStatsByGad(): MultipleTimeSeriesResponse {
         val pattern = "%?gad_source=1%"
-        val records = pageViewEventDaoService.fetchMonthlyPageViewsByPattern(pattern, userIdsExcludedFromAnalytics)
+        val records = pageViewEventDaoService.fetchMonthlyPageViewsByPattern(pattern, excludedUserIds)
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
     suspend fun fetchPageViewStatsByEventPath(eventPath: String): MultipleTimeSeriesResponse {
-        val records = pageViewEventDaoService.fetchMonthlyPageViews(eventPath, userIdsExcludedFromAnalytics)
+        val records = pageViewEventDaoService.fetchMonthlyPageViews(eventPath, excludedUserIds)
+        return mapPageViewRecordsToMultipleTimeseries(records)
+    }
+
+    suspend fun fetchPageViewStatsForDatabaseGames(): MultipleTimeSeriesResponse {
+        val records = pageViewEventDaoService.fetchMonthlyDatabaseGamePageViews(excludedUserIds)
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
     suspend fun fetchPageViewStatsForOwnUserProfiles(): MultipleTimeSeriesResponse {
-        val records = pageViewEventDaoService.fetchMonthlyOwnUserProfilePageViews(userIdsExcludedFromAnalytics)
+        val records = pageViewEventDaoService.fetchMonthlyOwnUserProfilePageViews(excludedUserIds)
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
     suspend fun fetchPageViewStatsForOtherUserProfiles(): MultipleTimeSeriesResponse {
-        val records = pageViewEventDaoService.fetchMonthlyOtherUserProfilePageViews(userIdsExcludedFromAnalytics)
+        val records = pageViewEventDaoService.fetchMonthlyOtherUserProfilePageViews(excludedUserIds)
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
     suspend fun fetchHourlyPageViews(hours: Int = 12): HourlyPageViewsResponse {
         val records = pageViewEventDaoService.fetchHourlyPageViews(
             hours = hours,
-            excludedUserIds = userIdsExcludedFromAnalytics
+            excludedUserIds = excludedUserIds
         )
 
         val entries = records.map { record ->
@@ -298,7 +312,7 @@ class AdminAnalyticsService(
     suspend fun fechDailyPageViews(days: Int = 30): DailyPageViewsResponse {
         val records = pageViewEventDaoService.fetchDailyPageViews(
             days = days,
-            excludedUserIds = userIdsExcludedFromAnalytics
+            excludedUserIds = excludedUserIds
         )
 
         val entries = records.map { record ->
