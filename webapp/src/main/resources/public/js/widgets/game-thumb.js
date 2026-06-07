@@ -88,7 +88,7 @@ class GameThumb {
     currentMoveIndex = null;
 
     /**
-     * @type {string[]}
+     * @type {HalfMove[]}
      */
     #moveQueue = [];
 
@@ -383,7 +383,8 @@ class GameThumb {
      */
     refresh(update) {
         if (update.newMoves != null && update.newMoves.length > 0) {
-            this.#moveQueue = this.#moveQueue.concat(update.newMoves);
+            const parsedMoves = update.newMoves.map(uci => HalfMove.parseUci(uci));
+            this.#moveQueue = this.#moveQueue.concat(parsedMoves);
             if (!this.#isProcessingMoveQueue) {
                 this.#processMoveQueue();
             }
