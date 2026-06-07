@@ -196,6 +196,11 @@
         margin-bottom: 20px;
     }
 
+    #login-modal .modal-form-label,
+    #signup-modal .modal-form-label {
+        width: 90%;
+    }
+
     .signup-validation-text {
         font-size: 24px;
     }
