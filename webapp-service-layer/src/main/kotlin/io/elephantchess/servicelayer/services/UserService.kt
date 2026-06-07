@@ -47,6 +47,8 @@ class UserService(
     private val logger: KLogger,
 ) {
 
+    private val excludedFromAnalyticsUserIds = appConfig.loadListOfStrings("excluded.from.analytics")
+
     private fun normalizeCountry(country: String?): String? =
         country
             ?.trim()
@@ -251,7 +253,9 @@ class UserService(
         pageViewEventService.processPageViewEvent(verifiedToken, request.currentPage)
 
         // sample anonymous setting preferences (only a fraction of the time)
-        settingPreferenceEventService.sampleSettingPreferences(verifiedToken.userId().userType, settingCookies)
+        if (!excludedFromAnalyticsUserIds.contains(verifiedToken.userId().id)) {
+            settingPreferenceEventService.sampleSettingPreferences(verifiedToken.userId().userType, settingCookies)
+        }
 
         return PingResponse(renewedTokenString)
     }
