@@ -718,9 +718,14 @@ https://elephantchess.io/about/developers/board-gui-example
 
 ## Minification
 
-The minification of JavaScript and CSS assets is done via a REST call to https://www.toptal.com. To avoid reminify the
-same files, we keep track of the checksum of the input files in a local `minified_files.csv` file. The endpoint we use
-is rate limited, so we minify chuck of 20 files every 90 seconds.
+JavaScript assets are minified locally with [SWC](https://swc.rs) via the small Node project in
+[`scripts/swc-minifier`](scripts/swc-minifier). SWC is the same engine the previously used
+[Toptal endpoint](https://www.toptal.com/developers/javascript-minifier) is based on, so the output is
+equivalent, but running it locally removes the rate-limited network round-trip and handles modern syntax
+such as ES6 private class fields out of the box. The minifier dependencies are installed automatically
+(`npm install`) the first time the task runs.
 
-It's a bit of a funny approach but Gradle plugins I tried wouldn't support the JavaScript files since they contained
-private class fields (i.e. ES6).
+CSS assets are still minified via a REST call to https://www.toptal.com. To avoid reminifying the same
+files, we keep track of the checksum of the input files in a local `minified_files.csv` file. The CSS
+endpoint is rate limited, so we minify chunks of 20 files every 90 seconds (this throttling now only
+applies to chunks that actually call the remote endpoint).
