@@ -162,16 +162,30 @@
     /*noinspection ALL*/
     .modal-content {
         font-size: 38px;
-        width: 100%;
-        border-radius: 0;
+        width: 94%;
+        position: relative;
+        border-radius: 8px;
         border-width: 3px;
-        border-left-width: 0;
-        border-right-width: 0;
-        padding-top: 40px;
+        padding-top: 76px;
         padding-bottom: 40px;
         padding-left: 0;
         padding-right: 0;
         box-shadow: rgba(0, 0, 0, 0.35) 0px 10px 25px;
+    }
+
+    .modal-close-button {
+        display: block;
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 40px;
+        line-height: 1;
+        cursor: pointer;
     }
 
     .modal-content h3 {
@@ -180,6 +194,11 @@
 
     .modal-form-label {
         margin-bottom: 20px;
+    }
+
+    #login-modal .modal-form-label,
+    #signup-modal .modal-form-label {
+        width: 90%;
     }
 
     .signup-validation-text {
@@ -199,7 +218,7 @@
     #signup-modal,
     #play-bot-modal,
     #join-game-confirmation-modal {
-        width: 100%;
+        width: 94%;
     }
 
     .game-thumb {
@@ -530,14 +549,15 @@
     }
 
     #settings-info-box-container #advanced-settings-toggle {
-        font-size: 24px;
+        font-size: 34px;
     }
 
     #settings-info-box-container #advanced-settings-box {
         position: fixed;
         top: 50%;
         left: 50%;
-        width: calc(100vw - 24px);
+        width: 84vw;
+        height: auto;
         max-height: calc(100vh - 24px);
         transform: translate(-50%, -50%);
         z-index: 1202;
