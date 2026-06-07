@@ -3,32 +3,24 @@ package io.elephantchess.scripts.minification
 import io.elephantchess.scripts.listAllCssFiles
 import io.elephantchess.scripts.listAllJsFiles
 import java.io.File
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
 import java.math.BigInteger
-import java.net.HttpURLConnection
-import java.net.URI
-import java.net.URLEncoder
 import java.security.MessageDigest
 import kotlin.system.exitProcess
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-const val CSS_API = "https://www.toptal.com/developers/cssminifier/api/raw"
-
 const val CSV_FILE = "minified_files.csv"
 
 /**
- * Local Node project that minifies JavaScript with SWC (https://swc.rs), the same
- * engine the Toptal endpoint is based on. JS is minified locally to avoid the
- * rate-limited network round-trip; CSS still uses the remote [CSS_API].
+ * Local Node project that minifies assets without any network round-trip:
+ * JavaScript with SWC (https://swc.rs, the same engine the previously used Toptal
+ * endpoint is based on) and CSS with Lightning CSS (https://lightningcss.dev).
  */
-private val SWC_MINIFIER_DIR = File("scripts/swc-minifier")
-private val SWC_MINIFIER_SCRIPT = File(SWC_MINIFIER_DIR, "minify.mjs")
+private val MINIFIER_DIR = File("scripts/minifier")
+private val MINIFIER_SCRIPT = File(MINIFIER_DIR, "minify.mjs")
 
 private data class MinifyResult(
     val responseCode: Int,
-    val usedRemoteApi: Boolean,
 )
 
 private data class MinificationCsvEntry(
@@ -61,25 +53,27 @@ private fun minifyFile(file: File): MinifyResult {
     outputFile.delete()
 
     return when (file.extension) {
-        "js" -> minifyJsWithSwc(file, outputFile)
-        "css" -> minifyCssWithRemoteApi(file, outputFile)
+        "js" -> minifyWithNode(file, outputFile, "js")
+        "css" -> minifyWithNode(file, outputFile, "css")
         else -> throw IllegalArgumentException("unsupported extension ${file.extension}")
     }
 }
 
 /**
- * Ensures the local SWC minifier dependencies are installed (runs `npm install`
+ * Ensures the local minifier dependencies are installed (runs `npm install`
  * the first time, when `node_modules` is missing).
  */
-private fun ensureSwcMinifierInstalled() {
-    if (File(SWC_MINIFIER_DIR, "node_modules/@swc/core").exists()) {
+private fun ensureMinifierInstalled() {
+    if (File(MINIFIER_DIR, "node_modules/@swc/core").exists() &&
+        File(MINIFIER_DIR, "node_modules/lightningcss").exists()
+    ) {
         return
     }
 
-    println("[swc] installing minifier dependencies in ${SWC_MINIFIER_DIR.path} ...")
+    println("[minifier] installing dependencies in ${MINIFIER_DIR.path} ...")
     val exitCode = try {
         ProcessBuilder("npm", "install")
-            .directory(SWC_MINIFIER_DIR)
+            .directory(MINIFIER_DIR)
             .inheritIO()
             .start()
             .waitFor()
@@ -95,12 +89,12 @@ private fun ensureSwcMinifierInstalled() {
 }
 
 /**
- * Minifies a JavaScript file locally with SWC by piping its content through the
- * Node [SWC_MINIFIER_SCRIPT]. Returns code 200 on success to match the remote flow.
+ * Minifies a file locally by piping its content through the Node [MINIFIER_SCRIPT],
+ * which uses SWC for `js` and Lightning CSS for `css`. Returns code 200 on success.
  */
-private fun minifyJsWithSwc(file: File, outputFile: File): MinifyResult {
+private fun minifyWithNode(file: File, outputFile: File, type: String): MinifyResult {
     val process = try {
-        ProcessBuilder("node", SWC_MINIFIER_SCRIPT.path).start()
+        ProcessBuilder("node", MINIFIER_SCRIPT.path, type).start()
     } catch (e: java.io.IOException) {
         println("ERROR: failed to start 'node' (is Node.js installed and on the PATH?): ${e.message}")
         exitProcess(1)
@@ -114,45 +108,11 @@ private fun minifyJsWithSwc(file: File, outputFile: File): MinifyResult {
 
     if (exitCode == 0) {
         outputFile.writeText(output)
-        return MinifyResult(200, usedRemoteApi = false)
+        return MinifyResult(200)
     }
 
-    println("[swc] failed to minify ${file.path}: $errors")
-    return MinifyResult(500, usedRemoteApi = false)
-}
-
-// https://www.toptal.com/developers/cssminifier/documentation
-private fun minifyCssWithRemoteApi(file: File, outputFile: File): MinifyResult {
-    val input = file.readLines().joinToString("\n")
-
-    // content
-    val content = StringBuilder().apply {
-        append(URLEncoder.encode("input", "UTF-8"))
-        append("=")
-        append(URLEncoder.encode(input, "UTF-8"))
-    }.toString()
-
-    // request
-    val request =
-        (URI(CSS_API).toURL().openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            doOutput = true
-            setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-            setRequestProperty("charset", "utf-8")
-            setRequestProperty("Content-Length", content.length.toString())
-            OutputStreamWriter(outputStream).apply {
-                write(content)
-                flush()
-            }
-        }
-
-    // persist response
-    if (request.responseCode == 200) {
-        val output = InputStreamReader(request.inputStream).readText()
-        outputFile.writeText(output)
-    }
-
-    return MinifyResult(request.responseCode, usedRemoteApi = true)
+    println("[minifier] failed to minify ${file.path}: $errors")
+    return MinifyResult(500)
 }
 
 private fun checksum(file: File): String {
@@ -233,17 +193,15 @@ fun minifyIfNeeded(files: List<File>) {
     println("input files -> ${files.size}")
     println("files to minify -> ${filesToMinify.size}")
 
-    if (filesToMinify.any { file -> file.extension == "js" }) {
-        ensureSwcMinifierInstalled()
+    if (filesToMinify.isNotEmpty()) {
+        ensureMinifierInstalled()
     }
 
     val chunkSize = 20
-    var processed = 0
 
     filesToMinify
         .chunked(chunkSize)
         .forEach { chunk ->
-            var chunkUsedRemoteApi = false
             chunk.forEach { file ->
                 val result = minifyFile(file)
                 println("[${file.path}] -> ${result.responseCode}")
@@ -251,19 +209,11 @@ fun minifyIfNeeded(files: List<File>) {
                     println("ERROR: exiting due to code ${result.responseCode}")
                     exitProcess(1)
                 }
-                if (result.usedRemoteApi) {
-                    chunkUsedRemoteApi = true
-                }
                 csvEntries.removeIf { entry -> entry.filePath == file.path }
                 csvEntries += (MinificationCsvEntry(file.path, checksum(file), Clock.System.now()))
-                processed++
             }
-            if (chunk.size == chunkSize && chunkUsedRemoteApi) {
-                writeCsv(csvEntries)
-                val toWait = 90_000L
-                println("sleeping rate limit for $toWait ms., remaining ${filesToMinify.size - processed}")
-                Thread.sleep(toWait)
-            }
+            // checkpoint progress so a long run doesn't have to restart from scratch
+            writeCsv(csvEntries)
         }
 
     writeCsv(csvEntries)
