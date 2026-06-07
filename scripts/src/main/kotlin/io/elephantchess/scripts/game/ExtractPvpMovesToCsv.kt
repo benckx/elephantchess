@@ -5,8 +5,11 @@ import io.elephantchess.db.dao.codegen.Tables.GAME
 import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.utils.awaitRecords
+import io.elephantchess.model.GameId
+import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
+import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
@@ -14,17 +17,16 @@ import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import org.koin.core.component.inject
 import java.io.File
 
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
-private const val ENGINE_CACHE_FEN_KEY_BATCH_SIZE = 1000
 
 object ExtractPvpMovesToCsv : KoinScriptInit() {
 
     private val dslContext by inject<DSLContext>()
+    private val gameDataService by inject<GameDataService>()
 
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
@@ -85,7 +87,16 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             resetFullMoveCount(board.outputFen())
         }
 
-        val analysisByFenKey = fetchAnalysisByFenKey(fenKeys.toSet())
+        val analysisByGameAndFenKey = rows
+            .map { row -> row.get(GAME.ID) }
+            .distinct()
+            .associateWith { gameId ->
+                gameDataService
+                    .fetchAnalysisData(GameId(PVP, gameId))
+                    .entries
+                    .filter { entry -> entry.line != null }
+                    .associate { entry -> entry.fen to entry.line!! }
+            }
 
         File(outputPath).bufferedWriter().use { bufferedWriter ->
             CSVWriter(bufferedWriter).use { writer ->
@@ -131,6 +142,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     }
 
                     val fenKey = fenKeys[index]
+                    val analysis = analysisByGameAndFenKey[row.get(GAME.ID)]?.get(fenKey) ?: ""
 
                     writer.writeNext(
                         arrayOf(
@@ -155,7 +167,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             row.get(GAME.OUTCOME)?.name ?: "",
                             row.get(GAME.JOIN_SOURCE)?.name ?: "",
                             fenKey,
-                            analysisByFenKey[fenKey] ?: "",
+                            analysis,
                         )
                     )
                 }
@@ -163,32 +175,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         }
 
         println("wrote ${rows.size} rows to $outputPath")
-    }
-
-    /**
-     * Fetches the deepest cached engine analysis (raw info line) for each given FEN key.
-     */
-    private suspend fun fetchAnalysisByFenKey(fenKeys: Set<String>): Map<String, String> {
-        if (fenKeys.isEmpty()) {
-            return emptyMap()
-        }
-
-        val result = mutableMapOf<String, String>()
-        fenKeys.chunked(ENGINE_CACHE_FEN_KEY_BATCH_SIZE).forEach { batch ->
-            dslContext
-                .select(ENGINE_CACHE_FEN_KEY, ENGINE_CACHE_RAW_LINE, ENGINE_CACHE_DEPTH)
-                .from(ENGINE_CACHE_COMPACT)
-                .where(ENGINE_CACHE_FEN_KEY.`in`(batch))
-                .orderBy(ENGINE_CACHE_DEPTH.desc())
-                .awaitRecords()
-                .forEach { record ->
-                    val fenKey = record.get(ENGINE_CACHE_FEN_KEY)
-                    // records are ordered by depth desc, so keep the first (deepest) entry per FEN key
-                    result.putIfAbsent(fenKey, record.get(ENGINE_CACHE_RAW_LINE))
-                }
-        }
-
-        return result
     }
 
     private fun guestName(userId: String): String = "guest #$userId"
@@ -203,8 +189,3 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     private data class PlayerRating(val before: Int?, val after: Int?)
 
 }
-
-private val ENGINE_CACHE_COMPACT = DSL.table("engine_cache_compact_no_duplicate")
-private val ENGINE_CACHE_FEN_KEY = DSL.field("fen_key", String::class.java)
-private val ENGINE_CACHE_DEPTH = DSL.field("depth", Int::class.java)
-private val ENGINE_CACHE_RAW_LINE = DSL.field("raw_line", String::class.java)
