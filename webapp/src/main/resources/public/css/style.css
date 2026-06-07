@@ -987,6 +987,23 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     margin-top: 14px;
 }
 
+.modal-close-button {
+    display: none;
+}
+
+#login-modal,
+#signup-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+}
+
+#login-modal .modal-form-label,
+#signup-modal .modal-form-label {
+    width: 100%;
+}
+
 #login-modal {
     width: 250px;
 }
@@ -1042,6 +1059,7 @@ input[type=password].incorrect-data {
 .modal-form-label input[type=text],
 .modal-form-label input[type=password] {
     width: 100%;
+    box-sizing: border-box;
 }
 
 /* Signup validation styles */
@@ -1404,7 +1422,7 @@ table.info-box-sub-table td.values {
     bottom: 6px;
     color: #3b3b3b;
     text-decoration: underline;
-    font-size: 14px;
+    font-size: 15px;
     font-style: italic;
     font-weight: bold;
     line-height: 1;
@@ -1428,6 +1446,24 @@ table.info-box-sub-table td.values {
     box-shadow: rgba(0, 0, 0, 0.55) 0 4px 12px;
     padding: 12px 19px;
     box-sizing: border-box;
+    height: 500px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #8a7c66 transparent;
+}
+
+#settings-info-box-container #advanced-settings-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+#settings-info-box-container #advanced-settings-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#settings-info-box-container #advanced-settings-box::-webkit-scrollbar-thumb {
+    background-color: #8a7c66;
+    border-radius: 3px;
 }
 
 #settings-info-box-container #advanced-settings-close-button {
@@ -1956,6 +1992,8 @@ img#navigation-end {
 .move-tree-container {
     margin-top: 10px;
     height: 440px;
+    min-height: 32px;
+    resize: vertical;
     overflow-y: scroll;
     overflow-x: hidden;
 }

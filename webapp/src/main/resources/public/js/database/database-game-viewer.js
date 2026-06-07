@@ -32,7 +32,10 @@ class DatabaseGameViewerPage extends BasePage {
     /**
      * @type {MoveTreeWidget}
      */
-    #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+    #moveTreeWidget = new MoveTreeWidget({
+        containerId: 'move-tree-container',
+        ...moveTreeResizeCookiePersistence('database-viewer', 'move-tree-container')
+    });
     #analyzeButtons = [
         document.getElementById('analyze-button-left-side'),
         document.getElementById('analyze-button-right-side')
@@ -97,12 +100,7 @@ class DatabaseGameViewerPage extends BasePage {
         this.#gameDataClient.fetchMoves(moves => {
             this.#moveTreeWidget.setMoves(moves);
             this.#setAnalyzeButtonsEnabled(moves.length > 0);
-            renderAnalysisSummaryReportGeneric(
-                gameId,
-                this.#moveTreeWidget.getMainBranchNodes(),
-                DEFAULT_START_FEN,
-                this.#moveTreeWidget
-            );
+            fetchDataAndrenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
         });
     }
 

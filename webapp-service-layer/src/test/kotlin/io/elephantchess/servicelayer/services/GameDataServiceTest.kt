@@ -32,7 +32,6 @@ class GameDataServiceTest : ServiceTest() {
 
     private val dslContext by inject<DSLContext>()
     private val gameDataService by inject<GameDataService>()
-    private val pvpGameService by inject<PlayerVsPlayerGameService>()
 
     private lateinit var userId: UserId
 

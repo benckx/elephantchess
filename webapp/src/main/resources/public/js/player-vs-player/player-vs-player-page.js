@@ -34,7 +34,10 @@ class PlayGamePage extends BasePage {
     /**
      * @type {MoveTreeWidget}
      */
-    #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+    #moveTreeWidget = new MoveTreeWidget({
+        containerId: 'move-tree-container',
+        ...moveTreeResizeCookiePersistence('pvp', 'move-tree-container')
+    });
 
     #redPlayerInfo = document.getElementById('red-player-info');
     #blackPlayerInfo = document.getElementById('black-player-info');
@@ -942,12 +945,8 @@ class PlayGamePage extends BasePage {
 
     #renderAnalysisSummaryReportIfAvailable() {
         if (this.#gameController.isGameFinished()) {
-            renderAnalysisSummaryReportGeneric(
-                new GameId(GameType.PVP, this.#gameController.gameId),
-                this.#moveTreeWidget.getMainBranchNodes(),
-                DEFAULT_START_FEN,
-                this.#moveTreeWidget
-            );
+            const gameId = new GameId(GameType.PVP, this.#gameController.gameId);
+            fetchDataAndrenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
         }
     }
 

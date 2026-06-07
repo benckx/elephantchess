@@ -45,6 +45,10 @@ data class AppConfig(
         return properties.loadString(key)
     }
 
+    fun loadListOfStrings(key: String): List<String> {
+        return properties.loadString(key).split(",").map { it.trim() }
+    }
+
     fun loadBoolean(key: String, default: Boolean): Boolean {
         return properties.loadBoolean(key, default)
     }

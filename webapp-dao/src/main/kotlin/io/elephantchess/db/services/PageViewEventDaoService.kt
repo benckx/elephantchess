@@ -102,6 +102,31 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             }
     }
 
+    suspend fun fetchMonthlyDatabaseGamePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
+        val yearMonth = PAGE_VIEW_EVENT.EVENT_TIME.yearMonth("year_month")
+        return dslContext
+            .select(
+                yearMonth,
+                uniqueDailyPageViewsField()
+            )
+            .from(PAGE_VIEW_EVENT)
+            .where(PAGE_VIEW_EVENT.EVENT_PATH.like("/database/game?id=%"))
+            .and(PAGE_VIEW_EVENT.EVENT_TIME.greaterOrEqual(startDate))
+            .and(excludedUsersCondition(excludedUserIds))
+            .groupBy(yearMonth)
+            .orderBy(yearMonth.desc())
+            .awaitRecords()
+            .map { record ->
+                val yearMonthStr = record.getValue("year_month", String::class.java)
+                val yearMonth = YearMonth.parse(yearMonthStr)
+                MonthlyPageViewRecord(
+                    yearMonth = yearMonth,
+                    label = "/database/game",
+                    uniquePageViews = record.getValue("unique_page_views", Int::class.java)
+                )
+            }
+    }
+
     suspend fun fetchMonthlyOwnUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
         return fetchMonthlyUserProfilePageViewsByCondition(
             excludedUserIds = excludedUserIds
