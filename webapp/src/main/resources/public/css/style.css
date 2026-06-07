@@ -987,6 +987,23 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     margin-top: 14px;
 }
 
+.modal-close-button {
+    display: none;
+}
+
+#login-modal,
+#signup-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+}
+
+#login-modal .modal-form-label,
+#signup-modal .modal-form-label {
+    width: 90%;
+}
+
 #login-modal {
     width: 250px;
 }
@@ -1042,6 +1059,7 @@ input[type=password].incorrect-data {
 .modal-form-label input[type=text],
 .modal-form-label input[type=password] {
     width: 100%;
+    box-sizing: border-box;
 }
 
 /* Signup validation styles */
