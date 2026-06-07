@@ -9,7 +9,7 @@ for a more permissive use (i.e. to re-use the libraries in a commercial applicat
 
 We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
 
-[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml)
+[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml) [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
 
 ## Features
 
@@ -137,7 +137,7 @@ docker run -d --rm \
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=postgres \
     -e POSTGRES_DB=xiangqi \
-    postgres:17.6
+    postgres:18.4
 ```
 
 Once the container is running, you should see it in the list of running containers:
@@ -145,7 +145,7 @@ Once the container is running, you should see it in the list of running containe
 ```shell
 ➜  ~ docker ps
 CONTAINER ID   IMAGE           COMMAND                  CREATED         STATUS         PORTS                                         NAMES
-c4e5aa14100b   postgres:17.6   "docker-entrypoint.s…"   9 seconds ago   Up 8 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   xiangqi-db
+c4e5aa14100b   postgres:18.4   "docker-entrypoint.s…"   9 seconds ago   Up 8 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   xiangqi-db
 ```
 
 You can then import the dev database (which contains a few games, puzzles and test users):
@@ -597,11 +597,13 @@ repositories {
 Then you can use the dependencies:
 
 ```Groovy
-implementation "com.github.benckx.elephantchess:xiangqi-core:1.1.3"
-implementation "com.github.benckx.elephantchess:engine-api:1.1.3"
+implementation "com.github.benckx.elephantchess:xiangqi-core:2.0.0"
+implementation "com.github.benckx.elephantchess:engine-api:2.0.0"
+implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.0.0"
 ```
 
-_Note: I still have to check that it still works with the updated Gradle project._
+We added a sample project that uses the libraries
+https://github.com/benckx/elephantchess-library-usage
 
 # Front-End
 

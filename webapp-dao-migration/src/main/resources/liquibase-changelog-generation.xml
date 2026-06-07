@@ -2373,4 +2373,7 @@
             <column name="move_tree_widget_height_database_viewer" type="varchar(100)"/>
         </createTable>
     </changeSet>
+    <changeSet id="0103" author="benckx">
+        <comment>Indexes to optimize page view analytics queries</comment>
+    </changeSet>
 </databaseChangeLog>

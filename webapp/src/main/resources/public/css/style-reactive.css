@@ -162,7 +162,7 @@
     /*noinspection ALL*/
     .modal-content {
         font-size: 38px;
-        width: 90%;
+        width: 94%;
         position: relative;
         border-radius: 8px;
         border-width: 3px;
@@ -213,7 +213,7 @@
     #signup-modal,
     #play-bot-modal,
     #join-game-confirmation-modal {
-        width: 90%;
+        width: 94%;
     }
 
     .game-thumb {
