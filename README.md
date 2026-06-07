@@ -718,9 +718,12 @@ https://elephantchess.io/about/developers/board-gui-example
 
 ## Minification
 
-The minification of JavaScript and CSS assets is done via a REST call to https://www.toptal.com. To avoid reminify the
-same files, we keep track of the checksum of the input files in a local `minified_files.csv` file. The endpoint we use
-is rate limited, so we minify chuck of 20 files every 90 seconds.
+JavaScript and CSS assets are minified locally via the small Node project in
+[`scripts/minifier`](scripts/minifier): JavaScript with [SWC](https://swc.rs) and CSS with
+[Lightning CSS](https://lightningcss.dev). The minifier dependencies are installed automatically
+(`npm install`) the first time the task runs, which also handles modern syntax such as ES6 private
+class fields out of the box.
 
-It's a bit of a funny approach but Gradle plugins I tried wouldn't support the JavaScript files since they contained
-private class fields (i.e. ES6).
+The task looks for `node` and `npm` on the `PATH` as well as common install locations (nvm, fnm, asdf,
+Homebrew). If they live somewhere else (or aren't picked up when running from an IDE), point the task at
+them explicitly with the `NODE_BIN` and `NPM_BIN` environment variables.
