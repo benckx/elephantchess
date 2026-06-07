@@ -33,13 +33,13 @@ class AdminPageViewStatsPage extends BasePage {
         '/database/players',
         '/browse/player-vs-player',
         '/browse/player-vs-bot',
+        '/analysis',
         '/userdata/games',
         '/userdata/botgames',
         '/userdata/puzzles',
         '/userdata/analysis',
-        '/analysis',
-        '/how-to-play-xiangqi',
         '/user/settings',
+        '/how-to-play-xiangqi',
     ];
 
     /**
