@@ -1045,7 +1045,7 @@ input[type=password].incorrect-data {
 
 .modal-form-label input[type=text],
 .modal-form-label input[type=password] {
-    width: 100%;
+    width: 92%;
 }
 
 /* Signup validation styles */
