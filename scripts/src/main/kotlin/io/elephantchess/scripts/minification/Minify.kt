@@ -77,11 +77,16 @@ private fun ensureSwcMinifierInstalled() {
     }
 
     println("[swc] installing minifier dependencies in ${SWC_MINIFIER_DIR.path} ...")
-    val exitCode = ProcessBuilder("npm", "install")
-        .directory(SWC_MINIFIER_DIR)
-        .inheritIO()
-        .start()
-        .waitFor()
+    val exitCode = try {
+        ProcessBuilder("npm", "install")
+            .directory(SWC_MINIFIER_DIR)
+            .inheritIO()
+            .start()
+            .waitFor()
+    } catch (e: java.io.IOException) {
+        println("ERROR: failed to start 'npm' (is Node.js/npm installed and on the PATH?): ${e.message}")
+        exitProcess(1)
+    }
 
     if (exitCode != 0) {
         println("ERROR: 'npm install' failed with code $exitCode")
@@ -94,7 +99,12 @@ private fun ensureSwcMinifierInstalled() {
  * Node [SWC_MINIFIER_SCRIPT]. Returns code 200 on success to match the remote flow.
  */
 private fun minifyJsWithSwc(file: File, outputFile: File): MinifyResult {
-    val process = ProcessBuilder("node", SWC_MINIFIER_SCRIPT.path).start()
+    val process = try {
+        ProcessBuilder("node", SWC_MINIFIER_SCRIPT.path).start()
+    } catch (e: java.io.IOException) {
+        println("ERROR: failed to start 'node' (is Node.js installed and on the PATH?): ${e.message}")
+        exitProcess(1)
+    }
 
     process.outputStream.use { stdin -> stdin.write(file.readBytes()) }
 

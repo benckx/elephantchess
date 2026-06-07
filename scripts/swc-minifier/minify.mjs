@@ -24,6 +24,6 @@ try {
     });
     process.stdout.write(code);
 } catch (error) {
-    process.stderr.write(String(error?.message ?? error));
+    process.stderr.write(`${String(error?.message ?? error)}\n`);
     process.exit(1);
 }
