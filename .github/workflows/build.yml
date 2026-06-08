@@ -38,6 +38,15 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Run JavaScript parser tests
+        run: node --test
+        working-directory: webapp/src/test/js
+
       - name: Verify Docker is available (for Testcontainers)
         run: docker version
 

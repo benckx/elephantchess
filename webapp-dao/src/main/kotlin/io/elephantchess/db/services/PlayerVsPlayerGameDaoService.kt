@@ -21,8 +21,12 @@ import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
+import io.elephantchess.model.Outcome.BLACK_WINS
+import io.elephantchess.model.Outcome.RED_WINS
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Color.BLACK
+import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
@@ -80,8 +84,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
 
         query = when (inviterColor) {
-            Color.RED -> query.and(GAME.INVITER_COLOR.eq(Color.BLACK))
-            Color.BLACK -> query.and(GAME.INVITER_COLOR.eq(Color.RED))
+            RED -> query.and(GAME.INVITER_COLOR.eq(BLACK))
+            BLACK -> query.and(GAME.INVITER_COLOR.eq(RED))
             else -> query
         }
 
@@ -415,6 +419,58 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return fetchRatingForUser(dslContext, userId, timeControlCategory, variant)
     }
 
+    suspend fun fetchPlayerVsPlayerOutcomeStatsPerCategory(userId: String): List<PlayerVsPlayerOutcomeStatsPerCategoryRecord> {
+        val isInviter = GAME.INVITER.eq(userId)
+        val isInvitee = GAME.INVITEE.eq(userId)
+        val isUserPlaying = isInviter.or(isInvitee)
+
+        val inviterWinCondition =
+            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
+
+        val inviteeWinCondition =
+            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+
+        val inviterLossCondition =
+            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+
+        val inviteeLossCondition =
+            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
+
+        val winCondition = isInviter.and(inviterWinCondition).or(isInvitee.and(inviteeWinCondition))
+        val lossCondition = isInviter.and(inviterLossCondition).or(isInvitee.and(inviteeLossCondition))
+        val drawCondition = GAME.OUTCOME.eq(Outcome.DRAW)
+
+        val winsField = DSL.sum(DSL.`when`(winCondition, 1).otherwise(0)).`as`("wins")
+        val lossesField = DSL.sum(DSL.`when`(lossCondition, 1).otherwise(0)).`as`("losses")
+        val drawsField = DSL.sum(DSL.`when`(drawCondition, 1).otherwise(0)).`as`("draws")
+
+        return dslContext
+            .select(
+                GAME.TIME_CONTROL_CATEGORY,
+                winsField,
+                lossesField,
+                drawsField
+            )
+            .from(GAME)
+            .where(isUserPlaying)
+            .and(GAME.OUTCOME.isNotNull)
+            .and(GAME.TIME_CONTROL_CATEGORY.isNotNull)
+            .groupBy(GAME.TIME_CONTROL_CATEGORY)
+            .awaitRecords()
+            .map { record ->
+                PlayerVsPlayerOutcomeStatsPerCategoryRecord(
+                    category = record.get(GAME.TIME_CONTROL_CATEGORY),
+                    wins = record.get(winsField)?.toInt() ?: 0,
+                    losses = record.get(lossesField)?.toInt() ?: 0,
+                    draws = record.get(drawsField)?.toInt() ?: 0
+                )
+            }
+    }
+
     private suspend fun fetchRatingForUser(
         context: DSLContext,
         userId: String,
@@ -472,13 +528,13 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
-    suspend fun fetchMoveAt(gameId: String, index: Int): GameMove? {
+    suspend fun fetchMoveAt(gameId: String, index: Int): String? {
         return dslContext
-            .select()
+            .select(GAME_MOVE.UCI)
             .from(GAME_MOVE)
             .where(GAME_MOVE.GAME_ID.eq(gameId))
             .and(GAME_MOVE.POSITION.eq(index))
-            .awaitSingleMappedRecord()
+            .awaitSingleValue()
     }
 
     suspend fun fetchGameStates(gameIds: List<String>): Map<String, GameStateResult> {

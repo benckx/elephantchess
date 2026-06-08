@@ -95,26 +95,20 @@ class MyGamesPage extends InfiniteScrollPage {
             // div with tooltip
             const div = wrapInDiv(iconImg);
             div.id = 'tc-' + entry.gameId;
-            div.style.position = 'relative';
+            // div.style.position = 'relative';
             addToolTip(div, entry.timeControlCategory.toString().toLowerCase());
             return div;
         }
 
         /**
          * @param entry {GameEntryDto}
-         * @return {HTMLDivElement}
+         * @returns {HTMLDivElement|null}
          */
-        function buildTimeControlCell(entry) {
-            const cell = buildDivWithClass('time-control-cell');
-            const timeControlIcon = buildTimeControlCategoryIcon(entry);
-            const timeControlLabel = buildDivWithClass('time-control-duration-cell');
-            if (entry.timeControl != null) {
-                timeControlLabel.innerText = entry.timeControl.printShort(' +');
-            } else {
-                timeControlLabel.innerText = '--';
-            }
-            cell.append(timeControlIcon, timeControlLabel);
-            return cell;
+        function buildTimeControlDurationDiv(entry) {
+            if (entry.timeControl == null) return null;
+            const div = buildDivWithClass('time-control-duration-cell');
+            div.innerText = entry.timeControl.printShort(' +');
+            return div;
         }
 
         /**
@@ -276,7 +270,7 @@ class MyGamesPage extends InfiniteScrollPage {
 
         entries.forEach((entry) => {
             // structure
-            const leftPane = buildDivWithClass('left-pane');
+            const timeControlPane = buildDivWithClass('time-control-icon-pane');
             const variantPane = buildDivWithClass('variant-pane');
             const middlePane = buildDivWithClass('middle-pane');
             const chatIndicatorPane = buildDivWithClass('indicator-pane');
@@ -288,7 +282,7 @@ class MyGamesPage extends InfiniteScrollPage {
 
             item.append(
                 variantPane,
-                leftPane,
+                timeControlPane,
                 middlePane,
                 chatIndicatorPane,
                 ratingDeltaIndicatorPane,
@@ -308,7 +302,7 @@ class MyGamesPage extends InfiniteScrollPage {
             }
 
             // left pane
-            leftPane.append(buildTimeControlCell(entry));
+            timeControlPane.append(buildTimeControlCategoryIcon(entry));
 
             // variant pane
             variantPane.append(buildVariantCell(entry.variant));
@@ -317,8 +311,11 @@ class MyGamesPage extends InfiniteScrollPage {
             const middlePaneItems = [
                 buildOpponentDiv(entry),
                 wrapInDiv(buildColorSpan(entry.color)),
-                buildRatingModeDiv(entry),
             ];
+            const durationDiv = buildTimeControlDurationDiv(entry);
+            if (durationDiv != null) {
+                middlePaneItems.push(durationDiv);
+            }
             middlePane.append(...middlePaneItems);
 
             // number of messages indicator pane
@@ -328,10 +325,12 @@ class MyGamesPage extends InfiniteScrollPage {
             }
 
             // rating delta indicator pane
+            ratingDeltaIndicatorPane.classList.add('rating-pane');
             const ratingDiv = buildRatingDiv(entry);
             if (ratingDiv != null) {
                 ratingDeltaIndicatorPane.append(ratingDiv);
             }
+            ratingDeltaIndicatorPane.append(buildRatingModeDiv(entry));
 
             // pre-analysis indicator pane
             if (entry.isPreAnalyzed) {
@@ -360,6 +359,16 @@ class MyGamesPage extends InfiniteScrollPage {
                 lastModifiedDiv,
                 buildDivWithTextAndClass(`move ${entry.fullMoveIndex}`, 'move-index')
             );
+
+            // duration (only for games that actually ended, i.e. not canceled and not ongoing)
+            if (isStatusFinished(entry.status) && !entry.isCanceled()) {
+                const durationDiv = buildDivWithTextAndClass(
+                    formatDurationShorthand(entry.lastUpdated - entry.created),
+                    'game-duration'
+                );
+                addToolTip(durationDiv, 'game duration');
+                rightPane.append(durationDiv);
+            }
         });
     }
 

@@ -5,6 +5,7 @@ import io.elephantchess.db.callback.PlayMoveCallbackResult
 import io.elephantchess.db.callback.UpdateRatingsCallbackResult
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.dao.codegen.tables.pojos.GameChatMessage
+import io.elephantchess.db.model.HasJoinedRecord
 import io.elephantchess.db.model.TimeControlRecord
 import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.db.services.GameChatTypingStatusDaoService
@@ -19,7 +20,6 @@ import io.elephantchess.model.Outcome.RED_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
-import io.elephantchess.servicelayer.dto.gamedata.GameMovesResponse
 import io.elephantchess.servicelayer.dto.ws.*
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.ForbiddenException
@@ -52,6 +52,7 @@ import kotlin.math.abs
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -70,24 +71,40 @@ class PlayerVsPlayerGameService(
     refresherScope: CoroutineScope
 ) {
 
-    private val sessionsRefresh = 1.seconds
-
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
     private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
     private val playerVsPlayerSessions = mutableListOf<PlayerVsPlayerWebSocketSession>()
 
-    private val refreshJob = launchAtFixedRate(
+    private val pvpSessionsRefreshJob = launchAtFixedRate(
         scope = refresherScope,
-        initialDelay = sessionsRefresh,
-        period = sessionsRefresh,
+        initialDelay = 500.milliseconds,
+        period = 500.milliseconds,
+        action = { refreshPlayerVsPlayerSessions() }
+    )
+
+    private val gamesToPlayRefreshJob = launchAtFixedRate(
+        scope = refresherScope,
+        initialDelay = 3.seconds,
+        period = 3.seconds,
+        action = { refreshGamesToPlaySessions() }
+    )
+
+    private val dynamicMatchingJob = launchAtFixedRate(
+        scope = refresherScope,
+        initialDelay = 5.seconds,
+        period = 5.seconds,
         action = {
-            refreshGamesToPlaySessions()
-            refreshPlayerVsPlayerSessions()
+            val onlineUserIds = userService.onlineUserIds()
+            if (onlineUserIds.size >= 2) {
+                findDynamicMatches(onlineUserIds)
+            }
         }
     )
 
     fun cancel() {
-        refreshJob.cancel()
+        pvpSessionsRefreshJob.cancel()
+        gamesToPlayRefreshJob.cancel()
+        dynamicMatchingJob.cancel()
     }
 
     private suspend fun refreshGamesToPlaySessions() {
@@ -139,17 +156,30 @@ class PlayerVsPlayerGameService(
         userDaoService.updateLastOnline(gamesToPlaySessions.map { it.userId })
     }
 
-    private suspend fun refreshPlayerVsPlayerSessions() {
+    // visible for tests
+    internal suspend fun refreshPlayerVsPlayerSessions() {
+        // Drop already-closed sessions before fetching anything from DB.
+        removeClosedPlayerVsPlayerSessions()
+
         val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
+
+        if (allGameIds.isEmpty()) {
+            return
+        }
+
         val stateMap = pvpGameDaoService.fetchGameStates(allGameIds)
+        val now = Clock.System.now()
 
         // chat
         val chatIndexes = chatMessageDaoService.currentIndexes(allGameIds)
-        val chatTypingStatusCutOff = Clock.System.now() - TYPING_FRESHNESS_WINDOW
+        val chatTypingStatusCutOff = now - TYPING_FRESHNESS_WINDOW
         val chatTypingStatusMap = gameChatTypingStatusDaoService.fetchForGameIds(allGameIds, chatTypingStatusCutOff)
 
-        // TODO: not very optimized: 2 sessions about the same game -> some information will be fetched 2x from the db
-        //   DAO access could be cached in Map and stuff
+        val hasJoinedDataCache = mutableMapOf<String, CachedValue<HasJoinedRecord?>>()
+        val moveCache = mutableMapOf<String, CachedValue<NewMove?>>()
+        val timeRemainingCache = mutableMapOf<String, CachedValue<TimeRemaining?>>()
+        val drawPropositionUserCache = mutableMapOf<String, CachedValue<String?>>()
+
         playerVsPlayerSessions
             .forEach { session ->
                 val gameId = session.gameId
@@ -160,7 +190,9 @@ class PlayerVsPlayerGameService(
                 // update opponent if necessary
                 var hasJoinedEvent: HasJoined? = null
                 if (session.isWaitingToBeJoined()) {
-                    val hasJoinedRecord = pvpGameDaoService.fetchHasJoinedData(gameId)
+                    val hasJoinedRecord = hasJoinedDataCache.cachedGetOrPut(gameId) {
+                        pvpGameDaoService.fetchHasJoinedData(gameId)
+                    }
                     if (hasJoinedRecord?.invitee != null) {
                         val inviteeId = hasJoinedRecord.invitee!!
                         hasJoinedEvent = HasJoined(
@@ -176,17 +208,29 @@ class PlayerVsPlayerGameService(
                 // update new move if necessary
                 var newMove: NewMove? = null
                 if (session.currentIndex() < index) {
-                    newMove = NewMove(
-                        move = pvpGameDaoService.fetchMoveAt(gameId, index - 1)!!.uci,
-                        updatedIndex = index,
-                        updatedFen = gameState.fen,
-                    )
+                    newMove = moveCache.cachedGetOrPut(gameId) {
+                        val move = pvpGameDaoService.fetchMoveAt(gameId, index - 1)
+                        if (move == null) {
+                            logger.warn {
+                                "Skipping newMove refresh for gameId=$gameId at index=${index - 1} because fetchMoveAt returned null"
+                            }
+                            null
+                        } else {
+                            NewMove(
+                                move = move,
+                                updatedIndex = index,
+                                updatedFen = gameState.fen,
+                            )
+                        }
+                    }
                 }
 
                 // time remaining
                 var timeRemaining: TimeRemaining? = null
-                if (session.mustSyncTime(Clock.System.now())) {
-                    timeRemaining = fetchTimeRemaining(gameId)
+                if (session.mustSyncTime(now)) {
+                    timeRemaining = timeRemainingCache.cachedGetOrPut(gameId) {
+                        fetchTimeRemaining(gameId)
+                    }
                 }
 
                 val chatMessages = mutableListOf<ChatMessage>()
@@ -225,7 +269,9 @@ class PlayerVsPlayerGameService(
                 if (shouldUpdate) {
                     var drawPropositionUser: String? = null
                     if (status == DRAW_PROPOSED) {
-                        drawPropositionUser = pvpGameDaoService.fetchDrawPropositionUser(gameId)
+                        drawPropositionUser = drawPropositionUserCache.cachedGetOrPut(gameId) {
+                            pvpGameDaoService.fetchDrawPropositionUser(gameId)
+                        }
                     }
 
                     session.update(
@@ -242,13 +288,15 @@ class PlayerVsPlayerGameService(
                     )
                 }
             }
+    }
 
-        // remove the sessions that are not active anymore
+    private fun removeClosedPlayerVsPlayerSessions() {
         playerVsPlayerSessions.removeIf { session ->
             if (session.isClosed) logger.debug { "removing $session" }
             session.isClosed
         }
     }
+
 
     private suspend fun fetchAllGamesOpenToJoin(onlineUserIds: Set<String>) =
         pvpGameDaoService
@@ -364,6 +412,68 @@ class PlayerVsPlayerGameService(
         )
             .filter { gameRecord -> isOnline(gameRecord.inviter) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
+    }
+
+    /**
+     * Pair together pending games whose inviters are now both online but did
+     * not match when the games were created (e.g. because they were not online
+     * at the same time). For each pair, the newer game's inviter joins the
+     * older game and the newer game is auto-cancelled.
+     */
+    internal suspend fun findDynamicMatches(onlineUserIds: Set<String>) {
+        val candidates = pvpGameDaoService
+            .listGamesOpenToJoin()
+            .filter { game -> onlineUserIds.contains(game.inviter) }
+            .sortedBy { game -> game.created }
+
+        if (candidates.size < 2) return
+
+        val matched = mutableSetOf<String>()
+
+        // iterate newest first so the inviter who has been waiting the longest
+        // keeps their game (the newer inviter joins the older game)
+        for (joinerGame in candidates.reversed()) {
+            if (joinerGame.id in matched) continue
+            val joinerId = joinerGame.inviter
+            val joinerUserType = userCache.fetchUserType(joinerId) ?: continue
+
+            val timeControlCategory = joinerGame.timeControlCategory
+            val joinerVariant = joinerGame.variant
+            val joinerRating = getUserRating(joinerId, timeControlCategory, joinerVariant)
+
+            val joinerRequest = CreateGameRequest(
+                inviterColor = joinerGame.inviterColor,
+                isRated = joinerGame.isRated,
+                timeControlBase = joinerGame.timeControlBase,
+                timeControlIncrement = joinerGame.timeControlIncrement,
+                timeControlMode = joinerGame.timeControlMode,
+                allowGuests = joinerGame.allowGuestsToJoin,
+                alwaysVisibleInLobby = joinerGame.alwaysVisibleInLobby,
+                // candidates are guaranteed non-private by listGamesOpenToJoin,
+                // and listCompatibleGames also filters out private games
+                privateInvite = false,
+                variant = joinerVariant,
+            )
+
+            val joinerUserId = UserId(joinerUserType, joinerId)
+            val matchGame = findMatchingGame(joinerUserId, joinerRating, joinerRequest)
+                ?.takeIf { it.id !in matched }
+                ?: continue
+
+            try {
+                joinGame(joinerUserId, JoinGameRequest(matchGame.id, GameJoinSource.DYNAMIC_MATCHED, null))
+                autoCancelGame(joinerGame.id)
+                matched += joinerGame.id
+                matched += matchGame.id
+                logger.debug {
+                    "dynamic matching: user $joinerId's game ${joinerGame.id} matched with ${matchGame.id}"
+                }
+            } catch (e: Exception) {
+                logger.warn(e) {
+                    "dynamic matching failed for ${joinerGame.id} -> ${matchGame.id}"
+                }
+            }
+        }
     }
 
     /**
@@ -539,9 +649,13 @@ class PlayerVsPlayerGameService(
         )
     }
 
-    // TODO: use generic service instead
-    suspend fun fetchMoveHistory(gameId: String): GameMovesResponse {
-        return GameMovesResponse(pvpGameDaoService.listMoves(gameId))
+    suspend fun fetchMoveHistory(gameId: String): PvpMoveHistoryResponse {
+        val timedMoves = pvpGameDaoService.fetchTimedMoveHistory(gameId)
+        val joinTime = pvpGameDaoService.fetchJoinTime(gameId)
+        return PvpMoveHistoryResponse(
+            moves = timedMoves.map { GameMoveEntry(it.uci, it.eventTime.toEpochMilliseconds()) },
+            joinTime = joinTime?.toEpochMilliseconds(),
+        )
     }
 
     suspend fun fetchChatHistory(gameId: String): GetChatMessageHistoryResponse {
@@ -1107,6 +1221,15 @@ class PlayerVsPlayerGameService(
             messageTime = message.messageTime.toEpochMilliseconds(),
             content = message.content
         )
+    }
+
+    private data class CachedValue<T>(val value: T)
+
+    private inline fun <K, V> MutableMap<K, CachedValue<V?>>.cachedGetOrPut(
+        key: K,
+        defaultValue: () -> V?
+    ): V? {
+        return getOrPut(key) { CachedValue(defaultValue()) }.value
     }
 
     private companion object {

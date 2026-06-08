@@ -9,6 +9,7 @@ data class PuzzlesOriginalGameMetadataResponse(
     data class Entry(
         val puzzleId: String,
         val gameMetadata: GameMetadataDto,
+        val puzzleRating: Int?,
     )
 
 }

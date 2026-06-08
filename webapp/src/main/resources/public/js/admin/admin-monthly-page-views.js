@@ -26,16 +26,21 @@ class AdminPageViewStatsPage extends BasePage {
         '/',
         '/about',
         '/about/faq',
+        '/about/roadmap',
         '/about/changelog',
         '/global',
         '/database/search',
+        '/database/events',
+        '/database/players',
         '/browse/player-vs-player',
         '/browse/player-vs-bot',
+        '/analysis',
         '/userdata/games',
         '/userdata/botgames',
         '/userdata/puzzles',
         '/userdata/analysis',
         '/user/settings',
+        '/how-to-play-xiangqi',
     ];
 
     /**
@@ -47,6 +52,21 @@ class AdminPageViewStatsPage extends BasePage {
      * @type {MultipleTimeSeriesDto|null}
      */
     #gadData = null;
+
+    /**
+     * @type {MultipleTimeSeriesDto|null}
+     */
+    #databaseGameData = null;
+
+    /**
+     * @type {MultipleTimeSeriesDto|null}
+     */
+    #userOwnProfileData = null;
+
+    /**
+     * @type {MultipleTimeSeriesDto|null}
+     */
+    #userOtherProfileData = null;
 
     /**
      * @type {number}
@@ -64,12 +84,15 @@ class AdminPageViewStatsPage extends BasePage {
     }
 
     #fetchAllData() {
-        this.#pendingRequests = this.#eventPaths.length + 1; // +1 for GAD data
+        this.#pendingRequests = this.#eventPaths.length + 4; // +1 GAD, +1 database games, +2 own/other profile
         this.#totalRequests = this.#pendingRequests;
         this.#updateLoadingDisplay();
 
         // Fetch GAD data first
         this.#fetchGadData();
+        this.#fetchDatabaseGameData();
+        this.#fetchOwnUserProfileData();
+        this.#fetchOtherUserProfileData();
 
         this.#eventPaths.forEach(eventPath => {
             this.#fetchPageViewStats(eventPath);
@@ -81,6 +104,39 @@ class AdminPageViewStatsPage extends BasePage {
 
         getAndHandle(url, json => {
             this.#gadData = new MultipleTimeSeriesDto(json);
+            this.#pendingRequests--;
+            this.#updateLoadingDisplay();
+            this.#renderChartsIfReady();
+        });
+    }
+
+    #fetchDatabaseGameData() {
+        const url = `${ADMIN_URL_PREFIX}/page-view-stats-database-games`;
+
+        getAndHandle(url, json => {
+            this.#databaseGameData = new MultipleTimeSeriesDto(json);
+            this.#pendingRequests--;
+            this.#updateLoadingDisplay();
+            this.#renderChartsIfReady();
+        });
+    }
+
+    #fetchOwnUserProfileData() {
+        const url = `${ADMIN_URL_PREFIX}/page-view-stats-user-profiles-own`;
+
+        getAndHandle(url, json => {
+            this.#userOwnProfileData = new MultipleTimeSeriesDto(json);
+            this.#pendingRequests--;
+            this.#updateLoadingDisplay();
+            this.#renderChartsIfReady();
+        });
+    }
+
+    #fetchOtherUserProfileData() {
+        const url = `${ADMIN_URL_PREFIX}/page-view-stats-user-profiles-other`;
+
+        getAndHandle(url, json => {
+            this.#userOtherProfileData = new MultipleTimeSeriesDto(json);
             this.#pendingRequests--;
             this.#updateLoadingDisplay();
             this.#renderChartsIfReady();
@@ -150,6 +206,60 @@ class AdminPageViewStatsPage extends BasePage {
             new PageViewStatsLineChart('chart-gad', 'Total page views', this.#gadData).render();
         }
 
+        if (this.#databaseGameData && this.#databaseGameData.getAllPeriods().length > 0) {
+            const databaseGameChartWrapper = document.createElement('div');
+            databaseGameChartWrapper.style.marginBottom = '40px';
+
+            const databaseGameChartDiv = document.createElement('div');
+            databaseGameChartDiv.id = 'chart-database-games';
+            databaseGameChartDiv.style.height = '400px';
+            databaseGameChartWrapper.appendChild(databaseGameChartDiv);
+
+            container.appendChild(databaseGameChartWrapper);
+
+            new PageViewStatsLineChart(
+                'chart-database-games',
+                'Database game pages "/database/game"',
+                this.#databaseGameData
+            ).render();
+        }
+
+        if (this.#userOwnProfileData && this.#userOwnProfileData.getAllPeriods().length > 0) {
+            const userProfileChartWrapper = document.createElement('div');
+            userProfileChartWrapper.style.marginBottom = '40px';
+
+            const userProfileChartDiv = document.createElement('div');
+            userProfileChartDiv.id = 'chart-user-own-profiles';
+            userProfileChartDiv.style.height = '400px';
+            userProfileChartWrapper.appendChild(userProfileChartDiv);
+
+            container.appendChild(userProfileChartWrapper);
+
+            new PageViewStatsLineChart(
+                'chart-user-own-profiles',
+                'Users looking at their own profile',
+                this.#userOwnProfileData
+            ).render();
+        }
+
+        if (this.#userOtherProfileData && this.#userOtherProfileData.getAllPeriods().length > 0) {
+            const userProfileChartWrapper = document.createElement('div');
+            userProfileChartWrapper.style.marginBottom = '40px';
+
+            const userProfileChartDiv = document.createElement('div');
+            userProfileChartDiv.id = 'chart-user-other-profiles';
+            userProfileChartDiv.style.height = '400px';
+            userProfileChartWrapper.appendChild(userProfileChartDiv);
+
+            container.appendChild(userProfileChartWrapper);
+
+            new PageViewStatsLineChart(
+                'chart-user-other-profiles',
+                'Users looking at other users\' profiles',
+                this.#userOtherProfileData
+            ).render();
+        }
+
         this.#eventPaths.forEach((eventPath, index) => {
             const data = this.#dataByPath.get(eventPath);
 
@@ -159,7 +269,7 @@ class AdminPageViewStatsPage extends BasePage {
                 noDataDiv.style.marginBottom = '40px';
 
                 const message = document.createElement('p');
-                message.innerText = 'No data available for this path';
+                message.innerText = `No data available for this path: ${eventPath}`;
                 message.style.fontStyle = 'italic';
                 message.style.color = '#666';
                 noDataDiv.appendChild(message);

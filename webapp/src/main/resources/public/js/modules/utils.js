@@ -231,6 +231,48 @@ function millisToRelativeTime(elapsed, suffix = 'ago') {
 }
 
 /**
+ * Formats a duration in milliseconds as a compact shorthand string showing the
+ * largest non-zero unit plus the next smaller unit (e.g. '45s', '5m 12s',
+ * '1h 30m', '2d 4h', '3mo 5d', '1y 2mo'). Negative values are treated as zero.
+ * Months are approximated as 30 days and years as 12 months (360 days).
+ *
+ * @param elapsed {number}
+ * @returns {string}
+ */
+function formatDurationShorthand(elapsed) {
+    if (elapsed == null || elapsed <= 0) {
+        return '0s';
+    }
+    const totalSeconds = Math.floor(elapsed / 1_000);
+    if (totalSeconds < 60) {
+        return totalSeconds + 's';
+    }
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    if (totalMinutes < 60) {
+        const s = totalSeconds % 60;
+        return s === 0 ? totalMinutes + 'm' : totalMinutes + 'm ' + s + 's';
+    }
+    const totalHours = Math.floor(totalMinutes / 60);
+    if (totalHours < 24) {
+        const m = totalMinutes % 60;
+        return m === 0 ? totalHours + 'h' : totalHours + 'h ' + m + 'm';
+    }
+    const totalDays = Math.floor(totalHours / 24);
+    if (totalDays < 30) {
+        const h = totalHours % 24;
+        return h === 0 ? totalDays + 'd' : totalDays + 'd ' + h + 'h';
+    }
+    const totalMonths = Math.floor(totalDays / 30);
+    if (totalMonths < 12) {
+        const d = totalDays % 30;
+        return d === 0 ? totalMonths + 'mo' : totalMonths + 'mo ' + d + 'd';
+    }
+    const totalYears = Math.floor(totalMonths / 12);
+    const mo = totalMonths % 12;
+    return mo === 0 ? totalYears + 'y' : totalYears + 'y ' + mo + 'mo';
+}
+
+/**
  * @param elapsed {number}
  * @returns {string}
  */

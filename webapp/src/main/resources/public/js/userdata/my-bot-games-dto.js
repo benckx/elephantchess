@@ -109,6 +109,13 @@ class BotGameEntryDto {
     /**
      * @return {string}
      */
+    get status() {
+        return this.#status;
+    }
+
+    /**
+     * @return {string}
+     */
     get formattedStatus() {
         switch (this.#status) {
             case GameEventType.CANCELED:

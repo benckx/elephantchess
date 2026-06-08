@@ -51,6 +51,10 @@ class XiangqiAboutPage extends BasePage {
         elementId: 'board-container-manchu-chariot-about',
         pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
     });
+    #boardGuiCompleteSetup = createWebappBoardGui({
+        elementId: 'board-container-complete-setup-about',
+        pieceStyle: PieceStyleSetting.ROMANIZED_ROUNDED,
+    });
 
     #settingsGui;
 
@@ -64,6 +68,7 @@ class XiangqiAboutPage extends BasePage {
         this.#resetCannonBoard();
         this.#resetSoldierBoard();
         this.#resetManchuChariotBoard();
+        this.#resetCompleteSetupBoard();
 
         this.#initResetButton('reset-general-board-button', () => this.#resetGeneralBoard());
         this.#initResetButton('reset-advisor-board-button', () => this.#resetAdvisorBoard());
@@ -73,6 +78,7 @@ class XiangqiAboutPage extends BasePage {
         this.#initResetButton('reset-cannon-board-button', () => this.#resetCannonBoard());
         this.#initResetButton('reset-soldier-board-button', () => this.#resetSoldierBoard());
         this.#initResetButton('reset-manchu-chariot-board-button', () => this.#resetManchuChariotBoard());
+        this.#initResetButton('reset-complete-setup-board-button', () => this.#resetCompleteSetupBoard());
 
         this.#settingsGui = new SettingsGui(this.#boardGuiGeneral, null, false, true);
         this.#settingsGui.addBoardGui(this.#boardGuiAdvisor);
@@ -82,6 +88,7 @@ class XiangqiAboutPage extends BasePage {
         this.#settingsGui.addBoardGui(this.#boardGuiCannon);
         this.#settingsGui.addBoardGui(this.#boardGuiSoldier);
         this.#settingsGui.addBoardGui(this.#boardGuiManchuChariot);
+        this.#settingsGui.addBoardGui(this.#boardGuiCompleteSetup);
     }
 
     #initResetButton(elementId, callback) {
@@ -171,6 +178,10 @@ class XiangqiAboutPage extends BasePage {
             new Position(4, 4),
             [new Position(4, 7), new Position(6, 4), new Position(2, 4)]
         );
+    }
+
+    #resetCompleteSetupBoard() {
+        this.#boardGuiCompleteSetup.loadFen(DEFAULT_START_FEN, true);
     }
 
 }

@@ -19,6 +19,7 @@ import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.BotGameMoveType
 import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType.*
+import io.elephantchess.model.OpeningMode
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.botgame.*
 import io.elephantchess.servicelayer.dto.gamedata.GameMovesResponse
@@ -67,7 +68,7 @@ class PlayerVsBotGameService(
     private val pikafishVersion = appConfig.pikafishVersion
     private val fairyStockfishVersion = appConfig.fairyStockfishVersion
 
-    private val sessionsRefresh = 4.seconds
+    private val sessionsRefresh = 2.seconds
     private val wsSessions = mutableListOf<PvbWebSocketSession>()
 
     private val refreshJob = launchAtFixedRate(
@@ -75,6 +76,12 @@ class PlayerVsBotGameService(
         initialDelay = sessionsRefresh,
         period = sessionsRefresh,
         action = {
+            // remove the sessions that are not active anymore
+            wsSessions.removeIf { session ->
+                if (session.isClosed) logger.debug { "removing $session" }
+                session.isClosed
+            }
+
             if (wsSessions.isNotEmpty()) {
                 // fetch new moves from SQL in a single query
                 val tuples = wsSessions.map { session -> session.gameId to session.currentMoveIndex }
@@ -103,12 +110,6 @@ class PlayerVsBotGameService(
                                 )
                             }
                     }
-
-                // remove the sessions that are not active anymore
-                wsSessions.removeIf { session ->
-                    if (session.isClosed) logger.debug { "removing $session" }
-                    session.isClosed
-                }
             }
         }
     )
@@ -123,12 +124,17 @@ class PlayerVsBotGameService(
         }
 
         if (userId.userType == UserType.GUEST && request.depth > 6) {
-            throw BadRequestException("You must be logged in to play with depth greater than 6")
+            throw BadRequestException("You must be authenticated in to play with depth greater than 6")
+        }
+
+        // Manchu variant requires Engine only opening mode
+        if (request.variant == Variant.MANCHU && request.openingMode != OpeningMode.ENGINE_ONLY) {
+            throw BadRequestException("Variants require engine-only opening mode")
         }
 
         // Manchu variant requires Fairy Stockfish
         if (request.variant == Variant.MANCHU && request.engine == Engine.PIKAFISH) {
-            throw BadRequestException("Pikafish does not support the Manchu variant. Please use Fairy Stockfish.")
+            throw BadRequestException("Pikafish does not support the Manchu variant. Please use Fairy Stockfish")
         }
 
         request.startFen?.let { fen ->
@@ -176,6 +182,7 @@ class PlayerVsBotGameService(
         gameRecord.currentHalfMoveIndex = 0
         gameRecord.created = now
         gameRecord.lastUpdated = now
+        gameRecord.openingMode = request.openingMode
         gameRecord.variant = request.variant
 
         val statusRecord = BotGameStatusEvent()
@@ -196,6 +203,7 @@ class PlayerVsBotGameService(
                 engine = effectiveEngine,
                 depth = request.depth,
                 usesDefaultStartFen = usesDefaultStartFen,
+                openingMode = request.openingMode,
                 variant = request.variant,
             )
 
@@ -271,7 +279,7 @@ class PlayerVsBotGameService(
 
         // TODO: use same pattern as in GameService with TryEither
         pvbGameDaoService.saveUserMoveResult(request.gameId, request.move) { gameRecord, userMove ->
-            val gameVariant = gameRecord.variant
+            val variant = gameRecord.variant
             val userColor = gameRecord.userColor
             val botColor = userColor.reverse()
 
@@ -296,12 +304,13 @@ class PlayerVsBotGameService(
                         botColor = botColor,
                         userMove = userMove,
                         fen = board.outputFen(),
-                        startFen = gameRecord.startFen ?: Board.defaultStartFen(gameVariant),
+                        startFen = gameRecord.startFen ?: Board.defaultStartFen(variant),
                         position = gameRecord.currentHalfMoveIndex,
                         engine = gameRecord.engine,
                         depth = gameRecord.depth,
                         usesDefaultStartFen = gameRecord.startFen == null,
-                        variant = gameVariant,
+                        openingMode = gameRecord.openingMode,
+                        variant = variant,
                     )
 
                     if (botMove != null) {
@@ -362,27 +371,41 @@ class PlayerVsBotGameService(
         engine: Engine,
         depth: Int,
         usesDefaultStartFen: Boolean,
+        openingMode: OpeningMode,
         variant: Variant = Variant.XIANGQI,
     ): BotMove? {
         suspend fun playWithEngine(): BotMove? {
             return playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
         }
 
-        val canUseOpeningRepository =
-            usesDefaultStartFen && position <= REPO_MAX_POSITION_INDEX && variant == Variant.XIANGQI
+        val useOpeningRepository =
+            usesDefaultStartFen &&
+                    position <= REPO_MAX_POSITION_INDEX &&
+                    variant == Variant.XIANGQI &&
+                    openingMode != OpeningMode.ENGINE_ONLY
 
-        return if (canUseOpeningRepository) {
-            playFromOpeningRepository(gameId, userMove) ?: playWithEngine()
+        return if (useOpeningRepository) {
+            playFromOpeningRepository(gameId, userMove, openingMode) ?: playWithEngine()
         } else {
             playWithEngine()
         }
     }
 
-    private suspend fun playFromOpeningRepository(gameId: String, userMove: String?): BotMove? {
+    private suspend fun playFromOpeningRepository(
+        gameId: String,
+        userMove: String?,
+        openingMode: OpeningMode
+    ): BotMove? {
         val moves = pvbGameDaoService.listMoves(gameId) + listOfNotNull(userMove)
         val openingEntries = openingRepositoryDaoService.fetchNextMovesData(moves)
+
         return if (openingEntries.isNotEmpty()) {
-            val randomEntry = selectByProbability(openingEntries) { it.occurrences }
+            val randomEntry =
+                if (openingMode == OpeningMode.RANDOM) {
+                    openingEntries.random()
+                } else {
+                    selectByProbability(openingEntries) { it.occurrences }
+                }
             logger.debug {
                 val totalOccurrences = openingEntries.sumOf { it.occurrences }
                 "[$gameId] playing from opening repository ${randomEntry.occurrences} / $totalOccurrences"
@@ -403,9 +426,14 @@ class PlayerVsBotGameService(
         depth: Int,
         variant: Variant,
     ): BotMove? {
-        suspend fun queryEngine(fenToEngine: String): InfoLinesResult? {
-            return enginesPool.safeQueryForDepth(fenToEngine, modelToProcess(engine), depth, 15_000, variant)
-        }
+        suspend fun queryEngine(fenToEngine: String): InfoLinesResult? =
+            enginesPool.safeQueryForDepth(
+                fen = fenToEngine,
+                engineId = modelToProcess(engine),
+                depth = depth,
+                timeout = 15_000,
+                variant = variant
+            )
 
         suspend fun findAlternativeMove(bestMove: String): String? {
             val cpMultiplier = if (botColor == RED) 1 else -1

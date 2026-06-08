@@ -44,7 +44,8 @@ class AnalysisBoardPage extends BasePage {
     #moveTreeWidget = new MoveTreeWidget({
         containerId: 'move-tree-container',
         isContextualMenuEnabled: true,
-        isLoadingAnimationEnabled: true
+        isLoadingAnimationEnabled: true,
+        ...moveTreeResizeCookiePersistence('analysis', 'move-tree-container')
     });
 
     #boardGui = createWebappBoardGui({ svg: true });
@@ -668,12 +669,11 @@ class AnalysisBoardPage extends BasePage {
         const nodes = this.#moveTreeWidget.getMainBranchNodes();
         if (nodes.length > 6) {
             renderAnalysisSummaryReport(
-                nodes,
                 this.#analysisCache.asMap(),
-                this.#startFen,
                 this.#gameMetadata?.redPlayerName,
                 this.#gameMetadata?.blackPlayerName,
-                this.#gameMetadata?.outcome
+                this.#gameMetadata?.outcome,
+                this.#moveTreeWidget
             );
         }
     }

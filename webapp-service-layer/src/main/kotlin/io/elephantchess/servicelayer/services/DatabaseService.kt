@@ -173,9 +173,9 @@ class DatabaseService(
                         gameId = GameId(GameType.DB, record.id),
                         lastUpdated = record.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
                         redPlayerId = record.redPlayer,
-                        redPlayerName = playerIdToCanonicalName(record.redPlayer),
+                        redPlayerName = playerIdToDisplayName(record.redPlayer),
                         blackPlayerId = record.blackPlayer,
-                        blackPlayerName = playerIdToCanonicalName(record.blackPlayer),
+                        blackPlayerName = playerIdToDisplayName(record.blackPlayer),
                         eventName = idToEventName(record.event),
                         finalFen = record.finalFen,
                         outcome = record.outcome,
@@ -231,13 +231,10 @@ class DatabaseService(
     private suspend fun playerIdToDisplayName(playerId: String?): String? {
         if (playerId != null) {
             val result = playerIdToDisplayNameCache.get(playerId) {
-                referencePlayerDaoService.findPlayer(playerId)?.let {
-                    if (it.isVisible) {
-                        formatWithChineseName(it.canonicalName, it.chineseName)
-                    } else {
-                        ""
-                    }
-                } ?: ""
+                referencePlayerDaoService
+                    .findPlayer(playerId)
+                    ?.let { player -> formatWithChineseName(player.canonicalName, player.chineseName) }
+                    ?: "<unknown>"
             }
 
             if (result.isNotBlank()) {

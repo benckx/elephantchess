@@ -4,13 +4,16 @@ import io.elephantchess.db.dao.codegen.Tables.PUZZLE_RESULT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.services.AnalysisDaoService
+import io.elephantchess.db.services.ContentSectionVoteDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.db.utils.winnerUserId
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
+import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.admin.ListBotGamesResponse
+import io.elephantchess.servicelayer.dto.admin.ListContentSectionVoteFeedbackResponse
 import io.elephantchess.servicelayer.dto.admin.ListGamesResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastPuzzleByLoggedInUsersResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastUserAnalysisResponse
@@ -21,6 +24,7 @@ class AdminFeedService(
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
+    private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
     private val userCache: UserCache,
 ) {
 
@@ -128,6 +132,25 @@ class AdminFeedService(
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
             variant = record.variant,
         )
+    }
+
+    suspend fun listLatestFeedback(): ListContentSectionVoteFeedbackResponse {
+        val entries = contentSectionVoteDaoService
+            .listLatestFeedback(250)
+            .map { record ->
+                ListContentSectionVoteFeedbackResponse.Entry(
+                    userId = record.userId,
+                    username = userCache.fetchUsernameOrDefault(record.userId),
+                    userType = userCache.fetchUserType(record.userId) ?: UserType.GUEST,
+                    pageId = record.pageId,
+                    sectionId = record.sectionId,
+                    upVoted = record.upVoted,
+                    feedback = record.feedback ?: "",
+                    creationTime = record.creationTime.toEpochMilliseconds(),
+                    updateTime = record.updateTime.toEpochMilliseconds(),
+                )
+            }
+        return ListContentSectionVoteFeedbackResponse(entries)
     }
 
 }

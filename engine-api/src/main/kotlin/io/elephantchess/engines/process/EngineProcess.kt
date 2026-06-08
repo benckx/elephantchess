@@ -12,6 +12,7 @@ import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.BufferedWriter
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -89,7 +90,17 @@ abstract class EngineProcess(
 
     fun quit(timeoutMs: Long = 10_000): Boolean {
         hasQuit = true
-        inputCommand("quit")
+        if (!process.isAlive) {
+            logger.info { "$engineId process already exited, skipping quit command" }
+            return true
+        }
+        try {
+            inputCommand("quit")
+        } catch (e: IOException) {
+            // The child process may have already terminated (e.g. when the JVM is shutting down
+            // and SIGTERM was propagated to children), in which case the output stream is closed.
+            logger.info { "could not send quit command to $engineId, process likely already terminated: ${e.message}" }
+        }
         return process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)
     }
 

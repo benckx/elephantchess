@@ -20,7 +20,7 @@ abstract class PostgresTest {
     protected val dbPassword = "postgres"
 
     protected val container: PostgreSQLContainer<*> by lazy {
-        PostgreSQLContainer("postgres:17.6")
+        PostgreSQLContainer("postgres:18.4")
             .withDatabaseName("xiangqi")
             .withUsername(dbUser)
             .withPassword(dbPassword)

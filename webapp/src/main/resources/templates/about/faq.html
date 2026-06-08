@@ -7,11 +7,13 @@
     <meta property="og:url" content="https://elephantchess.io/about/faq"/>
     <link rel="canonical" href="https://elephantchess.io/about/faq"/>
     <link rel="stylesheet" href="/css/about-faq.css"/>
+    <link rel="stylesheet" href="/css/content-section-vote.css"/>
     <script defer src="/js/default-base-page.js"></script>
+    <script defer src="/js/content-section-vote-widget.js"></script>
 </head>
 <body>
 {{body_init}}
-<div class="main-container-text">
+<div class="main-container-text" data-page-id="faq">
     <h1>Frequently Asked Questions</h1>
     <hr/>
     {{faq_toc}}
@@ -46,9 +48,13 @@
         are limited with memory on the current set-up.
     </p>
     <p>
-        With more budget, I could also duplicate the server in Asia to improve response time from there. At some point,
-        I could also hire experts for specific tasks (data analysis, UI/UX improvements, puzzle algorithms, cheating
-        detection, editors to improve Database player profiles, translators for internationalization, etc.)
+        With more budget, I could also duplicate the server in Asia to improve response time from there. I could also
+        add a Redis instance to improve live game performance.
+    </p>
+    <p>
+        At some point, I could also hire experts for specific tasks (data analysis, UI/UX improvements, puzzle
+        algorithms, cheating detection, editors to improve Database player profiles, translators for
+        internationalization, etc.)
     </p>
     <p>
         My goal is to make the platform financially self-sustainable, so it wouldn't be dependent on my other activities
@@ -163,6 +169,10 @@
         Chat messages are public and not encrypted. They can be reviewed by the admins and moderators.
     </p>
     <p>
+        Games played by user is public and data is considered GPL-3.0. Game data can be shared with third parties for
+        research or technical purposes. We might also make them available on the website at some points.
+    </p>
+    <p>
         We don't share your information (like your email or your activity) with anyone, however we use an <a
             href="https://emaillistverify.com" target="_blank">external service</a> to validate email addresses, to
         avoid getting bounced emails, which our email provider doesn't like and which could affect our ability to send
@@ -179,6 +189,26 @@
         TLD.
     </p>
 
+    <h1 id="pvb-opening-mode">What's the Opening setting in PvB?</h1>
+    <hr/>
+    <p>
+        When playing against a bot, there is an "Opening Mode" setting that lets you select between 3 options:
+    </p>
+    <ul>
+        <li>
+            <b>Most Played</b> picks from the opening repertoire but with a higher probability for the most played
+            openings. For example, if we have opening (A) played 100 times, opening (B) played 50 times and opening (C)
+            played 25 times; the opening (B) is selected twice more often than (C) and half as often as (A).
+        </li>
+        <li>
+            <b>Randomized</b> picks a completely random opening from the opening repertoire. Opening (A), (B) and (C)
+            will be selected with the same probability, regardless of how many times they were played in the database.
+        </li>
+        <li>
+            <b>Engine Only</b> ignores the opening repertoire entirely and lets the engine play from the very first
+            move.
+        </li>
+    </ul>
 
     <!-- analysis summary report -->
     <h1 id="analysis-summary-report">How do analysis summary symbols work?</h1>
