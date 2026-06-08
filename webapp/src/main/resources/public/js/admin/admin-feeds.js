@@ -106,6 +106,7 @@ class AdminFeedsPage extends BasePage {
 
                 row.insertCell().innerText = entry.formattedStatus;
                 row.insertCell().innerText = entry.index.toString();
+                row.insertCell().innerText = entry.isPreAnalyzed ? '[v]' : '[ ]';
                 row.insertCell().innerText = entry.formattedCreated;
                 row.insertCell().innerText = entry.formattedLastUpdated;
                 row.insertCell().innerText = entry.formattedSourceType;
@@ -181,6 +182,10 @@ class AdminFeedsPage extends BasePage {
                 const indexCell = row.insertCell();
                 indexCell.className = 'value-cell';
                 indexCell.innerText = entry.index.toString();
+
+                const preAnalyzedCell = row.insertCell();
+                preAnalyzedCell.className = 'value-cell';
+                preAnalyzedCell.innerText = entry.isPreAnalyzed ? '[v]' : '[ ]';
 
                 const createdCell = row.insertCell();
                 createdCell.className = 'label-cell';

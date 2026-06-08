@@ -20,6 +20,7 @@ data class ListGamesResponse(val entries: List<Entry>) {
         val timeControlIncrement: Int?,
         val status: GameEventType,
         val index: Int,
+        val isPreAnalyzed: Boolean,
         val winnerUserId: String?,
         val created: Long,
         val lastUpdated: Long,

@@ -28,6 +28,7 @@ class BotGameEntryDto {
     #status;
     #outcome;
     #moveIndex;
+    #isPreAnalyzed;
     #variant;
 
     /**
@@ -50,6 +51,7 @@ class BotGameEntryDto {
         this.#status = json.status;
         this.#outcome = json.outcome;
         this.#moveIndex = json.moveIndex;
+        this.#isPreAnalyzed = json.isPreAnalyzed;
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
         this.#variant = json.variant ?? Variant.XIANGQI;
@@ -156,6 +158,13 @@ class BotGameEntryDto {
 
     get fullMoveIndex() {
         return currentMoveIndexToFullMove(this.#moveIndex);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isPreAnalyzed() {
+        return this.#isPreAnalyzed;
     }
 
     get created() {

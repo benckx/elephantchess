@@ -31,6 +31,7 @@ class GameAnalyticsDto {
     #timeControl;
     #status;
     #index;
+    #isPreAnalyzed;
     #winnerUserId;
     #created;
     #lastUpdated;
@@ -50,6 +51,7 @@ class GameAnalyticsDto {
         this.#timeControl = TimeControl.fromJson(json);
         this.#status = json.status;
         this.#index = json.index;
+        this.#isPreAnalyzed = json.isPreAnalyzed;
         this.#winnerUserId = json.winnerUserId;
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
@@ -154,6 +156,13 @@ class GameAnalyticsDto {
     }
 
     /**
+     * @return {boolean}
+     */
+    get isPreAnalyzed() {
+        return this.#isPreAnalyzed;
+    }
+
+    /**
      * @return {string}
      */
     get formattedCreated() {
@@ -246,6 +255,7 @@ class BotGameAnalyticsDto {
     #status;
     #outcome;
     #index;
+    #isPreAnalyzed;
     #created;
     #lastUpdated;
     #variant;
@@ -262,6 +272,7 @@ class BotGameAnalyticsDto {
         this.#status = json.status;
         this.#outcome = json.outcome;
         this.#index = Number(json.index);
+        this.#isPreAnalyzed = json.isPreAnalyzed;
         this.#created = Number(json.created);
         this.#lastUpdated = Number(json.lastUpdated);
         this.#variant = json.variant ?? Variant.XIANGQI;
@@ -349,6 +360,13 @@ class BotGameAnalyticsDto {
      */
     get index() {
         return this.#index;
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isPreAnalyzed() {
+        return this.#isPreAnalyzed;
     }
 
     /**

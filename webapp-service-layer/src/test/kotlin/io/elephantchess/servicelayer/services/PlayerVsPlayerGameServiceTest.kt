@@ -3,6 +3,8 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.model.AnalysisStatus.COMPLETED
+import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
@@ -659,6 +661,50 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(PERPETUAL_CHECKING, response.gameEventType)
     }
 
+    @Test
+    fun listUserGamesPreAnalyzedStatusTest() = runTest {
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
+
+        val beforeUpdateEntry =
+            pvpGameService
+                .listUserGames(userId1.id, beforeTs = null)
+                .entries
+                .find { it.gameId == gameId }
+                ?: throw AssertionError("Expected game $gameId in list")
+
+        assertFalse(beforeUpdateEntry.isPreAnalyzed)
+
+        dslContext
+            .update(GAME)
+            .set(GAME.ANALYSIS_STATUS, PARTIALLY_COMPLETED)
+            .where(GAME.ID.eq(gameId))
+            .awaitExecute()
+
+        val afterPartialUpdateEntry =
+            pvpGameService
+                .listUserGames(userId1.id, beforeTs = null)
+                .entries
+                .find { it.gameId == gameId }
+                ?: throw AssertionError("Expected game $gameId in list")
+
+        assertFalse(afterPartialUpdateEntry.isPreAnalyzed)
+
+        dslContext
+            .update(GAME)
+            .set(GAME.ANALYSIS_STATUS, COMPLETED)
+            .where(GAME.ID.eq(gameId))
+            .awaitExecute()
+
+        val afterUpdateEntry =
+            pvpGameService
+                .listUserGames(userId1.id, beforeTs = null)
+                .entries
+                .find { it.gameId == gameId }
+                ?: throw AssertionError("Expected game $gameId in list")
+
+        assertTrue(afterUpdateEntry.isPreAnalyzed)
+    }
+
     /**
      * User should not be able to create more than 3 CREATED PvP games with the same settings.
      */
@@ -716,7 +762,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
         // different time category (BLITZ vs RAPID): should succeed
         pvpGameService.createGame(userId1, request.copy(timeControlBase = 3.minutes.inWholeSeconds.toInt()))
-
         assertEquals(4, countGameByStatus(CREATED))
     }
 
