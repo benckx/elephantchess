@@ -75,6 +75,29 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
     suspend fun startAnalysis(gameId: GameId) =
         updateAnalysisStatus(gameId, STARTED, startTimeField(gameId))
 
+    suspend fun startAnalysis(gameId: GameId, isPassive: Boolean) {
+        updateAnalysisStatus(gameId, STARTED, startTimeField(gameId))
+        if (isPassive) {
+            setAnalyzedPassively(gameId, true)
+        }
+    }
+
+    private suspend fun setAnalyzedPassively(gameId: GameId, value: Boolean) {
+        dslContext.transactionCoroutine { cfg ->
+            val update = DSL
+                .using(cfg)
+                .update(gameTableUpdate(gameId))
+
+            when (gameId.type) {
+                DB -> update.set(REFERENCE_GAME.ANALYZED_PASSIVELY.fixed(), value)
+                PVP -> update.set(GAME.ANALYZED_PASSIVELY.fixed(), value)
+                PVB -> {} // Bot games don't have analyzed_passively field yet
+            }
+
+            update.where(gameTableIdCondition(gameId)).awaitExecute()
+        }
+    }
+
     suspend fun completeAnalysis(gameId: GameId) =
         updateAnalysisStatus(gameId, COMPLETED, endTimeField(gameId))
 
@@ -136,6 +159,28 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             .select(DSL.max(MOVE_ANALYSIS.ENTRY_CREATION))
             .from(MOVE_ANALYSIS)
             .awaitSingleValue()
+    }
+
+    suspend fun isAnyGameCurrentlyBeingAnalyzed(): Boolean {
+        val refGameCount = dslContext
+            .selectCount()
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ANALYSIS_STATUS.eq(STARTED))
+            .awaitSingleValue()!!
+
+        val pvpGameCount = dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.ANALYSIS_STATUS.eq(STARTED))
+            .awaitSingleValue()!!
+
+        val pvbGameCount = dslContext
+            .selectCount()
+            .from(BOT_GAME)
+            .where(BOT_GAME.ANALYSIS_STATUS.eq(STARTED))
+            .awaitSingleValue()!!
+
+        return (refGameCount + pvpGameCount + pvbGameCount) > 0
     }
 
     private companion object {

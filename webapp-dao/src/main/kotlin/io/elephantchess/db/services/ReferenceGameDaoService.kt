@@ -499,6 +499,17 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
+    suspend fun pickRandomGameForAnalysis(): String? {
+        return dslContext
+            .select(REFERENCE_GAME.ID)
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(AnalysisStatus.NOT_STARTED, AnalysisStatus.PARTIALLY_COMPLETED))
+            .and(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.greaterThan(10))
+            .orderBy(DSL.rand())
+            .limit(1)
+            .awaitSingleValue()
+    }
+
     companion object {
         private val PARENTHETICAL_REGEX = Regex("""\s*\([^)]*\)\s*""")
         private val WHITESPACE_REGEX = Regex("""\s+""")
