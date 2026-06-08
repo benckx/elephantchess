@@ -284,9 +284,9 @@ class MyGamesPage extends InfiniteScrollPage {
                 variantPane,
                 timeControlPane,
                 middlePane,
+                preAnalyzedIndicatorPane,
                 chatIndicatorPane,
                 ratingDeltaIndicatorPane,
-                preAnalyzedIndicatorPane,
                 outcomeIndicatorPane,
                 rightPane
             );
