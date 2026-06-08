@@ -101,7 +101,7 @@ private fun batchModule() = module {
     singleAuto<SendOutNewslettersBatch>()
     singleAuto<CheckEmailListVerifyCreditBatch>()
     singleAuto<VerifyEmailsBatch>()
-    singleAuto<PassiveGameAnalysisBatch>()
+    singleAuto<BackgroundGameAnalysisBatch>()
     single {
         listOf(
             BatchSchedule(get<PreAnalysisCleanUpBatch>(), period = 6.hours),
@@ -114,7 +114,7 @@ private fun batchModule() = module {
             BatchSchedule(get<SendOutNewslettersBatch>(), period = 5.minutes, delay = 3.minutes),
             BatchSchedule(get<CheckEmailListVerifyCreditBatch>(), period = 48.hours, delay = 30.seconds),
             BatchSchedule(get<VerifyEmailsBatch>(), period = 48.hours, delay = 12.hours),
-            BatchSchedule(get<PassiveGameAnalysisBatch>(), period = 10.minutes, delay = 1.minutes),
+            BatchSchedule(get<BackgroundGameAnalysisBatch>(), period = 10.minutes, delay = 1.minutes),
         )
     }
 }

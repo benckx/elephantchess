@@ -11,7 +11,7 @@ import io.elephantchess.servicelayer.services.GameDataService
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.minutes
 
-class PassiveGameAnalysisBatch(
+class BackgroundGameAnalysisBatch(
     private val gameDataService: GameDataService,
     private val moveAnalysisDaoService: MoveAnalysisDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,
