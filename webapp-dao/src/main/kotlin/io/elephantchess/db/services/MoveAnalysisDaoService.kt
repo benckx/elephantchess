@@ -174,11 +174,15 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             .where(REFERENCE_GAME.ANALYSIS_STATUS.eq(STARTED))
             .awaitSingleValue() ?: 0
 
+        if (refGameCount > 0) return true
+
         val pvpGameCount = dslContext
             .selectCount()
             .from(GAME)
             .where(GAME.ANALYSIS_STATUS.eq(STARTED))
             .awaitSingleValue() ?: 0
+
+        if (pvpGameCount > 0) return true
 
         val pvbGameCount = dslContext
             .selectCount()
@@ -186,7 +190,7 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             .where(BOT_GAME.ANALYSIS_STATUS.eq(STARTED))
             .awaitSingleValue() ?: 0
 
-        return (refGameCount + pvpGameCount + pvbGameCount) > 0
+        return pvbGameCount > 0
     }
 
     private companion object {
