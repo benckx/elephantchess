@@ -244,13 +244,6 @@ class BotGameDto {
     /**
      * @return {number}
      */
-    get createdMillis() {
-        return this.#created;
-    }
-
-    /**
-     * @return {number}
-     */
     get lastUpdatedMillis() {
         return this.#lastUpdated;
     }

@@ -52,13 +52,6 @@ class PlayGamePage extends BasePage {
     #gameStatusSpan = document.getElementById('game-status');
     #gameOutcomeSpan = document.getElementById('game-outcome');
     #outcomeRow = document.getElementById('outcome-row');
-    #gameDurationSpan = document.getElementById('game-duration');
-    #durationRow = document.getElementById('duration-row');
-
-    /**
-     * @type {number|null}
-     */
-    #gameEndedAtMillis = null;
 
     #redPlayerOnlineIndicator = document.getElementById('red-online-status-indicator');
     #blackPlayerOnlineIndicator = document.getElementById('black-online-status-indicator');
@@ -153,9 +146,6 @@ class PlayGamePage extends BasePage {
                     this.#initOtherInfo();
                     this.#initClocks();
                     this.#updatePlayersInfo();
-                    if (this.#gameController.isGameFinished()) {
-                        this.#gameEndedAtMillis = this.#gameController.gameDto.lastUpdated;
-                    }
                     this.#updateGui();
                     this.#updateOnlineStatus();
                     this.#showJoinModalIfNeeded();
@@ -703,26 +693,7 @@ class PlayGamePage extends BasePage {
         this.#gameStatusSpan.innerText = statusText;
         this.#gameOutcomeSpan.innerText = outcomeText;
 
-        this.#updateDurationLabel();
-
         this.#perpetualCheckingTrackerWidget.render();
-    }
-
-    #updateDurationLabel() {
-        const dto = this.#gameController.gameDto;
-        const status = dto.status;
-        const shouldShow = this.#gameController.isGameFinished()
-            && status !== GameEventType.CANCELED
-            && status !== GameEventType.AUTO_CANCELED
-            && dto.created != null
-            && this.#gameEndedAtMillis != null;
-        if (shouldShow) {
-            this.#gameDurationSpan.innerText =
-                formatDurationShorthand(this.#gameEndedAtMillis - dto.created);
-            this.#durationRow.style.display = 'contents';
-        } else {
-            this.#durationRow.style.display = 'none';
-        }
     }
 
     #updateButtonsEnabled() {
@@ -958,9 +929,6 @@ class PlayGamePage extends BasePage {
      * @param modalName {string}
      */
     #showGameFinishedModal(modalName) {
-        if (this.#gameEndedAtMillis == null) {
-            this.#gameEndedAtMillis = Date.now();
-        }
         UI.showModalByName(modalName, () => {
             new GameEndedModalHandler(this.#gameController.userRatingUpdate);
             this.#updateGui();

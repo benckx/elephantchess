@@ -630,7 +630,6 @@ class PlayerVsPlayerGameService(
             inviteeUserType = gameRecord.invitee?.let { userCache.fetchUserType(it) },
             inviterColor = gameRecord.inviterColor,
             created = gameRecord.created.toEpochMilliseconds(),
-            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
             isRated = gameRecord.isRated,
             fen = gameRecord.currentFen,
             moveIndex = gameRecord.currentHalfMoveIndex,
