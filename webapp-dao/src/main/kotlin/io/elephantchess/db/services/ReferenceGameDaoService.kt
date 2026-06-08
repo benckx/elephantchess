@@ -14,6 +14,7 @@ import io.elephantchess.db.utils.*
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
 import io.elephantchess.model.AnalysisStatus.STARTED
+import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.xiangqi.Color
 import org.jooq.*
 import org.jooq.impl.DSL
@@ -504,7 +505,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .select(REFERENCE_GAME.ID)
             .from(REFERENCE_GAME)
             .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(AnalysisStatus.NOT_STARTED, AnalysisStatus.PARTIALLY_COMPLETED))
-            .and(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.greaterThan(10))
+            .and(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.greaterThan(MIN_MOVE_INDEX))
             .orderBy(DSL.rand())
             .limit(1)
             .awaitSingleValue()

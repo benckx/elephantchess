@@ -23,6 +23,7 @@ import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
 import io.elephantchess.model.Outcome.BLACK_WINS
 import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
@@ -1157,7 +1158,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .from(GAME)
             .where(GAME.ANALYSIS_STATUS.`in`(AnalysisStatus.NOT_STARTED, AnalysisStatus.PARTIALLY_COMPLETED))
             .and(GAME.GAME_STATUS.`in`(gameEndedStatuses))
-            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterThan(10))
+            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterThan(MIN_MOVE_INDEX))
             .orderBy(DSL.rand())
             .limit(1)
             .awaitSingleValue()
