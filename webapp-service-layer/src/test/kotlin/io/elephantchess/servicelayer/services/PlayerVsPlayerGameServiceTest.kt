@@ -663,7 +663,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
     @Test
     fun listUserGamesPreAnalyzedStatusTest() = runTest {
-        val gameId = createAndJoinGame(RED)
+        val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
 
         val beforeUpdateEntry =
             pvpGameService
