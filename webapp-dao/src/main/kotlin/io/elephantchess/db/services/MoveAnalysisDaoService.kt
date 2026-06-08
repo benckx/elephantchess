@@ -84,17 +84,23 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
 
     private suspend fun setAnalyzedPassively(gameId: GameId, value: Boolean) {
         dslContext.transactionCoroutine { cfg ->
-            val update = DSL
-                .using(cfg)
-                .update(gameTableUpdate(gameId))
-
             when (gameId.type) {
-                DB -> update.set(REFERENCE_GAME.ANALYZED_PASSIVELY.fixed(), value)
-                PVP -> update.set(GAME.ANALYZED_PASSIVELY.fixed(), value)
+                DB -> DSL
+                    .using(cfg)
+                    .update(REFERENCE_GAME.fixed())
+                    .set(REFERENCE_GAME.ANALYZED_PASSIVELY.fixed(), value)
+                    .where(REFERENCE_GAME.ID.eq(gameId.id))
+                    .awaitExecute()
+
+                PVP -> DSL
+                    .using(cfg)
+                    .update(GAME.fixed())
+                    .set(GAME.ANALYZED_PASSIVELY.fixed(), value)
+                    .where(GAME.ID.eq(gameId.id))
+                    .awaitExecute()
+
                 PVB -> {} // Bot games don't have analyzed_passively field yet
             }
-
-            update.where(gameTableIdCondition(gameId)).awaitExecute()
         }
     }
 
@@ -166,19 +172,19 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             .selectCount()
             .from(REFERENCE_GAME)
             .where(REFERENCE_GAME.ANALYSIS_STATUS.eq(STARTED))
-            .awaitSingleValue()!!
+            .awaitSingleValue() ?: 0
 
         val pvpGameCount = dslContext
             .selectCount()
             .from(GAME)
             .where(GAME.ANALYSIS_STATUS.eq(STARTED))
-            .awaitSingleValue()!!
+            .awaitSingleValue() ?: 0
 
         val pvbGameCount = dslContext
             .selectCount()
             .from(BOT_GAME)
             .where(BOT_GAME.ANALYSIS_STATUS.eq(STARTED))
-            .awaitSingleValue()!!
+            .awaitSingleValue() ?: 0
 
         return (refGameCount + pvpGameCount + pvbGameCount) > 0
     }
