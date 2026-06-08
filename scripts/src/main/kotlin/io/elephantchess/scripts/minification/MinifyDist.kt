@@ -13,5 +13,5 @@ fun main() {
             .map { prefix + it }
             .map { File(it) }
 
-    minifyIfNeeded(files)
+    minifyAll(files)
 }

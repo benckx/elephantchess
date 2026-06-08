@@ -7,9 +7,13 @@ By default, the project is under GPL-3.0 license. Libraries (like the Kotlin xia
 JavaScript [board-gui](https://elephantchess.io/about/developers/board-gui-example)) are under LGPL-3.0 license to allow
 for a more permissive use (i.e. to re-use the libraries in a commercial application).
 
+The releases and tags are only ever used to version the libraries (see below), i.e. packages `xiangqi-core`,
+`xiangqicore-test-utils`, `engine-api`, etc. The webapp itself is not really versioned. The changelog.html file tracks
+the changes to the webapp.
+
 We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
 
-[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml)
+[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml) [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
 
 ## Features
 
@@ -137,7 +141,7 @@ docker run -d --rm \
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=postgres \
     -e POSTGRES_DB=xiangqi \
-    postgres:17.6
+    postgres:18.4
 ```
 
 Once the container is running, you should see it in the list of running containers:
@@ -145,7 +149,7 @@ Once the container is running, you should see it in the list of running containe
 ```shell
 ➜  ~ docker ps
 CONTAINER ID   IMAGE           COMMAND                  CREATED         STATUS         PORTS                                         NAMES
-c4e5aa14100b   postgres:17.6   "docker-entrypoint.s…"   9 seconds ago   Up 8 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   xiangqi-db
+c4e5aa14100b   postgres:18.4   "docker-entrypoint.s…"   9 seconds ago   Up 8 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   xiangqi-db
 ```
 
 You can then import the dev database (which contains a few games, puzzles and test users):
@@ -597,11 +601,13 @@ repositories {
 Then you can use the dependencies:
 
 ```Groovy
-implementation "com.github.benckx.elephantchess:xiangqi-core:1.1.3"
-implementation "com.github.benckx.elephantchess:engine-api:1.1.3"
+implementation "com.github.benckx.elephantchess:xiangqi-core:2.0.0"
+implementation "com.github.benckx.elephantchess:engine-api:2.0.0"
+implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.0.0"
 ```
 
-_Note: I still have to check that it still works with the updated Gradle project._
+We added a sample project that uses the libraries
+https://github.com/benckx/elephantchess-library-usage
 
 # Front-End
 
@@ -716,9 +722,12 @@ https://elephantchess.io/about/developers/board-gui-example
 
 ## Minification
 
-The minification of JavaScript and CSS assets is done via a REST call to https://www.toptal.com. To avoid reminify the
-same files, we keep track of the checksum of the input files in a local `minified_files.csv` file. The endpoint we use
-is rate limited, so we minify chuck of 20 files every 90 seconds.
+JavaScript and CSS assets are minified locally via the small Node project in
+[`scripts/minifier`](scripts/minifier): JavaScript with [SWC](https://swc.rs) and CSS with
+[Lightning CSS](https://lightningcss.dev). The minifier dependencies are installed automatically
+(`npm install`) the first time the task runs, which also handles modern syntax such as ES6 private
+class fields out of the box.
 
-It's a bit of a funny approach but Gradle plugins I tried wouldn't support the JavaScript files since they contained
-private class fields (i.e. ES6).
+The task looks for `node` and `npm` on the `PATH` as well as common install locations (nvm, fnm, asdf,
+Homebrew). If they live somewhere else (or aren't picked up when running from an IDE), point the task at
+them explicitly with the `NODE_BIN` and `NPM_BIN` environment variables.

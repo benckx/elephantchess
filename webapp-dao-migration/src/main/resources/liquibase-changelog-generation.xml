@@ -2354,6 +2354,9 @@
             <column name="event_time" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="user_type" type="varchar(24)">
+                <constraints nullable="false"/>
+            </column>
             <column name="piece_style" type="varchar(100)"/>
             <column name="show_coordinates" type="varchar(100)"/>
             <column name="move_format" type="varchar(100)"/>
@@ -2363,9 +2366,17 @@
             <column name="flip_opponent_pieces" type="varchar(100)"/>
             <column name="play_sounds" type="varchar(100)"/>
             <column name="colorblind_friendly_black_pieces" type="varchar(100)"/>
+            <column name="move_tree_widget_height_pvp" type="varchar(100)"/>
+            <column name="move_tree_widget_height_pvb" type="varchar(100)"/>
+            <column name="move_tree_widget_height_simple_board" type="varchar(100)"/>
+            <column name="move_tree_widget_height_analysis" type="varchar(100)"/>
+            <column name="move_tree_widget_height_database_viewer" type="varchar(100)"/>
         </createTable>
     </changeSet>
     <changeSet id="0103" author="benckx">
+        <comment>Indexes to optimize page view analytics queries</comment>
+    </changeSet>
+    <changeSet id="0104" author="benckx">
         <addColumn tableName="user">
             <column name="profile_picture_extension" type="varchar(10)"/>
         </addColumn>

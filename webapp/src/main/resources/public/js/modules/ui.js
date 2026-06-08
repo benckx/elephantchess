@@ -899,8 +899,9 @@ class UI {
     }
 
     static hideModal(mouseEvent) {
-        if (mouseEvent == null || mouseEvent.target === UI.#modalBackground) {
-            // only close the modal if we click outside the modal form
+        const closeButtonClicked = mouseEvent?.target?.closest?.('.modal-close-button') != null;
+        if (mouseEvent == null || mouseEvent.target === UI.#modalBackground || closeButtonClicked) {
+            // close the modal if we click outside the modal form or on the close button
             if (UI.#isModalVisible()) {
                 UI.#modalBackground.style.display = 'none';
                 UI.#modalBackground.innerHTML = '';
