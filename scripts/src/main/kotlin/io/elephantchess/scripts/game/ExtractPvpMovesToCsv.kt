@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
+import kotlin.system.exitProcess
 
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
@@ -118,7 +119,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         "game_status",
                         "outcome",
                         "game_join_source",
-                        "fen_key",
                         "analysis",
                     )
                 )
@@ -166,7 +166,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             row.get(GAME.GAME_STATUS)?.name ?: "",
                             row.get(GAME.OUTCOME)?.name ?: "",
                             row.get(GAME.JOIN_SOURCE)?.name ?: "",
-                            fenKey,
                             analysis,
                         )
                     )
@@ -175,6 +174,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         }
 
         println("wrote ${rows.size} rows to $outputPath")
+        exitProcess(0)
     }
 
     private fun guestName(userId: String): String = "guest #$userId"
