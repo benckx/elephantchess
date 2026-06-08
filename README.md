@@ -7,6 +7,10 @@ By default, the project is under GPL-3.0 license. Libraries (like the Kotlin xia
 JavaScript [board-gui](https://elephantchess.io/about/developers/board-gui-example)) are under LGPL-3.0 license to allow
 for a more permissive use (i.e. to re-use the libraries in a commercial application).
 
+The releases and tags are only ever used to version the libraries (see below), i.e. packages `xiangqi-core`,
+`xiangqicore-test-utils`, `engine-api`, etc. The webapp itself is not really versioned. The changelog.html file tracks
+the changes to the webapp.
+
 We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
 
 [![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml) [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
