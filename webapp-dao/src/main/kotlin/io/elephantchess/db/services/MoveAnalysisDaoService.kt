@@ -75,31 +75,31 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
     suspend fun startAnalysis(gameId: GameId) =
         updateAnalysisStatus(gameId, STARTED, startTimeField(gameId))
 
-    suspend fun startAnalysis(gameId: GameId, isPassive: Boolean) {
+    suspend fun startAnalysis(gameId: GameId, isFromBatch: Boolean) {
         updateAnalysisStatus(gameId, STARTED, startTimeField(gameId))
-        if (isPassive) {
-            setAnalyzedPassively(gameId, true)
+        if (isFromBatch) {
+            setAnalyzedFromBatch(gameId, true)
         }
     }
 
-    private suspend fun setAnalyzedPassively(gameId: GameId, value: Boolean) {
+    private suspend fun setAnalyzedFromBatch(gameId: GameId, value: Boolean) {
         dslContext.transactionCoroutine { cfg ->
             when (gameId.type) {
                 DB -> DSL
                     .using(cfg)
                     .update(REFERENCE_GAME.fixed())
-                    .set(REFERENCE_GAME.ANALYZED_PASSIVELY.fixed(), value)
+                    .set(REFERENCE_GAME.ANALYZED_FROM_BATCH.fixed(), value)
                     .where(REFERENCE_GAME.ID.eq(gameId.id))
                     .awaitExecute()
 
                 PVP -> DSL
                     .using(cfg)
                     .update(GAME.fixed())
-                    .set(GAME.ANALYZED_PASSIVELY.fixed(), value)
+                    .set(GAME.ANALYZED_FROM_BATCH.fixed(), value)
                     .where(GAME.ID.eq(gameId.id))
                     .awaitExecute()
 
-                PVB -> {} // Bot games don't have analyzed_passively field yet
+                PVB -> {} // Bot games don't have analyzed_from_batch field yet
             }
         }
     }
