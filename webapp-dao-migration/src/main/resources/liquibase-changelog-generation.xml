@@ -2376,4 +2376,10 @@
     <changeSet id="0103" author="benckx">
         <comment>Indexes to optimize page view analytics queries</comment>
     </changeSet>
+
+    <changeSet id="0104" author="benckx">
+        <comment>user_agent can exceed 255 characters (e.g. embedded browsers like Instagram)</comment>
+        <modifyDataType tableName="user_session" columnName="user_agent" newDataType="text"/>
+        <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
+    </changeSet>
 </databaseChangeLog>
