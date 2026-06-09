@@ -616,7 +616,8 @@ class GameDataService(
                 minMoveIndex = MIN_MOVE_INDEX,
                 beforeTs = beforeTs,
                 excludeAutoResigned = excludeAutoResigned,
-                distinctByUsers = distinctByUsers
+                distinctByUsers = distinctByUsers,
+                variantsToInclude = Variant.entries
             )
 
         val userIds = gameRecords.map { game -> game.userId }.distinct().filterNotNull()
