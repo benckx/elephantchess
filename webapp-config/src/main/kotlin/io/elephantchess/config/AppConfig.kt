@@ -10,6 +10,7 @@ data class MailConfig(
 )
 
 data class AppConfig(
+    // Required fields for base app functionality
     val profile: String,
     val webHost: String,
     val isMinificationEnabled: Boolean,
@@ -26,9 +27,12 @@ data class AppConfig(
     val parseUserAgent: Boolean,
     val disabledBatches: List<String>,
     val cdnEnabled: Boolean,
+    val symmetricKey: String,
+    val salt: String,
     val properties: PropertiesFile,
 ) {
 
+    // Lazy loaders for production-only features (email notifications, CDN config, etc.)
     val apiLayerApiKey: String
         get() = loadString("apilayer.apikey")
 
@@ -58,12 +62,6 @@ data class AppConfig(
 
     val excludedFromAnalytics: List<String>
         get() = loadListOfStrings("excluded.from.analytics")
-
-    val symmetricKey: String
-        get() = loadString("key")
-
-    val salt: String
-        get() = loadString("salt")
 
     val mailConfig: MailConfig
         get() = MailConfig(
