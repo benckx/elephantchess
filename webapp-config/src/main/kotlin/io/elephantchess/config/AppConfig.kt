@@ -20,6 +20,24 @@ data class AppConfig(
     val properties: PropertiesFile,
 ) {
 
+    val apiLayerApiKey: String
+        get() = loadString("apilayer.apikey")
+
+    val doSpacesKeyId: String
+        get() = loadString("digitalocean.spaces.key.id")
+
+    val doSpacesKeySecret: String
+        get() = loadString("digitalocean.spaces.key.secret")
+
+    val doSpacesBucket: String
+        get() = loadString("digitalocean.spaces.bucket")
+
+    val discordToken: String
+        get() = loadString("discord.token")
+
+    val emailListVerifyApiKey: String
+        get() = loadString("emaillistverify.apikey")
+
     fun toStringMultilines(): List<String> {
         val lines = mutableListOf<String>()
         lines += "webHost -> $webHost"

@@ -28,7 +28,7 @@ class ApiLayerClient(
     private val logger: KLogger = logger {},
 ) {
 
-    private val apiKey by lazy { appConfig.loadString("apilayer.apikey") }
+    private val apiKey by lazy { appConfig.apiLayerApiKey }
     private val client by lazy {
         HttpClient(CIO) {
             install(HttpTimeout)
