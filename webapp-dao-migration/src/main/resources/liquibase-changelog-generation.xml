@@ -2381,4 +2381,94 @@
         <modifyDataType tableName="user_session" columnName="user_agent" newDataType="text"/>
         <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
     </changeSet>
+    <changeSet id="0105" author="benckx">
+        <comment>
+            Map opening_pre_calculation_cache entries to the reference games matching them.
+            We reference the opening cache by its auto-increment id (4 bytes) rather than the
+            sequence of moves (the "moves" key, up to ~240 chars) to keep this Cartesian-product
+            table as small as possible. With ~100,000 reference games each matching many openings
+            (openings are nested into one another), this is expected to hold a few million rows.
+
+            Rough size estimate (PostgreSQL): each row stores an int (4 bytes) and a varchar(8)
+            game id (~12 bytes with length header), plus the ~24 bytes row header and alignment,
+            so ~44 bytes per row in the heap. The composite primary key index and the
+            reference_game_id index add roughly 40-50 bytes per row each. So at 5 million rows the
+            table plus its two indexes weigh on the order of 0.2 GB heap + ~0.45 GB indexes
+            (~0.65 GB total). Using the cache id instead of the moves key saves the bulk of that
+            (a 240-char key would multiply the row width by ~6).
+        </comment>
+        <createTable tableName="opening_pre_calculation_cache_reference_game">
+            <column name="opening_pre_calculation_cache_id" type="int">
+                <constraints nullable="false"
+                             foreignKeyName="opening_cache_ref_game_to_cache_fk"
+                             references="opening_pre_calculation_cache(id)"/>
+            </column>
+            <column name="reference_game_id" type="varchar(8)">
+                <constraints nullable="false"
+                             foreignKeyName="opening_cache_ref_game_to_game_fk"
+                             references="reference_game(id)"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="opening_pre_calculation_cache_reference_game"
+                       columnNames="opening_pre_calculation_cache_id,reference_game_id"
+                       constraintName="opening_pre_calculation_cache_reference_game_pk"/>
+        <createIndex tableName="opening_pre_calculation_cache_reference_game"
+                     indexName="opening_pre_calculation_cache_reference_game_game_id_index">
+            <column name="reference_game_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0106" author="benckx">
+        <comment>
+            Per reference-player opening repertoire, split by the color the player was playing.
+            Mirrors opening_pre_calculation_cache but scoped to a single reference player and color.
+            Populated only for players with enough games (see UpdateReferencePlayerOpeningStats),
+            so it stays small and does not require indexing every game.
+        </comment>
+        <createTable tableName="reference_player_opening_pre_calculation_cache">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reference_player_id" type="varchar(8)">
+                <constraints nullable="false"
+                             foreignKeyName="reference_player_opening_cache_to_player_fk"
+                             references="reference_player(id)"/>
+            </column>
+            <column name="color" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number_of_moves" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="moves" type="varchar(300)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="occurrences" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_red_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_black_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_draws" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_creation" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_update" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="reference_player_opening_pre_calculation_cache"
+                             columnNames="reference_player_id,color,moves"
+                             constraintName="reference_player_opening_pre_calculation_cache_unique"/>
+        <createIndex tableName="reference_player_opening_pre_calculation_cache"
+                     indexName="reference_player_opening_cache_player_color_index">
+            <column name="reference_player_id"/>
+            <column name="color"/>
+            <column name="number_of_moves"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>
