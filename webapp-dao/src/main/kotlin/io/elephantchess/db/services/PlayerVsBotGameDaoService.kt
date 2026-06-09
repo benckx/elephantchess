@@ -71,10 +71,12 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         minMoveIndex: Int? = null,
         beforeTs: Long? = null,
         excludeAutoResigned: Boolean = false,
-        distinctByUsers: Boolean = false
+        distinctByUsers: Boolean = false,
+        variantsToInclude: List<Variant> = Variant.entries
     ): List<BotGame> {
         val conditions = mutableListOf<Condition>()
         conditions += BOT_GAME.USER_ID.isNotNull
+        conditions += BOT_GAME.VARIANT.`in`(variantsToInclude)
 
         if (minMoveIndex != null) {
             conditions += BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)

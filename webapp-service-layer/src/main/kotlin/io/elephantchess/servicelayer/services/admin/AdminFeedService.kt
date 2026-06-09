@@ -125,6 +125,15 @@ class AdminFeedService(
         return ListBotGamesResponse(entries)
     }
 
+    suspend fun listLastManchuBotGames(): ListBotGamesResponse {
+        val entries =
+            pvbGameDaoService
+                .listLatestGamesByIdentifiedUsers(80, variantsToInclude = listOf(Variant.MANCHU))
+                .map { gameRecord -> mapBotGameToDto(gameRecord) }
+
+        return ListBotGamesResponse(entries)
+    }
+
     private suspend fun mapBotGameToDto(record: BotGame): ListBotGamesResponse.Entry {
         return ListBotGamesResponse.Entry(
             gameId = record.id,

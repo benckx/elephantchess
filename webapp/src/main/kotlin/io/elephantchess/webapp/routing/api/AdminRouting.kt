@@ -75,6 +75,9 @@ private fun Route.adminFeedsRoutes() {
     get("/list-bot-games") {
         requireAdminRole { adminFeedService.listLastBotGames() }
     }
+    get("/list-manchu-bot-games") {
+        requireAdminRole { adminFeedService.listLastManchuBotGames() }
+    }
     get("/last-played-puzzles") {
         requireAdminRole { adminFeedService.listLastPuzzlePlayedByLoggedUsers() }
     }

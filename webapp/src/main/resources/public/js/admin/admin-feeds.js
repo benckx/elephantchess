@@ -22,6 +22,7 @@ class AdminFeedsPage extends BasePage {
     #gamesTable = document.getElementById('list-games');
     #manchuGamesTable = document.getElementById('list-manchu-games');
     #botGamesTable = document.getElementById('list-bot-games');
+    #manchuBotGamesTable = document.getElementById('list-manchu-bot-games');
     #lastPlayedPuzzlesTable = document.getElementById('last-played-puzzles');
     #usersAnalysisTable = document.getElementById('users-analysis');
 
@@ -35,6 +36,9 @@ class AdminFeedsPage extends BasePage {
         }
         if (this.#botGamesTable != null) {
             this.#fetchBotGames();
+        }
+        if (this.#manchuBotGamesTable != null) {
+            this.#fetchBotGamesGeneric('/list-manchu-bot-games', this.#manchuBotGamesTable);
         }
         if (this.#lastPlayedPuzzlesTable != null) {
             this.#fetchLastPlayedPuzzles(
