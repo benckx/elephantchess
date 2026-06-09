@@ -47,7 +47,7 @@ class UserService(
     private val logger: KLogger,
 ) {
 
-    private val excludedFromAnalyticsUserIds = appConfig.loadListOfStrings("excluded.from.analytics")
+    private val excludedFromAnalyticsUserIds = appConfig.excludedFromAnalytics
 
     private fun normalizeCountry(country: String?): String? =
         country
@@ -58,7 +58,7 @@ class UserService(
     private var onlineUserIds: Set<String> = emptySet()
 
     // password hashing
-    private val salt: ByteArray = appConfig.loadString("salt").toByteArray()
+    private val salt: ByteArray = appConfig.salt.toByteArray()
     private val secretKeyFactory = SecretKeyFactory.getInstance(SALT_ALGO)
 
     private val refreshJob = launchAtFixedRateStartImmediately(

@@ -38,6 +38,42 @@ data class AppConfig(
     val emailListVerifyApiKey: String
         get() = loadString("emaillistverify.apikey")
 
+    val discordSuffix: String
+        get() = loadString("discord.suffix")
+
+    val discordNotificationEnabled: Boolean
+        get() = loadBoolean("discord.notification.enabled", false)
+
+    val kofiVerificationToken: String
+        get() = loadString("kofi.verification.token")
+
+    val excludedFromAnalytics: List<String>
+        get() = loadListOfStrings("excluded.from.analytics")
+
+    val symmetricKey: String
+        get() = loadString("key")
+
+    val salt: String
+        get() = loadString("salt")
+
+    val mailSmtpHost: String
+        get() = loadString("mail.smtp.host")
+
+    val mailSmtpPort: String
+        get() = loadString("mail.smtp.port")
+
+    val mailSmtpSslEnable: String
+        get() = loadString("mail.smtp.ssl.enable")
+
+    val mailSmtpAuth: String
+        get() = loadString("mail.smtp.auth")
+
+    val mailUsername: String
+        get() = loadString("mail.username")
+
+    val mailPassword: String
+        get() = loadString("mail.password")
+
     fun toStringMultilines(): List<String> {
         val lines = mutableListOf<String>()
         lines += "webHost -> $webHost"
@@ -59,15 +95,15 @@ data class AppConfig(
         return lines
     }
 
-    fun loadString(key: String): String {
+    private fun loadString(key: String): String {
         return properties.loadString(key)
     }
 
-    fun loadListOfStrings(key: String): List<String> {
+    private fun loadListOfStrings(key: String): List<String> {
         return properties.loadString(key).split(",").map { it.trim() }
     }
 
-    fun loadBoolean(key: String, default: Boolean): Boolean {
+    private fun loadBoolean(key: String, default: Boolean): Boolean {
         return properties.loadBoolean(key, default)
     }
 

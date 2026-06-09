@@ -18,7 +18,7 @@ class FetchMinutesUsersMetricsBatch(
 ) : SinglePodBatch {
 
     override val podNumber: Int = 0
-    private val excludedIds = appConfig.loadListOfStrings("excluded.from.analytics")
+    private val excludedIds = appConfig.excludedFromAnalytics
 
     override suspend fun run() {
         val record = StatsOnlineUsersMinutes()

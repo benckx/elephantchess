@@ -47,12 +47,12 @@ class MailService(
     private val sendMailNotifications by lazy { appConfig.sendMailNotifications }
 
     // login
-    private val host by lazy { appConfig.loadString("mail.smtp.host") }
-    private val port by lazy { appConfig.loadString("mail.smtp.port") }
-    private val sslEnable by lazy { appConfig.loadString("mail.smtp.ssl.enable") }
-    private val auth by lazy { appConfig.loadString("mail.smtp.auth") }
-    private val mailUsername by lazy { appConfig.loadString("mail.username") }
-    private val mailPassword by lazy { appConfig.loadString("mail.password") }
+    private val host by lazy { appConfig.mailSmtpHost }
+    private val port by lazy { appConfig.mailSmtpPort }
+    private val sslEnable by lazy { appConfig.mailSmtpSslEnable }
+    private val auth by lazy { appConfig.mailSmtpAuth }
+    private val mailUsername by lazy { appConfig.mailUsername }
+    private val mailPassword by lazy { appConfig.mailPassword }
 
     // templating
     private val webHost = appConfig.webHost
