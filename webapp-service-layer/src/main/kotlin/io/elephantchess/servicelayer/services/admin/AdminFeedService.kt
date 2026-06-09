@@ -28,6 +28,7 @@ class AdminFeedService(
     private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
     private val userCache: UserCache,
 ) {
+    private val nonXiangqiVariants = Variant.entries.filter { it != Variant.XIANGQI }
 
     suspend fun listLastPuzzlePlayedByLoggedUsers(): ListLastPuzzleByLoggedInUsersResponse {
         return puzzleResultDaoService
@@ -84,9 +85,9 @@ class AdminFeedService(
             }
     }
 
-    suspend fun listLastManchuGames(): ListGamesResponse {
+    suspend fun listLastVariantGames(): ListGamesResponse {
         return pvpGameDaoService
-            .listLastGames(60, statusToExcludes = listOf(AUTO_CANCELED), variantsToInclude = listOf(Variant.MANCHU))
+            .listLastGames(60, statusToExcludes = listOf(AUTO_CANCELED), variantsToInclude = nonXiangqiVariants)
             .map { mapGameToDto(it) }
             .let { entries ->
                 ListGamesResponse(entries)
@@ -125,10 +126,10 @@ class AdminFeedService(
         return ListBotGamesResponse(entries)
     }
 
-    suspend fun listLastManchuBotGames(): ListBotGamesResponse {
+    suspend fun listLastVariantBotGames(): ListBotGamesResponse {
         val entries =
             pvbGameDaoService
-                .listLatestGamesByIdentifiedUsers(80, variantsToInclude = listOf(Variant.MANCHU))
+                .listLatestGamesByIdentifiedUsers(80, variantsToInclude = nonXiangqiVariants)
                 .map { gameRecord -> mapBotGameToDto(gameRecord) }
 
         return ListBotGamesResponse(entries)

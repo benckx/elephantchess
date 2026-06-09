@@ -20,9 +20,9 @@
 class AdminFeedsPage extends BasePage {
 
     #gamesTable = document.getElementById('list-games');
-    #manchuGamesTable = document.getElementById('list-manchu-games');
+    #variantGamesTable = document.getElementById('list-variant-games');
     #botGamesTable = document.getElementById('list-bot-games');
-    #manchuBotGamesTable = document.getElementById('list-manchu-bot-games');
+    #variantBotGamesTable = document.getElementById('list-variant-bot-games');
     #lastPlayedPuzzlesTable = document.getElementById('last-played-puzzles');
     #usersAnalysisTable = document.getElementById('users-analysis');
 
@@ -31,14 +31,14 @@ class AdminFeedsPage extends BasePage {
         if (this.#gamesTable != null) {
             this.#fetchGames('/list-games', this.#gamesTable);
         }
-        if (this.#manchuGamesTable != null) {
-            this.#fetchGames('/list-manchu-games', this.#manchuGamesTable);
+        if (this.#variantGamesTable != null) {
+            this.#fetchGames('/list-variant-games', this.#variantGamesTable);
         }
         if (this.#botGamesTable != null) {
             this.#fetchBotGames();
         }
-        if (this.#manchuBotGamesTable != null) {
-            this.#fetchBotGamesGeneric('/list-manchu-bot-games', this.#manchuBotGamesTable);
+        if (this.#variantBotGamesTable != null) {
+            this.#fetchBotGamesGeneric('/list-variant-bot-games', this.#variantBotGamesTable);
         }
         if (this.#lastPlayedPuzzlesTable != null) {
             this.#fetchLastPlayedPuzzles(
