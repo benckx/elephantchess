@@ -28,7 +28,9 @@ class AdminFeedService(
     private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
     private val userCache: UserCache,
 ) {
-    private val nonXiangqiVariants = Variant.entries.filter { it != Variant.XIANGQI }
+    companion object {
+        private val nonXiangqiVariants = Variant.entries.filter { it != Variant.XIANGQI }
+    }
 
     suspend fun listLastPuzzlePlayedByLoggedUsers(): ListLastPuzzleByLoggedInUsersResponse {
         return puzzleResultDaoService
