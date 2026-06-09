@@ -193,6 +193,47 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         return pvbGameCount > 0
     }
 
+    suspend fun listGamesAnalyzedFromBatch(limit: Int): List<MoveAnalysisDataGameEntryRecord> {
+        val referenceGames = dslContext
+            .select(
+                DSL.`val`("DB").`as`("game_type"),
+                REFERENCE_GAME.ID.`as`("game_id"),
+                REFERENCE_GAME.ANALYSIS_START_TIME.`as`("min_date"),
+                REFERENCE_GAME.ANALYSIS_END_TIME.`as`("max_date"),
+                REFERENCE_GAME.ANALYSIS_STATUS
+            )
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ANALYZED_FROM_BATCH.isTrue)
+            .and(REFERENCE_GAME.ANALYSIS_START_TIME.isNotNull)
+
+        val pvpGames = dslContext
+            .select(
+                DSL.`val`("PVP").`as`("game_type"),
+                GAME.ID.`as`("game_id"),
+                GAME.ANALYSIS_START_TIME.`as`("min_date"),
+                GAME.ANALYSIS_END_TIME.`as`("max_date"),
+                GAME.ANALYSIS_STATUS
+            )
+            .from(GAME)
+            .where(GAME.ANALYZED_FROM_BATCH.isTrue)
+            .and(GAME.ANALYSIS_START_TIME.isNotNull)
+
+        return dslContext
+            .select()
+            .from(referenceGames.unionAll(pvpGames))
+            .orderBy(DSL.field("min_date").desc())
+            .limit(limit)
+            .awaitRecords()
+            .map { record ->
+                MoveAnalysisDataGameEntryRecord(
+                    GameId(GameType.valueOf(record["game_type", String::class.java]), record["game_id", String::class.java]),
+                    record["min_date", Instant::class.java],
+                    record["max_date", Instant::class.java] ?: record["min_date", Instant::class.java],
+                    0 // We don't have total moves easily accessible here, will be populated by service layer
+                )
+            }
+    }
+
     private companion object {
 
         val COALESCED_VIEW = DSL.table("move_analysis_coalesced")

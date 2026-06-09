@@ -207,6 +207,9 @@ private fun Route.adminAnalysisRoutes() {
     get("/pre-analyzed-reference-games-per-year") {
         requireAdminRole { adminAnalysisService.listPreAnalyzedReferenceGamesPerYear() }
     }
+    get("/list-games-analyzed-from-batch") {
+        requireAdminRole { adminAnalysisService.listGamesAnalyzedFromBatch() }
+    }
 }
 
 private fun Route.adminPostgresRoutes() {

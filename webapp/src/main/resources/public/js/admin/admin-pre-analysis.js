@@ -29,9 +29,15 @@ class AdminPreAnalysisPage extends BasePage {
      */
     #latestAnalyzedGamesTable = document.getElementById('latest-analyzed-games');
 
+    /**
+     * @type {HTMLTableElement}
+     */
+    #batchAnalyzedGamesTable = document.getElementById('batch-analyzed-games');
+
     constructor() {
         super();
         this.#fetchLatestMoveAnalysisByGame();
+        this.#fetchGamesAnalyzedFromBatch();
         this.#fetchPreAnalyzedReferenceGamesPerYear();
     }
 
@@ -39,15 +45,24 @@ class AdminPreAnalysisPage extends BasePage {
         getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-move-analysis-by-game`, json => {
             let entries = [];
             json.entries.map(jsonEntry => entries.push(new MoveAnalysisByGame(jsonEntry)));
-            this.#renderLatestMoveAnalysisByGame(entries);
+            this.#renderMoveAnalysisByGame(this.#latestAnalyzedGamesTable, entries);
+        });
+    }
+
+    #fetchGamesAnalyzedFromBatch() {
+        getAndHandle(`${ADMIN_URL_PREFIX}/list-games-analyzed-from-batch`, json => {
+            let entries = [];
+            json.entries.map(jsonEntry => entries.push(new MoveAnalysisByGame(jsonEntry)));
+            this.#renderMoveAnalysisByGame(this.#batchAnalyzedGamesTable, entries);
         });
     }
 
     /**
+     * @param table {HTMLTableElement}
      * @param entries {MoveAnalysisByGame[]}
      */
-    #renderLatestMoveAnalysisByGame(entries) {
-        const tbody = emptyTable(this.#latestAnalyzedGamesTable);
+    #renderMoveAnalysisByGame(table, entries) {
+        const tbody = emptyTable(table);
         entries.forEach(entry => {
             const url = gameIdToPageLink(entry.gameId);
             const row = tbody.insertRow();
