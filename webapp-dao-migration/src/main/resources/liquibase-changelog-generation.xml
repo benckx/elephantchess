@@ -2381,4 +2381,12 @@
         <modifyDataType tableName="user_session" columnName="user_agent" newDataType="text"/>
         <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
     </changeSet>
+    <changeSet id="0105" author="benckx">
+        <comment>Disabled puzzles are not served when picking the next puzzle to assign</comment>
+        <addColumn tableName="puzzle">
+            <column name="enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
