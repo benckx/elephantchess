@@ -22,8 +22,7 @@
 #red-player-info-placeholder,
 #black-player-info-placeholder,
 #inviter-player-info,
-tr#inviter-row,
-tr#outcome-row {
+tr#inviter-row {
     display: none;
 }
 
