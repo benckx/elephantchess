@@ -25,6 +25,25 @@
         <option value="none">none</option>
     </select>
     <br/>
+    <h4 class="label">Profile Picture</h4>
+    <div id="profile-picture-settings">
+        <img id="profile-picture-preview" src="/images/icons/user_profile_smaller.png" alt="profile picture preview">
+        <input id="profile-picture-input" type="file" accept="image/png,image/jpeg" class="hidden"/>
+        <div>
+            <input id="select-profile-picture-button" type="button" class="app-buttons-bigger" value="choose picture">
+        </div>
+        <div id="profile-picture-editor" class="hidden">
+            <div class="profile-picture-help">
+                Choose the square you want to keep. The uploaded profile picture is saved as 100x100 and limited to 500KB.
+            </div>
+            <canvas id="profile-picture-editor-canvas" width="320" height="320"></canvas>
+            <label for="profile-picture-zoom">zoom</label>
+            <input id="profile-picture-zoom" type="range" min="20" max="100" value="100">
+            <br/>
+            <input id="upload-profile-picture-button" type="button" class="app-buttons-bigger" value="upload picture">
+        </div>
+    </div>
+    <br/>
     <input id="save-profile-button" type="button" class="app-buttons-bigger" value="save">
     <h1>Email Notifications Settings</h1>
     <hr/>
