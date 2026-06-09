@@ -102,6 +102,7 @@ class PlayerVsBotPage extends BasePage {
         document.getElementById('analyze-button-right-side')
     ];
     #infoOutcomeLabel = document.getElementById('info-outcome');
+    #infoOutcomeRow = document.getElementById('info-outcome-row');
 
     constructor() {
         super();
@@ -274,10 +275,12 @@ class PlayerVsBotPage extends BasePage {
 
     #updateOutcomeLabel() {
         let label = '--';
+        let hasOutcome = false;
         let victoryType = '';
         switch (this.#controller.gameStatus()) {
             case GameEventType.CANCELED:
                 label = 'Canceled';
+                hasOutcome = true;
                 break;
             case GameEventType.RESIGNED:
             case GameEventType.AUTO_RESIGNED:
@@ -296,16 +299,20 @@ class PlayerVsBotPage extends BasePage {
         switch (this.#controller.userOutcome()) {
             case UserOutcome.WIN:
                 label = 'Human victory' + victoryType;
+                hasOutcome = true;
                 break;
             case UserOutcome.LOSS:
                 label = 'Bot victory' + victoryType;
+                hasOutcome = true;
                 break;
             case UserOutcome.DRAW:
                 label = 'Draw';
+                hasOutcome = true;
                 break;
         }
 
         this.#infoOutcomeLabel.innerText = label;
+        this.#infoOutcomeRow.style.display = hasOutcome ? '' : 'none';
     }
 
     #updateButtonsEnabled() {
