@@ -2554,6 +2554,11 @@
         </sql>
     </changeSet>
     <changeSet id="0104" author="benckx">
+        <comment>user_agent can exceed 255 characters</comment>
+        <modifyDataType tableName="user_session" columnName="user_agent" newDataType="text"/>
+        <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
+    </changeSet>
+    <changeSet id="0105" author="benckx">
         <addColumn tableName="user">
             <column name="profile_picture_extension" type="varchar(10)"/>
         </addColumn>
