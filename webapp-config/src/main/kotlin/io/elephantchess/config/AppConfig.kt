@@ -1,6 +1,16 @@
 package io.elephantchess.config
 
+data class MailConfig(
+    val smtpHost: String,
+    val smtpPort: String,
+    val smtpSslEnable: String,
+    val smtpAuth: String,
+    val username: String,
+    val password: String,
+)
+
 data class AppConfig(
+    // Required fields for base app functionality
     val profile: String,
     val webHost: String,
     val isMinificationEnabled: Boolean,
@@ -17,8 +27,51 @@ data class AppConfig(
     val parseUserAgent: Boolean,
     val disabledBatches: List<String>,
     val cdnEnabled: Boolean,
+    val symmetricKey: String,
+    val salt: String,
     val properties: PropertiesFile,
 ) {
+
+    // Lazy loaders for production-only features (email notifications, CDN config, etc.)
+    val apiLayerApiKey: String
+        get() = loadString("apilayer.apikey")
+
+    val doSpacesKeyId: String
+        get() = loadString("digitalocean.spaces.key.id")
+
+    val doSpacesKeySecret: String
+        get() = loadString("digitalocean.spaces.key.secret")
+
+    val doSpacesBucket: String
+        get() = loadString("digitalocean.spaces.bucket")
+
+    val discordToken: String
+        get() = loadString("discord.token")
+
+    val emailListVerifyApiKey: String
+        get() = loadString("emaillistverify.apikey")
+
+    val discordSuffix: String
+        get() = loadString("discord.suffix")
+
+    val discordNotificationEnabled: Boolean
+        get() = loadBoolean("discord.notification.enabled", false)
+
+    val kofiVerificationToken: String
+        get() = loadString("kofi.verification.token")
+
+    val excludedFromAnalytics: List<String>
+        get() = loadListOfStrings("excluded.from.analytics")
+
+    val mailConfig: MailConfig
+        get() = MailConfig(
+            smtpHost = loadString("mail.smtp.host"),
+            smtpPort = loadString("mail.smtp.port"),
+            smtpSslEnable = loadString("mail.smtp.ssl.enable"),
+            smtpAuth = loadString("mail.smtp.auth"),
+            username = loadString("mail.username"),
+            password = loadString("mail.password"),
+        )
 
     fun toStringMultilines(): List<String> {
         val lines = mutableListOf<String>()
@@ -41,15 +94,15 @@ data class AppConfig(
         return lines
     }
 
-    fun loadString(key: String): String {
+    private fun loadString(key: String): String {
         return properties.loadString(key)
     }
 
-    fun loadListOfStrings(key: String): List<String> {
-        return properties.loadString(key).split(",").map { it.trim() }
+    private fun loadListOfStrings(key: String): List<String> {
+        return properties.loadString(key).split(",").map { it.trim() }.filter { it.isNotBlank() }
     }
 
-    fun loadBoolean(key: String, default: Boolean): Boolean {
+    private fun loadBoolean(key: String, default: Boolean): Boolean {
         return properties.loadBoolean(key, default)
     }
 

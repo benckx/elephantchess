@@ -31,7 +31,7 @@ class AdminAnalyticsService(
     appConfig: AppConfig,
 ) {
 
-    private val excludedUserIds = appConfig.loadListOfStrings("excluded.from.analytics")
+    private val excludedUserIds = appConfig.excludedFromAnalytics
 
     init {
         logger.info { "excludedUserIds = $excludedUserIds" }
