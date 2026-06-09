@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.services.admin
 import io.elephantchess.db.dao.codegen.Tables.PUZZLE_RESULT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
+import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.services.AnalysisDaoService
 import io.elephantchess.db.services.ContentSectionVoteDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
@@ -17,6 +18,7 @@ import io.elephantchess.servicelayer.dto.admin.ListGamesResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastPuzzleByLoggedInUsersResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastUserAnalysisResponse
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.xiangqi.Variant
 
 class AdminFeedService(
     private val analysisDaoService: AnalysisDaoService,
@@ -76,31 +78,42 @@ class AdminFeedService(
     suspend fun listLastGames(): ListGamesResponse {
         return pvpGameDaoService
             .listLastGames(60, statusToExcludes = listOf(AUTO_CANCELED))
-            .map { record ->
-                ListGamesResponse.Entry(
-                    gameId = record.id,
-                    inviterUserId = record.inviter,
-                    inviterUsername = userCache.fetchUsernameOrDefault(record.inviter!!),
-                    inviteeUserId = record.invitee,
-                    inviteeUsername = record.invitee?.let { userCache.fetchUsernameOrDefault(it) },
-                    isRated = record.isRated,
-                    allowGuests = record.allowGuestsToJoin,
-                    alwaysVisibleInLobby = record.alwaysVisibleInLobby,
-                    privateInvite = record.privateInvite,
-                    timeControlBase = record.timeControlBase,
-                    timeControlIncrement = record.timeControlIncrement,
-                    status = record.gameStatus,
-                    index = record.currentHalfMoveIndex,
-                    winnerUserId = record.winnerUserId(),
-                    created = record.created.toEpochMilliseconds(),
-                    lastUpdated = record.lastUpdated.toEpochMilliseconds(),
-                    sourceType = record.joinSource,
-                    variant = record.variant
-                )
-            }
+            .map { mapGameToDto(it) }
             .let { entries ->
                 ListGamesResponse(entries)
             }
+    }
+
+    suspend fun listLastManchuGames(): ListGamesResponse {
+        return pvpGameDaoService
+            .listLastGames(60, statusToExcludes = listOf(AUTO_CANCELED), variantToInclude = Variant.MANCHU)
+            .map { mapGameToDto(it) }
+            .let { entries ->
+                ListGamesResponse(entries)
+            }
+    }
+
+    private suspend fun mapGameToDto(record: Game): ListGamesResponse.Entry {
+        return ListGamesResponse.Entry(
+            gameId = record.id,
+            inviterUserId = record.inviter,
+            inviterUsername = userCache.fetchUsernameOrDefault(record.inviter!!),
+            inviteeUserId = record.invitee,
+            inviteeUsername = record.invitee?.let { userCache.fetchUsernameOrDefault(it) },
+            isRated = record.isRated,
+            allowGuests = record.allowGuestsToJoin,
+            alwaysVisibleInLobby = record.alwaysVisibleInLobby,
+            privateInvite = record.privateInvite,
+            timeControlBase = record.timeControlBase,
+            timeControlIncrement = record.timeControlIncrement,
+            status = record.gameStatus,
+            index = record.currentHalfMoveIndex,
+            winnerUserId = record.winnerUserId(),
+            created = record.created.toEpochMilliseconds(),
+            lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+            sourceType = record.joinSource,
+            variant = record.variant
+        )
     }
 
     suspend fun listLastBotGames(): ListBotGamesResponse {

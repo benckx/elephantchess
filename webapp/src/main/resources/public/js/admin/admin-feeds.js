@@ -20,13 +20,15 @@
 class AdminFeedsPage extends BasePage {
 
     #gamesTable = document.getElementById('list-games');
+    #manchuGamesTable = document.getElementById('list-manchu-games');
     #botGamesTable = document.getElementById('list-bot-games');
     #lastPlayedPuzzlesTable = document.getElementById('last-played-puzzles');
     #usersAnalysisTable = document.getElementById('users-analysis');
 
     constructor() {
         super();
-        this.#fetchGames();
+        this.#fetchGames('/list-games', this.#gamesTable);
+        this.#fetchGames('/list-manchu-games', this.#manchuGamesTable);
         this.#fetchBotGames();
         this.#fetchLastPlayedPuzzles(
             `${ADMIN_URL_PREFIX}/last-played-puzzles`,
@@ -36,9 +38,13 @@ class AdminFeedsPage extends BasePage {
         this.#fetchUsersAnalysis();
     }
 
-    #fetchGames() {
-        getAndHandle(`${ADMIN_URL_PREFIX}/list-games`, json => {
-            const tbody = emptyTable(this.#gamesTable);
+    /**
+     * @param endpoint {string}
+     * @param tableElement {HTMLTableElement}
+     */
+    #fetchGames(endpoint, tableElement) {
+        getAndHandle(ADMIN_URL_PREFIX + endpoint, json => {
+            const tbody = emptyTable(tableElement);
             GameAnalyticsDto.parseEntries(json).forEach(entry => {
                 const row = tbody.insertRow();
 
