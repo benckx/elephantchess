@@ -96,6 +96,43 @@ class AdminFeedService(
             }
     }
 
+    suspend fun listLastBotGames(): ListBotGamesResponse {
+        val entries =
+            pvbGameDaoService
+                .listLatestGamesByIdentifiedUsers(80)
+                .map { gameRecord -> mapBotGameToDto(gameRecord) }
+
+        return ListBotGamesResponse(entries)
+    }
+
+    suspend fun listLastVariantBotGames(): ListBotGamesResponse {
+        val entries =
+            pvbGameDaoService
+                .listLatestGamesByIdentifiedUsers(80, variantsToInclude = nonXiangqiVariants)
+                .map { gameRecord -> mapBotGameToDto(gameRecord) }
+
+        return ListBotGamesResponse(entries)
+    }
+
+    suspend fun listLatestFeedback(): ListContentSectionVoteFeedbackResponse {
+        val entries = contentSectionVoteDaoService
+            .listLatestFeedback(250)
+            .map { record ->
+                ListContentSectionVoteFeedbackResponse.Entry(
+                    userId = record.userId,
+                    username = userCache.fetchUsernameOrDefault(record.userId),
+                    userType = userCache.fetchUserType(record.userId) ?: UserType.GUEST,
+                    pageId = record.pageId,
+                    sectionId = record.sectionId,
+                    upVoted = record.upVoted,
+                    feedback = record.feedback ?: "",
+                    creationTime = record.creationTime.toEpochMilliseconds(),
+                    updateTime = record.updateTime.toEpochMilliseconds(),
+                )
+            }
+        return ListContentSectionVoteFeedbackResponse(entries)
+    }
+
     private suspend fun mapGameToDto(record: Game): ListGamesResponse.Entry {
         return ListGamesResponse.Entry(
             gameId = record.id,
@@ -119,24 +156,6 @@ class AdminFeedService(
         )
     }
 
-    suspend fun listLastBotGames(): ListBotGamesResponse {
-        val entries =
-            pvbGameDaoService
-                .listLatestGamesByIdentifiedUsers(80)
-                .map { gameRecord -> mapBotGameToDto(gameRecord) }
-
-        return ListBotGamesResponse(entries)
-    }
-
-    suspend fun listLastVariantBotGames(): ListBotGamesResponse {
-        val entries =
-            pvbGameDaoService
-                .listLatestGamesByIdentifiedUsers(80, variantsToInclude = nonXiangqiVariants)
-                .map { gameRecord -> mapBotGameToDto(gameRecord) }
-
-        return ListBotGamesResponse(entries)
-    }
-
     private suspend fun mapBotGameToDto(record: BotGame): ListBotGamesResponse.Entry {
         return ListBotGamesResponse.Entry(
             gameId = record.id,
@@ -154,25 +173,6 @@ class AdminFeedService(
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
             variant = record.variant,
         )
-    }
-
-    suspend fun listLatestFeedback(): ListContentSectionVoteFeedbackResponse {
-        val entries = contentSectionVoteDaoService
-            .listLatestFeedback(250)
-            .map { record ->
-                ListContentSectionVoteFeedbackResponse.Entry(
-                    userId = record.userId,
-                    username = userCache.fetchUsernameOrDefault(record.userId),
-                    userType = userCache.fetchUserType(record.userId) ?: UserType.GUEST,
-                    pageId = record.pageId,
-                    sectionId = record.sectionId,
-                    upVoted = record.upVoted,
-                    feedback = record.feedback ?: "",
-                    creationTime = record.creationTime.toEpochMilliseconds(),
-                    updateTime = record.updateTime.toEpochMilliseconds(),
-                )
-            }
-        return ListContentSectionVoteFeedbackResponse(entries)
     }
 
 }
