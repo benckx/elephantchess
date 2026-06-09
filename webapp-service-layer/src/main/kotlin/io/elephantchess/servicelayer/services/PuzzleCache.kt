@@ -58,7 +58,8 @@ class PuzzleCache(
         exclude: List<String> = emptyList(),
         categories: List<PuzzleCategory> = emptyList(),
     ): String {
-        var filtered = entries.filter { entry -> entry.enabled }
+        val enabledEntries = entries.filter { entry -> entry.enabled }
+        var filtered = enabledEntries
 
         if (exclude.isNotEmpty()) {
             filtered = filtered.filter { entry -> !exclude.contains(entry.puzzleId) }
@@ -75,7 +76,7 @@ class PuzzleCache(
         logger.debug { "${filtered.size} puzzles for user with rating $userRating" }
 
         return if (filtered.isEmpty()) {
-            entries.filter { entry -> entry.enabled }.random().puzzleId
+            enabledEntries.random().puzzleId
         } else {
             filtered.random().puzzleId
         }

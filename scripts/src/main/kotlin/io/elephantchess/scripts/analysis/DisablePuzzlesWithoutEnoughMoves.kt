@@ -53,7 +53,7 @@ fun main() {
                     solutionMoves = solutionMoves,
                 )
             } catch (e: Exception) {
-                logger.warn { "could not validate puzzle ${puzzle.id}: ${e.message}" }
+                logger.warn { "could not validate puzzle ${puzzle.id} due to ${e::class.simpleName}: ${e.message}" }
                 false
             }
 
