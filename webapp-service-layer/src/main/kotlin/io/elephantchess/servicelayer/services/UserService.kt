@@ -396,6 +396,24 @@ class UserService(
         )
     }
 
+    /**
+     * Whether the user is allowed to use the "always show in lobby (also when I'm offline)" option when creating a
+     * game. The option only makes sense if we can notify the user by email when someone joins their game while they
+     * are offline, so it requires:
+     * - a valid email address (manually confirmed or automatically verified), and
+     * - the "someone joined my game" email notification to be enabled.
+     *
+     * Guest users have no email address and are therefore never allowed.
+     */
+    suspend fun isAlwaysVisibleInLobbyAllowed(userId: String): Boolean {
+        val email = userDaoService.fetchEmail(userId) ?: return false
+        if (!mailService.isEmailAddressValid(email)) {
+            return false
+        }
+        val notificationSettings = userDaoService.fetchNotificationSettings(userId) ?: return false
+        return notificationSettings.opponentJoinedGame
+    }
+
     suspend fun fetchEmailAddressSettings(userId: String): EmailAddressSettingsResponse {
         val email = userDaoService.fetchEmail(userId)
             ?: throw NotFoundException("email of user $userId could not be found")

@@ -39,8 +39,17 @@ class NewGameHandler extends ModalHandler {
     #optionsDivs = getElementsByClassNameArray(OPTION_BUTTON_CLASS);
     #isRatedCheckbox = document.getElementById('is-rated');
     #alwaysVisibleInLobbyCheckBox = document.getElementById('always-visible-in-lobby');
+    #alwaysVisibleInLobbyFaqLink = document.getElementById('always-visible-in-lobby-faq-link');
     #allowGuestsCheckBox = document.getElementById('allow-guests');
     #privateInvite = document.getElementById('private-invite');
+
+    /**
+     * Whether the user is allowed to use the "always visible in lobby" option (valid email and "someone joined
+     * my game" notification enabled). Resolved asynchronously from the backend; false until then.
+     *
+     * @type {boolean}
+     */
+    #alwaysVisibleInLobbyAllowed = false;
 
     #newGameButton = document.getElementById('create-new-game-button-modal');
 
@@ -67,8 +76,10 @@ class NewGameHandler extends ModalHandler {
 
                 // alwaysVisibleInLobby checked when correspondence time control is selected
                 // alwaysVisibleInLobby unchecked otherwise
+                // only auto-check it if the user is allowed to use the option
                 if (item.classList.contains(TIME_CONTROL_OPTION_GROUP)) {
-                    this.#alwaysVisibleInLobbyCheckBox.checked = correspondenceTimeControls.includes(item.id);
+                    this.#alwaysVisibleInLobbyCheckBox.checked =
+                        this.#alwaysVisibleInLobbyAllowed && correspondenceTimeControls.includes(item.id);
                 }
             });
         });
@@ -81,8 +92,8 @@ class NewGameHandler extends ModalHandler {
                 // When private game is checked, uncheck and disable "always visible in lobby"
                 this.#alwaysVisibleInLobbyCheckBox.checked = false;
                 this.#disableCheckbox('always-visible-in-lobby-container');
-            } else {
-                // When private game is unchecked, enable "always visible in lobby"
+            } else if (this.#alwaysVisibleInLobbyAllowed) {
+                // When private game is unchecked, re-enable "always visible in lobby" (if allowed)
                 this.#enableCheckbox('always-visible-in-lobby-container');
             }
         });
@@ -126,6 +137,38 @@ class NewGameHandler extends ModalHandler {
             document.getElementById('is-private-container'),
             'Private games are not listed in the lobby and can only be joined by players with the direct link.'
         );
+
+        // "always visible in lobby" requires a valid email and the "someone joined my game" notification:
+        // greyed out (with a link to the FAQ) until/unless the backend confirms it's allowed
+        this.#disableCheckbox('always-visible-in-lobby-container');
+        if (isUserAuthenticated()) {
+            getAndHandle('/api/lobby/always-visible-in-lobby-allowed', (json) => {
+                this.#setAlwaysVisibleInLobbyAllowed(json.allowed === true);
+            });
+        } else {
+            this.#setAlwaysVisibleInLobbyAllowed(false);
+        }
+    }
+
+    /**
+     * Enable or disable the "always visible in lobby" option depending on whether the user is allowed to use it.
+     * When not allowed, the checkbox is unchecked, disabled and a link to the FAQ is shown.
+     *
+     * @param allowed {boolean}
+     */
+    #setAlwaysVisibleInLobbyAllowed(allowed) {
+        this.#alwaysVisibleInLobbyAllowed = allowed;
+        if (allowed) {
+            this.#alwaysVisibleInLobbyFaqLink.classList.add('hidden');
+            // only enable if private game is not selected (private games are never visible in the lobby)
+            if (!this.#privateInvite.checked) {
+                this.#enableCheckbox('always-visible-in-lobby-container');
+            }
+        } else {
+            this.#alwaysVisibleInLobbyCheckBox.checked = false;
+            this.#disableCheckbox('always-visible-in-lobby-container');
+            this.#alwaysVisibleInLobbyFaqLink.classList.remove('hidden');
+        }
     }
 
     /**

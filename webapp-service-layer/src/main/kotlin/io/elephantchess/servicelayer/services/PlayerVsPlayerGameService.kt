@@ -368,7 +368,10 @@ class PlayerVsPlayerGameService(
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
-        game.alwaysVisibleInLobby = !request.privateInvite && request.alwaysVisibleInLobby
+        // "always visible in lobby" is only allowed if the user can be notified by email when someone joins
+        // while they are offline; otherwise the option is forced off (the UI greys it out, this is the backend check)
+        val alwaysVisibleInLobbyAllowed = userService.isAlwaysVisibleInLobbyAllowed(userId.id)
+        game.alwaysVisibleInLobby = !request.privateInvite && request.alwaysVisibleInLobby && alwaysVisibleInLobbyAllowed
         game.privateInvite = request.privateInvite
         game.containsErrors = false
         game.variant = request.variant

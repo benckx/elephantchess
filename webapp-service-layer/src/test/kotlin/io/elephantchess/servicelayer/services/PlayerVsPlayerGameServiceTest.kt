@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
+import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.model.GameEventType
@@ -14,6 +15,7 @@ import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
+import io.elephantchess.servicelayer.dto.user.NotificationsSettingsDto
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.xiangqi.Color.BLACK
@@ -31,6 +33,7 @@ import kotlin.time.Duration.Companion.minutes
 class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
     private val dslContext by inject<DSLContext>()
+    private val userDaoService by inject<UserDaoService>()
 
     private lateinit var userId1: UserId
     private lateinit var userId2: UserId
@@ -87,6 +90,43 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
         assertEquals(1, countGameByStatus(JOINED))
         assertEquals(0, countGameByStatus(CREATED))
+    }
+
+    /**
+     * "always visible in lobby" is forced off when the user's email is not valid and/or the "someone joined my
+     * game" notification is disabled, even if the request asks for it.
+     */
+    @Test
+    fun alwaysVisibleInLobbyNotAllowedTest() = runTest {
+        val response = pvpGameService.createGame(userId1, alwaysVisibleInLobbyRequest())
+
+        assertEquals(CREATED, response.eventType)
+        assertFalse(fetchAlwaysVisibleInLobby(response.gameId))
+    }
+
+    /**
+     * "always visible in lobby" is honored when the user's email is valid and the "someone joined my game"
+     * notification is enabled.
+     */
+    @Test
+    fun alwaysVisibleInLobbyAllowedTest() = runTest {
+        makeAlwaysVisibleInLobbyAllowed(userId1.id)
+
+        val response = pvpGameService.createGame(userId1, alwaysVisibleInLobbyRequest())
+
+        assertEquals(CREATED, response.eventType)
+        assertTrue(fetchAlwaysVisibleInLobby(response.gameId))
+    }
+
+    /**
+     * Guests are never allowed to use "always visible in lobby".
+     */
+    @Test
+    fun alwaysVisibleInLobbyNotAllowedForGuestTest() = runTest {
+        val response = pvpGameService.createGame(guestId1, alwaysVisibleInLobbyRequest())
+
+        assertEquals(CREATED, response.eventType)
+        assertFalse(fetchAlwaysVisibleInLobby(response.gameId))
     }
 
     /**
@@ -859,6 +899,41 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             .from(GAME)
             .where(GAME.GAME_STATUS.eq(status))
             .awaitSingleValue()!!
+
+    private suspend fun fetchAlwaysVisibleInLobby(gameId: String): Boolean =
+        dslContext
+            .select(GAME.ALWAYS_VISIBLE_IN_LOBBY)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue()!!
+
+    private suspend fun makeAlwaysVisibleInLobbyAllowed(userId: String) {
+        val code = userDaoService.findById(userId)!!.emailConfirmationCode
+        assertTrue(userService.confirmEmail(code))
+        userService.updateNotificationsSettings(
+            userId,
+            NotificationsSettingsDto(
+                newsletter = false,
+                opponentJoinedGame = true,
+                opponentPlayedMove = false,
+                opponentResigned = false,
+                opponentProposedDraw = false,
+                opponentAcceptedDraw = false,
+                opponentDeclinedDraw = false,
+            )
+        )
+    }
+
+    private fun alwaysVisibleInLobbyRequest() = CreateGameRequest(
+        inviterColor = RED,
+        isRated = true,
+        timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+        timeControlIncrement = null,
+        timeControlMode = TimeControlMode.GAME_TIME,
+        allowGuests = true,
+        alwaysVisibleInLobby = true,
+        privateInvite = false,
+    )
 
     private suspend fun fetchXiangqiRapidRating(userId: String): Int =
         dslContext
