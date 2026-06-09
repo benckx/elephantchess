@@ -72,7 +72,7 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         beforeTs: Long? = null,
         excludeAutoResigned: Boolean = false,
         distinctByUsers: Boolean = false,
-        variantsToInclude: List<Variant> = Variant.entries
+        variantsToInclude: List<Variant>
     ): List<BotGame> {
         val conditions = mutableListOf<Condition>()
         conditions += BOT_GAME.USER_ID.isNotNull
