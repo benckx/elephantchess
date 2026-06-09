@@ -27,15 +27,25 @@ class AdminFeedsPage extends BasePage {
 
     constructor() {
         super();
-        this.#fetchGames('/list-games', this.#gamesTable);
-        this.#fetchGames('/list-manchu-games', this.#manchuGamesTable);
-        this.#fetchBotGames();
-        this.#fetchLastPlayedPuzzles(
-            `${ADMIN_URL_PREFIX}/last-played-puzzles`,
-            this.#lastPlayedPuzzlesTable,
-            true
-        );
-        this.#fetchUsersAnalysis();
+        if (this.#gamesTable != null) {
+            this.#fetchGames('/list-games', this.#gamesTable);
+        }
+        if (this.#manchuGamesTable != null) {
+            this.#fetchGames('/list-manchu-games', this.#manchuGamesTable);
+        }
+        if (this.#botGamesTable != null) {
+            this.#fetchBotGames();
+        }
+        if (this.#lastPlayedPuzzlesTable != null) {
+            this.#fetchLastPlayedPuzzles(
+                `${ADMIN_URL_PREFIX}/last-played-puzzles`,
+                this.#lastPlayedPuzzlesTable,
+                true
+            );
+        }
+        if (this.#usersAnalysisTable != null) {
+            this.#fetchUsersAnalysis();
+        }
     }
 
     /**
