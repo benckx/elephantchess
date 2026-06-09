@@ -51,6 +51,7 @@ class GameDataService(
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,
     private val referencePlayerDaoService: ReferencePlayerDaoService,
+    private val referenceEventDaoService: ReferenceEventDaoService,
     private val userDaoService: UserDaoService,
     private val userService: UserService,
     private val userCache: UserCache,
@@ -105,6 +106,7 @@ class GameDataService(
                             val userIds = listOfNotNull(record.inviter, record.invitee)
                             val onlineUserIds = userService.areOnline(userIds).onlineUserIds
                             mapPlayerVsPlayerGameToDto(record, onlineUserIds)
+                                .copy(analysisStatus = record.analysisStatus)
                         }
 
                 PVB ->
@@ -113,12 +115,26 @@ class GameDataService(
                         ?.let { record ->
                             val onlineUserIds = userService.areOnline(listOfNotNull(record.userId)).onlineUserIds
                             mapPlayerVsBotGameToDto(record, onlineUserIds)
+                                .copy(
+                                    startFen = record.startFen,
+                                    analysisStatus = record.analysisStatus,
+                                    engine = record.engine,
+                                    depth = record.depth
+                                )
                         }
 
                 DB ->
                     referenceGameDaoService
                         .findById(gameId.id)
-                        ?.let { record -> mapDatabaseGameToDto(record, paginationOffset = null) }
+                        ?.let { record ->
+                            val event = record.event?.let { referenceEventDaoService.fetchEventById(it) }
+                            mapDatabaseGameToDto(record, paginationOffset = null)
+                                .copy(
+                                    analysisStatus = record.analysisStatus,
+                                    eventId = event?.id,
+                                    eventName = event?.name
+                                )
+                        }
             }
 
         return gameMetadataDto ?: throw NotFoundException("$gameId not found")
