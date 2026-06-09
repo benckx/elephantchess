@@ -17,6 +17,8 @@ import io.elephantchess.db.model.analytics.PvpJoinSourceRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.CANCELLED
+import io.elephantchess.model.AnalysisStatus.NOT_STARTED
+import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
@@ -1155,7 +1157,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .select(GAME.ID)
             .from(GAME)
-            .where(GAME.ANALYSIS_STATUS.`in`(AnalysisStatus.NOT_STARTED, AnalysisStatus.PARTIALLY_COMPLETED))
+            .where(GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
             .and(GAME.GAME_STATUS.`in`(gameEndedStatuses))
             .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterThan(10))
             .orderBy(DSL.rand())

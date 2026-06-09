@@ -13,6 +13,8 @@ import io.elephantchess.db.model.ReferenceGamePojo
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
+import io.elephantchess.model.AnalysisStatus.NOT_STARTED
+import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.xiangqi.Color
 import org.jooq.*
@@ -503,7 +505,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .select(REFERENCE_GAME.ID)
             .from(REFERENCE_GAME)
-            .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(AnalysisStatus.NOT_STARTED, AnalysisStatus.PARTIALLY_COMPLETED))
+            .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
             .and(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.greaterThan(10))
             .orderBy(DSL.rand())
             .limit(1)
