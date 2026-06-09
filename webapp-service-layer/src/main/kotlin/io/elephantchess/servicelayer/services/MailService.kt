@@ -46,13 +46,8 @@ class MailService(
 
     private val sendMailNotifications by lazy { appConfig.sendMailNotifications }
 
-    // login
-    private val host by lazy { appConfig.mailSmtpHost }
-    private val port by lazy { appConfig.mailSmtpPort }
-    private val sslEnable by lazy { appConfig.mailSmtpSslEnable }
-    private val auth by lazy { appConfig.mailSmtpAuth }
-    private val mailUsername by lazy { appConfig.mailUsername }
-    private val mailPassword by lazy { appConfig.mailPassword }
+    // mail configuration
+    private val mailConfig by lazy { appConfig.mailConfig }
 
     // templating
     private val webHost = appConfig.webHost
@@ -454,7 +449,7 @@ class MailService(
     private fun sendMail(email: Email) {
         logger.debug { "sending to '${email.to}': $email" }
         val message = MimeMessage(session())
-        message.setFrom(InternetAddress(mailUsername, "elephantchess.io"))
+        message.setFrom(InternetAddress(mailConfig.username, "elephantchess.io"))
         message.addRecipient(Message.RecipientType.TO, InternetAddress(email.to))
         email.cc?.let { cc -> message.addRecipient(Message.RecipientType.CC, InternetAddress(cc)) }
         email.bcc?.let { bcc -> message.addRecipient(Message.RecipientType.BCC, InternetAddress(bcc)) }
@@ -490,15 +485,15 @@ class MailService(
 
     private fun session(): Session {
         val sysProperties = System.getProperties()
-        sysProperties["mail.smtp.host"] = host
-        sysProperties["mail.smtp.port"] = port
-        sysProperties["mail.smtp.ssl.enable"] = sslEnable
-        sysProperties["mail.smtp.auth"] = auth
+        sysProperties["mail.smtp.host"] = mailConfig.smtpHost
+        sysProperties["mail.smtp.port"] = mailConfig.smtpPort
+        sysProperties["mail.smtp.ssl.enable"] = mailConfig.smtpSslEnable
+        sysProperties["mail.smtp.auth"] = mailConfig.smtpAuth
 
         val session =
             Session.getInstance(sysProperties, object : Authenticator() {
                 override fun getPasswordAuthentication(): PasswordAuthentication {
-                    return PasswordAuthentication(mailUsername, mailPassword)
+                    return PasswordAuthentication(mailConfig.username, mailConfig.password)
                 }
             })
 

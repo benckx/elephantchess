@@ -1,5 +1,14 @@
 package io.elephantchess.config
 
+data class MailConfig(
+    val smtpHost: String,
+    val smtpPort: String,
+    val smtpSslEnable: String,
+    val smtpAuth: String,
+    val username: String,
+    val password: String,
+)
+
 data class AppConfig(
     val profile: String,
     val webHost: String,
@@ -56,23 +65,15 @@ data class AppConfig(
     val salt: String
         get() = loadString("salt")
 
-    val mailSmtpHost: String
-        get() = loadString("mail.smtp.host")
-
-    val mailSmtpPort: String
-        get() = loadString("mail.smtp.port")
-
-    val mailSmtpSslEnable: String
-        get() = loadString("mail.smtp.ssl.enable")
-
-    val mailSmtpAuth: String
-        get() = loadString("mail.smtp.auth")
-
-    val mailUsername: String
-        get() = loadString("mail.username")
-
-    val mailPassword: String
-        get() = loadString("mail.password")
+    val mailConfig: MailConfig
+        get() = MailConfig(
+            smtpHost = loadString("mail.smtp.host"),
+            smtpPort = loadString("mail.smtp.port"),
+            smtpSslEnable = loadString("mail.smtp.ssl.enable"),
+            smtpAuth = loadString("mail.smtp.auth"),
+            username = loadString("mail.username"),
+            password = loadString("mail.password"),
+        )
 
     fun toStringMultilines(): List<String> {
         val lines = mutableListOf<String>()
