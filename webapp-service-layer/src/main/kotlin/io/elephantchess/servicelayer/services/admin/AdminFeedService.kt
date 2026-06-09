@@ -86,7 +86,7 @@ class AdminFeedService(
 
     suspend fun listLastManchuGames(): ListGamesResponse {
         return pvpGameDaoService
-            .listLastGames(60, statusToExcludes = listOf(AUTO_CANCELED), variantToInclude = Variant.MANCHU)
+            .listLastGames(60, statusToExcludes = listOf(AUTO_CANCELED), variantsToInclude = listOf(Variant.MANCHU))
             .map { mapGameToDto(it) }
             .let { entries ->
                 ListGamesResponse(entries)
