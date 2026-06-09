@@ -70,7 +70,7 @@ fun main(): Unit = runBlocking {
         refreshCache(listOf())
     }
 
-    // wait until no refreshCache activity for more than 1 minute before quiting
+    // wait until no refreshCache activity for more than 1 minute before quitting
     while (true) {
         delay(CHECK_INTERVAL)
         val timeSinceLastActivity = System.currentTimeMillis() - lastActivityTime.get()
