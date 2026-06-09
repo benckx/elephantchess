@@ -117,7 +117,7 @@ class GameDataService(
 
                 DB ->
                     referenceGameDaoService
-                        .findPojoById(gameId.id)
+                        .findById(gameId.id)
                         ?.let { record -> mapDatabaseGamesToDto(listOf(record), offset = null).single() }
             }
 
