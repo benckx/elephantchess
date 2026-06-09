@@ -70,7 +70,7 @@ private val authenticatedRequiredPagesMapping = mapOf(
 private val adminPagesMapping = mapOf(
     "/admin" to "admin/admin_overview",
     "/admin/feeds" to "admin/admin_feeds",
-    "/admin/variant-feeds" to "admin/admin_manchu_feeds",
+    "/admin/variant-feeds" to "admin/admin_variant_feeds",
     "/admin/content-section-feedback" to "admin/admin_content_section_feedback",
     "/admin/sessions" to "admin/admin_user_sessions",
     "/admin/analytics" to "admin/admin_analytics",
