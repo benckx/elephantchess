@@ -99,7 +99,7 @@ data class AppConfig(
     }
 
     private fun loadListOfStrings(key: String): List<String> {
-        return properties.loadString(key).split(",").map { it.trim() }
+        return properties.loadString(key).split(",").map { it.trim() }.filter { it.isNotBlank() }
     }
 
     private fun loadBoolean(key: String, default: Boolean): Boolean {
