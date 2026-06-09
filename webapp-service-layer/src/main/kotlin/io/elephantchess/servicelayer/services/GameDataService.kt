@@ -118,7 +118,7 @@ class GameDataService(
                 DB ->
                     referenceGameDaoService
                         .findById(gameId.id)
-                        ?.let { record -> mapDatabaseGamesToDto(listOf(record), offset = null).single() }
+                        ?.let { record -> mapDatabaseGameToDto(record, paginationOffset = null) }
             }
 
         return gameMetadataDto ?: throw NotFoundException("$gameId not found")
@@ -653,20 +653,24 @@ class GameDataService(
         )
     }
 
+    private suspend fun mapDatabaseGameToDto(game: ReferenceGame, paginationOffset: Int?): GameMetadataDto {
+        return GameMetadataDto(
+            gameId = GameId(DB, game.id),
+            redPlayerId = game.redPlayer,
+            redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
+            blackPlayerId = game.blackPlayer,
+            blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
+            finalFen = game.finalFen ?: DEFAULT_START_FEN,
+            outcome = game.outcome,
+            lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
+            paginationOffset = paginationOffset,
+            variant = Variant.XIANGQI
+        )
+    }
+
     private suspend fun mapDatabaseGamesToDto(games: List<ReferenceGame>, offset: Int?): List<GameMetadataDto> {
         return games.mapIndexed { i, game ->
-            GameMetadataDto(
-                gameId = GameId(DB, game.id),
-                redPlayerId = game.redPlayer,
-                redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
-                blackPlayerId = game.blackPlayer,
-                blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
-                finalFen = game.finalFen ?: DEFAULT_START_FEN,
-                outcome = game.outcome,
-                lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-                paginationOffset = (offset ?: 0) + i,
-                variant = Variant.XIANGQI
-            )
+            mapDatabaseGameToDto(game, (offset ?: 0) + i)
         }
     }
 
