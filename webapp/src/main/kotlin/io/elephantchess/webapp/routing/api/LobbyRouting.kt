@@ -4,7 +4,7 @@ import io.elephantchess.servicelayer.dto.lobby.AlwaysVisibleInLobbyAllowedRespon
 import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateRequest
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.services.LobbyService
-import io.elephantchess.servicelayer.services.UserService
+import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.requireIdentification
 import io.ktor.server.request.*
@@ -14,7 +14,7 @@ import io.ktor.server.routing.*
 fun Route.lobbyRoutes() {
     val lobbyService by koin<LobbyService>()
     val gameDataService by koin<GameDataService>()
-    val userService by koin<UserService>()
+    val userCache by koin<UserCache>()
 
     route("/api/lobby") {
         get("/upcoming-events") {
@@ -27,7 +27,7 @@ fun Route.lobbyRoutes() {
         get("/always-visible-in-lobby-allowed") {
             requireIdentification { verifiedToken ->
                 AlwaysVisibleInLobbyAllowedResponse(
-                    allowed = userService.isAlwaysVisibleInLobbyAllowed(verifiedToken.userId)
+                    allowed = userCache.isAlwaysVisibleInLobbyAllowed(verifiedToken.userId)
                 )
             }
         }
