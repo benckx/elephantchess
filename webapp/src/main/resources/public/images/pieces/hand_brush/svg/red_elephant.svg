@@ -5,8 +5,8 @@
       <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
   </defs>
-  <circle cx="50" cy="50" r="48" fill="#3a2a1a"/>
-  <circle cx="50" cy="50" r="40" fill="#efe6cf"/>
-  <circle cx="50" cy="50" r="40" fill="none" stroke="#8a6d3b" stroke-width="1.2"/>
-  <text x="50" y="52" font-family="AR PL UKai CN" font-weight="bold" font-size="50" fill="#9b1b1b" text-anchor="middle" dominant-baseline="central" filter="url(#brush)">相</text>
+  <circle cx="50" cy="50" r="48" fill="#efe6cf"/>
+  <circle cx="50" cy="50" r="47" fill="none" stroke="#9b1b1b" stroke-width="2"/>
+  <circle cx="50" cy="50" r="40" fill="none" stroke="#9b1b1b" stroke-width="5"/>
+  <text x="50" y="54" font-family="AR PL UKai CN" font-weight="bold" font-size="52" fill="#9b1b1b" text-anchor="middle" dominant-baseline="central" filter="url(#brush)">相</text>
 </svg>

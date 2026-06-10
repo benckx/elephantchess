@@ -17,7 +17,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PIECES_DIR="webapp/src/main/resources/public/images/pieces"
-SIZE="${1:-256}"
+SIZE="${1:-512}"
 
 if ! command -v rsvg-convert >/dev/null 2>&1; then
     echo "error: rsvg-convert not found (install the librsvg2-bin package)" >&2
