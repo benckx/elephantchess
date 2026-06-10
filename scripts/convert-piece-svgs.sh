@@ -2,7 +2,7 @@
 #
 # Convert the SVG piece sources into PNG files.
 #
-# Some piece styles (MODERN, CALLIGRAPHY) are authored as SVG using Chinese
+# Some piece styles (MODERN, INK_BRUSH) are authored as SVG using Chinese
 # fonts. Because those fonts are not available on every device, we render the
 # SVGs to PNG ahead of time so the board always looks the same.
 #

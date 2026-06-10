@@ -363,7 +363,7 @@ class SettingsGui {
     #pieceStyleTraditionalRadio = document.getElementById('piece-style-traditional-radio');
     #pieceStyleRomanizedRoundedRadio = document.getElementById('piece-style-romanized-rounded-radio');
     #pieceStyleModernRadio = document.getElementById('piece-style-modern-radio');
-    #pieceStyleCalligraphyRadio = document.getElementById('piece-style-calligraphy-radio');
+    #pieceStyleInkBrushRadio = document.getElementById('piece-style-ink-brush-radio');
 
     #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
     #advancedSettingsBox = document.getElementById('advanced-settings-box');
@@ -426,7 +426,7 @@ class SettingsGui {
             [PieceStyleSetting.TRADITIONAL]: this.#pieceStyleTraditionalRadio,
             [PieceStyleSetting.ROMANIZED_ROUNDED]: this.#pieceStyleRomanizedRoundedRadio,
             [PieceStyleSetting.MODERN]: this.#pieceStyleModernRadio,
-            [PieceStyleSetting.CALLIGRAPHY]: this.#pieceStyleCalligraphyRadio,
+            [PieceStyleSetting.INK_BRUSH]: this.#pieceStyleInkBrushRadio,
         };
         const applyPieceStyle = (pieceStyle) => {
             this.#settingsManager.pieceStyle = pieceStyle;
