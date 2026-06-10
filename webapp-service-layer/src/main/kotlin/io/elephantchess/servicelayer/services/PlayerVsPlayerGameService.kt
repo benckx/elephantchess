@@ -335,6 +335,10 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to create correspondence games")
         }
 
+        if (userId.userType == UserType.GUEST && request.alwaysVisibleInLobby) {
+            throw BadRequestException("Guest users are not allowed to use the 'always show in lobby' option")
+        }
+
         if (
             !request.privateInvite &&
             request.alwaysVisibleInLobby &&
