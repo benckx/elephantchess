@@ -360,10 +360,7 @@ class SettingsGui {
     #flipBoard = document.getElementById('flip-board-button');
 
     // advanced piece style
-    #pieceStyleTraditionalRadio = document.getElementById('piece-style-traditional-radio');
-    #pieceStyleRomanizedRoundedRadio = document.getElementById('piece-style-romanized-rounded-radio');
-    #pieceStyleModernRadio = document.getElementById('piece-style-modern-radio');
-    #pieceStyleInkBrushRadio = document.getElementById('piece-style-ink-brush-radio');
+    #pieceStyleSelect = document.getElementById('piece-style-select');
 
     #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
     #advancedSettingsBox = document.getElementById('advanced-settings-box');
@@ -374,34 +371,20 @@ class SettingsGui {
     // advanced settings
     #advancedMoveFormatSettingItem = document.getElementById('advanced-move-format-setting-item');
 
-    #moveFormatRadioWxfDot = document.getElementById('move-format-radio-wxf-dot');
-    #moveFormatRadioWxfEquals = document.getElementById('move-format-radio-wxf-equals');
-    #moveFormatRadioPgn = document.getElementById('move-format-radio-pgn');
-    #moveFormatRadioAlgebraic = document.getElementById('move-format-radio-algebraic');
+    #moveFormatSelect = document.getElementById('move-format-select');
 
-    #showCoordinatesEnabledRadio = document.getElementById('show-coordinates-enabled-radio');
-    #showCoordinatesDisabledRadio = document.getElementById('show-coordinates-disabled-radio');
+    #showCoordinatesCheckbox = document.getElementById('show-coordinates-checkbox');
 
-    #coordinatesStyleWxfArabicRadio = document.getElementById('coordinates-style-wxf-arabic-radio');
-    #coordinatesStyleWxfChineseRadio = document.getElementById('coordinates-style-wxf-chinese-radio');
-    #coordinatesStyleWxfChineseRedOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-red-only-radio');
-    #coordinatesStyleWxfChineseBlackOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-black-only-radio');
-    #coordinatesStyleWxfChineseLowerOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-lower-only-radio');
-    #coordinatesStyleWxfChineseTopOnlyRadio = document.getElementById('coordinates-style-wxf-chinese-top-only-radio');
-    #coordinatesStyleAlgebraicRadio = document.getElementById('coordinates-style-algebraic-radio');
+    #coordinatesStyleSelect = document.getElementById('coordinates-style-select');
     #coordinatesMoveFormatMismatchWarning = document.getElementById('coordinates-move-format-mismatch-warning');
 
 
-    #flipOpponentPiecesEnabledRadio = document.getElementById('flip-opponent-pieces-enabled-radio');
-    #flipOpponentPiecesDisabledRadio = document.getElementById('flip-opponent-pieces-disabled-radio');
+    #flipOpponentPiecesCheckbox = document.getElementById('flip-opponent-pieces-checkbox');
 
-    #playSoundsEnabledRadio = document.getElementById('play-sounds-enabled-radio');
-    #playSoundsDisabledRadio = document.getElementById('play-sounds-disabled-radio');
+    #playSoundsCheckbox = document.getElementById('play-sounds-checkbox');
 
-    #colorblindFriendlyBlackPiecesEnabledRadio = document.getElementById('colorblind-friendly-black-pieces-enabled-radio');
-    #colorblindFriendlyBlackPiecesDisabledRadio = document.getElementById('colorblind-friendly-black-pieces-disabled-radio');
-    #coloredAreasEnabledRadio = document.getElementById('colored-areas-enabled-radio');
-    #coloredAreasDisabledRadio = document.getElementById('colored-areas-disabled-radio');
+    #colorblindFriendlyBlackPiecesCheckbox = document.getElementById('colorblind-friendly-black-pieces-checkbox');
+    #coloredAreasCheckbox = document.getElementById('colored-areas-checkbox');
 
     // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
@@ -421,19 +404,18 @@ class SettingsGui {
         this.#moveTreeWidget = moveTreeWidget;
         this.#boardGuis.push(boardGui);
 
-        // piece style: 2 quick picks in the main box + all 4 options in advanced settings
-        const pieceStyleRadios = {
-            [PieceStyleSetting.TRADITIONAL]: this.#pieceStyleTraditionalRadio,
-            [PieceStyleSetting.ROMANIZED_ROUNDED]: this.#pieceStyleRomanizedRoundedRadio,
-            [PieceStyleSetting.MODERN]: this.#pieceStyleModernRadio,
-            [PieceStyleSetting.INK_BRUSH]: this.#pieceStyleInkBrushRadio,
-        };
+        // piece style: 2 quick picks in the main box + all options in advanced settings
+        const pieceStyleValues = [
+            PieceStyleSetting.TRADITIONAL,
+            PieceStyleSetting.ROMANIZED_ROUNDED,
+            PieceStyleSetting.MODERN,
+            PieceStyleSetting.INK_BRUSH,
+        ];
         const applyPieceStyle = (pieceStyle) => {
             this.#settingsManager.pieceStyle = pieceStyle;
             this.#boardGuis.forEach(boardGui => boardGui.updatePieceStyle(pieceStyle));
-            const radio = pieceStyleRadios[pieceStyle];
-            if (radio != null) {
-                radio.checked = true;
+            if (pieceStyleValues.includes(pieceStyle)) {
+                this.#pieceStyleSelect.value = pieceStyle;
             }
         };
 
@@ -445,21 +427,12 @@ class SettingsGui {
         this.#selectPieceStyleRomanizedRounded.onclick = () => applyPieceStyle(PieceStyleSetting.ROMANIZED_ROUNDED);
         addToolTip(this.#selectPieceStyleRomanizedRounded, "Select 'Romanized Rounded' piece style");
 
-        // piece style (advanced settings: all 4 options)
-        const currentPieceStyle = pieceStyleRadios[this.#settingsManager.pieceStyle]
+        // piece style (advanced settings: all options)
+        const currentPieceStyle = pieceStyleValues.includes(this.#settingsManager.pieceStyle)
             ? this.#settingsManager.pieceStyle
             : PieceStyleSetting.DEFAULT;
-        Object.entries(pieceStyleRadios).forEach(([style, radio]) => {
-            if (radio == null) {
-                return;
-            }
-            radio.checked = style === currentPieceStyle;
-            radio.onchange = () => {
-                if (radio.checked) {
-                    applyPieceStyle(style);
-                }
-            };
-        });
+        this.#pieceStyleSelect.value = currentPieceStyle;
+        this.#pieceStyleSelect.onchange = () => applyPieceStyle(this.#pieceStyleSelect.value);
 
         // move format
         const isWxfMoveFormat = (mf) => mf === MoveFormatSetting.WXF_DOT || mf === MoveFormatSetting.WXF_EQUALS;
@@ -482,38 +455,15 @@ class SettingsGui {
             }
             updateCoordinatesMoveFormatMismatchWarning();
         }
-        this.#moveFormatRadioWxfDot.onchange = () => {
-            if (this.#moveFormatRadioWxfDot.checked) {
-                applyMoveFormat(MoveFormatSetting.WXF_DOT);
-            }
-        }
-        this.#moveFormatRadioWxfEquals.onchange = () => {
-            if (this.#moveFormatRadioWxfEquals.checked) {
-                applyMoveFormat(MoveFormatSetting.WXF_EQUALS);
-            }
-        }
-        this.#moveFormatRadioPgn.onchange = () => {
-            if (this.#moveFormatRadioPgn.checked) {
-                applyMoveFormat(MoveFormatSetting.PGN);
-            }
-        }
-        this.#moveFormatRadioAlgebraic.onchange = () => {
-            if (this.#moveFormatRadioAlgebraic.checked) {
-                applyMoveFormat(MoveFormatSetting.ALGEBRAIC_EN);
-            }
-        }
+        this.#moveFormatSelect.onchange = () => applyMoveFormat(this.#moveFormatSelect.value);
         switch (this.#settingsManager.moveFormat) {
             case MoveFormatSetting.WXF_EQUALS:
-                this.#moveFormatRadioWxfEquals.checked = true;
-                break;
             case MoveFormatSetting.PGN:
-                this.#moveFormatRadioPgn.checked = true;
-                break;
             case MoveFormatSetting.ALGEBRAIC_EN:
-                this.#moveFormatRadioAlgebraic.checked = true;
+                this.#moveFormatSelect.value = this.#settingsManager.moveFormat;
                 break;
             default:
-                this.#moveFormatRadioWxfDot.checked = true;
+                this.#moveFormatSelect.value = MoveFormatSetting.WXF_DOT;
                 break;
         }
         applyMoveFormat(this.#settingsManager.moveFormat);
@@ -522,10 +472,6 @@ class SettingsGui {
         }
 
         // show coordinates
-        const updateShowCoordinatesRadios = (enabled) => {
-            this.#showCoordinatesEnabledRadio.checked = enabled;
-            this.#showCoordinatesDisabledRadio.checked = !enabled;
-        }
         const setShowCoordinatesEnabled = (enabled) => {
             if (this.#settingsManager.isShowCoordinatesEnabled === enabled) {
                 return;
@@ -533,80 +479,36 @@ class SettingsGui {
             this.#boardGuis.forEach(board => board.toggleShowCoordinates());
             this.#settingsManager.isShowCoordinatesEnabled = enabled;
         }
-        updateShowCoordinatesRadios(this.#settingsManager.isShowCoordinatesEnabled);
-        this.#showCoordinatesEnabledRadio.onchange = () => {
-            if (this.#showCoordinatesEnabledRadio.checked) {
-                setShowCoordinatesEnabled(true);
-            }
-        }
-        this.#showCoordinatesDisabledRadio.onchange = () => {
-            if (this.#showCoordinatesDisabledRadio.checked) {
-                setShowCoordinatesEnabled(false);
-            }
+        this.#showCoordinatesCheckbox.checked = this.#settingsManager.isShowCoordinatesEnabled;
+        this.#showCoordinatesCheckbox.onchange = () => {
+            setShowCoordinatesEnabled(this.#showCoordinatesCheckbox.checked);
         }
 
         // colorblind-friendly black pieces
-        const updateColorblindRadios = (enabled) => {
-            this.#colorblindFriendlyBlackPiecesEnabledRadio.checked = enabled;
-            this.#colorblindFriendlyBlackPiecesDisabledRadio.checked = !enabled;
-        }
-        updateColorblindRadios(this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled);
-        this.#colorblindFriendlyBlackPiecesEnabledRadio.onchange = () => {
-            if (this.#colorblindFriendlyBlackPiecesEnabledRadio.checked) {
-                this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = true;
-                this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(true));
-            }
-        }
-        this.#colorblindFriendlyBlackPiecesDisabledRadio.onchange = () => {
-            if (this.#colorblindFriendlyBlackPiecesDisabledRadio.checked) {
-                this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = false;
-                this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(false));
-            }
+        this.#colorblindFriendlyBlackPiecesCheckbox.checked = this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled;
+        this.#colorblindFriendlyBlackPiecesCheckbox.onchange = () => {
+            const enabled = this.#colorblindFriendlyBlackPiecesCheckbox.checked;
+            this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = enabled;
+            this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(enabled));
         }
 
         // colored areas
-        const updateColoredAreasRadios = (enabled) => {
-            this.#coloredAreasEnabledRadio.checked = enabled;
-            this.#coloredAreasDisabledRadio.checked = !enabled;
-        };
-        updateColoredAreasRadios(this.#settingsManager.isColoredAreasEnabled);
-        this.#coloredAreasEnabledRadio.onchange = () => {
-            if (this.#coloredAreasEnabledRadio.checked) {
-                this.#settingsManager.isColoredAreasEnabled = true;
-                this.#boardGuis.forEach(board => board.setShowColoredAreasEnabled(true));
-            }
-        };
-        this.#coloredAreasDisabledRadio.onchange = () => {
-            if (this.#coloredAreasDisabledRadio.checked) {
-                this.#settingsManager.isColoredAreasEnabled = false;
-                this.#boardGuis.forEach(board => board.setShowColoredAreasEnabled(false));
-            }
+        this.#coloredAreasCheckbox.checked = this.#settingsManager.isColoredAreasEnabled;
+        this.#coloredAreasCheckbox.onchange = () => {
+            const enabled = this.#coloredAreasCheckbox.checked;
+            this.#settingsManager.isColoredAreasEnabled = enabled;
+            this.#boardGuis.forEach(board => board.setShowColoredAreasEnabled(enabled));
         };
 
         // flip opponent pieces
-        const updateFlipOpponentPiecesRadios = (enabled) => {
-            this.#flipOpponentPiecesEnabledRadio.checked = enabled;
-            this.#flipOpponentPiecesDisabledRadio.checked = !enabled;
-        }
-        updateFlipOpponentPiecesRadios(this.#settingsManager.isFlipOpponentPiecesEnabled);
-        this.#flipOpponentPiecesEnabledRadio.onchange = () => {
-            if (this.#flipOpponentPiecesEnabledRadio.checked) {
-                this.#settingsManager.isFlipOpponentPiecesEnabled = true;
-                this.#boardGuis.forEach(board => board.setFlipOpponentPiecesEnabled(true));
-            }
-        }
-        this.#flipOpponentPiecesDisabledRadio.onchange = () => {
-            if (this.#flipOpponentPiecesDisabledRadio.checked) {
-                this.#settingsManager.isFlipOpponentPiecesEnabled = false;
-                this.#boardGuis.forEach(board => board.setFlipOpponentPiecesEnabled(false));
-            }
+        this.#flipOpponentPiecesCheckbox.checked = this.#settingsManager.isFlipOpponentPiecesEnabled;
+        this.#flipOpponentPiecesCheckbox.onchange = () => {
+            const enabled = this.#flipOpponentPiecesCheckbox.checked;
+            this.#settingsManager.isFlipOpponentPiecesEnabled = enabled;
+            this.#boardGuis.forEach(board => board.setFlipOpponentPiecesEnabled(enabled));
         }
 
         // play sounds
-        const updatePlaySoundsRadios = (enabled) => {
-            this.#playSoundsEnabledRadio.checked = enabled;
-            this.#playSoundsDisabledRadio.checked = !enabled;
-        }
         const setPlaySoundsEnabled = (enabled) => {
             if (this.#settingsManager.isPlaySoundsEnabled === enabled) {
                 return;
@@ -614,28 +516,21 @@ class SettingsGui {
             this.#settingsManager.isPlaySoundsEnabled = enabled;
             this.#boardGuis.forEach(boardGui => boardGui.updatePlaySounds(enabled));
         }
-        updatePlaySoundsRadios(this.#settingsManager.isPlaySoundsEnabled);
-        this.#playSoundsEnabledRadio.onchange = () => {
-            if (this.#playSoundsEnabledRadio.checked) {
-                setPlaySoundsEnabled(true);
-            }
-        }
-        this.#playSoundsDisabledRadio.onchange = () => {
-            if (this.#playSoundsDisabledRadio.checked) {
-                setPlaySoundsEnabled(false);
-            }
+        this.#playSoundsCheckbox.checked = this.#settingsManager.isPlaySoundsEnabled;
+        this.#playSoundsCheckbox.onchange = () => {
+            setPlaySoundsEnabled(this.#playSoundsCheckbox.checked);
         }
 
         // coordinates style (WXF flavors + Algebraic letters)
-        const coordinatesStyleRadios = {
-            [FileNumbersStyle.ARABIC_BOTH]: this.#coordinatesStyleWxfArabicRadio,
-            [FileNumbersStyle.CHINESE_BOTH]: this.#coordinatesStyleWxfChineseRadio,
-            [FileNumbersStyle.CHINESE_RED_ONLY]: this.#coordinatesStyleWxfChineseRedOnlyRadio,
-            [FileNumbersStyle.CHINESE_BLACK_ONLY]: this.#coordinatesStyleWxfChineseBlackOnlyRadio,
-            [FileNumbersStyle.CHINESE_LOWER_ONLY]: this.#coordinatesStyleWxfChineseLowerOnlyRadio,
-            [FileNumbersStyle.CHINESE_TOP_ONLY]: this.#coordinatesStyleWxfChineseTopOnlyRadio,
-            [CoordinatesOrientation.ALGEBRAIC]: this.#coordinatesStyleAlgebraicRadio,
-        };
+        const coordinatesStyleValues = [
+            FileNumbersStyle.ARABIC_BOTH,
+            FileNumbersStyle.CHINESE_BOTH,
+            FileNumbersStyle.CHINESE_RED_ONLY,
+            FileNumbersStyle.CHINESE_BLACK_ONLY,
+            FileNumbersStyle.CHINESE_LOWER_ONLY,
+            FileNumbersStyle.CHINESE_TOP_ONLY,
+            CoordinatesOrientation.ALGEBRAIC,
+        ];
         const applyCoordinatesStyle = (style) => {
             this.#settingsManager.coordinatesStyle = style;
             const orientation = this.#settingsManager.getCoordinatesOrientation();
@@ -646,36 +541,29 @@ class SettingsGui {
             });
             updateCoordinatesMoveFormatMismatchWarning();
         };
-        const currentCoordinatesStyle = coordinatesStyleRadios[this.#settingsManager.coordinatesStyle]
+        const currentCoordinatesStyle = coordinatesStyleValues.includes(this.#settingsManager.coordinatesStyle)
             ? this.#settingsManager.coordinatesStyle
             : FileNumbersStyle.DEFAULT;
-        coordinatesStyleRadios[currentCoordinatesStyle].checked = true;
-        Object.entries(coordinatesStyleRadios).forEach(([style, radio]) => {
-            radio.onchange = () => {
-                if (radio.checked) {
-                    applyCoordinatesStyle(style);
-                }
-            };
-        });
+        this.#coordinatesStyleSelect.value = currentCoordinatesStyle;
+        this.#coordinatesStyleSelect.onchange = () => applyCoordinatesStyle(this.#coordinatesStyleSelect.value);
 
-        // when "show coordinates" is off, grey out the coordinates style options
+        // when "show coordinates" is off, grey out and disable the coordinates style select
         const updateCoordinatesStyleEnabledState = () => {
             const enabled = this.#settingsManager.isShowCoordinatesEnabled;
-            Object.values(coordinatesStyleRadios).forEach(radio => {
-                if (radio == null) {
-                    return;
-                }
-                radio.disabled = !enabled;
-                const label = radio.closest('label');
-                if (label != null) {
-                    label.classList.toggle('advanced-setting-option-disabled', !enabled);
-                }
-            });
+            this.#coordinatesStyleSelect.disabled = !enabled;
+            const optionsContainer = this.#coordinatesStyleSelect.closest('.advanced-setting-options');
+            if (optionsContainer != null) {
+                optionsContainer.classList.toggle('advanced-setting-option-disabled', !enabled);
+            }
         };
         updateCoordinatesStyleEnabledState();
-        this.#showCoordinatesEnabledRadio.addEventListener('change', updateCoordinatesStyleEnabledState);
-        this.#showCoordinatesDisabledRadio.addEventListener('change', updateCoordinatesStyleEnabledState);
+        this.#showCoordinatesCheckbox.addEventListener('change', updateCoordinatesStyleEnabledState);
         updateCoordinatesMoveFormatMismatchWarning();
+
+        // make the "Enabled" labels of the checkboxes clickable (scoped to the advanced settings box)
+        if (this.#advancedSettingsBox != null) {
+            makeCheckboxesClickable(this.#advancedSettingsBox);
+        }
 
         // advanced settings
         const isMobileAdvancedSettingsLayout = () => window.matchMedia('(max-width: 1000px)').matches;
