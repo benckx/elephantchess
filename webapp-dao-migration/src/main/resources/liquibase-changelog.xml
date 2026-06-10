@@ -2559,21 +2559,7 @@
         <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
     </changeSet>
     <changeSet id="0105" author="benckx">
-        <comment>
-            Map opening_pre_calculation_cache entries to the reference games matching them.
-            We reference the opening cache by its auto-increment id (4 bytes) rather than the
-            sequence of moves (the "moves" key, up to ~240 chars) to keep this Cartesian-product
-            table as small as possible. With ~100,000 reference games each matching many openings
-            (openings are nested into one another), this is expected to hold a few million rows.
-
-            Rough size estimate (PostgreSQL): each row stores an int (4 bytes) and a varchar(8)
-            game id (~12 bytes with length header), plus the ~24 bytes row header and alignment,
-            so ~44 bytes per row in the heap. The composite primary key index and the
-            reference_game_id index add roughly 40-50 bytes per row each. So at 5 million rows the
-            table plus its two indexes weigh on the order of 0.2 GB heap + ~0.45 GB indexes
-            (~0.65 GB total). Using the cache id instead of the moves key saves the bulk of that
-            (a 240-char key would multiply the row width by ~6).
-        </comment>
+        <comment>Map opening_pre_calculation_cache entries to the reference games matching them.</comment>
         <createTable tableName="opening_pre_calculation_cache_reference_game">
             <column name="opening_pre_calculation_cache_id" type="int">
                 <constraints nullable="false"
