@@ -69,8 +69,10 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun resetAnalysisStatus(gameId: GameId) =
+    suspend fun resetAnalysisStatus(gameId: GameId) {
         updateAnalysisStatus(gameId, NOT_STARTED, null)
+        setAnalyzedFromBatch(gameId, false)
+    }
 
     suspend fun startAnalysis(gameId: GameId) =
         updateAnalysisStatus(gameId, STARTED, startTimeField(gameId))

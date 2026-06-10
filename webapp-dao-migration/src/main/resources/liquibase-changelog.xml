@@ -2583,7 +2583,7 @@
         </sql>
         <sql>
             create or replace view move_analysis_coalesced as
-            (SELECT id,
+            (SELECT ma.id,
             CASE
             WHEN game_id is not null THEN 'PVP'
             WHEN bot_game_id is not null THEN 'PVB'
