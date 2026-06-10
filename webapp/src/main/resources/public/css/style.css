@@ -1528,26 +1528,26 @@ table.info-box-sub-table td.values {
     padding: 5px 28px 5px 9px;
     font-size: 13px;
     color: #2f2f2f;
-    background-color: #f3ebda;
-    border: 1px solid #8a7c66;
+    background-color: #ffffff;
+    border: 1px solid #767676;
     border-radius: 4px;
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%236b5b3e' d='M0 0l5 6 5-6z'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23555555' d='M0 0l5 6 5-6z'/></svg>");
     background-repeat: no-repeat;
     background-position: right 9px center;
 }
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-select:hover {
-    border-color: #6b5b3e;
+    border-color: #555555;
 }
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-select:focus {
     outline: none;
-    border-color: #6b5b3e;
-    box-shadow: 0 0 0 2px rgba(107, 91, 62, 0.25);
+    border-color: #4a90d9;
+    box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.35);
 }
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-options.advanced-setting-option-disabled,
