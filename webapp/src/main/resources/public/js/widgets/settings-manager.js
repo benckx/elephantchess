@@ -551,9 +551,9 @@ class SettingsGui {
         const updateCoordinatesStyleEnabledState = () => {
             const enabled = this.#settingsManager.isShowCoordinatesEnabled;
             this.#coordinatesStyleSelect.disabled = !enabled;
-            const label = this.#coordinatesStyleSelect.closest('.advanced-setting-options');
-            if (label != null) {
-                label.classList.toggle('advanced-setting-option-disabled', !enabled);
+            const optionsContainer = this.#coordinatesStyleSelect.closest('.advanced-setting-options');
+            if (optionsContainer != null) {
+                optionsContainer.classList.toggle('advanced-setting-option-disabled', !enabled);
             }
         };
         updateCoordinatesStyleEnabledState();
