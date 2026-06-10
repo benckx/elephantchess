@@ -368,9 +368,11 @@ class PlayerVsPlayerGameService(
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
-        // "always visible in lobby" is only allowed if the user can be notified by email when someone joins
-        // while they are offline; otherwise the option is forced off (the UI greys it out, this is the backend check)
-        game.alwaysVisibleInLobby = !request.privateInvite && request.alwaysVisibleInLobby && isAlwaysVisibleInLobbyAllowed(userId.id)
+        // "always visible in lobby" is allowed for correspondence games, or if the user can be notified by email
+        // when someone joins while they are offline; otherwise the option is forced off (the UI greys it out, this
+        // is the backend check)
+        game.alwaysVisibleInLobby = !request.privateInvite && request.alwaysVisibleInLobby &&
+            (request.timeControlMode == TimeControlMode.MOVE_TIME || isAlwaysVisibleInLobbyAllowed(userId.id))
         game.privateInvite = request.privateInvite
         game.containsErrors = false
         game.variant = request.variant

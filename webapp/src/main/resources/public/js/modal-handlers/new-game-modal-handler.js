@@ -39,9 +39,15 @@ class NewGameHandler extends ModalHandler {
     #optionsDivs = getElementsByClassNameArray(OPTION_BUTTON_CLASS);
     #isRatedCheckbox = document.getElementById('is-rated');
     #alwaysVisibleInLobbyCheckBox = document.getElementById('always-visible-in-lobby');
-    #alwaysVisibleInLobbyFaqLink = document.getElementById('always-visible-in-lobby-faq-link');
     #allowGuestsCheckBox = document.getElementById('allow-guests');
     #privateInvite = document.getElementById('private-invite');
+
+    /**
+     * Time control option ids that correspond to correspondence (one or more days per move) games.
+     *
+     * @type {string[]}
+     */
+    #correspondenceTimeControls = ['tc-86400', 'tc-259200', 'tc-604800'];
 
     /**
      * Whether the user is allowed to use the "always visible in lobby" option (valid email and "someone joined
@@ -55,8 +61,6 @@ class NewGameHandler extends ModalHandler {
 
     constructor() {
         super();
-
-        const correspondenceTimeControls = ['tc-86400', 'tc-259200', 'tc-604800'];
 
         // option div click listener
         this.#optionsDivs.forEach(item => {
@@ -74,12 +78,13 @@ class NewGameHandler extends ModalHandler {
                     item.classList.add(OPTION_BUTTON_SELECTED_CLASS);
                 }
 
-                // alwaysVisibleInLobby checked when correspondence time control is selected
-                // alwaysVisibleInLobby unchecked otherwise
-                // only auto-check it if the user is allowed to use the option
+                // the "always visible in lobby" option is always available for correspondence games;
+                // refresh its enabled state and auto-check it when a correspondence time control is selected
                 if (item.classList.contains(TIME_CONTROL_OPTION_GROUP)) {
-                    this.#alwaysVisibleInLobbyCheckBox.checked =
-                        this.#alwaysVisibleInLobbyAllowed && correspondenceTimeControls.includes(item.id);
+                    this.#refreshAlwaysVisibleInLobby();
+                    if (!this.#privateInvite.checked) {
+                        this.#alwaysVisibleInLobbyCheckBox.checked = this.#isCorrespondenceSelected();
+                    }
                 }
             });
         });
@@ -88,14 +93,8 @@ class NewGameHandler extends ModalHandler {
 
         // private game checkbox listener
         this.#privateInvite.addEventListener('change', () => {
-            if (this.#privateInvite.checked) {
-                // When private game is checked, uncheck and disable "always visible in lobby"
-                this.#alwaysVisibleInLobbyCheckBox.checked = false;
-                this.#disableCheckbox('always-visible-in-lobby-container');
-            } else if (this.#alwaysVisibleInLobbyAllowed) {
-                // When private game is unchecked, re-enable "always visible in lobby" (if allowed)
-                this.#enableCheckbox('always-visible-in-lobby-container');
-            }
+            // private games are never visible in the lobby; refresh the option accordingly
+            this.#refreshAlwaysVisibleInLobby();
         });
 
         // button click listener
@@ -107,11 +106,11 @@ class NewGameHandler extends ModalHandler {
         if (isUserAuthenticated()) {
             this.#enableCheckbox('allow-guests-container');
 
-            correspondenceTimeControls.forEach(tcId => {
+            this.#correspondenceTimeControls.forEach(tcId => {
                 document.getElementById(tcId).classList.remove('option-button-div-disabled');
             });
         } else {
-            correspondenceTimeControls.forEach(tcId => {
+            this.#correspondenceTimeControls.forEach(tcId => {
                 addToolTip(document.getElementById(tcId), 'This option is not available for guest users.');
             });
         }
@@ -138,8 +137,8 @@ class NewGameHandler extends ModalHandler {
             'Private games are not listed in the lobby and can only be joined by players with the direct link.'
         );
 
-        // "always visible in lobby" requires a valid email and the "someone joined my game" notification:
-        // greyed out (with a link to the FAQ) until/unless the backend confirms it's allowed
+        // "always visible in lobby" requires a valid email and the "someone joined my game" notification
+        // (or a correspondence time control): greyed out until/unless one of those conditions is met
         this.#disableCheckbox('always-visible-in-lobby-container');
         if (isUserAuthenticated()) {
             getAndHandle('/api/lobby/always-visible-in-lobby-allowed', (json) => {
@@ -151,24 +150,39 @@ class NewGameHandler extends ModalHandler {
     }
 
     /**
-     * Enable or disable the "always visible in lobby" option depending on whether the user is allowed to use it.
-     * When not allowed, the checkbox is unchecked, disabled and a link to the FAQ is shown.
+     * Whether a correspondence (one or more days per move) time control is currently selected.
+     *
+     * @return {boolean}
+     */
+    #isCorrespondenceSelected() {
+        return this.#correspondenceTimeControls.some(tcId =>
+            document.getElementById(tcId).classList.contains(OPTION_BUTTON_SELECTED_CLASS));
+    }
+
+    /**
+     * Refresh the enabled state of the "always visible in lobby" option. It is available when the user is allowed
+     * to use it (valid email + notification) or when a correspondence time control is selected, but never for
+     * private games. When not available, the checkbox is unchecked and disabled.
+     */
+    #refreshAlwaysVisibleInLobby() {
+        const available = !this.#privateInvite.checked
+            && (this.#alwaysVisibleInLobbyAllowed || this.#isCorrespondenceSelected());
+        if (available) {
+            this.#enableCheckbox('always-visible-in-lobby-container');
+        } else {
+            this.#disableCheckbox('always-visible-in-lobby-container');
+        }
+    }
+
+    /**
+     * Update whether the user is allowed to use the "always visible in lobby" option (valid email + notification)
+     * and refresh the option's enabled state.
      *
      * @param allowed {boolean}
      */
     #setAlwaysVisibleInLobbyAllowed(allowed) {
         this.#alwaysVisibleInLobbyAllowed = allowed;
-        if (allowed) {
-            this.#alwaysVisibleInLobbyFaqLink.classList.add('hidden');
-            // only enable if private game is not selected (private games are never visible in the lobby)
-            if (!this.#privateInvite.checked) {
-                this.#enableCheckbox('always-visible-in-lobby-container');
-            }
-        } else {
-            this.#alwaysVisibleInLobbyCheckBox.checked = false;
-            this.#disableCheckbox('always-visible-in-lobby-container');
-            this.#alwaysVisibleInLobbyFaqLink.classList.remove('hidden');
-        }
+        this.#refreshAlwaysVisibleInLobby();
     }
 
     /**
@@ -181,6 +195,8 @@ class NewGameHandler extends ModalHandler {
         // Find the checkbox inside the container
         const checkbox = container.querySelector('input[type="checkbox"]');
         if (checkbox) {
+            // a disabled option is always forced to its un-selected state
+            checkbox.checked = false;
             checkbox.disabled = true;
         }
     }

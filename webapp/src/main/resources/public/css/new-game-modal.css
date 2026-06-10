@@ -147,10 +147,6 @@
     vertical-align: middle;
 }
 
-#create-new-game-modal .always-visible-in-lobby-faq-link.hidden {
-    display: none;
-}
-
 @media (max-width: 1000px) {
     #create-new-game-modal {
         width: 94%;

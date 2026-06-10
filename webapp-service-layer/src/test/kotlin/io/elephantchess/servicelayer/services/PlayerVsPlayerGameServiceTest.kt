@@ -27,6 +27,7 @@ import org.jooq.DSLContext
 import org.koin.core.component.inject
 import kotlin.test.*
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
@@ -127,6 +128,23 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
         assertEquals(CREATED, response.eventType)
         assertFalse(fetchAlwaysVisibleInLobby(response.gameId))
+    }
+
+    /**
+     * "always visible in lobby" is always honored for correspondence games, even if the user is not otherwise
+     * allowed (no valid email / notification disabled).
+     */
+    @Test
+    fun alwaysVisibleInLobbyAllowedForCorrespondenceTest() = runTest {
+        val request = alwaysVisibleInLobbyRequest().copy(
+            timeControlMode = TimeControlMode.MOVE_TIME,
+            timeControlBase = 1.days.inWholeSeconds.toInt(),
+        )
+
+        val response = pvpGameService.createGame(userId1, request)
+
+        assertEquals(CREATED, response.eventType)
+        assertTrue(fetchAlwaysVisibleInLobby(response.gameId))
     }
 
     /**
