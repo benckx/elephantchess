@@ -1521,10 +1521,6 @@ table.info-box-sub-table td.values {
     font-size: 14px;
 }
 
-#settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=checkbox] {
-    accent-color: #6b5b3e;
-}
-
 #settings-info-box-container #advanced-settings-box .advanced-setting-select {
     width: 100%;
     max-width: 320px;
