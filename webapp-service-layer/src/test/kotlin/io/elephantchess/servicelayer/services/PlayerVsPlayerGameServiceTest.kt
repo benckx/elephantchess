@@ -124,10 +124,12 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
      */
     @Test
     fun alwaysVisibleInLobbyNotAllowedForGuestTest() = runTest {
-        val response = pvpGameService.createGame(guestId1, alwaysVisibleInLobbyRequest())
+        val e = assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(guestId1, alwaysVisibleInLobbyRequest())
+        }
 
-        assertEquals(CREATED, response.eventType)
-        assertFalse(fetchAlwaysVisibleInLobby(response.gameId))
+        logger.info { "expected exception $e" }
+        assertEquals("Guest users are not allowed to use the 'always show in lobby' option", e.message)
     }
 
     /**
