@@ -38,25 +38,8 @@ class AdminAnalysisService(
                         first = record.first.toEpochMilliseconds(),
                         last = record.last.toEpochMilliseconds(),
                         totalAnalyzedMoves = record.totalAnalyzedMoves,
-                        analysisStatus = gameDataService.fetchAnalysisStatusOfGame(record.gameId)
-                    )
-                }
-
-        return LatestMoveAnalysisByGameResponse(entries)
-    }
-
-    suspend fun listGamesAnalyzedFromBatch(): LatestMoveAnalysisByGameResponse {
-        val entries =
-            moveAnalysisDaoService
-                .listGamesAnalyzedFromBatch(60)
-                .map { record ->
-                    val totalMoves = moveAnalysisDaoService.countAnalyzedMoves(record.gameId)
-                    LatestMoveAnalysisByGameResponse.Entry(
-                        gameId = record.gameId,
-                        first = record.first.toEpochMilliseconds(),
-                        last = record.last.toEpochMilliseconds(),
-                        totalAnalyzedMoves = totalMoves,
-                        analysisStatus = gameDataService.fetchAnalysisStatusOfGame(record.gameId)
+                        analysisStatus = gameDataService.fetchAnalysisStatusOfGame(record.gameId),
+                        analyzedFromBatch = record.analyzedFromBatch
                     )
                 }
 

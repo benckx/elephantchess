@@ -29,15 +29,9 @@ class AdminPreAnalysisPage extends BasePage {
      */
     #latestAnalyzedGamesTable = document.getElementById('latest-analyzed-games');
 
-    /**
-     * @type {HTMLTableElement}
-     */
-    #batchAnalyzedGamesTable = document.getElementById('batch-analyzed-games');
-
     constructor() {
         super();
         this.#fetchLatestMoveAnalysisByGame();
-        this.#fetchGamesAnalyzedFromBatch();
         this.#fetchPreAnalyzedReferenceGamesPerYear();
     }
 
@@ -46,14 +40,6 @@ class AdminPreAnalysisPage extends BasePage {
             let entries = [];
             json.entries.map(jsonEntry => entries.push(new MoveAnalysisByGame(jsonEntry)));
             this.#renderMoveAnalysisByGame(this.#latestAnalyzedGamesTable, entries);
-        });
-    }
-
-    #fetchGamesAnalyzedFromBatch() {
-        getAndHandle(`${ADMIN_URL_PREFIX}/list-games-analyzed-from-batch`, json => {
-            let entries = [];
-            json.entries.map(jsonEntry => entries.push(new MoveAnalysisByGame(jsonEntry)));
-            this.#renderMoveAnalysisByGame(this.#batchAnalyzedGamesTable, entries);
         });
     }
 
@@ -72,6 +58,7 @@ class AdminPreAnalysisPage extends BasePage {
             row.insertCell().innerText = entry.lastFormatted;
             row.insertCell().innerText = entry.totalAnalyzedMoves.toString();
             row.insertCell().innerText = entry.analysisStatus;
+            row.insertCell().innerText = entry.analyzedFromBatch ? '✓' : '';
         });
     }
 
