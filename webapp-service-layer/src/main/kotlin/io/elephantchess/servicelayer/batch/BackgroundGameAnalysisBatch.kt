@@ -6,6 +6,8 @@ import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType
+import io.elephantchess.model.UserType.AUTHENTICATED
+import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.batch.definitions.ShardedBatch
 import io.elephantchess.servicelayer.services.GameDataService
 import io.github.oshai.kotlinlogging.KLogger
@@ -26,7 +28,7 @@ class BackgroundGameAnalysisBatch(
         // Check if there are MAX_CONNECTED_USERS or fewer connected users
         val connectedUsers = userDaoService.countActiveRecently(
             duration = 5.minutes,
-            userTypes = listOf(io.elephantchess.model.UserType.AUTHENTICATED, io.elephantchess.model.UserType.GUEST)
+            userTypes = listOf(AUTHENTICATED, GUEST)
         )
 
         if (connectedUsers > MAX_CONNECTED_USERS) {
@@ -57,12 +59,12 @@ class BackgroundGameAnalysisBatch(
     }
 
     override suspend fun process(element: GameId) {
-        logger.info { "Starting batch analysis for ${element.type} game: ${element.id}" }
+        logger.info { "$element starting batch analysis" }
         try {
             gameDataService.startGameAnalysis(element, isFromBatch = true)
-            logger.info { "Successfully started batch analysis for ${element.type} game: ${element.id}" }
+            logger.info { "$element successfully started batch analysis" }
         } catch (e: Exception) {
-            logger.error(e) { "Error starting batch analysis for ${element.type} game: ${element.id}" }
+            logger.error { "$element error starting batch analysis: $e" }
         }
     }
 
