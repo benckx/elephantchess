@@ -731,3 +731,20 @@ class fields out of the box.
 The task looks for `node` and `npm` on the `PATH` as well as common install locations (nvm, fnm, asdf,
 Homebrew). If they live somewhere else (or aren't picked up when running from an IDE), point the task at
 them explicitly with the `NODE_BIN` and `NPM_BIN` environment variables.
+
+## Piece styles
+
+Board pieces live under `webapp/src/main/resources/public/images/pieces/<style>/`, one PNG per piece
+(`red_general.png`, `black_soldier.png`, etc.). The `MODERN` and `HAND_BRUSH` styles are authored as SVG
+under `images/pieces/<style>/svg/` using Chinese fonts. Because those fonts are not available on every
+device, the SVGs are rendered to PNG ahead of time so the board always looks the same.
+
+Regenerate the PNGs after editing the SVGs with:
+
+```bash
+./scripts/convert-piece-svgs.sh
+```
+
+The script requires `rsvg-convert` (Debian/Ubuntu package `librsvg2-bin`) and the CJK fonts referenced by
+the SVGs (`fonts-noto-cjk` for `MODERN` and `fonts-arphic-ukai` for `HAND_BRUSH`).
+

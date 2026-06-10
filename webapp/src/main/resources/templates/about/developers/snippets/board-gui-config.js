@@ -19,6 +19,8 @@ const FileNumbersStyle = Object.freeze({
 const PieceStyleSetting = Object.freeze({
     TRADITIONAL: 'TRADITIONAL',
     ROMANIZED_ROUNDED: 'ROMANIZED_ROUNDED',
+    MODERN: 'MODERN',
+    HAND_BRUSH: 'HAND_BRUSH',
     DEFAULT: 'TRADITIONAL',
 });
 

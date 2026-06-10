@@ -359,6 +359,12 @@ class SettingsGui {
     #selectPieceStyleRomanizedRounded = document.getElementById('select-piece-style-romanized-rounded');
     #flipBoard = document.getElementById('flip-board-button');
 
+    // advanced piece style
+    #pieceStyleTraditionalRadio = document.getElementById('piece-style-traditional-radio');
+    #pieceStyleRomanizedRoundedRadio = document.getElementById('piece-style-romanized-rounded-radio');
+    #pieceStyleModernRadio = document.getElementById('piece-style-modern-radio');
+    #pieceStyleHandBrushRadio = document.getElementById('piece-style-hand-brush-radio');
+
     #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
     #advancedSettingsBox = document.getElementById('advanced-settings-box');
     #advancedSettingsCloseButton = document.getElementById('advanced-settings-close-button');
@@ -415,19 +421,45 @@ class SettingsGui {
         this.#moveTreeWidget = moveTreeWidget;
         this.#boardGuis.push(boardGui);
 
-        // select piece style 1
-        this.#selectPieceStyleTraditional.onclick = () => {
-            this.#settingsManager.pieceStyle = PieceStyleSetting.TRADITIONAL;
-            this.#boardGuis.forEach(boardGui => boardGui.updatePieceStyle(PieceStyleSetting.TRADITIONAL));
-        }
+        // piece style: 2 quick picks in the main box + all 4 options in advanced settings
+        const pieceStyleRadios = {
+            [PieceStyleSetting.TRADITIONAL]: this.#pieceStyleTraditionalRadio,
+            [PieceStyleSetting.ROMANIZED_ROUNDED]: this.#pieceStyleRomanizedRoundedRadio,
+            [PieceStyleSetting.MODERN]: this.#pieceStyleModernRadio,
+            [PieceStyleSetting.HAND_BRUSH]: this.#pieceStyleHandBrushRadio,
+        };
+        const applyPieceStyle = (pieceStyle) => {
+            this.#settingsManager.pieceStyle = pieceStyle;
+            this.#boardGuis.forEach(boardGui => boardGui.updatePieceStyle(pieceStyle));
+            const radio = pieceStyleRadios[pieceStyle];
+            if (radio != null) {
+                radio.checked = true;
+            }
+        };
+
+        // select piece style 1 (main box)
+        this.#selectPieceStyleTraditional.onclick = () => applyPieceStyle(PieceStyleSetting.TRADITIONAL);
         addToolTip(this.#selectPieceStyleTraditional, "Select 'Traditional' piece style");
 
-        // select piece style 2
-        this.#selectPieceStyleRomanizedRounded.onclick = () => {
-            this.#settingsManager.pieceStyle = PieceStyleSetting.ROMANIZED_ROUNDED;
-            this.#boardGuis.forEach(boardGui => boardGui.updatePieceStyle(PieceStyleSetting.ROMANIZED_ROUNDED));
-        }
+        // select piece style 2 (main box)
+        this.#selectPieceStyleRomanizedRounded.onclick = () => applyPieceStyle(PieceStyleSetting.ROMANIZED_ROUNDED);
         addToolTip(this.#selectPieceStyleRomanizedRounded, "Select 'Romanized Rounded' piece style");
+
+        // piece style (advanced settings: all 4 options)
+        const currentPieceStyle = pieceStyleRadios[this.#settingsManager.pieceStyle]
+            ? this.#settingsManager.pieceStyle
+            : PieceStyleSetting.DEFAULT;
+        Object.entries(pieceStyleRadios).forEach(([style, radio]) => {
+            if (radio == null) {
+                return;
+            }
+            radio.checked = style === currentPieceStyle;
+            radio.onchange = () => {
+                if (radio.checked) {
+                    applyPieceStyle(style);
+                }
+            };
+        });
 
         // move format
         const isWxfMoveFormat = (mf) => mf === MoveFormatSetting.WXF_DOT || mf === MoveFormatSetting.WXF_EQUALS;
