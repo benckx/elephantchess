@@ -1478,7 +1478,7 @@ table.info-box-sub-table td.values {
     display: flex;
     align-items: flex-start;
     width: 100%;
-    margin: 6px 0;
+    margin: 10px 0;
 }
 
 #settings-info-box-container #advanced-settings-box .advanced-setting-icon {
