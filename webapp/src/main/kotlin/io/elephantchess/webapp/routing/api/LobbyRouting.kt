@@ -1,6 +1,5 @@
 package io.elephantchess.webapp.routing.api
 
-import io.elephantchess.servicelayer.dto.lobby.AlwaysVisibleInLobbyAllowedResponse
 import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateRequest
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.services.LobbyService
@@ -26,9 +25,7 @@ fun Route.lobbyRoutes() {
         }
         get("/always-visible-in-lobby-allowed") {
             requireIdentification { verifiedToken ->
-                AlwaysVisibleInLobbyAllowedResponse(
-                    allowed = pvpGameService.isAlwaysVisibleInLobbyAllowed(verifiedToken.userId)
-                )
+                pvpGameService.isOptionAlwaysVisibleInLobbyAllowed(verifiedToken)
             }
         }
     }
