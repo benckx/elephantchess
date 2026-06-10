@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256">
+  <defs>
+    <filter id="brush" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="5" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="#fedaa4"/>
+  <circle cx="50" cy="50" r="47" fill="none" stroke="#2b2b2b" stroke-width="2"/>
+  <circle cx="50" cy="50" r="40" fill="none" stroke="#2b2b2b" stroke-width="5"/>
+  <text x="50" y="73" font-family="AR PL UKai CN" font-weight="bold" font-size="62" fill="#2b2b2b" text-anchor="middle" filter="url(#brush)">砲</text>
+</svg>
