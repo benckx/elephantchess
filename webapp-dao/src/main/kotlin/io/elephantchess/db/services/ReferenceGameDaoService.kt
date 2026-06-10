@@ -69,7 +69,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun findById(gameId: String): ReferenceGameRecord? {
+    suspend fun findById(gameId: String): ReferenceGame? {
         return dslContext
             .select()
             .from(REFERENCE_GAME)
