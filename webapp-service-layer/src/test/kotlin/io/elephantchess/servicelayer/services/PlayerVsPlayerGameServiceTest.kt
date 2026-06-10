@@ -122,6 +122,39 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     /**
+     * "always visible in lobby" is rejected when the email is valid but the "someone joined my game"
+     * notification is disabled (only one of the two conditions is met).
+     */
+    @Test
+    fun alwaysVisibleInLobbyNotAllowedWithEmailOnlyTest() = runTest {
+        confirmEmail(userId1.id)
+        setOpponentJoinedGameNotification(userId1.id, enabled = false)
+
+        val e = assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, alwaysVisibleInLobbyRequest())
+        }
+
+        logger.info { "expected exception $e" }
+        assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
+    }
+
+    /**
+     * "always visible in lobby" is rejected when the "someone joined my game" notification is enabled but the
+     * email is not valid (only one of the two conditions is met).
+     */
+    @Test
+    fun alwaysVisibleInLobbyNotAllowedWithNotificationOnlyTest() = runTest {
+        setOpponentJoinedGameNotification(userId1.id, enabled = true)
+
+        val e = assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, alwaysVisibleInLobbyRequest())
+        }
+
+        logger.info { "expected exception $e" }
+        assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
+    }
+
+    /**
      * Guests are never allowed to use "always visible in lobby".
      */
     @Test
@@ -930,13 +963,21 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             .awaitSingleValue()!!
 
     private suspend fun makeAlwaysVisibleInLobbyAllowed(userId: String) {
+        confirmEmail(userId)
+        setOpponentJoinedGameNotification(userId, enabled = true)
+    }
+
+    private suspend fun confirmEmail(userId: String) {
         val code = userDaoService.findById(userId)!!.emailConfirmationCode
         assertTrue(userService.confirmEmail(code))
+    }
+
+    private suspend fun setOpponentJoinedGameNotification(userId: String, enabled: Boolean) {
         userService.updateNotificationsSettings(
             userId,
             NotificationsSettingsDto(
                 newsletter = false,
-                opponentJoinedGame = true,
+                opponentJoinedGame = enabled,
                 opponentPlayedMove = false,
                 opponentResigned = false,
                 opponentProposedDraw = false,
