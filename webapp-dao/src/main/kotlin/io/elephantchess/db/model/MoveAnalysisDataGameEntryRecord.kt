@@ -8,5 +8,5 @@ data class MoveAnalysisDataGameEntryRecord(
     val first: Instant,
     val last: Instant,
     val totalAnalyzedMoves: Int,
-    val analyzedFromBatch: Boolean = false,
+    val analyzedFromBatch: Boolean,
 )
