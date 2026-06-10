@@ -603,7 +603,7 @@
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-row {
-        margin: 10px 0;
+        margin: 16px 0;
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-icon {
@@ -624,8 +624,21 @@
         font-size: 30px;
     }
 
-    #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=radio] {
-        transform: scale(1.8);
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=checkbox] {
+        width: 22px;
+        height: 22px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options .standard-checkbox .label-span label {
+        font-size: 26px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-select {
+        max-width: 100%;
+        font-size: 26px;
+        padding: 8px 40px 8px 12px;
+        background-position: right 14px center;
+        background-size: 16px 10px;
     }
 
     #settings-info-box .setting-option-double-item {
