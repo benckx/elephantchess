@@ -625,8 +625,12 @@
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=checkbox] {
-        width: 26px;
-        height: 26px;
+        width: 22px;
+        height: 22px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options .standard-checkbox .label-span label {
+        font-size: 26px;
     }
 
     #settings-info-box-container #advanced-settings-box .advanced-setting-select {

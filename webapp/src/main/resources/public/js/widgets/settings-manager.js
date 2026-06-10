@@ -560,6 +560,11 @@ class SettingsGui {
         this.#showCoordinatesCheckbox.addEventListener('change', updateCoordinatesStyleEnabledState);
         updateCoordinatesMoveFormatMismatchWarning();
 
+        // make the "Enabled" labels of the checkboxes clickable (scoped to the advanced settings box)
+        if (this.#advancedSettingsBox != null) {
+            makeCheckboxesClickable(this.#advancedSettingsBox);
+        }
+
         // advanced settings
         const isMobileAdvancedSettingsLayout = () => window.matchMedia('(max-width: 1000px)').matches;
         const closeAdvancedSettings = () => {
