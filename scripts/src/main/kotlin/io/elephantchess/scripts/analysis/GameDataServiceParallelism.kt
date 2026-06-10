@@ -43,7 +43,7 @@ object GameDataServiceParallelism : KoinScriptInit() {
                 .map { GameId(GameType.PVB, it) }
                 .forEach { gameId ->
                     println("requesting analysis for gameId $gameId")
-                    val result = gameDataService.startGameAnalysis(gameId)
+                    val result = gameDataService.startGameAnalysis(gameId, isFromBatch = false)
                     println("result: $result")
                 }
 

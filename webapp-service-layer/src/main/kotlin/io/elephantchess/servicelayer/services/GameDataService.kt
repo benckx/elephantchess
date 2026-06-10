@@ -151,7 +151,7 @@ class GameDataService(
         return GameMovesResponse(moves)
     }
 
-    suspend fun startGameAnalysis(gameId: GameId, isFromBatch: Boolean = false): StartGameAnalysisResponse {
+    suspend fun startGameAnalysis(gameId: GameId, isFromBatch: Boolean): StartGameAnalysisResponse {
         fun stillInProgressException(gameId: GameId, gameEventType: GameEventType) =
             BadRequestException("Game $gameId is in status $gameEventType and can not be analyzed yet")
 
