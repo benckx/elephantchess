@@ -287,7 +287,7 @@ class GameDataService(
         moveAnalysisDaoService.resetAnalysisStatus(gameId)
     }
 
-    private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean = false) {
+    private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean) {
         suspend fun queryEngine(fen: String): InfoLineResult? {
             return enginesPool.safeQueryForDepth(
                 fen = fen,
