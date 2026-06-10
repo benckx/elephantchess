@@ -99,7 +99,12 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                     .where(GAME.ID.eq(gameId.id))
                     .awaitExecute()
 
-                PVB -> {} // Bot games don't have analyzed_from_batch field yet
+                PVB -> DSL
+                    .using(cfg)
+                    .update(BOT_GAME.fixed())
+                    .set(BOT_GAME.ANALYZED_FROM_BATCH.fixed(), value)
+                    .where(BOT_GAME.ID.eq(gameId.id))
+                    .awaitExecute()
             }
         }
     }
@@ -137,54 +142,23 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun listLatestMoveAnalysisData(limit: Int): List<MoveAnalysisDataGameEntryRecord> {
-        val referenceGames = dslContext
-            .select(
-                DSL.`val`("DB").`as`("game_type"),
-                REFERENCE_GAME.ID.`as`("game_id"),
-                DSL.min(MOVE_ANALYSIS.ENTRY_CREATION).`as`("min_date"),
-                DSL.max(MOVE_ANALYSIS.ENTRY_CREATION).`as`("max_date"),
-                DSL.count().`as`("total_moves"),
-                REFERENCE_GAME.ANALYZED_FROM_BATCH.`as`("analyzed_from_batch")
-            )
-            .from(MOVE_ANALYSIS)
-            .join(REFERENCE_GAME).on(MOVE_ANALYSIS.REF_GAME_ID.eq(REFERENCE_GAME.ID))
-            .groupBy(REFERENCE_GAME.ID, REFERENCE_GAME.ANALYZED_FROM_BATCH)
-
-        val pvpGames = dslContext
-            .select(
-                DSL.`val`("PVP").`as`("game_type"),
-                GAME.ID.`as`("game_id"),
-                DSL.min(MOVE_ANALYSIS.ENTRY_CREATION).`as`("min_date"),
-                DSL.max(MOVE_ANALYSIS.ENTRY_CREATION).`as`("max_date"),
-                DSL.count().`as`("total_moves"),
-                GAME.ANALYZED_FROM_BATCH.`as`("analyzed_from_batch")
-            )
-            .from(MOVE_ANALYSIS)
-            .join(GAME).on(MOVE_ANALYSIS.GAME_ID.eq(GAME.ID))
-            .groupBy(GAME.ID, GAME.ANALYZED_FROM_BATCH)
-
-        val botGames = dslContext
-            .select(
-                DSL.`val`("PVB").`as`("game_type"),
-                BOT_GAME.ID.`as`("game_id"),
-                DSL.min(MOVE_ANALYSIS.ENTRY_CREATION).`as`("min_date"),
-                DSL.max(MOVE_ANALYSIS.ENTRY_CREATION).`as`("max_date"),
-                DSL.count().`as`("total_moves"),
-                DSL.`val`(false).`as`("analyzed_from_batch")
-            )
-            .from(MOVE_ANALYSIS)
-            .join(BOT_GAME).on(MOVE_ANALYSIS.BOT_GAME_ID.eq(BOT_GAME.ID))
-            .groupBy(BOT_GAME.ID)
-
         return dslContext
-            .select()
-            .from(referenceGames.unionAll(pvpGames).unionAll(botGames))
-            .orderBy(DSL.field("max_date").desc())
+            .select(
+                GAME_TYPE,
+                GAME_ID,
+                DSL.min(ENTRY_CREATION).`as`("min_date"),
+                DSL.max(ENTRY_CREATION).`as`("max_date"),
+                DSL.count().`as`("total_moves"),
+                DSL.field("analyzed_from_batch", Boolean::class.java)
+            )
+            .from(COALESCED_VIEW)
+            .groupBy(GAME_TYPE, GAME_ID, DSL.field("analyzed_from_batch"))
+            .orderBy(DSL.max(ENTRY_CREATION).desc())
             .limit(limit)
             .awaitRecords()
             .map { record ->
                 MoveAnalysisDataGameEntryRecord(
-                    GameId(GameType.valueOf(record["game_type", String::class.java]), record["game_id", String::class.java]),
+                    GameId(GameType.valueOf(record[GAME_TYPE]), record[GAME_ID]),
                     record["min_date", Instant::class.java],
                     record["max_date", Instant::class.java],
                     record["total_moves", Int::class.java],
