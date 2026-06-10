@@ -2389,7 +2389,7 @@
                              foreignKeyName="opening_cache_ref_game_to_cache_fk"
                              references="opening_pre_calculation_cache(id)"/>
             </column>
-            <column name="reference_game_id" type="varchar(8)">
+            <column name="reference_game_id" type="varchar(12)">
                 <constraints nullable="false"
                              foreignKeyName="opening_cache_ref_game_to_game_fk"
                              references="reference_game(id)"/>
@@ -2414,7 +2414,7 @@
             <column name="id" type="int" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="reference_player_id" type="varchar(8)">
+            <column name="reference_player_id" type="varchar(12)">
                 <constraints nullable="false"
                              foreignKeyName="reference_player_opening_cache_to_player_fk"
                              references="reference_player(id)"/>
