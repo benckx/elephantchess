@@ -1520,16 +1520,48 @@ table.info-box-sub-table td.values {
 #settings-info-box-container #advanced-settings-box .advanced-setting-options label {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     cursor: pointer;
 }
 
-#settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=radio] {
+#settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=checkbox] {
+    width: 15px;
+    height: 15px;
+    accent-color: #6b5b3e;
     cursor: pointer;
+    margin: 0;
 }
 
-#settings-info-box-container #advanced-settings-box .advanced-setting-options .advanced-setting-option-disabled,
-#settings-info-box-container #advanced-settings-box .advanced-setting-options .advanced-setting-option-disabled input[type=radio] {
+#settings-info-box-container #advanced-settings-box .advanced-setting-select {
+    width: 100%;
+    max-width: 320px;
+    padding: 5px 28px 5px 9px;
+    font-size: 13px;
+    color: #2f2f2f;
+    background-color: #f3ebda;
+    border: 1px solid #8a7c66;
+    border-radius: 4px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%236b5b3e' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-select:hover {
+    border-color: #6b5b3e;
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-select:focus {
+    outline: none;
+    border-color: #6b5b3e;
+    box-shadow: 0 0 0 2px rgba(107, 91, 62, 0.25);
+}
+
+#settings-info-box-container #advanced-settings-box .advanced-setting-options.advanced-setting-option-disabled,
+#settings-info-box-container #advanced-settings-box .advanced-setting-options.advanced-setting-option-disabled .advanced-setting-select {
     color: #9a9a9a;
     cursor: not-allowed;
     opacity: 0.6;
