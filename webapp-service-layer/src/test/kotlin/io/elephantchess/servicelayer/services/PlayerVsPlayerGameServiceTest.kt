@@ -94,15 +94,17 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     /**
-     * "always visible in lobby" is forced off when the user's email is not valid and/or the "someone joined my
-     * game" notification is disabled, even if the request asks for it.
+     * "always visible in lobby" is rejected when the user's email is not valid and/or the "someone joined my
+     * game" notification is disabled (and the game is not a correspondence game).
      */
     @Test
     fun alwaysVisibleInLobbyNotAllowedTest() = runTest {
-        val response = pvpGameService.createGame(userId1, alwaysVisibleInLobbyRequest())
+        val e = assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(userId1, alwaysVisibleInLobbyRequest())
+        }
 
-        assertEquals(CREATED, response.eventType)
-        assertFalse(fetchAlwaysVisibleInLobby(response.gameId))
+        logger.info { "expected exception $e" }
+        assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
     }
 
     /**

@@ -342,7 +342,7 @@ class PlayerVsPlayerGameService(
         if (
             !request.privateInvite &&
             request.alwaysVisibleInLobby &&
-            request.timeControlMode == TimeControlMode.MOVE_TIME &&
+            request.timeControlMode != TimeControlMode.MOVE_TIME &&
             !isOptionAlwaysVisibleInLobbyAllowed(userId.id)
         ) {
             throw BadRequestException(
