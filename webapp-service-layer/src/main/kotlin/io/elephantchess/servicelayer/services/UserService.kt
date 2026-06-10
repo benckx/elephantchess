@@ -161,18 +161,28 @@ class UserService(
         }
 
         val user = userDaoService.findByEmailConfirmationCode(code) ?: return false
-        val now = Clock.System.now()
 
-        if (user.emailConfirmedAt == null) {
-            val createdAt = user.emailConfirmationCodeCreatedAt
-            if (createdAt == null || createdAt.plusHours(EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS).isBefore(now)) {
-                logger.info { "email confirmation code expired for user ${user.id}" }
-                return false
-            }
-            userDaoService.markEmailConfirmed(user.id, now)
-            logger.info { "email confirmed for user ${user.id}" }
+        if (user.emailConfirmedAt != null) {
+            logger.debug { "email already confirmed for user ${user.id}, skipping confirmation" }
+            return true
         }
 
+        val now = Clock.System.now()
+        val createdAt = user.emailConfirmationCodeCreatedAt
+
+        if (createdAt == null) {
+            logger.warn { "email confirmation code createdAt is null for user ${user.id}" }
+            return false
+        }
+
+        val isExpired = createdAt.plusHours(EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS).isBefore(now)
+        if (isExpired) {
+            logger.info { "email confirmation code expired for user ${user.id}" }
+            return false
+        }
+
+        userDaoService.markEmailConfirmed(user.id, now)
+        logger.info { "email confirmed for user ${user.id}" }
         return true
     }
 
