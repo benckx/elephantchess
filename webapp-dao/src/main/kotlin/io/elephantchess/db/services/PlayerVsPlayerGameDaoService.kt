@@ -184,17 +184,25 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     suspend fun listLastGames(
         limit: Int,
         statusToExcludes: List<GameEventType> = listOf(),
+        variantsToInclude: List<Variant>
     ): List<Game> {
-        val query =
-            if (statusToExcludes.isNotEmpty()) {
-                dslContext
-                    .select()
-                    .from(GAME)
-                    .where(GAME.GAME_STATUS.notIn(statusToExcludes))
-            } else {
-                dslContext
-                    .select()
-                    .from(GAME)
+        val conditions = mutableListOf<Condition>()
+        if (statusToExcludes.isNotEmpty()) {
+            conditions += GAME.GAME_STATUS.notIn(statusToExcludes)
+        }
+        if (variantsToInclude.isNotEmpty()) {
+            conditions += GAME.VARIANT.`in`(variantsToInclude)
+        }
+
+        val query = dslContext
+            .select()
+            .from(GAME)
+            .let {
+                if (conditions.isEmpty()) {
+                    it
+                } else {
+                    it.where(conditions)
+                }
             }
 
         return query

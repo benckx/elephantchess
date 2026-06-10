@@ -67,10 +67,16 @@ private fun Route.adminFeedsRoutes() {
     val adminFeedService by koin<AdminFeedService>()
 
     get("/list-games") {
-        requireAdminRole { adminFeedService.listLastGames() }
+        requireAdminRole { adminFeedService.listLatestPvpGames() }
+    }
+    get("/list-variant-games") {
+        requireAdminRole { adminFeedService.listLatestVariantPvpGames() }
     }
     get("/list-bot-games") {
-        requireAdminRole { adminFeedService.listLastBotGames() }
+        requireAdminRole { adminFeedService.listLatestPvbGames() }
+    }
+    get("/list-variant-bot-games") {
+        requireAdminRole { adminFeedService.listLatestVariantPvbGames() }
     }
     get("/last-played-puzzles") {
         requireAdminRole { adminFeedService.listLastPuzzlePlayedByLoggedUsers() }
