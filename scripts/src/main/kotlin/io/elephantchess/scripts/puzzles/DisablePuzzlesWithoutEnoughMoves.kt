@@ -1,4 +1,4 @@
-package io.elephantchess.scripts.analysis
+package io.elephantchess.scripts.puzzles
 
 import io.elephantchess.config.ArgConfig
 import io.elephantchess.config.loadAppConfig
