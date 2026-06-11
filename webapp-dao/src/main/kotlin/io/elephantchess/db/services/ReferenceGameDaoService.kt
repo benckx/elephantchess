@@ -513,7 +513,9 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         private val WHITESPACE_REGEX = Regex("""\s+""")
 
         fun sanitizePlayerName(playerName: String?): String? =
-            playerName?.replace(PARENTHETICAL_REGEX, "")?.replace(WHITESPACE_REGEX, " ")?.trim()
+            playerName
+                ?.replace(PARENTHETICAL_REGEX, "")
+                ?.replace(WHITESPACE_REGEX, " ")?.trim()
                 ?.takeIf { it.isNotEmpty() }
     }
 

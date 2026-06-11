@@ -28,19 +28,11 @@ import kotlin.time.Instant
 
 class ReferencePlayerDaoService(private val dslContext: DSLContext) {
 
+    @Suppress("unused")
     suspend fun savePlayers(players: List<ReferencePlayer>) {
         dslContext.transactionCoroutine { cfg ->
             ReferencePlayerDao(cfg).insertMultipleReactive(players)
         }
-    }
-
-    suspend fun findCanonicalPlayerName(id: String): String? {
-        return dslContext
-            .select(REFERENCE_PLAYER.CANONICAL_NAME)
-            .from(REFERENCE_PLAYER)
-            .where(REFERENCE_PLAYER.ID.eq(id))
-            .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
-            .awaitSingleValue()
     }
 
     suspend fun findPlayer(id: String): ReferencePlayer? {
@@ -460,6 +452,7 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
         )
     }
 
+    @Suppress("unused")
     suspend fun listAllPlayers(): List<ReferencePlayerRecord> {
         return dslContext
             .select()
