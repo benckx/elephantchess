@@ -10,7 +10,6 @@ import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.fixed
 import io.elephantchess.scripts.utils.getScriptDslContext
-import io.elephantchess.servicelayer.services.PuzzleSolvabilityValidator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.jooq.impl.DSL
