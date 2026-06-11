@@ -1,4 +1,4 @@
-package io.elephantchess.servicelayer.services
+package io.elephantchess.scripts.puzzles
 
 import io.elephantchess.xiangqi.Board
 
