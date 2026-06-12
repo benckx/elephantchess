@@ -26,24 +26,28 @@ import kotlin.time.Instant
 
 class ReferenceGameDaoService(private val dslContext: DSLContext) {
 
+    @Suppress("unused")
     suspend fun saveEvents(events: List<ReferenceGameEvent>) {
         dslContext.transactionCoroutine { cfg ->
             ReferenceGameEventDao(cfg).insertMultipleReactive(events)
         }
     }
 
+    @Suppress("unused")
     suspend fun saveOpenings(openings: List<ReferenceGameOpening>) {
         dslContext.transactionCoroutine { cfg ->
             ReferenceGameOpeningDao(cfg).insertMultipleReactive(openings)
         }
     }
 
+    @Suppress("unused")
     suspend fun saveVariations(variations: List<ReferenceGameOpeningVariation>) {
         dslContext.transactionCoroutine { cfg ->
             ReferenceGameOpeningVariationDao(cfg).insertMultipleReactive(variations)
         }
     }
 
+    @Suppress("unused")
     suspend fun saveGame(pojo: ReferenceGamePojo) {
         dslContext.transactionCoroutine { cfg ->
             ReferenceGameDao(cfg).insertReactive(pojo.game)
@@ -69,7 +73,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun findById(gameId: String): ReferenceGameRecord? {
+    suspend fun findById(gameId: String): ReferenceGame? {
         return dslContext
             .select()
             .from(REFERENCE_GAME)
@@ -121,6 +125,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .toList()
     }
 
+    @Suppress("unused")
     suspend fun listAllEvents(): List<ReferenceGameEventRecord> {
         return dslContext
             .select()
@@ -129,6 +134,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
+    @Suppress("unused")
     suspend fun listAllOpenings(): List<ReferenceGameOpeningRecord> {
         return dslContext
             .select()
@@ -137,6 +143,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
+    @Suppress("unused")
     suspend fun listAllOpeningVariations(): List<ReferenceGameOpeningVariationRecord> {
         return dslContext
             .select()
@@ -145,6 +152,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
+    @Suppress("unused")
     suspend fun listAllSourceReferenceIds(): List<String> {
         return dslContext
             .selectDistinct(REFERENCE_GAME.SOURCE_ID)
@@ -186,8 +194,9 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    // might be useful later
-    @Suppress("unused")
+    // TODO: decide if we want to keep this or not
+    //   we currently have a MR to index the games per opening in db,
+    //   which would render this method unnecessary
     private suspend fun listAllGamesBeginningWithMoves(moves: List<String>): List<String> {
         if (moves.isEmpty()) {
             return emptyList()
@@ -504,7 +513,9 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         private val WHITESPACE_REGEX = Regex("""\s+""")
 
         fun sanitizePlayerName(playerName: String?): String? =
-            playerName?.replace(PARENTHETICAL_REGEX, "")?.replace(WHITESPACE_REGEX, " ")?.trim()
+            playerName
+                ?.replace(PARENTHETICAL_REGEX, "")
+                ?.replace(WHITESPACE_REGEX, " ")?.trim()
                 ?.takeIf { it.isNotEmpty() }
     }
 

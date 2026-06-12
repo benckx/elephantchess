@@ -45,11 +45,7 @@ class MailService(
 ) {
 
     private val sendMailNotifications by lazy { appConfig.sendMailNotifications }
-
-    // mail configuration
     private val mailConfig by lazy { appConfig.mailConfig }
-
-    // templating
     private val webHost = appConfig.webHost
 
     private val mailScope by lazy { CoroutineScope(Dispatchers.IO) }
@@ -185,7 +181,7 @@ class MailService(
 
     fun sendLowCreditNotification(available: Int) {
         if (sendMailNotifications) {
-            sendMail(
+            sendMailSync(
                 Email(
                     to = ADMIN_GMAIL_EMAIL,
                     subject = "Low credit on EmailListVerify",
@@ -199,7 +195,7 @@ class MailService(
 
     fun sendEnginePoolHealthCheckFailed(errors: List<String>) {
         if (sendMailNotifications) {
-            sendMail(
+            sendMailSync(
                 Email(
                     to = ADMIN_GMAIL_EMAIL,
                     subject = "Engine pool health check failed",
@@ -368,7 +364,7 @@ class MailService(
         fun sendSafeAsync(email: Email) {
             mailScope.launch {
                 try {
-                    sendMail(email)
+                    sendMailSync(email)
                 } catch (e: Exception) {
                     logger.error(e) { "error sending email '${email.subject}" }
                 }
@@ -433,7 +429,7 @@ class MailService(
             // parse the rendered body for CID references and build embedded images map
             val imagesToEmbed = parseCidReferences(renderedBody, templateName)
 
-            sendMail(
+            sendMailSync(
                 Email(
                     to = recipient,
                     subject = subject,
@@ -446,7 +442,7 @@ class MailService(
         }
     }
 
-    private fun sendMail(email: Email) {
+    private fun sendMailSync(email: Email) {
         logger.debug { "sending to '${email.to}': $email" }
         val message = MimeMessage(session())
         message.setFrom(InternetAddress(mailConfig.username, "elephantchess.io"))
