@@ -1,12 +1,10 @@
 package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
-import io.elephantchess.db.dao.codegen.tables.daos.ReferencePlayerDao
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayer
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEdit
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEditSource
 import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameRecord
-import io.elephantchess.db.dao.codegen.tables.records.ReferencePlayerRecord
 import io.elephantchess.db.model.EntityIdAndNameRecord
 import io.elephantchess.db.model.NumberOfGamesRecord
 import io.elephantchess.db.model.PlayerGameStatsRecord
@@ -27,13 +25,6 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 class ReferencePlayerDaoService(private val dslContext: DSLContext) {
-
-    @Suppress("unused")
-    suspend fun savePlayers(players: List<ReferencePlayer>) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferencePlayerDao(cfg).insertMultipleReactive(players)
-        }
-    }
 
     suspend fun findPlayer(id: String): ReferencePlayer? {
         return dslContext
@@ -230,8 +221,8 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
 
         // total games expression for HAVING clause (can't use aliases, must use the actual expressions)
         val totalGamesExpr = winsAsRed.plus(winsAsBlack)
-                .plus(drawsExpr)
-                .plus(lossesAsRed).plus(lossesAsBlack)
+            .plus(drawsExpr)
+            .plus(lossesAsRed).plus(lossesAsBlack)
 
         val baseQuery = dslContext
             .select(
@@ -450,15 +441,6 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
             blackLosses = (record.value5() as? Number)?.toInt() ?: 0,
             blackDraws = (record.value6() as? Number)?.toInt() ?: 0
         )
-    }
-
-    @Suppress("unused")
-    suspend fun listAllPlayers(): List<ReferencePlayerRecord> {
-        return dslContext
-            .select()
-            .from(REFERENCE_PLAYER)
-            .orderBy(REFERENCE_PLAYER.SOURCE_NAME)
-            .awaitMappedRecords()
     }
 
     suspend fun listPlayersStartingWith(startsWith: String, limit: Int): List<EntityIdAndNameRecord> {
