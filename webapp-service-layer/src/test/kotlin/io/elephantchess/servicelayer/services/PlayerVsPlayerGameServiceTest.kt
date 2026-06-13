@@ -149,11 +149,8 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
     }
 
-    /**
-     * Guests are never allowed to use "always visible in lobby".
-     */
     @Test
-    fun alwaysVisibleInLobbyNotAllowedForGuestTest() = runTest {
+    fun `'always visible in lobby' always rejected for guest`() = runTest {
         val e = assertFailsWith<BadRequestException> {
             pvpGameService.createGame(guestId1, alwaysVisibleInLobbyRapidPublicGameRequest())
         }
@@ -162,21 +159,20 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals("Guest users are not allowed to use the 'always show in lobby' option", e.message)
     }
 
-    /**
-     * "always visible in lobby" is always honored for correspondence games, even if the user is not otherwise
-     * allowed (no valid email / notification disabled).
-     */
     @Test
-    fun alwaysVisibleInLobbyAllowedForCorrespondenceTest() = runTest {
-        val request = alwaysVisibleInLobbyRapidPublicGameRequest().copy(
-            timeControlMode = TimeControlMode.MOVE_TIME,
-            timeControlBase = 1.days.inWholeSeconds.toInt(),
-        )
+    fun `'always visible in lobby' rejected if conditions are not met, even for correspondence games`() = runTest {
+        val e = assertFailsWith<BadRequestException> {
+            pvpGameService.createGame(
+                userId1,
+                alwaysVisibleInLobbyRapidPublicGameRequest().copy(
+                    timeControlMode = TimeControlMode.MOVE_TIME,
+                    timeControlBase = 1.days.inWholeSeconds.toInt(),
+                )
+            )
+        }
 
-        val response = pvpGameService.createGame(userId1, request)
-
-        assertEquals(CREATED, response.eventType)
-        assertTrue(fetchAlwaysVisibleInLobby(response.gameId))
+        logger.info { "expected exception $e" }
+        assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
     }
 
     /**

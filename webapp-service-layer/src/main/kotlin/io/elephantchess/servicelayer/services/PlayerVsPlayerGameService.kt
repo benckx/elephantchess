@@ -339,12 +339,7 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to use the 'always show in lobby' option")
         }
 
-        if (
-            !request.privateInvite &&
-            request.alwaysVisibleInLobby &&
-            request.timeControlMode != TimeControlMode.MOVE_TIME &&
-            !isOptionAlwaysVisibleInLobbyAllowed(userId.id)
-        ) {
+        if (!request.privateInvite && request.alwaysVisibleInLobby && !isOptionAlwaysVisibleInLobbyAllowed(userId.id)) {
             throw BadRequestException(
                 "The 'always show in lobby' option is not allowed for this game. " +
                         "It can only be enabled for correspondence games or if you have a valid email address and the" +
