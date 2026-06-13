@@ -84,6 +84,24 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         }
 
         @Test
+        fun `accepted but force disabled if private invite`() = runTest {
+            assertFalse(mailService.isEmailAddressValid(fetchEmailOf(userId1.id)))
+            assertFalse(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
+
+            val response = pvpGameService.createGame(
+                userId = userId1,
+                request = alwaysVisibleInLobbyRapidPublicGameRequest()
+                    .copy(privateInvite = true)
+            )
+
+            assertEquals(CREATED, response.eventType, "game is created")
+            assertFalse(
+                fetchAlwaysVisibleInLobby(response.gameId),
+                "'always visible in lobby' should be forced disabled"
+            )
+        }
+
+        @Test
         fun `rejected if email is not valid`() = runTest {
             assertFalse(mailService.isEmailAddressValid(fetchEmailOf(userId1.id)))
             assertFalse(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
