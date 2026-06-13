@@ -546,7 +546,7 @@ class UserService(
     companion object {
 
         const val PASSWORD_RECOVERY_TIMEOUT_HOURS = 1L
-        const val EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS = 1L
+        const val EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS = 24L
         const val SALT_ALGO = "PBKDF2WithHmacSHA1"
 
         const val USERNAME_MIN_LENGTH = 4
