@@ -167,6 +167,21 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
         }
 
+        @Test
+        fun `disable 'always visible in lobby' for existing games when option is updated`() = runTest {
+            makeAlwaysVisibleInLobbyAllowed(userId1.id)
+            assertTrue(mailService.isEmailAddressValid(fetchEmailOf(userId1.id)))
+            assertTrue(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
+
+            val response = pvpGameService.createGame(userId1, alwaysVisibleInLobbyRapidPublicGameRequest())
+
+            assertEquals(CREATED, response.eventType)
+            assertTrue(fetchAlwaysVisibleInLobby(response.gameId))
+
+            setOpponentJoinedGameNotification(userId1.id, enabled = false)
+            assertFalse(fetchAlwaysVisibleInLobby(response.gameId))
+        }
+
         private suspend fun fetchAlwaysVisibleInLobby(gameId: String): Boolean =
             dslContext
                 .select(GAME.ALWAYS_VISIBLE_IN_LOBBY)
@@ -180,14 +195,14 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         }
 
         private suspend fun confirmEmail(userId: String) {
-            val code = userDaoService.findById(userId)!!.emailConfirmationCode
-            assertTrue(userService.confirmEmail(code))
+            val confirmationCode = userDaoService.findById(userId)!!.emailConfirmationCode
+            assertTrue(userService.confirmEmail(confirmationCode))
         }
 
-        private suspend fun setOpponentJoinedGameNotification(userId: String, enabled: Boolean) {
+        private suspend fun setOpponentJoinedGameNotification(userId: String, enabled: Boolean) =
             userService.updateNotificationsSettings(
-                userId,
-                NotificationsSettingsDto(
+                userId = userId,
+                request = NotificationsSettingsDto(
                     newsletter = false,
                     opponentJoinedGame = enabled,
                     opponentPlayedMove = false,
@@ -197,7 +212,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     opponentDeclinedDraw = false,
                 )
             )
-        }
 
         private fun alwaysVisibleInLobbyRapidPublicGameRequest() =
             CreateGameRequest(

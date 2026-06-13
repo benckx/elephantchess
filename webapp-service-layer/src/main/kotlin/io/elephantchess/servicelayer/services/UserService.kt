@@ -406,6 +406,10 @@ class UserService(
             opponentAcceptedDraw = request.opponentAcceptedDraw,
             opponentDeclinedDraw = request.opponentDeclinedDraw,
         )
+
+        if (!request.opponentJoinedGame) {
+            playerVsPlayerGameDaoService.disableAlwaysVisibleInLobbyOptionForUserCreatedGames(userId)
+        }
     }
 
     suspend fun fetchEmailAddressSettings(userId: String): EmailAddressSettingsResponse {
