@@ -49,6 +49,9 @@ private val scope = CoroutineScope(Dispatchers.IO.limitedParallelism(8))
 private val countUpdates = AtomicInteger(0)
 private val countInserts = AtomicInteger(0)
 
+/**
+ * Refresh data in opening_pre_calculation_cache and opening_pre_calculation_cache_reference_game
+ */
 fun main(): Unit = runBlocking {
     val start = System.currentTimeMillis()
 
