@@ -537,98 +537,101 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     /**
-     * Two users created compatible games while not being online at the same
-     * time (so the regular matching at creation time did not pair them).
-     * When both users come back online, the dynamic matching routine should
-     * pair the two games together.
+     * Two users created compatible games while not being online at the same time (so the regular matching at creation time did not pair them).
+     * When both users come back online, the dynamic matching routine can pair the two games together.
      */
-    @Test
-    fun dynamicMatchingTest01() = runTest {
-        // user2 is offline when user1 creates their game
-        setUserOffline(userId2.id)
-        userService.refreshIsOnlineCache()
+    @Nested
+    @DisplayName("Dynamic matching behavior")
+    inner class DynamicMatchingBehavior {
 
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
+        @Test
+        fun `matches compatible pending games when both inviters come back online`() = runTest {
+            // user2 is offline when user1 creates their game
+            setUserOffline(userId2.id)
+            userService.refreshIsOnlineCache()
 
-        val response1 = pvpGameService.createGame(userId1, request1)
-        assertEquals(CREATED, response1.eventType)
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = false
+            )
 
-        // user1 is offline when user2 creates their compatible game
-        setUserOffline(userId1.id)
-        setUserOnline(userId2.id)
-        userService.refreshIsOnlineCache()
+            val response1 = pvpGameService.createGame(userId1, request1)
+            assertEquals(CREATED, response1.eventType)
 
-        val response2 = pvpGameService.createGame(userId2, request1.copy(inviterColor = BLACK))
-        assertEquals(CREATED, response2.eventType)
+            // user1 is offline when user2 creates their compatible game
+            setUserOffline(userId1.id)
+            setUserOnline(userId2.id)
+            userService.refreshIsOnlineCache()
 
-        // both games remain pending because the other inviter was offline
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
+            val response2 = pvpGameService.createGame(userId2, request1.copy(inviterColor = BLACK))
+            assertEquals(CREATED, response2.eventType)
 
-        // both users come back online → dynamic matching should pair them
-        setUserOnline(userId1.id)
-        setUserOnline(userId2.id)
-        userService.refreshIsOnlineCache()
+            // both games remain pending because the other inviter was offline
+            assertEquals(0, countGameByStatus(JOINED))
+            assertEquals(2, countGameByStatus(CREATED))
 
-        pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+            // both users come back online → dynamic matching should pair them
+            setUserOnline(userId1.id)
+            setUserOnline(userId2.id)
+            userService.refreshIsOnlineCache()
 
-        assertEquals(1, countGameByStatus(JOINED))
-        assertEquals(0, countGameByStatus(CREATED))
-        assertEquals(1, countGameByStatus(AUTO_CANCELED))
-    }
+            pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
 
-    /**
-     * If two pending games are incompatible (e.g. both inviters want the same
-     * color) dynamic matching should not pair them, even when both inviters
-     * are online.
-     */
-    @Test
-    fun dynamicMatchingIncompatibleTest01() = runTest {
-        // user2 is offline when user1 creates their game
-        setUserOffline(userId2.id)
-        userService.refreshIsOnlineCache()
+            assertEquals(1, countGameByStatus(JOINED))
+            assertEquals(0, countGameByStatus(CREATED))
+            assertEquals(1, countGameByStatus(AUTO_CANCELED))
+        }
 
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
+        /**
+         * If two pending games are incompatible (e.g. both inviters want the same
+         * color) dynamic matching should not pair them, even when both inviters
+         * are online.
+         */
+        @Test
+        fun `does not match incompatible pending games even when inviters are online`() = runTest {
+            // user2 is offline when user1 creates their game
+            setUserOffline(userId2.id)
+            userService.refreshIsOnlineCache()
 
-        val response1 = pvpGameService.createGame(userId1, request1)
-        assertEquals(CREATED, response1.eventType)
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = false
+            )
 
-        // user1 is offline when user2 creates a game with the same color
-        setUserOffline(userId1.id)
-        setUserOnline(userId2.id)
-        userService.refreshIsOnlineCache()
+            val response1 = pvpGameService.createGame(userId1, request1)
+            assertEquals(CREATED, response1.eventType)
 
-        val response2 = pvpGameService.createGame(userId2, request1.copy())
-        assertEquals(CREATED, response2.eventType)
+            // user1 is offline when user2 creates a game with the same color
+            setUserOffline(userId1.id)
+            setUserOnline(userId2.id)
+            userService.refreshIsOnlineCache()
 
-        // both back online; games are incompatible (both RED) → no match
-        setUserOnline(userId1.id)
-        setUserOnline(userId2.id)
-        userService.refreshIsOnlineCache()
+            val response2 = pvpGameService.createGame(userId2, request1.copy())
+            assertEquals(CREATED, response2.eventType)
 
-        pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+            // both back online; games are incompatible (both RED) → no match
+            setUserOnline(userId1.id)
+            setUserOnline(userId2.id)
+            userService.refreshIsOnlineCache()
 
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
-        assertEquals(0, countGameByStatus(AUTO_CANCELED))
+            pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+
+            assertEquals(0, countGameByStatus(JOINED))
+            assertEquals(2, countGameByStatus(CREATED))
+            assertEquals(0, countGameByStatus(AUTO_CANCELED))
+        }
     }
 
     @Test
