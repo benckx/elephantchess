@@ -80,6 +80,21 @@ class GameThumb {
     metadata = null;
 
     /**
+     * The last known move index for PvB games (used to request only new moves from the server).
+     * Null means unknown (no move index has been received yet from the server).
+     *
+     * @type {number|null}
+     */
+    currentMoveIndex = null;
+
+    /**
+     * @type {HalfMove[]}
+     */
+    #moveQueue = [];
+
+    #isProcessingMoveQueue = false;
+
+    /**
      * @param divElement {HTMLDivElement}
      * @param boardGui {BoardGui}
      */
@@ -351,6 +366,9 @@ class GameThumb {
             .remove('board-container-placeholder');
 
         this.boardGui.loadFen(gameMetadataDto.finalFen);
+        this.currentMoveIndex = null;
+        this.#moveQueue = [];
+        this.#isProcessingMoveQueue = false;
 
         this.divElement
             .classList
@@ -361,10 +379,22 @@ class GameThumb {
      * Refresh this thumb in-place from a {@link LatestGamesUpdateResponse} entry,
      * without re-rendering player names, ratings, ...
      *
-     * @param update {{gameId: GameId, status: string, fen: string, lastUpdated: number}}
+     * @param update {{gameId: GameId, status: string, fen: string, lastUpdated: number, moveIndex: number|null, newMoves: string[]}}
      */
     refresh(update) {
-        this.boardGui.loadFen(update.fen, true);
+        if (update.newMoves != null && update.newMoves.length > 0) {
+            const parsedMoves = update.newMoves.map(uci => HalfMove.parseUci(uci));
+            this.#moveQueue = this.#moveQueue.concat(parsedMoves);
+            if (!this.#isProcessingMoveQueue) {
+                this.#processMoveQueue();
+            }
+        } else {
+            this.boardGui.loadFen(update.fen, true);
+        }
+
+        if (update.moveIndex != null) {
+            this.currentMoveIndex = update.moveIndex;
+        }
 
         const lastUpdatedDiv = this.#findFirst('game-thumb-status');
         if (lastUpdatedDiv != null) {
@@ -378,6 +408,22 @@ class GameThumb {
         const lastUpdatedEl = this.#findFirst('game-thumb-last-updated');
         if (lastUpdatedEl != null && update.lastUpdated > 0) {
             lastUpdatedEl.innerHTML = formatTimestampToRelativeTime(update.lastUpdated);
+        }
+    }
+
+    #processMoveQueue() {
+        const move = this.#moveQueue.shift();
+        if (move) {
+            this.#isProcessingMoveQueue = true;
+            this.boardGui.registerOpponentMove(move, false, () => {
+                if (this.#moveQueue.length > 0) {
+                    setTimeout(() => this.#processMoveQueue(), 300);
+                } else {
+                    this.#isProcessingMoveQueue = false;
+                }
+            });
+        } else {
+            this.#isProcessingMoveQueue = false;
         }
     }
 

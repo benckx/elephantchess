@@ -568,24 +568,56 @@ class GameDataService(
     suspend fun fetchLatestGamesUpdate(request: LatestGamesUpdateRequest): LatestGamesUpdateResponse {
         val idsByType = request
             .gameIds
-            .groupBy({ gameID -> gameID.type }, { gameId -> gameId.id })
+            .groupBy({ gameId -> gameId.type }, { gameId -> gameId.id })
 
         val pvpGames = pvpGameDaoService.fetchCurrentStatusAndFen(idsByType[PVP].orEmpty())
         val pvbGames = pvbGameDaoService.fetchCurrentStatusAndFen(idsByType[PVB].orEmpty())
 
+        val pvpNewMoves = if (request.moveIndexes.isNotEmpty()) {
+            val moveTuples = pvpGames
+                .filter { game -> request.moveIndexes.containsKey(game.id) }
+                .map { game -> game.id to request.moveIndexes[game.id]!! }
+            pvpGameDaoService.fetchNewMovesForGamesAndIndexes(moveTuples)
+                .groupBy { it.gameId }
+        } else {
+            emptyMap()
+        }
+
+        val pvbNewMoves = if (request.moveIndexes.isNotEmpty()) {
+            val moveTuples = pvbGames
+                .filter { game -> request.moveIndexes.containsKey(game.id) }
+                .map { game -> game.id to request.moveIndexes[game.id]!! }
+            pvbGameDaoService.fetchNewMovesForGamesAndIndexes(moveTuples)
+                .groupBy { it.botGameId }
+        } else {
+            emptyMap()
+        }
+
         val entries = pvpGames.map { game ->
+            val newMoves = pvpNewMoves[game.id]
+                ?.sortedBy { it.position }
+                ?.map { it.uci }
+                ?: emptyList()
             LatestGamesUpdateResponse.Entry(
                 gameId = GameId(PVP, game.id),
                 status = game.gameStatus,
                 fen = game.currentFen,
-                lastUpdated = game.lastUpdated.toEpochMilliseconds()
+                lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+                moveIndex = game.currentHalfMoveIndex,
+                newMoves = newMoves
             )
         } + pvbGames.map { game ->
+            val newMoves = pvbNewMoves[game.id]
+                ?.sortedBy { it.position }
+                ?.map { it.uci }
+                ?: emptyList()
             LatestGamesUpdateResponse.Entry(
                 gameId = GameId(PVB, game.id),
                 status = game.gameStatus,
                 fen = game.currentFen,
-                lastUpdated = game.lastUpdated.toEpochMilliseconds()
+                lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+                moveIndex = game.currentHalfMoveIndex,
+                newMoves = newMoves
             )
         }
 
