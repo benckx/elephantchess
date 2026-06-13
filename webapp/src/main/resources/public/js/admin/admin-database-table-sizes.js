@@ -30,17 +30,17 @@ class AdminDatabaseTableSizesPage extends BasePage {
     #totalTablesSpan = document.getElementById('total-tables');
 
     /**
-     * @type {HTMLSpanElement}
+     * @type {HTMLTableCellElement}
      */
     #openingPreCalculationDataSizeCell = document.getElementById('opening-pre-calculation-data-size');
 
     /**
-     * @type {HTMLSpanElement}
+     * @type {HTMLTableCellElement}
      */
     #openingPreCalculationIndexSizeCell = document.getElementById('opening-pre-calculation-index-size');
 
     /**
-     * @type {HTMLSpanElement}
+     * @type {HTMLTableCellElement}
      */
     #openingPreCalculationTotalSizeCell = document.getElementById('opening-pre-calculation-total-size');
 
