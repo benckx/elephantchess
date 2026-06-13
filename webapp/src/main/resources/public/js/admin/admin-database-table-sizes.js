@@ -30,6 +30,21 @@ class AdminDatabaseTableSizesPage extends BasePage {
     #totalTablesSpan = document.getElementById('total-tables');
 
     /**
+     * @type {HTMLSpanElement}
+     */
+    #totalTableSizeSpan = document.getElementById('total-table-size');
+
+    /**
+     * @type {HTMLSpanElement}
+     */
+    #totalIndexSizeSpan = document.getElementById('total-index-size');
+
+    /**
+     * @type {HTMLSpanElement}
+     */
+    #totalTotalSizeSpan = document.getElementById('total-total-size');
+
+    /**
      * @type {HTMLTableCellElement}
      */
     #openingPreCalculationDataSizeCell = document.getElementById('opening-pre-calculation-data-size');
@@ -97,6 +112,18 @@ class AdminDatabaseTableSizesPage extends BasePage {
 
         // update number of tables
         this.#totalTablesSpan.innerText = entries.length.toString();
+
+        // render aggregated sizes across all tables
+        const totalTableBytes = entries.reduce((sum, entry) => sum + (entry.tableBytes || 0), 0);
+        const totalIndexBytes = entries.reduce((sum, entry) => sum + (entry.indexBytes || 0), 0);
+        const totalBytes = entries.reduce(
+            (sum, entry) => sum + (entry.totalBytes || ((entry.tableBytes || 0) + (entry.indexBytes || 0))),
+            0
+        );
+
+        this.#totalTableSizeSpan.innerText = formatBytes(totalTableBytes);
+        this.#totalIndexSizeSpan.innerText = formatBytes(totalIndexBytes);
+        this.#totalTotalSizeSpan.innerText = formatBytes(totalBytes);
 
         // add rows for each table
         entries.forEach(entry => {
