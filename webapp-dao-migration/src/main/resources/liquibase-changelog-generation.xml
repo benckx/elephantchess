@@ -2420,14 +2420,6 @@
                      indexName="opening_pre_calculation_cache_reference_game_game_id_index">
             <column name="reference_game_id"/>
         </createIndex>
-    </changeSet>
-    <changeSet id="0107" author="benckx">
-        <comment>
-            Per reference-player opening repertoire, split by the color the player was playing.
-            Mirrors opening_pre_calculation_cache but scoped to a single reference player and color.
-            Populated only for players with enough games (see UpdateReferencePlayerOpeningStats),
-            so it stays small and does not require indexing every game.
-        </comment>
         <createTable tableName="reference_player_opening_pre_calculation_cache">
             <column name="id" type="int" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
