@@ -2625,13 +2625,13 @@
                      indexName="opening_pre_calculation_cache_reference_game_game_id_index">
             <column name="reference_game_id"/>
         </createIndex>
-        <createTable tableName="reference_player_opening_pre_calculation_cache">
+        <createTable tableName="opening_pre_calculation_cache_reference_player">
             <column name="id" type="int" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="reference_player_id" type="varchar(12)">
                 <constraints nullable="false"
-                             foreignKeyName="reference_player_opening_cache_to_player_fk"
+                             foreignKeyName="opening_cache_ref_player_to_player_fk"
                              references="reference_player(id)"/>
             </column>
             <column name="color" type="varchar(10)">
@@ -2662,11 +2662,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="reference_player_opening_pre_calculation_cache"
+        <addUniqueConstraint tableName="opening_pre_calculation_cache_reference_player"
                              columnNames="reference_player_id,color,moves"
-                             constraintName="reference_player_opening_pre_calculation_cache_unique"/>
-        <createIndex tableName="reference_player_opening_pre_calculation_cache"
-                     indexName="reference_player_opening_cache_player_color_index">
+                             constraintName="opening_pre_calculation_cache_reference_player_unique"/>
+        <createIndex tableName="opening_pre_calculation_cache_reference_player"
+                     indexName="opening_pre_calculation_cache_reference_player_index">
             <column name="reference_player_id"/>
             <column name="color"/>
             <column name="number_of_moves"/>

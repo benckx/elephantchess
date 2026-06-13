@@ -3,9 +3,9 @@ package io.elephantchess.scripts.database
 import io.elephantchess.config.ArgConfig
 import io.elephantchess.config.loadAppConfig
 import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME
-import io.elephantchess.db.dao.codegen.Tables.REFERENCE_PLAYER_OPENING_PRE_CALCULATION_CACHE
-import io.elephantchess.db.dao.codegen.tables.daos.ReferencePlayerOpeningPreCalculationCacheDao
-import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerOpeningPreCalculationCache
+import io.elephantchess.db.dao.codegen.Tables.OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER
+import io.elephantchess.db.dao.codegen.tables.daos.OpeningPreCalculationCacheReferencePlayerDao
+import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCacheReferencePlayer
 import io.elephantchess.db.services.OpeningRepositoryCacheDaoService.Companion.movesToKey
 import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.db.utils.*
@@ -84,7 +84,7 @@ private fun buildRepertoire(
     playerId: String,
     color: Color,
     games: List<ReferencePlayerGameDto>
-): List<ReferencePlayerOpeningPreCalculationCache> {
+): List<OpeningPreCalculationCacheReferencePlayer> {
     val aggregates = mutableMapOf<String, OpeningAggregate>()
 
     games.forEach { game ->
@@ -100,7 +100,7 @@ private fun buildRepertoire(
     return aggregates
         .filterValues { it.occurrences >= MIN_OCCURRENCES }
         .map { (movesKey, aggregate) ->
-            val record = ReferencePlayerOpeningPreCalculationCache()
+            val record = OpeningPreCalculationCacheReferencePlayer()
             record.referencePlayerId = playerId
             record.color = color.name
             record.numberOfMoves = aggregate.numberOfMoves
@@ -118,16 +118,16 @@ private fun buildRepertoire(
 private suspend fun persistRepertoire(
     playerId: String,
     color: Color,
-    records: List<ReferencePlayerOpeningPreCalculationCache>
+    records: List<OpeningPreCalculationCacheReferencePlayer>
 ) {
     writeContext.transactionCoroutine { cfg ->
         DSL.using(cfg)
-            .deleteFrom(REFERENCE_PLAYER_OPENING_PRE_CALCULATION_CACHE)
-            .where(REFERENCE_PLAYER_OPENING_PRE_CALCULATION_CACHE.REFERENCE_PLAYER_ID.eq(playerId))
-            .and(REFERENCE_PLAYER_OPENING_PRE_CALCULATION_CACHE.COLOR.eq(color.name))
+            .deleteFrom(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER)
+            .where(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.REFERENCE_PLAYER_ID.eq(playerId))
+            .and(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.COLOR.eq(color.name))
             .awaitExecute()
 
-        ReferencePlayerOpeningPreCalculationCacheDao(cfg).insertMultipleReactive(records)
+        OpeningPreCalculationCacheReferencePlayerDao(cfg).insertMultipleReactive(records)
     }
 }
 
