@@ -148,10 +148,10 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                 DSL.min(ENTRY_CREATION).`as`("min_date"),
                 DSL.max(ENTRY_CREATION).`as`("max_date"),
                 DSL.count().`as`("total_moves"),
-                DSL.field("analyzed_from_batch", Boolean::class.java)
+                ANALYZED_FROM_BATCH
             )
             .from(COALESCED_VIEW)
-            .groupBy(GAME_TYPE, GAME_ID, DSL.field("analyzed_from_batch"))
+            .groupBy(GAME_TYPE, GAME_ID, ANALYZED_FROM_BATCH)
             .orderBy(DSL.max(ENTRY_CREATION).desc())
             .limit(limit)
             .awaitRecords()
@@ -161,7 +161,7 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                     record["min_date", Instant::class.java],
                     record["max_date", Instant::class.java],
                     record["total_moves", Int::class.java],
-                    record["analyzed_from_batch", Boolean::class.java] ?: false
+                    record[ANALYZED_FROM_BATCH] ?: false
                 )
             }
     }
@@ -204,6 +204,7 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         val COALESCED_VIEW = DSL.table("move_analysis_coalesced")
         val GAME_TYPE = DSL.field("game_type", String::class.java)
         val GAME_ID = DSL.field("game_data_id", String::class.java)
+        val ANALYZED_FROM_BATCH = DSL.field("analyzed_from_batch", Boolean::class.java)
 
         // jOOQ's DefaultDataType registry does not know about kotlin.time.Instant,
         // so we attach the same converter the codegen uses for timestamptz columns.
