@@ -238,264 +238,302 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     /**
-     * If both players want the exact same game,
-     * the second "create" request ends up joining the first game
+     * When 2 players each create a new game, in some conditions, the second player can be
+     * matched with the first game (join) instead of actually creating a new game
      */
-    @Test
-    fun joinMatchingGameTest01() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
+    @Nested
+    @DisplayName("Game matching behavior")
+    inner class GameMatchingBehavior {
 
-        val request2 = request1.copy(inviterColor = BLACK)
+        @Test
+        fun `joins matching game when requests are compatible`() = runTest {
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = false
+            )
 
-        val response1 = pvpGameService.createGame(userId1, request1)
-        val response2 = pvpGameService.createGame(userId2, request2)
+            val request2 = request1.copy(inviterColor = BLACK)
 
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
+            val response1 = pvpGameService.createGame(userId1, request1)
+            val response2 = pvpGameService.createGame(userId2, request2)
 
-        assertEquals(JOINED, response2.eventType)
-        assertEquals(BLACK, response2.color)
+            assertEquals(CREATED, response1.eventType)
+            assertEquals(RED, response1.color)
 
-        assertEquals(1, countGameByStatus(JOINED))
-        assertEquals(0, countGameByStatus(CREATED))
-    }
+            assertEquals(JOINED, response2.eventType)
+            assertEquals(BLACK, response2.color)
 
-    /**
-     * If both players want to play with the same color,
-     * the games are incompatible
-     */
-    @Test
-    fun joinMatchingGameIncompatibleTest01() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
+            assertEquals(1, countGameByStatus(JOINED))
+            assertEquals(0, countGameByStatus(CREATED))
+        }
 
-        val request2 = request1.copy()
+        @Test
+        fun `does not auto-match when both inviters choose the same color`() = runTest {
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = false
+            )
 
-        val response1 = pvpGameService.createGame(userId1, request1)
-        val response2 = pvpGameService.createGame(userId2, request2)
+            val request2 = request1.copy()
 
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
+            val response1 = pvpGameService.createGame(userId1, request1)
+            val response2 = pvpGameService.createGame(userId2, request2)
 
-        assertEquals(CREATED, response2.eventType)
-        assertEquals(RED, response2.color)
+            assertEquals(CREATED, response1.eventType)
+            assertEquals(RED, response1.color)
 
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
-    }
+            assertEquals(CREATED, response2.eventType)
+            assertEquals(RED, response2.color)
 
-    /**
-     * If both players want different rating modes,
-     * the games are incompatible
-     */
-    @Test
-    fun joinMatchingGameIncompatibleTest02() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
+            assertEquals(0, countGameByStatus(JOINED))
+            assertEquals(2, countGameByStatus(CREATED))
+        }
 
-        val request2 = request1.copy(isRated = false)
+        /**
+         * If both players want different rating modes,
+         * the games are incompatible
+         */
+        @Test
+        fun `does not auto-match when rating mode differs`() = runTest {
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = false
+            )
 
-        val response1 = pvpGameService.createGame(userId1, request1)
-        val response2 = pvpGameService.createGame(userId2, request2)
+            val request2 = request1.copy(isRated = false)
 
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
+            val response1 = pvpGameService.createGame(userId1, request1)
+            val response2 = pvpGameService.createGame(userId2, request2)
 
-        assertEquals(CREATED, response2.eventType)
-        assertEquals(RED, response2.color)
+            assertEquals(CREATED, response1.eventType)
+            assertEquals(RED, response1.color)
 
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
-    }
+            assertEquals(CREATED, response2.eventType)
+            assertEquals(RED, response2.color)
 
-    /**
-     * If both players want different time controls,
-     * the games are incompatible
-     */
-    @Test
-    fun joinMatchingGameIncompatibleTest03() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
+            assertEquals(0, countGameByStatus(JOINED))
+            assertEquals(2, countGameByStatus(CREATED))
+        }
 
-        val request2 = request1.copy(timeControlBase = 10.minutes.inWholeSeconds.toInt())
+        @Test
+        fun `does not auto-match when time control differs`() = runTest {
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = false
+            )
 
-        val response1 = pvpGameService.createGame(userId1, request1)
-        val response2 = pvpGameService.createGame(userId2, request2)
+            val request2 = request1.copy(timeControlBase = 10.minutes.inWholeSeconds.toInt())
 
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
+            val response1 = pvpGameService.createGame(userId1, request1)
+            val response2 = pvpGameService.createGame(userId2, request2)
 
-        assertEquals(CREATED, response2.eventType)
-        assertEquals(RED, response2.color)
+            assertEquals(CREATED, response1.eventType)
+            assertEquals(RED, response1.color)
 
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
-    }
+            assertEquals(CREATED, response2.eventType)
+            assertEquals(RED, response2.color)
 
-    /**
-     * If first game is not allowed to guests,
-     * the game created by a guest won't match
-     */
-    @Test
-    fun joinMatchingGameIncompatibleTest04() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = false,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
+            assertEquals(0, countGameByStatus(JOINED))
+            assertEquals(2, countGameByStatus(CREATED))
+        }
 
-        val request2 = request1.copy(inviterColor = null, allowGuests = true)
-        val request3 = request2.copy()
+        @Test
+        fun `does not auto-match guest-created game with no-guests game`() = runTest {
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = false,
+                alwaysVisibleInLobby = false,
+                privateInvite = false
+            )
 
-        val response1 = pvpGameService.createGame(userId1, request1)
-        val response2 = pvpGameService.createGame(guestId1, request2)
-        val response3 = pvpGameService.createGame(userId2, request3)
+            val request2 = request1.copy(inviterColor = null, allowGuests = true)
+            val request3 = request2.copy()
 
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
+            val response1 = pvpGameService.createGame(userId1, request1)
+            val response2 = pvpGameService.createGame(guestId1, request2)
+            val response3 = pvpGameService.createGame(userId2, request3)
 
-        assertEquals(CREATED, response2.eventType)
-        assertEquals(null, response2.color)
+            assertEquals(CREATED, response1.eventType)
+            assertEquals(RED, response1.color)
 
-        assertEquals(JOINED, response3.eventType)
-        assertEquals(BLACK, response3.color)
+            assertEquals(CREATED, response2.eventType)
+            assertEquals(null, response2.color)
 
-        assertEquals(1, countGameByStatus(JOINED))
-        assertEquals(1, countGameByStatus(CREATED))
-    }
+            assertEquals(JOINED, response3.eventType)
+            assertEquals(BLACK, response3.color)
 
-    /**
-     * User should not be match with another game they created
-     */
-    @Test
-    fun joinMatchingGameIncompatibleTest05() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = false,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
+            assertEquals(1, countGameByStatus(JOINED))
+            assertEquals(1, countGameByStatus(CREATED))
+        }
 
-        val request2 = request1.copy(inviterColor = null)
+        @Test
+        fun `does not auto-match games created by the same user`() = runTest {
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = false,
+                alwaysVisibleInLobby = false,
+                privateInvite = false
+            )
 
-        val response1 = pvpGameService.createGame(userId1, request1)
-        val response2 = pvpGameService.createGame(userId1, request2)
+            val request2 = request1.copy(inviterColor = null)
 
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
+            val response1 = pvpGameService.createGame(userId1, request1)
+            val response2 = pvpGameService.createGame(userId1, request2)
 
-        assertEquals(CREATED, response2.eventType)
-        assertEquals(null, response2.color)
+            assertEquals(CREATED, response1.eventType)
+            assertEquals(RED, response1.color)
 
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
-    }
+            assertEquals(CREATED, response2.eventType)
+            assertEquals(null, response2.color)
 
-    /**
-     * If a game is marked as private,
-     * it should not be matched automatically
-     */
-    @Test
-    fun joinMatchingGameIncompatibleTest06() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = true
-        )
+            assertEquals(0, countGameByStatus(JOINED))
+            assertEquals(2, countGameByStatus(CREATED))
+        }
 
-        val request2 = request1.copy(inviterColor = BLACK, privateInvite = false)
+        @Test
+        fun `does not auto-match private invite games`() = runTest {
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = true
+            )
 
-        val response1 = pvpGameService.createGame(userId1, request1)
-        val response2 = pvpGameService.createGame(userId2, request2)
+            val request2 = request1.copy(inviterColor = BLACK, privateInvite = false)
 
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
+            val response1 = pvpGameService.createGame(userId1, request1)
+            val response2 = pvpGameService.createGame(userId2, request2)
 
-        assertEquals(CREATED, response2.eventType)
-        assertEquals(BLACK, response2.color)
+            assertEquals(CREATED, response1.eventType)
+            assertEquals(RED, response1.color)
 
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
-    }
+            assertEquals(CREATED, response2.eventType)
+            assertEquals(BLACK, response2.color)
 
-    /**
-     * A Manchu game and a Xiangqi game with compatible colors should NOT be matched together —
-     * variant must be part of the matching criteria.
-     */
-    @Test
-    fun joinMatchingGameIncompatibleTest07() = runTest {
-        val manchuRequest = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false,
-            variant = Variant.MANCHU
-        )
+            assertEquals(0, countGameByStatus(JOINED))
+            assertEquals(2, countGameByStatus(CREATED))
+        }
 
-        val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
+        @Test
+        fun `does not auto-match games with different variants`() = runTest {
+            val manchuRequest = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = false,
+                variant = Variant.MANCHU
+            )
 
-        val response1 = pvpGameService.createGame(userId1, manchuRequest)
-        val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
+            val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
 
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
+            val response1 = pvpGameService.createGame(userId1, manchuRequest)
+            val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
 
-        assertEquals(CREATED, response2.eventType)
-        assertEquals(BLACK, response2.color)
+            assertEquals(CREATED, response1.eventType)
+            assertEquals(RED, response1.color)
 
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
+            assertEquals(CREATED, response2.eventType)
+            assertEquals(BLACK, response2.color)
+
+            assertEquals(0, countGameByStatus(JOINED))
+            assertEquals(2, countGameByStatus(CREATED))
+        }
+
+        /**
+         * Two Manchu games with compatible colors should be matched together.
+         */
+        @Test
+        fun `joins compatible manchu games`() = runTest {
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = false,
+                variant = Variant.MANCHU
+            )
+
+            val request2 = request1.copy(inviterColor = BLACK)
+
+            val response1 = pvpGameService.createGame(userId1, request1)
+            val response2 = pvpGameService.createGame(userId2, request2)
+
+            assertEquals(CREATED, response1.eventType)
+            assertEquals(RED, response1.color)
+
+            assertEquals(JOINED, response2.eventType)
+            assertEquals(BLACK, response2.color)
+
+            assertEquals(1, countGameByStatus(JOINED))
+            assertEquals(0, countGameByStatus(CREATED))
+        }
+
+        @Test
+        fun `rejects guest joining a game that disallows guests`() = runTest {
+            val request1 = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = false,
+                alwaysVisibleInLobby = false,
+                privateInvite = false
+            )
+
+            val response1 = pvpGameService.createGame(userId1, request1)
+            assertEquals(CREATED, response1.eventType)
+
+            val e = assertFailsWith<BadRequestException> {
+                pvpGameService.joinGame(guestId1, JoinGameRequest(response1.gameId))
+            }
+
+            logger.info { "expected exception $e" }
+            assertEquals("Guest users are not allowed to join this game", e.message)
+        }
     }
 
     /**
@@ -592,7 +630,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(2, countGameByStatus(CREATED))
         assertEquals(0, countGameByStatus(AUTO_CANCELED))
     }
-
 
     @Test
     fun happyPathTest01() = runTest {
@@ -693,30 +730,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         // Manchu RAPID rating must remain unchanged at 1000
         assertEquals(1_000, fetchManchuRapidRating(userId1.id))
         assertEquals(1_000, fetchManchuRapidRating(userId2.id))
-    }
-
-    @Test
-    fun `guests users not allowed to join games with option allowGuests == false`() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = false,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
-
-        val response1 = pvpGameService.createGame(userId1, request1)
-        assertEquals(CREATED, response1.eventType)
-
-        val e = assertFailsWith<BadRequestException> {
-            pvpGameService.joinGame(guestId1, JoinGameRequest(response1.gameId))
-        }
-
-        logger.info { "expected exception $e" }
-        assertEquals("Guest users are not allowed to join this game", e.message)
     }
 
     @Test
@@ -900,37 +913,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(4, countGameByStatus(CREATED))
     }
 
-    /**
-     * Two Manchu games with compatible colors should be matched together.
-     */
-    @Test
-    fun joinMatchingGameManchuTest01() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false,
-            variant = Variant.MANCHU
-        )
-
-        val request2 = request1.copy(inviterColor = BLACK)
-
-        val response1 = pvpGameService.createGame(userId1, request1)
-        val response2 = pvpGameService.createGame(userId2, request2)
-
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
-
-        assertEquals(JOINED, response2.eventType)
-        assertEquals(BLACK, response2.color)
-
-        assertEquals(1, countGameByStatus(JOINED))
-        assertEquals(0, countGameByStatus(CREATED))
-    }
 
     /**
      * Play a rated Manchu game to completion and verify that only the Manchu rating columns
