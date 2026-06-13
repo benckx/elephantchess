@@ -2382,6 +2382,24 @@
         <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
     </changeSet>
     <changeSet id="0105" author="benckx">
+        <comment>Add analyzed_from_batch flag to reference_game and game tables</comment>
+        <addColumn tableName="reference_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0106" author="benckx">
         <comment>Map opening_pre_calculation_cache entries to the reference games matching them.</comment>
         <createTable tableName="opening_pre_calculation_cache_reference_game">
             <column name="opening_pre_calculation_cache_id" type="int">
@@ -2402,14 +2420,6 @@
                      indexName="opening_pre_calculation_cache_reference_game_game_id_index">
             <column name="reference_game_id"/>
         </createIndex>
-    </changeSet>
-    <changeSet id="0106" author="benckx">
-        <comment>
-            Per reference-player opening repertoire, split by the color the player was playing.
-            Mirrors opening_pre_calculation_cache but scoped to a single reference player and color.
-            Populated only for players with enough games (see UpdateReferencePlayerOpeningStats),
-            so it stays small and does not require indexing every game.
-        </comment>
         <createTable tableName="reference_player_opening_pre_calculation_cache">
             <column name="id" type="int" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>

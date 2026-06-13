@@ -2559,6 +2559,52 @@
         <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
     </changeSet>
     <changeSet id="0105" author="benckx">
+        <comment>Add analyzed_from_batch flag to reference_game and game tables</comment>
+        <addColumn tableName="reference_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>
+            drop view if exists move_analysis_coalesced;
+        </sql>
+        <sql>
+            create or replace view move_analysis_coalesced as
+            (SELECT ma.id,
+            CASE
+            WHEN game_id is not null THEN 'PVP'
+            WHEN bot_game_id is not null THEN 'PVB'
+            WHEN ref_game_id is not null THEN 'DB' END game_type,
+            coalesce (game_id, bot_game_id, ref_game_id) game_data_id,
+            CASE
+            WHEN game_id is not null THEN g.analyzed_from_batch
+            WHEN bot_game_id is not null THEN bg.analyzed_from_batch
+            WHEN ref_game_id is not null THEN rg.analyzed_from_batch
+            END analyzed_from_batch,
+            ma.position,
+            ma.fen_key,
+            ma.depth,
+            ma.already_in_cache,
+            ma.raw_line,
+            ma.entry_creation
+            from move_analysis ma
+            left join game g on ma.game_id = g.id
+            left join bot_game bg on ma.bot_game_id = bg.id
+            left join reference_game rg on ma.ref_game_id = rg.id
+            );
+        </sql>
+    </changeSet>
+    <changeSet id="0106" author="benckx">
         <comment>Map opening_pre_calculation_cache entries to the reference games matching them.</comment>
         <createTable tableName="opening_pre_calculation_cache_reference_game">
             <column name="opening_pre_calculation_cache_id" type="int">
@@ -2579,14 +2625,6 @@
                      indexName="opening_pre_calculation_cache_reference_game_game_id_index">
             <column name="reference_game_id"/>
         </createIndex>
-    </changeSet>
-    <changeSet id="0106" author="benckx">
-        <comment>
-            Per reference-player opening repertoire, split by the color the player was playing.
-            Mirrors opening_pre_calculation_cache but scoped to a single reference player and color.
-            Populated only for players with enough games (see UpdateReferencePlayerOpeningStats),
-            so it stays small and does not require indexing every game.
-        </comment>
         <createTable tableName="reference_player_opening_pre_calculation_cache">
             <column name="id" type="int" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
