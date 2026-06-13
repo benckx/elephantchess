@@ -23,7 +23,7 @@ fun Route.gameDataRoutes() {
         }
         get("/start-game-analysis") {
             requireGlobalGameId { gameId ->
-                gameDataService.startGameAnalysis(gameId, isFromBatch = false)
+                gameDataService.startGameAnalysis(gameId)
             }
         }
         get("/game-analysis-status") {
