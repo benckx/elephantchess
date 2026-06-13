@@ -53,7 +53,6 @@ class GlobalAnalyticsService(
             .expireAfterAccess(longRefresh)
             .build()
 
-
     private val refreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = 5.seconds,
