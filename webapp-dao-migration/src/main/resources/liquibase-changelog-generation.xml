@@ -2393,9 +2393,6 @@
                 <constraints nullable="false"/>
             </column>
         </addColumn>
-    </changeSet>
-    <changeSet id="0106" author="benckx">
-        <comment>Add analyzed_from_batch flag to bot_game table and update COALESCED_VIEW</comment>
         <addColumn tableName="bot_game">
             <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false"/>
