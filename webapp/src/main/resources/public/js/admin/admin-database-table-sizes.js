@@ -30,9 +30,19 @@ class AdminDatabaseTableSizesPage extends BasePage {
     #totalTablesSpan = document.getElementById('total-tables');
 
     /**
-     * @type {HTMLSpanElement}
+     * @type {HTMLTableCellElement}
      */
-    #openingPreCalculationSizeSpan = document.getElementById('opening-pre-calculation-size');
+    #openingPreCalculationDataSizeCell = document.getElementById('opening-pre-calculation-data-size');
+
+    /**
+     * @type {HTMLTableCellElement}
+     */
+    #openingPreCalculationIndexSizeCell = document.getElementById('opening-pre-calculation-index-size');
+
+    /**
+     * @type {HTMLTableCellElement}
+     */
+    #openingPreCalculationTotalSizeCell = document.getElementById('opening-pre-calculation-total-size');
 
     constructor() {
         super();
@@ -58,16 +68,21 @@ class AdminDatabaseTableSizesPage extends BasePage {
     }
 
     /**
-     * Renders the combined total size of the opening_pre_calculation tables.
+     * Renders the combined size of the opening_pre_calculation tables, split into data and index.
      * @param json {object}
      */
     #renderOpeningPreCalculationSize(json) {
         const entries = json.entries || [];
-        const combinedBytes = entries
-            .filter(entry => entry.tableName.startsWith('opening_pre_calculation'))
-            .reduce((sum, entry) => sum + entry.totalBytes, 0);
+        const openingEntries = entries
+            .filter(entry => entry.tableName.startsWith('opening_pre_calculation'));
 
-        this.#openingPreCalculationSizeSpan.innerText = formatBytes(combinedBytes);
+        const dataBytes = openingEntries.reduce((sum, entry) => sum + entry.tableBytes, 0);
+        const indexBytes = openingEntries.reduce((sum, entry) => sum + entry.indexBytes, 0);
+        const totalBytes = openingEntries.reduce((sum, entry) => sum + entry.totalBytes, 0);
+
+        this.#openingPreCalculationDataSizeCell.innerText = formatBytes(dataBytes);
+        this.#openingPreCalculationIndexSizeCell.innerText = formatBytes(indexBytes);
+        this.#openingPreCalculationTotalSizeCell.innerText = formatBytes(totalBytes);
     }
 
     /**
