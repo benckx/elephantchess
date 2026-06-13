@@ -2,9 +2,7 @@ package io.elephantchess.scripts.database
 
 import io.elephantchess.config.ArgConfig
 import io.elephantchess.config.loadAppConfig
-import io.elephantchess.db.dao.codegen.Tables.OPENING_PRE_CALCULATION_CACHE
-import io.elephantchess.db.dao.codegen.Tables.OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME
-import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME
+import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.OpeningPreCalculationCacheDao
 import io.elephantchess.db.dao.codegen.tables.daos.OpeningPreCalculationCacheReferenceGameDao
 import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCache
@@ -20,23 +18,22 @@ import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.HalfMove
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import kotlinx.coroutines.*
-import org.jooq.Configuration
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 private val logger = logger {}
 
 private const val READ_PROFILE = "local-backup"
-private const val WRITE_PROFILE = "prod"
+private const val WRITE_PROFILE = "local-backup"
 private const val MAX_MOVES = 48
 private const val MIN_OCCURRENCES = 2
 
 private const val STOP_TIMEOUT = 60_000L
-private const val CHECK_INTERVAL = 10_000L
 
 private val scriptConfig = loadScriptConfig()
 private val readAppConfig = loadAppConfig(ArgConfig(READ_PROFILE, scriptConfig.configurationLocation))
@@ -72,7 +69,7 @@ fun main(): Unit = runBlocking {
 
     // wait until no refreshCache activity for more than 1 minute before quitting
     while (true) {
-        delay(CHECK_INTERVAL)
+        delay(10.seconds)
         val timeSinceLastActivity = System.currentTimeMillis() - lastActivityTime.get()
         if (timeSinceLastActivity > STOP_TIMEOUT) {
             logger.info { "no activity for more than $STOP_TIMEOUT ms, shutting down" }
@@ -158,7 +155,7 @@ private suspend fun refreshCache(moves: List<String>) {
                     }
 
                     if (entryId != null) {
-                        refreshGameMapping(cfg, entryId, matchingGameIds)
+                        refreshGameMapping(transaction, entryId, matchingGameIds)
                     }
                 }
 
@@ -221,17 +218,21 @@ private suspend fun updateCache(transaction: DSLContext, id: Int, record: Openin
  * auto-increment id of the opening cache entry (rather than the much wider sequence of moves) to
  * keep this Cartesian-product table as small as possible.
  */
-private suspend fun refreshGameMapping(cfg: Configuration, cacheEntryId: Int, gameIds: List<String>) {
-    val transaction = DSL.using(cfg)
+private suspend fun refreshGameMapping(transaction: DSLContext, cacheEntryId: Int, gameIds: List<String>) {
     transaction
         .deleteFrom(OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME)
         .where(OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME.OPENING_PRE_CALCULATION_CACHE_ID.eq(cacheEntryId))
         .awaitExecute()
 
     val mappings = gameIds.map { gameId ->
-        OpeningPreCalculationCacheReferenceGame(cacheEntryId, gameId)
+        OpeningPreCalculationCacheReferenceGame(
+            cacheEntryId,
+            gameId
+        )
     }
-    OpeningPreCalculationCacheReferenceGameDao(cfg).insertMultipleReactive(mappings)
+
+    OpeningPreCalculationCacheReferenceGameDao(transaction.configuration())
+        .insertMultipleReactive(mappings)
 }
 
 private suspend fun listAllGames(): List<Pair<String, Outcome>> {
