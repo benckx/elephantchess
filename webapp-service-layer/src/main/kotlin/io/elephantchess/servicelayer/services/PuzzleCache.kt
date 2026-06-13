@@ -29,7 +29,8 @@ class PuzzleCache(
                     .map { puzzleRecord ->
                         val attempts = attemptsMap[puzzleRecord.id] ?: 0
                         val categories = categoriesMap[puzzleRecord.id] ?: emptyList()
-                        PuzzleCacheEntry(puzzleRecord.id, puzzleRecord.rating, attempts, categories)
+                        val enabled = puzzleRecord.enabled ?: true
+                        PuzzleCacheEntry(puzzleRecord.id, puzzleRecord.rating, attempts, categories, enabled)
                     }
 
             logger.info { "loaded ${entries.size} puzzles from DB into cache" }
@@ -57,7 +58,8 @@ class PuzzleCache(
         exclude: List<String> = emptyList(),
         categories: List<PuzzleCategory> = emptyList(),
     ): String {
-        var filtered = entries
+        val enabledEntries = entries.filter { entry -> entry.enabled }
+        var filtered = enabledEntries
 
         if (exclude.isNotEmpty()) {
             filtered = filtered.filter { entry -> !exclude.contains(entry.puzzleId) }
@@ -74,7 +76,7 @@ class PuzzleCache(
         logger.debug { "${filtered.size} puzzles for user with rating $userRating" }
 
         return if (filtered.isEmpty()) {
-            entries.random().puzzleId
+            enabledEntries.random().puzzleId
         } else {
             filtered.random().puzzleId
         }
@@ -97,6 +99,7 @@ class PuzzleCache(
             val rating: Int,
             val attempts: Int,
             val categories: List<PuzzleCategory>,
+            val enabled: Boolean,
         )
 
     }
