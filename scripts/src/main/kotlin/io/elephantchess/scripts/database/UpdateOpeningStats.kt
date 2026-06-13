@@ -5,8 +5,10 @@ import io.elephantchess.config.loadAppConfig
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.OpeningPreCalculationCacheDao
 import io.elephantchess.db.dao.codegen.tables.daos.OpeningPreCalculationCacheReferenceGameDao
+import io.elephantchess.db.dao.codegen.tables.daos.OpeningPreCalculationCacheReferencePlayerDao
 import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCache
 import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCacheReferenceGame
+import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCacheReferencePlayer
 import io.elephantchess.db.services.OpeningRepositoryCacheDaoService.Companion.movesToKey
 import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.db.utils.*
@@ -15,6 +17,9 @@ import io.elephantchess.model.Outcome.*
 import io.elephantchess.scripts.utils.ScriptConfig.Companion.loadScriptConfig
 import io.elephantchess.scripts.utils.getScriptDslContext
 import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Color.BLACK
+import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.HalfMove
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import kotlinx.coroutines.*
@@ -33,6 +38,15 @@ private const val WRITE_PROFILE = "local-backup"
 private const val MAX_MOVES = 48
 private const val MIN_OCCURRENCES = 2
 
+// Whether to also (re)build the per-reference-player opening repertoires in addition to the global
+// opening cache. Building those for every player would create far too many rows, so it is both
+// gated behind this flag and restricted to players with enough games (see MIN_GAMES_PER_PLAYER).
+private const val UPDATE_PLAYER_OPENINGS = true
+
+// Only build the per-player repertoire for players that have enough games to make the stats
+// meaningful, to limit the number of rows.
+private const val MIN_GAMES_PER_PLAYER = 250
+
 private const val STOP_TIMEOUT = 60_000L
 
 private val scriptConfig = loadScriptConfig()
@@ -50,16 +64,18 @@ private val countUpdates = AtomicInteger(0)
 private val countInserts = AtomicInteger(0)
 
 /**
- * Refresh data in opening_pre_calculation_cache and opening_pre_calculation_cache_reference_game
+ * Refresh data in opening_pre_calculation_cache and opening_pre_calculation_cache_reference_game.
+ *
+ * When [UPDATE_PLAYER_OPENINGS] is enabled, the per-reference-player repertoires in
+ * opening_pre_calculation_cache_reference_player are rebuilt as well.
  */
 fun main(): Unit = runBlocking {
     val start = System.currentTimeMillis()
 
-    listAllGames().forEachIndexed { i, (id, outcome) ->
-        val moves = referenceGameDaoService.listMoves(id)
-        val gameDto = ReferenceGameDto(id, outcome, moves)
-        if (gameDto.moves.isNotEmpty()) {
-            memoryCache += gameDto
+    listAllGames().forEachIndexed { i, game ->
+        val moves = referenceGameDaoService.listMoves(game.id)
+        if (moves.isNotEmpty()) {
+            memoryCache += game.copy(moves = moves)
             if (i % 1_000 == 0) {
                 logger.info { "loaded $i games into memory cache" }
             }
@@ -79,6 +95,11 @@ fun main(): Unit = runBlocking {
             break
         }
     }
+
+    if (UPDATE_PLAYER_OPENINGS) {
+        updatePlayerOpenings()
+    }
+
     logger.info { "done in ${(System.currentTimeMillis() - start) / 60_000} minutes" }
     logger.info { "updates: ${countUpdates.get()}, insertions: ${countInserts.get()}" }
 }
@@ -238,18 +259,106 @@ private suspend fun refreshGameMapping(transaction: DSLContext, cacheEntryId: In
         .insertMultipleReactive(mappings)
 }
 
-private suspend fun listAllGames(): List<Pair<String, Outcome>> {
+private suspend fun listAllGames(): List<ReferenceGameDto> {
     return readContext
         .select(
             REFERENCE_GAME.ID,
-            REFERENCE_GAME.OUTCOME
+            REFERENCE_GAME.OUTCOME,
+            REFERENCE_GAME.RED_PLAYER,
+            REFERENCE_GAME.BLACK_PLAYER
         )
         .from(REFERENCE_GAME)
         .awaitRecords()
         .map { record ->
-            record.get(REFERENCE_GAME.ID) to record.get(REFERENCE_GAME.OUTCOME)
+            ReferenceGameDto(
+                id = record.get(REFERENCE_GAME.ID),
+                outcome = record.get(REFERENCE_GAME.OUTCOME),
+                redPlayer = record.get(REFERENCE_GAME.RED_PLAYER),
+                blackPlayer = record.get(REFERENCE_GAME.BLACK_PLAYER),
+                moves = emptyList()
+            )
         }
         .toList()
+}
+
+/**
+ * (Re)build the per-reference-player opening repertoires, split by the color the player played,
+ * restricted to players with at least [MIN_GAMES_PER_PLAYER] games.
+ */
+private suspend fun updatePlayerOpenings() {
+    val gamesByPlayer = mutableMapOf<String, MutableList<ReferenceGameDto>>()
+    memoryCache.forEach { game ->
+        game.redPlayer?.let { gamesByPlayer.getOrPut(it) { mutableListOf() } += game }
+        game.blackPlayer?.let { gamesByPlayer.getOrPut(it) { mutableListOf() } += game }
+    }
+
+    val qualifyingPlayers = gamesByPlayer.filterValues { it.size >= MIN_GAMES_PER_PLAYER }
+    logger.info { "${qualifyingPlayers.size} players with >= $MIN_GAMES_PER_PLAYER games" }
+
+    qualifyingPlayers.forEach { (playerId, playerGames) ->
+        Color.entries.forEach { color ->
+            val gamesAsColor = playerGames.filter { game -> game.playerColor(playerId) == color }
+            val records = buildRepertoire(playerId, color, gamesAsColor)
+            persistRepertoire(playerId, color, records)
+            logger.info { "player $playerId as $color: ${gamesAsColor.size} games -> ${records.size} opening entries" }
+        }
+    }
+}
+
+/**
+ * Aggregate the opening stats (occurrences and outcomes) of every move prefix the player reached
+ * while playing the given color, keeping only prefixes that occurred at least [MIN_OCCURRENCES]
+ * times to limit the number of rows.
+ */
+private fun buildRepertoire(
+    playerId: String,
+    color: Color,
+    games: List<ReferenceGameDto>
+): List<OpeningPreCalculationCacheReferencePlayer> {
+    val aggregates = mutableMapOf<String, OpeningAggregate>()
+
+    games.forEach { game ->
+        val maxPrefix = minOf(MAX_MOVES, game.moves.size)
+        for (length in 1..maxPrefix) {
+            val key = movesToKey(game.moves.take(length))
+            val aggregate = aggregates.getOrPut(key) { OpeningAggregate(length) }
+            aggregate.register(game.outcome)
+        }
+    }
+
+    val now = Clock.System.now()
+    return aggregates
+        .filterValues { it.occurrences >= MIN_OCCURRENCES }
+        .map { (movesKey, aggregate) ->
+            val record = OpeningPreCalculationCacheReferencePlayer()
+            record.referencePlayerId = playerId
+            record.color = color.name
+            record.numberOfMoves = aggregate.numberOfMoves
+            record.moves = movesKey
+            record.occurrences = aggregate.occurrences
+            record.outcomeRedWins = aggregate.redWins
+            record.outcomeBlackWins = aggregate.blackWins
+            record.outcomeDraws = aggregate.draws
+            record.entryCreation = now
+            record.entryUpdate = now
+            record
+        }
+}
+
+private suspend fun persistRepertoire(
+    playerId: String,
+    color: Color,
+    records: List<OpeningPreCalculationCacheReferencePlayer>
+) {
+    writeContext.transactionCoroutine { cfg ->
+        DSL.using(cfg)
+            .deleteFrom(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER)
+            .where(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.REFERENCE_PLAYER_ID.eq(playerId))
+            .and(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.COLOR.eq(color.name))
+            .awaitExecute()
+
+        OpeningPreCalculationCacheReferencePlayerDao(cfg).insertMultipleReactive(records)
+    }
 }
 
 private data class NextMoveOccurrenceCount(
@@ -257,8 +366,34 @@ private data class NextMoveOccurrenceCount(
     val occurrences: Int
 )
 
+private class OpeningAggregate(val numberOfMoves: Int) {
+    var occurrences: Int = 0
+    var redWins: Int = 0
+    var blackWins: Int = 0
+    var draws: Int = 0
+
+    fun register(outcome: Outcome) {
+        occurrences++
+        when (outcome) {
+            RED_WINS -> redWins++
+            BLACK_WINS -> blackWins++
+            DRAW -> draws++
+        }
+    }
+}
+
 private data class ReferenceGameDto(
     val id: String,
     val outcome: Outcome,
+    val redPlayer: String?,
+    val blackPlayer: String?,
     val moves: List<String>
-)
+) {
+    fun playerColor(playerId: String): Color? {
+        return when (playerId) {
+            redPlayer -> RED
+            blackPlayer -> BLACK
+            else -> null
+        }
+    }
+}
