@@ -69,7 +69,7 @@ class BackgroundGameAnalysisBatch(
     }
 
     companion object {
-        private const val MAX_CONNECTED_USERS = 4
+        private const val MAX_CONNECTED_USERS = 6
     }
 
 }
