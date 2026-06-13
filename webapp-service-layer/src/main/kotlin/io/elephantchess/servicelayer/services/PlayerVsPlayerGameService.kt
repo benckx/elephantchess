@@ -434,7 +434,7 @@ class PlayerVsPlayerGameService(
      *
      * Guest users have no email address and are therefore never allowed.
      */
-    private suspend fun isOptionAlwaysVisibleInLobbyAllowed(userId: String): Boolean {
+    internal suspend fun isOptionAlwaysVisibleInLobbyAllowed(userId: String): Boolean {
         val email = userDaoService.fetchEmail(userId) ?: return false
         if (!mailService.isEmailAddressValid(email)) {
             return false
