@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
+import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.model.GameEventType
@@ -14,6 +15,7 @@ import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
+import io.elephantchess.servicelayer.dto.user.NotificationsSettingsDto
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.xiangqi.Color.BLACK
@@ -22,15 +24,20 @@ import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.testutils.Ops.endsInCheckmate
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.koin.core.component.inject
 import kotlin.test.*
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
     private val dslContext by inject<DSLContext>()
+    private val userDaoService by inject<UserDaoService>()
+    private val mailService by inject<MailService>()
 
     private lateinit var userId1: UserId
     private lateinit var userId2: UserId
@@ -55,6 +62,179 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     .deleteFrom(table)
                     .awaitExecute()
             }
+    }
+
+    @Nested
+    @DisplayName("'Always visible in lobby' option behavior")
+    inner class AlwaysVisibleInLobbyBehavior {
+
+        @Test
+        fun `accepted if all conditions are met`() = runTest {
+            assertFalse(mailService.isEmailAddressValid(fetchEmailOf(userId1.id)))
+            assertFalse(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
+
+            makeAlwaysVisibleInLobbyAllowed(userId1.id)
+            assertTrue(mailService.isEmailAddressValid(fetchEmailOf(userId1.id)))
+            assertTrue(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
+
+            val response = pvpGameService.createGame(userId1, alwaysVisibleInLobbyRapidPublicGameRequest())
+
+            assertEquals(CREATED, response.eventType)
+            assertTrue(fetchAlwaysVisibleInLobby(response.gameId))
+        }
+
+        @Test
+        fun `accepted but force disabled if private invite`() = runTest {
+            assertFalse(mailService.isEmailAddressValid(fetchEmailOf(userId1.id)))
+            assertFalse(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
+
+            val response = pvpGameService.createGame(
+                userId = userId1,
+                request = alwaysVisibleInLobbyRapidPublicGameRequest()
+                    .copy(privateInvite = true)
+            )
+
+            assertEquals(CREATED, response.eventType, "game is created")
+            assertFalse(
+                fetchAlwaysVisibleInLobby(response.gameId),
+                "'always visible in lobby' should be forced disabled"
+            )
+        }
+
+        @Test
+        fun `rejected if email is not valid`() = runTest {
+            assertFalse(mailService.isEmailAddressValid(fetchEmailOf(userId1.id)))
+            assertFalse(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
+
+            val e = assertFailsWith<BadRequestException> {
+                pvpGameService.createGame(userId1, alwaysVisibleInLobbyRapidPublicGameRequest())
+            }
+
+            logger.info { "expected exception $e" }
+            assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
+        }
+
+        @Test
+        fun `rejected if email is not valid, even if notification is true`() = runTest {
+            setOpponentJoinedGameNotification(userId1.id, enabled = true)
+            assertFalse(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
+
+            val e = assertFailsWith<BadRequestException> {
+                pvpGameService.createGame(userId1, alwaysVisibleInLobbyRapidPublicGameRequest())
+            }
+
+            logger.info { "expected exception $e" }
+            assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
+        }
+
+        @Test
+        fun `rejected if notification setting is false`() = runTest {
+            confirmEmail(userId1.id)
+            setOpponentJoinedGameNotification(userId1.id, enabled = false)
+            assertFalse(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
+
+            val e = assertFailsWith<BadRequestException> {
+                pvpGameService.createGame(userId1, alwaysVisibleInLobbyRapidPublicGameRequest())
+            }
+
+            logger.info { "expected exception $e" }
+            assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
+        }
+
+        @Test
+        fun `always rejected for guest`() = runTest {
+            val e = assertFailsWith<BadRequestException> {
+                pvpGameService.createGame(guestId1, alwaysVisibleInLobbyRapidPublicGameRequest())
+            }
+
+            logger.info { "expected exception $e" }
+            assertEquals("Guest users are not allowed to use the 'always show in lobby' option", e.message)
+        }
+
+        @Test
+        fun `rejected if conditions are not met, even for correspondence games`() = runTest {
+            val e = assertFailsWith<BadRequestException> {
+                pvpGameService.createGame(
+                    userId1,
+                    alwaysVisibleInLobbyRapidPublicGameRequest().copy(
+                        timeControlMode = TimeControlMode.MOVE_TIME,
+                        timeControlBase = 1.days.inWholeSeconds.toInt(),
+                    )
+                )
+            }
+
+            logger.info { "expected exception $e" }
+            assertTrue(e.message!!.startsWith("The 'always show in lobby' option is not allowed for this game"))
+        }
+
+        @Test
+        fun `disable 'always visible in lobby' for existing games when option is updated`() = runTest {
+            makeAlwaysVisibleInLobbyAllowed(userId1.id)
+            assertTrue(mailService.isEmailAddressValid(fetchEmailOf(userId1.id)))
+            assertTrue(isOptionAlwaysVisibleInLobbyAllowed(userId1.id))
+
+            val response = pvpGameService.createGame(userId1, alwaysVisibleInLobbyRapidPublicGameRequest())
+
+            assertEquals(CREATED, response.eventType)
+            assertTrue(fetchAlwaysVisibleInLobby(response.gameId))
+
+            setOpponentJoinedGameNotification(userId1.id, enabled = false)
+            assertFalse(fetchAlwaysVisibleInLobby(response.gameId))
+        }
+
+        private suspend fun fetchAlwaysVisibleInLobby(gameId: String): Boolean =
+            dslContext
+                .select(GAME.ALWAYS_VISIBLE_IN_LOBBY)
+                .from(GAME)
+                .where(GAME.ID.eq(gameId))
+                .awaitSingleValue()!!
+
+        private suspend fun makeAlwaysVisibleInLobbyAllowed(userId: String) {
+            confirmEmail(userId)
+            setOpponentJoinedGameNotification(userId, enabled = true)
+        }
+
+        private suspend fun confirmEmail(userId: String) {
+            val confirmationCode = userDaoService.findById(userId)!!.emailConfirmationCode
+            assertTrue(userService.confirmEmail(confirmationCode))
+        }
+
+        private suspend fun setOpponentJoinedGameNotification(userId: String, enabled: Boolean) =
+            userService.updateNotificationsSettings(
+                userId = userId,
+                request = NotificationsSettingsDto(
+                    newsletter = false,
+                    opponentJoinedGame = enabled,
+                    opponentPlayedMove = false,
+                    opponentResigned = false,
+                    opponentProposedDraw = false,
+                    opponentAcceptedDraw = false,
+                    opponentDeclinedDraw = false,
+                )
+            )
+
+        private fun alwaysVisibleInLobbyRapidPublicGameRequest() =
+            CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = true,
+                privateInvite = false,
+            )
+
+        private suspend fun isOptionAlwaysVisibleInLobbyAllowed(userId: String): Boolean =
+            pvpGameService.isOptionAlwaysVisibleInLobbyAllowed(userId)
+
+        private suspend fun fetchEmailOf(userId: String): String =
+            dslContext
+                .select(USER.EMAIL)
+                .from(USER)
+                .where(USER.ID.eq(userId))
+                .awaitSingleValue()!!
+
     }
 
     /**
@@ -874,20 +1054,18 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             .where(USER.ID.eq(userId))
             .awaitSingleValue()!!
 
-    private suspend fun setUserOffline(userId: String) {
+    private suspend fun setUserOffline(userId: String) =
         dslContext
             .update(USER)
             .set(USER.LAST_ONLINE, Clock.System.now().minus(1.hours))
             .where(USER.ID.eq(userId))
             .awaitExecute()
-    }
 
-    private suspend fun setUserOnline(userId: String) {
+    private suspend fun setUserOnline(userId: String) =
         dslContext
             .update(USER)
             .set(USER.LAST_ONLINE, Clock.System.now())
             .where(USER.ID.eq(userId))
             .awaitExecute()
-    }
 
 }

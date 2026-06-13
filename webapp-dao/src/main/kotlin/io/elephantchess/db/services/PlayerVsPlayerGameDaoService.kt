@@ -398,14 +398,6 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
-    suspend fun fetchGameStatus(gameId: String): GameEventType? {
-        return dslContext
-            .select(GAME.GAME_STATUS)
-            .from(GAME)
-            .where(GAME.ID.eq(gameId))
-            .awaitSingleValue()
-    }
-
     suspend fun fetchCurrentStatusAndFen(gameIds: List<String>): List<Game> {
         return if (gameIds.isEmpty()) {
             emptyList()
@@ -1155,6 +1147,17 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .set(GAME.INVITEE, newUserId)
                 .set(GAME.GUEST_USER_ID, guestUserId)
                 .where(GAME.INVITEE.eq(guestUserId))
+                .awaitExecute()
+        }
+    }
+
+    suspend fun disableAlwaysVisibleInLobbyOptionForUserCreatedGames(userId: String) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL.using(cfg)
+                .update(GAME)
+                .set(GAME.ALWAYS_VISIBLE_IN_LOBBY.fixed(), false)
+                .where(GAME.INVITER.eq(userId))
+                .and(GAME.GAME_STATUS.eq(CREATED))
                 .awaitExecute()
         }
     }
