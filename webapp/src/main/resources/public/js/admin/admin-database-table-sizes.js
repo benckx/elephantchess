@@ -29,6 +29,11 @@ class AdminDatabaseTableSizesPage extends BasePage {
      */
     #totalTablesSpan = document.getElementById('total-tables');
 
+    /**
+     * @type {HTMLSpanElement}
+     */
+    #openingPreCalculationSizeSpan = document.getElementById('opening-pre-calculation-size');
+
     constructor() {
         super();
         this.#fetchTableSizes();
@@ -37,6 +42,7 @@ class AdminDatabaseTableSizesPage extends BasePage {
     #fetchTableSizes() {
         getAndHandle(ADMIN_URL_PREFIX + '/database-table-sizes', json => {
             this.#renderTableSizes(json);
+            this.#renderOpeningPreCalculationSize(json);
             this.#renderChart(json);
         });
     }
@@ -49,6 +55,19 @@ class AdminDatabaseTableSizesPage extends BasePage {
         const entries = json.entries || [];
         const chart = new DatabaseTableSizesChart('table-sizes-chart', entries);
         chart.render();
+    }
+
+    /**
+     * Renders the combined total size of the opening_pre_calculation tables.
+     * @param json {object}
+     */
+    #renderOpeningPreCalculationSize(json) {
+        const entries = json.entries || [];
+        const combinedBytes = entries
+            .filter(entry => entry.tableName.startsWith('opening_pre_calculation'))
+            .reduce((sum, entry) => sum + entry.totalBytes, 0);
+
+        this.#openingPreCalculationSizeSpan.innerText = formatBytes(combinedBytes);
     }
 
     /**
