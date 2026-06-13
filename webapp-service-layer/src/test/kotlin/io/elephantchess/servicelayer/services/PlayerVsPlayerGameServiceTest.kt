@@ -64,40 +64,8 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             }
     }
 
-    /**
-     * If both players want the exact same game,
-     * the second "create" request ends up joining the first game
-     */
-    @Test
-    fun joinMatchingGameTest01() = runTest {
-        val request1 = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
-
-        val request2 = request1.copy(inviterColor = BLACK)
-
-        val response1 = pvpGameService.createGame(userId1, request1)
-        val response2 = pvpGameService.createGame(userId2, request2)
-
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
-
-        assertEquals(JOINED, response2.eventType)
-        assertEquals(BLACK, response2.color)
-
-        assertEquals(1, countGameByStatus(JOINED))
-        assertEquals(0, countGameByStatus(CREATED))
-    }
-
     @Nested
-    @DisplayName("'Always visible in lobby' behavior")
+    @DisplayName("'Always visible in lobby' option behavior")
     inner class AlwaysVisibleInLobbyBehavior {
 
         @Test
@@ -235,6 +203,38 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 .where(USER.ID.eq(userId))
                 .awaitSingleValue()!!
 
+    }
+
+    /**
+     * If both players want the exact same game,
+     * the second "create" request ends up joining the first game
+     */
+    @Test
+    fun joinMatchingGameTest01() = runTest {
+        val request1 = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false
+        )
+
+        val request2 = request1.copy(inviterColor = BLACK)
+
+        val response1 = pvpGameService.createGame(userId1, request1)
+        val response2 = pvpGameService.createGame(userId2, request2)
+
+        assertEquals(CREATED, response1.eventType)
+        assertEquals(RED, response1.color)
+
+        assertEquals(JOINED, response2.eventType)
+        assertEquals(BLACK, response2.color)
+
+        assertEquals(1, countGameByStatus(JOINED))
+        assertEquals(0, countGameByStatus(CREATED))
     }
 
     /**
