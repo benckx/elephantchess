@@ -25,7 +25,7 @@ import kotlin.time.Clock
 private val logger = logger {}
 
 private const val READ_PROFILE = "local-backup"
-private const val WRITE_PROFILE = "prod"
+private const val WRITE_PROFILE = "local-backup"
 private const val MAX_MOVES = 48
 private const val MIN_OCCURRENCES = 2
 
