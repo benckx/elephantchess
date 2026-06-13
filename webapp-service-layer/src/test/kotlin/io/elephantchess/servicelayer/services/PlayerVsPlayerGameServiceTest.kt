@@ -466,6 +466,39 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     /**
+     * A Manchu game and a Xiangqi game with compatible colors should NOT be matched together —
+     * variant must be part of the matching criteria.
+     */
+    @Test
+    fun joinMatchingGameIncompatibleTest07() = runTest {
+        val manchuRequest = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = false,
+            privateInvite = false,
+            variant = Variant.MANCHU
+        )
+
+        val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
+
+        val response1 = pvpGameService.createGame(userId1, manchuRequest)
+        val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
+
+        assertEquals(CREATED, response1.eventType)
+        assertEquals(RED, response1.color)
+
+        assertEquals(CREATED, response2.eventType)
+        assertEquals(BLACK, response2.color)
+
+        assertEquals(0, countGameByStatus(JOINED))
+        assertEquals(2, countGameByStatus(CREATED))
+    }
+
+    /**
      * Two users created compatible games while not being online at the same
      * time (so the regular matching at creation time did not pair them).
      * When both users come back online, the dynamic matching routine should
@@ -558,39 +591,6 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         assertEquals(0, countGameByStatus(JOINED))
         assertEquals(2, countGameByStatus(CREATED))
         assertEquals(0, countGameByStatus(AUTO_CANCELED))
-    }
-
-    /**
-     * A Manchu game and a Xiangqi game with compatible colors should NOT be matched together —
-     * variant must be part of the matching criteria.
-     */
-    @Test
-    fun joinMatchingGameIncompatibleTest07() = runTest {
-        val manchuRequest = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false,
-            variant = Variant.MANCHU
-        )
-
-        val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
-
-        val response1 = pvpGameService.createGame(userId1, manchuRequest)
-        val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
-
-        assertEquals(CREATED, response1.eventType)
-        assertEquals(RED, response1.color)
-
-        assertEquals(CREATED, response2.eventType)
-        assertEquals(BLACK, response2.color)
-
-        assertEquals(0, countGameByStatus(JOINED))
-        assertEquals(2, countGameByStatus(CREATED))
     }
 
 
