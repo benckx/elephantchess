@@ -2,58 +2,26 @@ package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.ReferenceGameHalfMove.REFERENCE_GAME_HALF_MOVE
-import io.elephantchess.db.dao.codegen.tables.daos.*
-import io.elephantchess.db.dao.codegen.tables.pojos.*
-import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameEventRecord
-import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameOpeningRecord
-import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameOpeningVariationRecord
+import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGame
+import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGameSearchQuery
 import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameRecord
 import io.elephantchess.db.model.EntityIdAndNameRecord
-import io.elephantchess.db.model.ReferenceGamePojo
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
+import io.elephantchess.model.AnalysisStatus.NOT_STARTED
+import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.xiangqi.Color
 import org.jooq.*
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.lower
-import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDate
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
 class ReferenceGameDaoService(private val dslContext: DSLContext) {
-
-    @Suppress("unused")
-    suspend fun saveEvents(events: List<ReferenceGameEvent>) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameEventDao(cfg).insertMultipleReactive(events)
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun saveOpenings(openings: List<ReferenceGameOpening>) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameOpeningDao(cfg).insertMultipleReactive(openings)
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun saveVariations(variations: List<ReferenceGameOpeningVariation>) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameOpeningVariationDao(cfg).insertMultipleReactive(variations)
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun saveGame(pojo: ReferenceGamePojo) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameDao(cfg).insertReactive(pojo.game)
-            ReferenceGameHalfMoveDao(cfg).insertMultipleReactive(pojo.moves)
-        }
-    }
 
     suspend fun listPreAnalyzedGamesByYear(): List<Record3<Int, AnalysisStatus, Int>> {
         return dslContext
@@ -123,41 +91,6 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitRecords()
             .map { record2 -> EntityIdAndNameRecord(record2.value1(), record2.value2()) }
             .toList()
-    }
-
-    @Suppress("unused")
-    suspend fun listAllEvents(): List<ReferenceGameEventRecord> {
-        return dslContext
-            .select()
-            .from(REFERENCE_GAME_EVENT)
-            .orderBy(REFERENCE_GAME_EVENT.NAME)
-            .awaitMappedRecords()
-    }
-
-    @Suppress("unused")
-    suspend fun listAllOpenings(): List<ReferenceGameOpeningRecord> {
-        return dslContext
-            .select()
-            .from(REFERENCE_GAME_OPENING)
-            .orderBy(REFERENCE_GAME_OPENING.NAME)
-            .awaitMappedRecords()
-    }
-
-    @Suppress("unused")
-    suspend fun listAllOpeningVariations(): List<ReferenceGameOpeningVariationRecord> {
-        return dslContext
-            .select()
-            .from(REFERENCE_GAME_OPENING_VARIATION)
-            .orderBy(REFERENCE_GAME_OPENING_VARIATION.NAME)
-            .awaitMappedRecords()
-    }
-
-    @Suppress("unused")
-    suspend fun listAllSourceReferenceIds(): List<String> {
-        return dslContext
-            .selectDistinct(REFERENCE_GAME.SOURCE_ID)
-            .from(REFERENCE_GAME)
-            .awaitMappedRecords()
     }
 
     suspend fun findByPuzzleIds(puzzleIds: List<String>): List<Record> {
@@ -506,6 +439,17 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .set(REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID, guestUserId)
             .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(guestUserId))
             .awaitExecute()
+    }
+
+    suspend fun pickRandomGameForAnalysis(): String? {
+        return dslContext
+            .select(REFERENCE_GAME.ID)
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
+            .and(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.greaterThan(10))
+            .orderBy(DSL.rand())
+            .limit(1)
+            .awaitSingleValue()
     }
 
     companion object {
