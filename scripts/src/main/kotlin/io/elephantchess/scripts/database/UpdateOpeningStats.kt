@@ -45,7 +45,7 @@ private const val UPDATE_PLAYER_OPENINGS = true
 
 // Only build the per-player repertoire for players that have enough games to make the stats
 // meaningful, to limit the number of rows.
-private const val MIN_GAMES_PER_PLAYER = 250
+private const val MIN_GAMES_PER_PLAYER = 100
 
 private const val STOP_TIMEOUT = 60_000L
 
