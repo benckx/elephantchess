@@ -331,7 +331,7 @@ function formatBytes(bytes) {
     }
 
     const units = ['bytes', 'kB', 'MB', 'GB', 'TB'];
-    const tier = Math.min(Math.floor(Math.log10(Math.abs(bytes)) / 3), units.length - 1);
+    const tier = Math.min(Math.floor(Math.log2(Math.abs(bytes)) / 10), units.length - 1);
 
     if (tier === 0) {
         return bytes + ' bytes';
