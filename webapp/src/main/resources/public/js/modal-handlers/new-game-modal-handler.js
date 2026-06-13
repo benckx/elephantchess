@@ -175,7 +175,6 @@ class NewGameHandler extends ModalHandler {
         // Find the checkbox inside the container
         const checkbox = container.querySelector('input[type="checkbox"]');
         if (checkbox) {
-            // a disabled option is always forced to its un-selected state
             checkbox.checked = false;
             checkbox.disabled = true;
         }
