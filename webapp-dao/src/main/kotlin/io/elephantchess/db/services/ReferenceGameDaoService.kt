@@ -2,14 +2,10 @@ package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.ReferenceGameHalfMove.REFERENCE_GAME_HALF_MOVE
-import io.elephantchess.db.dao.codegen.tables.daos.*
-import io.elephantchess.db.dao.codegen.tables.pojos.*
-import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameEventRecord
-import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameOpeningRecord
-import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameOpeningVariationRecord
+import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGame
+import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGameSearchQuery
 import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameRecord
 import io.elephantchess.db.model.EntityIdAndNameRecord
-import io.elephantchess.db.model.ReferenceGamePojo
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
@@ -20,38 +16,12 @@ import io.elephantchess.xiangqi.Color
 import org.jooq.*
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.lower
-import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDate
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
 class ReferenceGameDaoService(private val dslContext: DSLContext) {
-
-    suspend fun saveEvents(events: List<ReferenceGameEvent>) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameEventDao(cfg).insertMultipleReactive(events)
-        }
-    }
-
-    suspend fun saveOpenings(openings: List<ReferenceGameOpening>) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameOpeningDao(cfg).insertMultipleReactive(openings)
-        }
-    }
-
-    suspend fun saveVariations(variations: List<ReferenceGameOpeningVariation>) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameOpeningVariationDao(cfg).insertMultipleReactive(variations)
-        }
-    }
-
-    suspend fun saveGame(pojo: ReferenceGamePojo) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferenceGameDao(cfg).insertReactive(pojo.game)
-            ReferenceGameHalfMoveDao(cfg).insertMultipleReactive(pojo.moves)
-        }
-    }
 
     suspend fun listPreAnalyzedGamesByYear(): List<Record3<Int, AnalysisStatus, Int>> {
         return dslContext
@@ -123,37 +93,6 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .toList()
     }
 
-    suspend fun listAllEvents(): List<ReferenceGameEventRecord> {
-        return dslContext
-            .select()
-            .from(REFERENCE_GAME_EVENT)
-            .orderBy(REFERENCE_GAME_EVENT.NAME)
-            .awaitMappedRecords()
-    }
-
-    suspend fun listAllOpenings(): List<ReferenceGameOpeningRecord> {
-        return dslContext
-            .select()
-            .from(REFERENCE_GAME_OPENING)
-            .orderBy(REFERENCE_GAME_OPENING.NAME)
-            .awaitMappedRecords()
-    }
-
-    suspend fun listAllOpeningVariations(): List<ReferenceGameOpeningVariationRecord> {
-        return dslContext
-            .select()
-            .from(REFERENCE_GAME_OPENING_VARIATION)
-            .orderBy(REFERENCE_GAME_OPENING_VARIATION.NAME)
-            .awaitMappedRecords()
-    }
-
-    suspend fun listAllSourceReferenceIds(): List<String> {
-        return dslContext
-            .selectDistinct(REFERENCE_GAME.SOURCE_ID)
-            .from(REFERENCE_GAME)
-            .awaitMappedRecords()
-    }
-
     suspend fun findByPuzzleIds(puzzleIds: List<String>): List<Record> {
         return if (puzzleIds.isEmpty()) {
             emptyList()
@@ -188,8 +127,9 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    // might be useful later
-    @Suppress("unused")
+    // TODO: decide if we want to keep this or not
+    //   we currently have a MR to index the games per opening in db,
+    //   which would render this method unnecessary
     private suspend fun listAllGamesBeginningWithMoves(moves: List<String>): List<String> {
         if (moves.isEmpty()) {
             return emptyList()
@@ -517,7 +457,9 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         private val WHITESPACE_REGEX = Regex("""\s+""")
 
         fun sanitizePlayerName(playerName: String?): String? =
-            playerName?.replace(PARENTHETICAL_REGEX, "")?.replace(WHITESPACE_REGEX, " ")?.trim()
+            playerName
+                ?.replace(PARENTHETICAL_REGEX, "")
+                ?.replace(WHITESPACE_REGEX, " ")?.trim()
                 ?.takeIf { it.isNotEmpty() }
     }
 
