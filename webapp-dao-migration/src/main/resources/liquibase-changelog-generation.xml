@@ -2381,4 +2381,22 @@
         <modifyDataType tableName="user_session" columnName="user_agent" newDataType="text"/>
         <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
     </changeSet>
+    <changeSet id="0105" author="benckx">
+        <comment>Add analyzed_from_batch flag to reference_game and game tables</comment>
+        <addColumn tableName="reference_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

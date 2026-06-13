@@ -9,6 +9,8 @@ import io.elephantchess.db.model.EntityIdAndNameRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
+import io.elephantchess.model.AnalysisStatus.NOT_STARTED
+import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.xiangqi.Color
 import org.jooq.*
@@ -437,6 +439,17 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .set(REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID, guestUserId)
             .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(guestUserId))
             .awaitExecute()
+    }
+
+    suspend fun pickRandomGameForAnalysis(): String? {
+        return dslContext
+            .select(REFERENCE_GAME.ID)
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
+            .and(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.greaterThan(10))
+            .orderBy(DSL.rand())
+            .limit(1)
+            .awaitSingleValue()
     }
 
     companion object {

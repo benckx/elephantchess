@@ -151,7 +151,7 @@ class GameDataService(
         return GameMovesResponse(moves)
     }
 
-    suspend fun startGameAnalysis(gameId: GameId): StartGameAnalysisResponse {
+    suspend fun startGameAnalysis(gameId: GameId, isFromBatch: Boolean = false): StartGameAnalysisResponse {
         fun stillInProgressException(gameId: GameId, gameEventType: GameEventType) =
             BadRequestException("Game $gameId is in status $gameEventType and can not be analyzed yet")
 
@@ -201,7 +201,7 @@ class GameDataService(
 
         val (status, shouldStartAnalysis) = validateAnalysisShouldStart(gameId)
         if (shouldStartAnalysis) {
-            startAnalysisAsync(gameId)
+            startAnalysisAsync(gameId, isFromBatch)
         }
         return StartGameAnalysisResponse(status, shouldStartAnalysis)
     }
@@ -287,7 +287,7 @@ class GameDataService(
         moveAnalysisDaoService.resetAnalysisStatus(gameId)
     }
 
-    private fun startAnalysisAsync(gameId: GameId) {
+    private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean) {
         suspend fun queryEngine(fen: String): InfoLineResult? {
             return enginesPool.safeQueryForDepth(
                 fen = fen,
@@ -355,7 +355,7 @@ class GameDataService(
             if (appConfig.isEnginePoolEnabled) {
                 when (val analysisStatus = fetchAnalysisStatusOfGame(gameId)) {
                     PARTIALLY_COMPLETED -> {
-                        moveAnalysisDaoService.startAnalysis(gameId)
+                        moveAnalysisDaoService.startAnalysis(gameId, isFromBatch)
                         logger.info { "$gameId completing analysis" }
 
                         try {
@@ -372,7 +372,7 @@ class GameDataService(
                     }
 
                     NOT_STARTED -> {
-                        moveAnalysisDaoService.startAnalysis(gameId)
+                        moveAnalysisDaoService.startAnalysis(gameId, isFromBatch)
                         logger.info { "$gameId starting analysis" }
 
                         try {

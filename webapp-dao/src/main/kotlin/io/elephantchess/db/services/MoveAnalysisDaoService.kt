@@ -69,11 +69,44 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun resetAnalysisStatus(gameId: GameId) =
+    suspend fun resetAnalysisStatus(gameId: GameId) {
         updateAnalysisStatus(gameId, NOT_STARTED, null)
+        setAnalyzedFromBatch(gameId, false)
+    }
 
-    suspend fun startAnalysis(gameId: GameId) =
+    suspend fun startAnalysis(gameId: GameId, isFromBatch: Boolean) {
         updateAnalysisStatus(gameId, STARTED, startTimeField(gameId))
+        if (isFromBatch) {
+            setAnalyzedFromBatch(gameId, true)
+        }
+    }
+
+    private suspend fun setAnalyzedFromBatch(gameId: GameId, value: Boolean) {
+        dslContext.transactionCoroutine { cfg ->
+            when (gameId.type) {
+                DB -> DSL
+                    .using(cfg)
+                    .update(REFERENCE_GAME.fixed())
+                    .set(REFERENCE_GAME.ANALYZED_FROM_BATCH.fixed(), value)
+                    .where(REFERENCE_GAME.ID.eq(gameId.id))
+                    .awaitExecute()
+
+                PVP -> DSL
+                    .using(cfg)
+                    .update(GAME.fixed())
+                    .set(GAME.ANALYZED_FROM_BATCH.fixed(), value)
+                    .where(GAME.ID.eq(gameId.id))
+                    .awaitExecute()
+
+                PVB -> DSL
+                    .using(cfg)
+                    .update(BOT_GAME.fixed())
+                    .set(BOT_GAME.ANALYZED_FROM_BATCH.fixed(), value)
+                    .where(BOT_GAME.ID.eq(gameId.id))
+                    .awaitExecute()
+            }
+        }
+    }
 
     suspend fun completeAnalysis(gameId: GameId) =
         updateAnalysisStatus(gameId, COMPLETED, endTimeField(gameId))
@@ -114,19 +147,21 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                 GAME_ID,
                 DSL.min(ENTRY_CREATION).`as`("min_date"),
                 DSL.max(ENTRY_CREATION).`as`("max_date"),
-                DSL.count().`as`("total_moves")
+                DSL.count().`as`("total_moves"),
+                ANALYZED_FROM_BATCH
             )
             .from(COALESCED_VIEW)
-            .groupBy(GAME_TYPE, GAME_ID)
+            .groupBy(GAME_TYPE, GAME_ID, ANALYZED_FROM_BATCH)
             .orderBy(DSL.max(ENTRY_CREATION).desc())
             .limit(limit)
             .awaitRecords()
-            .map { record4 ->
+            .map { record ->
                 MoveAnalysisDataGameEntryRecord(
-                    GameId(GameType.valueOf(record4[GAME_TYPE]), record4[GAME_ID]),
-                    record4["min_date", Instant::class.java],
-                    record4["max_date", Instant::class.java],
-                    record4["total_moves", Int::class.java]
+                    GameId(GameType.valueOf(record[GAME_TYPE]), record[GAME_ID]),
+                    record["min_date", Instant::class.java],
+                    record["max_date", Instant::class.java],
+                    record["total_moves", Int::class.java],
+                    record[ANALYZED_FROM_BATCH] ?: false
                 )
             }
     }
@@ -138,11 +173,38 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
+    suspend fun isAnyGameCurrentlyBeingAnalyzed(): Boolean {
+        val refGameCount = dslContext
+            .selectCount()
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ANALYSIS_STATUS.eq(STARTED))
+            .awaitSingleValue() ?: 0
+
+        if (refGameCount > 0) return true
+
+        val pvpGameCount = dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.ANALYSIS_STATUS.eq(STARTED))
+            .awaitSingleValue() ?: 0
+
+        if (pvpGameCount > 0) return true
+
+        val pvbGameCount = dslContext
+            .selectCount()
+            .from(BOT_GAME)
+            .where(BOT_GAME.ANALYSIS_STATUS.eq(STARTED))
+            .awaitSingleValue() ?: 0
+
+        return pvbGameCount > 0
+    }
+
     private companion object {
 
         val COALESCED_VIEW = DSL.table("move_analysis_coalesced")
         val GAME_TYPE = DSL.field("game_type", String::class.java)
         val GAME_ID = DSL.field("game_data_id", String::class.java)
+        val ANALYZED_FROM_BATCH = DSL.field("analyzed_from_batch", Boolean::class.java)
 
         // jOOQ's DefaultDataType registry does not know about kotlin.time.Instant,
         // so we attach the same converter the codegen uses for timestamptz columns.
