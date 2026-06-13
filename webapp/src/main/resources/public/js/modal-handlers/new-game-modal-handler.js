@@ -77,15 +77,6 @@ class NewGameHandler extends ModalHandler {
                     this.#unselectedForGroup(itemExclusionGroup);
                     item.classList.add(OPTION_BUTTON_SELECTED_CLASS);
                 }
-
-                // the "always visible in lobby" option is always available for correspondence games;
-                // refresh its enabled state and auto-check it when a correspondence time control is selected
-                if (item.classList.contains(TIME_CONTROL_OPTION_GROUP)) {
-                    this.#refreshAlwaysVisibleInLobby();
-                    if (!this.#privateInvite.checked) {
-                        this.#alwaysVisibleInLobbyCheckBox.checked = this.#isCorrespondenceSelected();
-                    }
-                }
             });
         });
 
@@ -137,8 +128,8 @@ class NewGameHandler extends ModalHandler {
             'Private games are not listed in the lobby and can only be joined by players with the direct link.'
         );
 
-        // "always visible in lobby" requires a valid email and the "someone joined my game" notification
-        // (or a correspondence time control): greyed out until/unless one of those conditions is met
+        // "always visible in lobby" requires a valid email and the "someone joined my game" notification:
+        // greyed out until/unless those conditions are met
         this.#disableCheckbox('always-visible-in-lobby-container');
         if (isUserAuthenticated()) {
             getAndHandle('/api/lobby/always-visible-in-lobby-allowed', (json) => {
@@ -150,23 +141,12 @@ class NewGameHandler extends ModalHandler {
     }
 
     /**
-     * Whether a correspondence (one or more days per move) time control is currently selected.
-     *
-     * @return {boolean}
-     */
-    #isCorrespondenceSelected() {
-        return this.#correspondenceTimeControls.some(tcId =>
-            document.getElementById(tcId).classList.contains(OPTION_BUTTON_SELECTED_CLASS));
-    }
-
-    /**
      * Refresh the enabled state of the "always visible in lobby" option. It is available when the user is allowed
-     * to use it (valid email + notification) or when a correspondence time control is selected, but never for
-     * private games. When not available, the checkbox is unchecked and disabled.
+     * to use it (valid email + notification), but never for private games. When not available, the checkbox is
+     * unchecked and disabled.
      */
     #refreshAlwaysVisibleInLobby() {
-        const available = !this.#privateInvite.checked
-            && (this.#alwaysVisibleInLobbyAllowed || this.#isCorrespondenceSelected());
+        const available = !this.#privateInvite.checked && this.#alwaysVisibleInLobbyAllowed;
         if (available) {
             this.#enableCheckbox('always-visible-in-lobby-container');
         } else {
