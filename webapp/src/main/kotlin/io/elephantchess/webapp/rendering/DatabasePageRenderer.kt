@@ -90,23 +90,19 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         }
 
         // Opening explorer is only wired up (markup + scripts + stylesheet) for players that
-        // have pre-calculated opening data.
+        // have pre-calculated opening data. The conditional tags resolve to the actual fragment
+        // tags (recursively resolved by the renderer, including the nested {{settings_info_box}})
+        // when data exists, or to an empty string otherwise. Distinct *_conditional tag names are
+        // used so these specific resolvers are not shadowed by the auto-registered web-fragment
+        // resolvers of the same name.
         val openingsHeadResolver = SimpleValueTagResolver(
-            "database_player_openings_head",
-            if (hasOpeningData) {
-                "{{database_player_openings_head}}"
-            } else {
-                ""
-            }
+            "database_player_openings_head_conditional",
+            if (hasOpeningData) "{{database_player_openings_head}}" else ""
         )
 
         val openingsSectionResolver = SimpleValueTagResolver(
-            "database_player_openings_section",
-            if (hasOpeningData) {
-                "{{database_player_openings_section}}"
-            } else {
-                ""
-            }
+            "database_player_openings_section_conditional",
+            if (hasOpeningData) "{{database_player_openings_section}}" else ""
         )
 
         return htmlRenderer.renderHtml(
