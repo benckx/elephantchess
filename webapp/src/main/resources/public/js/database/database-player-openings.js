@@ -39,7 +39,7 @@ class DatabasePlayerOpenings {
 
     #resetButton = document.getElementById('player-openings-reset-button');
 
-    #boardGui = createWebappBoardGui({ elementId: 'player-openings-board-container' });
+    #boardGui = createWebappBoardGui({elementId: 'player-openings-board-container'});
 
     #openingRepositoryWidget = new OpeningRepositoryWidget(this.#boardGui, {
         url: '/api/database/player/openings/next-moves-info',
@@ -83,7 +83,7 @@ class DatabasePlayerOpenings {
 
     #reset() {
         this.#moves = [];
-        this.#boardGui.loadFen(DEFAULT_START_FEN);
+        this.#boardGui.loadFen(DEFAULT_START_FEN, true);
         this.#boardGui.enablePlayerMove();
         this.#updateWidgets();
     }
