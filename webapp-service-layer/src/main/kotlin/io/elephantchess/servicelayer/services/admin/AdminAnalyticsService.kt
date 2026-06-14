@@ -334,14 +334,24 @@ class AdminAnalyticsService(
      * - Breakdown of PvP > 3 by join source
      */
     suspend fun fetchPvpStatsByJoinSource(): PvpJoinSourceStatsResponse {
+        val lobbyJoinSources = listOf(GameJoinSource.LOBBY, GameJoinSource.MATCHED, GameJoinSource.DYNAMIC_MATCHED)
+
         // Query total PvP games by month
         val totalPvpByMonth = pvpGameDaoService
             .countTotalGamesByMonth()
             .associate { it.month to it.value.toInt() }
 
+        val totalLobbyJoinModePvpByMonth = pvpGameDaoService
+            .countTotalGamesByMonthForJoinSources(lobbyJoinSources)
+            .associate { it.month to it.value.toInt() }
+
         // Query PvP > 3 games by month
         val pvpOver3ByMonth = pvpGameDaoService
             .countGamesOverMoveIndexByMonth(MIN_MOVE_INDEX)
+            .associate { it.month to it.value.toInt() }
+
+        val pvpOver3LobbyJoinModeByMonth = pvpGameDaoService
+            .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, lobbyJoinSources)
             .associate { it.month to it.value.toInt() }
 
         // Query PvP > 3 by join source and month
@@ -358,7 +368,7 @@ class AdminAnalyticsService(
             .sorted()
 
         if (allMonths.isEmpty()) {
-            return PvpJoinSourceStatsResponse(emptyList(), emptyList(), emptyList())
+            return PvpJoinSourceStatsResponse(emptyList(), emptyList(), emptyList(), emptyList())
         }
 
         val firstMonth = allMonths.first()
@@ -369,6 +379,12 @@ class AdminAnalyticsService(
         val percentageValues = allPeriods.map { month ->
             val total = totalPvpByMonth[month] ?: 0
             val over3 = pvpOver3ByMonth[month] ?: 0
+            if (total > 0) (over3.toDouble() / total * 100) else 0.0
+        }
+
+        val lobbyJoinModePercentageValues = allPeriods.map { month ->
+            val total = totalLobbyJoinModePvpByMonth[month] ?: 0
+            val over3 = pvpOver3LobbyJoinModeByMonth[month] ?: 0
             if (total > 0) (over3.toDouble() / total * 100) else 0.0
         }
 
@@ -384,6 +400,7 @@ class AdminAnalyticsService(
         return PvpJoinSourceStatsResponse(
             periods = allPeriods.map { it.toString() },
             percentageOver3 = percentageValues,
+            percentageOver3LobbyJoinModes = lobbyJoinModePercentageValues,
             joinSourceBreakdown = joinSourceSeries
         )
     }
