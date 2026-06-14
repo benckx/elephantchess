@@ -5,6 +5,7 @@ import io.elephantchess.db.dao.codegen.Tables.GAME
 import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.utils.awaitRecords
+import io.elephantchess.db.utils.generateId
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
@@ -19,11 +20,16 @@ import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlin.system.exitProcess
 
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
 private const val GAMES_PER_FILE = 1000
+private const val ANONYMIZE = true
 
 private val CSV_HEADER = arrayOf(
     "timestamp",
@@ -53,10 +59,10 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         val outputPath = args.firstOrNull()?.trim().takeUnless { it.isNullOrBlank() } ?: DEFAULT_OUTPUT_PATH
-        exportCsv(outputPath)
+        exportCsv(outputPath, ANONYMIZE)
     }
 
-    private suspend fun exportCsv(outputPath: String) {
+    private suspend fun exportCsv(outputPath: String, anonymize: Boolean) {
         val inviterUser = USER.`as`("inviter_user")
         val inviteeUser = USER.`as`("invitee_user")
 
@@ -129,6 +135,20 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
         val rowsByBatch = rows.indices.groupBy { index -> batchByGameId.getValue(rows[index].get(GAME.ID)) }
 
+        val anonymizedNames: Map<String, String> = if (anonymize) {
+            rows
+                .flatMap { row ->
+                    listOf(
+                        row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID)),
+                        row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
+                    )
+                }
+                .distinct()
+                .associateWith { generateId() }
+        } else {
+            emptyMap()
+        }
+
         var totalRows = 0
         rowsByBatch.toSortedMap().forEach { (batch, rowIndices) ->
             val batchOutputPath = batchOutputPath(outputPath, batch)
@@ -142,8 +162,10 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
                         val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
                         val inviterIsRed = inviterColor == Color.RED
-                        val redPlayerName = if (inviterIsRed) inviterHandle else inviteeHandle
-                        val blackPlayerName = if (inviterIsRed) inviteeHandle else inviterHandle
+                        val redHandle = if (inviterIsRed) inviterHandle else inviteeHandle
+                        val blackHandle = if (inviterIsRed) inviteeHandle else inviterHandle
+                        val redPlayerName = anonymizedNames[redHandle] ?: redHandle
+                        val blackPlayerName = anonymizedNames[blackHandle] ?: blackHandle
                         val redPlayerRating = if (inviterIsRed) {
                             PlayerRating(row.get(GAME.INVITER_RATING_FROM), row.get(GAME.INVITER_RATING_TO))
                         } else {
@@ -191,7 +213,30 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         }
 
         println("wrote $totalRows rows across ${rowsByBatch.size} file(s)")
+
+        val batchPaths = rowsByBatch.keys.sorted().map { batch -> batchOutputPath(outputPath, batch) }
+        val zipPath = zipOutputPath(outputPath)
+        ZipOutputStream(File(zipPath).outputStream().buffered()).use { zip ->
+            batchPaths.forEach { batchPath ->
+                val batchFile = File(batchPath)
+                zip.putNextEntry(ZipEntry(batchFile.name))
+                batchFile.inputStream().use { it.copyTo(zip) }
+                zip.closeEntry()
+            }
+        }
+        println("zipped ${batchPaths.size} file(s) to $zipPath")
+
         exitProcess(0)
+    }
+
+    private fun zipOutputPath(outputPath: String): String {
+        val file = File(outputPath)
+        val name = file.name
+        val month = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
+        val dotIndex = name.lastIndexOf('.')
+        val baseName = if (dotIndex >= 0) name.substring(0, dotIndex) else name
+        val newName = "${baseName}_${month}.zip"
+        return file.parentFile?.let { File(it, newName).path } ?: newName
     }
 
     private fun batchOutputPath(outputPath: String, batch: Int): String {
