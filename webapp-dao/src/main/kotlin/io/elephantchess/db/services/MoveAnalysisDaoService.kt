@@ -1,6 +1,5 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.db.codegen.OffsetDateTimeInstantConverter
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.MoveAnalysisDao
 import io.elephantchess.db.dao.codegen.tables.pojos.MoveAnalysis
@@ -13,7 +12,6 @@ import io.elephantchess.model.GameType
 import io.elephantchess.model.GameType.*
 import org.jooq.*
 import org.jooq.impl.DSL
-import org.jooq.impl.SQLDataType
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -152,12 +150,18 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             MOVE_ANALYSIS.REF_GAME_ID
         )
 
+        // Keep references to the aliased aggregate fields so we can look them up by Field reference
+        // (not by Class), which preserves the kotlin.time.Instant converter from MOVE_ANALYSIS.ENTRY_CREATION
+        // and avoids jOOQ's discouraged static type registry lookup for user-defined types.
+        val minDateField = DSL.min(MOVE_ANALYSIS.ENTRY_CREATION).`as`(MIN_DATE)
+        val maxDateField = DSL.max(MOVE_ANALYSIS.ENTRY_CREATION).`as`(MAX_DATE)
+
         val aggregatedMoveAnalysis = dslContext
             .select(
                 gameTypeExpr.`as`(GAME_TYPE),
                 gameIdExpr.`as`(GAME_ID),
-                DSL.min(MOVE_ANALYSIS.ENTRY_CREATION).`as`(MIN_DATE),
-                DSL.max(MOVE_ANALYSIS.ENTRY_CREATION).`as`(MAX_DATE),
+                minDateField,
+                maxDateField,
                 DSL.count().cast(Int::class.java).`as`(TOTAL_MOVES)
             )
             .from(MOVE_ANALYSIS)
@@ -189,8 +193,8 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
 
         val aggGameType = aggregatedMoveAnalysis.field(GAME_TYPE, String::class.java)!!
         val aggGameId = aggregatedMoveAnalysis.field(GAME_ID, String::class.java)!!
-        val aggMinDate = aggregatedMoveAnalysis.field(MIN_DATE, Instant::class.java)!!
-        val aggMaxDate = aggregatedMoveAnalysis.field(MAX_DATE, Instant::class.java)!!
+        val aggMinDate = aggregatedMoveAnalysis.field(minDateField)!!
+        val aggMaxDate = aggregatedMoveAnalysis.field(maxDateField)!!
         val aggTotalMoves = aggregatedMoveAnalysis.field(TOTAL_MOVES, Int::class.java)!!
 
         val flagGameType = analysisFlags.field(GAME_TYPE, String::class.java)!!
@@ -264,11 +268,6 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         const val MIN_DATE = "min_date"
         const val MAX_DATE = "max_date"
         const val TOTAL_MOVES = "total_moves"
-
-        // jOOQ's DefaultDataType registry does not know about kotlin.time.Instant,
-        // so we attach the same converter the codegen uses for timestamptz columns.
-        val INSTANT_TYPE: DataType<Instant> =
-            SQLDataType.TIMESTAMPWITHTIMEZONE(6).asConvertedDataType(OffsetDateTimeInstantConverter())
 
         fun moveAnalysisTableIdCondition(gameId: GameId): Condition {
             return moveAnalysisTableIdField(gameId.type).eq(gameId.id)
