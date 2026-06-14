@@ -434,6 +434,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             <h1>Openings</h1>
             <div id="player-openings" class="player-openings">
                 <div class="player-openings-explorer-column">
+                    {{settings_info_box}}
                     <div id="opening-repository-container">
                         <div id="opening-repository-container-loading-mask">
                             <div id="opening-repository-mask-label-indicator"></div>
@@ -445,7 +446,6 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 </div>
                 <div class="player-openings-board-column">
                     <div id="player-openings-board-container" class="board-container"></div>
-                    {{settings_info_box}}
                 </div>
             </div>
             <div class="player-openings-controls">

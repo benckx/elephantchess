@@ -46,7 +46,12 @@
     gap: 8px 18px;
 }
 
-/* The opening widget fills the left column. */
+/* Settings box (piece style, flip board, etc.) sits on top of the opening widget. */
+.player-openings-explorer-column #settings-info-box-container {
+    margin-bottom: 16px;
+}
+
+/* The opening widget fills the rest of the left column. */
 .player-openings-explorer-column #opening-repository-container {
     position: relative;
     height: 420px;
