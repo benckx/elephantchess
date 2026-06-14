@@ -93,7 +93,11 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         // have pre-calculated opening data.
         val openingsHeadResolver = SimpleValueTagResolver(
             "player_openings_head",
-            if (hasOpeningData) PLAYER_OPENINGS_HEAD else ""
+            if (hasOpeningData) {
+                WebFragmentResolver("player_openings_head").resolveContent().joinToString("\n")
+            } else {
+                ""
+            }
         )
         // The opening explorer markup is injected as a single value, so the nested
         // {{settings_info_box}} fragment is resolved here rather than relying on the
@@ -104,7 +108,10 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 val settingsInfoBox = WebFragmentResolver("settings_info_box")
                     .resolveContent()
                     .joinToString("\n")
-                PLAYER_OPENINGS_SECTION.replace("{{settings_info_box}}", settingsInfoBox)
+                WebFragmentResolver("player_openings_section")
+                    .resolveContent()
+                    .joinToString("\n")
+                    .replace("{{settings_info_box}}", settingsInfoBox)
             } else {
                 ""
             }
@@ -423,66 +430,6 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
     }
 
     private companion object {
-
-        val PLAYER_OPENINGS_HEAD = """
-            <link rel="stylesheet" href="/css/database/database-player-openings.css"/>
-            <script defer src="/js/widgets/bar-indicator.js"></script>
-            <script defer src="/js/analysis-board/opening-repository-widget.js"></script>
-            <script defer src="/js/database/database-player-openings.js"></script>
-        """.trimIndent()
-
-        val PLAYER_OPENINGS_SECTION = """
-            <h1>Openings</h1>
-            <div id="player-openings" class="player-openings">
-                <div class="player-openings-explorer-column">
-                    {{settings_info_box}}
-                    <div id="opening-repository-container">
-                        <div id="opening-repository-container-loading-mask">
-                            <div id="opening-repository-mask-label-indicator"></div>
-                        </div>
-                        <table id="opening-repository-table">
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="player-openings-board-column">
-                    <div id="player-openings-board-container" class="board-container"></div>
-                </div>
-            </div>
-            <div class="player-openings-controls">
-                <div id="player-openings-color-filter" class="player-openings-color-filter">
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="player-openings-color-all" name="player-openings-color"
-                                   value="ALL">
-                        </span>
-                        <span class="label-span">
-                            <label for="player-openings-color-all">All</label>
-                        </span>
-                    </div>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="player-openings-color-red" name="player-openings-color"
-                                   value="RED" checked="checked">
-                        </span>
-                        <span class="label-span">
-                            <label for="player-openings-color-red">Plays red</label>
-                        </span>
-                    </div>
-                    <div class="standard-radio">
-                        <span>
-                            <input type="radio" id="player-openings-color-black" name="player-openings-color"
-                                   value="BLACK">
-                        </span>
-                        <span class="label-span">
-                            <label for="player-openings-color-black">Plays black</label>
-                        </span>
-                    </div>
-                </div>
-                <input type="button" id="player-openings-reset-button" class="app-buttons"
-                       value="Reset"/>
-            </div>
-        """.trimIndent()
 
         fun dataAttr(name: String, value: String?): String =
             if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
