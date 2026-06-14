@@ -7,6 +7,7 @@
     {{author_meta}}
     <link rel="stylesheet" href="/css/database/database-player.css"/>
     {{player_profile_description_style}}
+    {{database_player_openings_head_conditional}}
     {{apex_charts}}
     <script defer src="/js/widgets/board-gui.js"></script>
     <script defer src="/js/widgets/game-thumb.js"></script>
@@ -40,6 +41,7 @@
             (*) Includes data from "Possible Duplicates" (see below)
         </div>
     </div>
+    {{database_player_openings_section_conditional}}
     <h1>Latest Games</h1>
     <div class="latest-games-container">
         {{game_thumb}}[[iterations:4; {gameType: 'db', parentClass: 'latest-game-thumb'}]]

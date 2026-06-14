@@ -70,6 +70,7 @@ private fun daoModule() = module {
     singleAuto<MoveAnalysisDaoService>()
     singleAuto<NewsletterDaoService>()
     singleAuto<OpeningRepositoryCacheDaoService>()
+    singleAuto<OpeningRepositoryReferencePlayerCacheDaoService>()
     singleAuto<PasswordRecoveryAttemptsDaoService>()
     singleAuto<PageViewEventDaoService>()
     singleAuto<PlayerVsBotGameDaoService>()
