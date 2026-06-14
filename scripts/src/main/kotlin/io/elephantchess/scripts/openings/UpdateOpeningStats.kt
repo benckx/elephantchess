@@ -243,4 +243,3 @@ private data class NextMoveOccurrenceCount(
     val nextMove: String,
     val occurrences: Int
 )
-

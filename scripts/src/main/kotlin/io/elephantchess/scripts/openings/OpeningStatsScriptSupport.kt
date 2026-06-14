@@ -64,4 +64,3 @@ internal data class ReferenceGameDto(
         }
     }
 }
-

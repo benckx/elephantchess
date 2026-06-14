@@ -144,4 +144,3 @@ private class OpeningAggregate(val numberOfMoves: Int) {
         }
     }
 }
-
