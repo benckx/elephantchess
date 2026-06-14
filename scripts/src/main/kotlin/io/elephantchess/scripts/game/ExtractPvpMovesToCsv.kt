@@ -1,11 +1,8 @@
 package io.elephantchess.scripts.game
 
 import com.opencsv.CSVWriter
-import io.elephantchess.db.dao.codegen.Tables.GAME
-import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
-import io.elephantchess.db.dao.codegen.Tables.USER
+import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitRecords
-import io.elephantchess.db.utils.generateId
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
@@ -29,7 +26,7 @@ import kotlin.system.exitProcess
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
 private const val GAMES_PER_FILE = 1000
-private const val ANONYMIZE = true
+private const val MUST_ANONYMIZE = true
 
 private val CSV_HEADER = arrayOf(
     "timestamp",
@@ -60,12 +57,12 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     fun main(args: Array<String>) {
         val outputPath = args.firstOrNull()?.trim().takeUnless { it.isNullOrBlank() } ?: DEFAULT_OUTPUT_PATH
         runBlocking {
-            Variant.entries.forEach { variant -> exportCsv(outputPath, ANONYMIZE, variant) }
+            Variant.entries.forEach { variant -> exportCsv(outputPath, MUST_ANONYMIZE, variant) }
         }
         exitProcess(0)
     }
 
-    private suspend fun exportCsv(outputPath: String, anonymize: Boolean, variant: Variant) {
+    private suspend fun exportCsv(outputPath: String, mustAnonymize: Boolean, variant: Variant) {
         val inviterUser = USER.`as`("inviter_user")
         val inviteeUser = USER.`as`("invitee_user")
 
@@ -138,7 +135,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
         val rowsByBatch = rows.indices.groupBy { index -> batchByGameId.getValue(rows[index].get(GAME.ID)) }
 
-        val anonymizedNames: Map<String, String> = if (anonymize) {
+        val anonymizedNames: Map<String, String> = if (mustAnonymize) {
             rows
                 .flatMap { row ->
                     listOf(
@@ -152,7 +149,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             emptyMap()
         }
 
-        val anonymizedGameIds: Map<String, String> = if (anonymize) {
+        val anonymizedGameIds: Map<String, String> = if (mustAnonymize) {
             rows
                 .map { row -> row.get(GAME.ID) }
                 .distinct()
@@ -205,7 +202,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 redPlayerRating.after?.toString() ?: "",
                                 blackPlayerRating.before?.toString() ?: "",
                                 blackPlayerRating.after?.toString() ?: "",
-                                timeControl(
+                                timeControlToString(
                                     row.get(GAME.TIME_CONTROL_MODE),
                                     row.get(GAME.TIME_CONTROL_BASE),
                                     row.get(GAME.TIME_CONTROL_INCREMENT),
@@ -265,7 +262,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
     private fun guestName(userId: String): String = "guest #$userId"
 
-    private fun timeControl(mode: TimeControlMode?, base: Int?, increment: Int?): String =
+    private fun timeControlToString(mode: TimeControlMode?, base: Int?, increment: Int?): String =
         when (mode) {
             TimeControlMode.GAME_TIME -> "${base ?: 0}+${increment ?: 0}"
             TimeControlMode.MOVE_TIME -> "${base ?: 0}/move"
