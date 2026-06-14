@@ -10,6 +10,10 @@ import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserStatsDaoService
 import io.elephantchess.model.GameJoinSource
+import io.elephantchess.model.GameJoinSource.DYNAMIC_MATCHED
+import io.elephantchess.model.GameJoinSource.LINK
+import io.elephantchess.model.GameJoinSource.LOBBY
+import io.elephantchess.model.GameJoinSource.MATCHED
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.analytics.HourlyAvailableMetric
@@ -334,14 +338,33 @@ class AdminAnalyticsService(
      * - Breakdown of PvP > 3 by join source
      */
     suspend fun fetchPvpStatsByJoinSource(): PvpJoinSourceStatsResponse {
+        val lobbyJoinSources = listOf(LOBBY, MATCHED, DYNAMIC_MATCHED)
+        val linkJoinSources = listOf(LINK)
+
         // Query total PvP games by month
         val totalPvpByMonth = pvpGameDaoService
             .countTotalGamesByMonth()
             .associate { it.month to it.value.toInt() }
 
+        val totalLobbyJoinModePvpByMonth = pvpGameDaoService
+            .countTotalGamesByMonthForJoinSources(lobbyJoinSources)
+            .associate { it.month to it.value.toInt() }
+
+        val totalLinkJoinSourcePvpByMonth = pvpGameDaoService
+            .countTotalGamesByMonthForJoinSources(linkJoinSources)
+            .associate { it.month to it.value.toInt() }
+
         // Query PvP > 3 games by month
         val pvpOver3ByMonth = pvpGameDaoService
             .countGamesOverMoveIndexByMonth(MIN_MOVE_INDEX)
+            .associate { it.month to it.value.toInt() }
+
+        val pvpOver3LobbyJoinModeByMonth = pvpGameDaoService
+            .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, lobbyJoinSources)
+            .associate { it.month to it.value.toInt() }
+
+        val pvpOver3LinkJoinSourceByMonth = pvpGameDaoService
+            .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, linkJoinSources)
             .associate { it.month to it.value.toInt() }
 
         // Query PvP > 3 by join source and month
@@ -358,7 +381,7 @@ class AdminAnalyticsService(
             .sorted()
 
         if (allMonths.isEmpty()) {
-            return PvpJoinSourceStatsResponse(emptyList(), emptyList(), emptyList())
+            return PvpJoinSourceStatsResponse.allEmpty()
         }
 
         val firstMonth = allMonths.first()
@@ -369,6 +392,18 @@ class AdminAnalyticsService(
         val percentageValues = allPeriods.map { month ->
             val total = totalPvpByMonth[month] ?: 0
             val over3 = pvpOver3ByMonth[month] ?: 0
+            if (total > 0) (over3.toDouble() / total * 100) else 0.0
+        }
+
+        val lobbyJoinModePercentageValues = allPeriods.map { month ->
+            val total = totalLobbyJoinModePvpByMonth[month] ?: 0
+            val over3 = pvpOver3LobbyJoinModeByMonth[month] ?: 0
+            if (total > 0) (over3.toDouble() / total * 100) else 0.0
+        }
+
+        val linkJoinSourcePercentageValues = allPeriods.map { month ->
+            val total = totalLinkJoinSourcePvpByMonth[month] ?: 0
+            val over3 = pvpOver3LinkJoinSourceByMonth[month] ?: 0
             if (total > 0) (over3.toDouble() / total * 100) else 0.0
         }
 
@@ -384,6 +419,8 @@ class AdminAnalyticsService(
         return PvpJoinSourceStatsResponse(
             periods = allPeriods.map { it.toString() },
             percentageOver3 = percentageValues,
+            percentageOver3LobbyJoinModes = lobbyJoinModePercentageValues,
+            percentageOver3LinkJoinSource = linkJoinSourcePercentageValues,
             joinSourceBreakdown = joinSourceSeries
         )
     }
