@@ -1,4 +1,23 @@
 /*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/*
  * Opening explorer (opening repository · board) on a database player profile.
  *
  * The opening-repository styling mirrors the analysis board, but is duplicated here because
@@ -11,22 +30,22 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    gap: 20px;
     flex-wrap: wrap;
+    gap: 10px;
 }
 
 .player-openings-explorer-column {
-    width: 30%;
+    width: 380px;
     min-width: 0;
 }
 
 .player-openings-board-column {
-    width: 63%;
+    width: 500px;
     min-width: 0;
 }
 
 .player-openings-board-column .board-container {
-    max-width: 520px;
+    max-width: 500px;
     margin: 0 auto;
 }
 
@@ -54,7 +73,7 @@
 /* The opening widget fills the rest of the left column. */
 .player-openings-explorer-column #opening-repository-container {
     position: relative;
-    height: 420px;
+    height: 280px;
     overflow-y: scroll;
 }
 
