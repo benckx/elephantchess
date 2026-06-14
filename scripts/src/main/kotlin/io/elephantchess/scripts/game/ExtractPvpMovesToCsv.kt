@@ -5,25 +5,31 @@ import io.elephantchess.db.dao.codegen.Tables.GAME
 import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.utils.awaitRecords
+import io.elephantchess.db.utils.generateId
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlin.system.exitProcess
 
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
 private const val GAMES_PER_FILE = 1000
+private const val ANONYMIZE = true
 
 private val CSV_HEADER = arrayOf(
     "timestamp",
@@ -51,12 +57,15 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     private val gameDataService by inject<GameDataService>()
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
+    fun main(args: Array<String>) {
         val outputPath = args.firstOrNull()?.trim().takeUnless { it.isNullOrBlank() } ?: DEFAULT_OUTPUT_PATH
-        exportCsv(outputPath)
+        runBlocking {
+            Variant.entries.forEach { variant -> exportCsv(outputPath, ANONYMIZE, variant) }
+        }
+        exitProcess(0)
     }
 
-    private suspend fun exportCsv(outputPath: String) {
+    private suspend fun exportCsv(outputPath: String, anonymize: Boolean, variant: Variant) {
         val inviterUser = USER.`as`("inviter_user")
         val inviteeUser = USER.`as`("invitee_user")
 
@@ -91,19 +100,19 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             .leftJoin(inviterUser).on(inviterUser.ID.eq(GAME.INVITER))
             .leftJoin(inviteeUser).on(inviteeUser.ID.eq(GAME.INVITEE))
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(MIN_MOVE_INDEX))
-            .and(GAME.VARIANT.eq(Variant.XIANGQI))
+            .and(GAME.VARIANT.eq(variant))
             .orderBy(GAME.CREATED.asc(), GAME.ID.asc(), GAME_MOVE.POSITION.asc())
             .awaitRecords()
 
         // Replay each game's moves to compute the FEN key (FEN without the full-move counter) for every move.
         // The key matches the position resulting from the played move, which is how engine analysis is keyed.
         var currentGameId: String? = null
-        var board = Board(DEFAULT_START_FEN)
+        var board = Board(Board.defaultStartFen(variant))
         val fenKeys = rows.map { row ->
             val gameId = row.get(GAME.ID)
             if (gameId != currentGameId) {
                 currentGameId = gameId
-                board = Board(DEFAULT_START_FEN)
+                board = Board(Board.defaultStartFen(variant))
             }
             board.registerMove(row.get(GAME_MOVE.UCI))
             resetFullMoveCount(board.outputFen())
@@ -129,21 +138,47 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
         val rowsByBatch = rows.indices.groupBy { index -> batchByGameId.getValue(rows[index].get(GAME.ID)) }
 
+        val anonymizedNames: Map<String, String> = if (anonymize) {
+            rows
+                .flatMap { row ->
+                    listOf(
+                        row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID)),
+                        row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
+                    )
+                }
+                .distinct()
+                .associateWith { randomId() }
+        } else {
+            emptyMap()
+        }
+
+        val anonymizedGameIds: Map<String, String> = if (anonymize) {
+            rows
+                .map { row -> row.get(GAME.ID) }
+                .distinct()
+                .associateWith { randomId() }
+        } else {
+            emptyMap()
+        }
+
         var totalRows = 0
         rowsByBatch.toSortedMap().forEach { (batch, rowIndices) ->
-            val batchOutputPath = batchOutputPath(outputPath, batch)
+            val batchOutputPath = batchOutputPath(outputPath, variant, batch)
             File(batchOutputPath).bufferedWriter().use { bufferedWriter ->
                 CSVWriter(bufferedWriter).use { writer ->
                     writer.writeNext(CSV_HEADER)
 
                     rowIndices.forEach { index ->
                         val row = rows[index]
+                        val gameId = anonymizedGameIds[row.get(GAME.ID)] ?: row.get(GAME.ID).toString()
                         val inviterColor = row.get(GAME.INVITER_COLOR)
                         val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
                         val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
                         val inviterIsRed = inviterColor == Color.RED
-                        val redPlayerName = if (inviterIsRed) inviterHandle else inviteeHandle
-                        val blackPlayerName = if (inviterIsRed) inviteeHandle else inviterHandle
+                        val redHandle = if (inviterIsRed) inviterHandle else inviteeHandle
+                        val blackHandle = if (inviterIsRed) inviteeHandle else inviterHandle
+                        val redPlayerName = anonymizedNames[redHandle] ?: redHandle
+                        val blackPlayerName = anonymizedNames[blackHandle] ?: blackHandle
                         val redPlayerRating = if (inviterIsRed) {
                             PlayerRating(row.get(GAME.INVITER_RATING_FROM), row.get(GAME.INVITER_RATING_TO))
                         } else {
@@ -163,7 +198,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 row.get(GAME_MOVE.EVENT_TIME).toString(),
                                 row.get(GAME_MOVE.POSITION).toString(),
                                 row.get(GAME_MOVE.UCI),
-                                row.get(GAME.ID).toString(),
+                                gameId,
                                 redPlayerName,
                                 blackPlayerName,
                                 redPlayerRating.before?.toString() ?: "",
@@ -190,15 +225,36 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             println("wrote ${rowIndices.size} rows to $batchOutputPath")
         }
 
-        println("wrote $totalRows rows across ${rowsByBatch.size} file(s)")
-        exitProcess(0)
+        println("wrote $totalRows rows across ${rowsByBatch.size} file(s) [${variant.name.lowercase()}]")
+
+        val batchPaths = rowsByBatch.keys.sorted().map { batch -> batchOutputPath(outputPath, variant, batch) }
+        val zipPath = zipOutputPath(outputPath, variant)
+        ZipOutputStream(File(zipPath).outputStream().buffered()).use { zip ->
+            batchPaths.forEach { batchPath ->
+                val batchFile = File(batchPath)
+                zip.putNextEntry(ZipEntry(batchFile.name))
+                batchFile.inputStream().use { it.copyTo(zip) }
+                zip.closeEntry()
+            }
+        }
+        println("zipped ${batchPaths.size} file(s) to $zipPath")
     }
 
-    private fun batchOutputPath(outputPath: String, batch: Int): String {
+    private fun zipOutputPath(outputPath: String, variant: Variant): String {
+        val file = File(outputPath)
+        val name = file.name
+        val month = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
+        val dotIndex = name.lastIndexOf('.')
+        val baseName = if (dotIndex >= 0) name.substring(0, dotIndex) else name
+        val newName = "${baseName}_${variant.name.lowercase()}_${month}.zip"
+        return file.parentFile?.let { File(it, newName).path } ?: newName
+    }
+
+    private fun batchOutputPath(outputPath: String, variant: Variant, batch: Int): String {
         val file = File(outputPath)
         val name = file.name
         val dotIndex = name.lastIndexOf('.')
-        val suffix = "_%03d".format(batch + 1)
+        val suffix = "_${variant.name.lowercase()}_%03d".format(batch + 1)
         val newName = if (dotIndex >= 0) {
             name.substring(0, dotIndex) + suffix + name.substring(dotIndex)
         } else {
@@ -217,5 +273,8 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         }
 
     private data class PlayerRating(val before: Int?, val after: Int?)
+
+    private fun randomId(): String =
+        insecure().nextAlphanumeric(12)
 
 }
