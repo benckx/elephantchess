@@ -18,14 +18,14 @@
  */
 
 /**
- * Opening explorer (opening repository · board) shown on a database player profile for
- * players that have pre-calculated opening data. Unlike the analysis board, the opening
+ * Opening explorer (opening repository · move tree · board) shown on a database player profile
+ * for players that have pre-calculated opening data. Unlike the analysis board, the opening
  * repertoire differs depending on the color the player played, hence the
  * "All / Plays red / Plays black" color filter.
  *
- * There is no move tree: moves are played on the board (or by clicking an explorer row) to
- * walk one step deeper into the repertoire, and the "Reset" button returns to the start
- * position and re-starts the explorer.
+ * Moves are played on the board (or by clicking an explorer row) to walk one step deeper into
+ * the repertoire; the move tree below the opening widget keeps track of the variations and lets
+ * the user navigate them. The "Reset" button clears the tree and returns to the start position.
  */
 class DatabasePlayerOpenings {
 
@@ -34,12 +34,15 @@ class DatabasePlayerOpenings {
     // null means "all" (both colors aggregated); "Plays red" is the default
     #color = 'RED';
 
-    // moves played from the start position
-    #moves = [];
-
     #resetButton = document.getElementById('player-openings-reset-button');
 
     #boardGui = createWebappBoardGui({elementId: 'player-openings-board-container'});
+
+    #moveTreeWidget = new MoveTreeWidget({
+        containerId: 'move-tree-container',
+        isContextualMenuEnabled: false,
+        isLoadingAnimationEnabled: false
+    });
 
     #openingRepositoryWidget = new OpeningRepositoryWidget(this.#boardGui, {
         url: '/api/database/player/openings/next-moves-info',
@@ -54,13 +57,20 @@ class DatabasePlayerOpenings {
         this.#playerId = playerId;
 
         // settings (piece style, flip board, etc.)
-        new SettingsGui(this.#boardGui, null);
+        new SettingsGui(this.#boardGui, this.#moveTreeWidget);
+
+        // connect board to the move tree so navigation (clicks, arrow keys) drives the board
+        this.#moveTreeWidget.boardWidget = this.#boardGui;
 
         // each move played walks one step deeper into the repertoire
         this.#boardGui.addAfterMoveListener((move) => {
-            this.#moves.push(move);
+            this.#moveTreeWidget.addToTree([move]);
             this.#updateWidgets();
         });
+
+        // selecting a node in the move tree updates the explorer for that position
+        this.#moveTreeWidget.addClickedNodeListener(() => this.#updateWidgets());
+        this.#moveTreeWidget.addNavigationListener(() => this.#updateWidgets());
 
         // color filter
         document.querySelectorAll('input[name="player-openings-color"]').forEach((radio) => {
@@ -82,20 +92,21 @@ class DatabasePlayerOpenings {
     }
 
     #reset() {
-        this.#moves = [];
+        this.#moveTreeWidget.clear();
         this.#boardGui.loadFen(DEFAULT_START_FEN, true);
         this.#boardGui.enablePlayerMove();
         this.#updateWidgets();
     }
 
     #updateWidgets() {
+        this.#boardGui.enablePlayerMove();
         this.#updateResetButtonState();
-        this.#openingRepositoryWidget.fetchOpeningsNextMoves(this.#moves);
+        this.#openingRepositoryWidget.fetchOpeningsNextMoves(this.#moveTreeWidget.getMovesUpToSelection());
     }
 
     // the reset button is greyed out until at least one move has been played
     #updateResetButtonState() {
-        if (this.#moves.length === 0) {
+        if (this.#moveTreeWidget.getMovesUpToSelection().length === 0) {
             this.#resetButton.classList.add('app-buttons-disabled');
         } else {
             this.#resetButton.classList.remove('app-buttons-disabled');

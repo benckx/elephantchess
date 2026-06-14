@@ -18,12 +18,12 @@
  */
 
 /*
- * Opening explorer (opening repository · board) on a database player profile.
+ * Opening explorer (opening repository · move tree · board) on a database player profile.
  *
  * The opening-repository styling mirrors the analysis board, but is duplicated here because
- * the player profile page does not load analysis-board.css. There is no move tree: the layout
- * is two columns (explorer + board) so the board gets more room, with the color filter and
- * the "Reset" button below.
+ * the player profile page does not load analysis-board.css. The layout is two columns: the
+ * board on the left and the settings + opening widget + move tree on the right. The color
+ * filter and the "Reset" button sit on top of the two columns.
  */
 
 .player-openings {
@@ -33,11 +33,6 @@
     flex-wrap: wrap;
     gap: 15px;
     margin-top: 15px;
-}
-
-.player-openings-explorer-column {
-    width: 380px;
-    min-width: 0;
 }
 
 .player-openings-board-column {
@@ -50,6 +45,11 @@
     margin: 0 auto;
 }
 
+.player-openings-explorer-column {
+    width: 380px;
+    min-width: 0;
+}
+
 .player-openings-controls {
     display: flex;
     flex-wrap: wrap;
@@ -57,7 +57,7 @@
     justify-content: center;
     gap: 12px 24px;
     margin-top: 16px;
-    margin-bottom: 40px;
+    margin-bottom: 24px;
 }
 
 .player-openings-color-filter {
@@ -71,11 +71,16 @@
     margin-bottom: 16px;
 }
 
-/* The opening widget fills the rest of the left column. */
+/* The opening widget sits on top of the move tree in the right column. */
 .player-openings-explorer-column #opening-repository-container {
     position: relative;
-    height: 280px;
+    height: 300px;
     overflow-y: scroll;
+}
+
+/* The move tree sits below the opening widget. */
+.player-openings-explorer-column #move-tree-container {
+    margin-top: 16px;
 }
 
 .player-openings-explorer-column table#opening-repository-table {
@@ -161,7 +166,7 @@
     color: rgba(0, 0, 0, 0.7);
 }
 
-/* Stack the two columns on narrower viewports (matches the triptych breakpoint). */
+/* Stack the two columns on narrower viewports; the board stays on top (DOM order). */
 @media (max-width: 1000px) {
     .player-openings {
         flex-direction: column;
@@ -173,12 +178,7 @@
         width: 100%;
     }
 
-    .player-openings-board-column {
-        order: 1;
-    }
-
     .player-openings-explorer-column {
-        order: 2;
         margin-top: 20px;
     }
 }
