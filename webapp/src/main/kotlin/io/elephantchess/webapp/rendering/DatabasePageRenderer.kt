@@ -92,18 +92,18 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         // Opening explorer is only wired up (markup + scripts + stylesheet) for players that
         // have pre-calculated opening data.
         val openingsHeadResolver = SimpleValueTagResolver(
-            "player_openings_head",
+            "database_player_openings_head",
             if (hasOpeningData) {
-                "{{player_openings_head}}"
+                "{{database_player_openings_head}}"
             } else {
                 ""
             }
         )
 
         val openingsSectionResolver = SimpleValueTagResolver(
-            "player_openings_section",
+            "database_player_openings_section",
             if (hasOpeningData) {
-                "{{player_openings_section}}"
+                "{{database_player_openings_section}}"
             } else {
                 ""
             }
