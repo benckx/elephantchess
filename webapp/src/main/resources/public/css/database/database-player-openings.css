@@ -1,12 +1,42 @@
 /*
- * Opening triptych (opening repository · board · move tree) on a database player profile.
+ * Opening explorer (opening repository · board) on a database player profile.
  *
  * The opening-repository styling mirrors the analysis board, but is duplicated here because
- * the player profile page does not load analysis-board.css. The triptych columns are made
- * narrower and the board is downsized so the whole thing fits inside .main-container-text.
+ * the player profile page does not load analysis-board.css. There is no move tree: the layout
+ * is two columns (explorer + board) so the board gets more room, with the color filter and
+ * the "Reset" button below.
  */
 
-.player-openings-triptych {
+.player-openings {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.player-openings-explorer-column {
+    width: 42%;
+    min-width: 0;
+}
+
+.player-openings-board-column {
+    width: 42%;
+    min-width: 0;
+}
+
+.player-openings-board-column .board-container {
+    max-width: 380px;
+    margin: 0 auto;
+}
+
+.player-openings-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px 24px;
+    margin-top: 16px;
     margin-bottom: 40px;
 }
 
@@ -14,49 +44,27 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px 18px;
-    margin-bottom: 12px;
 }
 
-/* Narrower columns (override the wide defaults) so the triptych fits the text container. */
-.player-openings-triptych .flex-triptych-left-container,
-.player-openings-triptych .flex-triptych-right-container {
-    width: 32%;
-    min-width: 0;
-    max-width: none;
-    margin-left: 5px;
-    margin-right: 5px;
-}
-
-.player-openings-triptych .flex-triptych-board-container {
-    width: 34%;
-    min-width: 0;
-}
-
-/* Downsize the board a little since the page uses the narrower .main-container-text. */
-.player-openings-triptych .board-container {
-    max-width: 320px;
-}
-
-/* The opening widget is the only element in the left column, so give it more height. */
-.player-openings-triptych #opening-repository-container {
+/* The opening widget fills the left column. */
+.player-openings-explorer-column #opening-repository-container {
     position: relative;
     height: 420px;
-    margin-bottom: 15px;
     overflow-y: scroll;
 }
 
-.player-openings-triptych table#opening-repository-table {
+.player-openings-explorer-column table#opening-repository-table {
     width: 100%;
 }
 
-.player-openings-triptych table#opening-repository-table td.occurrence-cell {
+.player-openings-explorer-column table#opening-repository-table td.occurrence-cell {
     width: 100px;
     position: relative;
     overflow: hidden;
     padding: 0;
 }
 
-.player-openings-triptych table#opening-repository-table td.occurrence-cell .occurrence-bar {
+.player-openings-explorer-column table#opening-repository-table td.occurrence-cell .occurrence-bar {
     position: absolute;
     top: 0;
     right: 0;
@@ -65,11 +73,11 @@
     z-index: 0;
 }
 
-.player-openings-triptych table#opening-repository-table tr:hover td.occurrence-cell .occurrence-bar {
+.player-openings-explorer-column table#opening-repository-table tr:hover td.occurrence-cell .occurrence-bar {
     background-color: #4f5560;
 }
 
-.player-openings-triptych table#opening-repository-table td.occurrence-cell .occurrence-cell-content {
+.player-openings-explorer-column table#opening-repository-table td.occurrence-cell .occurrence-cell-content {
     position: relative;
     z-index: 1;
     display: flex;
@@ -79,18 +87,18 @@
     gap: 6px;
 }
 
-.player-openings-triptych table#opening-repository-table td.occurrence-cell .occurrence-pct {
+.player-openings-explorer-column table#opening-repository-table td.occurrence-cell .occurrence-pct {
     font-size: 0.8em;
     opacity: 0.7;
     min-width: 42px;
     text-align: right;
 }
 
-.player-openings-triptych table#opening-repository-table td.occurrence-cell .occurrence-count {
+.player-openings-explorer-column table#opening-repository-table td.occurrence-cell .occurrence-count {
     font-weight: bold;
 }
 
-.player-openings-triptych #opening-repository-container-loading-mask {
+.player-openings-explorer-column #opening-repository-container-loading-mask {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -101,9 +109,31 @@
     justify-content: center;
 }
 
-.player-openings-triptych #opening-repository-container-loading-mask #opening-repository-mask-label-indicator {
+.player-openings-explorer-column #opening-repository-container-loading-mask #opening-repository-mask-label-indicator {
     font-size: 28px;
     font-style: italic;
     font-weight: bold;
     color: rgba(0, 0, 0, 0.7);
+}
+
+/* Stack the two columns on narrower viewports (matches the triptych breakpoint). */
+@media (max-width: 1000px) {
+    .player-openings {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .player-openings-explorer-column,
+    .player-openings-board-column {
+        width: 100%;
+    }
+
+    .player-openings-board-column {
+        order: 1;
+    }
+
+    .player-openings-explorer-column {
+        order: 2;
+        margin-top: 20px;
+    }
 }

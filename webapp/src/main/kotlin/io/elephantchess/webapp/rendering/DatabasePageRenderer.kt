@@ -89,17 +89,17 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             }
         }
 
-        // Opening triptych is only wired up (markup + scripts + stylesheet) for players that
+        // Opening explorer is only wired up (markup + scripts + stylesheet) for players that
         // have pre-calculated opening data.
         val openingsHeadResolver = SimpleValueTagResolver(
             "player_openings_head",
             if (hasOpeningData) PLAYER_OPENINGS_HEAD else ""
         )
-        // The opening triptych markup is injected as a single value, so the nested
+        // The opening explorer markup is injected as a single value, so the nested
         // {{settings_info_box}} fragment is resolved here rather than relying on the
         // template renderer's recursive tag resolution.
-        val openingsTriptychResolver = SimpleValueTagResolver(
-            "player_openings_triptych",
+        val openingsSectionResolver = SimpleValueTagResolver(
+            "player_openings_section",
             if (hasOpeningData) {
                 val settingsInfoBox = WebFragmentResolver("settings_info_box")
                     .resolveContent()
@@ -123,7 +123,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 authorMeta,
                 noIndexMeta,
                 openingsHeadResolver,
-                openingsTriptychResolver
+                openingsSectionResolver
             ),
             canonicalPath = "/database/player/${databasePlayer.urlName}"
         )
@@ -426,45 +426,14 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         val PLAYER_OPENINGS_HEAD = """
             <link rel="stylesheet" href="/css/database/database-player-openings.css"/>
-            <script defer src="/js/modules/move-annotation-symbols.js"></script>
-            <script defer src="/js/widgets/move-tree-widget.js"></script>
             <script defer src="/js/analysis-board/opening-repository-widget.js"></script>
             <script defer src="/js/database/database-player-openings.js"></script>
         """.trimIndent()
 
         val PLAYER_OPENINGS_SECTION = """
             <h1>Openings</h1>
-            <div id="player-openings-triptych" class="flex-triptych-container player-openings-triptych">
-                <div class="flex-triptych-left-container">
-                    <div id="player-openings-color-filter" class="player-openings-color-filter">
-                        <div class="standard-radio">
-                            <span>
-                                <input type="radio" id="player-openings-color-all" name="player-openings-color"
-                                       value="ALL" checked="checked">
-                            </span>
-                            <span class="label-span">
-                                <label for="player-openings-color-all">All</label>
-                            </span>
-                        </div>
-                        <div class="standard-radio">
-                            <span>
-                                <input type="radio" id="player-openings-color-red" name="player-openings-color"
-                                       value="RED">
-                            </span>
-                            <span class="label-span">
-                                <label for="player-openings-color-red">Plays red</label>
-                            </span>
-                        </div>
-                        <div class="standard-radio">
-                            <span>
-                                <input type="radio" id="player-openings-color-black" name="player-openings-color"
-                                       value="BLACK">
-                            </span>
-                            <span class="label-span">
-                                <label for="player-openings-color-black">Plays black</label>
-                            </span>
-                        </div>
-                    </div>
+            <div id="player-openings" class="player-openings">
+                <div class="player-openings-explorer-column">
                     <div id="opening-repository-container">
                         <div id="opening-repository-container-loading-mask">
                             <div id="opening-repository-mask-label-indicator"></div>
@@ -474,14 +443,43 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                         </table>
                     </div>
                 </div>
-                <div class="flex-triptych-board-container">
+                <div class="player-openings-board-column">
                     <div id="player-openings-board-container" class="board-container"></div>
-                </div>
-                <div class="flex-triptych-right-container">
                     {{settings_info_box}}
-                    <div id="player-openings-move-tree-container" class="move-tree-container"></div>
-                    <div id="player-openings-navigation-panel" class="navigation-panel only-desktop"></div>
                 </div>
+            </div>
+            <div class="player-openings-controls">
+                <div id="player-openings-color-filter" class="player-openings-color-filter">
+                    <div class="standard-radio">
+                        <span>
+                            <input type="radio" id="player-openings-color-all" name="player-openings-color"
+                                   value="ALL" checked="checked">
+                        </span>
+                        <span class="label-span">
+                            <label for="player-openings-color-all">All</label>
+                        </span>
+                    </div>
+                    <div class="standard-radio">
+                        <span>
+                            <input type="radio" id="player-openings-color-red" name="player-openings-color"
+                                   value="RED">
+                        </span>
+                        <span class="label-span">
+                            <label for="player-openings-color-red">Plays red</label>
+                        </span>
+                    </div>
+                    <div class="standard-radio">
+                        <span>
+                            <input type="radio" id="player-openings-color-black" name="player-openings-color"
+                                   value="BLACK">
+                        </span>
+                        <span class="label-span">
+                            <label for="player-openings-color-black">Plays black</label>
+                        </span>
+                    </div>
+                </div>
+                <input type="button" id="player-openings-reset-button" class="app-buttons"
+                       value="Reset"/>
             </div>
         """.trimIndent()
 

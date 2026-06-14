@@ -18,24 +18,26 @@
  */
 
 /**
- * Opening triptych (opening repository · board · move tree) shown on a database player
- * profile for players that have pre-calculated opening data. Unlike the analysis board,
- * the opening repertoire differs depending on the color the player played, hence the
+ * Opening explorer (opening repository · board) shown on a database player profile for
+ * players that have pre-calculated opening data. Unlike the analysis board, the opening
+ * repertoire differs depending on the color the player played, hence the
  * "All / Plays red / Plays black" color filter.
+ *
+ * There is no move tree: moves are played on the board (or by clicking an explorer row) to
+ * walk one step deeper into the repertoire, and the "Reset" button returns to the start
+ * position and re-starts the explorer.
  */
-class DatabasePlayerOpeningsTriptych {
+class DatabasePlayerOpenings {
 
     #playerId;
 
     // null means "all" (both colors aggregated)
     #color = null;
 
-    #boardGui = createWebappBoardGui({ elementId: 'player-openings-board-container' });
+    // moves played from the start position
+    #moves = [];
 
-    #moveTreeWidget = new MoveTreeWidget({
-        containerId: 'player-openings-move-tree-container',
-        ...moveTreeResizeCookiePersistence('database-player-openings', 'player-openings-move-tree-container')
-    });
+    #boardGui = createWebappBoardGui({ elementId: 'player-openings-board-container' });
 
     #openingRepositoryWidget = new OpeningRepositoryWidget(this.#boardGui, {
         url: '/api/database/player/openings/next-moves-info',
@@ -49,48 +51,40 @@ class DatabasePlayerOpeningsTriptych {
     constructor(playerId) {
         this.#playerId = playerId;
 
-        // widgets
-        this.#moveTreeWidget.boardWidget = this.#boardGui;
-        this.#moveTreeWidget.addNavigationPanel({ containerId: 'player-openings-navigation-panel' });
-        new SettingsGui(this.#boardGui, this.#moveTreeWidget);
+        // settings (piece style, flip board, etc.)
+        new SettingsGui(this.#boardGui, null);
 
-        // listeners
+        // each move played walks one step deeper into the repertoire
         this.#boardGui.addAfterMoveListener((move) => {
-            this.#moveTreeWidget.addToTree([move]);
-            this.#updateWidgets(this.#moveTreeWidget.getMovesUpToSelection());
+            this.#moves.push(move);
+            this.#updateWidgets();
         });
-        this.#moveTreeWidget.addClickedNodeListener(() => this.#handleNodeSelected());
-        this.#moveTreeWidget.addNavigationListener(() => this.#handleNodeSelected());
 
         // color filter
         document.querySelectorAll('input[name="player-openings-color"]').forEach((radio) => {
             radio.addEventListener('change', (e) => {
                 this.#color = e.target.value === 'ALL' ? null : e.target.value;
-                this.#updateWidgets(this.#moveTreeWidget.getMovesUpToSelection());
+                this.#updateWidgets();
             });
         });
 
+        // reset button: back to the start position and re-start the explorer
+        document.getElementById('player-openings-reset-button')
+            .addEventListener('click', () => this.#reset());
+
         // init
+        this.#reset();
+    }
+
+    #reset() {
+        this.#moves = [];
         this.#boardGui.loadFen(DEFAULT_START_FEN);
-        this.#updateWidgets(this.#moveTreeWidget.getMovesUpToSelection());
+        this.#boardGui.enablePlayerMove();
+        this.#updateWidgets();
     }
 
-    #handleNodeSelected() {
-        if (this.#moveTreeWidget.selectedNode != null) {
-            this.#boardGui.enablePlayerMove();
-            this.#updateWidgets(this.#moveTreeWidget.getMovesUpToSelection());
-        } else {
-            // can not branch off from before the first move
-            this.#boardGui.disablePlayerMove();
-            this.#updateWidgets([]);
-        }
-    }
-
-    /**
-     * @param movesUpToSelection {HalfMove[]} including the selected one
-     */
-    #updateWidgets(movesUpToSelection) {
-        this.#openingRepositoryWidget.fetchOpeningsNextMoves(movesUpToSelection);
+    #updateWidgets() {
+        this.#openingRepositoryWidget.fetchOpeningsNextMoves(this.#moves);
     }
 
 }
