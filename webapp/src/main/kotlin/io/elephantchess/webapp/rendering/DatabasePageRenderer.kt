@@ -94,7 +94,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         val openingsHeadResolver = SimpleValueTagResolver(
             "player_openings_head",
             if (hasOpeningData) {
-                WebFragmentResolver("player_openings_head").resolveContent().joinToString("\n")
+                "{{player_openings_head}}"
             } else {
                 ""
             }
