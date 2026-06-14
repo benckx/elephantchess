@@ -95,9 +95,19 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             "player_openings_head",
             if (hasOpeningData) PLAYER_OPENINGS_HEAD else ""
         )
+        // The opening triptych markup is injected as a single value, so the nested
+        // {{settings_info_box}} fragment is resolved here rather than relying on the
+        // template renderer's recursive tag resolution.
         val openingsTriptychResolver = SimpleValueTagResolver(
             "player_openings_triptych",
-            if (hasOpeningData) PLAYER_OPENINGS_SECTION else ""
+            if (hasOpeningData) {
+                val settingsInfoBox = WebFragmentResolver("settings_info_box")
+                    .resolveContent()
+                    .joinToString("\n")
+                PLAYER_OPENINGS_SECTION.replace("{{settings_info_box}}", settingsInfoBox)
+            } else {
+                ""
+            }
         )
 
         return htmlRenderer.renderHtml(
@@ -468,6 +478,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                     <div id="player-openings-board-container" class="board-container"></div>
                 </div>
                 <div class="flex-triptych-right-container">
+                    {{settings_info_box}}
                     <div id="player-openings-move-tree-container" class="move-tree-container"></div>
                     <div id="player-openings-navigation-panel" class="navigation-panel only-desktop"></div>
                 </div>
