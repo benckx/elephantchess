@@ -16,17 +16,17 @@
 }
 
 .player-openings-explorer-column {
-    width: 42%;
+    width: 30%;
     min-width: 0;
 }
 
 .player-openings-board-column {
-    width: 42%;
+    width: 63%;
     min-width: 0;
 }
 
 .player-openings-board-column .board-container {
-    max-width: 380px;
+    max-width: 520px;
     margin: 0 auto;
 }
 
