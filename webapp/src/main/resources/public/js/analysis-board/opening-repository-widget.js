@@ -121,6 +121,14 @@ class OpeningRepositoryWidget {
                             pctSpan.className = 'occurrence-pct';
                             pctSpan.innerText = `${pct.toFixed(1)}%`;
 
+                            // optional general-population share (player openings only), shown in brackets
+                            if (entry.generalPopulationRate !== undefined && entry.generalPopulationRate !== null) {
+                                let generalPctSpan = document.createElement('span');
+                                generalPctSpan.className = 'occurrence-pct-general';
+                                generalPctSpan.innerText = ` (${(entry.generalPopulationRate * 100).toFixed(1)}%)`;
+                                pctSpan.append(generalPctSpan);
+                            }
+
                             let countSpan = document.createElement('span');
                             countSpan.className = 'occurrence-count';
                             countSpan.innerText = formatNumber(entry.occurrences);

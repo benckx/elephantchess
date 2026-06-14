@@ -95,8 +95,13 @@
 .player-openings-explorer-column table#opening-repository-table td.occurrence-cell .occurrence-pct {
     font-size: 0.8em;
     opacity: 0.7;
-    min-width: 42px;
+    min-width: 80px;
     text-align: right;
+}
+
+.player-openings-explorer-column table#opening-repository-table td.occurrence-cell .occurrence-pct-general {
+    font-size: 0.85em;
+    opacity: 0.75;
 }
 
 .player-openings-explorer-column table#opening-repository-table td.occurrence-cell .occurrence-count {
