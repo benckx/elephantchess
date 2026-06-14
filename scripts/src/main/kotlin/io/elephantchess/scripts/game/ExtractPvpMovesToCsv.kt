@@ -12,7 +12,6 @@ import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
@@ -57,12 +56,15 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     private val gameDataService by inject<GameDataService>()
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
+    fun main(args: Array<String>) {
         val outputPath = args.firstOrNull()?.trim().takeUnless { it.isNullOrBlank() } ?: DEFAULT_OUTPUT_PATH
-        exportCsv(outputPath, ANONYMIZE)
+        runBlocking {
+            Variant.entries.forEach { variant -> exportCsv(outputPath, ANONYMIZE, variant) }
+        }
+        exitProcess(0)
     }
 
-    private suspend fun exportCsv(outputPath: String, anonymize: Boolean) {
+    private suspend fun exportCsv(outputPath: String, anonymize: Boolean, variant: Variant) {
         val inviterUser = USER.`as`("inviter_user")
         val inviteeUser = USER.`as`("invitee_user")
 
@@ -97,19 +99,19 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             .leftJoin(inviterUser).on(inviterUser.ID.eq(GAME.INVITER))
             .leftJoin(inviteeUser).on(inviteeUser.ID.eq(GAME.INVITEE))
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(MIN_MOVE_INDEX))
-            .and(GAME.VARIANT.eq(Variant.XIANGQI))
+            .and(GAME.VARIANT.eq(variant))
             .orderBy(GAME.CREATED.asc(), GAME.ID.asc(), GAME_MOVE.POSITION.asc())
             .awaitRecords()
 
         // Replay each game's moves to compute the FEN key (FEN without the full-move counter) for every move.
         // The key matches the position resulting from the played move, which is how engine analysis is keyed.
         var currentGameId: String? = null
-        var board = Board(DEFAULT_START_FEN)
+        var board = Board(Board.defaultStartFen(variant))
         val fenKeys = rows.map { row ->
             val gameId = row.get(GAME.ID)
             if (gameId != currentGameId) {
                 currentGameId = gameId
-                board = Board(DEFAULT_START_FEN)
+                board = Board(Board.defaultStartFen(variant))
             }
             board.registerMove(row.get(GAME_MOVE.UCI))
             resetFullMoveCount(board.outputFen())
@@ -151,7 +153,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
         var totalRows = 0
         rowsByBatch.toSortedMap().forEach { (batch, rowIndices) ->
-            val batchOutputPath = batchOutputPath(outputPath, batch)
+            val batchOutputPath = batchOutputPath(outputPath, variant, batch)
             File(batchOutputPath).bufferedWriter().use { bufferedWriter ->
                 CSVWriter(bufferedWriter).use { writer ->
                     writer.writeNext(CSV_HEADER)
@@ -212,10 +214,10 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             println("wrote ${rowIndices.size} rows to $batchOutputPath")
         }
 
-        println("wrote $totalRows rows across ${rowsByBatch.size} file(s)")
+        println("wrote $totalRows rows across ${rowsByBatch.size} file(s) [${variant.name.lowercase()}]")
 
-        val batchPaths = rowsByBatch.keys.sorted().map { batch -> batchOutputPath(outputPath, batch) }
-        val zipPath = zipOutputPath(outputPath)
+        val batchPaths = rowsByBatch.keys.sorted().map { batch -> batchOutputPath(outputPath, variant, batch) }
+        val zipPath = zipOutputPath(outputPath, variant)
         ZipOutputStream(File(zipPath).outputStream().buffered()).use { zip ->
             batchPaths.forEach { batchPath ->
                 val batchFile = File(batchPath)
@@ -225,25 +227,23 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             }
         }
         println("zipped ${batchPaths.size} file(s) to $zipPath")
-
-        exitProcess(0)
     }
 
-    private fun zipOutputPath(outputPath: String): String {
+    private fun zipOutputPath(outputPath: String, variant: Variant): String {
         val file = File(outputPath)
         val name = file.name
         val month = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
         val dotIndex = name.lastIndexOf('.')
         val baseName = if (dotIndex >= 0) name.substring(0, dotIndex) else name
-        val newName = "${baseName}_${month}.zip"
+        val newName = "${baseName}_${variant.name.lowercase()}_${month}.zip"
         return file.parentFile?.let { File(it, newName).path } ?: newName
     }
 
-    private fun batchOutputPath(outputPath: String, batch: Int): String {
+    private fun batchOutputPath(outputPath: String, variant: Variant, batch: Int): String {
         val file = File(outputPath)
         val name = file.name
         val dotIndex = name.lastIndexOf('.')
-        val suffix = "_%03d".format(batch + 1)
+        val suffix = "_${variant.name.lowercase()}_%03d".format(batch + 1)
         val newName = if (dotIndex >= 0) {
             name.substring(0, dotIndex) + suffix + name.substring(dotIndex)
         } else {
