@@ -152,6 +152,15 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             emptyMap()
         }
 
+        val anonymizedGameIds: Map<String, String> = if (anonymize) {
+            rows
+                .map { row -> row.get(GAME.ID) }
+                .distinct()
+                .associateWith { randomId() }
+        } else {
+            emptyMap()
+        }
+
         var totalRows = 0
         rowsByBatch.toSortedMap().forEach { (batch, rowIndices) ->
             val batchOutputPath = batchOutputPath(outputPath, variant, batch)
@@ -161,7 +170,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
                     rowIndices.forEach { index ->
                         val row = rows[index]
-                        val gameId = if (anonymize) randomId() else row.get(GAME.ID).toString()
+                        val gameId = anonymizedGameIds[row.get(GAME.ID)] ?: row.get(GAME.ID).toString()
                         val inviterColor = row.get(GAME.INVITER_COLOR)
                         val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
                         val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
