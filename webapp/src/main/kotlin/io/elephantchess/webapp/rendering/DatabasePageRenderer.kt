@@ -426,6 +426,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         val PLAYER_OPENINGS_HEAD = """
             <link rel="stylesheet" href="/css/database/database-player-openings.css"/>
+            <script defer src="/js/widgets/bar-indicator.js"></script>
             <script defer src="/js/analysis-board/opening-repository-widget.js"></script>
             <script defer src="/js/database/database-player-openings.js"></script>
         """.trimIndent()
