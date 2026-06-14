@@ -32,7 +32,7 @@ class DatabasePlayerOpenings {
     #playerId;
 
     // null means "all" (both colors aggregated); "Plays red" is the default
-    #color = 'RED';
+    #color = Color.RED;
 
     #resetButton = document.getElementById('player-openings-reset-button');
 
