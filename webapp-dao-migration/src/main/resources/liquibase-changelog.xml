@@ -2672,4 +2672,29 @@
             <column name="number_of_moves"/>
         </createIndex>
     </changeSet>
+    <changeSet id="0107" author="benckx">
+        <comment>Indexes for latest move analysis aggregation and analyzed flag lookup</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS move_analysis_game_entry_creation_idx
+            ON move_analysis (game_id, entry_creation DESC)
+            WHERE game_id IS NOT NULL;
+
+            CREATE INDEX IF NOT EXISTS move_analysis_bot_game_entry_creation_idx
+            ON move_analysis (bot_game_id, entry_creation DESC)
+            WHERE bot_game_id IS NOT NULL;
+
+            CREATE INDEX IF NOT EXISTS move_analysis_ref_game_entry_creation_idx
+            ON move_analysis (ref_game_id, entry_creation DESC)
+            WHERE ref_game_id IS NOT NULL;
+
+            CREATE INDEX IF NOT EXISTS reference_game_analysis_end_batch_idx
+            ON reference_game (analysis_end_time, analyzed_from_batch);
+
+            CREATE INDEX IF NOT EXISTS game_analysis_end_batch_idx
+            ON game (analysis_end_time, analyzed_from_batch);
+
+            CREATE INDEX IF NOT EXISTS bot_game_analysis_end_batch_idx
+            ON bot_game (analysis_end_time, analyzed_from_batch);
+        </sql>
+    </changeSet>
 </databaseChangeLog>

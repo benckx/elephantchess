@@ -141,27 +141,84 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun listLatestMoveAnalysisData(limit: Int): List<MoveAnalysisDataGameEntryRecord> {
+        val gameTypeExpr = DSL
+            .`when`(MOVE_ANALYSIS.GAME_ID.isNotNull, DSL.inline(PVP.name))
+            .`when`(MOVE_ANALYSIS.BOT_GAME_ID.isNotNull, DSL.inline(PVB.name))
+            .otherwise(DSL.inline(DB.name))
+
+        val gameIdExpr = DSL.coalesce(
+            MOVE_ANALYSIS.GAME_ID,
+            MOVE_ANALYSIS.BOT_GAME_ID,
+            MOVE_ANALYSIS.REF_GAME_ID
+        )
+
+        val aggregatedMoveAnalysis = dslContext
+            .select(
+                gameTypeExpr.`as`(GAME_TYPE),
+                gameIdExpr.`as`(GAME_ID),
+                DSL.min(MOVE_ANALYSIS.ENTRY_CREATION).`as`(MIN_DATE),
+                DSL.max(MOVE_ANALYSIS.ENTRY_CREATION).`as`(MAX_DATE),
+                DSL.count().cast(Int::class.java).`as`(TOTAL_MOVES)
+            )
+            .from(MOVE_ANALYSIS)
+            .groupBy(gameTypeExpr, gameIdExpr)
+            .asTable("aggregated_move_analysis")
+
+        val analysisFlags = DSL
+            .select(
+                DSL.inline(PVP.name).`as`(GAME_TYPE),
+                GAME.ID.`as`(GAME_ID),
+                GAME.ANALYZED_FROM_BATCH.`as`(ANALYZED_FROM_BATCH)
+            )
+            .from(GAME)
+            .unionAll(
+                DSL.select(
+                    DSL.inline(PVB.name).`as`(GAME_TYPE),
+                    BOT_GAME.ID.`as`(GAME_ID),
+                    BOT_GAME.ANALYZED_FROM_BATCH.`as`(ANALYZED_FROM_BATCH)
+                ).from(BOT_GAME)
+            )
+            .unionAll(
+                DSL.select(
+                    DSL.inline(DB.name).`as`(GAME_TYPE),
+                    REFERENCE_GAME.ID.`as`(GAME_ID),
+                    REFERENCE_GAME.ANALYZED_FROM_BATCH.`as`(ANALYZED_FROM_BATCH)
+                ).from(REFERENCE_GAME)
+            )
+            .asTable("analysis_flags")
+
+        val aggGameType = aggregatedMoveAnalysis.field(GAME_TYPE, String::class.java)!!
+        val aggGameId = aggregatedMoveAnalysis.field(GAME_ID, String::class.java)!!
+        val aggMinDate = aggregatedMoveAnalysis.field(MIN_DATE, Instant::class.java)!!
+        val aggMaxDate = aggregatedMoveAnalysis.field(MAX_DATE, Instant::class.java)!!
+        val aggTotalMoves = aggregatedMoveAnalysis.field(TOTAL_MOVES, Int::class.java)!!
+
+        val flagGameType = analysisFlags.field(GAME_TYPE, String::class.java)!!
+        val flagGameId = analysisFlags.field(GAME_ID, String::class.java)!!
+        val flagAnalyzedFromBatch = analysisFlags.field(ANALYZED_FROM_BATCH, Boolean::class.java)!!
+
         return dslContext
             .select(
-                GAME_TYPE,
-                GAME_ID,
-                DSL.min(ENTRY_CREATION).`as`("min_date"),
-                DSL.max(ENTRY_CREATION).`as`("max_date"),
-                DSL.count().`as`("total_moves"),
-                ANALYZED_FROM_BATCH
+                aggGameType,
+                aggGameId,
+                aggMinDate,
+                aggMaxDate,
+                aggTotalMoves,
+                flagAnalyzedFromBatch
             )
-            .from(COALESCED_VIEW)
-            .groupBy(GAME_TYPE, GAME_ID, ANALYZED_FROM_BATCH)
-            .orderBy(DSL.max(ENTRY_CREATION).desc())
+            .from(aggregatedMoveAnalysis)
+            .leftJoin(analysisFlags)
+            .on(aggGameType.eq(flagGameType).and(aggGameId.eq(flagGameId)))
+            .orderBy(aggMaxDate.desc())
             .limit(limit)
             .awaitRecords()
             .map { record ->
                 MoveAnalysisDataGameEntryRecord(
-                    GameId(GameType.valueOf(record[GAME_TYPE]), record[GAME_ID]),
-                    record["min_date", Instant::class.java],
-                    record["max_date", Instant::class.java],
-                    record["total_moves", Int::class.java],
-                    record[ANALYZED_FROM_BATCH] ?: false
+                    GameId(GameType.valueOf(record[aggGameType]), record[aggGameId]),
+                    record[aggMinDate],
+                    record[aggMaxDate],
+                    record[aggTotalMoves],
+                    record[flagAnalyzedFromBatch] ?: false
                 )
             }
     }
@@ -201,16 +258,17 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
 
     private companion object {
 
-        val COALESCED_VIEW = DSL.table("move_analysis_coalesced")
-        val GAME_TYPE = DSL.field("game_type", String::class.java)
-        val GAME_ID = DSL.field("game_data_id", String::class.java)
-        val ANALYZED_FROM_BATCH = DSL.field("analyzed_from_batch", Boolean::class.java)
+        const val GAME_TYPE = "game_type"
+        const val GAME_ID = "game_data_id"
+        const val ANALYZED_FROM_BATCH = "analyzed_from_batch"
+        const val MIN_DATE = "min_date"
+        const val MAX_DATE = "max_date"
+        const val TOTAL_MOVES = "total_moves"
 
         // jOOQ's DefaultDataType registry does not know about kotlin.time.Instant,
         // so we attach the same converter the codegen uses for timestamptz columns.
         val INSTANT_TYPE: DataType<Instant> =
             SQLDataType.TIMESTAMPWITHTIMEZONE(6).asConvertedDataType(OffsetDateTimeInstantConverter())
-        val ENTRY_CREATION = DSL.field("entry_creation", INSTANT_TYPE)
 
         fun moveAnalysisTableIdCondition(gameId: GameId): Condition {
             return moveAnalysisTableIdField(gameId.type).eq(gameId.id)
