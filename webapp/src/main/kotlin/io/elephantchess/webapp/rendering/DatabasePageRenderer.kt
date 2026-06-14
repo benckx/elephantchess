@@ -99,19 +99,11 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 ""
             }
         )
-        // The opening explorer markup is injected as a single value, so the nested
-        // {{settings_info_box}} fragment is resolved here rather than relying on the
-        // template renderer's recursive tag resolution.
+
         val openingsSectionResolver = SimpleValueTagResolver(
             "player_openings_section",
             if (hasOpeningData) {
-                val settingsInfoBox = WebFragmentResolver("settings_info_box")
-                    .resolveContent()
-                    .joinToString("\n")
-                WebFragmentResolver("player_openings_section")
-                    .resolveContent()
-                    .joinToString("\n")
-                    .replace("{{settings_info_box}}", settingsInfoBox)
+                "{{player_openings_section}}"
             } else {
                 ""
             }
