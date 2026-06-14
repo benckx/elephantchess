@@ -4,10 +4,8 @@ import io.elephantchess.config.ArgConfig
 import io.elephantchess.config.loadAppConfig
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.OpeningPreCalculationCacheDao
-import io.elephantchess.db.dao.codegen.tables.daos.OpeningPreCalculationCacheReferenceGameDao
 import io.elephantchess.db.dao.codegen.tables.daos.OpeningPreCalculationCacheReferencePlayerDao
 import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCache
-import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCacheReferenceGame
 import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCacheReferencePlayer
 import io.elephantchess.db.services.OpeningRepositoryCacheDaoService.Companion.movesToKey
 import io.elephantchess.db.services.ReferenceGameDaoService
@@ -34,7 +32,7 @@ import kotlin.time.Duration.Companion.seconds
 private val logger = logger {}
 
 private const val READ_PROFILE = "local-backup"
-private const val WRITE_PROFILE = "local-backup"
+private const val WRITE_PROFILE = "prod"
 private const val MAX_MOVES = 48
 private const val MIN_OCCURRENCES = 2
 
@@ -47,7 +45,11 @@ private const val UPDATE_PLAYER_OPENINGS = true
 // meaningful, to limit the number of rows.
 private const val MIN_GAMES_PER_PLAYER = 100
 
-private const val STOP_TIMEOUT = 60_000L
+private const val STOP_TIMEOUT = 180_000L
+
+// Max rows per multi-row INSERT for the game mapping table. Postgres allows 65535 bind params per
+// statement; at 2 params per row this stays comfortably under the limit.
+private const val GAME_MAPPING_INSERT_CHUNK_SIZE = 1_000
 
 private val scriptConfig = loadScriptConfig()
 private val readAppConfig = loadAppConfig(ArgConfig(READ_PROFILE, scriptConfig.configurationLocation))
@@ -158,11 +160,12 @@ private suspend fun refreshCache(moves: List<String>) {
                 openingCacheRecord.entryUpdate = now
 
                 val matchingGameIds = listMatchingGameIds(nextSequenceOfMoves)
+                var entryId: Int? = null
 
                 writeContext.transactionCoroutine { cfg ->
                     val transaction = DSL.using(cfg)
 
-                    val entryId = if (alreadyExists) {
+                    entryId = if (alreadyExists) {
                         // update
                         updateCache(transaction, cacheEntryId, openingCacheRecord)
                         if (countUpdates.incrementAndGet() % 20 == 0) {
@@ -177,11 +180,9 @@ private suspend fun refreshCache(moves: List<String>) {
                         }
                         findEntryId(transaction, nextSequenceOfMoves)
                     }
-
-                    if (entryId != null) {
-                        refreshGameMapping(transaction, entryId, matchingGameIds)
-                    }
                 }
+
+                entryId?.let { refreshGameMapping(it, matchingGameIds) }
 
                 if (occurrences >= MIN_OCCURRENCES) {
                     scope.launch {
@@ -242,21 +243,27 @@ private suspend fun updateCache(transaction: DSLContext, id: Int, record: Openin
  * auto-increment id of the opening cache entry (rather than the much wider sequence of moves) to
  * keep this Cartesian-product table as small as possible.
  */
-private suspend fun refreshGameMapping(transaction: DSLContext, cacheEntryId: Int, gameIds: List<String>) {
-    transaction
+private suspend fun refreshGameMapping(cacheEntryId: Int, gameIds: List<String>) {
+    writeContext
         .deleteFrom(OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME)
         .where(OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME.OPENING_PRE_CALCULATION_CACHE_ID.eq(cacheEntryId))
         .awaitExecute()
 
-    val mappings = gameIds.map { gameId ->
-        OpeningPreCalculationCacheReferenceGame(
-            cacheEntryId,
-            gameId
-        )
+    if (gameIds.isEmpty()) {
+        return
     }
 
-    OpeningPreCalculationCacheReferenceGameDao(transaction.configuration())
-        .insertMultipleReactive(mappings)
+    gameIds.chunked(GAME_MAPPING_INSERT_CHUNK_SIZE).forEach { chunk ->
+        var insert = writeContext.insertInto(
+            OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME,
+            OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME.OPENING_PRE_CALCULATION_CACHE_ID,
+            OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME.REFERENCE_GAME_ID
+        )
+        chunk.forEach { gameId ->
+            insert = insert.values(cacheEntryId, gameId)
+        }
+        insert.awaitExecute()
+    }
 }
 
 private suspend fun listAllGames(): List<ReferenceGameDto> {
