@@ -62,6 +62,12 @@ class DatabasePlayerPage extends BasePage {
         // load game stats
         this.#loadGameStats();
 
+        // opening triptych (only present for players with pre-calculated opening data)
+        if (document.getElementById('player-openings-triptych') != null) {
+            const playerId = document.querySelector('body').dataset.playerId;
+            new DatabasePlayerOpeningsTriptych(playerId);
+        }
+
         // handle duplicates
         this.#loadDuplicatesIfAny();
     }

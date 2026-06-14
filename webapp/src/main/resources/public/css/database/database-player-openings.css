@@ -1,0 +1,109 @@
+/*
+ * Opening triptych (opening repository · board · move tree) on a database player profile.
+ *
+ * The opening-repository styling mirrors the analysis board, but is duplicated here because
+ * the player profile page does not load analysis-board.css. The triptych columns are made
+ * narrower and the board is downsized so the whole thing fits inside .main-container-text.
+ */
+
+.player-openings-triptych {
+    margin-bottom: 40px;
+}
+
+.player-openings-color-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-bottom: 12px;
+}
+
+/* Narrower columns (override the wide defaults) so the triptych fits the text container. */
+.player-openings-triptych .flex-triptych-left-container,
+.player-openings-triptych .flex-triptych-right-container {
+    width: 32%;
+    min-width: 0;
+    max-width: none;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.player-openings-triptych .flex-triptych-board-container {
+    width: 34%;
+    min-width: 0;
+}
+
+/* Downsize the board a little since the page uses the narrower .main-container-text. */
+.player-openings-triptych .board-container {
+    max-width: 320px;
+}
+
+/* The opening widget is the only element in the left column, so give it more height. */
+.player-openings-triptych #opening-repository-container {
+    position: relative;
+    height: 420px;
+    margin-bottom: 15px;
+    overflow-y: scroll;
+}
+
+.player-openings-triptych table#opening-repository-table {
+    width: 100%;
+}
+
+.player-openings-triptych table#opening-repository-table td.occurrence-cell {
+    width: 100px;
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+}
+
+.player-openings-triptych table#opening-repository-table td.occurrence-cell .occurrence-bar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    background-color: #b0aca5;
+    z-index: 0;
+}
+
+.player-openings-triptych table#opening-repository-table tr:hover td.occurrence-cell .occurrence-bar {
+    background-color: #4f5560;
+}
+
+.player-openings-triptych table#opening-repository-table td.occurrence-cell .occurrence-cell-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 9px;
+    gap: 6px;
+}
+
+.player-openings-triptych table#opening-repository-table td.occurrence-cell .occurrence-pct {
+    font-size: 0.8em;
+    opacity: 0.7;
+    min-width: 42px;
+    text-align: right;
+}
+
+.player-openings-triptych table#opening-repository-table td.occurrence-cell .occurrence-count {
+    font-weight: bold;
+}
+
+.player-openings-triptych #opening-repository-container-loading-mask {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #c7baa6;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-openings-triptych #opening-repository-container-loading-mask #opening-repository-mask-label-indicator {
+    font-size: 28px;
+    font-style: italic;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.7);
+}
