@@ -381,7 +381,7 @@ class AdminAnalyticsService(
             .sorted()
 
         if (allMonths.isEmpty()) {
-            return PvpJoinSourceStatsResponse(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+            return PvpJoinSourceStatsResponse.allEmpty()
         }
 
         val firstMonth = allMonths.first()
