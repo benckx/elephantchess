@@ -17,6 +17,7 @@ import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
@@ -144,7 +145,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     )
                 }
                 .distinct()
-                .associateWith { generateId() }
+                .associateWith { insecure().nextAlphanumeric(12) }
         } else {
             emptyMap()
         }
@@ -158,6 +159,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
                     rowIndices.forEach { index ->
                         val row = rows[index]
+                        val gameId = if (anonymize) "n/a" else row.get(GAME.ID).toString()
                         val inviterColor = row.get(GAME.INVITER_COLOR)
                         val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
                         val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
@@ -185,7 +187,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 row.get(GAME_MOVE.EVENT_TIME).toString(),
                                 row.get(GAME_MOVE.POSITION).toString(),
                                 row.get(GAME_MOVE.UCI),
-                                row.get(GAME.ID).toString(),
+                                gameId,
                                 redPlayerName,
                                 blackPlayerName,
                                 redPlayerRating.before?.toString() ?: "",
