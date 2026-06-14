@@ -147,7 +147,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     )
                 }
                 .distinct()
-                .associateWith { insecure().nextAlphanumeric(12) }
+                .associateWith { randomId() }
         } else {
             emptyMap()
         }
@@ -161,7 +161,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
                     rowIndices.forEach { index ->
                         val row = rows[index]
-                        val gameId = if (anonymize) "n/a" else row.get(GAME.ID).toString()
+                        val gameId = if (anonymize) randomId() else row.get(GAME.ID).toString()
                         val inviterColor = row.get(GAME.INVITER_COLOR)
                         val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
                         val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
@@ -264,5 +264,8 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         }
 
     private data class PlayerRating(val before: Int?, val after: Int?)
+
+    private fun randomId(): String =
+        insecure().nextAlphanumeric(12)
 
 }
