@@ -335,6 +335,7 @@ class AdminAnalyticsService(
      */
     suspend fun fetchPvpStatsByJoinSource(): PvpJoinSourceStatsResponse {
         val lobbyJoinSources = listOf(GameJoinSource.LOBBY, GameJoinSource.MATCHED, GameJoinSource.DYNAMIC_MATCHED)
+        val linkJoinSources = listOf(GameJoinSource.LINK)
 
         // Query total PvP games by month
         val totalPvpByMonth = pvpGameDaoService
@@ -345,6 +346,10 @@ class AdminAnalyticsService(
             .countTotalGamesByMonthForJoinSources(lobbyJoinSources)
             .associate { it.month to it.value.toInt() }
 
+        val totalLinkJoinSourcePvpByMonth = pvpGameDaoService
+            .countTotalGamesByMonthForJoinSources(linkJoinSources)
+            .associate { it.month to it.value.toInt() }
+
         // Query PvP > 3 games by month
         val pvpOver3ByMonth = pvpGameDaoService
             .countGamesOverMoveIndexByMonth(MIN_MOVE_INDEX)
@@ -352,6 +357,10 @@ class AdminAnalyticsService(
 
         val pvpOver3LobbyJoinModeByMonth = pvpGameDaoService
             .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, lobbyJoinSources)
+            .associate { it.month to it.value.toInt() }
+
+        val pvpOver3LinkJoinSourceByMonth = pvpGameDaoService
+            .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, linkJoinSources)
             .associate { it.month to it.value.toInt() }
 
         // Query PvP > 3 by join source and month
@@ -368,7 +377,7 @@ class AdminAnalyticsService(
             .sorted()
 
         if (allMonths.isEmpty()) {
-            return PvpJoinSourceStatsResponse(emptyList(), emptyList(), emptyList(), emptyList())
+            return PvpJoinSourceStatsResponse(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
         }
 
         val firstMonth = allMonths.first()
@@ -388,6 +397,12 @@ class AdminAnalyticsService(
             if (total > 0) (over3.toDouble() / total * 100) else 0.0
         }
 
+        val linkJoinSourcePercentageValues = allPeriods.map { month ->
+            val total = totalLinkJoinSourcePvpByMonth[month] ?: 0
+            val over3 = pvpOver3LinkJoinSourceByMonth[month] ?: 0
+            if (total > 0) (over3.toDouble() / total * 100) else 0.0
+        }
+
         // Build breakdown by join source
         val allSources = GameJoinSource.entries.map { it.name } + "UNKNOWN"
         val joinSourceSeries = allSources.map { source ->
@@ -401,6 +416,7 @@ class AdminAnalyticsService(
             periods = allPeriods.map { it.toString() },
             percentageOver3 = percentageValues,
             percentageOver3LobbyJoinModes = lobbyJoinModePercentageValues,
+            percentageOver3LinkJoinSource = linkJoinSourcePercentageValues,
             joinSourceBreakdown = joinSourceSeries
         )
     }
