@@ -36,6 +36,7 @@ private val simplePublicPageMapping = mapOf(
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
     "/about/roadmap" to "about/roadmap",
+    "/about/data" to "about/data",
     "/contact" to "contact_form",
     "/how-to-play-xiangqi" to "how_to_play_xiangqi",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
