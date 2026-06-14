@@ -103,6 +103,21 @@
     font-weight: bold;
 }
 
+/*
+ * The outcome bar (red wins / draws / black wins). The generic `.bar-indicator-container`
+ * sizing lives in analysis-board.css / global.css, neither of which is loaded on the player
+ * page, so it is duplicated here scoped to the explorer column.
+ */
+.player-openings-explorer-column table#opening-repository-table td.outcome-cell {
+    width: 110px;
+}
+
+.player-openings-explorer-column .bar-indicator-container {
+    width: 100%;
+    height: 16px;
+    margin-right: 8px;
+}
+
 .player-openings-explorer-column #opening-repository-container-loading-mask {
     position: absolute;
     width: 100%;

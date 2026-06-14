@@ -454,7 +454,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                     <div class="standard-radio">
                         <span>
                             <input type="radio" id="player-openings-color-all" name="player-openings-color"
-                                   value="ALL" checked="checked">
+                                   value="ALL">
                         </span>
                         <span class="label-span">
                             <label for="player-openings-color-all">All</label>
@@ -463,7 +463,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                     <div class="standard-radio">
                         <span>
                             <input type="radio" id="player-openings-color-red" name="player-openings-color"
-                                   value="RED">
+                                   value="RED" checked="checked">
                         </span>
                         <span class="label-span">
                             <label for="player-openings-color-red">Plays red</label>

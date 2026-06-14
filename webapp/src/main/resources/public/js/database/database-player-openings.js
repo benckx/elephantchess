@@ -31,11 +31,13 @@ class DatabasePlayerOpenings {
 
     #playerId;
 
-    // null means "all" (both colors aggregated)
-    #color = null;
+    // null means "all" (both colors aggregated); "Plays red" is the default
+    #color = 'RED';
 
     // moves played from the start position
     #moves = [];
+
+    #resetButton = document.getElementById('player-openings-reset-button');
 
     #boardGui = createWebappBoardGui({ elementId: 'player-openings-board-container' });
 
@@ -69,8 +71,11 @@ class DatabasePlayerOpenings {
         });
 
         // reset button: back to the start position and re-start the explorer
-        document.getElementById('player-openings-reset-button')
-            .addEventListener('click', () => this.#reset());
+        this.#resetButton.addEventListener('click', () => {
+            if (!this.#resetButton.classList.contains('app-buttons-disabled')) {
+                this.#reset();
+            }
+        });
 
         // init
         this.#reset();
@@ -84,7 +89,17 @@ class DatabasePlayerOpenings {
     }
 
     #updateWidgets() {
+        this.#updateResetButtonState();
         this.#openingRepositoryWidget.fetchOpeningsNextMoves(this.#moves);
+    }
+
+    // the reset button is greyed out until at least one move has been played
+    #updateResetButtonState() {
+        if (this.#moves.length === 0) {
+            this.#resetButton.classList.add('app-buttons-disabled');
+        } else {
+            this.#resetButton.classList.remove('app-buttons-disabled');
+        }
     }
 
 }
