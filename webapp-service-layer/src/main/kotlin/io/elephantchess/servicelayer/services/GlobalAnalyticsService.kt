@@ -39,7 +39,7 @@ class GlobalAnalyticsService(
     private val isDockerized = appConfig.isDockerized
 
     private val shortRefresh = 20.minutes
-    private val longRefresh = 12.hours
+    private val longRefresh = 6.hours
 
     private val shortCache =
         Cache
