@@ -74,13 +74,14 @@
 /* The opening widget sits on top of the move tree in the right column. */
 .player-openings-explorer-column #opening-repository-container {
     position: relative;
-    height: 300px;
+    height: 280px;
     overflow-y: scroll;
 }
 
 /* The move tree sits below the opening widget. */
 .player-openings-explorer-column #move-tree-container {
     margin-top: 16px;
+    height: 280px;
 }
 
 .player-openings-explorer-column table#opening-repository-table {
