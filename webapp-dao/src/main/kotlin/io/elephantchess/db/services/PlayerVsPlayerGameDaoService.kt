@@ -1099,6 +1099,18 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .map { MonthlyValueRecord.ofInt(it) }
     }
 
+    suspend fun countTotalGamesByMonthForJoinSources(joinSources: Collection<GameJoinSource>): List<MonthlyValueRecord> {
+        val yearMonthField = GAME.CREATED.yearMonth()
+        return dslContext
+            .select(yearMonthField, DSL.count())
+            .from(GAME)
+            .where(GAME.JOIN_SOURCE.`in`(joinSources))
+            .groupBy(yearMonthField)
+            .orderBy(yearMonthField)
+            .awaitRecords()
+            .map { MonthlyValueRecord.ofInt(it) }
+    }
+
     /**
      * Counts PvP games with at least minMoveIndex moves, grouped by month
      */
@@ -1108,6 +1120,22 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .select(yearMonthField, DSL.count())
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .groupBy(yearMonthField)
+            .orderBy(yearMonthField)
+            .awaitRecords()
+            .map { MonthlyValueRecord.ofInt(it) }
+    }
+
+    suspend fun countGamesOverMoveIndexByMonthForJoinSources(
+        minMoveIndex: Int,
+        joinSources: Collection<GameJoinSource>
+    ): List<MonthlyValueRecord> {
+        val yearMonthField = GAME.CREATED.yearMonth()
+        return dslContext
+            .select(yearMonthField, DSL.count())
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.JOIN_SOURCE.`in`(joinSources))
             .groupBy(yearMonthField)
             .orderBy(yearMonthField)
             .awaitRecords()
