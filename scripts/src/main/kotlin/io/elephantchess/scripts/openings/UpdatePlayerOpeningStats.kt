@@ -27,7 +27,7 @@ private val logger = logger {}
 private const val READ_PROFILE = "local-backup"
 private const val WRITE_PROFILE = "prod"
 private const val MAX_MOVES = 48
-private const val MIN_OCCURRENCES = 1
+private const val MIN_OCCURRENCES = 2
 private const val MIN_GAMES_PER_PLAYER = 100
 
 private val scriptConfig = loadScriptConfig()
@@ -59,7 +59,11 @@ private suspend fun updatePlayerOpenings(memoryCache: List<ReferenceGameDto>) {
         game.blackPlayer?.let { gamesByPlayer.getOrPut(it) { mutableListOf() } += game }
     }
 
-    val qualifyingPlayers = gamesByPlayer.filterValues { it.size >= MIN_GAMES_PER_PLAYER }
+    val qualifyingPlayers = gamesByPlayer
+        .filterValues { it.size >= MIN_GAMES_PER_PLAYER }
+        .toList()
+        .sortedByDescending { it.second.size }
+
     logger.info { "${qualifyingPlayers.size} players with >= $MIN_GAMES_PER_PLAYER games" }
 
     qualifyingPlayers.forEach { (playerId, playerGames) ->
@@ -123,9 +127,14 @@ private suspend fun persistRepertoire(
             .where(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.REFERENCE_PLAYER_ID.eq(playerId))
             .and(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.COLOR.eq(color.name))
             .awaitExecute()
+    }
 
-        OpeningPreCalculationCacheReferencePlayerDao(cfg)
-            .insertMultipleReactive(records)
+    // Batch inserts in chunks of 500 to avoid memory issues
+    records.chunked(500).forEach { chunkOfRecords ->
+        writeContext.transactionCoroutine { cfg ->
+            OpeningPreCalculationCacheReferencePlayerDao(cfg)
+                .insertMultipleReactive(chunkOfRecords)
+        }
     }
 }
 
