@@ -27,7 +27,7 @@ private val logger = logger {}
 private const val READ_PROFILE = "local-backup"
 private const val WRITE_PROFILE = "prod"
 private const val MAX_MOVES = 48
-private const val MIN_OCCURRENCES = 2
+private const val MIN_OCCURRENCES = 1
 private const val MIN_GAMES_PER_PLAYER = 100
 
 private val scriptConfig = loadScriptConfig()
