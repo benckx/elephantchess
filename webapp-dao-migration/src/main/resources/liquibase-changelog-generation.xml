@@ -2467,4 +2467,7 @@
             <column name="number_of_moves"/>
         </createIndex>
     </changeSet>
+    <changeSet id="0107" author="benckx">
+        <comment>Indexes for latest move analysis aggregation and analyzed flag lookup</comment>
+    </changeSet>
 </databaseChangeLog>
