@@ -10,6 +10,10 @@ import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserStatsDaoService
 import io.elephantchess.model.GameJoinSource
+import io.elephantchess.model.GameJoinSource.DYNAMIC_MATCHED
+import io.elephantchess.model.GameJoinSource.LINK
+import io.elephantchess.model.GameJoinSource.LOBBY
+import io.elephantchess.model.GameJoinSource.MATCHED
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.analytics.HourlyAvailableMetric
@@ -334,8 +338,8 @@ class AdminAnalyticsService(
      * - Breakdown of PvP > 3 by join source
      */
     suspend fun fetchPvpStatsByJoinSource(): PvpJoinSourceStatsResponse {
-        val lobbyJoinSources = listOf(GameJoinSource.LOBBY, GameJoinSource.MATCHED, GameJoinSource.DYNAMIC_MATCHED)
-        val linkJoinSources = listOf(GameJoinSource.LINK)
+        val lobbyJoinSources = listOf(LOBBY, MATCHED, DYNAMIC_MATCHED)
+        val linkJoinSources = listOf(LINK)
 
         // Query total PvP games by month
         val totalPvpByMonth = pvpGameDaoService
