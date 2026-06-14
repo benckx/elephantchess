@@ -41,6 +41,18 @@ class OpeningService(
     ): OpeningNextMovesResponse {
         val color = request.color?.let { Color.valueOf(it.uppercase()) }
 
+        // general population (all reference games) share of each next move at the same position,
+        // shown next to the player's own share in the opening explorer
+        val generalPopulationRecords = openingRepositoryCacheDaoService.fetchNextMovesData(request.moves)
+        val generalPopulationTotal = generalPopulationRecords.sumOf { it.occurrences }
+        val generalPopulationRateByMove = generalPopulationRecords.associate { record ->
+            record.nextMove() to if (generalPopulationTotal > 0) {
+                record.occurrences.toFloat() / generalPopulationTotal.toFloat()
+            } else {
+                0f
+            }
+        }
+
         val entries =
             openingRepositoryReferencePlayerCacheDaoService
                 .fetchNextMovesData(request.playerId, color, request.moves)
@@ -54,6 +66,7 @@ class OpeningService(
                         occurrences = occurrences,
                         redWinsRate = redWins.toFloat() / occurrences.toFloat(),
                         blackWinsRate = blackWins.toFloat() / occurrences.toFloat(),
+                        generalPopulationRate = generalPopulationRateByMove[nextMove],
                     )
                 }
                 .sortedByDescending { entry ->

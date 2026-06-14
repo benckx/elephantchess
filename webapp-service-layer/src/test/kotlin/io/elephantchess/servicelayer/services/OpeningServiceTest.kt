@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.db.dao.codegen.Tables.OPENING_PRE_CALCULATION_CACHE
 import io.elephantchess.db.dao.codegen.Tables.OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER
 import io.elephantchess.db.dao.codegen.Tables.REFERENCE_PLAYER
 import io.elephantchess.db.utils.awaitExecute
@@ -23,6 +24,7 @@ class OpeningServiceTest : ServiceTest() {
     @AfterEach
     fun afterEach() = runTest {
         listOf(
+            OPENING_PRE_CALCULATION_CACHE,
             OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER,
             REFERENCE_PLAYER,
         ).forEach { table ->
@@ -42,11 +44,17 @@ class OpeningServiceTest : ServiceTest() {
         // player as BLACK
         insertOpeningEntry("p_test", Color.BLACK, "h2e2", occurrences = 5, redWins = 2, blackWins = 2)
 
+        // general population (all reference games) shares: h2e2 -> 80/100, b2e2 -> 20/100
+        insertGeneralPopulationEntry("h2e2", occurrences = 80)
+        insertGeneralPopulationEntry("b2e2", occurrences = 20)
+
         val red = openingService.fetchReferencePlayerNextMovesData(
             OpeningReferencePlayerNextMovesRequest(moves = emptyList(), playerId = "p_test", color = "RED")
         )
         assertEquals(listOf("h2e2", "b2e2"), red.entries.map { it.nextMove })
         assertEquals(10, red.entries.first().occurrences)
+        assertEquals(0.8f, red.entries.first().generalPopulationRate)
+        assertEquals(0.2f, red.entries.single { it.nextMove == "b2e2" }.generalPopulationRate)
 
         val black = openingService.fetchReferencePlayerNextMovesData(
             OpeningReferencePlayerNextMovesRequest(moves = emptyList(), playerId = "p_test", color = "BLACK")
@@ -63,6 +71,7 @@ class OpeningServiceTest : ServiceTest() {
         assertEquals(15, h2e2.occurrences)
         assertEquals((6 + 2).toFloat() / 15f, h2e2.redWinsRate)
         assertEquals((3 + 2).toFloat() / 15f, h2e2.blackWinsRate)
+        assertEquals(0.8f, h2e2.generalPopulationRate)
     }
 
     @Test
@@ -101,6 +110,20 @@ class OpeningServiceTest : ServiceTest() {
             .set(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.OUTCOME_RED_WINS, redWins)
             .set(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.OUTCOME_BLACK_WINS, blackWins)
             .set(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.OUTCOME_DRAWS, occurrences - redWins - blackWins)
+            .awaitExecute()
+    }
+
+    private suspend fun insertGeneralPopulationEntry(
+        nextMove: String,
+        occurrences: Int,
+    ) {
+        dslContext.insertInto(OPENING_PRE_CALCULATION_CACHE)
+            .set(OPENING_PRE_CALCULATION_CACHE.NUMBER_OF_MOVES, 1)
+            .set(OPENING_PRE_CALCULATION_CACHE.MOVES, nextMove)
+            .set(OPENING_PRE_CALCULATION_CACHE.OCCURRENCES, occurrences)
+            .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_RED_WINS, 0)
+            .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_BLACK_WINS, 0)
+            .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_DRAWS, occurrences)
             .awaitExecute()
     }
 }
