@@ -46,6 +46,27 @@
     </a>
     <div id="advanced-settings-box">
         <button id="advanced-settings-close-button" aria-label="Close advanced settings">×</button>
+        <div class="advanced-setting-row">
+            <img class="advanced-setting-icon"
+                 src="/images/pieces/traditional/black_general.png"
+                 alt="Piece style setting icon"
+                 loading="lazy">
+            <div class="advanced-setting-content">
+                <div class="advanced-setting-text">
+                    <div class="advanced-setting-title">Piece style</div>
+                    <div class="advanced-setting-description">Visual style of the board pieces.</div>
+                </div>
+                <div class="advanced-setting-options">
+                    <select class="advanced-setting-select" id="piece-style-select"
+                            aria-label="Piece style">
+                        <option value="TRADITIONAL">Traditional</option>
+                        <option value="MODERN">Modern</option>
+                        <option value="INK_BRUSH">Ink Brush</option>
+                        <option value="ROMANIZED_ROUNDED">Romanized Rounded (westernized)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
         <div id="advanced-move-format-setting-item" class="advanced-setting-row">
             <img class="advanced-setting-icon"
                  src="/images/icons/types.png"
@@ -57,24 +78,13 @@
                     <div class="advanced-setting-description">Notation shown in the move list.</div>
                 </div>
                 <div class="advanced-setting-options">
-                    <label>
-                        <input type="radio" name="move-format-setting" id="move-format-radio-wxf-dot" value="WXF_DOT">
-                        WXF . (ex. C2.5, H8+7, H2+3)
-                    </label>
-                    <label>
-                        <input type="radio" name="move-format-setting" id="move-format-radio-wxf-equals"
-                               value="WXF_EQUALS">
-                        WXF = (ex. C2=5, H8+7, H2+3)
-                    </label>
-                    <label>
-                        <input type="radio" name="move-format-setting" id="move-format-radio-pgn" value="PGN">
-                        PGN (ex. Che2, Nhg8, Nhg3)
-                    </label>
-                    <label>
-                        <input type="radio" name="move-format-setting" id="move-format-radio-algebraic"
-                               value="ALGEBRAIC_EN">
-                        Algebraic (ex. h2e3, h10g8, h1g3)
-                    </label>
+                    <select class="advanced-setting-select" id="move-format-select"
+                            aria-label="Move format">
+                        <option value="WXF_DOT">WXF . (ex. C2.5, H8+7, H2+3)</option>
+                        <option value="WXF_EQUALS">WXF = (ex. C2=5, H8+7, H2+3)</option>
+                        <option value="PGN">PGN (ex. Che2, Nhg8, Nhg3)</option>
+                        <option value="ALGEBRAIC_EN">Algebraic (ex. h2e3, h10g8, h1g3)</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -89,16 +99,14 @@
                     <div class="advanced-setting-description">Display board coordinates around the board edges.</div>
                 </div>
                 <div class="advanced-setting-options">
-                    <label>
-                        <input type="radio" name="show-coordinates-setting" id="show-coordinates-enabled-radio"
-                               value="true">
-                        On
-                    </label>
-                    <label>
-                        <input type="radio" name="show-coordinates-setting" id="show-coordinates-disabled-radio"
-                               value="false">
-                        Off
-                    </label>
+                    <div class="standard-checkbox">
+                        <span>
+                            <input type="checkbox" id="show-coordinates-checkbox">
+                        </span>
+                        <span class="label-span">
+                            <label for="show-coordinates-checkbox">Enabled</label>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -113,55 +121,16 @@
                     <div class="advanced-setting-description">Numeral system used for board coordinates.</div>
                 </div>
                 <div class="advanced-setting-options">
-                    <label>
-                        <input type="radio"
-                               name="coordinates-style-setting"
-                               id="coordinates-style-wxf-arabic-radio"
-                               value="ARABIC_BOTH">
-                        Arabic on both sides
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="coordinates-style-setting"
-                               id="coordinates-style-wxf-chinese-radio"
-                               value="CHINESE_BOTH">
-                        Chinese on both sides
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="coordinates-style-setting"
-                               id="coordinates-style-wxf-chinese-red-only-radio"
-                               value="CHINESE_RED_ONLY">
-                        Chinese on red side only
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="coordinates-style-setting"
-                               id="coordinates-style-wxf-chinese-black-only-radio"
-                               value="CHINESE_BLACK_ONLY">
-                        Chinese on black side only
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="coordinates-style-setting"
-                               id="coordinates-style-wxf-chinese-lower-only-radio"
-                               value="CHINESE_LOWER_ONLY">
-                        Chinese on lower side only
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="coordinates-style-setting"
-                               id="coordinates-style-wxf-chinese-top-only-radio"
-                               value="CHINESE_TOP_ONLY">
-                        Chinese on top side only
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="coordinates-style-setting"
-                               id="coordinates-style-algebraic-radio"
-                               value="ALGEBRAIC">
-                        Algebraic (a–i, 1–10)
-                    </label>
+                    <select class="advanced-setting-select" id="coordinates-style-select"
+                            aria-label="Coordinates">
+                        <option value="ARABIC_BOTH">Arabic on both sides</option>
+                        <option value="CHINESE_BOTH">Chinese on both sides</option>
+                        <option value="CHINESE_RED_ONLY">Chinese on red side only</option>
+                        <option value="CHINESE_BLACK_ONLY">Chinese on black side only</option>
+                        <option value="CHINESE_LOWER_ONLY">Chinese on lower side only</option>
+                        <option value="CHINESE_TOP_ONLY">Chinese on top side only</option>
+                        <option value="ALGEBRAIC">Algebraic (a–i, 1–10)</option>
+                    </select>
                 </div>
                 <div id="coordinates-move-format-mismatch-warning"
                      class="advanced-setting-warning"
@@ -183,20 +152,14 @@
                     </div>
                 </div>
                 <div class="advanced-setting-options">
-                    <label>
-                        <input type="radio"
-                               name="flip-opponent-pieces-setting"
-                               id="flip-opponent-pieces-enabled-radio"
-                               value="true">
-                        On
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="flip-opponent-pieces-setting"
-                               id="flip-opponent-pieces-disabled-radio"
-                               value="false">
-                        Off
-                    </label>
+                    <div class="standard-checkbox">
+                        <span>
+                            <input type="checkbox" id="flip-opponent-pieces-checkbox">
+                        </span>
+                        <span class="label-span">
+                            <label for="flip-opponent-pieces-checkbox">Enabled</label>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -213,20 +176,14 @@
                     </div>
                 </div>
                 <div class="advanced-setting-options">
-                    <label>
-                        <input type="radio"
-                               name="play-sounds-setting"
-                               id="play-sounds-enabled-radio"
-                               value="true">
-                        On
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="play-sounds-setting"
-                               id="play-sounds-disabled-radio"
-                               value="false">
-                        Off
-                    </label>
+                    <div class="standard-checkbox">
+                        <span>
+                            <input type="checkbox" id="play-sounds-checkbox">
+                        </span>
+                        <span class="label-span">
+                            <label for="play-sounds-checkbox">Enabled</label>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -241,20 +198,14 @@
                     <div class="advanced-setting-description">Increase contrast for black pieces.</div>
                 </div>
                 <div class="advanced-setting-options">
-                    <label>
-                        <input type="radio"
-                               name="colorblind-black-pieces-setting"
-                               id="colorblind-friendly-black-pieces-enabled-radio"
-                               value="true">
-                        On
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="colorblind-black-pieces-setting"
-                               id="colorblind-friendly-black-pieces-disabled-radio"
-                               value="false">
-                        Off
-                    </label>
+                    <div class="standard-checkbox">
+                        <span>
+                            <input type="checkbox" id="colorblind-friendly-black-pieces-checkbox">
+                        </span>
+                        <span class="label-span">
+                            <label for="colorblind-friendly-black-pieces-checkbox">Enabled</label>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -269,20 +220,14 @@
                     <div class="advanced-setting-description">Highlight river (blue) and palace (green) areas.</div>
                 </div>
                 <div class="advanced-setting-options">
-                    <label>
-                        <input type="radio"
-                               name="colored-areas-setting"
-                               id="colored-areas-enabled-radio"
-                               value="true">
-                        On
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="colored-areas-setting"
-                               id="colored-areas-disabled-radio"
-                               value="false">
-                        Off
-                    </label>
+                    <div class="standard-checkbox">
+                        <span>
+                            <input type="checkbox" id="colored-areas-checkbox">
+                        </span>
+                        <span class="label-span">
+                            <label for="colored-areas-checkbox">Enabled</label>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

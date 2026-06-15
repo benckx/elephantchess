@@ -137,6 +137,16 @@
     font-size: 15px;
 }
 
+#create-new-game-modal .always-visible-in-lobby-faq-link {
+    margin-left: 6px;
+}
+
+#create-new-game-modal .always-visible-in-lobby-faq-link img {
+    height: 1em;
+    width: 1em;
+    vertical-align: middle;
+}
+
 @media (max-width: 1000px) {
     #create-new-game-modal {
         width: 94%;

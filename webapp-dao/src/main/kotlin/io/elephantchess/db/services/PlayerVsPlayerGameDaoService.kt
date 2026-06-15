@@ -17,6 +17,8 @@ import io.elephantchess.db.model.analytics.PvpJoinSourceRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.CANCELLED
+import io.elephantchess.model.AnalysisStatus.NOT_STARTED
+import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
@@ -395,14 +397,6 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .and(GAME_STATUS_EVENT.EVENT_TYPE.`in`(gameEndedStatuses))
             .orderBy(GAME_STATUS_EVENT.EVENT_TIME.desc())
             .limit(1)
-            .awaitSingleValue()
-    }
-
-    suspend fun fetchGameStatus(gameId: String): GameEventType? {
-        return dslContext
-            .select(GAME.GAME_STATUS)
-            .from(GAME)
-            .where(GAME.ID.eq(gameId))
             .awaitSingleValue()
     }
 
@@ -1105,6 +1099,18 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .map { MonthlyValueRecord.ofInt(it) }
     }
 
+    suspend fun countTotalGamesByMonthForJoinSources(joinSources: Collection<GameJoinSource>): List<MonthlyValueRecord> {
+        val yearMonthField = GAME.CREATED.yearMonth()
+        return dslContext
+            .select(yearMonthField, DSL.count())
+            .from(GAME)
+            .where(GAME.JOIN_SOURCE.`in`(joinSources))
+            .groupBy(yearMonthField)
+            .orderBy(yearMonthField)
+            .awaitRecords()
+            .map { MonthlyValueRecord.ofInt(it) }
+    }
+
     /**
      * Counts PvP games with at least minMoveIndex moves, grouped by month
      */
@@ -1114,6 +1120,22 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .select(yearMonthField, DSL.count())
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .groupBy(yearMonthField)
+            .orderBy(yearMonthField)
+            .awaitRecords()
+            .map { MonthlyValueRecord.ofInt(it) }
+    }
+
+    suspend fun countGamesOverMoveIndexByMonthForJoinSources(
+        minMoveIndex: Int,
+        joinSources: Collection<GameJoinSource>
+    ): List<MonthlyValueRecord> {
+        val yearMonthField = GAME.CREATED.yearMonth()
+        return dslContext
+            .select(yearMonthField, DSL.count())
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.JOIN_SOURCE.`in`(joinSources))
             .groupBy(yearMonthField)
             .orderBy(yearMonthField)
             .awaitRecords()
@@ -1157,6 +1179,29 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .where(GAME.INVITEE.eq(guestUserId))
                 .awaitExecute()
         }
+    }
+
+    suspend fun disableAlwaysVisibleInLobbyOptionForUserCreatedGames(userId: String) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL.using(cfg)
+                .update(GAME)
+                .set(GAME.ALWAYS_VISIBLE_IN_LOBBY.fixed(), false)
+                .where(GAME.INVITER.eq(userId))
+                .and(GAME.GAME_STATUS.eq(CREATED))
+                .awaitExecute()
+        }
+    }
+
+    suspend fun pickRandomGameForAnalysis(): String? {
+        return dslContext
+            .select(GAME.ID)
+            .from(GAME)
+            .where(GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
+            .and(GAME.GAME_STATUS.`in`(gameEndedStatuses))
+            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterThan(10))
+            .orderBy(DSL.rand())
+            .limit(1)
+            .awaitSingleValue()
     }
 
 }

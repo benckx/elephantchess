@@ -349,8 +349,8 @@ class UserServiceTest : ServiceTest() {
         val userAfterSignup = userDaoService.findById(userId)!!
         val code = userAfterSignup.emailConfirmationCode
 
-        // simulate that the code was generated more than 1h ago
-        userDaoService.updateEmailConfirmationCode(userId, code, Clock.System.now().minusHours(2L))
+        // simulate that the code was generated more than 24h ago
+        userDaoService.updateEmailConfirmationCode(userId, code, Clock.System.now().minusHours(25L))
 
         assertFalse(userService.confirmEmail(code), "Expired code should be rejected")
         assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)

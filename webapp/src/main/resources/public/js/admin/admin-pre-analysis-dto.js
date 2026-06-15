@@ -44,6 +44,11 @@ class MoveAnalysisByGame {
      */
     #analysisStatus
 
+    /**
+     * @type {boolean}
+     */
+    #analyzedFromBatch
+
     constructor(json) {
         this.#gameId = new GameId(json.gameId.type, json.gameId.id);
         this.#first = Number(json.first);
@@ -51,6 +56,7 @@ class MoveAnalysisByGame {
         // noinspection JSUnresolvedReference
         this.#totalAnalyzedMoves = Number(json.totalAnalyzedMoves);
         this.#analysisStatus = json.analysisStatus;
+        this.#analyzedFromBatch = json.analyzedFromBatch;
     }
 
     /**
@@ -94,6 +100,13 @@ class MoveAnalysisByGame {
      */
     get analysisStatus() {
         return this.#analysisStatus;
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get analyzedFromBatch() {
+        return this.#analyzedFromBatch;
     }
 
 }

@@ -427,16 +427,16 @@ function showGuestMessages() {
     }
 }
 
-function makeCheckboxesClickable() {
-    makeFormElementClickable('standard-checkbox');
+function makeCheckboxesClickable(root = document) {
+    makeFormElementClickable('standard-checkbox', root);
 }
 
-function makeRadioClickable() {
-    makeFormElementClickable('standard-radio');
+function makeRadioClickable(root = document) {
+    makeFormElementClickable('standard-radio', root);
 }
 
-function makeFormElementClickable(cssClass) {
-    const boxes = document.getElementsByClassName(cssClass);
+function makeFormElementClickable(cssClass, root = document) {
+    const boxes = root.getElementsByClassName(cssClass);
     for (let i = 0; i < boxes.length; i++) {
         const box = boxes[i];
         const spans = box.getElementsByTagName('span');

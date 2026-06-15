@@ -5,6 +5,7 @@ build
 *.min.js
 *.min.css
 *.csv
+*.zip
 *.gz
 *.properties
 formatter.json

@@ -17,6 +17,10 @@ fun OpeningPreCalculationCache.nextMove(): String {
     return moves.split(",").last()
 }
 
+fun OpeningPreCalculationCacheReferencePlayer.nextMove(): String {
+    return moves.split(",").last()
+}
+
 val User.roles: List<UserRole>
     get() {
         val roles = mutableListOf<UserRole>()

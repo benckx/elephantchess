@@ -19,6 +19,7 @@ fun Route.adminConsoleRoutes() {
         adminDatabaseSearchRoutes()
         adminPasswordRecoveryRoutes()
         adminUserSessionRoutes()
+        adminUserEloRoutes()
         adminAnalysisRoutes()
         adminPostgresRoutes()
         adminDatabaseRoutes()
@@ -201,6 +202,14 @@ private fun Route.adminUserSessionRoutes() {
     val adminUserSessionService by koin<AdminUserSessionService>()
     get("/list-user-sessions") {
         requireAdminRole { adminUserSessionService.listAuthenticatedUserSessions() }
+    }
+}
+
+private fun Route.adminUserEloRoutes() {
+    val adminUserEloService by koin<AdminUserEloService>()
+
+    get("/elo-stats") {
+        requireAdminRole { adminUserEloService.listUserEloStats() }
     }
 }
 
