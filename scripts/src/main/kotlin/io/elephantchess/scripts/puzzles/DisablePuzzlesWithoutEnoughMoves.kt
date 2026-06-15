@@ -43,7 +43,7 @@ object DisablePuzzlesWithoutEnoughMoves : KoinScriptInit() {
         logger.info { "checking ${puzzles.size} puzzles" }
 
         val puzzleIdsToDisable = puzzles.mapNotNull { puzzle ->
-            val moves = movesByPuzzle[puzzle.id] ?: emptyList()
+            val moves = movesByPuzzle[puzzle.id]?.sortedBy { it.position } ?: emptyList()
             val setupMoves = moves.filterNot { halfMove -> halfMove.isSolution }.map { halfMove -> halfMove.uci }
             val solutionMoves = moves.filter { halfMove -> halfMove.isSolution }.map { halfMove -> halfMove.uci }
 
