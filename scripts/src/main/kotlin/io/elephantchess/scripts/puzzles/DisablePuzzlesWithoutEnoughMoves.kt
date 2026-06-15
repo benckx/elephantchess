@@ -14,6 +14,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.koin.core.component.inject
+import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -21,8 +22,8 @@ private val logger = KotlinLogging.logger {}
  * Goes over every puzzle and replays its recorded solution, checking that the player always has at
  * least [PuzzleSolvabilityValidator.MIN_LEGAL_MOVES_PER_STEP] legal moves available at each of their
  * turns. Puzzles failing this check (e.g. puzzles that start in check and can be dragged into a
- * perpetual-check loop) are flagged as `enabled = false` so they are no longer served when picking
- * the next puzzle to assign.
+ * perpetual-check loop) have their `disabled_at` timestamp set so they are no longer served when
+ * picking the next puzzle to assign.
  */
 object DisablePuzzlesWithoutEnoughMoves : KoinScriptInit() {
 
@@ -68,7 +69,7 @@ object DisablePuzzlesWithoutEnoughMoves : KoinScriptInit() {
                 DSL
                     .using(cfg)
                     .update(PUZZLE.fixed())
-                    .set(PUZZLE.ENABLED.fixed(), false)
+                    .set(PUZZLE.DISABLED_AT.fixed(), LocalDateTime.now())
                     .where(PUZZLE.ID.`in`(puzzleIdsToDisable))
                     .awaitExecute()
             }
