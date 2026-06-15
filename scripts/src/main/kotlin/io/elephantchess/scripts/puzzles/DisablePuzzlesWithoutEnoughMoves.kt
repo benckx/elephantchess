@@ -49,7 +49,6 @@ object DisablePuzzlesWithoutEnoughMoves : KoinScriptInit() {
 
             val isValid = try {
                 PuzzleSolvabilityValidator.hasEnoughMovesAtEachPlayerStep(
-                    startFen = puzzle.startFen,
                     setupMoves = setupMoves,
                     solutionMoves = solutionMoves,
                 )
