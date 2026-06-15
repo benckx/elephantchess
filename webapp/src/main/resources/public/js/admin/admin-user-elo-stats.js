@@ -50,31 +50,42 @@ class AdminUserEloStatsPage extends BasePage {
             countCell.className = 'numeric-cell';
             countCell.innerText = formatNumber(entry.userCount || 0);
 
-            this.#renderUserCell(row.insertCell(), entry.minUsername, entry.minRating);
+            this.#renderUserCell(row.insertCell(), entry.minUserId, entry.minUsername, entry.minRating);
 
             const averageCell = row.insertCell();
             averageCell.className = 'numeric-cell';
             averageCell.innerText = this.#formatAverage(entry.averageRating);
 
-            this.#renderUserCell(row.insertCell(), entry.maxUsername, entry.maxRating);
+            this.#renderUserCell(row.insertCell(), entry.maxUserId, entry.maxUsername, entry.maxRating);
         });
     }
 
     /**
      * @param cell {HTMLTableCellElement}
+     * @param userId {string|null}
      * @param username {string|null}
      * @param rating {number|null}
      */
-    #renderUserCell(cell, username, rating) {
-        if (!username || rating == null) {
+    #renderUserCell(cell, userId, username, rating) {
+        if (rating == null) {
             cell.innerText = '-';
             return;
         }
 
-        const link = document.createElement('a');
-        link.href = `/@/${username}`;
-        link.innerText = username;
-        cell.appendChild(link);
+        if (username) {
+            const link = document.createElement('a');
+            link.href = `/@/${username}`;
+            link.innerText = username;
+            cell.appendChild(link);
+        } else if (userId) {
+            const guestName = document.createElement('span');
+            guestName.className = 'guest-name';
+            guestName.innerText = `guest #${userId}`;
+            cell.appendChild(guestName);
+        } else {
+            cell.innerText = '-';
+            return;
+        }
 
         const ratingText = document.createElement('span');
         ratingText.innerText = ` (${formatNumber(rating)})`;

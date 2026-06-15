@@ -473,7 +473,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .map { record ->
                 PuzzleLeaderboardRecord(
                     userId = record.get(USER.ID),
-                    username = record.get(USER.HANDLE),
+                    username = record.get(USER.HANDLE, String::class.java),
                     countryCode = record.get(USER.COUNTRY),
                     currentRating = record.get(USER.PUZZLE_RATING),
                     maxRating = record.get("max_rating", Int::class.java),
@@ -551,7 +551,6 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                     DSL.avg(ratingField).`as`("avg_rating")
                 )
                 .from(USER)
-                .where(USER.USER_TYPE.eq(AUTHENTICATED))
                 .awaitSingleRecord()
 
         suspend fun fetchUserWithExtremeRating(ascending: Boolean): UserRatingExtremum? {
@@ -560,8 +559,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 dslContext
                     .select(USER.ID, USER.HANDLE, ratingField.`as`("rating"))
                     .from(USER)
-                    .where(USER.USER_TYPE.eq(AUTHENTICATED))
-                    .and(ratingField.isNotNull)
+                    .where(ratingField.isNotNull)
                     .orderBy(sortField, USER.HANDLE.asc())
                     .limit(1)
                     .awaitSingleRecord()
@@ -703,7 +701,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
 
         data class UserRatingExtremum(
             val userId: String,
-            val username: String,
+            val username: String?,
             val rating: Int,
         )
 
