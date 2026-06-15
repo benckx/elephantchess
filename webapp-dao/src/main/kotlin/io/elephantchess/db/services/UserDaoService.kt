@@ -656,6 +656,40 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .awaitMappedRecords<User>()
     }
 
+    suspend fun latestNewGuestUser(): Instant? {
+        return dslContext
+            .select(USER.CREATION)
+            .from(USER)
+            .where(USER.USER_TYPE.eq(UserType.GUEST))
+            .orderBy(USER.CREATION.desc())
+            .limit(1)
+            .awaitSingleValue()
+    }
+
+    suspend fun latestNewAuthenticatedUser(): Instant? {
+        return dslContext
+            .select(USER.CREATION)
+            .from(USER)
+            .where(USER.USER_TYPE.eq(AUTHENTICATED))
+            .orderBy(USER.CREATION.desc())
+            .limit(1)
+            .awaitSingleValue()
+    }
+
+    suspend fun listUsersWithDescriptionForSiteMap(): List<Pair<String, Instant>> {
+        return dslContext
+            .select(USER.HANDLE, USER.LAST_PROFILE_UPDATE)
+            .from(USER)
+            .where(USER.DESCRIPTION.isNotNull)
+            .and(USER.DESCRIPTION.ne(""))
+            .and(USER.LAST_PROFILE_UPDATE.isNotNull)
+            .orderBy(USER.HANDLE.asc())
+            .awaitRecords()
+            .map { record ->
+                record.get(USER.HANDLE) to record.get(USER.LAST_PROFILE_UPDATE)
+            }
+    }
+
     private companion object {
 
         const val GUEST_ID_MIN = 3
@@ -715,40 +749,6 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .field
         }
 
-    }
-
-    suspend fun latestNewGuestUser(): Instant? {
-        return dslContext
-            .select(USER.CREATION)
-            .from(USER)
-            .where(USER.USER_TYPE.eq(UserType.GUEST))
-            .orderBy(USER.CREATION.desc())
-            .limit(1)
-            .awaitSingleValue()
-    }
-
-    suspend fun latestNewAuthenticatedUser(): Instant? {
-        return dslContext
-            .select(USER.CREATION)
-            .from(USER)
-            .where(USER.USER_TYPE.eq(AUTHENTICATED))
-            .orderBy(USER.CREATION.desc())
-            .limit(1)
-            .awaitSingleValue()
-    }
-
-    suspend fun listUsersWithDescriptionForSiteMap(): List<Pair<String, Instant>> {
-        return dslContext
-            .select(USER.HANDLE, USER.LAST_PROFILE_UPDATE)
-            .from(USER)
-            .where(USER.DESCRIPTION.isNotNull)
-            .and(USER.DESCRIPTION.ne(""))
-            .and(USER.LAST_PROFILE_UPDATE.isNotNull)
-            .orderBy(USER.HANDLE.asc())
-            .awaitRecords()
-            .map { record ->
-                record.get(USER.HANDLE) to record.get(USER.LAST_PROFILE_UPDATE)
-            }
     }
 
 }
