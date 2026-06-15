@@ -15,7 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 
-private val appConfig = loadAppConfig(ArgConfig("prod", null))
+private val appConfig = loadAppConfig(ArgConfig("local-backup", null))
 private val dslContext = getScriptDslContext(appConfig, maximumPoolSize = 2)
 private val logger = KotlinLogging.logger {}
 
