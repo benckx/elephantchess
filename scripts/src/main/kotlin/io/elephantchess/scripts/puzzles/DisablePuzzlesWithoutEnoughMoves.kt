@@ -51,6 +51,7 @@ object DisablePuzzlesWithoutEnoughMoves : KoinScriptInit() {
                 PuzzleSolvabilityValidator.hasEnoughMovesAtEachPlayerStep(
                     setupMoves = setupMoves,
                     solutionMoves = solutionMoves,
+                    minLegalMoves = 2
                 )
             } catch (e: Exception) {
                 logger.warn { "could not validate puzzle ${puzzle.id} due to ${e::class.simpleName}: ${e.message}" }

@@ -12,8 +12,6 @@ import io.elephantchess.xiangqi.Board
  */
 object PuzzleSolvabilityValidator {
 
-    const val MIN_LEGAL_MOVES_PER_STEP = 3
-
     /**
      * Replays the [setupMoves] from [startFen] and then walks through the [solutionMoves], checking
      * that, at every player turn, at least [minLegalMoves] legal moves are available.
@@ -26,7 +24,7 @@ object PuzzleSolvabilityValidator {
     fun hasEnoughMovesAtEachPlayerStep(
         setupMoves: List<String>,
         solutionMoves: List<String>,
-        minLegalMoves: Int = MIN_LEGAL_MOVES_PER_STEP,
+        minLegalMoves: Int,
     ): Boolean {
         val board = Board()
         setupMoves.forEach { move -> board.registerMove(move) }
