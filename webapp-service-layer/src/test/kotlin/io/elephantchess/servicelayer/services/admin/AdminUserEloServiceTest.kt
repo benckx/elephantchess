@@ -71,7 +71,9 @@ class AdminUserEloServiceTest : ServiceTest() {
         val xiangqiClassical = result.entries.single { it.variant == XIANGQI && it.timeControlCategory == CLASSICAL }
         assertEquals(3, xiangqiClassical.userCount)
         assertEquals(1_000.0, xiangqiClassical.averageRating)
+        assertEquals("test1001", xiangqiClassical.minUsername)
         assertEquals(1_000, xiangqiClassical.minRating)
+        assertEquals("test1001", xiangqiClassical.maxUsername)
         assertEquals(1_000, xiangqiClassical.maxRating)
     }
 

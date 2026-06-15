@@ -554,7 +554,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .where(USER.USER_TYPE.eq(AUTHENTICATED))
                 .awaitSingleRecord()
 
-        suspend fun mapExtremumUser(ascending: Boolean): Triple<String, String, Int>? {
+        suspend fun fetchExtremumUser(ascending: Boolean): Triple<String, String, Int>? {
             val sortField = if (ascending) ratingField.asc() else ratingField.desc()
             val record =
                 dslContext
@@ -574,8 +574,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             )
         }
 
-        val minUser = mapExtremumUser(ascending = true)
-        val maxUser = mapExtremumUser(ascending = false)
+        val minUser = fetchExtremumUser(ascending = true)
+        val maxUser = fetchExtremumUser(ascending = false)
 
         return UserRatingSummaryRecord(
             variant = variant,
