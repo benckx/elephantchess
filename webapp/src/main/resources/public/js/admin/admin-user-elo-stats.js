@@ -22,7 +22,12 @@ class AdminUserEloStatsPage extends BasePage {
     /**
      * @type {HTMLTableElement}
      */
-    #table = document.getElementById('elo-stats');
+    #authenticatedTable = document.getElementById('authenticated-elo-stats');
+
+    /**
+     * @type {HTMLTableElement}
+     */
+    #guestTable = document.getElementById('guest-elo-stats');
 
     constructor() {
         super();
@@ -37,18 +42,22 @@ class AdminUserEloStatsPage extends BasePage {
      * @param json {object}
      */
     #render(json) {
-        const tbody = this.#table.getElementsByTagName('tbody')[0];
-        emptyTable(this.#table);
+        this.#renderTable(this.#authenticatedTable, json.authenticatedEntries || []);
+        this.#renderTable(this.#guestTable, json.guestEntries || []);
+    }
 
-        (json.entries || []).forEach(entry => {
+    /**
+     * @param table {HTMLTableElement}
+     * @param entries {Array}
+     */
+    #renderTable(table, entries) {
+        const tbody = emptyTable(table);
+
+        entries.forEach(entry => {
             const row = tbody.insertRow();
 
             row.insertCell().innerText = this.#formatEnum(entry.variant);
             row.insertCell().innerText = this.#formatEnum(entry.timeControlCategory);
-
-            const countCell = row.insertCell();
-            countCell.className = 'numeric-cell';
-            countCell.innerText = formatNumber(entry.userCount || 0);
 
             this.#renderUserCell(row.insertCell(), entry.minUserId, entry.minUsername, entry.minRating);
 

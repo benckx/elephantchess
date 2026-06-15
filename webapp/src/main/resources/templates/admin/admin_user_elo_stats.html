@@ -12,13 +12,27 @@
     {{admin_submenu}}
     <h1>User Elo Stats</h1>
     <hr/>
-    <p>Includes authenticated users and guests.</p>
-    <table id="elo-stats" class="stats-table">
+    <p>Shows separate rating summaries for authenticated users and guests.</p>
+    <h2>Authenticated</h2>
+    <table id="authenticated-elo-stats" class="stats-table">
         <thead>
         <tr>
             <th class="value-cell-larger">variant</th>
             <th class="value-cell-larger">time control</th>
-            <th class="value-cell">users</th>
+            <th class="label-cell">min elo</th>
+            <th class="value-cell">avg elo</th>
+            <th class="label-cell">max elo</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <h2>Guest</h2>
+    <table id="guest-elo-stats" class="stats-table">
+        <thead>
+        <tr>
+            <th class="value-cell-larger">variant</th>
+            <th class="value-cell-larger">time control</th>
             <th class="label-cell">min elo</th>
             <th class="value-cell">avg elo</th>
             <th class="label-cell">max elo</th>

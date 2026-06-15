@@ -542,8 +542,10 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
     suspend fun fetchRatingSummary(
         timeControlCategory: TimeControlCategory,
         variant: Variant,
+        userType: UserType? = null,
     ): UserRatingSummaryRecord {
         val ratingField = findRatingField(timeControlCategory, variant)
+        val userTypeCondition = userType?.let { USER.USER_TYPE.eq(it) } ?: DSL.noCondition()
         val aggregateRecord =
             dslContext
                 .select(
@@ -551,6 +553,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                     DSL.avg(ratingField).`as`("avg_rating")
                 )
                 .from(USER)
+                .where(userTypeCondition)
                 .awaitSingleRecord()
 
         suspend fun fetchUserWithExtremeRating(ascending: Boolean): UserRatingExtremum? {
@@ -560,10 +563,11 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                     .select(USER.ID, USER.HANDLE, ratingField.`as`("rating"))
                     .from(USER)
                     .where(ratingField.isNotNull)
-                    .orderBy(sortField, USER.HANDLE.asc())
-                    .limit(1)
-                    .awaitSingleRecord()
-                    ?: return null
+                    .and(userTypeCondition)
+                .orderBy(sortField, USER.HANDLE.asc())
+                .limit(1)
+                .awaitSingleRecord()
+                ?: return null
 
             return UserRatingExtremum(
                 userId = record.get(USER.ID),
