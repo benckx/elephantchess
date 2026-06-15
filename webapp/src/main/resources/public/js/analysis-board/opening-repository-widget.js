@@ -36,8 +36,23 @@ class OpeningRepositoryWidget {
     #startFen = DEFAULT_START_FEN;
     #useDefaultFen = true;
 
-    constructor(boardGui) {
+    // endpoint and request body builder (overridable, e.g. for player-specific openings)
+    #url = '/api/analysis/openings/next-moves-info';
+    #buildBody = (movesAsUci) => ({ 'moves': movesAsUci });
+
+    /**
+     * @param boardGui {BoardGui}
+     * @param options {{url?: string, buildBody?: function(string[]): Object}} optional overrides
+     *        for the endpoint and request body (defaults to the analysis openings endpoint)
+     */
+    constructor(boardGui, options = {}) {
         this.#boardGui = boardGui;
+        if (options.url !== undefined) {
+            this.#url = options.url;
+        }
+        if (options.buildBody !== undefined) {
+            this.#buildBody = options.buildBody;
+        }
     }
 
     /**
@@ -65,8 +80,8 @@ class OpeningRepositoryWidget {
         this.#requestedMovesAsUci = previousMovesAsUci;
 
         // TODO: move to a client
-        let url = '/api/analysis/openings/next-moves-info';
-        let body = {'moves': previousMovesAsUci};
+        let url = this.#url;
+        let body = this.#buildBody(previousMovesAsUci);
         postAndHandle(url, body, json => {
             if (this.#areMovesEqual(this.#requestedMovesAsUci, json.moves)) {
                 if (json.entries.length > 0) {
@@ -105,6 +120,14 @@ class OpeningRepositoryWidget {
                             let pctSpan = document.createElement('span');
                             pctSpan.className = 'occurrence-pct';
                             pctSpan.innerText = `${pct.toFixed(1)}%`;
+
+                            // optional general-population share (player openings only), shown in brackets
+                            if (entry.generalPopulationRate !== undefined && entry.generalPopulationRate !== null) {
+                                let generalPctSpan = document.createElement('span');
+                                generalPctSpan.className = 'occurrence-pct-general';
+                                generalPctSpan.innerText = ` (${(entry.generalPopulationRate * 100).toFixed(1)}%)`;
+                                pctSpan.append(generalPctSpan);
+                            }
 
                             let countSpan = document.createElement('span');
                             countSpan.className = 'occurrence-count';

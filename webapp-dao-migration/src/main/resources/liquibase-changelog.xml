@@ -2559,6 +2559,145 @@
         <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
     </changeSet>
     <changeSet id="0105" author="benckx">
+        <comment>Add analyzed_from_batch flag to reference_game and game tables</comment>
+        <addColumn tableName="reference_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>
+            drop view if exists move_analysis_coalesced;
+        </sql>
+        <sql>
+            create or replace view move_analysis_coalesced as
+            (SELECT ma.id,
+            CASE
+            WHEN game_id is not null THEN 'PVP'
+            WHEN bot_game_id is not null THEN 'PVB'
+            WHEN ref_game_id is not null THEN 'DB' END game_type,
+            coalesce (game_id, bot_game_id, ref_game_id) game_data_id,
+            CASE
+            WHEN game_id is not null THEN g.analyzed_from_batch
+            WHEN bot_game_id is not null THEN bg.analyzed_from_batch
+            WHEN ref_game_id is not null THEN rg.analyzed_from_batch
+            END analyzed_from_batch,
+            ma.position,
+            ma.fen_key,
+            ma.depth,
+            ma.already_in_cache,
+            ma.raw_line,
+            ma.entry_creation
+            from move_analysis ma
+            left join game g on ma.game_id = g.id
+            left join bot_game bg on ma.bot_game_id = bg.id
+            left join reference_game rg on ma.ref_game_id = rg.id
+            );
+        </sql>
+    </changeSet>
+    <changeSet id="0106" author="benckx">
+        <comment>Map opening_pre_calculation_cache entries to the reference games matching them.</comment>
+        <createTable tableName="opening_pre_calculation_cache_reference_game">
+            <column name="opening_pre_calculation_cache_id" type="int">
+                <constraints nullable="false"
+                             foreignKeyName="opening_cache_ref_game_to_cache_fk"
+                             references="opening_pre_calculation_cache(id)"/>
+            </column>
+            <column name="reference_game_id" type="varchar(12)">
+                <constraints nullable="false"
+                             foreignKeyName="opening_cache_ref_game_to_game_fk"
+                             references="reference_game(id)"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="opening_pre_calculation_cache_reference_game"
+                       columnNames="opening_pre_calculation_cache_id,reference_game_id"
+                       constraintName="opening_pre_calculation_cache_reference_game_pk"/>
+        <createIndex tableName="opening_pre_calculation_cache_reference_game"
+                     indexName="opening_pre_calculation_cache_reference_game_game_id_index">
+            <column name="reference_game_id"/>
+        </createIndex>
+        <createTable tableName="opening_pre_calculation_cache_reference_player">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reference_player_id" type="varchar(12)">
+                <constraints nullable="false"
+                             foreignKeyName="opening_cache_ref_player_to_player_fk"
+                             references="reference_player(id)"/>
+            </column>
+            <column name="color" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number_of_moves" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="moves" type="varchar(300)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="occurrences" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_red_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_black_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_draws" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_creation" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_update" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="opening_pre_calculation_cache_reference_player"
+                             columnNames="reference_player_id,color,moves"
+                             constraintName="opening_pre_calculation_cache_reference_player_unique"/>
+        <createIndex tableName="opening_pre_calculation_cache_reference_player"
+                     indexName="opening_pre_calculation_cache_reference_player_index">
+            <column name="reference_player_id"/>
+            <column name="color"/>
+            <column name="number_of_moves"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0107" author="benckx">
+        <comment>Indexes for latest move analysis aggregation and analyzed flag lookup</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS move_analysis_game_entry_creation_idx
+            ON move_analysis (game_id, entry_creation DESC)
+            WHERE game_id IS NOT NULL;
+
+            CREATE INDEX IF NOT EXISTS move_analysis_bot_game_entry_creation_idx
+            ON move_analysis (bot_game_id, entry_creation DESC)
+            WHERE bot_game_id IS NOT NULL;
+
+            CREATE INDEX IF NOT EXISTS move_analysis_ref_game_entry_creation_idx
+            ON move_analysis (ref_game_id, entry_creation DESC)
+            WHERE ref_game_id IS NOT NULL;
+
+            CREATE INDEX IF NOT EXISTS reference_game_analysis_end_batch_idx
+            ON reference_game (analysis_end_time, analyzed_from_batch);
+
+            CREATE INDEX IF NOT EXISTS game_analysis_end_batch_idx
+            ON game (analysis_end_time, analyzed_from_batch);
+
+            CREATE INDEX IF NOT EXISTS bot_game_analysis_end_batch_idx
+            ON bot_game (analysis_end_time, analyzed_from_batch);
+        </sql>
+    </changeSet>
+    <changeSet id="0108" author="benckx">
         <addColumn tableName="user">
             <column name="profile_picture_extension" type="varchar(10)"/>
         </addColumn>

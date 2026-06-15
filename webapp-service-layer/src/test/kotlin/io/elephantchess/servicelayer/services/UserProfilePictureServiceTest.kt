@@ -45,6 +45,8 @@ class UserProfilePictureServiceTest {
         parseUserAgent = false,
         disabledBatches = emptyList(),
         cdnEnabled = true,
+        symmetricKey = "",
+        salt = "",
         properties = propertiesFile,
     )
 

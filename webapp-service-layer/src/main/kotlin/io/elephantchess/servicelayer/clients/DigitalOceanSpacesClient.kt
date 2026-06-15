@@ -19,9 +19,9 @@ class DigitalOceanSpacesClient(
     appConfig: AppConfig
 ) {
 
-    private val accessKeyId by lazy { appConfig.loadString("digitalocean.spaces.key.id") }
-    private val secretAccessKey by lazy { appConfig.loadString("digitalocean.spaces.key.secret") }
-    private val bucketName by lazy { appConfig.loadString("digitalocean.spaces.bucket") }
+    private val accessKeyId by lazy { appConfig.doSpacesKeyId }
+    private val secretAccessKey by lazy { appConfig.doSpacesKeySecret }
+    private val bucketName by lazy { appConfig.doSpacesBucket }
     private val region = "ams3"
     private val endpoint by lazy { "$bucketName.$region.digitaloceanspaces.com" }
 

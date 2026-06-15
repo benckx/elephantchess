@@ -320,6 +320,28 @@ function formatNumber(value) {
 }
 
 /**
+ * Format a number of bytes into a human-readable string (e.g. "1.5 GB", "500 MB").
+ *
+ * @param bytes {number}
+ * @returns {string}
+ */
+function formatBytes(bytes) {
+    if (bytes === 0) {
+        return '0 bytes';
+    }
+
+    const units = ['bytes', 'kB', 'MB', 'GB', 'TB'];
+    const tier = Math.min(Math.floor(Math.log2(Math.abs(bytes)) / 10), units.length - 1);
+
+    if (tier === 0) {
+        return bytes + ' bytes';
+    }
+
+    const value = bytes / Math.pow(1024, tier);
+    return value.toFixed(2) + ' ' + units[tier];
+}
+
+/**
  * Format a number with suffixes (k, M, B, etc.) and a specified number of digits.
  *
  * @param value {number} - The number to format.
