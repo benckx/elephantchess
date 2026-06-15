@@ -56,6 +56,15 @@ class PuzzleCache(
     fun getById(puzzleId: String) =
         entries.find { entry -> entry.puzzleId == puzzleId }
 
+    fun countAllEnabled(): Int =
+        entries.filter { entry -> entry.enabled }.size
+
+    fun countPuzzlePlayedAtLeastAmongEnabled(numberOfTimes: Int): Int =
+        entries.filter { entry -> entry.enabled }.count { entry -> entry.attempts >= numberOfTimes }
+
+    fun listCategories(puzzleId: String): List<PuzzleCategory> =
+        entries.find { entry -> entry.puzzleId == puzzleId }?.categories ?: emptyList()
+
     fun randomId(
         userRating: Int? = null,
         range: Int? = null,
@@ -85,15 +94,6 @@ class PuzzleCache(
             filtered.random().puzzleId
         }
     }
-
-    fun countAllEnabled(): Int =
-        entries.filter { entry -> entry.enabled }.size
-
-    fun countPuzzlePlayedAtLeastAmongEnabled(numberOfTimes: Int): Int =
-        entries.filter { entry -> entry.enabled }.count { entry -> entry.attempts >= numberOfTimes }
-
-    fun listCategories(puzzleId: String): List<PuzzleCategory> =
-        entries.find { entry -> entry.puzzleId == puzzleId }?.categories ?: emptyList()
 
     companion object {
 
