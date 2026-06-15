@@ -33,6 +33,13 @@ span#puzzle-id {
     font-size: 15px;
 }
 
+img.puzzle-disabled-icon {
+    width: 14px;
+    height: 14px;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
 #puzzle-feedback-info-box {
     height: 100px;
 }

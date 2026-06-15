@@ -12,4 +12,5 @@ data class PuzzleResponse(
     val categories: List<PuzzleCategory>,
     val moves: List<String>,
     val solution: List<String>,
+    val enabled: Boolean,
 )

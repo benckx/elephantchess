@@ -256,6 +256,7 @@ class PuzzleService(
                 categories = record.categories.mapNotNull { it.category },
                 moves = record.moves.filterNot { move -> move.isSolution }.map { move -> move.uci },
                 solution = record.moves.filter { move -> move.isSolution }.map { move -> move.uci },
+                enabled = record.puzzle.enabled ?: true,
             )
         }
 
