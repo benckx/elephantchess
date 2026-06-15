@@ -29,7 +29,7 @@ class PuzzleCache(
                     .map { puzzleRecord ->
                         val attempts = attemptsMap[puzzleRecord.id] ?: 0
                         val categories = categoriesMap[puzzleRecord.id] ?: emptyList()
-                        val enabled = puzzleRecord.enabled ?: true
+                        val enabled = puzzleRecord.disabledAt == null
                         PuzzleCacheEntry(puzzleRecord.id, puzzleRecord.rating, attempts, categories, enabled)
                     }
 

@@ -2698,11 +2698,9 @@
         </sql>
     </changeSet>
     <changeSet id="0108" author="benckx">
-        <comment>Disabled puzzles are not served when picking the next puzzle to assign</comment>
+        <comment>Disabled puzzles (disabled_at is set) are not served when picking the next puzzle to assign</comment>
         <addColumn tableName="puzzle">
-            <column name="enabled" type="boolean" defaultValueBoolean="true">
-                <constraints nullable="false"/>
-            </column>
+            <column name="disabled_at" type="datetime"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>
