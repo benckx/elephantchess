@@ -123,9 +123,9 @@ class GlobalAnalyticsService(
 
     suspend fun fetchGlobalPuzzleStats(): GlobalPuzzleStatsResponse =
         longCache.typedGet(GLOBAL_PUZZLE_STATS) {
-            val totalPuzzles = puzzleCache.countAll()
-            val puzzlesPlayedAtLeast10x = puzzleCache.countPuzzlePlayedAtLeast(10)
-            val puzzlesPlayedAtLeast20x = puzzleCache.countPuzzlePlayedAtLeast(20)
+            val totalPuzzles = puzzleCache.countAllEnabled()
+            val puzzlesPlayedAtLeast10x = puzzleCache.countPuzzlePlayedAtLeastAmongEnabled(10)
+            val puzzlesPlayedAtLeast20x = puzzleCache.countPuzzlePlayedAtLeastAmongEnabled(20)
             val puzzlesPlayedRatio10x = puzzlesPlayedAtLeast10x.toFloat() / totalPuzzles.toFloat()
             val puzzlesPlayedRatio20x = puzzlesPlayedAtLeast20x.toFloat() / totalPuzzles.toFloat()
 
