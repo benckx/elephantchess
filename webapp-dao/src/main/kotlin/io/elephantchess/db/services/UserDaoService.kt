@@ -522,8 +522,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
     }
 
     suspend fun fetchUsersWithHighestRating(numberOfUsers: Int): Map<TimeControlCategory, List<User>> {
-        return listRatingFields().mapNotNull { field ->
-            mapRatingFieldToTimeControlCategory(field)?.let { category ->
+        return listXiangqiRatingFields().mapNotNull { field ->
+            mapXiangqiRatingFieldToTimeControlCategory(field)?.let { category ->
                 val users = dslContext
                     .select()
                     .from(USER)
@@ -688,7 +688,13 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             return listRatingFieldDefinitions().map { it.field }
         }
 
-        fun mapRatingFieldToTimeControlCategory(field: TableField<UserRecord, Int>): TimeControlCategory? {
+        fun listXiangqiRatingFields(): List<TableField<UserRecord, Int>> {
+            return listRatingFieldDefinitions()
+                .filter { it.variant == Variant.XIANGQI }
+                .map { it.field }
+        }
+
+        fun mapXiangqiRatingFieldToTimeControlCategory(field: TableField<UserRecord, Int>): TimeControlCategory? {
             return listRatingFieldDefinitions()
                 .firstOrNull { it.field == field && it.variant == Variant.XIANGQI }
                 ?.timeControlCategory
