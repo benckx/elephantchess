@@ -661,58 +661,46 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         const val GUEST_ID_MIN = 3
         const val GUEST_ID_MAX = 8
 
+        data class RatingFieldDefinition(
+            val timeControlCategory: TimeControlCategory,
+            val variant: Variant,
+            val field: TableField<UserRecord, Int>,
+        )
+
+        fun listRatingFieldDefinitions(): List<RatingFieldDefinition> {
+            return listOf(
+                RatingFieldDefinition(TimeControlCategory.BULLET, Variant.XIANGQI, USER.GAME_RATING_BULLET),
+                RatingFieldDefinition(TimeControlCategory.BLITZ, Variant.XIANGQI, USER.GAME_RATING_BLITZ),
+                RatingFieldDefinition(TimeControlCategory.RAPID, Variant.XIANGQI, USER.GAME_RATING_RAPID),
+                RatingFieldDefinition(TimeControlCategory.CLASSICAL, Variant.XIANGQI, USER.GAME_RATING_CLASSICAL),
+                RatingFieldDefinition(TimeControlCategory.SEVERAL_DAYS, Variant.XIANGQI, USER.GAME_RATING_SEVERAL_DAYS),
+                RatingFieldDefinition(TimeControlCategory.CORRESPONDENCE, Variant.XIANGQI, USER.GAME_RATING_CORRESPONDENCE),
+                RatingFieldDefinition(TimeControlCategory.BULLET, Variant.MANCHU, USER.GAME_RATING_MANCHU_BULLET),
+                RatingFieldDefinition(TimeControlCategory.BLITZ, Variant.MANCHU, USER.GAME_RATING_MANCHU_BLITZ),
+                RatingFieldDefinition(TimeControlCategory.RAPID, Variant.MANCHU, USER.GAME_RATING_MANCHU_RAPID),
+                RatingFieldDefinition(TimeControlCategory.CLASSICAL, Variant.MANCHU, USER.GAME_RATING_MANCHU_CLASSICAL),
+                RatingFieldDefinition(TimeControlCategory.SEVERAL_DAYS, Variant.MANCHU, USER.GAME_RATING_MANCHU_SEVERAL_DAYS),
+                RatingFieldDefinition(TimeControlCategory.CORRESPONDENCE, Variant.MANCHU, USER.GAME_RATING_MANCHU_CORRESPONDENCE),
+            )
+        }
+
         fun listRatingFields(): List<TableField<UserRecord, Int>> {
-            val fields = mutableListOf<TableField<UserRecord, Int>>()
-            fields += USER.GAME_RATING_BULLET
-            fields += USER.GAME_RATING_BLITZ
-            fields += USER.GAME_RATING_RAPID
-            fields += USER.GAME_RATING_CLASSICAL
-            fields += USER.GAME_RATING_SEVERAL_DAYS
-            fields += USER.GAME_RATING_CORRESPONDENCE
-            fields += USER.GAME_RATING_MANCHU_BULLET
-            fields += USER.GAME_RATING_MANCHU_BLITZ
-            fields += USER.GAME_RATING_MANCHU_RAPID
-            fields += USER.GAME_RATING_MANCHU_CLASSICAL
-            fields += USER.GAME_RATING_MANCHU_SEVERAL_DAYS
-            fields += USER.GAME_RATING_MANCHU_CORRESPONDENCE
-            return fields
+            return listRatingFieldDefinitions().map { it.field }
         }
 
         fun mapRatingFieldToTimeControlCategory(field: TableField<UserRecord, Int>): TimeControlCategory? {
-            return when (field) {
-                USER.GAME_RATING_BULLET -> TimeControlCategory.BULLET
-                USER.GAME_RATING_BLITZ -> TimeControlCategory.BLITZ
-                USER.GAME_RATING_RAPID -> TimeControlCategory.RAPID
-                USER.GAME_RATING_CLASSICAL -> TimeControlCategory.CLASSICAL
-                USER.GAME_RATING_SEVERAL_DAYS -> TimeControlCategory.SEVERAL_DAYS
-                USER.GAME_RATING_CORRESPONDENCE -> TimeControlCategory.CORRESPONDENCE
-                else -> null
-            }
+            return listRatingFieldDefinitions()
+                .firstOrNull { it.field == field && it.variant == Variant.XIANGQI }
+                ?.timeControlCategory
         }
 
         fun findRatingField(
             timeControlCategory: TimeControlCategory,
             variant: Variant,
         ): TableField<UserRecord, Int> {
-            return when (variant) {
-                Variant.XIANGQI -> when (timeControlCategory) {
-                    TimeControlCategory.BULLET -> USER.GAME_RATING_BULLET
-                    TimeControlCategory.BLITZ -> USER.GAME_RATING_BLITZ
-                    TimeControlCategory.RAPID -> USER.GAME_RATING_RAPID
-                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_CLASSICAL
-                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
-                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
-                }
-
-                Variant.MANCHU -> when (timeControlCategory) {
-                    TimeControlCategory.BULLET -> USER.GAME_RATING_MANCHU_BULLET
-                    TimeControlCategory.BLITZ -> USER.GAME_RATING_MANCHU_BLITZ
-                    TimeControlCategory.RAPID -> USER.GAME_RATING_MANCHU_RAPID
-                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_MANCHU_CLASSICAL
-                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_MANCHU_SEVERAL_DAYS
-                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_MANCHU_CORRESPONDENCE
-                }
-            }
+            return listRatingFieldDefinitions()
+                .first { it.timeControlCategory == timeControlCategory && it.variant == variant }
+                .field
         }
 
     }
