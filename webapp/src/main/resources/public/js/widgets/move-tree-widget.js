@@ -1727,6 +1727,13 @@ class MoveTreeWidget {
     }
 
     /**
+     * @return {boolean}
+     */
+    isEmpty() {
+        return this.#moveTree.isEmpty();
+    }
+
+    /**
      * Append to the end or branch off (depending on which node is selected)
      *
      * @param moves {HalfMove[]}
