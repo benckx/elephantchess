@@ -194,6 +194,7 @@ private fun applicativeModule(eagerAllowed: Boolean) = module {
     singleAuto<AdminFeedService>()
     singleAuto<AdminAnalyticsService>()
     singleAuto<AdminUserSessionService>()
+    singleAuto<AdminUserEloService>()
     singleAuto<AdminAnalysisService>()
     singleAuto<AdminChatService>()
     singleAuto<AdminDatabaseSearchService>()

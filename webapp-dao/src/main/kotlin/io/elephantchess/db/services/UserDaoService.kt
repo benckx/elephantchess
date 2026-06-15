@@ -7,17 +7,20 @@ import io.elephantchess.db.dao.codegen.tables.records.UserRecord
 import io.elephantchess.db.model.NotificationsSettingsRecord
 import io.elephantchess.db.model.PlayerVsPlayerNumberOfGamesAndLastPlayedRecord
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
+import io.elephantchess.db.model.UserRatingSummaryRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.utils.safeRandomAlphaNumericString
 import io.github.oshai.kotlinlogging.KLogger
+import io.elephantchess.xiangqi.Variant
 import org.jooq.DSLContext
 import org.jooq.Record2
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
+import java.math.BigDecimal
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -536,6 +539,58 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .toMap()
     }
 
+    suspend fun fetchRatingSummary(
+        timeControlCategory: TimeControlCategory,
+        variant: Variant,
+    ): UserRatingSummaryRecord {
+        val ratingField = findRatingField(timeControlCategory, variant)
+        val aggregateRecord =
+            dslContext
+                .select(
+                    DSL.count().`as`("user_count"),
+                    DSL.avg(ratingField).`as`("avg_rating")
+                )
+                .from(USER)
+                .where(USER.USER_TYPE.eq(AUTHENTICATED))
+                .awaitSingleRecord()
+
+        suspend fun mapExtremumUser(ascending: Boolean): Triple<String, String, Int>? {
+            val sortField = if (ascending) ratingField.asc() else ratingField.desc()
+            val record =
+                dslContext
+                    .select(USER.ID, USER.HANDLE, ratingField.`as`("rating"))
+                    .from(USER)
+                    .where(USER.USER_TYPE.eq(AUTHENTICATED))
+                    .and(ratingField.isNotNull)
+                    .orderBy(sortField, USER.HANDLE.asc())
+                    .limit(1)
+                    .awaitSingleRecord()
+                    ?: return null
+
+            return Triple(
+                record.get(USER.ID),
+                record.get(USER.HANDLE),
+                record.get("rating", Int::class.java)
+            )
+        }
+
+        val minUser = mapExtremumUser(ascending = true)
+        val maxUser = mapExtremumUser(ascending = false)
+
+        return UserRatingSummaryRecord(
+            variant = variant,
+            timeControlCategory = timeControlCategory,
+            userCount = aggregateRecord?.get("user_count", Int::class.java) ?: 0,
+            averageRating = aggregateRecord?.get("avg_rating", BigDecimal::class.java)?.toDouble(),
+            minUserId = minUser?.first,
+            minUsername = minUser?.second,
+            minRating = minUser?.third,
+            maxUserId = maxUser?.first,
+            maxUsername = maxUser?.second,
+            maxRating = maxUser?.third,
+        )
+    }
+
     suspend fun countAuthenticated(): Int {
         return dslContext
             .selectCount()
@@ -632,6 +687,31 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 USER.GAME_RATING_SEVERAL_DAYS -> TimeControlCategory.SEVERAL_DAYS
                 USER.GAME_RATING_CORRESPONDENCE -> TimeControlCategory.CORRESPONDENCE
                 else -> null
+            }
+        }
+
+        fun findRatingField(
+            timeControlCategory: TimeControlCategory,
+            variant: Variant,
+        ): TableField<UserRecord, Int> {
+            return when (variant) {
+                Variant.XIANGQI -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
+                }
+
+                Variant.MANCHU -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_MANCHU_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_MANCHU_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_MANCHU_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_MANCHU_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_MANCHU_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_MANCHU_CORRESPONDENCE
+                }
             }
         }
 
