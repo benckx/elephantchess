@@ -38,7 +38,8 @@ class AdminAnalysisService(
                         first = record.first.toEpochMilliseconds(),
                         last = record.last.toEpochMilliseconds(),
                         totalAnalyzedMoves = record.totalAnalyzedMoves,
-                        analysisStatus = gameDataService.fetchAnalysisStatusOfGame(record.gameId)
+                        analysisStatus = gameDataService.fetchAnalysisStatusOfGame(record.gameId),
+                        analyzedFromBatch = record.analyzedFromBatch
                     )
                 }
 

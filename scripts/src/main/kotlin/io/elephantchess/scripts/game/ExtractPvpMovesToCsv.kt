@@ -1,29 +1,36 @@
 package io.elephantchess.scripts.game
 
 import com.opencsv.CSVWriter
-import io.elephantchess.db.dao.codegen.Tables.GAME
-import io.elephantchess.db.dao.codegen.Tables.GAME_MOVE
-import io.elephantchess.db.dao.codegen.Tables.USER
+import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
+import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlin.system.exitProcess
 
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
 private const val GAMES_PER_FILE = 1000
+private const val MUST_ANONYMIZE = true
+
+// Mirrors MAX_ABS_CP in webapp/src/main/resources/public/js/modules/engine.js
+private const val MAX_ABS_CP = 7_706
 
 private val CSV_HEADER = arrayOf(
     "timestamp",
@@ -43,6 +50,7 @@ private val CSV_HEADER = arrayOf(
     "outcome",
     "game_join_source",
     "analysis",
+    "cpl",
 )
 
 object ExtractPvpMovesToCsv : KoinScriptInit() {
@@ -51,12 +59,15 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     private val gameDataService by inject<GameDataService>()
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
+    fun main(args: Array<String>) {
         val outputPath = args.firstOrNull()?.trim().takeUnless { it.isNullOrBlank() } ?: DEFAULT_OUTPUT_PATH
-        exportCsv(outputPath)
+        runBlocking {
+            Variant.entries.forEach { variant -> exportCsv(outputPath, MUST_ANONYMIZE, variant) }
+        }
+        exitProcess(0)
     }
 
-    private suspend fun exportCsv(outputPath: String) {
+    private suspend fun exportCsv(outputPath: String, mustAnonymize: Boolean, variant: Variant) {
         val inviterUser = USER.`as`("inviter_user")
         val inviteeUser = USER.`as`("invitee_user")
 
@@ -91,20 +102,23 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             .leftJoin(inviterUser).on(inviterUser.ID.eq(GAME.INVITER))
             .leftJoin(inviteeUser).on(inviteeUser.ID.eq(GAME.INVITEE))
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(MIN_MOVE_INDEX))
-            .and(GAME.VARIANT.eq(Variant.XIANGQI))
+            .and(GAME.VARIANT.eq(variant))
             .orderBy(GAME.CREATED.asc(), GAME.ID.asc(), GAME_MOVE.POSITION.asc())
             .awaitRecords()
 
         // Replay each game's moves to compute the FEN key (FEN without the full-move counter) for every move.
         // The key matches the position resulting from the played move, which is how engine analysis is keyed.
+        // We also keep the full FEN of the position *before* each move so we can replay the engine's best move.
         var currentGameId: String? = null
-        var board = Board(DEFAULT_START_FEN)
+        var board = Board(Board.defaultStartFen(variant))
+        val fenBeforeMove = mutableListOf<String>()
         val fenKeys = rows.map { row ->
             val gameId = row.get(GAME.ID)
             if (gameId != currentGameId) {
                 currentGameId = gameId
-                board = Board(DEFAULT_START_FEN)
+                board = Board(Board.defaultStartFen(variant))
             }
+            fenBeforeMove += board.outputFen()
             board.registerMove(row.get(GAME_MOVE.UCI))
             resetFullMoveCount(board.outputFen())
         }
@@ -117,7 +131,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     .fetchAnalysisData(GameId(PVP, gameId))
                     .entries
                     .filter { entry -> entry.line != null }
-                    .associate { entry -> entry.fen to entry.line!! }
+                    .associateBy { entry -> entry.fen }
             }
 
         // Assign each game (in encounter order) to a 1000-game batch so we can write one CSV per batch.
@@ -129,21 +143,47 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
         val rowsByBatch = rows.indices.groupBy { index -> batchByGameId.getValue(rows[index].get(GAME.ID)) }
 
+        val anonymizedNames: Map<String, String> = if (mustAnonymize) {
+            rows
+                .flatMap { row ->
+                    listOf(
+                        row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID)),
+                        row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
+                    )
+                }
+                .distinct()
+                .associateWith { randomId() }
+        } else {
+            emptyMap()
+        }
+
+        val anonymizedGameIds: Map<String, String> = if (mustAnonymize) {
+            rows
+                .map { row -> row.get(GAME.ID) }
+                .distinct()
+                .associateWith { randomId() }
+        } else {
+            emptyMap()
+        }
+
         var totalRows = 0
         rowsByBatch.toSortedMap().forEach { (batch, rowIndices) ->
-            val batchOutputPath = batchOutputPath(outputPath, batch)
+            val batchOutputPath = batchOutputPath(outputPath, variant, batch)
             File(batchOutputPath).bufferedWriter().use { bufferedWriter ->
                 CSVWriter(bufferedWriter).use { writer ->
                     writer.writeNext(CSV_HEADER)
 
                     rowIndices.forEach { index ->
                         val row = rows[index]
+                        val gameId = anonymizedGameIds[row.get(GAME.ID)] ?: row.get(GAME.ID).toString()
                         val inviterColor = row.get(GAME.INVITER_COLOR)
                         val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
                         val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
                         val inviterIsRed = inviterColor == Color.RED
-                        val redPlayerName = if (inviterIsRed) inviterHandle else inviteeHandle
-                        val blackPlayerName = if (inviterIsRed) inviteeHandle else inviterHandle
+                        val redHandle = if (inviterIsRed) inviterHandle else inviteeHandle
+                        val blackHandle = if (inviterIsRed) inviteeHandle else inviterHandle
+                        val redPlayerName = anonymizedNames[redHandle] ?: redHandle
+                        val blackPlayerName = anonymizedNames[blackHandle] ?: blackHandle
                         val redPlayerRating = if (inviterIsRed) {
                             PlayerRating(row.get(GAME.INVITER_RATING_FROM), row.get(GAME.INVITER_RATING_TO))
                         } else {
@@ -156,21 +196,37 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         }
 
                         val fenKey = fenKeys[index]
-                        val analysis = analysisByGameAndFenKey[row.get(GAME.ID)]?.get(fenKey) ?: ""
+                        val gameAnalysis = analysisByGameAndFenKey[row.get(GAME.ID)]
+                        val actualMoveAnalysis = gameAnalysis?.get(fenKey)
+                        val analysis = actualMoveAnalysis?.line ?: ""
+
+                        val engineBestAnalysis = gameAnalysis
+                            ?.get(resetFullMoveCount(fenBeforeMove[index]))
+                            ?.bestMove
+                            ?.let { bestMove ->
+                                runCatching {
+                                    val bestMoveBoard = Board(fenBeforeMove[index])
+                                    bestMoveBoard.registerMove(bestMove)
+                                    resetFullMoveCount(bestMoveBoard.outputFen())
+                                }.getOrNull()
+                            }
+                            ?.let { engineBestFenKey -> gameAnalysis[engineBestFenKey] }
+
+                        val cpl = calculateCpl(engineBestAnalysis, actualMoveAnalysis)
 
                         writer.writeNext(
                             arrayOf(
                                 row.get(GAME_MOVE.EVENT_TIME).toString(),
                                 row.get(GAME_MOVE.POSITION).toString(),
                                 row.get(GAME_MOVE.UCI),
-                                row.get(GAME.ID).toString(),
+                                gameId,
                                 redPlayerName,
                                 blackPlayerName,
                                 redPlayerRating.before?.toString() ?: "",
                                 redPlayerRating.after?.toString() ?: "",
                                 blackPlayerRating.before?.toString() ?: "",
                                 blackPlayerRating.after?.toString() ?: "",
-                                timeControl(
+                                timeControlToString(
                                     row.get(GAME.TIME_CONTROL_MODE),
                                     row.get(GAME.TIME_CONTROL_BASE),
                                     row.get(GAME.TIME_CONTROL_INCREMENT),
@@ -181,6 +237,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 row.get(GAME.OUTCOME)?.name ?: "",
                                 row.get(GAME.JOIN_SOURCE)?.name ?: "",
                                 analysis,
+                                cpl?.toString() ?: "",
                             )
                         )
                     }
@@ -190,15 +247,36 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             println("wrote ${rowIndices.size} rows to $batchOutputPath")
         }
 
-        println("wrote $totalRows rows across ${rowsByBatch.size} file(s)")
-        exitProcess(0)
+        println("wrote $totalRows rows across ${rowsByBatch.size} file(s) [${variant.name.lowercase()}]")
+
+        val batchPaths = rowsByBatch.keys.sorted().map { batch -> batchOutputPath(outputPath, variant, batch) }
+        val zipPath = zipOutputPath(outputPath, variant)
+        ZipOutputStream(File(zipPath).outputStream().buffered()).use { zip ->
+            batchPaths.forEach { batchPath ->
+                val batchFile = File(batchPath)
+                zip.putNextEntry(ZipEntry(batchFile.name))
+                batchFile.inputStream().use { it.copyTo(zip) }
+                zip.closeEntry()
+            }
+        }
+        println("zipped ${batchPaths.size} file(s) to $zipPath")
     }
 
-    private fun batchOutputPath(outputPath: String, batch: Int): String {
+    private fun zipOutputPath(outputPath: String, variant: Variant): String {
+        val file = File(outputPath)
+        val name = file.name
+        val month = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
+        val dotIndex = name.lastIndexOf('.')
+        val baseName = if (dotIndex >= 0) name.substring(0, dotIndex) else name
+        val newName = "${baseName}_${variant.name.lowercase()}_${month}.zip"
+        return file.parentFile?.let { File(it, newName).path } ?: newName
+    }
+
+    private fun batchOutputPath(outputPath: String, variant: Variant, batch: Int): String {
         val file = File(outputPath)
         val name = file.name
         val dotIndex = name.lastIndexOf('.')
-        val suffix = "_%03d".format(batch + 1)
+        val suffix = "_${variant.name.lowercase()}_%03d".format(batch + 1)
         val newName = if (dotIndex >= 0) {
             name.substring(0, dotIndex) + suffix + name.substring(dotIndex)
         } else {
@@ -209,7 +287,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
     private fun guestName(userId: String): String = "guest #$userId"
 
-    private fun timeControl(mode: TimeControlMode?, base: Int?, increment: Int?): String =
+    private fun timeControlToString(mode: TimeControlMode?, base: Int?, increment: Int?): String =
         when (mode) {
             TimeControlMode.GAME_TIME -> "${base ?: 0}+${increment ?: 0}"
             TimeControlMode.MOVE_TIME -> "${base ?: 0}/move"
@@ -217,5 +295,42 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         }
 
     private data class PlayerRating(val before: Int?, val after: Int?)
+
+    /**
+     * Centi-pawn loss between the engine's best move and the actual move played, mirroring
+     * `calculateAnnotationValue` in webapp/src/main/resources/public/js/modules/move-annotation-symbols.js.
+     *
+     * Both analyses describe the position resulting from a move (engine-best vs. actual), evaluated from
+     * the same side to move, so the delta is the centi-pawns lost by playing the actual move.
+     */
+    private fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): Int? {
+        if (engineBest == null || actualMove == null || actualMove.isCheckmate) {
+            return null
+        }
+
+        val engineCp = heuristicCp(engineBest) ?: return null
+        val actualMoveCp = heuristicCp(actualMove) ?: return null
+        return engineCp - actualMoveCp
+    }
+
+    // Maps a "mate" evaluation to a centi-pawn value, capping regular centi-pawn evaluations.
+    private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
+        val cp = infoLineResult.cp
+        val mate = infoLineResult.mate
+        return when {
+            cp != null -> cp.coerceIn(-MAX_ABS_CP, MAX_ABS_CP)
+            mate != null -> {
+                val maxMate = 40
+                // each 1 mate fewer than 40 -> 8 cp (mate in 10 -> 30 * 8 = 240 cp)
+                val mateBonusInCp = (maxMate - kotlin.math.abs(mate)).coerceAtLeast(0) * 8
+                if (mate < 0) -MAX_ABS_CP - mateBonusInCp else MAX_ABS_CP + mateBonusInCp
+            }
+
+            else -> null
+        }
+    }
+
+    private fun randomId(): String =
+        insecure().nextAlphanumeric(12)
 
 }

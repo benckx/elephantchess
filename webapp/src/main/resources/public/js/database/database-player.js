@@ -62,6 +62,12 @@ class DatabasePlayerPage extends BasePage {
         // load game stats
         this.#loadGameStats();
 
+        // opening explorer (only present for players with pre-calculated opening data)
+        if (document.getElementById('player-openings') != null) {
+            const playerId = document.querySelector('body').dataset.playerId;
+            new DatabasePlayerOpenings(playerId);
+        }
+
         // handle duplicates
         this.#loadDuplicatesIfAny();
     }

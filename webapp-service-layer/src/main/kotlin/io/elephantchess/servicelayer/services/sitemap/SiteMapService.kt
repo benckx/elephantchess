@@ -56,7 +56,7 @@ class SiteMapService(
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/about",
-            lastmod = LocalDate.of(2026, 1, 5),
+            lastmod = LocalDate.of(2026, 6, 14),
             changefreq = MONTHLY,
             priority = 1.0
         ),
@@ -69,6 +69,12 @@ class SiteMapService(
         SitemapEntry(
             loc = "$webHostTrimmed/about/faq",
             lastmod = LocalDate.of(2026, 1, 18),
+            changefreq = MONTHLY,
+            priority = 0.8
+        ),
+        SitemapEntry(
+            loc = "$webHostTrimmed/about/datasets",
+            lastmod = LocalDate.of(2026, 6, 14),
             changefreq = MONTHLY,
             priority = 0.8
         ),

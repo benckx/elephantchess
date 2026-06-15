@@ -63,6 +63,9 @@ data class AppConfig(
     val excludedFromAnalytics: List<String>
         get() = loadListOfStrings("excluded.from.analytics")
 
+    val adminEmail: String
+        get() = loadString("admin.email")
+
     val mailConfig: MailConfig
         get() = MailConfig(
             smtpHost = loadString("mail.smtp.host"),
