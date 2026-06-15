@@ -24,12 +24,11 @@ object PuzzleSolvabilityValidator {
      * @return `true` if every player step offers at least [minLegalMoves] legal moves, `false` otherwise.
      */
     fun hasEnoughMovesAtEachPlayerStep(
-        startFen: String,
         setupMoves: List<String>,
         solutionMoves: List<String>,
         minLegalMoves: Int = MIN_LEGAL_MOVES_PER_STEP,
     ): Boolean {
-        val board = Board(startFen)
+        val board = Board()
         setupMoves.forEach { move -> board.registerMove(move) }
 
         val playerColor = board.colorToPlay()
