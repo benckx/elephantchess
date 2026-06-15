@@ -554,7 +554,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .where(USER.USER_TYPE.eq(AUTHENTICATED))
                 .awaitSingleRecord()
 
-        suspend fun fetchExtremumUser(ascending: Boolean): Triple<String, String, Int>? {
+        suspend fun fetchUserWithExtremeRating(ascending: Boolean): UserRatingExtremum? {
             val sortField = if (ascending) ratingField.asc() else ratingField.desc()
             val record =
                 dslContext
@@ -567,27 +567,27 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                     .awaitSingleRecord()
                     ?: return null
 
-            return Triple(
-                record.get(USER.ID),
-                record.get(USER.HANDLE),
-                record.get("rating", Int::class.java)
+            return UserRatingExtremum(
+                userId = record.get(USER.ID),
+                username = record.get(USER.HANDLE),
+                rating = record.get("rating", Int::class.java)
             )
         }
 
-        val minUser = fetchExtremumUser(ascending = true)
-        val maxUser = fetchExtremumUser(ascending = false)
+        val minUser = fetchUserWithExtremeRating(ascending = true)
+        val maxUser = fetchUserWithExtremeRating(ascending = false)
 
         return UserRatingSummaryRecord(
             variant = variant,
             timeControlCategory = timeControlCategory,
             userCount = aggregateRecord?.get("user_count", Int::class.java) ?: 0,
             averageRating = aggregateRecord?.get("avg_rating", BigDecimal::class.java)?.toDouble(),
-            minUserId = minUser?.first,
-            minUsername = minUser?.second,
-            minRating = minUser?.third,
-            maxUserId = maxUser?.first,
-            maxUsername = maxUser?.second,
-            maxRating = maxUser?.third,
+            minUserId = minUser?.userId,
+            minUsername = minUser?.username,
+            minRating = minUser?.rating,
+            maxUserId = maxUser?.userId,
+            maxUsername = maxUser?.username,
+            maxRating = maxUser?.rating,
         )
     }
 
@@ -665,6 +665,12 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             val timeControlCategory: TimeControlCategory,
             val variant: Variant,
             val field: TableField<UserRecord, Int>,
+        )
+
+        data class UserRatingExtremum(
+            val userId: String,
+            val username: String,
+            val rating: Int,
         )
 
         fun listRatingFieldDefinitions(): List<RatingFieldDefinition> {

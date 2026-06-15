@@ -13,8 +13,8 @@ class AdminUserEloService(private val userDaoService: UserDaoService) {
                 TimeControlCategory.entries.map { timeControlCategory ->
                     userDaoService.fetchRatingSummary(timeControlCategory, variant).let { record ->
                         UserEloStatsResponse.Entry(
-                            variant = record.variant,
-                            timeControlCategory = record.timeControlCategory,
+                            variant = variant,
+                            timeControlCategory = timeControlCategory,
                             userCount = record.userCount,
                             averageRating = record.averageRating,
                             minUserId = record.minUserId,
