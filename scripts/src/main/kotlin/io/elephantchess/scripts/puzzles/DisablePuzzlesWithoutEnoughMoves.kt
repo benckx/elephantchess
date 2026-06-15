@@ -29,50 +29,48 @@ object DisablePuzzlesWithoutEnoughMoves : KoinScriptInit() {
     private val dslContext by inject<DSLContext>()
 
     @JvmStatic
-    fun main(args: Array<String>) {
-        runBlocking {
-            val puzzles = dslContext
-                .selectFrom(PUZZLE)
-                .awaitMappedRecords<Puzzle>()
+    fun main(args: Array<String>) = runBlocking {
+        val puzzles = dslContext
+            .selectFrom(PUZZLE)
+            .awaitMappedRecords<Puzzle>()
 
-            val movesByPuzzle = dslContext
-                .selectFrom(PUZZLE_HALF_MOVE)
-                .orderBy(PUZZLE_HALF_MOVE.PUZZLE_ID, PUZZLE_HALF_MOVE.POSITION)
-                .awaitMappedRecords<PuzzleHalfMove>()
-                .groupBy { halfMove -> halfMove.puzzleId }
+        val movesByPuzzle = dslContext
+            .selectFrom(PUZZLE_HALF_MOVE)
+            .orderBy(PUZZLE_HALF_MOVE.PUZZLE_ID, PUZZLE_HALF_MOVE.POSITION)
+            .awaitMappedRecords<PuzzleHalfMove>()
+            .groupBy { halfMove -> halfMove.puzzleId }
 
-            logger.info { "checking ${puzzles.size} puzzles" }
+        logger.info { "checking ${puzzles.size} puzzles" }
 
-            val puzzleIdsToDisable = puzzles.mapNotNull { puzzle ->
-                val moves = movesByPuzzle[puzzle.id] ?: emptyList()
-                val setupMoves = moves.filterNot { halfMove -> halfMove.isSolution }.map { halfMove -> halfMove.uci }
-                val solutionMoves = moves.filter { halfMove -> halfMove.isSolution }.map { halfMove -> halfMove.uci }
+        val puzzleIdsToDisable = puzzles.mapNotNull { puzzle ->
+            val moves = movesByPuzzle[puzzle.id] ?: emptyList()
+            val setupMoves = moves.filterNot { halfMove -> halfMove.isSolution }.map { halfMove -> halfMove.uci }
+            val solutionMoves = moves.filter { halfMove -> halfMove.isSolution }.map { halfMove -> halfMove.uci }
 
-                val isValid = try {
-                    PuzzleSolvabilityValidator.hasEnoughMovesAtEachPlayerStep(
-                        startFen = puzzle.startFen,
-                        setupMoves = setupMoves,
-                        solutionMoves = solutionMoves,
-                    )
-                } catch (e: Exception) {
-                    logger.warn { "could not validate puzzle ${puzzle.id} due to ${e::class.simpleName}: ${e.message}" }
-                    false
-                }
-
-                if (isValid) null else puzzle.id
+            val isValid = try {
+                PuzzleSolvabilityValidator.hasEnoughMovesAtEachPlayerStep(
+                    startFen = puzzle.startFen,
+                    setupMoves = setupMoves,
+                    solutionMoves = solutionMoves,
+                )
+            } catch (e: Exception) {
+                logger.warn { "could not validate puzzle ${puzzle.id} due to ${e::class.simpleName}: ${e.message}" }
+                false
             }
 
-            logger.info { "disabling ${puzzleIdsToDisable.size} puzzles: $puzzleIdsToDisable" }
+            if (isValid) null else puzzle.id
+        }
 
-            if (puzzleIdsToDisable.isNotEmpty()) {
-                dslContext.transactionCoroutine { cfg ->
-                    DSL
-                        .using(cfg)
-                        .update(PUZZLE.fixed())
-                        .set(PUZZLE.ENABLED.fixed(), false)
-                        .where(PUZZLE.ID.`in`(puzzleIdsToDisable))
-                        .awaitExecute()
-                }
+        logger.info { "disabling ${puzzleIdsToDisable.size} puzzles: $puzzleIdsToDisable" }
+
+        if (puzzleIdsToDisable.isNotEmpty()) {
+            dslContext.transactionCoroutine { cfg ->
+                DSL
+                    .using(cfg)
+                    .update(PUZZLE.fixed())
+                    .set(PUZZLE.ENABLED.fixed(), false)
+                    .where(PUZZLE.ID.`in`(puzzleIdsToDisable))
+                    .awaitExecute()
             }
         }
     }
