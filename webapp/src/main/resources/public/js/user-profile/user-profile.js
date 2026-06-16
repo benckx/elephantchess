@@ -34,6 +34,8 @@ class UserProfilePage extends BasePage {
     #profileDescriptionEditButton = document.getElementById('profile-description-edit-button');
     #profileDescriptionEditor = document.getElementById('profile-description-editor');
     #profileDescriptionSaveButton = document.getElementById('profile-description-save-button');
+    #profileCountryEditButton = document.getElementById('profile-country-edit-button');
+    #profileCountrySelect = document.getElementById('profile-country-select');
 
     constructor() {
         super();
@@ -44,10 +46,11 @@ class UserProfilePage extends BasePage {
         this.#updateIndicatorStatusAtInterval();
 
         const flagHeaderPanel = document.getElementById('flag-header-panel');
-        if (flagHeaderPanel != null) {
+        if (flagHeaderPanel?.dataset.countryCode) {
             addCountryToolTip(flagHeaderPanel, flagHeaderPanel.dataset.countryCode);
         }
 
+        this.#setupCountryEditor();
         this.#setupDescriptionEditor();
     }
 
@@ -127,13 +130,43 @@ class UserProfilePage extends BasePage {
         });
 
         this.#profileDescriptionSaveButton.addEventListener('click', () => {
+            let country = this.#profileCountrySelect?.value ?? this.#country;
+            if (country === 'none') {
+                country = '';
+            }
             postAndHandle(PROFILE_URL, {
                 description: this.#profileDescriptionEditor.value,
-                country: this.#country
+                country: country
             }, () => {
                 UI.pushInfoNotification('Profile settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
                 window.location.reload();
             });
+        });
+    }
+
+    #setupCountryEditor() {
+        if (!this.#isOwnProfile || this.#profileCountryEditButton == null || this.#profileCountrySelect == null ||
+            this.#profileDescriptionSaveButton == null) {
+            return;
+        }
+
+        fillSelect('profile-country-select');
+        const initialCountry = this.#country?.trim()?.toLowerCase();
+        if (!initialCountry) {
+            this.#profileCountrySelect.value = 'none';
+        } else {
+            const option = Array.from(this.#profileCountrySelect.options)
+                .find(o => o.value.toLowerCase() === initialCountry);
+            if (option != null) {
+                option.selected = true;
+            }
+        }
+
+        this.#profileCountryEditButton.addEventListener('click', () => {
+            this.#profileCountryEditButton.classList.add('hidden-by-default');
+            this.#profileCountrySelect.classList.remove('hidden-by-default');
+            this.#profileDescriptionSaveButton.classList.remove('hidden-by-default');
+            this.#profileCountrySelect.focus();
         });
     }
 

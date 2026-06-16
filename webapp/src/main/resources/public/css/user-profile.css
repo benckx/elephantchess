@@ -66,6 +66,23 @@ h2 {
     margin-top: 13px;
 }
 
+.profile-country-edit-button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+}
+
+.profile-country-add-text {
+    font-size: 12px;
+    font-style: italic;
+    color: rgba(113, 113, 114, 0.78);
+}
+
+#profile-country-select {
+    margin-top: 8px;
+}
+
 #profile-description {
     font-size: 15px;
     font-style: italic;
@@ -226,6 +243,10 @@ h2 {
 
     .profile-description-edit-button {
         font-size: 34px;
+    }
+
+    .profile-country-add-text {
+        font-size: 24px;
     }
 
     #ratings-table {

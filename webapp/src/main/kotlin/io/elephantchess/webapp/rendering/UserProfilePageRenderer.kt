@@ -12,8 +12,10 @@ import io.ktor.http.encodeURLPath
 import kotlinx.html.div
 import kotlinx.html.id
 import kotlinx.html.img
+import kotlinx.html.option
 import kotlinx.html.p
 import kotlinx.html.button
+import kotlinx.html.select
 import kotlinx.html.span
 import kotlinx.html.table
 import kotlinx.html.textArea
@@ -42,7 +44,7 @@ class UserProfilePageRenderer(
                 SimpleValueTagResolver("is_own_profile", isOwnProfile.toString()),
                 SimpleValueTagResolver("user_country", userProfile.country.orEmpty()),
                 descriptionMeta(username, description),
-                flagPanelTagResolver(countryCode),
+                flagPanelTagResolver(countryCode, isOwnProfile),
                 descriptionDivTagResolver(username, description),
                 editDescriptionTagResolver(description, isOwnProfile),
                 gameStatsTableTagResolver(gameStats),
@@ -71,14 +73,41 @@ class UserProfilePageRenderer(
         }
     }
 
-    private fun flagPanelTagResolver(countryCode: String?): TagResolver {
+    private fun flagPanelTagResolver(countryCode: String?, isOwnProfile: Boolean): TagResolver {
         return KtorHtmlBuilderTagResolver("flag_header_panel") {
-            if (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)) {
+            if (isOwnProfile || (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true))) {
                 div("profile-header-panel") {
                     id = "flag-header-panel"
-                    attributes["data-country-code"] = countryCode
-                    img(alt = countryCode, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
-                        id = "profile-flag"
+                    if (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)) {
+                        attributes["data-country-code"] = countryCode
+                    }
+                    if (isOwnProfile) {
+                        button(classes = "profile-country-edit-button") {
+                            id = "profile-country-edit-button"
+                            attributes["type"] = "button"
+                            attributes["aria-label"] = "Edit country"
+                            if (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)) {
+                                img(alt = countryCode, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
+                                    id = "profile-flag"
+                                }
+                            } else {
+                                span("profile-country-add-text") {
+                                    +"add country"
+                                }
+                            }
+                        }
+                        select(classes = "hidden-by-default") {
+                            id = "profile-country-select"
+                            attributes["name"] = "profile-country-select"
+                            option {
+                                value = "none"
+                                +"none"
+                            }
+                        }
+                    } else {
+                        img(alt = countryCode!!, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
+                            id = "profile-flag"
+                        }
                     }
                 }
             }
