@@ -195,10 +195,8 @@ private fun Route.userProfile() {
             ?: throw BadRequestException("username not provided")
 
         val userProfileResponse = userService.fetchProfile(username)
-        val verifiedToken = extractAndVerifyToken()
-        val isOwnProfile = verifiedToken is VerifiedToken &&
-                verifyInDb(verifiedToken) &&
-                verifiedToken.userId == userProfileResponse.userId
+        val verifiedToken = extractAndVerifyToken() as? VerifiedToken
+        val isOwnProfile = verifiedToken?.userId == userProfileResponse.userId
         call.respondHtml(renderer.renderUserProfile(userProfileResponse, isOwnProfile))
     }
     get("/@/{username}/browse-pvp-games") {

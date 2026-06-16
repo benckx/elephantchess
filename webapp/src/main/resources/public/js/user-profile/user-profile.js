@@ -117,6 +117,8 @@ class UserProfilePage extends BasePage {
         }
 
         this.#profileDescriptionEditButton.addEventListener('click', () => {
+            this.#profileDescriptionEditor.value = this.#profileDescription.classList.contains('empty-block-placeholder') ?
+                '' : this.#profileDescription.innerText.trim();
             this.#profileDescription.classList.add('hidden-by-default');
             this.#profileDescriptionEditButton.classList.add('hidden-by-default');
             this.#profileDescriptionEditor.classList.remove('hidden-by-default');

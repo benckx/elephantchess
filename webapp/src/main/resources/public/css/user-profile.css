@@ -86,6 +86,12 @@ h2 {
     margin-bottom: 8px;
 }
 
+.profile-description-edit-button:hover,
+.profile-description-edit-button:focus-visible {
+    color: #19681d;
+    outline: none;
+}
+
 #profile-description-editor {
     width: 100%;
     max-width: 100%;
