@@ -82,19 +82,17 @@ class UserProfilePageRenderer(
                         attributes["data-country-code"] = countryCode
                     }
                     if (isOwnProfile) {
-                        button(classes = "profile-country-edit-button") {
+                        val hasCountry = !countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)
+                        if (hasCountry) {
+                            img(alt = countryCode, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
+                                id = "profile-flag"
+                            }
+                        }
+                        button(classes = "profile-country-edit-button profile-country-edit-text") {
                             id = "profile-country-edit-button"
                             attributes["type"] = "button"
-                            attributes["aria-label"] = "Edit country"
-                            if (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)) {
-                                img(alt = countryCode, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
-                                    id = "profile-flag"
-                                }
-                            } else {
-                                span("profile-country-add-text") {
-                                    +"add country"
-                                }
-                            }
+                            attributes["aria-label"] = if (hasCountry) "Update country" else "Add country"
+                            +(if (hasCountry) "update country" else "add country")
                         }
                         select(classes = "hidden-by-default") {
                             id = "profile-country-select"

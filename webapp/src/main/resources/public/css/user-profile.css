@@ -31,6 +31,10 @@ h2 {
     margin-top: 20px;
 }
 
+.hidden-by-default {
+    display: none;
+}
+
 .empty-block-placeholder {
     border: 1px dashed rgba(98, 98, 99, 0.71);
     color: rgba(113, 113, 114, 0.78);
@@ -73,14 +77,15 @@ h2 {
     cursor: pointer;
 }
 
-.profile-country-add-text {
+.profile-country-add-text,
+.profile-country-edit-text {
     font-size: 12px;
     font-style: italic;
     color: rgba(113, 113, 114, 0.78);
 }
 
 #profile-country-select {
-    margin-top: 8px;
+    margin-top: 4px;
 }
 
 #profile-description {
