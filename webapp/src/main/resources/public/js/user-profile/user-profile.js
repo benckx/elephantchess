@@ -18,14 +18,22 @@
  */
 
 const NO_LABEL_DAYS = 50;
+const USER_SETTINGS_API = '/api/user/settings';
+const PROFILE_URL = USER_SETTINGS_API + '/profile';
 
 class UserProfilePage extends BasePage {
 
+    #isOwnProfile = document.querySelector('body').dataset.isOwnProfile === 'true';
+    #country = document.querySelector('body').dataset.profileCountry ?? '';
     #userId = document.querySelector('body').dataset.userId;
     #username = document.querySelector('body').dataset.username;
     #client = new UserProfileClient(this.#userId);
     #statusIndicator = document.getElementById('status-indicator');
     #puzzleStatsSection = document.getElementById('puzzle-stats-section');
+    #profileDescription = document.getElementById('profile-description');
+    #profileDescriptionEditButton = document.getElementById('profile-description-edit-button');
+    #profileDescriptionEditor = document.getElementById('profile-description-editor');
+    #profileDescriptionSaveButton = document.getElementById('profile-description-save-button');
 
     constructor() {
         super();
@@ -39,6 +47,8 @@ class UserProfilePage extends BasePage {
         if (flagHeaderPanel != null) {
             addCountryToolTip(flagHeaderPanel, flagHeaderPanel.dataset.countryCode);
         }
+
+        this.#setupDescriptionEditor();
     }
 
     #fetchLatestPvpGames() {
@@ -97,6 +107,32 @@ class UserProfilePage extends BasePage {
                 }
             });
         }, 2_000);
+    }
+
+    #setupDescriptionEditor() {
+        if (!this.#isOwnProfile || this.#profileDescriptionEditButton == null ||
+            this.#profileDescriptionEditor == null || this.#profileDescriptionSaveButton == null ||
+            this.#profileDescription == null) {
+            return;
+        }
+
+        this.#profileDescriptionEditButton.addEventListener('click', () => {
+            this.#profileDescription.classList.add('hidden-by-default');
+            this.#profileDescriptionEditButton.classList.add('hidden-by-default');
+            this.#profileDescriptionEditor.classList.remove('hidden-by-default');
+            this.#profileDescriptionSaveButton.classList.remove('hidden-by-default');
+            this.#profileDescriptionEditor.focus();
+        });
+
+        this.#profileDescriptionSaveButton.addEventListener('click', () => {
+            postAndHandle(PROFILE_URL, {
+                description: this.#profileDescriptionEditor.value,
+                country: this.#country
+            }, () => {
+                UI.pushInfoNotification('Profile settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
+                window.location.reload();
+            });
+        });
     }
 
 }

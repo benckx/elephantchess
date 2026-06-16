@@ -13,8 +13,10 @@ import kotlinx.html.div
 import kotlinx.html.id
 import kotlinx.html.img
 import kotlinx.html.p
+import kotlinx.html.button
 import kotlinx.html.span
 import kotlinx.html.table
+import kotlinx.html.textArea
 import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.tr
@@ -24,7 +26,7 @@ class UserProfilePageRenderer(
     private val userProfileAnalyticsService: UserProfileAnalyticsService
 ) {
 
-    suspend fun renderUserProfile(userProfile: UserProfile): String {
+    suspend fun renderUserProfile(userProfile: UserProfile, isOwnProfile: Boolean): String {
         val username = userProfile.username
         val description = userProfile.profileDescription
         val countryCode = userProfile.country?.lowercase()
@@ -37,9 +39,12 @@ class UserProfilePageRenderer(
                 noIndexMeta(description),
                 SimpleValueTagResolver("user_id", userProfile.userId),
                 SimpleValueTagResolver("username", userProfile.username),
+                SimpleValueTagResolver("is_own_profile", isOwnProfile.toString()),
+                SimpleValueTagResolver("user_country", userProfile.country.orEmpty()),
                 descriptionMeta(username, description),
                 flagPanelTagResolver(countryCode),
                 descriptionDivTagResolver(username, description),
+                editDescriptionTagResolver(description, isOwnProfile),
                 gameStatsTableTagResolver(gameStats),
             )
         )
@@ -91,6 +96,31 @@ class UserProfilePageRenderer(
                 div("empty-block-placeholder") {
                     id = "profile-description"
                     +"$username has not filled their description yet."
+                }
+            }
+        }
+    }
+
+    private fun editDescriptionTagResolver(description: String?, isOwnProfile: Boolean): TagResolver {
+        return KtorHtmlBuilderTagResolver("edit_profile_description") {
+            if (isOwnProfile) {
+                div("profile-description-edit-actions") {
+                    button(classes = "profile-description-edit-button") {
+                        id = "profile-description-edit-button"
+                        attributes["type"] = "button"
+                        attributes["aria-label"] = "Edit profile description"
+                        +"✎"
+                    }
+                }
+                textArea(classes = "hidden-by-default") {
+                    id = "profile-description-editor"
+                    attributes["rows"] = "8"
+                    +description.orEmpty()
+                }
+                button(classes = "hidden-by-default") {
+                    id = "profile-description-save-button"
+                    attributes["type"] = "button"
+                    +"Save"
                 }
             }
         }

@@ -73,6 +73,29 @@ h2 {
     margin-top: 8px;
 }
 
+.profile-description-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.profile-description-edit-button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+#profile-description-editor {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#profile-description-save-button {
+    margin-top: 8px;
+}
+
 #puzzle-stats-section {
     display: none;
 }
@@ -193,6 +216,10 @@ h2 {
 
     #profile-description {
         font-size: 30px;
+    }
+
+    .profile-description-edit-button {
+        font-size: 34px;
     }
 
     #ratings-table {
