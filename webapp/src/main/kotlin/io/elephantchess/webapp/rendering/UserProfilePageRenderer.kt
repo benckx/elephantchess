@@ -88,11 +88,13 @@ class UserProfilePageRenderer(
                                 id = "profile-flag"
                             }
                         }
-                        button(classes = "profile-country-edit-button profile-country-edit-text") {
+                        button(classes = "profile-country-edit-button") {
                             id = "profile-country-edit-button"
                             attributes["type"] = "button"
                             attributes["aria-label"] = if (hasCountry) "Update country" else "Add country"
-                            +(if (hasCountry) "update country" else "add country")
+                            span("profile-country-edit-text") {
+                                +(if (hasCountry) "update country" else "add country")
+                            }
                         }
                         select(classes = "hidden-by-default") {
                             id = "profile-country-select"
