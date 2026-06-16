@@ -105,8 +105,10 @@ class UserProfilePageRenderer(
                             }
                         }
                     } else {
-                        img(alt = countryCode!!, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
-                            id = "profile-flag"
+                        countryCode?.let {
+                            img(alt = it, src = "/images/flags/$it.svg", classes = "flag-icons") {
+                                id = "profile-flag"
+                            }
                         }
                     }
                 }

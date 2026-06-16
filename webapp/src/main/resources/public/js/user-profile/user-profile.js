@@ -130,10 +130,8 @@ class UserProfilePage extends BasePage {
         });
 
         this.#profileDescriptionSaveButton.addEventListener('click', () => {
-            let country = this.#profileCountrySelect?.value ?? this.#country;
-            if (country === 'none') {
-                country = '';
-            }
+            const rawCountry = this.#profileCountrySelect?.value ?? this.#country;
+            const country = rawCountry === 'none' ? '' : rawCountry;
             postAndHandle(PROFILE_URL, {
                 description: this.#profileDescriptionEditor.value,
                 country: country
