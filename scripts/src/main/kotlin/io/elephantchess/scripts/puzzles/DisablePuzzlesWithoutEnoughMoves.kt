@@ -19,11 +19,7 @@ import java.time.LocalDateTime
 private val logger = KotlinLogging.logger {}
 
 /**
- * Goes over every puzzle and replays its recorded solution, checking that the player always has at
- * least [PuzzleSolvabilityValidator.MIN_LEGAL_MOVES_PER_STEP] legal moves available at each of their
- * turns. Puzzles failing this check (e.g. puzzles that start in check and can be dragged into a
- * perpetual-check loop) have their `disabled_at` timestamp set so they are no longer served when
- * picking the next puzzle to assign.
+ * Disable puzzles that don't have at least 2 legal moves at every step
  */
 object DisablePuzzlesWithoutEnoughMoves : KoinScriptInit() {
 
