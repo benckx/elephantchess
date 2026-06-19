@@ -63,9 +63,9 @@ class EnginePool(
         timeout: Long = 20_000,
         variant: Variant = Variant.XIANGQI
     ): InfoLinesResult? {
-        return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
-            lockableEngineProcess.queryForNodes(fen, nodes, variant)
-        }
+return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
+    lockableEngineProcess.queryForNodes(fen, nodes, variant, maxDelay = timeout)
+}
     }
 
     private suspend fun <T> acquireAndExecute(
