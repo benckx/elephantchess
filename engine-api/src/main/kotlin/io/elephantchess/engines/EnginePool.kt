@@ -132,9 +132,9 @@ return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
             return engineProcess.queryForBestMove(fen, depth, variant)
         }
 
-        suspend fun queryForNodes(fen: String, nodes: Long, variant: Variant): InfoLinesResult {
-            return engineProcess.queryForNodes(fen, nodes, variant)
-        }
+suspend fun queryForNodes(fen: String, nodes: Long, variant: Variant, maxDelay: Long): InfoLinesResult {
+    return engineProcess.queryForNodes(fen, nodes, variant, maxDelay = maxDelay)
+}
 
     }
 
