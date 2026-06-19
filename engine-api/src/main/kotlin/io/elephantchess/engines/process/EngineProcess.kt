@@ -83,11 +83,17 @@ abstract class EngineProcess(
         setVariant(variant)
         inputCommand("position fen $fen")
         inputCommand("go nodes $maxNodes")
-        waitForCondition(maxDelay, checkPeriod) {
-            infoListener.hasResult()
-        }
-        inputCommand("stop")
-        return infoListener.getResult()
+val gotResult = waitForCondition(maxDelay, checkPeriod) {
+    infoListener.hasResult()
+}
+if (!gotResult) {
+    inputCommand("stop")
+    val gotResultAfterStop = waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }
+    if (!gotResultAfterStop) {
+        throw Exception("Engine did not return a result for 'go nodes $maxNodes' within ${maxDelay}ms.")
+    }
+}
+return infoListener.getResult()
     }
 
     /**
