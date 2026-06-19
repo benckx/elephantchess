@@ -56,6 +56,18 @@ class EnginePool(
         }
     }
 
+    suspend fun queryForNodes(
+        fen: String,
+        engineId: EngineId,
+        nodes: Long,
+        timeout: Long = 20_000,
+        variant: Variant = Variant.XIANGQI
+    ): InfoLinesResult? {
+        return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
+            lockableEngineProcess.queryForNodes(fen, nodes, variant)
+        }
+    }
+
     private suspend fun <T> acquireAndExecute(
         engineId: EngineId,
         timeout: Long,
@@ -118,6 +130,10 @@ class EnginePool(
 
         suspend fun queryForBestMove(fen: String, depth: Int, variant: Variant): InfoLinesResult {
             return engineProcess.queryForBestMove(fen, depth, variant)
+        }
+
+        suspend fun queryForNodes(fen: String, nodes: Long, variant: Variant): InfoLinesResult {
+            return engineProcess.queryForNodes(fen, nodes, variant)
         }
 
     }
