@@ -43,6 +43,84 @@ function initialColor(node) {
     return colorForLevel(node.level);
 }
 
+/**
+ * Holds the eval annotation symbol (??, ?!, etc.) displayed in the move tree, together
+ * with the calculation that produced it (eval of the actual move, eval of the engine's
+ * best move, centi-pawn delta and resulting symbol).
+ *
+ * This is what we attach to a {@link MoveTreeNode} instead of only the raw symbol string,
+ * so the breakdown can be surfaced as a tooltip.
+ */
+class AnnotationEvalDetails {
+
+    #symbolEnum;
+    #symbol;
+    #engineCp;
+    #actualMoveCp;
+    #delta;
+    #engineMoveEval;
+    #actualMoveEval;
+
+    /**
+     * @param symbolEnum {string} one of {@link MoveAnnotationSymbolTypes}
+     * @param engineCp {number} heuristic centi-pawn value of the engine's best move
+     * @param actualMoveCp {number} heuristic centi-pawn value of the actual move
+     * @param delta {number} centi-pawn delta (engineCp - actualMoveCp)
+     * @param engineMoveEval {string} normalized eval of the engine's best move (as displayed)
+     * @param actualMoveEval {string} normalized eval of the actual move (as displayed)
+     */
+    constructor(symbolEnum, engineCp, actualMoveCp, delta, engineMoveEval, actualMoveEval) {
+        this.#symbolEnum = symbolEnum;
+        this.#symbol = moveAnnotationEnumToSymbol(symbolEnum);
+        this.#engineCp = engineCp;
+        this.#actualMoveCp = actualMoveCp;
+        this.#delta = delta;
+        this.#engineMoveEval = engineMoveEval;
+        this.#actualMoveEval = actualMoveEval;
+    }
+
+    /**
+     * @return {string}
+     */
+    get symbol() {
+        return this.#symbol;
+    }
+
+    /**
+     * @return {string}
+     */
+    get cssClass() {
+        return `${this.#symbolEnum.toLowerCase()}-annotation-label`;
+    }
+
+    /**
+     * @param value {number}
+     * @return {string}
+     */
+    #formatCpValue(value) {
+        if (value == null || Number.isNaN(value)) {
+            return 'n/a';
+        }
+        const rounded = Math.round(value);
+        return `${rounded > 0 ? '+' : ''}${rounded} cp`;
+    }
+
+    /**
+     * Multi-line text describing the calculation behind the annotation symbol.
+     *
+     * @return {string}
+     */
+    toTooltipText() {
+        return [
+            `Move: ${this.#actualMoveEval} (${this.#formatCpValue(this.#actualMoveCp)})`,
+            `Engine best: ${this.#engineMoveEval} (${this.#formatCpValue(this.#engineCp)})`,
+            `Delta: ${this.#formatCpValue(this.#delta)}`,
+            `Symbol: ${this.#symbol}`,
+        ].join('\n');
+    }
+
+}
+
 class MoveTreeNodeDto {
 
     #nodeId;
@@ -138,6 +216,13 @@ class MoveTreeNode {
     #fen = null;
     #fenKey = null;
     #eval = null;
+
+    /**
+     * Calculation behind the eval annotation symbol (if any), used to render a tooltip.
+     *
+     * @type {AnnotationEvalDetails|null}
+     */
+    #annotationDetails = null;
 
     #annotationText = null;
 
@@ -289,6 +374,20 @@ class MoveTreeNode {
      */
     set eval(value) {
         this.#eval = value;
+    }
+
+    /**
+     * @return {AnnotationEvalDetails|null}
+     */
+    get annotationDetails() {
+        return this.#annotationDetails;
+    }
+
+    /**
+     * @param value {AnnotationEvalDetails|null}
+     */
+    set annotationDetails(value) {
+        this.#annotationDetails = value;
     }
 
     get annotation() {
@@ -1802,6 +1901,7 @@ class MoveTreeWidget {
 
         // clear all eval labels
         this.#moveTree.getAllNodes().forEach(node => {
+            node.annotationDetails = null;
             node.clearEvalCssClasses();
             this.#updateEvalPlaceholder(node);
         });
@@ -1822,6 +1922,7 @@ class MoveTreeWidget {
                 const infoLineResult = analysisCache.get(fenKey);
                 if (infoLineResult != null) {
                     this.#moveTree.getAllNodesMatchingFenKey(fenKey).forEach((node) => {
+                        node.annotationDetails = null;
                         node.eval = infoLineResult.evalAsString;
                         this.#updateEvalPlaceholder(node);
                     });
@@ -1866,19 +1967,29 @@ class MoveTreeWidget {
             const engineBestMoveData = findAnalysisDataFromEngineBestMove(analysisCache, previousNodeData);
             if (engineBestMoveData != null) {
                 const currentNodeData = analysisCache.get(nodeFenKey);
-                const symbolEnumValue = calculateAnnotationValue(engineBestMoveData, currentNodeData);
-                if (symbolEnumValue != null) {
-                    const cssClass = `${symbolEnumValue.toLowerCase()}-annotation-label`;
-                    node.eval = moveAnnotationEnumToSymbol(symbolEnumValue);
+                const details = calculateAnnotationDetails(engineBestMoveData, currentNodeData);
+                if (details != null) {
+                    const annotationDetails = new AnnotationEvalDetails(
+                        details.symbol,
+                        details.engineCp,
+                        details.actualMoveCp,
+                        details.delta,
+                        engineBestMoveData.evalAsString,
+                        currentNodeData.evalAsString,
+                    );
+                    node.annotationDetails = annotationDetails;
+                    node.eval = annotationDetails.symbol;
                     node.clearEvalCssClasses();
-                    node.addEvalCssClass(cssClass);
+                    node.addEvalCssClass(annotationDetails.cssClass);
                     this.#updateEvalPlaceholder(node);
                 } else {
+                    node.annotationDetails = null;
                     node.eval = null;
                     node.clearEvalCssClasses();
                     this.#updateEvalPlaceholder(node);
                 }
             } else {
+                node.annotationDetails = null;
                 node.eval = null;
                 node.clearEvalCssClasses();
                 this.#updateEvalPlaceholder(node);
@@ -1904,6 +2015,25 @@ class MoveTreeWidget {
         }
 
         node.evalCssClasses.forEach(cssClass => evalPlaceholder.classList.add(cssClass));
+
+        // tooltip describing the calculation behind the eval annotation symbol
+        if (node.annotationDetails != null) {
+            addToolTip(evalPlaceholder, node.annotationDetails.toTooltipText());
+        } else {
+            this.#removeEvalTooltip(evalPlaceholder);
+        }
+    }
+
+    /**
+     * Remove a previously added tooltip from the eval placeholder (if any).
+     *
+     * @param evalPlaceholder {HTMLElement}
+     */
+    #removeEvalTooltip(evalPlaceholder) {
+        const tooltip = document.getElementById(`${evalPlaceholder.id}-tooltip`);
+        if (tooltip != null) {
+            tooltip.remove();
+        }
     }
 
     /**

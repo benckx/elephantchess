@@ -114,6 +114,7 @@ img.winner-icon {
     z-index: 800;
     position: absolute;
     visibility: hidden;
+    white-space: pre-line;
 }
 
 .game-thumb {
