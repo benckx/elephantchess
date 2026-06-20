@@ -2016,6 +2016,7 @@ class MoveTreeWidget {
      */
     #updateEvalPlaceholder(node) {
         const evalPlaceholder = document.getElementById(`eval-placeholder-${node.nodeId}`);
+        const moveContainer = document.getElementById(`move-container-${node.nodeId}`);
 
         // clear all annotation label CSS classes
         moveAnnotationSymbolTypesArray
@@ -2031,10 +2032,17 @@ class MoveTreeWidget {
         node.evalCssClasses.forEach(cssClass => evalPlaceholder.classList.add(cssClass));
 
         // tooltip describing the calculation behind the eval annotation symbol
+        // should be available on the whole move cell (not only the eval label)
         if (node.annotationDetails != null) {
-            addToolTip(evalPlaceholder, node.annotationDetails.toTooltipText());
+            this.#removeEvalTooltip(evalPlaceholder);
+            if (moveContainer != null) {
+                addToolTip(moveContainer, node.annotationDetails.toTooltipText());
+            }
         } else {
             this.#removeEvalTooltip(evalPlaceholder);
+            if (moveContainer != null) {
+                this.#removeEvalTooltip(moveContainer);
+            }
         }
     }
 
