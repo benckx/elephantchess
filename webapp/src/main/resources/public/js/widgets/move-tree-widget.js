@@ -115,7 +115,7 @@ class AnnotationEvalDetails {
             `Move: ${this.#actualMoveEval} (${this.#formatCpValue(this.#actualMoveCp)})`,
             `Engine best: ${this.#engineMoveEval} (${this.#formatCpValue(this.#engineCp)})`,
             `Delta: ${this.#formatCpValue(this.#delta)}`,
-            `Symbol: ${this.#symbol}`,
+            moveAnnotationEnumToLabel(this.#symbolEnum),
         ].join('\n');
     }
 

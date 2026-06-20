@@ -55,6 +55,29 @@ function moveAnnotationEnumToSymbol(annotation) {
 }
 
 /**
+ * @param annotation {string} one of {@link MoveAnnotationSymbolTypes}
+ * @return {string}
+ */
+function moveAnnotationEnumToLabel(annotation) {
+    switch (annotation) {
+        case MoveAnnotationSymbolTypes.BLUNDER:
+            return 'Blunder';
+        case MoveAnnotationSymbolTypes.MISTAKE:
+            return 'Mistake';
+        case MoveAnnotationSymbolTypes.INACCURACY:
+            return 'Inaccuracy';
+        case MoveAnnotationSymbolTypes.INTERESTING:
+            return 'Interesting';
+        case MoveAnnotationSymbolTypes.GOOD:
+            return 'Good';
+        case MoveAnnotationSymbolTypes.BRILLIANT:
+            return 'Brilliant';
+        default:
+            return '';
+    }
+}
+
+/**
  * @param delta {number}
  * @return {string|null}
  */

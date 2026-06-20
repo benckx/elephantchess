@@ -104,7 +104,7 @@ img.winner-icon {
 
 .tooltip {
     min-width: 60px;
-    max-width: 180px;
+    max-width: 360px;
     font-size: 14px;
     background-color: #d1d1d1;
     color: #01016a;
@@ -114,7 +114,7 @@ img.winner-icon {
     z-index: 800;
     position: absolute;
     visibility: hidden;
-    white-space: pre-line;
+    white-space: pre;
 }
 
 .game-thumb {
