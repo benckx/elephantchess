@@ -58,25 +58,19 @@ class AnnotationEvalDetails {
     #engineCp;
     #actualMoveCp;
     #delta;
-    #engineMoveEval;
-    #actualMoveEval;
 
     /**
      * @param symbolEnum {string} one of {@link MoveAnnotationSymbolTypes}
      * @param engineCp {number} heuristic centi-pawn value of the engine's best move
      * @param actualMoveCp {number} heuristic centi-pawn value of the actual move
      * @param delta {number} centi-pawn delta (engineCp - actualMoveCp)
-     * @param engineMoveEval {string} normalized eval of the engine's best move (as displayed)
-     * @param actualMoveEval {string} normalized eval of the actual move (as displayed)
      */
-    constructor(symbolEnum, engineCp, actualMoveCp, delta, engineMoveEval, actualMoveEval) {
+    constructor(symbolEnum, engineCp, actualMoveCp, delta) {
         this.#symbolEnum = symbolEnum;
         this.#symbol = moveAnnotationEnumToSymbol(symbolEnum);
         this.#engineCp = engineCp;
         this.#actualMoveCp = actualMoveCp;
         this.#delta = delta;
-        this.#engineMoveEval = engineMoveEval;
-        this.#actualMoveEval = actualMoveEval;
     }
 
     /**
@@ -97,12 +91,12 @@ class AnnotationEvalDetails {
      * @param value {number}
      * @return {string}
      */
-    #formatCplValue(value) {
+    #formatCpValue(value) {
         if (value == null || Number.isNaN(value)) {
             return '--';
         }
         const rounded = Math.round(value);
-        return `${rounded > 0 ? '+' : ''}${rounded} cp`;
+        return `${rounded > 0 ? '+' : ''}${rounded}`;
     }
 
     /**
@@ -112,9 +106,9 @@ class AnnotationEvalDetails {
      */
     toTooltipText() {
         return [
-            `Move: ${this.#actualMoveEval} (${this.#formatCplValue(this.#actualMoveCp)})`,
-            `Engine best: ${this.#engineMoveEval} (${this.#formatCplValue(this.#engineCp)})`,
-            `CPL: ${this.#formatCplValue(this.#delta)}`,
+            `Move: ${this.#formatCpValue(this.#actualMoveCp)}`,
+            `Engine best: ${this.#formatCpValue(this.#engineCp)}`,
+            `CPL: ${this.#formatCpValue(this.#delta)}`,
             moveAnnotationEnumToLabel(this.#symbolEnum),
         ].join('\n');
     }
@@ -1973,9 +1967,7 @@ class MoveTreeWidget {
                         details.symbol,
                         details.engineCp,
                         details.actualMoveCp,
-                        details.delta,
-                        engineBestMoveData.evalAsString,
-                        currentNodeData.evalAsString,
+                        details.delta
                     );
                     node.annotationDetails = annotationDetails;
                     node.eval = annotationDetails.symbol;
