@@ -100,6 +100,28 @@ class AnnotationEvalDetails {
     }
 
     /**
+     * @return {string}
+     */
+    #thresholdText() {
+        switch (this.#symbolEnum) {
+            case MoveAnnotationSymbolTypes.BLUNDER:
+                return '-300';
+            case MoveAnnotationSymbolTypes.MISTAKE:
+                return '-100';
+            case MoveAnnotationSymbolTypes.INACCURACY:
+                return '-50';
+            case MoveAnnotationSymbolTypes.INTERESTING:
+                return '+50';
+            case MoveAnnotationSymbolTypes.GOOD:
+                return '+100';
+            case MoveAnnotationSymbolTypes.BRILLIANT:
+                return '+300';
+            default:
+                return '';
+        }
+    }
+
+    /**
      * Multi-line text describing the calculation behind the annotation symbol.
      *
      * @return {string}
@@ -109,7 +131,7 @@ class AnnotationEvalDetails {
             `Move: ${this.#formatCpValue(this.#actualMoveCp)}`,
             `Engine best: ${this.#formatCpValue(this.#engineCp)}`,
             `CPL: ${this.#formatCpValue(this.#delta)}`,
-            moveAnnotationEnumToLabel(this.#symbolEnum),
+            `${moveAnnotationEnumToLabel(this.#symbolEnum)} (${this.#thresholdText()})`,
         ].join('\n');
     }
 
