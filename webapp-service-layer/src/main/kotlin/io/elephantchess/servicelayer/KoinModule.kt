@@ -88,7 +88,6 @@ private fun daoModule() = module {
     singleAuto<UserDaoService>()
     singleAuto<UserSessionDaoService>()
     singleAuto<UserStatsDaoService>()
-    singleAuto<UtmMediumClickDaoService>()
 }
 
 private fun batchModule() = module {

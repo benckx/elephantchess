@@ -246,6 +246,35 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             }
     }
 
+    suspend fun countNewsletterClicksPerTemplate(excludedUserIds: List<String>): Map<String, Int> {
+        val newsletterTemplateField = DSL.field(
+            "substring({0} from 'medium=newsletter-([^&#]+)')",
+            String::class.java,
+            PAGE_VIEW_EVENT.EVENT_PATH
+        )
+
+        return dslContext
+            .select(
+                newsletterTemplateField,
+                DSL.count().`as`("click_count")
+            )
+            .from(PAGE_VIEW_EVENT)
+            .where(PAGE_VIEW_EVENT.EVENT_PATH.like("%medium=newsletter-%"))
+            .and(excludedUsersCondition(excludedUserIds))
+            .groupBy(newsletterTemplateField)
+            .awaitRecords()
+            .mapNotNull { record ->
+                val templateName = record.get(newsletterTemplateField)
+                if (templateName.isNullOrBlank()) {
+                    null
+                } else {
+                    val clickCount = record.get("click_count", Int::class.java) ?: 0
+                    templateName to clickCount
+                }
+            }
+            .toMap()
+    }
+
     private companion object {
         // data collection started at the end of October 2025
         val startDate: Instant =
