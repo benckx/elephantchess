@@ -97,9 +97,9 @@ class AnnotationEvalDetails {
      * @param value {number}
      * @return {string}
      */
-    #formatCpValue(value) {
+    #formatCplValue(value) {
         if (value == null || Number.isNaN(value)) {
-            return 'n/a';
+            return '--';
         }
         const rounded = Math.round(value);
         return `${rounded > 0 ? '+' : ''}${rounded} cp`;
@@ -112,9 +112,9 @@ class AnnotationEvalDetails {
      */
     toTooltipText() {
         return [
-            `Move: ${this.#actualMoveEval} (${this.#formatCpValue(this.#actualMoveCp)})`,
-            `Engine best: ${this.#engineMoveEval} (${this.#formatCpValue(this.#engineCp)})`,
-            `Delta: ${this.#formatCpValue(this.#delta)}`,
+            `Move: ${this.#actualMoveEval} (${this.#formatCplValue(this.#actualMoveCp)})`,
+            `Engine best: ${this.#engineMoveEval} (${this.#formatCplValue(this.#engineCp)})`,
+            `CPL: ${this.#formatCplValue(this.#delta)}`,
             moveAnnotationEnumToLabel(this.#symbolEnum),
         ].join('\n');
     }
