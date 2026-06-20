@@ -55,6 +55,29 @@ function moveAnnotationEnumToSymbol(annotation) {
 }
 
 /**
+ * @param annotation {string} one of {@link MoveAnnotationSymbolTypes}
+ * @return {string}
+ */
+function moveAnnotationEnumToLabel(annotation) {
+    switch (annotation) {
+        case MoveAnnotationSymbolTypes.BLUNDER:
+            return 'Blunder';
+        case MoveAnnotationSymbolTypes.MISTAKE:
+            return 'Mistake';
+        case MoveAnnotationSymbolTypes.INACCURACY:
+            return 'Inaccuracy';
+        case MoveAnnotationSymbolTypes.INTERESTING:
+            return 'Interesting';
+        case MoveAnnotationSymbolTypes.GOOD:
+            return 'Good';
+        case MoveAnnotationSymbolTypes.BRILLIANT:
+            return 'Brilliant';
+        default:
+            return '';
+    }
+}
+
+/**
  * @param delta {number}
  * @return {string|null}
  */
@@ -84,14 +107,14 @@ function centiPawnsLossToSymbol(delta) {
 }
 
 /**
- * Calculate centi-pawn delta between the previous position and the current position,
- * and map the delta to an annotation symbol enum value.
+ * Map an {@link InfoLineResult} to a centi-pawn value.
  *
- * @param engineBest {InfoLineResult}
- * @param actualMove {InfoLineResult}
- * @returns {string|null}
+ * It's a heuristic in the sense that it maps a "mate" infoLineResult to a cp value.
+ *
+ * @param infoLineResult {InfoLineResult}
+ * @returns {number|null}
  */
-function calculateAnnotationValue(engineBest, actualMove) {
+function infoLineResultToHeuristicCp(infoLineResult) {
     function cappedCp(cp) {
         if (cp > MAX_ABS_CP) {
             return MAX_ABS_CP;
@@ -102,44 +125,76 @@ function calculateAnnotationValue(engineBest, actualMove) {
         }
     }
 
-    // heuristic in the sense that maps "mate" infoLineResult to a cp value
-    function heuristicCp(infoLineResult) {
-        if (infoLineResult.cp != null) {
-            return cappedCp(infoLineResult.cp);
-        } else if (infoLineResult.mate != null) {
-            const maxMate = 40;
-            const mate = infoLineResult.mate;
-            let additionalSlicesOfCp = (maxMate - Math.abs(mate))
-            if (additionalSlicesOfCp < 0) {
-                additionalSlicesOfCp = 0;
-            }
-            // each 1 mate fewer than 40 -> 8 cp
-            // mate in 10 -> 30 * 8 = 240 cp
-            const mateBonusInCp = additionalSlicesOfCp * 8;
-
-            if (mate < 0) {
-                return -MAX_ABS_CP - mateBonusInCp;
-            } else {
-                return MAX_ABS_CP + mateBonusInCp;
-            }
-        } else {
-            return null;
+    if (infoLineResult.cp != null) {
+        return cappedCp(infoLineResult.cp);
+    } else if (infoLineResult.mate != null) {
+        const maxMate = 40;
+        const mate = infoLineResult.mate;
+        let additionalSlicesOfCp = (maxMate - Math.abs(mate))
+        if (additionalSlicesOfCp < 0) {
+            additionalSlicesOfCp = 0;
         }
-    }
+        // each 1 mate fewer than 40 -> 8 cp
+        // mate in 10 -> 30 * 8 = 240 cp
+        const mateBonusInCp = additionalSlicesOfCp * 8;
 
+        if (mate < 0) {
+            return -MAX_ABS_CP - mateBonusInCp;
+        } else {
+            return MAX_ABS_CP + mateBonusInCp;
+        }
+    } else {
+        return null;
+    }
+}
+
+/**
+ * Calculate the centi-pawn delta between the engine's best move and the actual move,
+ * and map the delta to an annotation symbol, while keeping every intermediate value
+ * used in the computation so it can be displayed (e.g. in a tooltip).
+ *
+ * @param engineBest {InfoLineResult}
+ * @param actualMove {InfoLineResult}
+ * @returns {{symbol: string, engineCp: number, actualMoveCp: number, delta: number}|null}
+ */
+function calculateAnnotationDetails(engineBest, actualMove) {
     if (actualMove.isCheckmate) {
         return null;
     }
 
-    const engineCp = heuristicCp(engineBest);
-    const actualMoveCp = heuristicCp(actualMove);
+    const engineCp = infoLineResultToHeuristicCp(engineBest);
+    const actualMoveCp = infoLineResultToHeuristicCp(actualMove);
 
-    if (engineCp != null || actualMoveCp != null) {
-        const centipawnLossCalculation = engineCp - actualMoveCp
-        return centiPawnsLossToSymbol(centipawnLossCalculation);
-    } else {
+    if (engineCp == null && actualMoveCp == null) {
         return null;
     }
+
+    const delta = engineCp - actualMoveCp;
+    const symbol = centiPawnsLossToSymbol(delta);
+
+    if (symbol == null) {
+        return null;
+    }
+
+    return {
+        symbol: symbol,
+        engineCp: engineCp,
+        actualMoveCp: actualMoveCp,
+        delta: delta,
+    };
+}
+
+/**
+ * Calculate centi-pawn delta between the previous position and the current position,
+ * and map the delta to an annotation symbol enum value.
+ *
+ * @param engineBest {InfoLineResult}
+ * @param actualMove {InfoLineResult}
+ * @returns {string|null}
+ */
+function calculateAnnotationValue(engineBest, actualMove) {
+    const details = calculateAnnotationDetails(engineBest, actualMove);
+    return details != null ? details.symbol : null;
 }
 
 /**

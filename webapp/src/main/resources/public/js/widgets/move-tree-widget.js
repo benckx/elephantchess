@@ -43,6 +43,100 @@ function initialColor(node) {
     return colorForLevel(node.level);
 }
 
+/**
+ * Holds the eval annotation symbol (??, ?!, etc.) displayed in the move tree, together
+ * with the calculation that produced it (eval of the actual move, eval of the engine's
+ * best move, centi-pawn delta and resulting symbol).
+ *
+ * This is what we attach to a {@link MoveTreeNode} instead of only the raw symbol string,
+ * so the breakdown can be surfaced as a tooltip.
+ */
+class AnnotationEvalDetails {
+
+    #symbolEnum;
+    #symbol;
+    #engineCp;
+    #actualMoveCp;
+    #delta;
+
+    /**
+     * @param symbolEnum {string} one of {@link MoveAnnotationSymbolTypes}
+     * @param engineCp {number} heuristic centi-pawn value of the engine's best move
+     * @param actualMoveCp {number} heuristic centi-pawn value of the actual move
+     * @param delta {number} centi-pawn delta (engineCp - actualMoveCp)
+     */
+    constructor(symbolEnum, engineCp, actualMoveCp, delta) {
+        this.#symbolEnum = symbolEnum;
+        this.#symbol = moveAnnotationEnumToSymbol(symbolEnum);
+        this.#engineCp = engineCp;
+        this.#actualMoveCp = actualMoveCp;
+        this.#delta = delta;
+    }
+
+    /**
+     * @return {string}
+     */
+    get symbol() {
+        return this.#symbol;
+    }
+
+    /**
+     * @return {string}
+     */
+    get cssClass() {
+        return `${this.#symbolEnum.toLowerCase()}-annotation-label`;
+    }
+
+    /**
+     * @param value {number}
+     * @return {string}
+     */
+    #formatCpValue(value) {
+        if (value == null || Number.isNaN(value)) {
+            return '--';
+        }
+        const rounded = Math.round(value);
+        return `${rounded > 0 ? '+' : ''}${rounded}`;
+    }
+
+    /**
+     * @return {string}
+     */
+    #thresholdText() {
+        switch (this.#symbolEnum) {
+            case MoveAnnotationSymbolTypes.BLUNDER:
+                return '-300';
+            case MoveAnnotationSymbolTypes.MISTAKE:
+                return '-100';
+            case MoveAnnotationSymbolTypes.INACCURACY:
+                return '-50';
+            case MoveAnnotationSymbolTypes.INTERESTING:
+                return '+50';
+            case MoveAnnotationSymbolTypes.GOOD:
+                return '+100';
+            case MoveAnnotationSymbolTypes.BRILLIANT:
+                return '+300';
+            default:
+                return '';
+        }
+    }
+
+    /**
+     * Multi-line text describing the calculation behind the annotation symbol.
+     *
+     * @return {string}
+     */
+    toTooltipText() {
+        return [
+            `Move: ${this.#formatCpValue(this.#actualMoveCp)}`,
+            `Engine best: ${this.#formatCpValue(this.#engineCp)}`,
+            `CPL: ${this.#formatCpValue(this.#delta)}`,
+            `${moveAnnotationEnumToLabel(this.#symbolEnum)} (${this.#thresholdText()})`,
+        ].join('\n');
+    }
+
+}
+
 class MoveTreeNodeDto {
 
     #nodeId;
@@ -138,6 +232,13 @@ class MoveTreeNode {
     #fen = null;
     #fenKey = null;
     #eval = null;
+
+    /**
+     * Calculation behind the eval annotation symbol (if any), used to render a tooltip.
+     *
+     * @type {AnnotationEvalDetails|null}
+     */
+    #annotationDetails = null;
 
     #annotationText = null;
 
@@ -289,6 +390,20 @@ class MoveTreeNode {
      */
     set eval(value) {
         this.#eval = value;
+    }
+
+    /**
+     * @return {AnnotationEvalDetails|null}
+     */
+    get annotationDetails() {
+        return this.#annotationDetails;
+    }
+
+    /**
+     * @param value {AnnotationEvalDetails|null}
+     */
+    set annotationDetails(value) {
+        this.#annotationDetails = value;
     }
 
     get annotation() {
@@ -1802,6 +1917,7 @@ class MoveTreeWidget {
 
         // clear all eval labels
         this.#moveTree.getAllNodes().forEach(node => {
+            node.annotationDetails = null;
             node.clearEvalCssClasses();
             this.#updateEvalPlaceholder(node);
         });
@@ -1822,6 +1938,7 @@ class MoveTreeWidget {
                 const infoLineResult = analysisCache.get(fenKey);
                 if (infoLineResult != null) {
                     this.#moveTree.getAllNodesMatchingFenKey(fenKey).forEach((node) => {
+                        node.annotationDetails = null;
                         node.eval = infoLineResult.evalAsString;
                         this.#updateEvalPlaceholder(node);
                     });
@@ -1866,19 +1983,27 @@ class MoveTreeWidget {
             const engineBestMoveData = findAnalysisDataFromEngineBestMove(analysisCache, previousNodeData);
             if (engineBestMoveData != null) {
                 const currentNodeData = analysisCache.get(nodeFenKey);
-                const symbolEnumValue = calculateAnnotationValue(engineBestMoveData, currentNodeData);
-                if (symbolEnumValue != null) {
-                    const cssClass = `${symbolEnumValue.toLowerCase()}-annotation-label`;
-                    node.eval = moveAnnotationEnumToSymbol(symbolEnumValue);
+                const details = calculateAnnotationDetails(engineBestMoveData, currentNodeData);
+                if (details != null) {
+                    const annotationDetails = new AnnotationEvalDetails(
+                        details.symbol,
+                        details.engineCp,
+                        details.actualMoveCp,
+                        details.delta
+                    );
+                    node.annotationDetails = annotationDetails;
+                    node.eval = annotationDetails.symbol;
                     node.clearEvalCssClasses();
-                    node.addEvalCssClass(cssClass);
+                    node.addEvalCssClass(annotationDetails.cssClass);
                     this.#updateEvalPlaceholder(node);
                 } else {
+                    node.annotationDetails = null;
                     node.eval = null;
                     node.clearEvalCssClasses();
                     this.#updateEvalPlaceholder(node);
                 }
             } else {
+                node.annotationDetails = null;
                 node.eval = null;
                 node.clearEvalCssClasses();
                 this.#updateEvalPlaceholder(node);
@@ -1891,6 +2016,7 @@ class MoveTreeWidget {
      */
     #updateEvalPlaceholder(node) {
         const evalPlaceholder = document.getElementById(`eval-placeholder-${node.nodeId}`);
+        const moveContainer = document.getElementById(`move-container-${node.nodeId}`);
 
         // clear all annotation label CSS classes
         moveAnnotationSymbolTypesArray
@@ -1904,6 +2030,32 @@ class MoveTreeWidget {
         }
 
         node.evalCssClasses.forEach(cssClass => evalPlaceholder.classList.add(cssClass));
+
+        // tooltip describing the calculation behind the eval annotation symbol
+        // should be available on the whole move cell (not only the eval label)
+        if (node.annotationDetails != null) {
+            this.#removeEvalTooltip(evalPlaceholder);
+            if (moveContainer != null) {
+                addToolTip(moveContainer, node.annotationDetails.toTooltipText());
+            }
+        } else {
+            this.#removeEvalTooltip(evalPlaceholder);
+            if (moveContainer != null) {
+                this.#removeEvalTooltip(moveContainer);
+            }
+        }
+    }
+
+    /**
+     * Remove a previously added tooltip from the eval placeholder (if any).
+     *
+     * @param evalPlaceholder {HTMLElement}
+     */
+    #removeEvalTooltip(evalPlaceholder) {
+        const tooltip = document.getElementById(`${evalPlaceholder.id}-tooltip`);
+        if (tooltip != null) {
+            tooltip.remove();
+        }
     }
 
     /**
