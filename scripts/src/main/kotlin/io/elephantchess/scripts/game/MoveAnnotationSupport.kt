@@ -50,8 +50,16 @@ internal data class AnnotationAggregate(
         copy(
             count = count + other.count,
             totalCpl = totalCpl + other.totalCpl,
-            minCpl = listOfNotNull(minCpl, other.minCpl).minOrNull(),
-            maxCpl = listOfNotNull(maxCpl, other.maxCpl).maxOrNull(),
+            minCpl = when {
+                minCpl == null -> other.minCpl
+                other.minCpl == null -> minCpl
+                else -> minOf(minCpl, other.minCpl)
+            },
+            maxCpl = when {
+                maxCpl == null -> other.maxCpl
+                other.maxCpl == null -> maxCpl
+                else -> maxOf(maxCpl, other.maxCpl)
+            },
         )
 
     fun averageCpl(): Double? =
