@@ -9,6 +9,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class MoveAnnotationSupportTest {
+    private companion object {
+        const val MAX_ABS_CP = 7_706
+        const val MAX_MATE = 40
+        const val MATE_BONUS_PER_MOVE = 8
+    }
 
     @Test
     fun summarizeMoveAnnotationsSkipsMismatchedDepthComparisonsAndCanFilterByActualMoveDepth() {
@@ -297,12 +302,12 @@ class MoveAnnotationSupportTest {
             get() = engineCp ?: heuristicMateCp(engineMate)
 
         val expectedActualCp: Int
-            get() = actualCp?.coerceIn(-7_706, 7_706) ?: heuristicMateCp(actualMate)
+            get() = actualCp?.coerceIn(-MAX_ABS_CP, MAX_ABS_CP) ?: heuristicMateCp(actualMate)
 
         private fun heuristicMateCp(mate: Int?): Int {
             requireNotNull(mate)
-            val bonus = (40 - kotlin.math.abs(mate)).coerceAtLeast(0) * 8
-            return if (mate < 0) -7_706 - bonus else 7_706 + bonus
+            val bonus = (MAX_MATE - kotlin.math.abs(mate)).coerceAtLeast(0) * MATE_BONUS_PER_MOVE
+            return if (mate < 0) -MAX_ABS_CP - bonus else MAX_ABS_CP + bonus
         }
     }
 }
