@@ -301,7 +301,7 @@ class MoveAnnotationSupportTest {
         mate: Int? = null,
         bestMove: String? = null,
     ): InfoLineResultDto {
-        require((cp == null) != (mate == null)) { "Exactly one of cp or mate must be provided (not both or neither)" }
+        require((cp == null) != (mate == null)) { "Either cp or mate must be provided, but not both" }
         return InfoLineResultDto(
             line = null,
             fen = fen,
@@ -324,7 +324,7 @@ class MoveAnnotationSupportTest {
         val expectedEngineCp: Int,
     ) {
         init {
-            require((actualCp == null) != (actualMate == null)) { "Exactly one of actualCp or actualMate must be provided (not both or neither)" }
+            require((actualCp == null) != (actualMate == null)) { "Either actualCp or actualMate must be provided, but not both" }
         }
     }
 }
