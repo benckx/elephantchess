@@ -8,6 +8,7 @@ import kotlin.math.abs
 
 // Mirrors MAX_ABS_CP in webapp/src/main/resources/public/js/modules/engine.js
 private const val MAX_ABS_CP = 7_706
+private const val MIN_COMPARABLE_ANALYSIS_DEPTH = 18
 
 internal enum class MoveAnnotationCategory {
     BLUNDER,
@@ -106,6 +107,11 @@ internal fun summarizeMoveAnnotations(
             }
 
             else -> {
+                if (!hasComparableAnalysisData(engineBestAnalysis, actualMoveAnalysis)) {
+                    skippedMoves++
+                    return@forEach
+                }
+
                 val annotation = calculateMoveAnnotation(engineBestAnalysis, actualMoveAnalysis)
                 if (annotation == null) {
                     neutralMoves++
@@ -132,7 +138,7 @@ internal fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove:
 }
 
 internal fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): Int? {
-    if (engineBest == null || actualMove == null || actualMove.isCheckmate) {
+    if (engineBest == null || actualMove == null || actualMove.isCheckmate || !hasComparableAnalysisData(engineBest, actualMove)) {
         return null
     }
 
@@ -184,4 +190,17 @@ private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
 
         else -> null
     }
+}
+
+private fun hasComparableAnalysisData(
+    engineBest: InfoLineResultDto,
+    actualMove: InfoLineResultDto,
+): Boolean {
+    val engineDepth = engineBest.depth ?: return false
+    val actualDepth = actualMove.depth ?: return false
+    return engineDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
+        actualDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
+        engineDepth == actualDepth &&
+        heuristicCp(engineBest) != null &&
+        heuristicCp(actualMove) != null
 }

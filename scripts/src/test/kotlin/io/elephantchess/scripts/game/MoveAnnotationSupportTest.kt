@@ -6,11 +6,12 @@ import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class MoveAnnotationSupportTest {
 
     @Test
-    fun summarizeMoveAnnotationsCanFilterByActualMoveDepth() {
+    fun summarizeMoveAnnotationsSkipsMismatchedDepthComparisonsAndCanFilterByActualMoveDepth() {
         val firstMove = "h2e2"
         val firstMoveBest = "c3c4"
         val secondMove = "b9c7"
@@ -53,10 +54,12 @@ class MoveAnnotationSupportTest {
             actualMoveFilter = { it?.depth == 20 },
         )
 
-        assertEquals(2, allDepthsSummary.annotatedMoves)
+        assertEquals(1, allDepthsSummary.annotatedMoves)
+        assertEquals(0, allDepthsSummary.neutralMoves)
+        assertEquals(1, allDepthsSummary.skippedMoves)
         assertEquals(2, allDepthsSummary.totalMoves)
         assertEquals(1, allDepthsSummary.categoryTotals.getValue(MoveAnnotationCategory.GOOD).count)
-        assertEquals(1, allDepthsSummary.categoryTotals.getValue(MoveAnnotationCategory.BRILLIANT).count)
+        assertEquals(0, allDepthsSummary.categoryTotals.getValue(MoveAnnotationCategory.BRILLIANT).count)
 
         assertEquals(1, depth20Summary.annotatedMoves)
         assertEquals(1, depth20Summary.totalMoves)
@@ -64,17 +67,34 @@ class MoveAnnotationSupportTest {
         assertEquals(0, depth20Summary.categoryTotals.getValue(MoveAnnotationCategory.BRILLIANT).count)
     }
 
+    @Test
+    fun calculateCplRequiresMatchingDepthAtLeast18() {
+        assertNull(
+            calculateCpl(
+                engineBest = analysis(fen = "engine", cp = 300, depth = 20),
+                actualMove = analysis(fen = "actual", cp = 0, depth = 18),
+            ),
+        )
+        assertNull(
+            calculateCpl(
+                engineBest = analysis(fen = "engine", cp = 300, depth = 17),
+                actualMove = analysis(fen = "actual", cp = 0, depth = 17),
+            ),
+        )
+    }
+
     private fun analysis(
         fen: String,
-        cp: Int,
+        cp: Int? = null,
         depth: Int,
         bestMove: String? = null,
+        mate: Int? = null,
     ) = InfoLineResultDto(
         line = null,
         fen = fen,
         depth = depth,
         cp = cp,
-        mate = null,
+        mate = mate,
         pv = bestMove?.let(::listOf) ?: emptyList(),
         bestMove = bestMove,
         isCheckmate = false,

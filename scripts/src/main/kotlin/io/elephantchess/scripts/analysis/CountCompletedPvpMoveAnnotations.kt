@@ -138,7 +138,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         println("Processed moves: ${totals.totalMoves}")
         println("Annotated moves: ${totals.annotatedMoves}")
         println("Neutral moves: ${totals.neutralMoves}")
-        println("Skipped moves (missing analysis data): ${totals.skippedMoves}")
+        println("Skipped moves (missing or incomparable analysis data): ${totals.skippedMoves}")
         println()
         val categoryRows = moveAnnotationCategoriesInOrder.map { category ->
             val aggregate = totals.categoryTotals.getValue(category)

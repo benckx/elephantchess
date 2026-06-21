@@ -1,11 +1,13 @@
 package io.elephantchess.scripts.analysis
 
+import io.elephantchess.scripts.game.calculateMoveAnnotation
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class CountCompletedPvpMoveAnnotationsTest {
@@ -90,8 +92,8 @@ class CountCompletedPvpMoveAnnotationsTest {
             secondMoveFen to analysis(
                 fen = secondMoveFen,
                 cp = 0,
-                depth = 18,
-                line = "info depth 18 score cp 0 pv $secondMove",
+                depth = 20,
+                line = "info depth 20 score cp 0 pv $secondMove",
             ),
         )
 
@@ -111,8 +113,26 @@ class CountCompletedPvpMoveAnnotationsTest {
         val lines = CountCompletedPvpMoveAnnotations.buildBrilliantMoveLines(brilliantMoves)
         assertEquals("BRILLIANT moves (all games): 1", lines[0])
         assertEquals("game=game123 ply=2 playedMove=b9c7 engineMove=h9g7 cpl=360", lines[1])
-        assertTrue(lines[2].contains("info depth 18 score cp 0 pv b9c7"))
+        assertTrue(lines[2].contains("info depth 20 score cp 0 pv b9c7"))
         assertTrue(lines[3].contains("info depth 20 score cp 360 pv h9g7"))
+    }
+
+    @Test
+    fun collectBrilliantMovesSkipsIncomparableDepths() {
+        val actualMove = analysis(
+            fen = "actual",
+            cp = 0,
+            depth = 20,
+            line = "info depth 20 score cp 0",
+        )
+        val engineMove = analysis(
+            fen = "engine",
+            cp = 360,
+            depth = 18,
+            line = "info depth 18 score cp 360",
+        )
+
+        assertNull(calculateMoveAnnotation(engineMove, actualMove))
     }
 
     private fun analysis(

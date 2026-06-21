@@ -35,6 +35,8 @@ const moveAnnotationSymbolTypesArray = [
     MoveAnnotationSymbolTypes.BRILLIANT,
 ]
 
+const MIN_COMPARABLE_ANALYSIS_DEPTH = 18;
+
 function moveAnnotationEnumToSymbol(annotation) {
     switch (annotation) {
         case MoveAnnotationSymbolTypes.BLUNDER:
@@ -165,7 +167,11 @@ function calculateAnnotationDetails(engineBest, actualMove) {
     const engineCp = infoLineResultToHeuristicCp(engineBest);
     const actualMoveCp = infoLineResultToHeuristicCp(actualMove);
 
-    if (engineCp == null && actualMoveCp == null) {
+    if (engineCp == null ||
+        actualMoveCp == null ||
+        engineBest.depth < MIN_COMPARABLE_ANALYSIS_DEPTH ||
+        actualMove.depth < MIN_COMPARABLE_ANALYSIS_DEPTH ||
+        engineBest.depth !== actualMove.depth) {
         return null;
     }
 
