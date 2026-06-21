@@ -86,22 +86,42 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         println("Neutral moves: $neutralMoves")
         println("Skipped moves (missing analysis data): $skippedMoves")
         println()
-        println("Category      Count   Pct     Avg CPL   Min   Max")
-        moveAnnotationCategoriesInOrder.forEach { category ->
+        val categoryRows = moveAnnotationCategoriesInOrder.map { category ->
             val aggregate = categoryTotals.getValue(category)
             val avg = aggregate.averageCpl()
             val avgLabel = if (avg == null) "-" else String.format(Locale.US, "%.1f", avg)
-            val percentage = if (totalMoves == 0) null else aggregate.count.toDouble() * 100.0 / totalMoves.toDouble()
-            val percentageLabel = if (percentage == null) "-" else String.format(Locale.US, "%.1f%%", percentage)
-            val minLabel = aggregate.minCpl?.toString() ?: "-"
-            val maxLabel = aggregate.maxCpl?.toString() ?: "-"
+            val percentageDenominator = totalMoves.takeIf { it > 0 }?.toDouble()
+            val percentage = percentageDenominator?.let { aggregate.count.toDouble() * 100.0 / it }
+            CategoryRow(
+                category = category,
+                count = aggregate.count.toString(),
+                percentage = if (percentage == null) "-" else String.format(Locale.US, "%.1f%%", percentage),
+                average = avgLabel,
+                min = aggregate.minCpl?.toString() ?: "-",
+                max = aggregate.maxCpl?.toString() ?: "-",
+            )
+        }
+        val countWidth = maxOf("Count".length, categoryRows.maxOf { it.count.length })
+        val percentageWidth = maxOf("Pct".length, categoryRows.maxOf { it.percentage.length })
+        val averageWidth = maxOf("Avg CPL".length, categoryRows.maxOf { it.average.length })
+        val minWidth = maxOf("Min".length, categoryRows.maxOf { it.min.length })
+        val maxWidth = maxOf("Max".length, categoryRows.maxOf { it.max.length })
+        println(
+            "Category      " +
+                "Count".padStart(countWidth) + "   " +
+                "Pct".padStart(percentageWidth) + "   " +
+                "Avg CPL".padStart(averageWidth) + "   " +
+                "Min".padStart(minWidth) + "   " +
+                "Max".padStart(maxWidth),
+        )
+        categoryRows.forEach { row ->
             println(
-                "${category.name.padEnd(13)} " +
-                    "${aggregate.count.toString().padStart(6)}   " +
-                    "${percentageLabel.padStart(6)}   " +
-                    "${avgLabel.padStart(7)}   " +
-                    "${minLabel.padStart(4)}   " +
-                    maxLabel.padStart(4),
+                "${row.category.name.padEnd(13)} " +
+                    "${row.count.padStart(countWidth)}   " +
+                    "${row.percentage.padStart(percentageWidth)}   " +
+                    "${row.average.padStart(averageWidth)}   " +
+                    "${row.min.padStart(minWidth)}   " +
+                    row.max.padStart(maxWidth),
             )
         }
 
@@ -124,4 +144,13 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             analysisMap = analysisMap,
         )
     }
+
+    private data class CategoryRow(
+        val category: MoveAnnotationCategory,
+        val count: String,
+        val percentage: String,
+        val average: String,
+        val min: String,
+        val max: String,
+    )
 }
