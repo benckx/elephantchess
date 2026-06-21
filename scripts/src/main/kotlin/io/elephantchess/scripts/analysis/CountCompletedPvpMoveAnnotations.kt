@@ -32,7 +32,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
     private const val ANALYSIS_HIGH_DEPTH = 20
     private const val PROGRESS_LOG_INTERVAL = 100
-    private const val RANDOM_SAMPLE_SIZE_PER_CATEGORY = 10
+    private const val RANDOM_SAMPLE_SIZE_PER_CATEGORY = 4
     private const val LOCALHOST_GAME_URL_PREFIX = "http://localhost:8080/game?id="
     private const val ELEPHANTCHESS_GAME_URL_PREFIX = "https://elephantchess.io/game?id="
 
