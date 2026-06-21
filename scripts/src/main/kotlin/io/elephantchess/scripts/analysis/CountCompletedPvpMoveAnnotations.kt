@@ -8,11 +8,17 @@ import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.scripts.game.AnnotationAggregate
+import io.elephantchess.scripts.game.calculateMoveAnnotation
+import io.elephantchess.scripts.game.findAnalysisDataFromEngineBestMove
 import io.elephantchess.scripts.game.MoveAnnotationCategory
 import io.elephantchess.scripts.game.MoveAnnotationSummary
 import io.elephantchess.scripts.game.moveAnnotationCategoriesInOrder
 import io.elephantchess.scripts.game.summarizeMoveAnnotations
+import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.servicelayer.services.GameDataService
+import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
@@ -50,6 +56,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
         val overallStats = SummaryTotals()
         val depth20Stats = SummaryTotals()
+        val brilliantMoves = mutableListOf<BrilliantMoveDetail>()
         val failedGameIds = mutableListOf<String>()
 
         gameIds.forEachIndexed { index, gameId ->
@@ -62,6 +69,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             }.onSuccess { summaries ->
                 overallStats.merge(summaries.allMoves)
                 depth20Stats.merge(summaries.depth20Only)
+                brilliantMoves += summaries.brilliantMoves
             }.onFailure { error ->
                 failedGameIds += gameId
                 println("Failed to process $gameId: ${error.message}")
@@ -82,6 +90,8 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             failedCount = failedGameIds.size,
             totals = depth20Stats,
         )
+        println()
+        printBrilliantMovesSection(brilliantMoves)
 
         if (failedGameIds.isNotEmpty()) {
             println()
@@ -107,6 +117,11 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                 moves = moves,
                 analysisMap = analysisMap,
                 actualMoveFilter = { it?.depth == ANALYSIS_DEPTH_20 },
+            ),
+            brilliantMoves = collectBrilliantMoves(
+                gameId = gameId,
+                moves = moves,
+                analysisMap = analysisMap,
             ),
         )
     }
@@ -200,9 +215,100 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             ?.let { String.format(Locale.US, "%.1f%%", count.toDouble() * 100.0 / it) }
             ?: "-"
 
+    internal fun collectBrilliantMoves(
+        gameId: String,
+        moves: List<String>,
+        analysisMap: Map<String, InfoLineResultDto>,
+        startFen: String = DEFAULT_START_FEN,
+    ): List<BrilliantMoveDetail> {
+        val board = Board(startFen)
+        val brilliantMoves = mutableListOf<BrilliantMoveDetail>()
+
+        moves.forEachIndexed { index, move ->
+            val previousNodeData = analysisMap[resetFullMoveCount(board.outputFen())]
+            val engineBestAnalysis = previousNodeData?.let { findAnalysisDataFromEngineBestMove(analysisMap, it) }
+            val engineMove = previousNodeData?.bestMove
+
+            board.registerMove(move)
+            val actualMoveAnalysis = analysisMap[resetFullMoveCount(board.outputFen())]
+
+            val annotation = calculateMoveAnnotation(engineBestAnalysis, actualMoveAnalysis)
+            if (annotation?.category == MoveAnnotationCategory.BRILLIANT &&
+                engineBestAnalysis != null &&
+                actualMoveAnalysis != null &&
+                engineMove != null
+            ) {
+                brilliantMoves += BrilliantMoveDetail(
+                    gameId = gameId,
+                    ply = index + 1,
+                    playedMove = move,
+                    engineMove = engineMove,
+                    cpl = annotation.cpl,
+                    actualMoveAnalysis = actualMoveAnalysis,
+                    engineBestAnalysis = engineBestAnalysis,
+                )
+            }
+        }
+
+        return brilliantMoves
+    }
+
+    internal fun buildBrilliantMoveLines(brilliantMoves: List<BrilliantMoveDetail>): List<String> {
+        if (brilliantMoves.isEmpty()) {
+            return listOf("BRILLIANT moves (all games): 0")
+        }
+
+        return buildList {
+            add("BRILLIANT moves (all games): ${brilliantMoves.size}")
+            brilliantMoves.forEachIndexed { index, detail ->
+                add("game=${detail.gameId} ply=${detail.ply} playedMove=${detail.playedMove} engineMove=${detail.engineMove} cpl=${detail.cpl}")
+                add("  played: ${formatInfoLine(detail.actualMoveAnalysis)}")
+                add("  engine: ${formatInfoLine(detail.engineBestAnalysis)}")
+                if (index < brilliantMoves.lastIndex) {
+                    add("")
+                }
+            }
+        }
+    }
+
+    private fun printBrilliantMovesSection(brilliantMoves: List<BrilliantMoveDetail>) {
+        buildBrilliantMoveLines(brilliantMoves).forEach(::println)
+    }
+
+    private fun formatInfoLine(infoLine: InfoLineResultDto): String =
+        infoLine.line ?: buildString {
+            append("depth=")
+            append(infoLine.depth ?: "-")
+            append(" cp=")
+            append(infoLine.cp ?: "-")
+            append(" mate=")
+            append(infoLine.mate ?: "-")
+            append(" bestMove=")
+            append(infoLine.bestMove ?: "-")
+            append(" pv=")
+            append(
+                if (infoLine.pv.isEmpty()) {
+                    "-"
+                } else {
+                    infoLine.pv.joinToString(" ")
+                },
+            )
+        }
+
     private data class GameSummaries(
         val allMoves: MoveAnnotationSummary,
         val depth20Only: MoveAnnotationSummary,
+        val brilliantMoves: List<BrilliantMoveDetail>,
+    )
+
+    internal data class BrilliantMoveDetail(
+        val gameId: String,
+        val ply: Int,
+        val playedMove: String,
+        val engineMove: String,
+        val cpl: Int,
+        val actualMoveAnalysis: InfoLineResultDto,
+        val engineBestAnalysis: InfoLineResultDto,
     )
 
     private data class SummaryTotals(
