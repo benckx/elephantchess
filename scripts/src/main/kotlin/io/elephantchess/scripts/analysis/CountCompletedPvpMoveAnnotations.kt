@@ -291,7 +291,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                 add(
                     "game=${detail.gameId} ply=${detail.ply} moveIndex=${detail.moveIndex} " +
                         "fullMoveIndex=${detail.fullMoveIndex} playedMove=${detail.playedMove} " +
-                        "engineMove=${detail.engineMove} cpl=${detail.cpl}",
+                        "engineMove=${detail.engineMove} cpl=${detail.cpl} annotation=${detail.category}",
                 )
                 add("  fen: ${detail.fenBeforeMove}")
                 add("  localhost: ${LOCALHOST_GAME_URL_PREFIX}${detail.gameId}")
