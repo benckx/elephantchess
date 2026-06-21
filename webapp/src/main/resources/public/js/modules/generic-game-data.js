@@ -492,6 +492,9 @@ class GameMoveAnnotationDto {
     #engineCp;
     #actualMoveCp;
 
+    /**
+     * @param json {object}
+     */
     constructor(json) {
         this.#moveIndex = json.moveIndex;
         this.#annotation = json.annotation;
@@ -500,22 +503,37 @@ class GameMoveAnnotationDto {
         this.#actualMoveCp = json.actualMoveCp;
     }
 
+    /**
+     * @return {number}
+     */
     get moveIndex() {
         return this.#moveIndex;
     }
 
+    /**
+     * @return {string}
+     */
     get annotation() {
         return this.#annotation;
     }
 
+    /**
+     * @return {number}
+     */
     get cpl() {
         return this.#cpl;
     }
 
+    /**
+     * @return {number}
+     */
     get engineCp() {
         return this.#engineCp;
     }
 
+    /**
+     * @return {number}
+     */
     get actualMoveCp() {
         return this.#actualMoveCp;
     }
@@ -527,15 +545,24 @@ class GameAnalysisResponseDto {
     #entries;
     #moveAnnotations;
 
+    /**
+     * @param json {object}
+     */
     constructor(json) {
         this.#entries = json.entries.map(jsonEntry => new InfoLineResult(jsonEntry));
         this.#moveAnnotations = (json.moveAnnotations ?? []).map(jsonEntry => new GameMoveAnnotationDto(jsonEntry));
     }
 
+    /**
+     * @return {InfoLineResult[]}
+     */
     get entries() {
         return this.#entries;
     }
 
+    /**
+     * @return {GameMoveAnnotationDto[]}
+     */
     get moveAnnotations() {
         return this.#moveAnnotations;
     }
