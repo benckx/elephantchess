@@ -103,6 +103,7 @@ class AnalysisBoardPage extends BasePage {
     #startFen = DEFAULT_START_FEN;
     #analysisSummaryRenderTimeout = null;
     #moveTreeEvalRefreshTimeout = null;
+    #moveAnnotations = [];
 
     constructor() {
         super();
@@ -275,6 +276,8 @@ class AnalysisBoardPage extends BasePage {
 
                 this.#gameDataClient.fetchAnalysisData(response => {
                     this.#analysisCache.populateCache(response.entries);
+                    this.#moveAnnotations = response.moveAnnotations;
+                    this.#moveTreeWidget.applyAnnotationSymbols(this.#moveAnnotations);
                     this.#renderAnalysisSummaryIfLongEnough();
                     this.#startUpWidgets();
                 });
@@ -511,7 +514,9 @@ class AnalysisBoardPage extends BasePage {
         // fetch updated data every 2 sec
         const fetchAnalysisDataInterval = setInterval(() => {
             this.#gameDataClient.fetchAnalysisData(response => {
-                this.#analysisCache.populateCache(response.entries)
+                this.#analysisCache.populateCache(response.entries);
+                this.#moveAnnotations = response.moveAnnotations;
+                this.#moveTreeWidget.applyAnnotationSymbols(this.#moveAnnotations);
             });
         }, 2_000);
 
@@ -542,6 +547,8 @@ class AnalysisBoardPage extends BasePage {
                         // fetch the final analysis data
                         this.#gameDataClient.fetchAnalysisData(response => {
                             this.#analysisCache.populateCache(response.entries);
+                            this.#moveAnnotations = response.moveAnnotations;
+                            this.#moveTreeWidget.applyAnnotationSymbols(this.#moveAnnotations);
                             this.#renderAnalysisSummaryIfLongEnough();
                         });
                         break;
@@ -673,7 +680,8 @@ class AnalysisBoardPage extends BasePage {
                 this.#gameMetadata?.redPlayerName,
                 this.#gameMetadata?.blackPlayerName,
                 this.#gameMetadata?.outcome,
-                this.#moveTreeWidget
+                this.#moveTreeWidget,
+                this.#moveAnnotations
             );
         }
     }

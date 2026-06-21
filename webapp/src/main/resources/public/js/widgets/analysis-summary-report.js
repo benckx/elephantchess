@@ -95,7 +95,7 @@ function renderAnalysisSummaryReport(
     blackPlayerName,
     outcome,
     moveTreeWidget,
-    moveAnnotations
+    moveAnnotations = []
 ) {
     const nodes = moveTreeWidget.getMainBranchNodes();
     const startFen = moveTreeWidget.startFen;
