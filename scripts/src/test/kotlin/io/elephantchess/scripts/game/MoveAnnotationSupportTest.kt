@@ -4,6 +4,7 @@ import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -242,6 +243,7 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.BRILLIANT,
                 expectedCpl = 978,
                 actualCp = -31752,
+                expectedActualCp = -MAX_ABS_CP,
                 engineCp = -6728,
             ),
         )
@@ -267,7 +269,7 @@ class MoveAnnotationSupportTest {
                 category = case.expectedCategory,
                 cpl = case.expectedCpl,
                 engineCp = case.expectedEngineCp,
-                actualMoveCp = case.expectedActualCp,
+                actualMoveCp = case.resolvedActualCp,
             ),
             calculateMoveAnnotation(engineBest, actualMove),
         )
@@ -295,18 +297,19 @@ class MoveAnnotationSupportTest {
         val expectedCpl: Int,
         val actualCp: Int? = null,
         val actualMate: Int? = null,
+        val expectedActualCp: Int? = null,
         val engineCp: Int? = null,
         val engineMate: Int? = null,
     ) {
         val expectedEngineCp: Int
             get() = engineCp ?: heuristicMateCp(engineMate)
 
-        val expectedActualCp: Int
-            get() = actualCp?.coerceIn(-MAX_ABS_CP, MAX_ABS_CP) ?: heuristicMateCp(actualMate)
+        val resolvedActualCp: Int
+            get() = expectedActualCp ?: actualCp?.coerceIn(-MAX_ABS_CP, MAX_ABS_CP) ?: heuristicMateCp(actualMate)
 
         private fun heuristicMateCp(mate: Int?): Int {
             requireNotNull(mate)
-            val bonus = (MAX_MATE - kotlin.math.abs(mate)).coerceAtLeast(0) * MATE_BONUS_PER_MOVE
+            val bonus = (MAX_MATE - abs(mate)).coerceAtLeast(0) * MATE_BONUS_PER_MOVE
             return if (mate < 0) -MAX_ABS_CP - bonus else MAX_ABS_CP + bonus
         }
     }
