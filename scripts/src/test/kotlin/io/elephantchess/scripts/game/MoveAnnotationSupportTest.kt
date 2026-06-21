@@ -1,6 +1,9 @@
 package io.elephantchess.scripts.game
 
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
+import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -57,14 +60,60 @@ class MoveAnnotationSupportTest {
         assertEquals(240, calculateCpl(infoLine(cp = -7954), infoLine(mate = -10)))
     }
 
-    private fun infoLine(cp: Int? = null, mate: Int? = null, isCheckmate: Boolean = false) = InfoLineResultDto(
+    @Test
+    fun `summarizeMoveAnnotations counts annotated neutral and skipped moves`() {
+        val moves = listOf("c3c4", "b9c7", "g3g4")
+        val board = Board(DEFAULT_START_FEN)
+
+        val startFen = resetFullMoveCount(board.outputFen())
+        val bestFen1 = board.afterMoveFen("h0g2")
+        board.registerMove(moves[0])
+        val actualFen1 = resetFullMoveCount(board.outputFen())
+
+        val actualFen2 = board.afterMoveFen(moves[1])
+        board.registerMove(moves[1])
+        val fenBeforeMove3 = resetFullMoveCount(board.outputFen())
+
+        val analysisMap = mapOf(
+            startFen to infoLine(fen = startFen, bestMove = "h0g2"),
+            bestFen1 to infoLine(fen = bestFen1, cp = 100),
+            actualFen1 to infoLine(fen = actualFen1, cp = 400, bestMove = moves[1]),
+            actualFen2 to infoLine(fen = actualFen2, cp = 80),
+        )
+
+        val summary = summarizeMoveAnnotations(moves, analysisMap)
+
+        assertEquals(3, summary.totalMoves)
+        assertEquals(1, summary.annotatedMoves)
+        assertEquals(1, summary.neutralMoves)
+        assertEquals(1, summary.skippedMoves)
+        assertEquals(1, summary.categoryTotals.getValue(MoveAnnotationCategory.BLUNDER).count)
+        assertEquals(-300L, summary.categoryTotals.getValue(MoveAnnotationCategory.BLUNDER).totalCpl)
+        assertEquals(0, summary.categoryTotals.getValue(MoveAnnotationCategory.MISTAKE).count)
+        assertNull(summary.categoryTotals.getValue(MoveAnnotationCategory.MISTAKE).averageCpl())
+        assertEquals(fenBeforeMove3, resetFullMoveCount(board.outputFen()))
+    }
+
+    private fun infoLine(
+        fen: String = "fen",
+        cp: Int? = null,
+        mate: Int? = null,
+        bestMove: String? = null,
+        isCheckmate: Boolean = false,
+    ) = InfoLineResultDto(
         line = null,
-        fen = "fen",
+        fen = fen,
         depth = 20,
         cp = cp,
         mate = mate,
-        pv = emptyList(),
-        bestMove = null,
+        pv = listOfNotNull(bestMove),
+        bestMove = bestMove,
         isCheckmate = isCheckmate,
     )
+
+    private fun Board.afterMoveFen(move: String): String {
+        val copy = copy()
+        copy.registerMove(move)
+        return resetFullMoveCount(copy.outputFen())
+    }
 }

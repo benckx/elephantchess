@@ -7,14 +7,11 @@ import io.elephantchess.model.AnalysisStatus.COMPLETED
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.scripts.KoinScriptInit
+import io.elephantchess.scripts.game.AnnotationAggregate
 import io.elephantchess.scripts.game.MoveAnnotationCategory
-import io.elephantchess.scripts.game.calculateMoveAnnotation
-import io.elephantchess.scripts.game.findAnalysisDataFromEngineBestMove
 import io.elephantchess.scripts.game.moveAnnotationCategoriesInOrder
+import io.elephantchess.scripts.game.summarizeMoveAnnotations
 import io.elephantchess.servicelayer.services.GameDataService
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
@@ -108,40 +105,23 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             .entries
             .associateBy { it.fen }
 
-        val board = Board(DEFAULT_START_FEN)
-        var annotatedMoves = 0
-        var neutralMoves = 0
-        var skippedMoves = 0
+        val summary = summarizeMoveAnnotations(
+            moves = pvpGameDaoService.listMoves(gameId),
+            analysisMap = analysisMap,
+        )
 
-        pvpGameDaoService.listMoves(gameId).forEach { move ->
-            val previousNodeData = analysisMap[resetFullMoveCount(board.outputFen())]
-            val engineBestAnalysis = previousNodeData?.let { findAnalysisDataFromEngineBestMove(analysisMap, it) }
-
-            board.registerMove(move)
-            val actualMoveAnalysis = analysisMap[resetFullMoveCount(board.outputFen())]
-
-            when {
-                previousNodeData == null || engineBestAnalysis == null || actualMoveAnalysis == null -> {
-                    skippedMoves++
-                }
-
-                else -> {
-                    val annotation = calculateMoveAnnotation(engineBestAnalysis, actualMoveAnalysis)
-                    if (annotation == null) {
-                        neutralMoves++
-                    } else {
-                        categoryTotals.getValue(annotation.category).add(annotation.cpl)
-                        annotatedMoves++
-                    }
-                }
-            }
+        summary.categoryTotals.forEach { (category, aggregate) ->
+            categoryTotals[category] = categoryTotals.getValue(category).copy(
+                count = categoryTotals.getValue(category).count + aggregate.count,
+                totalCpl = categoryTotals.getValue(category).totalCpl + aggregate.totalCpl,
+            )
         }
 
         return GameProcessingStats(
-            totalMoves = annotatedMoves + neutralMoves + skippedMoves,
-            annotatedMoves = annotatedMoves,
-            neutralMoves = neutralMoves,
-            skippedMoves = skippedMoves,
+            totalMoves = summary.totalMoves,
+            annotatedMoves = summary.annotatedMoves,
+            neutralMoves = summary.neutralMoves,
+            skippedMoves = summary.skippedMoves,
         )
     }
 
@@ -151,18 +131,4 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         val neutralMoves: Int,
         val skippedMoves: Int,
     )
-
-    private class AnnotationAggregate {
-        var count: Int = 0
-            private set
-        private var totalCpl: Long = 0
-
-        fun add(cpl: Int) {
-            count++
-            totalCpl += cpl
-        }
-
-        fun averageCpl(): Double? =
-            if (count == 0) null else totalCpl.toDouble() / count.toDouble()
-    }
 }

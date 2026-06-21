@@ -2,6 +2,7 @@ package io.elephantchess.scripts.game
 
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import kotlin.math.abs
 
@@ -30,6 +31,72 @@ internal data class MoveAnnotationResult(
     val category: MoveAnnotationCategory,
     val cpl: Int,
 )
+
+internal data class AnnotationAggregate(
+    val count: Int = 0,
+    val totalCpl: Long = 0,
+) {
+    fun add(cpl: Int): AnnotationAggregate =
+        copy(count = count + 1, totalCpl = totalCpl + cpl)
+
+    fun averageCpl(): Double? =
+        if (count == 0) null else totalCpl.toDouble() / count.toDouble()
+}
+
+internal data class MoveAnnotationSummary(
+    val annotatedMoves: Int,
+    val neutralMoves: Int,
+    val skippedMoves: Int,
+    val categoryTotals: Map<MoveAnnotationCategory, AnnotationAggregate>,
+) {
+    val totalMoves: Int
+        get() = annotatedMoves + neutralMoves + skippedMoves
+}
+
+internal fun summarizeMoveAnnotations(
+    moves: List<String>,
+    analysisMap: Map<String, InfoLineResultDto>,
+    startFen: String = DEFAULT_START_FEN,
+): MoveAnnotationSummary {
+    val board = Board(startFen)
+    var annotatedMoves = 0
+    var neutralMoves = 0
+    var skippedMoves = 0
+    val categoryTotals = moveAnnotationCategoriesInOrder
+        .associateWith { AnnotationAggregate() }
+        .toMutableMap()
+
+    moves.forEach { move ->
+        val previousNodeData = analysisMap[resetFullMoveCount(board.outputFen())]
+        val engineBestAnalysis = previousNodeData?.let { findAnalysisDataFromEngineBestMove(analysisMap, it) }
+
+        board.registerMove(move)
+        val actualMoveAnalysis = analysisMap[resetFullMoveCount(board.outputFen())]
+
+        when {
+            previousNodeData == null || engineBestAnalysis == null || actualMoveAnalysis == null -> {
+                skippedMoves++
+            }
+
+            else -> {
+                val annotation = calculateMoveAnnotation(engineBestAnalysis, actualMoveAnalysis)
+                if (annotation == null) {
+                    neutralMoves++
+                } else {
+                    categoryTotals[annotation.category] = categoryTotals.getValue(annotation.category).add(annotation.cpl)
+                    annotatedMoves++
+                }
+            }
+        }
+    }
+
+    return MoveAnnotationSummary(
+        annotatedMoves = annotatedMoves,
+        neutralMoves = neutralMoves,
+        skippedMoves = skippedMoves,
+        categoryTotals = categoryTotals,
+    )
+}
 
 internal fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): MoveAnnotationResult? {
     val cpl = calculateCpl(engineBest, actualMove) ?: return null
@@ -64,8 +131,6 @@ internal fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
             else -> MoveAnnotationCategory.INTERESTING
         }
     }
-
-    return null
 }
 
 internal fun findAnalysisDataFromEngineBestMove(
