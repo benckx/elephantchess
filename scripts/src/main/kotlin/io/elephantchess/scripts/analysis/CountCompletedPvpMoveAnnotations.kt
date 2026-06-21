@@ -9,6 +9,7 @@ import io.elephantchess.model.GameType.PVP
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.scripts.game.AnnotationAggregate
 import io.elephantchess.scripts.game.MoveAnnotationCategory
+import io.elephantchess.scripts.game.MoveAnnotationSummary
 import io.elephantchess.scripts.game.moveAnnotationCategoriesInOrder
 import io.elephantchess.scripts.game.summarizeMoveAnnotations
 import io.elephantchess.servicelayer.services.GameDataService
@@ -62,12 +63,18 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             }
 
             runCatching {
-                processGame(gameId, categoryTotals)
-            }.onSuccess { stats ->
-                totalMoves += stats.totalMoves
-                annotatedMoves += stats.annotatedMoves
-                neutralMoves += stats.neutralMoves
-                skippedMoves += stats.skippedMoves
+                processGame(gameId)
+            }.onSuccess { summary ->
+                totalMoves += summary.totalMoves
+                annotatedMoves += summary.annotatedMoves
+                neutralMoves += summary.neutralMoves
+                skippedMoves += summary.skippedMoves
+                summary.categoryTotals.forEach { (category, aggregate) ->
+                    categoryTotals[category] = categoryTotals.getValue(category).copy(
+                        count = categoryTotals.getValue(category).count + aggregate.count,
+                        totalCpl = categoryTotals.getValue(category).totalCpl + aggregate.totalCpl,
+                    )
+                }
             }.onFailure { error ->
                 failedGameIds += gameId
                 println("Failed to process $gameId: ${error.message}")
@@ -98,37 +105,15 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
     private suspend fun processGame(
         gameId: String,
-        categoryTotals: MutableMap<MoveAnnotationCategory, AnnotationAggregate>,
-    ): GameProcessingStats {
+    ): MoveAnnotationSummary {
         val analysisMap = gameDataService
             .fetchAnalysisData(GameId(PVP, gameId))
             .entries
             .associateBy { it.fen }
 
-        val summary = summarizeMoveAnnotations(
+        return summarizeMoveAnnotations(
             moves = pvpGameDaoService.listMoves(gameId),
             analysisMap = analysisMap,
         )
-
-        summary.categoryTotals.forEach { (category, aggregate) ->
-            categoryTotals[category] = categoryTotals.getValue(category).copy(
-                count = categoryTotals.getValue(category).count + aggregate.count,
-                totalCpl = categoryTotals.getValue(category).totalCpl + aggregate.totalCpl,
-            )
-        }
-
-        return GameProcessingStats(
-            totalMoves = summary.totalMoves,
-            annotatedMoves = summary.annotatedMoves,
-            neutralMoves = summary.neutralMoves,
-            skippedMoves = summary.skippedMoves,
-        )
     }
-
-    private data class GameProcessingStats(
-        val totalMoves: Int,
-        val annotatedMoves: Int,
-        val neutralMoves: Int,
-        val skippedMoves: Int,
-    )
 }
