@@ -56,10 +56,10 @@ function fetchDataAndrenderAnalysisSummaryReport(gameId, moveTreeWidget) {
     const client = new GameDataClient(gameId);
     client.fetchAnalysisStatus((analysisProgressStatus) => {
         if (analysisProgressStatus.status === AnalysisStatus.COMPLETED) {
-            client.fetchAnalysisData((infoLineResults) => {
+            client.fetchAnalysisData((analysisResponse) => {
                 client.fetchMetadata((gameMetadata) => {
                     const analysisMap = new Map();
-                    infoLineResults.forEach((infoLineResult) => {
+                    analysisResponse.entries.forEach((infoLineResult) => {
                         analysisMap.set(resetFenFullMovesCount(infoLineResult.fen), infoLineResult);
                     });
 
@@ -68,11 +68,12 @@ function fetchDataAndrenderAnalysisSummaryReport(gameId, moveTreeWidget) {
                         gameMetadata.redPlayerName,
                         gameMetadata.blackPlayerName,
                         gameMetadata.outcome,
-                        moveTreeWidget
+                        moveTreeWidget,
+                        analysisResponse.moveAnnotations
                     );
 
                     if (moveTreeWidget != null) {
-                        moveTreeWidget.applyAnnotationSymbolsFromCache(analysisMap);
+                        moveTreeWidget.applyAnnotationSymbols(analysisResponse.moveAnnotations);
                     }
                 });
             });
@@ -86,16 +87,19 @@ function fetchDataAndrenderAnalysisSummaryReport(gameId, moveTreeWidget) {
  * @param blackPlayerName {string|null}
  * @param outcome {string|null}
  * @param moveTreeWidget {MoveTreeWidget}
+ * @param moveAnnotations {GameMoveAnnotationDto[]}
  */
 function renderAnalysisSummaryReport(
     analysisMap,
     redPlayerName,
     blackPlayerName,
     outcome,
-    moveTreeWidget
+    moveTreeWidget,
+    moveAnnotations
 ) {
     const nodes = moveTreeWidget.getMainBranchNodes();
     const startFen = moveTreeWidget.startFen;
+    const annotationsByMoveIndex = new Map(moveAnnotations.map(annotation => [annotation.moveIndex, annotation]));
     const onClickNode = (node) => {
         if (node != null) {
             moveTreeWidget.selectNodeById(node.nodeId);
@@ -114,36 +118,11 @@ function renderAnalysisSummaryReport(
             return nodes.map(node => node.fenKey).every(fenKey => analysisMap.has(fenKey));
         }
 
-        function hasDataForBestEngineMoves() {
-            return nodes.every(node => {
-                if (node.hasPrevious()) {
-                    const previousNodeData = analysisMap.get(node.previous.fenKey);
-                    if (previousNodeData == null) {
-                        return false;
-                    }
-
-                    if (previousNodeData.pv.length > 0) {
-                        const bestMove = previousNodeData.pv[0];
-                        const board = new Board();
-                        board.loadFen(previousNodeData.fen);
-                        board.registerMove(bestMove);
-                        const resultingFen = resetFenFullMovesCount(board.outputFen());
-                        if (!analysisMap.has(resultingFen)) {
-                            return false;
-                        }
-                    }
-                }
-
-                return true;
-            });
-        }
-
         function hasDataForStartPosition() {
             return analysisMap.has(resetFenFullMovesCount(startFen));
         }
 
         return hasDataForActualMoves() &&
-            hasDataForBestEngineMoves() &&
             hasDataForStartPosition();
     }
 
@@ -162,12 +141,9 @@ function renderAnalysisSummaryReport(
             }
 
             if (previousNodeData.colorToPlay === color) {
-                const dataFromEngineBestMove = findAnalysisDataFromEngineBestMove(analysisMap, previousNodeData);
-                if (dataFromEngineBestMove != null) {
-                    const annotationValue = calculateAnnotationValue(dataFromEngineBestMove, analysisMap.get(node.fenKey));
-                    if (annotationValue != null) {
-                        counter.set(annotationValue, counter.get(annotationValue) + 1 || 1);
-                    }
+                const moveAnnotation = annotationsByMoveIndex.get(node.position);
+                if (moveAnnotation != null) {
+                    counter.set(moveAnnotation.annotation, counter.get(moveAnnotation.annotation) + 1 || 1);
                 }
             }
         });

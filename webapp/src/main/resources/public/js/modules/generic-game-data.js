@@ -484,6 +484,64 @@ class AnalysisProgressStatusDto {
 
 }
 
+class GameMoveAnnotationDto {
+
+    #moveIndex;
+    #annotation;
+    #cpl;
+    #engineCp;
+    #actualMoveCp;
+
+    constructor(json) {
+        this.#moveIndex = json.moveIndex;
+        this.#annotation = json.annotation;
+        this.#cpl = json.cpl;
+        this.#engineCp = json.engineCp;
+        this.#actualMoveCp = json.actualMoveCp;
+    }
+
+    get moveIndex() {
+        return this.#moveIndex;
+    }
+
+    get annotation() {
+        return this.#annotation;
+    }
+
+    get cpl() {
+        return this.#cpl;
+    }
+
+    get engineCp() {
+        return this.#engineCp;
+    }
+
+    get actualMoveCp() {
+        return this.#actualMoveCp;
+    }
+
+}
+
+class GameAnalysisResponseDto {
+
+    #entries;
+    #moveAnnotations;
+
+    constructor(json) {
+        this.#entries = json.entries.map(jsonEntry => new InfoLineResult(jsonEntry));
+        this.#moveAnnotations = (json.moveAnnotations ?? []).map(jsonEntry => new GameMoveAnnotationDto(jsonEntry));
+    }
+
+    get entries() {
+        return this.#entries;
+    }
+
+    get moveAnnotations() {
+        return this.#moveAnnotations;
+    }
+
+}
+
 class GameDataClient {
 
     #gameId;
@@ -528,11 +586,11 @@ class GameDataClient {
     }
 
     /**
-     * @param cb {function(InfoLineResult[])}
+     * @param cb {function(GameAnalysisResponseDto)}
      */
     fetchAnalysisData(cb) {
         const url = `${API_GAME_DATA}/game-analysis-data?${this.#urlParams()}`;
-        getAndHandle(url, json => cb(json.entries.map(jsonEntry => new InfoLineResult(jsonEntry))));
+        getAndHandle(url, json => cb(new GameAnalysisResponseDto(json)));
     }
 
     #urlParams() {

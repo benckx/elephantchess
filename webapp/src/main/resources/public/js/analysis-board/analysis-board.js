@@ -273,8 +273,8 @@ class AnalysisBoardPage extends BasePage {
             this.#gameDataClient.fetchMoves(moves => {
                 this.#moveTreeWidget.setMoves(moves);
 
-                this.#gameDataClient.fetchAnalysisData(entries => {
-                    this.#analysisCache.populateCache(entries);
+                this.#gameDataClient.fetchAnalysisData(response => {
+                    this.#analysisCache.populateCache(response.entries);
                     this.#renderAnalysisSummaryIfLongEnough();
                     this.#startUpWidgets();
                 });
@@ -510,8 +510,8 @@ class AnalysisBoardPage extends BasePage {
 
         // fetch updated data every 2 sec
         const fetchAnalysisDataInterval = setInterval(() => {
-            this.#gameDataClient.fetchAnalysisData(entries => {
-                this.#analysisCache.populateCache(entries)
+            this.#gameDataClient.fetchAnalysisData(response => {
+                this.#analysisCache.populateCache(response.entries)
             });
         }, 2_000);
 
@@ -540,8 +540,8 @@ class AnalysisBoardPage extends BasePage {
                         }, PROGRESS_BAR_DISAPPEAR_TIMEOUT);
 
                         // fetch the final analysis data
-                        this.#gameDataClient.fetchAnalysisData(entries => {
-                            this.#analysisCache.populateCache(entries);
+                        this.#gameDataClient.fetchAnalysisData(response => {
+                            this.#analysisCache.populateCache(response.entries);
                             this.#renderAnalysisSummaryIfLongEnough();
                         });
                         break;

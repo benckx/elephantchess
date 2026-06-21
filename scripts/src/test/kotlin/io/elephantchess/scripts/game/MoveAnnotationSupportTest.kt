@@ -83,6 +83,45 @@ class MoveAnnotationSupportTest {
         )
     }
 
+    @Test
+    fun collectMoveAnnotationsReturnsTooltipCalculationData() {
+        val move = "h2e2"
+        val bestMove = "c3c4"
+
+        val startBoard = Board(DEFAULT_START_FEN)
+        val startFen = resetFullMoveCount(startBoard.outputFen())
+
+        val bestMoveBoard = Board(DEFAULT_START_FEN)
+        bestMoveBoard.registerMove(bestMove)
+        val bestMoveFen = resetFullMoveCount(bestMoveBoard.outputFen())
+
+        val actualMoveBoard = Board(DEFAULT_START_FEN)
+        actualMoveBoard.registerMove(move)
+        val actualMoveFen = resetFullMoveCount(actualMoveBoard.outputFen())
+
+        val annotations = collectMoveAnnotations(
+            moves = listOf(move),
+            analysisMap = mapOf(
+                startFen to analysis(fen = startFen, bestMove = bestMove, cp = 0, depth = 20),
+                bestMoveFen to analysis(fen = bestMoveFen, cp = 360, depth = 20),
+                actualMoveFen to analysis(fen = actualMoveFen, cp = 0, depth = 20),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                MoveAnnotationDetails(
+                    moveIndex = 0,
+                    category = MoveAnnotationCategory.BRILLIANT,
+                    cpl = 360,
+                    engineCp = 360,
+                    actualMoveCp = 0,
+                ),
+            ),
+            annotations,
+        )
+    }
+
     private fun analysis(
         fen: String,
         cp: Int,

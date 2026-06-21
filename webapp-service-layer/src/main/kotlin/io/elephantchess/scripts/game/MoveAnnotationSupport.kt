@@ -10,7 +10,7 @@ import kotlin.math.abs
 private const val MAX_ABS_CP = 7_706
 private const val MIN_COMPARABLE_ANALYSIS_DEPTH = 18
 
-internal enum class MoveAnnotationCategory {
+enum class MoveAnnotationCategory {
     BLUNDER,
     MISTAKE,
     INACCURACY,
@@ -19,7 +19,7 @@ internal enum class MoveAnnotationCategory {
     BRILLIANT,
 }
 
-internal val moveAnnotationCategoriesInOrder = listOf(
+val moveAnnotationCategoriesInOrder = listOf(
     MoveAnnotationCategory.BLUNDER,
     MoveAnnotationCategory.MISTAKE,
     MoveAnnotationCategory.INACCURACY,
@@ -28,12 +28,22 @@ internal val moveAnnotationCategoriesInOrder = listOf(
     MoveAnnotationCategory.BRILLIANT,
 )
 
-internal data class MoveAnnotationResult(
+data class MoveAnnotationResult(
     val category: MoveAnnotationCategory,
     val cpl: Int,
+    val engineCp: Int,
+    val actualMoveCp: Int,
 )
 
-internal data class AnnotationAggregate(
+data class MoveAnnotationDetails(
+    val moveIndex: Int,
+    val category: MoveAnnotationCategory,
+    val cpl: Int,
+    val engineCp: Int,
+    val actualMoveCp: Int,
+)
+
+data class AnnotationAggregate(
     val count: Int = 0,
     val totalCpl: Long = 0,
     val minCpl: Int? = null,
@@ -67,7 +77,7 @@ internal data class AnnotationAggregate(
         if (count == 0) null else totalCpl.toDouble() / count.toDouble()
 }
 
-internal data class MoveAnnotationSummary(
+data class MoveAnnotationSummary(
     val annotatedMoves: Int,
     val neutralMoves: Int,
     val skippedMoves: Int,
@@ -77,7 +87,7 @@ internal data class MoveAnnotationSummary(
         get() = annotatedMoves + neutralMoves + skippedMoves
 }
 
-internal fun summarizeMoveAnnotations(
+fun summarizeMoveAnnotations(
     moves: List<String>,
     analysisMap: Map<String, InfoLineResultDto>,
     startFen: String = DEFAULT_START_FEN,
@@ -131,13 +141,50 @@ internal fun summarizeMoveAnnotations(
     )
 }
 
-internal fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): MoveAnnotationResult? {
-    val cpl = calculateCpl(engineBest, actualMove) ?: return null
-    val category = moveAnnotationCategoryFromCpl(cpl) ?: return null
-    return MoveAnnotationResult(category, cpl)
+fun collectMoveAnnotations(
+    moves: List<String>,
+    analysisMap: Map<String, InfoLineResultDto>,
+    startFen: String = DEFAULT_START_FEN,
+): List<MoveAnnotationDetails> {
+    val board = Board(startFen)
+    val annotations = mutableListOf<MoveAnnotationDetails>()
+
+    moves.forEachIndexed { index, move ->
+        val previousNodeData = analysisMap[resetFullMoveCount(board.outputFen())]
+        val engineBestAnalysis = previousNodeData?.let { findAnalysisDataFromEngineBestMove(analysisMap, it) }
+
+        board.registerMove(move)
+        val actualMoveAnalysis = analysisMap[resetFullMoveCount(board.outputFen())]
+
+        val annotation = calculateMoveAnnotation(engineBestAnalysis, actualMoveAnalysis)
+        if (annotation != null) {
+            annotations += MoveAnnotationDetails(
+                moveIndex = index,
+                category = annotation.category,
+                cpl = annotation.cpl,
+                engineCp = annotation.engineCp,
+                actualMoveCp = annotation.actualMoveCp,
+            )
+        }
+    }
+
+    return annotations
 }
 
-internal fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): Int? {
+fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): MoveAnnotationResult? {
+    val engineCp = engineBest?.let(::heuristicCp) ?: return null
+    val actualMoveCp = actualMove?.let(::heuristicCp) ?: return null
+    val cpl = calculateCpl(engineBest, actualMove) ?: return null
+    val category = moveAnnotationCategoryFromCpl(cpl) ?: return null
+    return MoveAnnotationResult(
+        category = category,
+        cpl = cpl,
+        engineCp = engineCp,
+        actualMoveCp = actualMoveCp,
+    )
+}
+
+fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): Int? {
     if (engineBest == null || actualMove == null || actualMove.isCheckmate || !hasComparableAnalysisData(engineBest, actualMove)) {
         return null
     }
@@ -147,7 +194,7 @@ internal fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineRe
     return engineCp - actualMoveCp
 }
 
-internal fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
+fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
     if (abs(cpl) < 50) {
         return null
     } else if (cpl < 0) {
@@ -166,7 +213,7 @@ internal fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
     }
 }
 
-internal fun findAnalysisDataFromEngineBestMove(
+fun findAnalysisDataFromEngineBestMove(
     analysisMap: Map<String, InfoLineResultDto>,
     previousNodeData: InfoLineResultDto,
 ): InfoLineResultDto? {
@@ -192,11 +239,6 @@ private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
     }
 }
 
-/**
- * Only compare move annotations when both the engine-best continuation and the played move
- * have comparable analysis output: both must have a heuristic score, both must be at least
- * depth 18, and both must come from the same depth.
- */
 private fun hasComparableAnalysisData(
     engineBest: InfoLineResultDto,
     actualMove: InfoLineResultDto,
