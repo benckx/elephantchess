@@ -8,6 +8,8 @@ import kotlin.math.abs
 
 // Mirrors MAX_ABS_CP in webapp/src/main/resources/public/js/modules/engine.js
 private const val MAX_ABS_CP = 7_706
+// This is the minimum depth for any comparable annotation calculation; callers can still
+// apply stricter reporting filters separately (for example, the script's depth-20 split).
 private const val MIN_COMPARABLE_ANALYSIS_DEPTH = 18
 
 enum class MoveAnnotationCategory {
