@@ -85,16 +85,15 @@ class MoveAnnotationSupportTest {
 
     private fun analysis(
         fen: String,
-        cp: Int? = null,
+        cp: Int,
         depth: Int,
         bestMove: String? = null,
-        mate: Int? = null,
     ) = InfoLineResultDto(
         line = null,
         fen = fen,
         depth = depth,
         cp = cp,
-        mate = mate,
+        mate = null,
         pv = bestMove?.let(::listOf) ?: emptyList(),
         bestMove = bestMove,
         isCheckmate = false,
