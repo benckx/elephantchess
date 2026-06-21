@@ -87,3 +87,15 @@ test('calculateAnnotationDetails requires heuristic scores on both sides', () =>
         }
     );
 });
+
+test('calculateAnnotationDetails skips depth-0 mate placeholders', () => {
+    const {calculateAnnotationDetails} = loadMoveAnnotationSymbols();
+
+    assert.equal(
+        calculateAnnotationDetails(
+            {cp: null, mate: 0, depth: 0, isCheckmate: false},
+            {cp: -4155, mate: null, depth: 20, isCheckmate: false}
+        ),
+        null
+    );
+});

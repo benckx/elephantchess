@@ -106,6 +106,7 @@ class CountCompletedPvpMoveAnnotationsTest {
         assertEquals(1, brilliantMoves.size)
         assertEquals("game123", brilliantMoves.single().gameId)
         assertEquals(2, brilliantMoves.single().ply)
+        assertEquals(firstMoveFen, brilliantMoves.single().fenBeforeMove)
         assertEquals(secondMove, brilliantMoves.single().playedMove)
         assertEquals(secondMoveBest, brilliantMoves.single().engineMove)
         assertEquals(360, brilliantMoves.single().cpl)
@@ -113,8 +114,9 @@ class CountCompletedPvpMoveAnnotationsTest {
         val lines = CountCompletedPvpMoveAnnotations.buildBrilliantMoveLines(brilliantMoves)
         assertEquals("BRILLIANT moves (all games): 1", lines[0])
         assertEquals("game=game123 ply=2 playedMove=b9c7 engineMove=h9g7 cpl=360", lines[1])
-        assertTrue(lines[2].contains("info depth 20 score cp 0 pv b9c7"))
-        assertTrue(lines[3].contains("info depth 20 score cp 360 pv h9g7"))
+        assertEquals("  fen: $firstMoveFen", lines[2])
+        assertTrue(lines[3].contains("info depth 20 score cp 0 pv b9c7"))
+        assertTrue(lines[4].contains("info depth 20 score cp 360 pv h9g7"))
     }
 
     @Test
@@ -135,10 +137,32 @@ class CountCompletedPvpMoveAnnotationsTest {
         assertNull(calculateMoveAnnotation(engineMove, actualMove))
     }
 
+    @Test
+    fun calculateMoveAnnotationSkipsDepthZeroMateEngineLine() {
+        assertNull(
+            calculateMoveAnnotation(
+                engineBest = analysis(
+                    fen = "engine",
+                    cp = null,
+                    mate = 0,
+                    depth = 0,
+                    line = "info depth 0 score mate 0",
+                ),
+                actualMove = analysis(
+                    fen = "actual",
+                    cp = -4155,
+                    depth = 20,
+                    line = "info depth 20 score cp -4155",
+                ),
+            ),
+        )
+    }
+
     private fun analysis(
         fen: String,
-        cp: Int,
+        cp: Int?,
         depth: Int,
+        mate: Int? = null,
         bestMove: String? = null,
         line: String? = null,
     ) = InfoLineResultDto(
@@ -146,7 +170,7 @@ class CountCompletedPvpMoveAnnotationsTest {
         fen = fen,
         depth = depth,
         cp = cp,
-        mate = null,
+        mate = mate,
         pv = bestMove?.let(::listOf) ?: emptyList(),
         bestMove = bestMove,
         isCheckmate = false,

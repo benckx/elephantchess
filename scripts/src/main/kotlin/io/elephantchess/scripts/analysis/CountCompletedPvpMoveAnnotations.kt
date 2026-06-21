@@ -241,6 +241,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                 brilliantMoves += BrilliantMoveDetail(
                     gameId = gameId,
                     ply = index + 1,
+                    fenBeforeMove = resetFullMoveCount(previousNodeData.fen),
                     playedMove = move,
                     engineMove = engineMove,
                     cpl = annotation.cpl,
@@ -262,6 +263,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             add("BRILLIANT moves (all games): ${brilliantMoves.size}")
             brilliantMoves.forEachIndexed { index, detail ->
                 add("game=${detail.gameId} ply=${detail.ply} playedMove=${detail.playedMove} engineMove=${detail.engineMove} cpl=${detail.cpl}")
+                add("  fen: ${detail.fenBeforeMove}")
                 add("  played: ${formatInfoLine(detail.actualMoveAnalysis)}")
                 add("  engine: ${formatInfoLine(detail.engineBestAnalysis)}")
                 if (index < brilliantMoves.lastIndex) {
@@ -304,6 +306,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
     internal data class BrilliantMoveDetail(
         val gameId: String,
         val ply: Int,
+        val fenBeforeMove: String,
         val playedMove: String,
         val engineMove: String,
         val cpl: Int,
