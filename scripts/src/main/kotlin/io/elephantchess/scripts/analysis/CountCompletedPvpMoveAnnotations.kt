@@ -101,11 +101,11 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                 max = aggregate.maxCpl?.toString() ?: "-",
             )
         }
-        val countWidth = maxOf("Count".length, categoryRows.maxOf { it.count.length })
-        val percentageWidth = maxOf("Pct".length, categoryRows.maxOf { it.percentage.length })
-        val averageWidth = maxOf("Avg CPL".length, categoryRows.maxOf { it.average.length })
-        val minWidth = maxOf("Min".length, categoryRows.maxOf { it.min.length })
-        val maxWidth = maxOf("Max".length, categoryRows.maxOf { it.max.length })
+        val countWidth = maxOf("Count".length, categoryRows.maxOfOrNull { it.count.length } ?: 0)
+        val percentageWidth = maxOf("Pct".length, categoryRows.maxOfOrNull { it.percentage.length } ?: 0)
+        val averageWidth = maxOf("Avg CPL".length, categoryRows.maxOfOrNull { it.average.length } ?: 0)
+        val minWidth = maxOf("Min".length, categoryRows.maxOfOrNull { it.min.length } ?: 0)
+        val maxWidth = maxOf("Max".length, categoryRows.maxOfOrNull { it.max.length } ?: 0)
         println(
             "Category      " +
                 "Count".padStart(countWidth) + "   " +
