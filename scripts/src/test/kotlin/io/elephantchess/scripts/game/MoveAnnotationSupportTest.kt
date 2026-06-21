@@ -324,7 +324,7 @@ class MoveAnnotationSupportTest {
         val expectedEngineCp: Int,
     ) {
         init {
-            require((actualCp == null) != (actualMate == null)) { "Either actualCp or actualMate must be provided, but not both" }
+            require((actualCp == null) != (actualMate == null)) { "Exactly one of actualCp or actualMate must be provided" }
         }
     }
 }
