@@ -35,9 +35,8 @@ const moveAnnotationSymbolTypesArray = [
     MoveAnnotationSymbolTypes.BRILLIANT,
 ]
 
-// The review feedback for the aggregation script requires annotations to compare
-// only equally deep engine lines, with depth 18 chosen as the minimum depth that
-// is still considered reliable enough to compare outside the depth-20-only split.
+// Only compare equally deep engine lines, and require at least depth 18 so
+// shallow placeholder analyses do not produce misleading annotations.
 const MIN_COMPARABLE_ANALYSIS_DEPTH = 18;
 
 function moveAnnotationEnumToSymbol(annotation) {
