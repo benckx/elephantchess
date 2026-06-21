@@ -294,7 +294,12 @@ class MoveAnnotationSupportTest {
         )
     }
 
-    /** Creates a minimal test info line where exactly one of [cp] or [mate] must be provided. */
+    /**
+     * Creates a minimal test info line.
+     *
+     * @param cp centipawn score, when present
+     * @param mate mate score, when present
+     */
     private fun analysis(
         fen: String,
         cp: Int?,
@@ -302,7 +307,7 @@ class MoveAnnotationSupportTest {
         mate: Int? = null,
         bestMove: String? = null,
     ): InfoLineResultDto {
-        require((cp == null) != (mate == null)) { "Exactly one of cp or mate must be provided" }
+        require((cp != null).xor(mate != null)) { "Exactly one of cp or mate must be provided" }
         return InfoLineResultDto(
             line = null,
             fen = fen,
@@ -325,7 +330,7 @@ class MoveAnnotationSupportTest {
         val expectedEngineCp: Int,
     ) {
         init {
-            require((actualCp == null) != (actualMate == null)) { "Exactly one of actualCp or actualMate must be provided" }
+            require((actualCp != null).xor(actualMate != null)) { "Exactly one of actualCp or actualMate must be provided" }
         }
     }
 }
