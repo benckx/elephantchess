@@ -4,16 +4,13 @@ import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
-import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class MoveAnnotationSupportTest {
     private companion object {
-        const val MAX_ABS_CP = 7_706
-        const val MAX_MATE = 40
-        const val MATE_BONUS_PER_MOVE = 8
+        const val MATE_NEGATIVE_TWELVE_HEURISTIC_CP = -7_930
     }
 
     @Test
@@ -135,7 +132,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.BLUNDER,
                 expectedCpl = -2577,
                 actualCp = 885,
+                expectedActualCp = 885,
                 engineCp = -1692,
+                expectedEngineCp = -1692,
             ),
         )
         assertMatchesSample(
@@ -143,7 +142,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.BLUNDER,
                 expectedCpl = -328,
                 actualCp = 320,
+                expectedActualCp = 320,
                 engineCp = -8,
+                expectedEngineCp = -8,
             ),
         )
     }
@@ -155,7 +156,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.MISTAKE,
                 expectedCpl = -122,
                 actualCp = 190,
+                expectedActualCp = 190,
                 engineCp = 68,
+                expectedEngineCp = 68,
             ),
         )
         assertMatchesSample(
@@ -163,7 +166,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.MISTAKE,
                 expectedCpl = -141,
                 actualCp = 206,
+                expectedActualCp = 206,
                 engineCp = 65,
+                expectedEngineCp = 65,
             ),
         )
     }
@@ -175,7 +180,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.INACCURACY,
                 expectedCpl = -66,
                 actualCp = -1,
+                expectedActualCp = -1,
                 engineCp = -67,
+                expectedEngineCp = -67,
             ),
         )
         assertMatchesSample(
@@ -183,7 +190,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.INACCURACY,
                 expectedCpl = -68,
                 actualCp = 58,
+                expectedActualCp = 58,
                 engineCp = -10,
+                expectedEngineCp = -10,
             ),
         )
     }
@@ -195,7 +204,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.INTERESTING,
                 expectedCpl = 65,
                 actualCp = -2232,
+                expectedActualCp = -2232,
                 engineCp = -2167,
+                expectedEngineCp = -2167,
             ),
         )
         assertMatchesSample(
@@ -203,7 +214,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.INTERESTING,
                 expectedCpl = 94,
                 actualCp = -3901,
+                expectedActualCp = -3901,
                 engineCp = -3807,
+                expectedEngineCp = -3807,
             ),
         )
     }
@@ -215,7 +228,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.GOOD,
                 expectedCpl = 180,
                 actualCp = 606,
+                expectedActualCp = 606,
                 engineCp = 786,
+                expectedEngineCp = 786,
             ),
         )
         assertMatchesSample(
@@ -223,7 +238,9 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.GOOD,
                 expectedCpl = 107,
                 actualCp = -1013,
+                expectedActualCp = -1013,
                 engineCp = -906,
+                expectedEngineCp = -906,
             ),
         )
     }
@@ -235,16 +252,19 @@ class MoveAnnotationSupportTest {
                 expectedCategory = MoveAnnotationCategory.BRILLIANT,
                 expectedCpl = 890,
                 actualMate = -12,
+                expectedActualCp = MATE_NEGATIVE_TWELVE_HEURISTIC_CP,
                 engineCp = -7040,
+                expectedEngineCp = -7040,
             ),
         )
         assertMatchesSample(
             AnnotationCase(
                 expectedCategory = MoveAnnotationCategory.BRILLIANT,
-                expectedCpl = 978,
-                actualCp = -31752,
-                expectedActualCp = -MAX_ABS_CP,
-                engineCp = -6728,
+                expectedCpl = 312,
+                actualCp = -2917,
+                expectedActualCp = -2917,
+                engineCp = -2605,
+                expectedEngineCp = -2605,
             ),
         )
     }
@@ -253,7 +273,6 @@ class MoveAnnotationSupportTest {
         val engineBest = analysis(
             fen = "engine",
             cp = case.engineCp,
-            mate = case.engineMate,
             depth = 20,
         )
         val actualMove = analysis(
@@ -269,7 +288,7 @@ class MoveAnnotationSupportTest {
                 category = case.expectedCategory,
                 cpl = case.expectedCpl,
                 engineCp = case.expectedEngineCp,
-                actualMoveCp = case.resolvedActualCp,
+                actualMoveCp = case.expectedActualCp,
             ),
             calculateMoveAnnotation(engineBest, actualMove),
         )
@@ -297,20 +316,8 @@ class MoveAnnotationSupportTest {
         val expectedCpl: Int,
         val actualCp: Int? = null,
         val actualMate: Int? = null,
-        val expectedActualCp: Int? = null,
+        val expectedActualCp: Int,
         val engineCp: Int? = null,
-        val engineMate: Int? = null,
-    ) {
-        val expectedEngineCp: Int
-            get() = engineCp ?: heuristicMateCp(engineMate)
-
-        val resolvedActualCp: Int
-            get() = expectedActualCp ?: actualCp?.coerceIn(-MAX_ABS_CP, MAX_ABS_CP) ?: heuristicMateCp(actualMate)
-
-        private fun heuristicMateCp(mate: Int?): Int {
-            requireNotNull(mate)
-            val bonus = (MAX_MATE - abs(mate)).coerceAtLeast(0) * MATE_BONUS_PER_MOVE
-            return if (mate < 0) -MAX_ABS_CP - bonus else MAX_ABS_CP + bonus
-        }
-    }
+        val expectedEngineCp: Int,
+    )
 }
