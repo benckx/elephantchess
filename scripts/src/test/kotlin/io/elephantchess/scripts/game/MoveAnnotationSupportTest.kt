@@ -300,16 +300,19 @@ class MoveAnnotationSupportTest {
         depth: Int,
         mate: Int? = null,
         bestMove: String? = null,
-    ) = InfoLineResultDto(
-        line = null,
-        fen = fen,
-        depth = depth,
-        cp = cp,
-        mate = mate,
-        pv = bestMove?.let(::listOf) ?: emptyList(),
-        bestMove = bestMove,
-        isCheckmate = false,
-    )
+    ): InfoLineResultDto {
+        require((cp == null) != (mate == null))
+        return InfoLineResultDto(
+            line = null,
+            fen = fen,
+            depth = depth,
+            cp = cp,
+            mate = mate,
+            pv = bestMove?.let(::listOf) ?: emptyList(),
+            bestMove = bestMove,
+            isCheckmate = false,
+        )
+    }
 
     private data class AnnotationCase(
         val expectedCategory: MoveAnnotationCategory,
@@ -319,5 +322,9 @@ class MoveAnnotationSupportTest {
         val expectedActualCp: Int,
         val engineCp: Int? = null,
         val expectedEngineCp: Int,
-    )
+    ) {
+        init {
+            require((actualCp == null) != (actualMate == null))
+        }
+    }
 }
