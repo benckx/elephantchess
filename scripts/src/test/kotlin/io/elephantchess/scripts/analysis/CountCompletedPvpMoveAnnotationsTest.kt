@@ -1,10 +1,12 @@
 package io.elephantchess.scripts.analysis
 
 import io.elephantchess.scripts.game.calculateMoveAnnotation
+import io.elephantchess.scripts.game.MoveAnnotationCategory
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -37,7 +39,7 @@ class CountCompletedPvpMoveAnnotationsTest {
     }
 
     @Test
-    fun collectBrilliantMovesBuildsPlayedVersusEngineDetails() {
+    fun collectAnnotatedMovesBuildsPlayedVersusEngineDetails() {
         val firstMove = "h2e2"
         val firstMoveBest = "c3c4"
         val secondMove = "b9c7"
@@ -97,26 +99,72 @@ class CountCompletedPvpMoveAnnotationsTest {
             ),
         )
 
-        val brilliantMoves = CountCompletedPvpMoveAnnotations.collectBrilliantMoves(
+        val annotatedMoves = CountCompletedPvpMoveAnnotations.collectAnnotatedMoves(
             gameId = "game123",
             moves = listOf(firstMove, secondMove),
             analysisMap = analysisMap,
         )
 
-        assertEquals(1, brilliantMoves.size)
-        assertEquals("game123", brilliantMoves.single().gameId)
-        assertEquals(2, brilliantMoves.single().ply)
-        assertEquals(firstMoveFen, brilliantMoves.single().fenBeforeMove)
-        assertEquals(secondMove, brilliantMoves.single().playedMove)
-        assertEquals(secondMoveBest, brilliantMoves.single().engineMove)
-        assertEquals(360, brilliantMoves.single().cpl)
+        assertEquals(2, annotatedMoves.size)
+        val brilliantMove = annotatedMoves.single { it.category == MoveAnnotationCategory.BRILLIANT }
+        assertEquals("game123", brilliantMove.gameId)
+        assertEquals(2, brilliantMove.ply)
+        assertEquals(2, brilliantMove.moveIndex)
+        assertEquals(1, brilliantMove.fullMoveIndex)
+        assertEquals(firstMoveFen, brilliantMove.fenBeforeMove)
+        assertEquals(secondMove, brilliantMove.playedMove)
+        assertEquals(secondMoveBest, brilliantMove.engineMove)
+        assertEquals(360, brilliantMove.cpl)
 
-        val lines = CountCompletedPvpMoveAnnotations.buildBrilliantMoveLines(brilliantMoves)
+        val lines = CountCompletedPvpMoveAnnotations.buildBrilliantMoveLines(listOf(brilliantMove))
         assertEquals("BRILLIANT moves (all games): 1", lines[0])
-        assertEquals("game=game123 ply=2 playedMove=b9c7 engineMove=h9g7 cpl=360", lines[1])
+        assertEquals("game=game123 ply=2 moveIndex=2 fullMoveIndex=1 playedMove=b9c7 engineMove=h9g7 cpl=360", lines[1])
         assertEquals("  fen: $firstMoveFen", lines[2])
-        assertTrue(lines[3].contains("info depth 20 score cp 0 pv b9c7"))
-        assertTrue(lines[4].contains("info depth 20 score cp 360 pv h9g7"))
+        assertEquals("  localhost: http://localhost:8080/game?id=game123", lines[3])
+        assertEquals("  elephantchess: https://elephantchess.io/game?id=game123", lines[4])
+        assertTrue(lines[5].contains("info depth 20 score cp 0 pv b9c7"))
+        assertTrue(lines[6].contains("info depth 20 score cp 360 pv h9g7"))
+    }
+
+    @Test
+    fun sampleAnnotatedMovesByCategoryLimitsEachCategoryIndependently() {
+        val categories = listOf(
+            MoveAnnotationCategory.BLUNDER,
+            MoveAnnotationCategory.BLUNDER,
+            MoveAnnotationCategory.BLUNDER,
+            MoveAnnotationCategory.BLUNDER,
+            MoveAnnotationCategory.BLUNDER,
+            MoveAnnotationCategory.BLUNDER,
+            MoveAnnotationCategory.GOOD,
+            MoveAnnotationCategory.GOOD,
+        )
+        val annotatedMoves = categories.mapIndexed { index, category ->
+            CountCompletedPvpMoveAnnotations.AnnotatedMoveDetail(
+                category = category,
+                gameId = "game$index",
+                ply = index + 1,
+                moveIndex = index + 1,
+                fullMoveIndex = (index / 2) + 1,
+                fenBeforeMove = "fen$index",
+                playedMove = "a0a1",
+                engineMove = "a0a2",
+                cpl = 100 + index,
+                actualMoveAnalysis = analysis("actual$index", cp = 0, depth = 20),
+                engineBestAnalysis = analysis("engine$index", cp = 100, depth = 20),
+            )
+        }
+
+        val samples = CountCompletedPvpMoveAnnotations.sampleAnnotatedMovesByCategory(
+            annotatedMoves = annotatedMoves,
+            sampleSize = 5,
+            random = Random(1234),
+        )
+
+        assertEquals(5, samples.getValue(MoveAnnotationCategory.BLUNDER).size)
+        assertEquals(2, samples.getValue(MoveAnnotationCategory.GOOD).size)
+        assertTrue(samples.getValue(MoveAnnotationCategory.BLUNDER).all { it.category == MoveAnnotationCategory.BLUNDER })
+        assertTrue(samples.getValue(MoveAnnotationCategory.GOOD).all { it.category == MoveAnnotationCategory.GOOD })
+        assertEquals(0, samples.getValue(MoveAnnotationCategory.BRILLIANT).size)
     }
 
     @Test

@@ -19,17 +19,22 @@ import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.HalfMove.Companion.halfMoveIndexToFullMove
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.util.Locale
+import kotlin.random.Random
 import kotlin.system.exitProcess
 
 object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
     private const val ANALYSIS_DEPTH_20 = 20
     private const val PROGRESS_LOG_INTERVAL = 100
+    private const val RANDOM_SAMPLE_SIZE_PER_CATEGORY = 5
+    private const val LOCALHOST_GAME_URL_PREFIX = "http://localhost:8080/game?id="
+    private const val ELEPHANTCHESS_GAME_URL_PREFIX = "https://elephantchess.io/game?id="
 
     private val dslContext by inject<DSLContext>()
     private val gameDataService by inject<GameDataService>()
@@ -56,7 +61,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
         val overallStats = SummaryTotals()
         val depth20Stats = SummaryTotals()
-        val brilliantMoves = mutableListOf<BrilliantMoveDetail>()
+        val annotatedMoves = mutableListOf<AnnotatedMoveDetail>()
         val failedGameIds = mutableListOf<String>()
 
         gameIds.forEachIndexed { index, gameId ->
@@ -69,7 +74,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             }.onSuccess { summaries ->
                 overallStats.merge(summaries.allMoves)
                 depth20Stats.merge(summaries.depth20Only)
-                brilliantMoves += summaries.brilliantMoves
+                annotatedMoves += summaries.annotatedMoves
             }.onFailure { error ->
                 failedGameIds += gameId
                 println("Failed to process $gameId: ${error.message}")
@@ -91,7 +96,9 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             totals = depth20Stats,
         )
         println()
-        printBrilliantMovesSection(brilliantMoves)
+        printRandomAnnotationSamplesSection(annotatedMoves)
+        println()
+        printBrilliantMovesSection(annotatedMoves.filter { it.category == MoveAnnotationCategory.BRILLIANT })
 
         if (failedGameIds.isNotEmpty()) {
             println()
@@ -118,7 +125,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                 analysisMap = analysisMap,
                 actualMoveFilter = { it?.depth == ANALYSIS_DEPTH_20 },
             ),
-            brilliantMoves = collectBrilliantMoves(
+            annotatedMoves = collectAnnotatedMoves(
                 gameId = gameId,
                 moves = moves,
                 analysisMap = analysisMap,
@@ -215,14 +222,14 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             ?.let { String.format(Locale.US, "%.1f%%", count.toDouble() * 100.0 / it) }
             ?: "-"
 
-    internal fun collectBrilliantMoves(
+    internal fun collectAnnotatedMoves(
         gameId: String,
         moves: List<String>,
         analysisMap: Map<String, InfoLineResultDto>,
         startFen: String = DEFAULT_START_FEN,
-    ): List<BrilliantMoveDetail> {
+    ): List<AnnotatedMoveDetail> {
         val board = Board(startFen)
-        val brilliantMoves = mutableListOf<BrilliantMoveDetail>()
+        val annotatedMoves = mutableListOf<AnnotatedMoveDetail>()
 
         moves.forEachIndexed { index, move ->
             val previousNodeData = analysisMap[resetFullMoveCount(board.outputFen())]
@@ -233,14 +240,18 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             val actualMoveAnalysis = analysisMap[resetFullMoveCount(board.outputFen())]
 
             val annotation = calculateMoveAnnotation(engineBestAnalysis, actualMoveAnalysis)
-            if (annotation?.category == MoveAnnotationCategory.BRILLIANT &&
+            if (annotation != null &&
+                previousNodeData != null &&
                 engineBestAnalysis != null &&
                 actualMoveAnalysis != null &&
                 engineMove != null
             ) {
-                brilliantMoves += BrilliantMoveDetail(
+                annotatedMoves += AnnotatedMoveDetail(
+                    category = annotation.category,
                     gameId = gameId,
                     ply = index + 1,
+                    moveIndex = index + 1,
+                    fullMoveIndex = halfMoveIndexToFullMove(index),
                     fenBeforeMove = resetFullMoveCount(previousNodeData.fen),
                     playedMove = move,
                     engineMove = engineMove,
@@ -251,29 +262,77 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             }
         }
 
-        return brilliantMoves
+        return annotatedMoves
     }
 
-    internal fun buildBrilliantMoveLines(brilliantMoves: List<BrilliantMoveDetail>): List<String> {
-        if (brilliantMoves.isEmpty()) {
-            return listOf("BRILLIANT moves (all games): 0")
+    internal fun sampleAnnotatedMovesByCategory(
+        annotatedMoves: List<AnnotatedMoveDetail>,
+        sampleSize: Int = RANDOM_SAMPLE_SIZE_PER_CATEGORY,
+        random: Random = Random.Default,
+    ): Map<MoveAnnotationCategory, List<AnnotatedMoveDetail>> =
+        moveAnnotationCategoriesInOrder.associateWith { category ->
+            annotatedMoves
+                .filter { it.category == category }
+                .shuffled(random)
+                .take(sampleSize)
+        }
+
+    internal fun buildAnnotatedMoveLines(
+        title: String,
+        annotatedMoves: List<AnnotatedMoveDetail>,
+    ): List<String> {
+        if (annotatedMoves.isEmpty()) {
+            return listOf("$title: 0")
         }
 
         return buildList {
-            add("BRILLIANT moves (all games): ${brilliantMoves.size}")
-            brilliantMoves.forEachIndexed { index, detail ->
-                add("game=${detail.gameId} ply=${detail.ply} playedMove=${detail.playedMove} engineMove=${detail.engineMove} cpl=${detail.cpl}")
+            add("$title: ${annotatedMoves.size}")
+            annotatedMoves.forEachIndexed { index, detail ->
+                add(
+                    "game=${detail.gameId} ply=${detail.ply} moveIndex=${detail.moveIndex} " +
+                        "fullMoveIndex=${detail.fullMoveIndex} playedMove=${detail.playedMove} " +
+                        "engineMove=${detail.engineMove} cpl=${detail.cpl}",
+                )
                 add("  fen: ${detail.fenBeforeMove}")
+                add("  localhost: ${LOCALHOST_GAME_URL_PREFIX}${detail.gameId}")
+                add("  elephantchess: ${ELEPHANTCHESS_GAME_URL_PREFIX}${detail.gameId}")
                 add("  played: ${formatInfoLine(detail.actualMoveAnalysis)}")
                 add("  engine: ${formatInfoLine(detail.engineBestAnalysis)}")
-                if (index < brilliantMoves.lastIndex) {
+                if (index < annotatedMoves.lastIndex) {
                     add("")
                 }
             }
         }
     }
 
-    private fun printBrilliantMovesSection(brilliantMoves: List<BrilliantMoveDetail>) {
+    internal fun buildBrilliantMoveLines(brilliantMoves: List<AnnotatedMoveDetail>): List<String> {
+        if (brilliantMoves.isEmpty()) {
+            return listOf("BRILLIANT moves (all games): 0")
+        }
+
+        return buildAnnotatedMoveLines("BRILLIANT moves (all games)", brilliantMoves)
+    }
+
+    private fun printRandomAnnotationSamplesSection(annotatedMoves: List<AnnotatedMoveDetail>) {
+        println("Random annotation samples (up to $RANDOM_SAMPLE_SIZE_PER_CATEGORY per category)")
+
+        val sampledMoves = sampleAnnotatedMovesByCategory(annotatedMoves)
+        val countsByCategory = annotatedMoves.groupingBy { it.category }.eachCount()
+
+        moveAnnotationCategoriesInOrder.forEachIndexed { index, category ->
+            val sample = sampledMoves.getValue(category)
+            val total = countsByCategory[category] ?: 0
+            buildAnnotatedMoveLines(
+                title = "$category samples (random ${sample.size} of $total)",
+                annotatedMoves = sample,
+            ).forEach(::println)
+            if (index < moveAnnotationCategoriesInOrder.lastIndex) {
+                println()
+            }
+        }
+    }
+
+    private fun printBrilliantMovesSection(brilliantMoves: List<AnnotatedMoveDetail>) {
         buildBrilliantMoveLines(brilliantMoves).forEach(::println)
     }
 
@@ -300,12 +359,15 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
     private data class GameSummaries(
         val allMoves: MoveAnnotationSummary,
         val depth20Only: MoveAnnotationSummary,
-        val brilliantMoves: List<BrilliantMoveDetail>,
+        val annotatedMoves: List<AnnotatedMoveDetail>,
     )
 
-    internal data class BrilliantMoveDetail(
+    internal data class AnnotatedMoveDetail(
+        val category: MoveAnnotationCategory,
         val gameId: String,
         val ply: Int,
+        val moveIndex: Int,
+        val fullMoveIndex: Int,
         val fenBeforeMove: String,
         val playedMove: String,
         val engineMove: String,
