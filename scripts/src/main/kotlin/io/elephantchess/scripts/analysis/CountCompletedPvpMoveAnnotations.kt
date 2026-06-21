@@ -101,27 +101,39 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                 max = aggregate.maxCpl?.toString() ?: "-",
             )
         }
-        val countWidth = maxOf("Count".length, categoryRows.maxOfOrNull { it.count.length } ?: 0)
-        val percentageWidth = maxOf("Pct".length, categoryRows.maxOfOrNull { it.percentage.length } ?: 0)
-        val averageWidth = maxOf("Avg CPL".length, categoryRows.maxOfOrNull { it.average.length } ?: 0)
-        val minWidth = maxOf("Min".length, categoryRows.maxOfOrNull { it.min.length } ?: 0)
-        val maxWidth = maxOf("Max".length, categoryRows.maxOfOrNull { it.max.length } ?: 0)
+        val columnWidths = categoryRows.fold(
+            ColumnWidths(
+                count = "Count".length,
+                percentage = "Pct".length,
+                average = "Avg CPL".length,
+                min = "Min".length,
+                max = "Max".length,
+            ),
+        ) { widths, row ->
+            ColumnWidths(
+                count = maxOf(widths.count, row.count.length),
+                percentage = maxOf(widths.percentage, row.percentage.length),
+                average = maxOf(widths.average, row.average.length),
+                min = maxOf(widths.min, row.min.length),
+                max = maxOf(widths.max, row.max.length),
+            )
+        }
         println(
             "Category      " +
-                "Count".padStart(countWidth) + "   " +
-                "Pct".padStart(percentageWidth) + "   " +
-                "Avg CPL".padStart(averageWidth) + "   " +
-                "Min".padStart(minWidth) + "   " +
-                "Max".padStart(maxWidth),
+                "Count".padStart(columnWidths.count) + "   " +
+                "Pct".padStart(columnWidths.percentage) + "   " +
+                "Avg CPL".padStart(columnWidths.average) + "   " +
+                "Min".padStart(columnWidths.min) + "   " +
+                "Max".padStart(columnWidths.max),
         )
         categoryRows.forEach { row ->
             println(
                 "${row.category.name.padEnd(13)} " +
-                    "${row.count.padStart(countWidth)}   " +
-                    "${row.percentage.padStart(percentageWidth)}   " +
-                    "${row.average.padStart(averageWidth)}   " +
-                    "${row.min.padStart(minWidth)}   " +
-                    row.max.padStart(maxWidth),
+                    "${row.count.padStart(columnWidths.count)}   " +
+                    "${row.percentage.padStart(columnWidths.percentage)}   " +
+                    "${row.average.padStart(columnWidths.average)}   " +
+                    "${row.min.padStart(columnWidths.min)}   " +
+                    row.max.padStart(columnWidths.max),
             )
         }
 
@@ -152,5 +164,13 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         val average: String,
         val min: String,
         val max: String,
+    )
+
+    private data class ColumnWidths(
+        val count: Int,
+        val percentage: Int,
+        val average: Int,
+        val min: Int,
+        val max: Int,
     )
 }
