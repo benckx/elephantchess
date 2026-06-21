@@ -70,10 +70,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                 neutralMoves += summary.neutralMoves
                 skippedMoves += summary.skippedMoves
                 summary.categoryTotals.forEach { (category, aggregate) ->
-                    categoryTotals[category] = categoryTotals.getValue(category).copy(
-                        count = categoryTotals.getValue(category).count + aggregate.count,
-                        totalCpl = categoryTotals.getValue(category).totalCpl + aggregate.totalCpl,
-                    )
+                    categoryTotals[category] = categoryTotals.getValue(category).merge(aggregate)
                 }
             }.onFailure { error ->
                 failedGameIds += gameId
@@ -89,12 +86,23 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         println("Neutral moves: $neutralMoves")
         println("Skipped moves (missing analysis data): $skippedMoves")
         println()
-        println("Category      Count   Avg CPL")
+        println("Category      Count   Pct     Avg CPL   Min   Max")
         moveAnnotationCategoriesInOrder.forEach { category ->
             val aggregate = categoryTotals.getValue(category)
             val avg = aggregate.averageCpl()
             val avgLabel = if (avg == null) "-" else String.format(Locale.US, "%.1f", avg)
-            println("${category.name.padEnd(13)} ${aggregate.count.toString().padStart(6)}   $avgLabel")
+            val percentage = if (totalMoves == 0) null else aggregate.count.toDouble() * 100.0 / totalMoves.toDouble()
+            val percentageLabel = if (percentage == null) "-" else String.format(Locale.US, "%.1f%%", percentage)
+            val minLabel = aggregate.minCpl?.toString() ?: "-"
+            val maxLabel = aggregate.maxCpl?.toString() ?: "-"
+            println(
+                "${category.name.padEnd(13)} " +
+                    "${aggregate.count.toString().padStart(6)}   " +
+                    "${percentageLabel.padStart(6)}   " +
+                    "${avgLabel.padStart(7)}   " +
+                    "${minLabel.padStart(4)}   " +
+                    maxLabel.padStart(4),
+            )
         }
 
         if (failedGameIds.isNotEmpty()) {
