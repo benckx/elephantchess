@@ -118,7 +118,10 @@ class CountCompletedPvpMoveAnnotationsTest {
 
         val lines = CountCompletedPvpMoveAnnotations.buildBrilliantMoveLines(listOf(brilliantMove))
         assertEquals("BRILLIANT moves (all games): 1", lines[0])
-        assertEquals("game=game123 ply=2 moveIndex=1 fullMoveIndex=1 playedMove=b9c7 engineMove=h9g7 cpl=360", lines[1])
+        assertEquals(
+            "game=game123 ply=2 moveIndex=1 fullMoveIndex=1 playedMove=b9c7 engineMove=h9g7 cpl=360 annotation=BRILLIANT",
+            lines[1],
+        )
         assertEquals("  fen: $firstMoveFen", lines[2])
         assertEquals("  localhost: http://localhost:8080/game?id=game123", lines[3])
         assertEquals("  elephantchess: https://elephantchess.io/game?id=game123", lines[4])
