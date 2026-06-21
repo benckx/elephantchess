@@ -109,7 +109,7 @@ class CountCompletedPvpMoveAnnotationsTest {
         val brilliantMove = annotatedMoves.single { it.category == MoveAnnotationCategory.BRILLIANT }
         assertEquals("game123", brilliantMove.gameId)
         assertEquals(2, brilliantMove.ply)
-        assertEquals(2, brilliantMove.moveIndex)
+        assertEquals(1, brilliantMove.moveIndex)
         assertEquals(1, brilliantMove.fullMoveIndex)
         assertEquals(firstMoveFen, brilliantMove.fenBeforeMove)
         assertEquals(secondMove, brilliantMove.playedMove)
@@ -118,7 +118,7 @@ class CountCompletedPvpMoveAnnotationsTest {
 
         val lines = CountCompletedPvpMoveAnnotations.buildBrilliantMoveLines(listOf(brilliantMove))
         assertEquals("BRILLIANT moves (all games): 1", lines[0])
-        assertEquals("game=game123 ply=2 moveIndex=2 fullMoveIndex=1 playedMove=b9c7 engineMove=h9g7 cpl=360", lines[1])
+        assertEquals("game=game123 ply=2 moveIndex=1 fullMoveIndex=1 playedMove=b9c7 engineMove=h9g7 cpl=360", lines[1])
         assertEquals("  fen: $firstMoveFen", lines[2])
         assertEquals("  localhost: http://localhost:8080/game?id=game123", lines[3])
         assertEquals("  elephantchess: https://elephantchess.io/game?id=game123", lines[4])
@@ -143,7 +143,7 @@ class CountCompletedPvpMoveAnnotationsTest {
                 category = category,
                 gameId = "game$index",
                 ply = index + 1,
-                moveIndex = index + 1,
+                moveIndex = index,
                 fullMoveIndex = (index / 2) + 1,
                 fenBeforeMove = "fen$index",
                 playedMove = "a0a1",
@@ -164,6 +164,14 @@ class CountCompletedPvpMoveAnnotationsTest {
         assertEquals(2, samples.getValue(MoveAnnotationCategory.GOOD).size)
         assertTrue(samples.getValue(MoveAnnotationCategory.BLUNDER).all { it.category == MoveAnnotationCategory.BLUNDER })
         assertTrue(samples.getValue(MoveAnnotationCategory.GOOD).all { it.category == MoveAnnotationCategory.GOOD })
+        assertEquals(
+            listOf("game2", "game5", "game4", "game3", "game0"),
+            samples.getValue(MoveAnnotationCategory.BLUNDER).map { it.gameId },
+        )
+        assertEquals(
+            listOf("game7", "game6"),
+            samples.getValue(MoveAnnotationCategory.GOOD).map { it.gameId },
+        )
         assertEquals(0, samples.getValue(MoveAnnotationCategory.BRILLIANT).size)
     }
 

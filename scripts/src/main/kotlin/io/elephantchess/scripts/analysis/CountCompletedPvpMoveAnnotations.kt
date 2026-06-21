@@ -250,7 +250,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                     category = annotation.category,
                     gameId = gameId,
                     ply = index + 1,
-                    moveIndex = index + 1,
+                    moveIndex = index,
                     fullMoveIndex = halfMoveIndexToFullMove(index),
                     fenBeforeMove = resetFullMoveCount(previousNodeData.fen),
                     playedMove = move,
