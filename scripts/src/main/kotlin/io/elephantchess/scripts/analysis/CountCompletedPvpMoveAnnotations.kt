@@ -22,6 +22,7 @@ import kotlin.system.exitProcess
 
 object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
+    private const val ANALYSIS_DEPTH_20 = 20
     private const val PROGRESS_LOG_INTERVAL = 100
 
     private val dslContext by inject<DSLContext>()
@@ -47,14 +48,8 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
         println("Found ${gameIds.size} completed PvP games")
 
-        val categoryTotals = moveAnnotationCategoriesInOrder
-            .associateWith { AnnotationAggregate() }
-            .toMutableMap()
-
-        var totalMoves = 0
-        var annotatedMoves = 0
-        var neutralMoves = 0
-        var skippedMoves = 0
+        val overallStats = SummaryTotals()
+        val depth20Stats = SummaryTotals()
         val failedGameIds = mutableListOf<String>()
 
         gameIds.forEachIndexed { index, gameId ->
@@ -64,14 +59,9 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
             runCatching {
                 processGame(gameId)
-            }.onSuccess { summary ->
-                totalMoves += summary.totalMoves
-                annotatedMoves += summary.annotatedMoves
-                neutralMoves += summary.neutralMoves
-                skippedMoves += summary.skippedMoves
-                summary.categoryTotals.forEach { (category, aggregate) ->
-                    categoryTotals[category] = categoryTotals.getValue(category).merge(aggregate)
-                }
+            }.onSuccess { summaries ->
+                overallStats.merge(summaries.allMoves)
+                depth20Stats.merge(summaries.depth20Only)
             }.onFailure { error ->
                 failedGameIds += gameId
                 println("Failed to process $gameId: ${error.message}")
@@ -79,18 +69,67 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         }
 
         println()
-        println("Completed PvP games: ${gameIds.size}")
-        println("Failed games: ${failedGameIds.size}")
-        println("Processed moves: $totalMoves")
-        println("Annotated moves: $annotatedMoves")
-        println("Neutral moves: $neutralMoves")
-        println("Skipped moves (missing analysis data): $skippedMoves")
+        printSummarySection(
+            title = "All completed PvP move annotations",
+            gameCount = gameIds.size,
+            failedCount = failedGameIds.size,
+            totals = overallStats,
+        )
+        println()
+        printSummarySection(
+            title = "Completed PvP move annotations (actual move depth 20 only)",
+            gameCount = gameIds.size,
+            failedCount = failedGameIds.size,
+            totals = depth20Stats,
+        )
+
+        if (failedGameIds.isNotEmpty()) {
+            println()
+            println("Failed game ids: ${failedGameIds.joinToString(", ")}")
+        }
+    }
+
+    private suspend fun processGame(
+        gameId: String,
+    ): GameSummaries {
+        val analysisMap = gameDataService
+            .fetchAnalysisData(GameId(PVP, gameId))
+            .entries
+            .associateBy { it.fen }
+
+        val moves = pvpGameDaoService.listMoves(gameId)
+        return GameSummaries(
+            allMoves = summarizeMoveAnnotations(
+                moves = moves,
+                analysisMap = analysisMap,
+            ),
+            depth20Only = summarizeMoveAnnotations(
+                moves = moves,
+                analysisMap = analysisMap,
+                actualMoveFilter = { it?.depth == ANALYSIS_DEPTH_20 },
+            ),
+        )
+    }
+
+    private fun printSummarySection(
+        title: String,
+        gameCount: Int,
+        failedCount: Int,
+        totals: SummaryTotals,
+    ) {
+        println(title)
+        println("Completed PvP games: $gameCount")
+        println("Failed games: $failedCount")
+        println("Processed moves: ${totals.totalMoves}")
+        println("Annotated moves: ${totals.annotatedMoves}")
+        println("Neutral moves: ${totals.neutralMoves}")
+        println("Skipped moves (missing analysis data): ${totals.skippedMoves}")
         println()
         val categoryRows = moveAnnotationCategoriesInOrder.map { category ->
-            val aggregate = categoryTotals.getValue(category)
+            val aggregate = totals.categoryTotals.getValue(category)
             val avg = aggregate.averageCpl()
             val avgLabel = if (avg == null) "-" else String.format(Locale.US, "%.1f", avg)
-            val percentageDenominator = totalMoves.takeIf { it > 0 }?.toDouble()
+            val percentageDenominator = totals.totalMoves.takeIf { it > 0 }?.toDouble()
             val percentage = percentageDenominator?.let { aggregate.count.toDouble() * 100.0 / it }
             CategoryRow(
                 category = category,
@@ -136,25 +175,31 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                     row.max.padStart(columnWidths.max),
             )
         }
-
-        if (failedGameIds.isNotEmpty()) {
-            println()
-            println("Failed game ids: ${failedGameIds.joinToString(", ")}")
-        }
     }
 
-    private suspend fun processGame(
-        gameId: String,
-    ): MoveAnnotationSummary {
-        val analysisMap = gameDataService
-            .fetchAnalysisData(GameId(PVP, gameId))
-            .entries
-            .associateBy { it.fen }
+    private data class GameSummaries(
+        val allMoves: MoveAnnotationSummary,
+        val depth20Only: MoveAnnotationSummary,
+    )
 
-        return summarizeMoveAnnotations(
-            moves = pvpGameDaoService.listMoves(gameId),
-            analysisMap = analysisMap,
-        )
+    private data class SummaryTotals(
+        var totalMoves: Int = 0,
+        var annotatedMoves: Int = 0,
+        var neutralMoves: Int = 0,
+        var skippedMoves: Int = 0,
+        val categoryTotals: MutableMap<MoveAnnotationCategory, AnnotationAggregate> = moveAnnotationCategoriesInOrder
+            .associateWith { AnnotationAggregate() }
+            .toMutableMap(),
+    ) {
+        fun merge(summary: MoveAnnotationSummary) {
+            totalMoves += summary.totalMoves
+            annotatedMoves += summary.annotatedMoves
+            neutralMoves += summary.neutralMoves
+            skippedMoves += summary.skippedMoves
+            summary.categoryTotals.forEach { (category, aggregate) ->
+                categoryTotals[category] = categoryTotals.getValue(category).merge(aggregate)
+            }
+        }
     }
 
     private data class CategoryRow(

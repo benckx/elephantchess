@@ -80,6 +80,7 @@ internal fun summarizeMoveAnnotations(
     moves: List<String>,
     analysisMap: Map<String, InfoLineResultDto>,
     startFen: String = DEFAULT_START_FEN,
+    actualMoveFilter: (InfoLineResultDto?) -> Boolean = { true },
 ): MoveAnnotationSummary {
     val board = Board(startFen)
     var annotatedMoves = 0
@@ -95,6 +96,9 @@ internal fun summarizeMoveAnnotations(
 
         board.registerMove(move)
         val actualMoveAnalysis = analysisMap[resetFullMoveCount(board.outputFen())]
+        if (!actualMoveFilter(actualMoveAnalysis)) {
+            return@forEach
+        }
 
         when {
             previousNodeData == null || engineBestAnalysis == null || actualMoveAnalysis == null -> {
