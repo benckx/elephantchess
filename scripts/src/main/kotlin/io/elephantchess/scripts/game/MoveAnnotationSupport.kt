@@ -192,6 +192,11 @@ private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
     }
 }
 
+/**
+ * Only compare move annotations when both the engine-best continuation and the played move
+ * have comparable analysis output: both must have a heuristic score, both must be at least
+ * depth 18, and both must come from the same depth.
+ */
 private fun hasComparableAnalysisData(
     engineBest: InfoLineResultDto,
     actualMove: InfoLineResultDto,
