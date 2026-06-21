@@ -30,9 +30,9 @@ import kotlin.system.exitProcess
 
 object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
-    private const val ANALYSIS_DEPTH_20 = 20
+    private const val ANALYSIS_HIGH_DEPTH = 20
     private const val PROGRESS_LOG_INTERVAL = 100
-    private const val RANDOM_SAMPLE_SIZE_PER_CATEGORY = 5
+    private const val RANDOM_SAMPLE_SIZE_PER_CATEGORY = 10
     private const val LOCALHOST_GAME_URL_PREFIX = "http://localhost:8080/game?id="
     private const val ELEPHANTCHESS_GAME_URL_PREFIX = "https://elephantchess.io/game?id="
 
@@ -123,7 +123,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             depth20Only = summarizeMoveAnnotations(
                 moves = moves,
                 analysisMap = analysisMap,
-                actualMoveFilter = { it?.depth == ANALYSIS_DEPTH_20 },
+                actualMoveFilter = { it?.depth == ANALYSIS_HIGH_DEPTH },
             ),
             annotatedMoves = collectAnnotatedMoves(
                 gameId = gameId,
@@ -187,22 +187,22 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         }
         println(
             "Category      " +
-                "Count".padStart(columnWidths.count) + "   " +
-                "Pct Ann".padStart(columnWidths.annotatedPercentage) + "   " +
-                "Pct Global".padStart(columnWidths.globalPercentage) + "   " +
-                "Avg CPL".padStart(columnWidths.average) + "   " +
-                "Min".padStart(columnWidths.min) + "   " +
-                "Max".padStart(columnWidths.max),
+                    "Count".padStart(columnWidths.count) + "   " +
+                    "Pct Ann".padStart(columnWidths.annotatedPercentage) + "   " +
+                    "Pct Global".padStart(columnWidths.globalPercentage) + "   " +
+                    "Avg CPL".padStart(columnWidths.average) + "   " +
+                    "Min".padStart(columnWidths.min) + "   " +
+                    "Max".padStart(columnWidths.max),
         )
         categoryRows.forEach { row ->
             println(
                 "${row.category.name.padEnd(13)} " +
-                    "${row.count.padStart(columnWidths.count)}   " +
-                    "${row.annotatedPercentage.padStart(columnWidths.annotatedPercentage)}   " +
-                    "${row.globalPercentage.padStart(columnWidths.globalPercentage)}   " +
-                    "${row.average.padStart(columnWidths.average)}   " +
-                    "${row.min.padStart(columnWidths.min)}   " +
-                    row.max.padStart(columnWidths.max),
+                        "${row.count.padStart(columnWidths.count)}   " +
+                        "${row.annotatedPercentage.padStart(columnWidths.annotatedPercentage)}   " +
+                        "${row.globalPercentage.padStart(columnWidths.globalPercentage)}   " +
+                        "${row.average.padStart(columnWidths.average)}   " +
+                        "${row.min.padStart(columnWidths.min)}   " +
+                        row.max.padStart(columnWidths.max),
             )
         }
     }
@@ -290,8 +290,8 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             annotatedMoves.forEachIndexed { index, detail ->
                 add(
                     "game=${detail.gameId} ply=${detail.ply} moveIndex=${detail.moveIndex} " +
-                        "fullMoveIndex=${detail.fullMoveIndex} playedMove=${detail.playedMove} " +
-                        "engineMove=${detail.engineMove} cpl=${detail.cpl}",
+                            "fullMoveIndex=${detail.fullMoveIndex} playedMove=${detail.playedMove} " +
+                            "engineMove=${detail.engineMove} cpl=${detail.cpl}",
                 )
                 add("  fen: ${detail.fenBeforeMove}")
                 add("  localhost: ${LOCALHOST_GAME_URL_PREFIX}${detail.gameId}")
