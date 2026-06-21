@@ -10,6 +10,7 @@ import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.scripts.game.MoveAnnotationCategory
 import io.elephantchess.scripts.game.calculateMoveAnnotation
 import io.elephantchess.scripts.game.findAnalysisDataFromEngineBestMove
+import io.elephantchess.scripts.game.moveAnnotationCategoriesInOrder
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
@@ -48,7 +49,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
 
         println("Found ${gameIds.size} completed PvP games")
 
-        val categoryTotals = MoveAnnotationCategory.entries
+        val categoryTotals = moveAnnotationCategoriesInOrder
             .associateWith { AnnotationAggregate() }
             .toMutableMap()
 
@@ -85,7 +86,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         println("Skipped moves (missing analysis data): $skippedMoves")
         println()
         println("Category      Count   Avg CPL")
-        MoveAnnotationCategory.entries.forEach { category ->
+        moveAnnotationCategoriesInOrder.forEach { category ->
             val aggregate = categoryTotals.getValue(category)
             val avg = aggregate.averageCpl()
             val avgLabel = if (avg == null) "-" else String.format(Locale.US, "%.1f", avg)

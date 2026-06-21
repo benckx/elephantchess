@@ -17,6 +17,15 @@ internal enum class MoveAnnotationCategory {
     BRILLIANT,
 }
 
+internal val moveAnnotationCategoriesInOrder = listOf(
+    MoveAnnotationCategory.BLUNDER,
+    MoveAnnotationCategory.MISTAKE,
+    MoveAnnotationCategory.INACCURACY,
+    MoveAnnotationCategory.INTERESTING,
+    MoveAnnotationCategory.GOOD,
+    MoveAnnotationCategory.BRILLIANT,
+)
+
 internal data class MoveAnnotationResult(
     val category: MoveAnnotationCategory,
     val cpl: Int,
@@ -48,7 +57,7 @@ internal fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
             deltaLoss >= 100 -> MoveAnnotationCategory.MISTAKE
             else -> MoveAnnotationCategory.INACCURACY
         }
-    } else if (cpl > 0) {
+    } else {
         return when {
             cpl >= 300 -> MoveAnnotationCategory.BRILLIANT
             cpl >= 100 -> MoveAnnotationCategory.GOOD
