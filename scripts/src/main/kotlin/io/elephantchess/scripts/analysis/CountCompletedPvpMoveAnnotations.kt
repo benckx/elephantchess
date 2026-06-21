@@ -129,12 +129,16 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             val aggregate = totals.categoryTotals.getValue(category)
             val avg = aggregate.averageCpl()
             val avgLabel = if (avg == null) "-" else String.format(Locale.US, "%.1f", avg)
-            val percentageDenominator = totals.totalMoves.takeIf { it > 0 }?.toDouble()
-            val percentage = percentageDenominator?.let { aggregate.count.toDouble() * 100.0 / it }
+            val percentages = formatPercentages(
+                count = aggregate.count,
+                annotatedMoves = totals.annotatedMoves,
+                totalMoves = totals.totalMoves,
+            )
             CategoryRow(
                 category = category,
                 count = aggregate.count.toString(),
-                percentage = if (percentage == null) "-" else String.format(Locale.US, "%.1f%%", percentage),
+                annotatedPercentage = percentages.annotated,
+                globalPercentage = percentages.global,
                 average = avgLabel,
                 min = aggregate.minCpl?.toString() ?: "-",
                 max = aggregate.maxCpl?.toString() ?: "-",
@@ -143,7 +147,8 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         val columnWidths = categoryRows.fold(
             ColumnWidths(
                 count = "Count".length,
-                percentage = "Pct".length,
+                annotatedPercentage = "Pct Ann".length,
+                globalPercentage = "Pct Global".length,
                 average = "Avg CPL".length,
                 min = "Min".length,
                 max = "Max".length,
@@ -151,7 +156,8 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         ) { widths, row ->
             ColumnWidths(
                 count = maxOf(widths.count, row.count.length),
-                percentage = maxOf(widths.percentage, row.percentage.length),
+                annotatedPercentage = maxOf(widths.annotatedPercentage, row.annotatedPercentage.length),
+                globalPercentage = maxOf(widths.globalPercentage, row.globalPercentage.length),
                 average = maxOf(widths.average, row.average.length),
                 min = maxOf(widths.min, row.min.length),
                 max = maxOf(widths.max, row.max.length),
@@ -160,7 +166,8 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         println(
             "Category      " +
                 "Count".padStart(columnWidths.count) + "   " +
-                "Pct".padStart(columnWidths.percentage) + "   " +
+                "Pct Ann".padStart(columnWidths.annotatedPercentage) + "   " +
+                "Pct Global".padStart(columnWidths.globalPercentage) + "   " +
                 "Avg CPL".padStart(columnWidths.average) + "   " +
                 "Min".padStart(columnWidths.min) + "   " +
                 "Max".padStart(columnWidths.max),
@@ -169,13 +176,29 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             println(
                 "${row.category.name.padEnd(13)} " +
                     "${row.count.padStart(columnWidths.count)}   " +
-                    "${row.percentage.padStart(columnWidths.percentage)}   " +
+                    "${row.annotatedPercentage.padStart(columnWidths.annotatedPercentage)}   " +
+                    "${row.globalPercentage.padStart(columnWidths.globalPercentage)}   " +
                     "${row.average.padStart(columnWidths.average)}   " +
                     "${row.min.padStart(columnWidths.min)}   " +
                     row.max.padStart(columnWidths.max),
             )
         }
     }
+
+    internal fun formatPercentages(
+        count: Int,
+        annotatedMoves: Int,
+        totalMoves: Int,
+    ) = AnnotationPercentages(
+        annotated = formatPercentage(count, annotatedMoves),
+        global = formatPercentage(count, totalMoves),
+    )
+
+    private fun formatPercentage(count: Int, denominator: Int): String =
+        denominator
+            .takeIf { it > 0 }
+            ?.let { String.format(Locale.US, "%.1f%%", count.toDouble() * 100.0 / it) }
+            ?: "-"
 
     private data class GameSummaries(
         val allMoves: MoveAnnotationSummary,
@@ -205,15 +228,22 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
     private data class CategoryRow(
         val category: MoveAnnotationCategory,
         val count: String,
-        val percentage: String,
+        val annotatedPercentage: String,
+        val globalPercentage: String,
         val average: String,
         val min: String,
         val max: String,
     )
 
+    internal data class AnnotationPercentages(
+        val annotated: String,
+        val global: String,
+    )
+
     private data class ColumnWidths(
         val count: Int,
-        val percentage: Int,
+        val annotatedPercentage: Int,
+        val globalPercentage: Int,
         val average: Int,
         val min: Int,
         val max: Int,
