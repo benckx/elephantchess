@@ -2470,4 +2470,9 @@
     <changeSet id="0107" author="benckx">
         <comment>Indexes for latest move analysis aggregation and analyzed flag lookup</comment>
     </changeSet>
+    <changeSet id="0108" author="benckx">
+        <addColumn tableName="user">
+            <column name="profile_picture_extension" type="varchar(10)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
