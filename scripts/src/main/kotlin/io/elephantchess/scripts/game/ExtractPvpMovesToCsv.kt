@@ -320,8 +320,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         if (creation == null || firstMoveTime == null) return ""
         val totalSeconds = (firstMoveTime - creation).inWholeSeconds.coerceAtLeast(0)
         val days = totalSeconds / (24 * 3600)
-        val hours = (totalSeconds % (24 * 3600)) / 3600
-        return "%d:%02d".format(days, hours)
+        return if (days >= 1) "${days}d" else "${totalSeconds / 3600}h"
     }
 
     private fun timeControlToString(mode: TimeControlMode?, base: Int?, increment: Int?): String =
