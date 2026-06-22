@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.system.exitProcess
+import kotlin.time.Instant
 
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
@@ -51,6 +52,10 @@ private val CSV_HEADER = arrayOf(
     "game_join_source",
     "analysis",
     "cpl",
+    "red_account_age",
+    "red_user_type",
+    "black_account_age",
+    "black_user_type",
 )
 
 object ExtractPvpMovesToCsv : KoinScriptInit() {
@@ -94,8 +99,12 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 GAME_MOVE.POSITION,
                 inviterUser.ID,
                 inviterUser.HANDLE,
+                inviterUser.CREATION,
+                inviterUser.USER_TYPE,
                 inviteeUser.ID,
-                inviteeUser.HANDLE
+                inviteeUser.HANDLE,
+                inviteeUser.CREATION,
+                inviteeUser.USER_TYPE
             )
             .from(GAME)
             .join(GAME_MOVE).on(GAME_MOVE.GAME_ID.eq(GAME.ID))
@@ -133,6 +142,17 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     .filter { entry -> entry.line != null }
                     .associateBy { entry -> entry.fen }
             }
+
+        // Map each game ID to the event time of its first recorded move (rows are ordered by position asc).
+        val firstMoveTimeByGameId: Map<String, Instant> = buildMap {
+            rows.forEach { row ->
+                val gameId = row.get(GAME.ID)
+                if (!containsKey(gameId)) {
+                    val eventTime = row.get(GAME_MOVE.EVENT_TIME)
+                    if (eventTime != null) put(gameId, eventTime)
+                }
+            }
+        }
 
         // Assign each game (in encounter order) to a 1000-game batch so we can write one CSV per batch.
         val batchByGameId = rows
@@ -214,6 +234,18 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
                         val cpl = calculateCpl(engineBestAnalysis, actualMoveAnalysis)
 
+                        val firstMoveTime = firstMoveTimeByGameId[row.get(GAME.ID)]
+                        val inviterCreation = row.get(inviterUser.CREATION)
+                        val inviteeCreation = row.get(inviteeUser.CREATION)
+                        val redCreation = if (inviterIsRed) inviterCreation else inviteeCreation
+                        val blackCreation = if (inviterIsRed) inviteeCreation else inviterCreation
+                        val redAccountAge = accountAge(redCreation, firstMoveTime)
+                        val blackAccountAge = accountAge(blackCreation, firstMoveTime)
+                        val inviterUserType = row.get(inviterUser.USER_TYPE)
+                        val inviteeUserType = row.get(inviteeUser.USER_TYPE)
+                        val redUserType = if (inviterIsRed) inviterUserType else inviteeUserType
+                        val blackUserType = if (inviterIsRed) inviteeUserType else inviterUserType
+
                         writer.writeNext(
                             arrayOf(
                                 row.get(GAME_MOVE.EVENT_TIME).toString(),
@@ -238,6 +270,10 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 row.get(GAME.JOIN_SOURCE)?.name ?: "",
                                 analysis,
                                 cpl?.toString() ?: "",
+                                redAccountAge,
+                                redUserType?.name ?: "",
+                                blackAccountAge,
+                                blackUserType?.name ?: "",
                             )
                         )
                     }
@@ -286,6 +322,14 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     }
 
     private fun guestName(userId: String): String = "guest #$userId"
+
+    private fun accountAge(creation: Instant?, firstMoveTime: Instant?): String {
+        if (creation == null || firstMoveTime == null) return ""
+        val totalSeconds = (firstMoveTime - creation).inWholeSeconds.coerceAtLeast(0)
+        val days = totalSeconds / (24 * 3600)
+        val hours = (totalSeconds % (24 * 3600)) / 3600
+        return "%d:%02d".format(days, hours)
+    }
 
     private fun timeControlToString(mode: TimeControlMode?, base: Int?, increment: Int?): String =
         when (mode) {
