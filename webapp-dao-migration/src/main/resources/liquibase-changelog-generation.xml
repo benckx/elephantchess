@@ -2470,4 +2470,10 @@
     <changeSet id="0107" author="benckx">
         <comment>Indexes for latest move analysis aggregation and analyzed flag lookup</comment>
     </changeSet>
+    <changeSet id="0108" author="benckx">
+        <comment>Disabled puzzles (disabled_at is set) are not served when picking the next puzzle to assign</comment>
+        <addColumn tableName="puzzle">
+            <column name="disabled_at" type="datetime"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

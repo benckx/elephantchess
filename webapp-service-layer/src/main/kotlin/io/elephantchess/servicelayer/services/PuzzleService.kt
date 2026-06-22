@@ -162,6 +162,7 @@ class PuzzleService(
 
     suspend fun processOutcome(request: PuzzleOutcomeRequest, userId: String): PuzzleOutcomeResponse {
         puzzleDaoService.unAssign(userId)
+        val enabled = puzzleCache.getById(request.puzzleId)?.enabled ?: true
         return mapOutcomeToDto(
             puzzleResultDaoService.persistOutcome(
                 userId,
@@ -169,7 +170,7 @@ class PuzzleService(
                 request.outcome,
                 request.usedPreRecordedSolution,
                 RE_PLAYABILITY_DAYS.days,
-                eloTransfer(request.visibleCategories)
+                if (enabled) eloTransfer(request.visibleCategories) else noEloTransfer()
             )
         )
     }
@@ -234,6 +235,14 @@ class PuzzleService(
         }
     }
 
+    /**
+     * Elo transfer applied when a disabled puzzle is played: ratings are left unchanged so no Elo is
+     * transferred in either direction.
+     */
+    private fun noEloTransfer(): (PuzzleOutcome, Int, Int, Instant?) -> Pair<Int, Int> {
+        return { _, userRating, puzzleRating, _ -> Pair(userRating, puzzleRating) }
+    }
+
     suspend fun fetchPuzzleRating(userId: String): PuzzleRatingResponse {
         val rating = puzzleDaoService.fetchRatingForUser(userId)
         if (rating == null) {
@@ -256,6 +265,7 @@ class PuzzleService(
                 categories = record.categories.mapNotNull { it.category },
                 moves = record.moves.filterNot { move -> move.isSolution }.map { move -> move.uci },
                 solution = record.moves.filter { move -> move.isSolution }.map { move -> move.uci },
+                enabled = record.puzzle.disabledAt == null,
             )
         }
 
