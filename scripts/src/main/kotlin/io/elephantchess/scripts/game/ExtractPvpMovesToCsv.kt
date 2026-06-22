@@ -118,14 +118,18 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         // Replay each game's moves to compute the FEN key (FEN without the full-move counter) for every move.
         // The key matches the position resulting from the played move, which is how engine analysis is keyed.
         // We also keep the full FEN of the position *before* each move so we can replay the engine's best move.
+        // The first event time seen per game (rows ordered by position asc) is also captured here.
         var currentGameId: String? = null
         var board = Board(Board.defaultStartFen(variant))
         val fenBeforeMove = mutableListOf<String>()
+        val firstMoveTimeByGameId = mutableMapOf<String, Instant>()
         val fenKeys = rows.map { row ->
             val gameId = row.get(GAME.ID)
             if (gameId != currentGameId) {
                 currentGameId = gameId
                 board = Board(Board.defaultStartFen(variant))
+                val eventTime = row.get(GAME_MOVE.EVENT_TIME)
+                if (eventTime != null) firstMoveTimeByGameId[gameId] = eventTime
             }
             fenBeforeMove += board.outputFen()
             board.registerMove(row.get(GAME_MOVE.UCI))
@@ -142,17 +146,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                     .filter { entry -> entry.line != null }
                     .associateBy { entry -> entry.fen }
             }
-
-        // Map each game ID to the event time of its first recorded move (rows are ordered by position asc).
-        val firstMoveTimeByGameId: Map<String, Instant> = buildMap {
-            rows.forEach { row ->
-                val gameId = row.get(GAME.ID)
-                if (!containsKey(gameId)) {
-                    val eventTime = row.get(GAME_MOVE.EVENT_TIME)
-                    if (eventTime != null) put(gameId, eventTime)
-                }
-            }
-        }
 
         // Assign each game (in encounter order) to a 1000-game batch so we can write one CSV per batch.
         val batchByGameId = rows
