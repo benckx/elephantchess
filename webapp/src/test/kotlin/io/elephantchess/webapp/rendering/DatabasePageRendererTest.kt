@@ -33,7 +33,8 @@ class DatabasePageRendererTest {
                 enabled = true,
                 versionTime = 1704067200000
             ),
-            fetchEditorsUsername = { listOf("Bob", "Alice", "Bob", "<script>") }
+            fetchEditorsUsername = { listOf("Bob", "Alice", "Bob", "<script>") },
+            hasOpeningData = false
         )
 
         assertTrue(output.contains("<b>Contributors:</b>"))
@@ -61,7 +62,8 @@ class DatabasePageRendererTest {
                 enabled = true,
                 versionTime = null
             ),
-            fetchEditorsUsername = { emptyList() }
+            fetchEditorsUsername = { emptyList() },
+            hasOpeningData = false
         )
 
         assertFalse(output.contains("<b>Contributors:</b>"))

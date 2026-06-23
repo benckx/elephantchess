@@ -43,7 +43,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         requestedVersion: Int?,
         edit: DatabasePlayerProfileEdit,
         fetchEditorsUsername: suspend () -> List<String>,
-        hasOpeningData: Boolean = false,
+        hasOpeningData: Boolean,
     ): String {
         val description = edit.profileText
         val contributors = fetchEditorsUsername()
@@ -120,6 +120,18 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             }
         }
 
+        // Opening explorer is only wired up (markup + scripts + stylesheet) for players that
+        // have pre-calculated opening data.
+        val openingsHeadResolver = SimpleValueTagResolver(
+            "database_player_openings_head_conditional",
+            if (hasOpeningData) "{{database_player_openings_head}}" else ""
+        )
+
+        val openingsSectionResolver = SimpleValueTagResolver(
+            "database_player_openings_section_conditional",
+            if (hasOpeningData) "{{database_player_openings_section}}" else ""
+        )
+
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_player.html",
             specificTagResolvers = listOf(
@@ -132,7 +144,9 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 styleResolver,
                 authorMeta,
                 profileMetaResolver,
-                noIndexMeta
+                noIndexMeta,
+                openingsHeadResolver,
+                openingsSectionResolver
             ),
             canonicalPath = "/database/player/${databasePlayer.urlName}"
         )
