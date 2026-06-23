@@ -109,7 +109,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                     }
                 }
             }
-            if (contributorsText.isNotEmpty() && lastEditDate != null) {
+            if (contributors.isNotEmpty() && lastEditDate != null) {
                 span(classes = "profile-meta-separator") {
                     +" · "
                 }
