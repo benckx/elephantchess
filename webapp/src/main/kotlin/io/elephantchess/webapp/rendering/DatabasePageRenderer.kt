@@ -95,10 +95,18 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         }
 
         val profileMetaResolver = KtorHtmlBuilderTagResolver("profile_meta_info") {
-            if (contributorsText.isNotEmpty()) {
+            if (contributors.isNotEmpty()) {
                 span {
                     b { +"Contributors:" }
-                    +" $contributorsText"
+                    +" "
+                    contributors.forEachIndexed { index, username ->
+                        if (index > 0) {
+                            +", "
+                        }
+                        a(href = "/@/${username.encodeURLPath()}") {
+                            +username
+                        }
+                    }
                 }
             }
             if (contributorsText.isNotEmpty() && lastEditDate != null) {

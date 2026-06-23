@@ -41,8 +41,14 @@ class DatabasePageRendererTest {
         assertTrue(output.contains("&lt;script&gt;"))
         assertTrue(output.contains("Alice"))
         assertTrue(output.contains("Bob"))
+        assertTrue(output.contains("""href="/@/Alice""""))
+        assertTrue(output.contains("""href="/@/Bob""""))
+        assertTrue(output.contains("""href="/@/%3Cscript%3E""""))
         assertTrue(output.contains("<b>Last edit:</b> 1 Jan 2024"))
         assertTrue(output.contains("""<meta name="author""""))
+        val descriptionIndex = output.indexOf("""<div id="player-profile-description">""")
+        val profileMetaIndex = output.indexOf("""<div id="profile-meta-info">""")
+        assertTrue(profileMetaIndex > descriptionIndex)
         assertFalse(output.contains("<script>"))
     }
 
