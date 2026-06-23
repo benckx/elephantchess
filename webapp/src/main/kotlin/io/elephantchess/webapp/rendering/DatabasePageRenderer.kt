@@ -10,16 +10,17 @@ import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.formatWithChineseName
 import io.github.reactivecircus.cache4k.Cache
-import io.ktor.util.escapeHTML
 import java.time.Instant
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import io.ktor.http.*
+import kotlinx.html.b
 import kotlinx.html.a
 import kotlinx.html.li
 import kotlinx.html.meta
 import kotlinx.html.p
+import kotlinx.html.span
 import kotlinx.html.style
 import kotlinx.html.unsafe
 import kotlin.time.Duration.Companion.hours
@@ -51,8 +52,10 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             .filter { it.isNotEmpty() }
             .distinct()
             .sorted()
-        val contributorsForMeta = contributors.joinToString(", ").escapeHTML()
-        val contributorsForDisplay = contributors.joinToString(", ") { it.escapeHTML() }
+        val contributorsText = contributors.joinToString(", ")
+        val lastEditDate = edit.versionTime
+            ?.let { Instant.ofEpochMilli(it).atZone(UTC).toLocalDate() }
+            ?.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
 
         val playerNameEncodedResolver = SimpleValueTagResolver("player_name_encoded", databasePlayer.urlName)
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
@@ -86,28 +89,27 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             if (contributors.isNotEmpty()) {
                 meta {
                     name = "author"
-                    content = contributorsForMeta
+                    content = contributorsText
                 }
             }
         }
 
-        val profileMetaResolver = CallbackTagResolver("profile_meta_info") {
-            val lastEditDate = edit.versionTime
-                ?.let { Instant.ofEpochMilli(it).atZone(UTC).toLocalDate() }
-                ?.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
-            if (contributorsForDisplay.isEmpty() && lastEditDate == null) {
-                ""
-            } else {
-                buildString {
-                    if (contributorsForDisplay.isNotEmpty()) {
-                        append("""<span><b>Contributors:</b> $contributorsForDisplay</span>""")
-                    }
-                    if (lastEditDate != null) {
-                        if (isNotEmpty()) {
-                            append("""<span class="profile-meta-separator"> · </span>""")
-                        }
-                        append("""<span><b>Last edit:</b> $lastEditDate</span>""")
-                    }
+        val profileMetaResolver = KtorHtmlBuilderTagResolver("profile_meta_info") {
+            if (contributorsText.isNotEmpty()) {
+                span {
+                    b { +"Contributors:" }
+                    +" $contributorsText"
+                }
+            }
+            if (contributorsText.isNotEmpty() && lastEditDate != null) {
+                span(classes = "profile-meta-separator") {
+                    +" · "
+                }
+            }
+            if (lastEditDate != null) {
+                span {
+                    b { +"Last edit:" }
+                    +" $lastEditDate"
                 }
             }
         }
