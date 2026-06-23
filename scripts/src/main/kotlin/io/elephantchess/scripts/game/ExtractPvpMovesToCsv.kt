@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.system.exitProcess
+import kotlin.time.Instant
 
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
@@ -47,6 +48,10 @@ private val CSV_HEADER = arrayOf(
     "game_join_source",
     "analysis",
     "cpl",
+    "red_account_age",
+    "red_user_type",
+    "black_account_age",
+    "black_user_type",
 )
 
 object ExtractPvpMovesToCsv : KoinScriptInit() {
@@ -90,8 +95,12 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 GAME_MOVE.POSITION,
                 inviterUser.ID,
                 inviterUser.HANDLE,
+                inviterUser.CREATION,
+                inviterUser.USER_TYPE,
                 inviteeUser.ID,
-                inviteeUser.HANDLE
+                inviteeUser.HANDLE,
+                inviteeUser.CREATION,
+                inviteeUser.USER_TYPE
             )
             .from(GAME)
             .join(GAME_MOVE).on(GAME_MOVE.GAME_ID.eq(GAME.ID))
@@ -105,14 +114,18 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         // Replay each game's moves to compute the FEN key (FEN without the full-move counter) for every move.
         // The key matches the position resulting from the played move, which is how engine analysis is keyed.
         // We also keep the full FEN of the position *before* each move so we can replay the engine's best move.
+        // The first event time seen per game (rows ordered by position asc) is also captured here.
         var currentGameId: String? = null
         var board = Board(Board.defaultStartFen(variant))
         val fenBeforeMove = mutableListOf<String>()
+        val firstMoveTimeByGameId = mutableMapOf<String, Instant>()
         val fenKeys = rows.map { row ->
             val gameId = row.get(GAME.ID)
             if (gameId != currentGameId) {
                 currentGameId = gameId
                 board = Board(Board.defaultStartFen(variant))
+                val eventTime = row.get(GAME_MOVE.EVENT_TIME)
+                if (eventTime != null) firstMoveTimeByGameId[gameId] = eventTime
             }
             fenBeforeMove += board.outputFen()
             board.registerMove(row.get(GAME_MOVE.UCI))
@@ -210,6 +223,18 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
                         val cpl = calculateCpl(engineBestAnalysis, actualMoveAnalysis)
 
+                        val firstMoveTime = firstMoveTimeByGameId[row.get(GAME.ID)]
+                        val inviterCreation = row.get(inviterUser.CREATION)
+                        val inviteeCreation = row.get(inviteeUser.CREATION)
+                        val redCreation = if (inviterIsRed) inviterCreation else inviteeCreation
+                        val blackCreation = if (inviterIsRed) inviteeCreation else inviterCreation
+                        val redAccountAge = accountAge(redCreation, firstMoveTime)
+                        val blackAccountAge = accountAge(blackCreation, firstMoveTime)
+                        val inviterUserType = row.get(inviterUser.USER_TYPE)
+                        val inviteeUserType = row.get(inviteeUser.USER_TYPE)
+                        val redUserType = if (inviterIsRed) inviterUserType else inviteeUserType
+                        val blackUserType = if (inviterIsRed) inviteeUserType else inviterUserType
+
                         writer.writeNext(
                             arrayOf(
                                 row.get(GAME_MOVE.EVENT_TIME).toString(),
@@ -234,6 +259,10 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 row.get(GAME.JOIN_SOURCE)?.name ?: "",
                                 analysis,
                                 cpl?.toString() ?: "",
+                                redAccountAge,
+                                redUserType?.name ?: "",
+                                blackAccountAge,
+                                blackUserType?.name ?: "",
                             )
                         )
                     }
@@ -282,6 +311,13 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     }
 
     private fun guestName(userId: String): String = "guest #$userId"
+
+    private fun accountAge(creation: Instant?, firstMoveTime: Instant?): String {
+        if (creation == null || firstMoveTime == null) return ""
+        val totalSeconds = (firstMoveTime - creation).inWholeSeconds.coerceAtLeast(0)
+        val days = totalSeconds / (24 * 3600)
+        return if (days >= 1) "${days}d" else "${totalSeconds / 3600}h"
+    }
 
     private fun timeControlToString(mode: TimeControlMode?, base: Int?, increment: Int?): String =
         when (mode) {

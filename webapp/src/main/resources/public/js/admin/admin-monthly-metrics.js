@@ -199,11 +199,11 @@ class AdminMonthlyMetricsPage extends BasePage {
         this.#renderOnlineUserChart(container, 'online users (avg)', 'chart-online-avg', this.#extractOnlineUsersData('avgTotal'));
         this.#renderOnlineUserChart(container, 'online users (max)', 'chart-online-max', this.#extractOnlineUsersData('maxTotal'));
         this.#renderCombinedPvPPvBChart(container);
+        this.#metrics.forEach((metricName, index) => this.#renderMetricChart(container, metricName, index));
         this.#renderPvpPercentageChart(container);
         this.#renderPvpLobbyPercentageChart(container);
         this.#renderPvpLinkPercentageChart(container);
         this.#renderPvpJoinSourceChart(container);
-        this.#metrics.forEach((metricName, index) => this.#renderMetricChart(container, metricName, index));
         this.#renderYearlyChart(container);
     }
 
