@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.services
 
 import io.elephantchess.config.AppConfig
+import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.dao.codegen.tables.pojos.MoveAnalysis
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGame
@@ -28,7 +29,6 @@ import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
-import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
@@ -99,116 +99,43 @@ class GameDataService(
     suspend fun fetchGameMetadata(gameId: GameId): GameMetadataDto {
         val gameMetadataDto =
             when (gameId.type) {
-                PVP -> {
+                PVP ->
                     pvpGameDaoService
                         .fetchById(gameId.id)
                         ?.let { record ->
-                            val redPlayerId = if (record.inviterColor == RED) record.inviter else record.invitee
-                            val blackPlayerId = if (record.inviterColor == BLACK) record.inviter else record.invitee
-                            val redPlayerName = fetchUserName(redPlayerId) ?: "?"
-                            val blackPlayerName = fetchUserName(blackPlayerId) ?: "?"
-
-                            GameMetadataDto(
-                                gameId = gameId,
-                                lastUpdated = record.lastUpdated.toEpochMilliseconds(),
-                                redPlayerId = redPlayerId,
-                                redPlayerName = redPlayerName,
-                                blackPlayerId = blackPlayerId,
-                                blackPlayerName = blackPlayerName,
-                                finalFen = record.currentFen,
-                                outcome = record.outcome,
-                                analysisStatus = record.analysisStatus,
-                                variant = record.variant,
-                            )
+                            val userIds = listOfNotNull(record.inviter, record.invitee)
+                            val onlineUserIds = userService.areOnline(userIds).onlineUserIds
+                            mapPlayerVsPlayerGameToDto(record, onlineUserIds)
+                                .copy(analysisStatus = record.analysisStatus)
                         }
-                }
 
-                PVB -> {
+                PVB ->
                     pvbGameDaoService
                         .fetchById(gameId.id)
                         ?.let { record ->
-                            val userId = record.userId
-                            val userName = fetchUserName(userId)
-                            var blackPlayerId: String? = null
-                            var blackPlayerName: String? = null
-                            var redPlayerId: String? = null
-                            var redPlayerName: String? = null
-                            val engineName = record.prettyEngineName()
-
-                            when (record.userColor) {
-                                RED -> {
-                                    redPlayerId = userId
-                                    redPlayerName = userName
-                                    blackPlayerName = engineName
-                                }
-
-                                BLACK -> {
-                                    redPlayerName = engineName
-                                    blackPlayerId = userId
-                                    blackPlayerName = userName
-                                }
-
-                                else -> {
-                                    // should not happen, but in case of data inconsistency, we don't want to fail the whole request
-                                    logger.warn { "Game $gameId has invalid user color ${record.userColor}" }
-                                }
-                            }
-
-                            GameMetadataDto(
-                                gameId = gameId,
-                                lastUpdated = record.created.toEpochMilliseconds(),
-                                redPlayerId = redPlayerId,
-                                redPlayerName = redPlayerName,
-                                blackPlayerId = blackPlayerId,
-                                blackPlayerName = blackPlayerName,
-                                startFen = record.startFen,
-                                finalFen = record.currentFen,
-                                outcome = record.outcome,
-                                analysisStatus = record.analysisStatus,
-                                engine = record.engine,
-                                depth = record.depth,
-                                variant = record.variant
-                            )
+                            val onlineUserIds = userService.areOnline(listOfNotNull(record.userId)).onlineUserIds
+                            mapPlayerVsBotGameToDto(record, onlineUserIds)
+                                .copy(
+                                    startFen = record.startFen,
+                                    analysisStatus = record.analysisStatus,
+                                    engine = record.engine,
+                                    depth = record.depth
+                                )
                         }
-                }
 
-                DB -> {
+                DB ->
                     referenceGameDaoService
                         .findById(gameId.id)
                         ?.let { record ->
-                            val redPlayerName =
-                                when (record.redPlayer) {
-                                    null -> null
-                                    else -> referencePlayerDaoService.findCanonicalPlayerName(record.redPlayer)
-                                }
-
-                            val blackPlayerName =
-                                when (record.blackPlayer) {
-                                    null -> null
-                                    else -> referencePlayerDaoService.findCanonicalPlayerName(record.blackPlayer)
-                                }
-
-                            val event =
-                                record.event?.let { eventId -> referenceEventDaoService.fetchEventById(eventId) }
-
-                            GameMetadataDto(
-                                gameId = gameId,
-                                lastUpdated = record.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-                                redPlayerId = record.redPlayer,
-                                redPlayerName = redPlayerName,
-                                blackPlayerId = record.blackPlayer,
-                                blackPlayerName = blackPlayerName,
-                                finalFen = record.finalFen,
-                                outcome = record.outcome,
-                                analysisStatus = record.analysisStatus,
-                                eventId = event?.id,
-                                eventName = event?.name,
-                                variant = Variant.XIANGQI
-                            )
+                            val event = record.event?.let { referenceEventDaoService.fetchEventById(it) }
+                            mapDatabaseGameToDto(record, paginationOffset = null)
+                                .copy(
+                                    analysisStatus = record.analysisStatus,
+                                    eventId = event?.id,
+                                    eventName = event?.name
+                                )
                         }
-                }
             }
-
 
         return gameMetadataDto ?: throw NotFoundException("$gameId not found")
     }
@@ -224,7 +151,7 @@ class GameDataService(
         return GameMovesResponse(moves)
     }
 
-    suspend fun startGameAnalysis(gameId: GameId): StartGameAnalysisResponse {
+    suspend fun startGameAnalysis(gameId: GameId, isFromBatch: Boolean = false): StartGameAnalysisResponse {
         fun stillInProgressException(gameId: GameId, gameEventType: GameEventType) =
             BadRequestException("Game $gameId is in status $gameEventType and can not be analyzed yet")
 
@@ -274,7 +201,7 @@ class GameDataService(
 
         val (status, shouldStartAnalysis) = validateAnalysisShouldStart(gameId)
         if (shouldStartAnalysis) {
-            startAnalysisAsync(gameId)
+            startAnalysisAsync(gameId, isFromBatch)
         }
         return StartGameAnalysisResponse(status, shouldStartAnalysis)
     }
@@ -360,7 +287,7 @@ class GameDataService(
         moveAnalysisDaoService.resetAnalysisStatus(gameId)
     }
 
-    private fun startAnalysisAsync(gameId: GameId) {
+    private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean) {
         suspend fun queryEngine(fen: String): InfoLineResult? {
             return enginesPool.safeQueryForDepth(
                 fen = fen,
@@ -428,7 +355,7 @@ class GameDataService(
             if (appConfig.isEnginePoolEnabled) {
                 when (val analysisStatus = fetchAnalysisStatusOfGame(gameId)) {
                     PARTIALLY_COMPLETED -> {
-                        moveAnalysisDaoService.startAnalysis(gameId)
+                        moveAnalysisDaoService.startAnalysis(gameId, isFromBatch)
                         logger.info { "$gameId completing analysis" }
 
                         try {
@@ -445,7 +372,7 @@ class GameDataService(
                     }
 
                     NOT_STARTED -> {
-                        moveAnalysisDaoService.startAnalysis(gameId)
+                        moveAnalysisDaoService.startAnalysis(gameId, isFromBatch)
                         logger.info { "$gameId starting analysis" }
 
                         try {
@@ -538,7 +465,7 @@ class GameDataService(
 
         return selectedGames
             .take(actualLimit)
-            .map { mapPvpGameToDto(it, onlineUserIds) }
+            .map { mapPlayerVsPlayerGameToDto(it, onlineUserIds) }
             .let { entries ->
                 ListLastGamesResponse(entries)
             }
@@ -574,34 +501,10 @@ class GameDataService(
         val onlineUserIds = userService.areOnline(userIds).onlineUserIds
 
         return games
-            .map { mapPvpGameToDto(it, onlineUserIds) }
+            .map { mapPlayerVsPlayerGameToDto(it, onlineUserIds) }
             .let { entries ->
                 ListLastGamesResponse(entries)
             }
-    }
-
-    private suspend fun mapPvpGameToDto(gameRecord: Game, onlineUserIds: Set<String>): GameMetadataDto {
-        val redUserId = gameRecord.redUserId()!!
-        val blackUserId = gameRecord.blackUserId()!!
-        return GameMetadataDto(
-            gameId = GameId(PVP, gameRecord.id),
-            redPlayerId = redUserId,
-            redPlayerName = fetchUserName(redUserId),
-            redPlayerRating = gameRecord.redPlayerRating(),
-            redUserType = userCache.fetchUserType(redUserId),
-            isRedOnline = onlineUserIds.contains(redUserId),
-            blackPlayerId = blackUserId,
-            blackPlayerName = fetchUserName(blackUserId),
-            blackPlayerRating = gameRecord.blackPlayerRating(),
-            blackUserType = userCache.fetchUserType(blackUserId),
-            isBlackOnline = onlineUserIds.contains(blackUserId),
-            userColor = null,
-            finalFen = gameRecord.currentFen,
-            status = gameRecord.gameStatus,
-            outcome = gameRecord.outcome,
-            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
-            variant = gameRecord.variant
-        )
     }
 
     suspend fun listLatestPvbGames(
@@ -616,7 +519,8 @@ class GameDataService(
                 minMoveIndex = MIN_MOVE_INDEX,
                 beforeTs = beforeTs,
                 excludeAutoResigned = excludeAutoResigned,
-                distinctByUsers = distinctByUsers
+                distinctByUsers = distinctByUsers,
+                variantsToInclude = Variant.entries
             )
 
         val userIds = gameRecords.map { game -> game.userId }.distinct().filterNotNull()
@@ -624,60 +528,8 @@ class GameDataService(
 
         return gameRecords
             .take(requestedLimit)
-            .map { record ->
-                val redUserId: String?
-                val redPlayerName: String?
-                val redPlayerRating: Int?
-                val redUserType: UserType?
-                val blackUserId: String?
-                val blackPlayerName: String?
-                val blackPlayerRating: Int?
-                val blackUserType: UserType?
-                val isUserOnline = onlineUserIds.contains(record.userId)
-
-                if (record.userColor == RED) {
-                    redUserId = record.userId
-                    redPlayerName = fetchUserName(record.userId)
-                    redPlayerRating = null
-                    redUserType = userCache.fetchUserType(record.userId)
-                    blackUserId = null
-                    blackPlayerName = record.prettyEngineName()
-                    blackPlayerRating = null
-                    blackUserType = null
-                } else {
-                    redUserId = null
-                    redPlayerName = record.prettyEngineName()
-                    redPlayerRating = null
-                    redUserType = null
-                    blackUserId = record.userId
-                    blackPlayerName = fetchUserName(record.userId)
-                    blackPlayerRating = null
-                    blackUserType = userCache.fetchUserType(record.userId)
-                }
-
-                GameMetadataDto(
-                    gameId = GameId(PVB, record.id),
-                    redPlayerId = redUserId,
-                    redPlayerName = redPlayerName,
-                    redPlayerRating = redPlayerRating,
-                    redUserType = redUserType,
-                    blackPlayerId = blackUserId,
-                    blackPlayerName = blackPlayerName,
-                    blackPlayerRating = blackPlayerRating,
-                    blackUserType = blackUserType,
-                    isRedOnline = isUserOnline,
-                    isBlackOnline = isUserOnline,
-                    userColor = record.userColor,
-                    finalFen = record.currentFen,
-                    status = record.gameStatus,
-                    outcome = record.outcome,
-                    lastUpdated = record.lastUpdated.toEpochMilliseconds(),
-                    variant = record.variant,
-                )
-            }
-            .let { entries ->
-                ListLastGamesResponse(entries)
-            }
+            .map { record -> mapPlayerVsBotGameToDto(record, onlineUserIds) }
+            .let { entries -> ListLastGamesResponse(entries) }
     }
 
     suspend fun listLastDbGamesByPlayerName(
@@ -694,7 +546,7 @@ class GameDataService(
             offset = offset
         )
 
-        return ListLastGamesResponse(mapReferenceGamesToMetadata(games, offset))
+        return ListLastGamesResponse(mapDatabaseGamesToDto(games, offset))
     }
 
     suspend fun listLastDbGamesByEventId(
@@ -710,27 +562,7 @@ class GameDataService(
             offset = offset
         )
 
-        return ListLastGamesResponse(mapReferenceGamesToMetadata(games, offset))
-    }
-
-    private suspend fun mapReferenceGamesToMetadata(
-        games: List<ReferenceGame>,
-        offset: Int?
-    ): List<GameMetadataDto> {
-        return games.mapIndexed { i, game ->
-            GameMetadataDto(
-                gameId = GameId(DB, game.id),
-                redPlayerId = game.redPlayer,
-                redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
-                blackPlayerId = game.blackPlayer,
-                blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
-                finalFen = game.finalFen ?: DEFAULT_START_FEN,
-                outcome = game.outcome,
-                lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-                paginationOffset = (offset ?: 0) + i,
-                variant = Variant.XIANGQI
-            )
-        }
+        return ListLastGamesResponse(mapDatabaseGamesToDto(games, offset))
     }
 
     suspend fun fetchLatestGamesUpdate(request: LatestGamesUpdateRequest): LatestGamesUpdateResponse {
@@ -758,6 +590,104 @@ class GameDataService(
         }
 
         return LatestGamesUpdateResponse(entries)
+    }
+
+    private suspend fun mapPlayerVsBotGameToDto(record: BotGame, onlineUserIds: Set<String>): GameMetadataDto {
+        val redUserId: String?
+        val redPlayerName: String?
+        val redPlayerRating: Int?
+        val redUserType: UserType?
+        val blackUserId: String?
+        val blackPlayerName: String?
+        val blackPlayerRating: Int?
+        val blackUserType: UserType?
+        val isUserOnline = onlineUserIds.contains(record.userId)
+
+        if (record.userColor == RED) {
+            redUserId = record.userId
+            redPlayerName = fetchUserName(record.userId)
+            redPlayerRating = null
+            redUserType = userCache.fetchUserType(record.userId)
+            blackUserId = null
+            blackPlayerName = record.prettyEngineName()
+            blackPlayerRating = null
+            blackUserType = null
+        } else {
+            redUserId = null
+            redPlayerName = record.prettyEngineName()
+            redPlayerRating = null
+            redUserType = null
+            blackUserId = record.userId
+            blackPlayerName = fetchUserName(record.userId)
+            blackPlayerRating = null
+            blackUserType = userCache.fetchUserType(record.userId)
+        }
+
+        return GameMetadataDto(
+            gameId = GameId(PVB, record.id),
+            redPlayerId = redUserId,
+            redPlayerName = redPlayerName,
+            redPlayerRating = redPlayerRating,
+            redUserType = redUserType,
+            blackPlayerId = blackUserId,
+            blackPlayerName = blackPlayerName,
+            blackPlayerRating = blackPlayerRating,
+            blackUserType = blackUserType,
+            isRedOnline = isUserOnline,
+            isBlackOnline = isUserOnline,
+            userColor = record.userColor,
+            finalFen = record.currentFen,
+            status = record.gameStatus,
+            outcome = record.outcome,
+            lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+            variant = record.variant,
+        )
+
+    }
+
+    private suspend fun mapPlayerVsPlayerGameToDto(gameRecord: Game, onlineUserIds: Set<String>): GameMetadataDto {
+        val redUserId = gameRecord.redUserId()!!
+        val blackUserId = gameRecord.blackUserId()!!
+        return GameMetadataDto(
+            gameId = GameId(PVP, gameRecord.id),
+            redPlayerId = redUserId,
+            redPlayerName = fetchUserName(redUserId),
+            redPlayerRating = gameRecord.redPlayerRating(),
+            redUserType = userCache.fetchUserType(redUserId),
+            isRedOnline = onlineUserIds.contains(redUserId),
+            blackPlayerId = blackUserId,
+            blackPlayerName = fetchUserName(blackUserId),
+            blackPlayerRating = gameRecord.blackPlayerRating(),
+            blackUserType = userCache.fetchUserType(blackUserId),
+            isBlackOnline = onlineUserIds.contains(blackUserId),
+            userColor = null,
+            finalFen = gameRecord.currentFen,
+            status = gameRecord.gameStatus,
+            outcome = gameRecord.outcome,
+            lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
+            variant = gameRecord.variant
+        )
+    }
+
+    private suspend fun mapDatabaseGameToDto(game: ReferenceGame, paginationOffset: Int?): GameMetadataDto {
+        return GameMetadataDto(
+            gameId = GameId(DB, game.id),
+            redPlayerId = game.redPlayer,
+            redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
+            blackPlayerId = game.blackPlayer,
+            blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
+            finalFen = game.finalFen ?: DEFAULT_START_FEN,
+            outcome = game.outcome,
+            lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
+            paginationOffset = paginationOffset,
+            variant = Variant.XIANGQI
+        )
+    }
+
+    private suspend fun mapDatabaseGamesToDto(games: List<ReferenceGame>, offset: Int?): List<GameMetadataDto> {
+        return games.mapIndexed { i, game ->
+            mapDatabaseGameToDto(game, (offset ?: 0) + i)
+        }
     }
 
     companion object {

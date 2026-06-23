@@ -32,7 +32,6 @@ class UserServiceTest : ServiceTest() {
     private val tokenManager by inject<TokenManager>()
     private val userDaoService by inject<UserDaoService>()
     private val userSessionDaoService by inject<UserSessionDaoService>()
-    private val pvpGameService by inject<PlayerVsPlayerGameService>()
     private val pvbGameDaoService by inject<PlayerVsBotGameDaoService>()
     private val dslContext by inject<DSLContext>()
 
@@ -41,7 +40,7 @@ class UserServiceTest : ServiceTest() {
         listOf(
             GAME_MOVE, GAME_STATUS_EVENT, GAME,
             BOT_GAME_MOVE, BOT_GAME_STATUS_EVENT, BOT_GAME,
-            REFERENCE_GAME_SEARCH_QUERY,
+            REFERENCE_GAME_SEARCH_QUERY, CONTENT_SECTION_VOTE,
             USER_SESSION, PUZZLE_RESULT, USER, PUZZLE
         )
             .forEach { table ->
@@ -350,8 +349,8 @@ class UserServiceTest : ServiceTest() {
         val userAfterSignup = userDaoService.findById(userId)!!
         val code = userAfterSignup.emailConfirmationCode
 
-        // simulate that the code was generated more than 1h ago
-        userDaoService.updateEmailConfirmationCode(userId, code, Clock.System.now().minusHours(2L))
+        // simulate that the code was generated more than 24h ago
+        userDaoService.updateEmailConfirmationCode(userId, code, Clock.System.now().minusHours(25L))
 
         assertFalse(userService.confirmEmail(code), "Expired code should be rejected")
         assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)

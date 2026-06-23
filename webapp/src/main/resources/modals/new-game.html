@@ -1,4 +1,5 @@
 <div id="create-new-game-modal" class="modal-content" data-nosnippet>
+    <button class="modal-close-button" aria-label="Close">×</button>
     <h2>New Game</h2>
     <div class="new-game-main-container">
         <div class="container-with-margin">
@@ -224,6 +225,11 @@
                             <label for="always-visible-in-lobby">
                                 Always show in lobby (also when I'm offline)
                             </label>
+                            <a id="always-visible-in-lobby-faq-link"
+                               class="always-visible-in-lobby-faq-link"
+                               href="/about/faq#always-visible-in-lobby" target="_blank">
+                                <img src="/images/icons/question_faq.png" alt="about"/>
+                            </a>
                         </span>
                     </div>
 
@@ -234,7 +240,7 @@
                         </span>
                         <span class="label-span">
                             <label for="private-invite">
-                                Private game invite (only players with the link can join)
+                                Private game invite (players need the link)
                             </label>
                         </span>
                     </div>

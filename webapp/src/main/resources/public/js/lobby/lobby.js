@@ -17,9 +17,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const YOUTUBE_EMBED = `
+const HOW_TO_PLAY_YOUTUBE_EMBED = `
             <iframe src="https://www.youtube.com/embed/nApZihrdQGo?si=iUZBitjMJCAQYiTL"
-                    title="YouTube video player" frameborder="0"
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+
+const REVENGE_OF_ASHES_YOUTUBE_EMBED = `
+            <iframe src="https://www.youtube.com/embed/Kg-wRgAt3tw"
+                    title="Revenge of Ashes"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
@@ -36,10 +42,6 @@ function makeAppButton(id, value) {
     return button;
 }
 
-const KNOWN_TIME_CONTROL_IDS = new Set(
-    timeControlCategories.flatMap((category) => category.timeControls.map((timeControl) => timeControl.id))
-);
-
 const RATING_MODE_ICONS = {
     rated: '/images/icons/trophy-football.png',
     casual: '/images/icons/sunset.png',
@@ -51,14 +53,6 @@ const RATING_MODE_ICONS = {
  */
 function timeControlIconSource(entry) {
     return `${ICON_PATH}/${timeControlCategoryIconMap.get(entry.timeControlCategory)}`
-}
-
-/**
- * @param entry {GameToPlayDto}
- * @returns {boolean}
- */
-function isCustomTimeControl(entry) {
-    return entry.timeControl != null && !KNOWN_TIME_CONTROL_IDS.has(entry.timeControl.id);
 }
 
 class LobbyPage extends BasePage {
@@ -91,7 +85,22 @@ class LobbyPage extends BasePage {
     #puzzleBoardLinkMask = document.getElementById('puzzle-board-link-mask');
 
     #youTubeDiv = document.getElementById('youtube-embed-container');
-    #isYouTubeEmbedRendered = false;
+    #revengeOfAshesDiv = document.getElementById('revenge-of-ashes-embed-container');
+    #shouldRenderRevengeOfAshesEmbed = this.#revengeOfAshesDiv?.dataset.renderEmbed === 'true';
+
+    #youtubeEmbeds = [
+        {
+            element: this.#youTubeDiv,
+            embed: HOW_TO_PLAY_YOUTUBE_EMBED,
+            rendered: false,
+        },
+        {
+            element: this.#revengeOfAshesDiv,
+            embed: REVENGE_OF_ASHES_YOUTUBE_EMBED,
+            rendered: false,
+            enabled: this.#shouldRenderRevengeOfAshesEmbed,
+        },
+    ];
 
     constructor() {
         super();
@@ -116,8 +125,9 @@ class LobbyPage extends BasePage {
             }
         }, 800);
 
-        addEventListener('scroll', (_) => this.#renderYouTubeEmbed());
-        addEventListener('resize', (_) => this.#renderYouTubeEmbed());
+        addEventListener('scroll', (_) => this.#renderYouTubeEmbeds());
+        addEventListener('resize', (_) => this.#renderYouTubeEmbeds());
+        this.#renderYouTubeEmbeds();
 
         const settingsGui = new SettingsGui(this.#puzzleBoardGui, null, false, false);
         new LiveGamesViewer(settingsGui);
@@ -125,7 +135,7 @@ class LobbyPage extends BasePage {
 
     additionalGamesToJoinListeners() {
         return [update => {
-            this.#renderGameList(update.gamesToJoin);
+            this.#renderGamesToJoinList(update.gamesToJoin);
 
             switch (update.totalOnline) {
                 case 0:
@@ -143,7 +153,7 @@ class LobbyPage extends BasePage {
     /**
      * @param entries {GameToPlayDto[]}
      */
-    #renderGameList(entries) {
+    #renderGamesToJoinList(entries) {
         this.#gameToJoinList.innerHTML = '';
 
         entries.sort(sortByOnline);
@@ -189,27 +199,13 @@ class LobbyPage extends BasePage {
             opponentLine.append(isOnlineIndicator);
 
             // time control
-            const hasCustomTimeControl = isCustomTimeControl(entry);
-            let timeControlLabel;
-            if (hasCustomTimeControl) {
-                timeControlLabel = 'Custom';
-            } else if (entry.timeControl != null) {
-                timeControlLabel = entry.timeControl.printShort(' +');
-            } else {
-                timeControlLabel = '--'
-            }
-
             const timeControlIcon = buildImg(timeControlIconSource(entry), 'time-control-icons');
             const timeControlIconCell = buildDivWithClass('game-to-join-time-icon-cell')
             timeControlIconCell.append(timeControlIcon);
 
-            const timeControlDurationCell = buildDivWithClass('game-to-join-time-duration-cell');
-            timeControlDurationCell.innerText = timeControlLabel;
-
             timeControlPane.append(timeControlIconCell);
-            timeControlPane.append(timeControlDurationCell);
 
-            if (hasCustomTimeControl && entry.timeControl != null) {
+            if (entry.timeControl != null) {
                 customTimeLine.innerText = entry.timeControl.printShort(' +');
             }
 
@@ -225,7 +221,7 @@ class LobbyPage extends BasePage {
                     entry.opponentUserId,
                     entry.opponentUsername,
                     entry.opponentUserType,
-                    null,
+                    24,
                     false
                 )
             );
@@ -407,13 +403,17 @@ class LobbyPage extends BasePage {
         });
     }
 
-    #renderYouTubeEmbed() {
-        if (!this.#isYouTubeEmbedRendered) {
-            if (isInViewport(this.#youTubeDiv)) {
-                this.#youTubeDiv.innerHTML = YOUTUBE_EMBED;
-                this.#isYouTubeEmbedRendered = true;
+    #renderYouTubeEmbeds() {
+        this.#youtubeEmbeds.forEach((youtubeEmbed) => {
+            if (youtubeEmbed.enabled === false) {
+                return;
             }
-        }
+
+            if (!youtubeEmbed.rendered && youtubeEmbed.element != null && isInViewport(youtubeEmbed.element)) {
+                youtubeEmbed.element.innerHTML = youtubeEmbed.embed;
+                youtubeEmbed.rendered = true;
+            }
+        });
     }
 
 }

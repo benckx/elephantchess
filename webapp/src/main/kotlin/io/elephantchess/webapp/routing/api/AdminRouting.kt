@@ -19,6 +19,7 @@ fun Route.adminConsoleRoutes() {
         adminDatabaseSearchRoutes()
         adminPasswordRecoveryRoutes()
         adminUserSessionRoutes()
+        adminUserEloRoutes()
         adminAnalysisRoutes()
         adminPostgresRoutes()
         adminDatabaseRoutes()
@@ -67,16 +68,25 @@ private fun Route.adminFeedsRoutes() {
     val adminFeedService by koin<AdminFeedService>()
 
     get("/list-games") {
-        requireAdminRole { adminFeedService.listLastGames() }
+        requireAdminRole { adminFeedService.listLatestPvpGames() }
+    }
+    get("/list-variant-games") {
+        requireAdminRole { adminFeedService.listLatestVariantPvpGames() }
     }
     get("/list-bot-games") {
-        requireAdminRole { adminFeedService.listLastBotGames() }
+        requireAdminRole { adminFeedService.listLatestPvbGames() }
+    }
+    get("/list-variant-bot-games") {
+        requireAdminRole { adminFeedService.listLatestVariantPvbGames() }
     }
     get("/last-played-puzzles") {
         requireAdminRole { adminFeedService.listLastPuzzlePlayedByLoggedUsers() }
     }
     get("/last-users-analysis") {
         requireAdminRole { adminFeedService.listLastUsersAnalysis() }
+    }
+    get("/content-section-feedback") {
+        requireAdminRole { adminFeedService.listLatestFeedback() }
     }
 }
 
@@ -128,6 +138,11 @@ private fun Route.adminAnalyticsRoutes() {
             val eventPath = URLDecoder.decode(encodedPath, "UTF-8")
 
             adminAnalyticsService.fetchPageViewStatsByEventPath(eventPath)
+        }
+    }
+    get("/page-view-stats-database-games") {
+        requireAdminRole { _ ->
+            adminAnalyticsService.fetchPageViewStatsForDatabaseGames()
         }
     }
     get("/page-view-stats-user-profiles-own") {
@@ -187,6 +202,14 @@ private fun Route.adminUserSessionRoutes() {
     val adminUserSessionService by koin<AdminUserSessionService>()
     get("/list-user-sessions") {
         requireAdminRole { adminUserSessionService.listAuthenticatedUserSessions() }
+    }
+}
+
+private fun Route.adminUserEloRoutes() {
+    val adminUserEloService by koin<AdminUserEloService>()
+
+    get("/elo-stats") {
+        requireAdminRole { adminUserEloService.listUserEloStats() }
     }
 }
 

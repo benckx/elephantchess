@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.IntDimensionValueRecord
 import io.elephantchess.db.model.MonthlyValueRecord
 import io.elephantchess.db.model.analytics.DailyValueRecord
@@ -9,13 +10,17 @@ import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserStatsDaoService
 import io.elephantchess.model.GameJoinSource
+import io.elephantchess.model.GameJoinSource.DYNAMIC_MATCHED
+import io.elephantchess.model.GameJoinSource.LINK
+import io.elephantchess.model.GameJoinSource.LOBBY
+import io.elephantchess.model.GameJoinSource.MATCHED
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.analytics.HourlyAvailableMetric
 import io.elephantchess.servicelayer.services.analytics.allMetrics
-import io.elephantchess.servicelayer.utils.userIdsExcludedFromAnalytics
 import io.elephantchess.utils.rangeOfDays
 import io.elephantchess.utils.rangeOfYearMonths
+import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
 import java.time.LocalDate
 import java.time.YearMonth
@@ -25,8 +30,16 @@ class AdminAnalyticsService(
     private val userStatsDaoService: UserStatsDaoService,
     private val pageViewEventDaoService: PageViewEventDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
-    private val dslContext: DSLContext
+    private val dslContext: DSLContext,
+    logger: KLogger,
+    appConfig: AppConfig,
 ) {
+
+    private val excludedUserIds = appConfig.excludedFromAnalytics
+
+    init {
+        logger.info { "excludedUserIds = $excludedUserIds" }
+    }
 
     /**
      * Limit to 6 hours for now, so order is not an issue
@@ -260,29 +273,34 @@ class AdminAnalyticsService(
 
     suspend fun fetchPageViewStatsByGad(): MultipleTimeSeriesResponse {
         val pattern = "%?gad_source=1%"
-        val records = pageViewEventDaoService.fetchMonthlyPageViewsByPattern(pattern, userIdsExcludedFromAnalytics)
+        val records = pageViewEventDaoService.fetchMonthlyPageViewsByPattern(pattern, excludedUserIds)
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
     suspend fun fetchPageViewStatsByEventPath(eventPath: String): MultipleTimeSeriesResponse {
-        val records = pageViewEventDaoService.fetchMonthlyPageViews(eventPath, userIdsExcludedFromAnalytics)
+        val records = pageViewEventDaoService.fetchMonthlyPageViews(eventPath, excludedUserIds)
+        return mapPageViewRecordsToMultipleTimeseries(records)
+    }
+
+    suspend fun fetchPageViewStatsForDatabaseGames(): MultipleTimeSeriesResponse {
+        val records = pageViewEventDaoService.fetchMonthlyDatabaseGamePageViews(excludedUserIds)
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
     suspend fun fetchPageViewStatsForOwnUserProfiles(): MultipleTimeSeriesResponse {
-        val records = pageViewEventDaoService.fetchMonthlyOwnUserProfilePageViews(userIdsExcludedFromAnalytics)
+        val records = pageViewEventDaoService.fetchMonthlyOwnUserProfilePageViews(excludedUserIds)
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
     suspend fun fetchPageViewStatsForOtherUserProfiles(): MultipleTimeSeriesResponse {
-        val records = pageViewEventDaoService.fetchMonthlyOtherUserProfilePageViews(userIdsExcludedFromAnalytics)
+        val records = pageViewEventDaoService.fetchMonthlyOtherUserProfilePageViews(excludedUserIds)
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
     suspend fun fetchHourlyPageViews(hours: Int = 12): HourlyPageViewsResponse {
         val records = pageViewEventDaoService.fetchHourlyPageViews(
             hours = hours,
-            excludedUserIds = userIdsExcludedFromAnalytics
+            excludedUserIds = excludedUserIds
         )
 
         val entries = records.map { record ->
@@ -298,7 +316,7 @@ class AdminAnalyticsService(
     suspend fun fechDailyPageViews(days: Int = 30): DailyPageViewsResponse {
         val records = pageViewEventDaoService.fetchDailyPageViews(
             days = days,
-            excludedUserIds = userIdsExcludedFromAnalytics
+            excludedUserIds = excludedUserIds
         )
 
         val entries = records.map { record ->
@@ -320,14 +338,33 @@ class AdminAnalyticsService(
      * - Breakdown of PvP > 3 by join source
      */
     suspend fun fetchPvpStatsByJoinSource(): PvpJoinSourceStatsResponse {
+        val lobbyJoinSources = listOf(LOBBY, MATCHED, DYNAMIC_MATCHED)
+        val linkJoinSources = listOf(LINK)
+
         // Query total PvP games by month
         val totalPvpByMonth = pvpGameDaoService
             .countTotalGamesByMonth()
             .associate { it.month to it.value.toInt() }
 
+        val totalLobbyJoinModePvpByMonth = pvpGameDaoService
+            .countTotalGamesByMonthForJoinSources(lobbyJoinSources)
+            .associate { it.month to it.value.toInt() }
+
+        val totalLinkJoinSourcePvpByMonth = pvpGameDaoService
+            .countTotalGamesByMonthForJoinSources(linkJoinSources)
+            .associate { it.month to it.value.toInt() }
+
         // Query PvP > 3 games by month
         val pvpOver3ByMonth = pvpGameDaoService
             .countGamesOverMoveIndexByMonth(MIN_MOVE_INDEX)
+            .associate { it.month to it.value.toInt() }
+
+        val pvpOver3LobbyJoinModeByMonth = pvpGameDaoService
+            .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, lobbyJoinSources)
+            .associate { it.month to it.value.toInt() }
+
+        val pvpOver3LinkJoinSourceByMonth = pvpGameDaoService
+            .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, linkJoinSources)
             .associate { it.month to it.value.toInt() }
 
         // Query PvP > 3 by join source and month
@@ -344,7 +381,7 @@ class AdminAnalyticsService(
             .sorted()
 
         if (allMonths.isEmpty()) {
-            return PvpJoinSourceStatsResponse(emptyList(), emptyList(), emptyList())
+            return PvpJoinSourceStatsResponse.allEmpty()
         }
 
         val firstMonth = allMonths.first()
@@ -355,6 +392,18 @@ class AdminAnalyticsService(
         val percentageValues = allPeriods.map { month ->
             val total = totalPvpByMonth[month] ?: 0
             val over3 = pvpOver3ByMonth[month] ?: 0
+            if (total > 0) (over3.toDouble() / total * 100) else 0.0
+        }
+
+        val lobbyJoinModePercentageValues = allPeriods.map { month ->
+            val total = totalLobbyJoinModePvpByMonth[month] ?: 0
+            val over3 = pvpOver3LobbyJoinModeByMonth[month] ?: 0
+            if (total > 0) (over3.toDouble() / total * 100) else 0.0
+        }
+
+        val linkJoinSourcePercentageValues = allPeriods.map { month ->
+            val total = totalLinkJoinSourcePvpByMonth[month] ?: 0
+            val over3 = pvpOver3LinkJoinSourceByMonth[month] ?: 0
             if (total > 0) (over3.toDouble() / total * 100) else 0.0
         }
 
@@ -370,6 +419,8 @@ class AdminAnalyticsService(
         return PvpJoinSourceStatsResponse(
             periods = allPeriods.map { it.toString() },
             percentageOver3 = percentageValues,
+            percentageOver3LobbyJoinModes = lobbyJoinModePercentageValues,
+            percentageOver3LinkJoinSource = linkJoinSourcePercentageValues,
             joinSourceBreakdown = joinSourceSeries
         )
     }

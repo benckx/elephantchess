@@ -39,15 +39,16 @@ class AdminPreAnalysisPage extends BasePage {
         getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-move-analysis-by-game`, json => {
             let entries = [];
             json.entries.map(jsonEntry => entries.push(new MoveAnalysisByGame(jsonEntry)));
-            this.#renderLatestMoveAnalysisByGame(entries);
+            this.#renderMoveAnalysisByGame(this.#latestAnalyzedGamesTable, entries);
         });
     }
 
     /**
+     * @param table {HTMLTableElement}
      * @param entries {MoveAnalysisByGame[]}
      */
-    #renderLatestMoveAnalysisByGame(entries) {
-        const tbody = emptyTable(this.#latestAnalyzedGamesTable);
+    #renderMoveAnalysisByGame(table, entries) {
+        const tbody = emptyTable(table);
         entries.forEach(entry => {
             const url = gameIdToPageLink(entry.gameId);
             const row = tbody.insertRow();
@@ -57,6 +58,7 @@ class AdminPreAnalysisPage extends BasePage {
             row.insertCell().innerText = entry.lastFormatted;
             row.insertCell().innerText = entry.totalAnalyzedMoves.toString();
             row.insertCell().innerText = entry.analysisStatus;
+            row.insertCell().innerText = entry.analyzedFromBatch ? '✓' : '';
         });
     }
 

@@ -19,9 +19,9 @@ class DigitalOceanSpacesClient(
     appConfig: AppConfig
 ) {
 
-    private val accessKeyId by lazy { appConfig.loadString("digitalocean.spaces.key.id") }
-    private val secretAccessKey by lazy { appConfig.loadString("digitalocean.spaces.key.secret") }
-    private val bucketName by lazy { appConfig.loadString("digitalocean.spaces.bucket") }
+    private val accessKeyId by lazy { appConfig.doSpacesKeyId }
+    private val secretAccessKey by lazy { appConfig.doSpacesKeySecret }
+    private val bucketName by lazy { appConfig.doSpacesBucket }
     private val region = "ams3"
     private val endpoint = "$bucketName.$region.digitaloceanspaces.com"
 
@@ -142,10 +142,13 @@ class DigitalOceanSpacesClient(
         val responseText = response.bodyAsText()
 
         // Parse folder names from XML response
-        val folderPattern = """<CommonPrefixes><Prefix>(\d{4}-\d{2}-\d{2})/</Prefix></CommonPrefixes>""".toRegex()
+        // Supports both date-only folders (yyyy-MM-dd) and date-time folders (yyyy-MM-dd-HH-mm).
+        val folderPattern =
+            """<CommonPrefixes><Prefix>(\d{4}-\d{2}-\d{2}(?:-\d{2}-\d{2})?)/</Prefix></CommonPrefixes>""".toRegex()
         val folders = folderPattern.findAll(responseText)
             .map { it.groupValues[1] }
             .toList()
+
 
         // Return the most recent (lexicographically last since dates are ISO format)
         return folders.maxOrNull()

@@ -7,11 +7,13 @@
     <meta property="og:url" content="https://elephantchess.io/about/faq"/>
     <link rel="canonical" href="https://elephantchess.io/about/faq"/>
     <link rel="stylesheet" href="/css/about-faq.css"/>
+    <link rel="stylesheet" href="/css/content-section-vote.css"/>
     <script defer src="/js/default-base-page.js"></script>
+    <script defer src="/js/content-section-vote-widget.js"></script>
 </head>
 <body>
 {{body_init}}
-<div class="main-container-text">
+<div class="main-container-text" data-page-id="faq">
     <h1>Frequently Asked Questions</h1>
     <hr/>
     {{faq_toc}}
@@ -46,9 +48,13 @@
         are limited with memory on the current set-up.
     </p>
     <p>
-        With more budget, I could also duplicate the server in Asia to improve response time from there. At some point,
-        I could also hire experts for specific tasks (data analysis, UI/UX improvements, puzzle algorithms, cheating
-        detection, editors to improve Database player profiles, translators for internationalization, etc.)
+        With more budget, I could also duplicate the server in Asia to improve response time from there. I could also
+        add a Redis instance to improve live game performance.
+    </p>
+    <p>
+        At some point, I could also hire experts for specific tasks (data analysis, UI/UX improvements, puzzle
+        algorithms, cheating detection, editors to improve Database player profiles, translators for
+        internationalization, etc.)
     </p>
     <p>
         My goal is to make the platform financially self-sustainable, so it wouldn't be dependent on my other activities
@@ -156,11 +162,17 @@
     <hr/>
     <p>
         We keep track of your session information (like the IP) to get information about where our users come from and
-        when they were last online (which is required for some functionalities). It is planned to add functionality to
-        list and delete your session data in your settings.
+        when they were last online. This data can be deleted by authenticated users in the settings.
     </p>
     <p>
-        Chat messages are public and not encrypted. They can be reviewed by the admins and moderators.
+        Chat messages are public and not encrypted. They can be reviewed by the admins and moderators, and by anyone who
+        has the game link.
+    </p>
+    <p>
+        Games played by users of the webapp are public and data is available under GPL-3.0 license. The available <a
+            href="/about/datasets?medium=faq">datasets</a> are anonymized. Non-anonymized game data can be shared with
+        third parties for research or technical purposes (non-anonymized meaning with usernames, but without email
+        address, IP or any personal data).
     </p>
     <p>
         We don't share your information (like your email or your activity) with anyone, however we use an <a
@@ -179,6 +191,26 @@
         TLD.
     </p>
 
+    <h1 id="pvb-opening-mode">What's the Opening setting in PvB?</h1>
+    <hr/>
+    <p>
+        When playing against a bot, there is an "Opening Mode" setting that lets you select between 3 options:
+    </p>
+    <ul>
+        <li>
+            <b>Most Played</b> picks from the opening repertoire but with a higher probability for the most played
+            openings. For example, if we have opening (A) played 100 times, opening (B) played 50 times and opening (C)
+            played 25 times; the opening (B) is selected twice more often than (C) and half as often as (A).
+        </li>
+        <li>
+            <b>Randomized</b> picks a completely random opening from the opening repertoire. Opening (A), (B) and (C)
+            will be selected with the same probability, regardless of how many times they were played in the database.
+        </li>
+        <li>
+            <b>Engine Only</b> ignores the opening repertoire entirely and lets the engine play from the very first
+            move.
+        </li>
+    </ul>
 
     <!-- analysis summary report -->
     <h1 id="analysis-summary-report">How do analysis summary symbols work?</h1>
@@ -261,6 +293,31 @@
         select "Import moves". You can then paste the moves in one of the following formats:
     </p>
     {{faq_import_moves_formats_examples}}[[keepIndentation:false]]
+
+    <!-- always show in lobby -->
+    <h1 id="always-visible-in-lobby">When can I use option "Always show in lobby (also when I'm offline)"?</h1>
+    <hr/>
+    <p>
+        By default, games you create are only listed in the lobby while you are online. The <b>Always show in lobby
+        (also when I'm offline)</b> option in the New Game modal keeps your game visible to other players even after you
+        go offline.
+    </p>
+    <p>
+        However, because someone could join while you are away, we need to be able to notify you in some way, so you
+        don't keep an opponent waiting. For that reason, the option is only available if both conditions are met:
+    </p>
+    <ul>
+        <li>
+            Your email address is valid (verified automatically or manually)
+        </li>
+        <li>
+            The <b>Someone joined a game you created</b> email notification is enabled
+        </li>
+    </ul>
+    <p>
+        You can check both settings in your <b><a href="/user/settings">user settings</a></b> page (if you're logged
+        in), not with a guest session. This option is always disabled for guests.
+    </p>
 
     <!-- perpetual checking -->
     <h1 id="perpetual-checking">What is perpetual checking?</h1>

@@ -60,6 +60,7 @@ fun serviceLayerModule(
 private fun daoModule() = module {
     singleAuto<AnalysisDaoService>()
     singleAuto<ChatMessageDaoService>()
+    singleAuto<ContentSectionVoteDaoService>()
     singleAuto<DatabaseAdminDaoService>()
     singleAuto<DiscordGameNotificationDaoService>()
     singleAuto<EmailVerificationDaoService>()
@@ -69,6 +70,7 @@ private fun daoModule() = module {
     singleAuto<MoveAnalysisDaoService>()
     singleAuto<NewsletterDaoService>()
     singleAuto<OpeningRepositoryCacheDaoService>()
+    singleAuto<OpeningRepositoryReferencePlayerCacheDaoService>()
     singleAuto<PasswordRecoveryAttemptsDaoService>()
     singleAuto<PageViewEventDaoService>()
     singleAuto<PlayerVsBotGameDaoService>()
@@ -79,13 +81,13 @@ private fun daoModule() = module {
     singleAuto<ReferenceEventDaoService>()
     singleAuto<ReferenceGameDaoService>()
     singleAuto<ReferencePlayerDaoService>()
+    singleAuto<SettingPreferenceEventDaoService>()
     singleAuto<SevenKingdomsGameDaoService>()
     singleAuto<ThrownExceptionDaoService>()
     singleAuto<UpcomingEventDaoService>()
     singleAuto<UserDaoService>()
     singleAuto<UserSessionDaoService>()
     singleAuto<UserStatsDaoService>()
-    singleAuto<UtmMediumClickDaoService>()
 }
 
 private fun batchModule() = module {
@@ -99,6 +101,7 @@ private fun batchModule() = module {
     singleAuto<SendOutNewslettersBatch>()
     singleAuto<CheckEmailListVerifyCreditBatch>()
     singleAuto<VerifyEmailsBatch>()
+    singleAuto<BackgroundGameAnalysisBatch>()
     single {
         listOf(
             BatchSchedule(get<PreAnalysisCleanUpBatch>(), period = 6.hours),
@@ -111,6 +114,7 @@ private fun batchModule() = module {
             BatchSchedule(get<SendOutNewslettersBatch>(), period = 5.minutes, delay = 3.minutes),
             BatchSchedule(get<CheckEmailListVerifyCreditBatch>(), period = 48.hours, delay = 30.seconds),
             BatchSchedule(get<VerifyEmailsBatch>(), period = 48.hours, delay = 12.hours),
+            BatchSchedule(get<BackgroundGameAnalysisBatch>(), period = 5.minutes, delay = 1.minutes),
         )
     }
 }
@@ -125,6 +129,7 @@ private fun technicalModule(eagerAllowed: Boolean) = module {
     // others
     singleAuto<BatchesScheduler>(eager = eagerAllowed)
     singleAuto<PageViewEventService>()
+    singleAuto<SettingPreferenceEventService>()
     singleAuto<PodService>(eager = eagerAllowed)
     singleAuto<TokenManager>(eager = eagerAllowed)
     singleAuto<DiscordService>()
@@ -174,6 +179,7 @@ private fun applicativeModule(eagerAllowed: Boolean) = module {
     singleAuto<EngineCacheService>()
 
     // users
+    singleAuto<ContentSectionFeedbackService>()
     singleAuto<UserService>(eager = eagerAllowed)
     singleAuto<UserProfileAnalyticsService>()
     singleAuto<GlobalAnalyticsService>(eager = eagerAllowed)
@@ -187,6 +193,7 @@ private fun applicativeModule(eagerAllowed: Boolean) = module {
     singleAuto<AdminFeedService>()
     singleAuto<AdminAnalyticsService>()
     singleAuto<AdminUserSessionService>()
+    singleAuto<AdminUserEloService>()
     singleAuto<AdminAnalysisService>()
     singleAuto<AdminChatService>()
     singleAuto<AdminDatabaseSearchService>()

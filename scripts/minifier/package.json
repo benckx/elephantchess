@@ -1,0 +1,13 @@
+{
+  "name": "elephantchess-minifier",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local JavaScript (SWC) and CSS (Lightning CSS) minifier for elephantchess assets.",
+  "scripts": {
+    "minify": "node minify.mjs"
+  },
+  "dependencies": {
+    "@swc/core": "^1.15.40",
+    "lightningcss": "^1.32.0"
+  }
+}

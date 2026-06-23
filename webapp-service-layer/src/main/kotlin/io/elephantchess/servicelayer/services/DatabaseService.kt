@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayer
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEditSource
 import io.elephantchess.db.model.EntityIdAndNameRecord
+import io.elephantchess.db.services.OpeningRepositoryReferencePlayerCacheDaoService
 import io.elephantchess.db.services.ReferenceEventDaoService
 import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.db.services.ReferencePlayerDaoService
@@ -38,6 +39,7 @@ class DatabaseService(
     private val referenceEventDaoService: ReferenceEventDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,
     private val referencePlayerDaoService: ReferencePlayerDaoService,
+    private val openingRepositoryReferencePlayerCacheDaoService: OpeningRepositoryReferencePlayerCacheDaoService,
     private val userCache: UserCache,
     private val logger: KLogger
 ) {
@@ -173,9 +175,9 @@ class DatabaseService(
                         gameId = GameId(GameType.DB, record.id),
                         lastUpdated = record.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
                         redPlayerId = record.redPlayer,
-                        redPlayerName = playerIdToCanonicalName(record.redPlayer),
+                        redPlayerName = playerIdToDisplayName(record.redPlayer),
                         blackPlayerId = record.blackPlayer,
-                        blackPlayerName = playerIdToCanonicalName(record.blackPlayer),
+                        blackPlayerName = playerIdToDisplayName(record.blackPlayer),
                         eventName = idToEventName(record.event),
                         finalFen = record.finalFen,
                         outcome = record.outcome,
@@ -231,13 +233,10 @@ class DatabaseService(
     private suspend fun playerIdToDisplayName(playerId: String?): String? {
         if (playerId != null) {
             val result = playerIdToDisplayNameCache.get(playerId) {
-                referencePlayerDaoService.findPlayer(playerId)?.let {
-                    if (it.isVisible) {
-                        formatWithChineseName(it.canonicalName, it.chineseName)
-                    } else {
-                        ""
-                    }
-                } ?: ""
+                referencePlayerDaoService
+                    .findPlayer(playerId)
+                    ?.let { player -> formatWithChineseName(player.canonicalName, player.chineseName) }
+                    ?: "<unknown>"
             }
 
             if (result.isNotBlank()) {
@@ -418,8 +417,7 @@ class DatabaseService(
                 profileText = profileVersion.profile,
                 sources = fetchPlayerProfileSources(playerId, profileVersion.version),
                 editComment = profileVersion.comment,
-                enabled = profileVersion.enabled,
-                versionTime = profileVersion.versionTime.toEpochMilliseconds()
+                enabled = profileVersion.enabled
             )
         } else {
             val player = referencePlayerDaoService.findPlayer(playerId)
@@ -433,8 +431,7 @@ class DatabaseService(
                 profileText = null,
                 sources = emptyList(),
                 editComment = null,
-                enabled = true,
-                versionTime = null
+                enabled = true
             )
         }
     }
@@ -450,6 +447,13 @@ class DatabaseService(
             .let { entries ->
                 ListPlayersResponse(entries)
             }
+    }
+
+    /**
+     * @return `true` if the player has pre-calculated opening repertoire data.
+     */
+    suspend fun hasPlayerOpeningData(playerId: String): Boolean {
+        return openingRepositoryReferencePlayerCacheDaoService.hasOpeningData(playerId)
     }
 
     suspend fun fetchPlayerGameStats(playerId: String): PlayerGameStatsResponse {

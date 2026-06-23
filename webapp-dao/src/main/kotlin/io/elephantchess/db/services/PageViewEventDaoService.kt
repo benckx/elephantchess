@@ -102,6 +102,31 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             }
     }
 
+    suspend fun fetchMonthlyDatabaseGamePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
+        val yearMonth = PAGE_VIEW_EVENT.EVENT_TIME.yearMonth("year_month")
+        return dslContext
+            .select(
+                yearMonth,
+                uniqueDailyPageViewsField()
+            )
+            .from(PAGE_VIEW_EVENT)
+            .where(PAGE_VIEW_EVENT.EVENT_PATH.like("/database/game?id=%"))
+            .and(PAGE_VIEW_EVENT.EVENT_TIME.greaterOrEqual(startDate))
+            .and(excludedUsersCondition(excludedUserIds))
+            .groupBy(yearMonth)
+            .orderBy(yearMonth.desc())
+            .awaitRecords()
+            .map { record ->
+                val yearMonthStr = record.getValue("year_month", String::class.java)
+                val yearMonth = YearMonth.parse(yearMonthStr)
+                MonthlyPageViewRecord(
+                    yearMonth = yearMonth,
+                    label = "/database/game",
+                    uniquePageViews = record.getValue("unique_page_views", Int::class.java)
+                )
+            }
+    }
+
     suspend fun fetchMonthlyOwnUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
         return fetchMonthlyUserProfilePageViewsByCondition(
             excludedUserIds = excludedUserIds
@@ -219,6 +244,35 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                     value = record.getValue("unique_page_views", Int::class.java)
                 )
             }
+    }
+
+    suspend fun countNewsletterClicksPerTemplate(excludedUserIds: List<String>): Map<String, Int> {
+        val newsletterTemplateField = DSL.field(
+            "substring({0} from 'medium=newsletter-([^&#]+)')",
+            String::class.java,
+            PAGE_VIEW_EVENT.EVENT_PATH
+        )
+
+        return dslContext
+            .select(
+                newsletterTemplateField,
+                DSL.count().`as`("click_count")
+            )
+            .from(PAGE_VIEW_EVENT)
+            .where(PAGE_VIEW_EVENT.EVENT_PATH.like("%medium=newsletter-%"))
+            .and(excludedUsersCondition(excludedUserIds))
+            .groupBy(newsletterTemplateField)
+            .awaitRecords()
+            .mapNotNull { record ->
+                val templateName = record.get(newsletterTemplateField)
+                if (templateName.isNullOrBlank()) {
+                    null
+                } else {
+                    val clickCount = record.get("click_count", Int::class.java) ?: 0
+                    templateName to clickCount
+                }
+            }
+            .toMap()
     }
 
     private companion object {

@@ -43,6 +43,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         requestedVersion: Int?,
         edit: DatabasePlayerProfileEdit,
         fetchEditorsUsername: suspend () -> List<String>,
+        hasOpeningData: Boolean = false,
     ): String {
         val description = edit.profileText
         val contributors = fetchEditorsUsername()
