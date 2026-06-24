@@ -25,6 +25,11 @@ class AdminNewsletterStatsPage extends BasePage {
     #newsletterStatsTable = document.getElementById('newsletter-stats');
 
     /**
+     * @type {HTMLTableElement}
+     */
+    #newsletterLinkClicksTable = document.getElementById('newsletter-link-clicks');
+
+    /**
      * @type {HTMLSpanElement}
      */
     #potentialRecipientsSpan = document.getElementById('potential-recipients');
@@ -126,6 +131,44 @@ class AdminNewsletterStatsPage extends BasePage {
                 unsubAllCell.style.color = '#ff4444';
                 unsubAllCell.style.fontWeight = 'bold';
             }
+        });
+
+        this.#renderLinkClicks(entries);
+    }
+
+    /**
+     * @param entries {NewsletterStatsEntryDto[]}
+     */
+    #renderLinkClicks(entries) {
+        const tbody = this.#newsletterLinkClicksTable.getElementsByTagName('tbody')[0];
+
+        // clear existing rows
+        emptyTable(this.#newsletterLinkClicksTable);
+
+        // one row per clicked link, grouped by newsletter
+        entries.forEach(entry => {
+            entry.linkClickDetails.forEach(detail => {
+                const row = tbody.insertRow();
+
+                // newsletter
+                const templateCell = row.insertCell();
+                templateCell.innerText = entry.templateName;
+                templateCell.style.fontWeight = '600';
+
+                // link
+                const linkCell = row.insertCell();
+                const link = document.createElement('a');
+                link.href = detail.link;
+                link.innerText = detail.link;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                linkCell.appendChild(link);
+
+                // clicks
+                const clicksCell = row.insertCell();
+                clicksCell.className = 'numeric-cell';
+                clicksCell.innerText = formatNumber(detail.clicks);
+            });
         });
     }
 }

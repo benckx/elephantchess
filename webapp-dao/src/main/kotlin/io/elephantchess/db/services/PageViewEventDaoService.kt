@@ -7,6 +7,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.PageViewEvent
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.HourlyPageViewRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
+import io.elephantchess.db.model.analytics.NewsletterLinkClickRecord
 import io.elephantchess.db.utils.*
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -273,6 +274,46 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                 }
             }
             .toMap()
+    }
+
+    suspend fun listNewsletterClicksPerTemplateAndLink(excludedUserIds: List<String>): List<NewsletterLinkClickRecord> {
+        val newsletterTemplateField = DSL.field(
+            "substring({0} from 'medium=newsletter-([^&#]+)')",
+            String::class.java,
+            PAGE_VIEW_EVENT.EVENT_PATH
+        )
+        val linkField = DSL.field(
+            "substring({0} from '^([^?]+)')",
+            String::class.java,
+            PAGE_VIEW_EVENT.EVENT_PATH
+        )
+        val clickCountField = DSL.count().`as`("click_count")
+
+        return dslContext
+            .select(
+                newsletterTemplateField,
+                linkField,
+                clickCountField
+            )
+            .from(PAGE_VIEW_EVENT)
+            .where(PAGE_VIEW_EVENT.EVENT_PATH.like("%medium=newsletter-%"))
+            .and(excludedUsersCondition(excludedUserIds))
+            .groupBy(newsletterTemplateField, linkField)
+            .orderBy(clickCountField.desc())
+            .awaitRecords()
+            .mapNotNull { record ->
+                val templateName = record.get(newsletterTemplateField)
+                val link = record.get(linkField)
+                if (templateName.isNullOrBlank() || link.isNullOrBlank()) {
+                    null
+                } else {
+                    NewsletterLinkClickRecord(
+                        templateName = templateName,
+                        link = link,
+                        clickCount = record.get("click_count", Int::class.java) ?: 0
+                    )
+                }
+            }
     }
 
     private companion object {

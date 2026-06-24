@@ -31,6 +31,7 @@ class NewsletterStatsEntryDto {
     #unsubscribedNewsletterCount;
     #unsubscribedAllCount;
     #linkClicks;
+    #linkClickDetails;
 
     constructor(json) {
         this.#templateName = json.templateName;
@@ -45,6 +46,7 @@ class NewsletterStatsEntryDto {
         this.#unsubscribedNewsletterCount = json.unsubscribedNewsletterCount;
         this.#unsubscribedAllCount = json.unsubscribedAllCount;
         this.#linkClicks = json.linkClicks;
+        this.#linkClickDetails = (json.linkClickDetails || []).map(d => new NewsletterLinkClickDto(d));
     }
 
 
@@ -133,6 +135,13 @@ class NewsletterStatsEntryDto {
     }
 
     /**
+     * @return {NewsletterLinkClickDto[]}
+     */
+    get linkClickDetails() {
+        return this.#linkClickDetails;
+    }
+
+    /**
      * @return {boolean}
      */
     get isFullySent() {
@@ -144,6 +153,32 @@ class NewsletterStatsEntryDto {
      */
     get hasPending() {
         return this.#pendingCount > 0;
+    }
+
+}
+
+class NewsletterLinkClickDto {
+
+    #link;
+    #clicks;
+
+    constructor(json) {
+        this.#link = json.link;
+        this.#clicks = json.clicks;
+    }
+
+    /**
+     * @return {string}
+     */
+    get link() {
+        return this.#link;
+    }
+
+    /**
+     * @return {number}
+     */
+    get clicks() {
+        return this.#clicks;
     }
 
 }
