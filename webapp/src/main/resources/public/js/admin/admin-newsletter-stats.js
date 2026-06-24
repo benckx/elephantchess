@@ -157,12 +157,17 @@ class AdminNewsletterStatsPage extends BasePage {
 
                 // link
                 const linkCell = row.insertCell();
-                const link = document.createElement('a');
-                link.href = detail.link;
-                link.innerText = detail.link;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                linkCell.appendChild(link);
+                // only render internal (relative) paths as clickable links
+                if (detail.link.startsWith('/')) {
+                    const link = document.createElement('a');
+                    link.href = detail.link;
+                    link.innerText = detail.link;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    linkCell.appendChild(link);
+                } else {
+                    linkCell.innerText = detail.link;
+                }
 
                 // clicks
                 const clicksCell = row.insertCell();

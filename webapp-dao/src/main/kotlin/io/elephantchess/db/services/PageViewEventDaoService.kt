@@ -277,11 +277,13 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun listNewsletterClicksPerTemplateAndLink(excludedUserIds: List<String>): List<NewsletterLinkClickRecord> {
+        // extracts the newsletter template name from event paths like "/some/page?medium=newsletter-templateName&..."
         val newsletterTemplateField = DSL.field(
             "substring({0} from 'medium=newsletter-([^&#]+)')",
             String::class.java,
             PAGE_VIEW_EVENT.EVENT_PATH
         )
+        // extracts the clicked link, i.e. the path before the query string ("?...")
         val linkField = DSL.field(
             "substring({0} from '^([^?]+)')",
             String::class.java,
