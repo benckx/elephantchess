@@ -1,4 +1,4 @@
-package io.elephantchess.scripts.game
+package io.elephantchess.servicelayer.analysis
 
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board

@@ -1,7 +1,7 @@
 package io.elephantchess.scripts.analysis
 
-import io.elephantchess.scripts.game.calculateMoveAnnotation
-import io.elephantchess.scripts.game.MoveAnnotationCategory
+import io.elephantchess.servicelayer.analysis.calculateMoveAnnotation
+import io.elephantchess.servicelayer.analysis.MoveAnnotationCategory
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
