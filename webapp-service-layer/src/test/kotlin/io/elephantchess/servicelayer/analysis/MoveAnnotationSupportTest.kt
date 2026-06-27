@@ -14,7 +14,7 @@ class MoveAnnotationSupportTest {
     }
 
     @Test
-    fun summarizeMoveAnnotationsSkipsMismatchedDepthComparisonsAndCanFilterByActualMoveDepth() {
+    fun `summarizeMoveAnnotations skips mismatched-depth comparisons and can filter by actual-move depth`() {
         val firstMove = "h2e2"
         val firstMoveBest = "c3c4"
         val secondMove = "b9c7"
@@ -71,7 +71,7 @@ class MoveAnnotationSupportTest {
     }
 
     @Test
-    fun calculateCplRequiresMatchingDepthAtLeast18() {
+    fun `calculateCpl requires matching depth of at least 18`() {
         assertNull(
             calculateCpl(
                 engineBest = analysis(fen = "engine", cp = 300, depth = 20),
@@ -87,7 +87,7 @@ class MoveAnnotationSupportTest {
     }
 
     @Test
-    fun collectMoveAnnotationsReturnsTooltipCalculationData() {
+    fun `collectMoveAnnotations returns tooltip calculation data`() {
         val move = "h2e2"
         val bestMove = "c3c4"
 
@@ -126,7 +126,7 @@ class MoveAnnotationSupportTest {
     }
 
     @Test
-    fun sampleBlunderCasesMatchSampleData() {
+    fun `sample BLUNDER cases match sample data`() {
         assertMatchesSample(
             AnnotationCase(
                 expectedCategory = MoveAnnotationCategory.BLUNDER,
@@ -150,7 +150,7 @@ class MoveAnnotationSupportTest {
     }
 
     @Test
-    fun sampleMistakeCasesMatchSampleData() {
+    fun `sample MISTAKE cases match sample data`() {
         assertMatchesSample(
             AnnotationCase(
                 expectedCategory = MoveAnnotationCategory.MISTAKE,
@@ -174,7 +174,7 @@ class MoveAnnotationSupportTest {
     }
 
     @Test
-    fun sampleInaccuracyCasesMatchSampleData() {
+    fun `sample INACCURACY cases match sample data`() {
         assertMatchesSample(
             AnnotationCase(
                 expectedCategory = MoveAnnotationCategory.INACCURACY,
@@ -198,7 +198,7 @@ class MoveAnnotationSupportTest {
     }
 
     @Test
-    fun sampleInterestingCasesMatchSampleData() {
+    fun `sample INTERESTING cases match sample data`() {
         assertMatchesSample(
             AnnotationCase(
                 expectedCategory = MoveAnnotationCategory.INTERESTING,
@@ -222,7 +222,7 @@ class MoveAnnotationSupportTest {
     }
 
     @Test
-    fun sampleGoodCasesMatchSampleData() {
+    fun `sample GOOD cases match sample data`() {
         assertMatchesSample(
             AnnotationCase(
                 expectedCategory = MoveAnnotationCategory.GOOD,
@@ -246,7 +246,7 @@ class MoveAnnotationSupportTest {
     }
 
     @Test
-    fun sampleBrilliantCasesMatchSampleData() {
+    fun `sample BRILLIANT cases match sample data`() {
         assertMatchesSample(
             AnnotationCase(
                 expectedCategory = MoveAnnotationCategory.BRILLIANT,
