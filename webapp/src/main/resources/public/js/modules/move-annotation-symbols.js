@@ -35,6 +35,10 @@ const moveAnnotationSymbolTypesArray = [
     MoveAnnotationSymbolTypes.BRILLIANT,
 ]
 
+// Only compare equally deep engine lines, and require at least depth 18 so
+// shallow placeholder analyses do not produce misleading annotations.
+const MIN_COMPARABLE_ANALYSIS_DEPTH = 18;
+
 function moveAnnotationEnumToSymbol(annotation) {
     switch (annotation) {
         case MoveAnnotationSymbolTypes.BLUNDER:
@@ -165,7 +169,11 @@ function calculateAnnotationDetails(engineBest, actualMove) {
     const engineCp = infoLineResultToHeuristicCp(engineBest);
     const actualMoveCp = infoLineResultToHeuristicCp(actualMove);
 
-    if (engineCp == null && actualMoveCp == null) {
+    if (engineCp == null ||
+        actualMoveCp == null ||
+        engineBest.depth < MIN_COMPARABLE_ANALYSIS_DEPTH ||
+        actualMove.depth < MIN_COMPARABLE_ANALYSIS_DEPTH ||
+        engineBest.depth !== actualMove.depth) {
         return null;
     }
 
@@ -182,19 +190,6 @@ function calculateAnnotationDetails(engineBest, actualMove) {
         actualMoveCp: actualMoveCp,
         delta: delta,
     };
-}
-
-/**
- * Calculate centi-pawn delta between the previous position and the current position,
- * and map the delta to an annotation symbol enum value.
- *
- * @param engineBest {InfoLineResult}
- * @param actualMove {InfoLineResult}
- * @returns {string|null}
- */
-function calculateAnnotationValue(engineBest, actualMove) {
-    const details = calculateAnnotationDetails(engineBest, actualMove);
-    return details != null ? details.symbol : null;
 }
 
 /**

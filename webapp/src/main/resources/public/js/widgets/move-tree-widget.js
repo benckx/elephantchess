@@ -1957,17 +1957,28 @@ class MoveTreeWidget {
     }
 
     /**
-     * Apply annotation symbols (??, ?!, etc.) to every node in the move tree, based on the provided analysis cache.
-     * This bypasses the `moveNodeEvalFormat` setting and is intended for pages that do not let the user toggle
-     * between raw eval and annotation symbols (PvP, PvB, database game viewer).
+     * Apply backend-provided annotation details to every node in the move tree.
      *
-     * @param analysisCache {Map<string, InfoLineResult>}
+     * @param moveAnnotations {GameMoveAnnotationDto[]}
      */
-    applyAnnotationSymbolsFromCache(analysisCache) {
+    applyAnnotationSymbols(moveAnnotations) {
+        const moveAnnotationsByMoveIndex = new Map(moveAnnotations.map(annotation => [annotation.moveIndex, annotation]));
         this.#moveTree.getAllNodes().forEach((node) => {
-            this.#applyAnnotationSymbolToNode(node, analysisCache);
+            const moveAnnotation = moveAnnotationsByMoveIndex.get(node.position);
+            if (moveAnnotation != null) {
+                this.#setAnnotationDetails(
+                    node,
+                    new AnnotationEvalDetails(
+                        moveAnnotation.annotation,
+                        moveAnnotation.engineCp,
+                        moveAnnotation.actualMoveCp,
+                        moveAnnotation.cpl
+                    )
+                );
+            } else {
+                this.#setAnnotationDetails(node, null);
+            }
         });
-        this.#analysisCache = new Map(analysisCache);
     }
 
     /**
@@ -1985,30 +1996,40 @@ class MoveTreeWidget {
                 const currentNodeData = analysisCache.get(nodeFenKey);
                 const details = calculateAnnotationDetails(engineBestMoveData, currentNodeData);
                 if (details != null) {
-                    const annotationDetails = new AnnotationEvalDetails(
-                        details.symbol,
-                        details.engineCp,
-                        details.actualMoveCp,
-                        details.delta
+                    this.#setAnnotationDetails(
+                        node,
+                        new AnnotationEvalDetails(
+                            details.symbol,
+                            details.engineCp,
+                            details.actualMoveCp,
+                            details.delta
+                        )
                     );
-                    node.annotationDetails = annotationDetails;
-                    node.eval = annotationDetails.symbol;
-                    node.clearEvalCssClasses();
-                    node.addEvalCssClass(annotationDetails.cssClass);
-                    this.#updateEvalPlaceholder(node);
                 } else {
-                    node.annotationDetails = null;
-                    node.eval = null;
-                    node.clearEvalCssClasses();
-                    this.#updateEvalPlaceholder(node);
+                    this.#setAnnotationDetails(node, null);
                 }
             } else {
-                node.annotationDetails = null;
-                node.eval = null;
-                node.clearEvalCssClasses();
-                this.#updateEvalPlaceholder(node);
+                this.#setAnnotationDetails(node, null);
             }
         }
+    }
+
+    /**
+     * @param node {MoveTreeNode}
+     * @param annotationDetails {AnnotationEvalDetails|null}
+     */
+    #setAnnotationDetails(node, annotationDetails) {
+        node.annotationDetails = annotationDetails;
+        node.clearEvalCssClasses();
+
+        if (annotationDetails != null) {
+            node.eval = annotationDetails.symbol;
+            node.addEvalCssClass(annotationDetails.cssClass);
+        } else {
+            node.eval = null;
+        }
+
+        this.#updateEvalPlaceholder(node);
     }
 
     /**

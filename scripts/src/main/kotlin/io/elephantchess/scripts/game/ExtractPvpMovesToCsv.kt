@@ -7,7 +7,7 @@ import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
-import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
+import io.elephantchess.servicelayer.analysis.calculateCpl
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
@@ -29,9 +29,6 @@ private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
 private const val GAMES_PER_FILE = 1000
 private const val MUST_ANONYMIZE = true
-
-// Mirrors MAX_ABS_CP in webapp/src/main/resources/public/js/modules/engine.js
-private const val MAX_ABS_CP = 7_706
 
 private val CSV_HEADER = arrayOf(
     "timestamp",
@@ -331,40 +328,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         }
 
     private data class PlayerRating(val before: Int?, val after: Int?)
-
-    /**
-     * Centi-pawn loss between the engine's best move and the actual move played, mirroring
-     * `calculateAnnotationValue` in webapp/src/main/resources/public/js/modules/move-annotation-symbols.js.
-     *
-     * Both analyses describe the position resulting from a move (engine-best vs. actual), evaluated from
-     * the same side to move, so the delta is the centi-pawns lost by playing the actual move.
-     */
-    private fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): Int? {
-        if (engineBest == null || actualMove == null || actualMove.isCheckmate) {
-            return null
-        }
-
-        val engineCp = heuristicCp(engineBest) ?: return null
-        val actualMoveCp = heuristicCp(actualMove) ?: return null
-        return engineCp - actualMoveCp
-    }
-
-    // Maps a "mate" evaluation to a centi-pawn value, capping regular centi-pawn evaluations.
-    private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
-        val cp = infoLineResult.cp
-        val mate = infoLineResult.mate
-        return when {
-            cp != null -> cp.coerceIn(-MAX_ABS_CP, MAX_ABS_CP)
-            mate != null -> {
-                val maxMate = 40
-                // each 1 mate fewer than 40 -> 8 cp (mate in 10 -> 30 * 8 = 240 cp)
-                val mateBonusInCp = (maxMate - kotlin.math.abs(mate)).coerceAtLeast(0) * 8
-                if (mate < 0) -MAX_ABS_CP - mateBonusInCp else MAX_ABS_CP + mateBonusInCp
-            }
-
-            else -> null
-        }
-    }
 
     private fun randomId(): String =
         insecure().nextAlphanumeric(12)
