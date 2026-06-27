@@ -17,7 +17,13 @@ data class NewsletterStatsResponse(
         val pendingCount: Int,
         val unsubscribedNewsletterCount: Int,
         val unsubscribedAllCount: Int,
-        val linkClicks: Int
+        val linkClicks: Int,
+        val linkClickDetails: List<LinkClickDetail>
+    )
+
+    data class LinkClickDetail(
+        val link: String,
+        val clicks: Int
     )
 
 }

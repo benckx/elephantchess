@@ -18,6 +18,9 @@ class AdminNewsletterService(
     suspend fun fetchNewsletterStats(): NewsletterStatsResponse {
         val potentialRecipients = mailService.listNewsLetterRecipientEmails().size
         val clicksPerTemplate = pageViewEventDaoService.countNewsletterClicksPerTemplate(excludedUserIds)
+        val linkClicksPerTemplate = pageViewEventDaoService
+            .listNewsletterClicksPerTemplateAndLink(excludedUserIds)
+            .groupBy { it.templateName }
 
         return newsletterDaoService
             .fetchNewsletterStats()
@@ -42,7 +45,9 @@ class AdminNewsletterService(
                     pendingCount = record.totalEmails - record.sentCount,
                     unsubscribedNewsletterCount = record.unsubscribedNewsletterCount,
                     unsubscribedAllCount = record.unsubscribedAllCount,
-                    linkClicks = clicksPerTemplate[record.templateName] ?: 0
+                    linkClicks = clicksPerTemplate[record.templateName] ?: 0,
+                    linkClickDetails = (linkClicksPerTemplate[record.templateName] ?: emptyList())
+                        .map { NewsletterStatsResponse.LinkClickDetail(it.link, it.clickCount) }
                 )
             }
             .let { entries ->
