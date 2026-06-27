@@ -52,7 +52,7 @@ function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode) {
  * @param gameId {GameId}
  * @param moveTreeWidget {MoveTreeWidget}
  */
-function fetchDataAndrenderAnalysisSummaryReport(gameId, moveTreeWidget) {
+function fetchDataAndRenderAnalysisSummaryReport(gameId, moveTreeWidget) {
     const client = new GameDataClient(gameId);
     client.fetchAnalysisStatus((analysisProgressStatus) => {
         if (analysisProgressStatus.status === AnalysisStatus.COMPLETED) {
