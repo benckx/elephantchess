@@ -128,7 +128,7 @@ class MoveAnnotationSupportTest {
     @Test
     fun `sample BLUNDER cases match sample data`() {
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.BLUNDER,
                 expectedCpl = -2577,
                 actualCp = 885,
@@ -138,7 +138,7 @@ class MoveAnnotationSupportTest {
             ),
         )
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.BLUNDER,
                 expectedCpl = -328,
                 actualCp = 320,
@@ -152,7 +152,7 @@ class MoveAnnotationSupportTest {
     @Test
     fun `sample MISTAKE cases match sample data`() {
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.MISTAKE,
                 expectedCpl = -122,
                 actualCp = 190,
@@ -162,7 +162,7 @@ class MoveAnnotationSupportTest {
             ),
         )
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.MISTAKE,
                 expectedCpl = -141,
                 actualCp = 206,
@@ -176,7 +176,7 @@ class MoveAnnotationSupportTest {
     @Test
     fun `sample INACCURACY cases match sample data`() {
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.INACCURACY,
                 expectedCpl = -66,
                 actualCp = -1,
@@ -186,7 +186,7 @@ class MoveAnnotationSupportTest {
             ),
         )
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.INACCURACY,
                 expectedCpl = -68,
                 actualCp = 58,
@@ -200,7 +200,7 @@ class MoveAnnotationSupportTest {
     @Test
     fun `sample INTERESTING cases match sample data`() {
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.INTERESTING,
                 expectedCpl = 65,
                 actualCp = -2232,
@@ -210,7 +210,7 @@ class MoveAnnotationSupportTest {
             ),
         )
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.INTERESTING,
                 expectedCpl = 94,
                 actualCp = -3901,
@@ -224,7 +224,7 @@ class MoveAnnotationSupportTest {
     @Test
     fun `sample GOOD cases match sample data`() {
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.GOOD,
                 expectedCpl = 180,
                 actualCp = 606,
@@ -234,7 +234,7 @@ class MoveAnnotationSupportTest {
             ),
         )
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.GOOD,
                 expectedCpl = 107,
                 actualCp = -1013,
@@ -248,7 +248,7 @@ class MoveAnnotationSupportTest {
     @Test
     fun `sample BRILLIANT cases match sample data`() {
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.BRILLIANT,
                 expectedCpl = 890,
                 actualMate = -12,
@@ -258,7 +258,7 @@ class MoveAnnotationSupportTest {
             ),
         )
         assertMatchesSample(
-            AnnotationCase(
+            AnnocationTestCase(
                 expectedCategory = MoveAnnotationCategory.BRILLIANT,
                 expectedCpl = 312,
                 actualCp = -2917,
@@ -269,7 +269,7 @@ class MoveAnnotationSupportTest {
         )
     }
 
-    private fun assertMatchesSample(case: AnnotationCase) {
+    private fun assertMatchesSample(case: AnnocationTestCase) {
         val engineBest = analysis(
             fen = "engine",
             cp = case.engineCp,
@@ -320,7 +320,7 @@ class MoveAnnotationSupportTest {
         )
     }
 
-    private data class AnnotationCase(
+    private data class AnnocationTestCase(
         val expectedCategory: MoveAnnotationCategory,
         val expectedCpl: Int,
         val actualCp: Int? = null,
