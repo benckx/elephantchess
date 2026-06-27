@@ -193,19 +193,6 @@ function calculateAnnotationDetails(engineBest, actualMove) {
 }
 
 /**
- * Calculate centi-pawn delta between the previous position and the current position,
- * and map the delta to an annotation symbol enum value.
- *
- * @param engineBest {InfoLineResult}
- * @param actualMove {InfoLineResult}
- * @returns {string|null}
- */
-function calculateAnnotationValue(engineBest, actualMove) {
-    const details = calculateAnnotationDetails(engineBest, actualMove);
-    return details != null ? details.symbol : null;
-}
-
-/**
  * @param analysisMap {Map<string, InfoLineResult>}
  * @param previousNodeData {InfoLineResult}
  * @returns {InfoLineResult|null}

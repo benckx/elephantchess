@@ -1957,20 +1957,6 @@ class MoveTreeWidget {
     }
 
     /**
-     * Apply annotation symbols (??, ?!, etc.) to every node in the move tree, based on the provided analysis cache.
-     * This bypasses the `moveNodeEvalFormat` setting and is intended for pages that do not let the user toggle
-     * between raw eval and annotation symbols (PvP, PvB, database game viewer).
-     *
-     * @param analysisCache {Map<string, InfoLineResult>}
-     */
-    applyAnnotationSymbolsFromCache(analysisCache) {
-        this.#moveTree.getAllNodes().forEach((node) => {
-            this.#applyAnnotationSymbolToNode(node, analysisCache);
-        });
-        this.#analysisCache = new Map(analysisCache);
-    }
-
-    /**
      * Apply backend-provided annotation details to every node in the move tree.
      *
      * @param moveAnnotations {GameMoveAnnotationDto[]}
