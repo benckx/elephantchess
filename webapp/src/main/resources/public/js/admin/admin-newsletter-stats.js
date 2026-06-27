@@ -162,7 +162,6 @@ class AdminNewsletterStatsPage extends BasePage {
                     const link = document.createElement('a');
                     link.href = detail.link;
                     link.innerText = detail.link;
-                    link.target = '_blank';
                     link.rel = 'noopener noreferrer';
                     linkCell.appendChild(link);
                 } else {
