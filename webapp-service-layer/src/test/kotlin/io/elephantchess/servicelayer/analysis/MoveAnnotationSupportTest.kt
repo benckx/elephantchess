@@ -1,5 +1,8 @@
 package io.elephantchess.servicelayer.analysis
 
+import io.elephantchess.model.dto.analysis.MoveAnnotationCategory
+import io.elephantchess.model.dto.analysis.MoveAnnotationDetails
+import io.elephantchess.model.dto.analysis.MoveAnnotationResult
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN

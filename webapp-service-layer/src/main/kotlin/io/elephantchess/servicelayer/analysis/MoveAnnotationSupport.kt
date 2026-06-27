@@ -1,5 +1,10 @@
 package io.elephantchess.servicelayer.analysis
 
+import io.elephantchess.model.dto.analysis.AnnotationAggregate
+import io.elephantchess.model.dto.analysis.MoveAnnotationCategory
+import io.elephantchess.model.dto.analysis.MoveAnnotationDetails
+import io.elephantchess.model.dto.analysis.MoveAnnotationResult
+import io.elephantchess.model.dto.analysis.MoveAnnotationSummary
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
@@ -12,15 +17,6 @@ private const val MAX_ABS_CP = 7_706
 // apply stricter reporting filters separately (for example, the script's depth-20 split).
 private const val MIN_COMPARABLE_ANALYSIS_DEPTH = 18
 
-enum class MoveAnnotationCategory {
-    BLUNDER,
-    MISTAKE,
-    INACCURACY,
-    INTERESTING,
-    GOOD,
-    BRILLIANT,
-}
-
 val moveAnnotationCategoriesInOrder = listOf(
     MoveAnnotationCategory.BLUNDER,
     MoveAnnotationCategory.MISTAKE,
@@ -29,65 +25,6 @@ val moveAnnotationCategoriesInOrder = listOf(
     MoveAnnotationCategory.GOOD,
     MoveAnnotationCategory.BRILLIANT,
 )
-
-data class MoveAnnotationResult(
-    val category: MoveAnnotationCategory,
-    val cpl: Int,
-    val engineCp: Int,
-    val actualMoveCp: Int,
-)
-
-data class MoveAnnotationDetails(
-    val moveIndex: Int,
-    val category: MoveAnnotationCategory,
-    val cpl: Int,
-    val engineCp: Int,
-    val actualMoveCp: Int,
-)
-
-data class AnnotationAggregate(
-    val count: Int = 0,
-    val totalCpl: Long = 0,
-    val minCpl: Int? = null,
-    val maxCpl: Int? = null,
-) {
-    fun add(cpl: Int): AnnotationAggregate =
-        copy(
-            count = count + 1,
-            totalCpl = totalCpl + cpl,
-            minCpl = minCpl?.coerceAtMost(cpl) ?: cpl,
-            maxCpl = maxCpl?.coerceAtLeast(cpl) ?: cpl,
-        )
-
-    fun merge(other: AnnotationAggregate): AnnotationAggregate =
-        copy(
-            count = count + other.count,
-            totalCpl = totalCpl + other.totalCpl,
-            minCpl = when {
-                minCpl == null -> other.minCpl
-                other.minCpl == null -> minCpl
-                else -> minOf(minCpl, other.minCpl)
-            },
-            maxCpl = when {
-                maxCpl == null -> other.maxCpl
-                other.maxCpl == null -> maxCpl
-                else -> maxOf(maxCpl, other.maxCpl)
-            },
-        )
-
-    fun averageCpl(): Double? =
-        if (count == 0) null else totalCpl.toDouble() / count.toDouble()
-}
-
-data class MoveAnnotationSummary(
-    val annotatedMoves: Int,
-    val neutralMoves: Int,
-    val skippedMoves: Int,
-    val categoryTotals: Map<MoveAnnotationCategory, AnnotationAggregate>,
-) {
-    val totalMoves: Int
-        get() = annotatedMoves + neutralMoves + skippedMoves
-}
 
 fun summarizeMoveAnnotations(
     moves: List<String>,

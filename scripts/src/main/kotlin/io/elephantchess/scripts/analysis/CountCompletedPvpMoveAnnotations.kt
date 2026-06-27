@@ -6,13 +6,13 @@ import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.model.AnalysisStatus.COMPLETED
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
+import io.elephantchess.model.dto.analysis.AnnotationAggregate
+import io.elephantchess.model.dto.analysis.MoveAnnotationCategory
+import io.elephantchess.model.dto.analysis.MoveAnnotationSummary
 import io.elephantchess.scripts.KoinScriptInit
-import io.elephantchess.servicelayer.analysis.AnnotationAggregate
+import io.elephantchess.servicelayer.analysis.moveAnnotationCategoriesInOrder
 import io.elephantchess.servicelayer.analysis.calculateMoveAnnotation
 import io.elephantchess.servicelayer.analysis.findAnalysisDataFromEngineBestMove
-import io.elephantchess.servicelayer.analysis.MoveAnnotationCategory
-import io.elephantchess.servicelayer.analysis.MoveAnnotationSummary
-import io.elephantchess.servicelayer.analysis.moveAnnotationCategoriesInOrder
 import io.elephantchess.servicelayer.analysis.summarizeMoveAnnotations
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.servicelayer.services.GameDataService
