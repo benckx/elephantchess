@@ -1976,7 +1976,7 @@ class MoveTreeWidget {
         switch (this.#settingsManager.moveNodeEvalFormat) {
             case MoveNodeEvalFormat.NORMALIZED_CENTI_PAWNS:
                 node.clearEvalCssClasses();
-                node.eval = infoLineResult?.evalAsString ?? this.#analysisCache.get(node.fenKey)?.evalAsString ?? null;
+                node.eval = this.#getNormalizedEvalString(node, infoLineResult);
                 this.#updateEvalPlaceholder(node);
                 break;
             case MoveNodeEvalFormat.ANNOTATION_SYMBOLS:
@@ -1985,6 +1985,24 @@ class MoveTreeWidget {
             default:
                 break;
         }
+    }
+
+    /**
+     * @param node {MoveTreeNode}
+     * @param infoLineResult {InfoLineResult|null}
+     * @return {string|null}
+     */
+    #getNormalizedEvalString(node, infoLineResult = null) {
+        if (infoLineResult != null) {
+            return infoLineResult.evalAsString;
+        }
+
+        const cachedInfoLineResult = this.#analysisCache.get(node.fenKey);
+        if (cachedInfoLineResult != null) {
+            return cachedInfoLineResult.evalAsString;
+        }
+
+        return null;
     }
 
     /**
