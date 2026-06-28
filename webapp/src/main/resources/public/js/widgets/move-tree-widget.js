@@ -1994,7 +1994,9 @@ class MoveTreeWidget {
      * @param analysisCache {Map<string, InfoLineResult>}
      */
     #syncAnalysisCache(analysisCache) {
-        this.#analysisCache = new Map(analysisCache);
+        if (analysisCache != null) {
+            this.#analysisCache = new Map(analysisCache);
+        }
     }
 
     /**
@@ -2062,11 +2064,11 @@ class MoveTreeWidget {
 
         // tooltip describing the calculation behind the eval annotation symbol
         // should be available on the whole move cell (not only the eval label)
-        if (this.#settingsManager.moveNodeEvalFormat === MoveNodeEvalFormat.ANNOTATION_SYMBOLS &&
-            node.annotationDetails != null) {
+        const annotationTooltipText = this.#annotationTooltipText(node);
+        if (annotationTooltipText != null) {
             this.#removeEvalTooltip(evalPlaceholder);
             if (moveContainer != null) {
-                addToolTip(moveContainer, node.annotationDetails.toTooltipText());
+                addToolTip(moveContainer, annotationTooltipText);
             }
         } else {
             this.#removeEvalTooltip(evalPlaceholder);
@@ -2086,6 +2088,18 @@ class MoveTreeWidget {
         if (tooltip != null) {
             tooltip.remove();
         }
+    }
+
+    /**
+     * @param node {MoveTreeNode}
+     * @return {string|null}
+     */
+    #annotationTooltipText(node) {
+        if (this.#settingsManager.moveNodeEvalFormat !== MoveNodeEvalFormat.ANNOTATION_SYMBOLS) {
+            return null;
+        }
+
+        return node.annotationDetails?.toTooltipText() ?? null;
     }
 
     /**
