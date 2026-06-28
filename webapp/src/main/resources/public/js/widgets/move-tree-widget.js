@@ -1912,7 +1912,7 @@ class MoveTreeWidget {
      */
     refreshAllMoveNodeEval(analysisCache = null) {
         if (analysisCache != null) {
-            this.#analysisCache = new Map(analysisCache);
+            this.#syncAnalysisCache(analysisCache);
         }
         this.#moveTree.getAllNodes().forEach((node) => {
             this.#renderNodeEval(node);
@@ -1924,7 +1924,7 @@ class MoveTreeWidget {
      * @param analysisCache {Map<string, InfoLineResult>}
      */
     updateEvalForInfoLineResult(fenKey, analysisCache) {
-        this.#analysisCache = new Map(analysisCache);
+        this.#syncAnalysisCache(analysisCache);
 
         switch (this.#settingsManager.moveNodeEvalFormat) {
             case MoveNodeEvalFormat.NORMALIZED_CENTI_PAWNS:
@@ -1980,11 +1980,21 @@ class MoveTreeWidget {
                 this.#updateEvalPlaceholder(node);
                 break;
             case MoveNodeEvalFormat.ANNOTATION_SYMBOLS:
-                this.#setAnnotationDetails(node, node.annotationDetails);
+                this.#renderAnnotationDetails(node);
                 break;
             default:
                 break;
         }
+    }
+
+    /**
+     * Persist the latest streamed analysis cache so eval display can be refreshed
+     * consistently when the user changes formats.
+     *
+     * @param analysisCache {Map<string, InfoLineResult>}
+     */
+    #syncAnalysisCache(analysisCache) {
+        this.#analysisCache = new Map(analysisCache);
     }
 
     /**
@@ -2011,11 +2021,18 @@ class MoveTreeWidget {
      */
     #setAnnotationDetails(node, annotationDetails) {
         node.annotationDetails = annotationDetails;
+        this.#renderAnnotationDetails(node);
+    }
+
+    /**
+     * @param node {MoveTreeNode}
+     */
+    #renderAnnotationDetails(node) {
         node.clearEvalCssClasses();
 
-        if (annotationDetails != null) {
-            node.eval = annotationDetails.symbol;
-            node.addEvalCssClass(annotationDetails.cssClass);
+        if (node.annotationDetails != null) {
+            node.eval = node.annotationDetails.symbol;
+            node.addEvalCssClass(node.annotationDetails.cssClass);
         } else {
             node.eval = null;
         }
