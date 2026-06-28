@@ -1914,18 +1914,9 @@ class MoveTreeWidget {
         if (analysisCache != null) {
             this.#analysisCache = new Map(analysisCache);
         }
-
-        // clear all eval labels
-        this.#moveTree.getAllNodes().forEach(node => {
-            node.annotationDetails = null;
-            node.clearEvalCssClasses();
-            this.#updateEvalPlaceholder(node);
+        this.#moveTree.getAllNodes().forEach((node) => {
+            this.#renderNodeEval(node);
         });
-
-        // re-render
-        for (let [key, _] of this.#analysisCache) {
-            this.updateEvalForInfoLineResult(key, this.#analysisCache);
-        }
     }
 
     /**
@@ -1933,27 +1924,25 @@ class MoveTreeWidget {
      * @param analysisCache {Map<string, InfoLineResult>}
      */
     updateEvalForInfoLineResult(fenKey, analysisCache) {
+        this.#analysisCache = new Map(analysisCache);
+
         switch (this.#settingsManager.moveNodeEvalFormat) {
             case MoveNodeEvalFormat.NORMALIZED_CENTI_PAWNS:
                 const infoLineResult = analysisCache.get(fenKey);
                 if (infoLineResult != null) {
                     this.#moveTree.getAllNodesMatchingFenKey(fenKey).forEach((node) => {
-                        node.annotationDetails = null;
-                        node.eval = infoLineResult.evalAsString;
-                        this.#updateEvalPlaceholder(node);
+                        this.#renderNodeEval(node, infoLineResult);
                     });
                 }
                 break;
             case MoveNodeEvalFormat.ANNOTATION_SYMBOLS:
                 this.#moveTree.getAllNodesMatchingFenKey(fenKey).forEach((node) => {
-                    this.#applyAnnotationSymbolToNode(node, analysisCache);
+                    this.#renderNodeEval(node);
                 });
                 break;
             default:
                 break;
         }
-
-        this.#analysisCache = new Map(analysisCache);
     }
 
     /**
@@ -1966,51 +1955,35 @@ class MoveTreeWidget {
         this.#moveTree.getAllNodes().forEach((node) => {
             const moveAnnotation = moveAnnotationsByMoveIndex.get(node.position);
             if (moveAnnotation != null) {
-                this.#setAnnotationDetails(
-                    node,
-                    new AnnotationEvalDetails(
-                        moveAnnotation.annotation,
-                        moveAnnotation.engineCp,
-                        moveAnnotation.actualMoveCp,
-                        moveAnnotation.cpl
-                    )
+                node.annotationDetails = new AnnotationEvalDetails(
+                    moveAnnotation.annotation,
+                    moveAnnotation.engineCp,
+                    moveAnnotation.actualMoveCp,
+                    moveAnnotation.cpl
                 );
             } else {
-                this.#setAnnotationDetails(node, null);
+                node.annotationDetails = null;
             }
+            this.#renderNodeEval(node);
         });
     }
 
     /**
      * @param node {MoveTreeNode}
-     * @param analysisCache {Map<string, InfoLineResult>}
+     * @param infoLineResult {InfoLineResult|null}
      */
-    #applyAnnotationSymbolToNode(node, analysisCache) {
-        const nodeFenKey = node.fenKey;
-        const previousNodeFenKey = node.hasPrevious() ? node.previous.fenKey : this.#startFen;
-
-        if (analysisCache.has(previousNodeFenKey) && analysisCache.has(nodeFenKey)) {
-            const previousNodeData = analysisCache.get(previousNodeFenKey);
-            const engineBestMoveData = findAnalysisDataFromEngineBestMove(analysisCache, previousNodeData);
-            if (engineBestMoveData != null) {
-                const currentNodeData = analysisCache.get(nodeFenKey);
-                const details = calculateAnnotationDetails(engineBestMoveData, currentNodeData);
-                if (details != null) {
-                    this.#setAnnotationDetails(
-                        node,
-                        new AnnotationEvalDetails(
-                            details.symbol,
-                            details.engineCp,
-                            details.actualMoveCp,
-                            details.delta
-                        )
-                    );
-                } else {
-                    this.#setAnnotationDetails(node, null);
-                }
-            } else {
-                this.#setAnnotationDetails(node, null);
-            }
+    #renderNodeEval(node, infoLineResult = null) {
+        switch (this.#settingsManager.moveNodeEvalFormat) {
+            case MoveNodeEvalFormat.NORMALIZED_CENTI_PAWNS:
+                node.clearEvalCssClasses();
+                node.eval = infoLineResult?.evalAsString ?? this.#analysisCache.get(node.fenKey)?.evalAsString ?? null;
+                this.#updateEvalPlaceholder(node);
+                break;
+            case MoveNodeEvalFormat.ANNOTATION_SYMBOLS:
+                this.#setAnnotationDetails(node, node.annotationDetails);
+                break;
+            default:
+                break;
         }
     }
 
@@ -2054,7 +2027,8 @@ class MoveTreeWidget {
 
         // tooltip describing the calculation behind the eval annotation symbol
         // should be available on the whole move cell (not only the eval label)
-        if (node.annotationDetails != null) {
+        if (this.#settingsManager.moveNodeEvalFormat === MoveNodeEvalFormat.ANNOTATION_SYMBOLS &&
+            node.annotationDetails != null) {
             this.#removeEvalTooltip(evalPlaceholder);
             if (moveContainer != null) {
                 addToolTip(moveContainer, node.annotationDetails.toTooltipText());
