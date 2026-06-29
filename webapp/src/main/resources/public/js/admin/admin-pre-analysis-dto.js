@@ -217,8 +217,6 @@ class StatusByGameTypeEntryDto {
      * @returns {StatusByGameTypeEntryDto[]}
      */
     static parse(json) {
-        let entries = [];
-        json.entries.map(jsonEntry => entries.push(new StatusByGameTypeEntryDto(jsonEntry)));
-        return entries;
+        return json.entries.map(jsonEntry => new StatusByGameTypeEntryDto(jsonEntry));
     }
 }
