@@ -16,7 +16,6 @@ import io.elephantchess.db.model.*
 import io.elephantchess.db.model.analytics.PvpJoinSourceRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
-import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
 import io.elephantchess.model.AnalysisStatus.NOT_STARTED
 import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
