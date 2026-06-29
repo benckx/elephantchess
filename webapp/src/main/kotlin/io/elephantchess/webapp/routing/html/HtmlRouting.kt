@@ -1,6 +1,7 @@
 package io.elephantchess.webapp.routing.html
 
 import io.elephantchess.servicelayer.exceptions.BadRequestException
+import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
@@ -194,7 +195,9 @@ private fun Route.userProfile() {
             ?: throw BadRequestException("username not provided")
 
         val userProfileResponse = userService.fetchProfile(username)
-        call.respondHtml(renderer.renderUserProfile(userProfileResponse))
+        val verifiedToken = extractAndVerifyToken() as? VerifiedToken
+        val isOwnProfile = verifiedToken?.userId == userProfileResponse.userId
+        call.respondHtml(renderer.renderUserProfile(userProfileResponse, isOwnProfile))
     }
     get("/@/{username}/browse-pvp-games") {
         val username = call.parameters["username"]
