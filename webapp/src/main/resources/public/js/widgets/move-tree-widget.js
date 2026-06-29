@@ -2019,15 +2019,6 @@ class MoveTreeWidget {
 
     /**
      * @param node {MoveTreeNode}
-     * @param annotationDetails {AnnotationEvalDetails|null}
-     */
-    #setAnnotationDetails(node, annotationDetails) {
-        node.annotationDetails = annotationDetails;
-        this.#renderAnnotationDetails(node);
-    }
-
-    /**
-     * @param node {MoveTreeNode}
      */
     #renderAnnotationDetails(node) {
         node.clearEvalCssClasses();
