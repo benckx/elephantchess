@@ -20,14 +20,14 @@ class MoveAnnotationCalculationTest {
     fun `calculateCpl requires matching depth of at least 18`() {
         assertNull(
             calculateCpl(
-                engineBest = analysis(fen = "engine", cp = 300, depth = 20),
-                actualMove = analysis(fen = "actual", cp = 0, depth = 18),
+                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 20),
+                actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 18),
             ),
         )
         assertNull(
             calculateCpl(
-                engineBest = analysis(fen = "engine", cp = 300, depth = 17),
-                actualMove = analysis(fen = "actual", cp = 0, depth = 17),
+                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 17),
+                actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 17),
             ),
         )
     }
@@ -51,9 +51,9 @@ class MoveAnnotationCalculationTest {
         val annotations = collectMoveAnnotations(
             moves = listOf(move),
             analysisMap = mapOf(
-                startFen to analysis(fen = startFen, bestMove = bestMove, cp = 0, depth = 20),
-                bestMoveFen to analysis(fen = bestMoveFen, cp = 360, depth = 20),
-                actualMoveFen to analysis(fen = actualMoveFen, cp = 0, depth = 20),
+                startFen to buildTestInfoLineResultDto(fen = startFen, bestMove = bestMove, cp = 0, depth = 20),
+                bestMoveFen to buildTestInfoLineResultDto(fen = bestMoveFen, cp = 360, depth = 20),
+                actualMoveFen to buildTestInfoLineResultDto(fen = actualMoveFen, cp = 0, depth = 20),
             ),
         )
 
@@ -192,26 +192,26 @@ class MoveAnnotationCalculationTest {
         )
     }
 
-    private fun assertMatchesSample(case: AnnotationTestCase) {
-        val engineBest = analysis(
+    private fun assertMatchesSample(testCase: AnnotationTestCase) {
+        val engineBest = buildTestInfoLineResultDto(
             fen = "engine",
-            cp = case.engineCp,
+            cp = testCase.engineCp,
             depth = 20,
         )
-        val actualMove = analysis(
+        val actualMove = buildTestInfoLineResultDto(
             fen = "actual",
-            cp = case.actualCp,
-            mate = case.actualMate,
+            cp = testCase.actualCp,
+            mate = testCase.actualMate,
             depth = 20,
         )
 
-        assertEquals(case.expectedCpl, calculateCpl(engineBest, actualMove))
+        assertEquals(testCase.expectedCpl, calculateCpl(engineBest, actualMove))
         assertEquals(
             MoveAnnotationResult(
-                category = case.expectedCategory,
-                cpl = case.expectedCpl,
-                engineCp = case.engineCp,
-                actualMoveCp = case.expectedActualMoveHeuristicCp ?: case.actualCp!!,
+                category = testCase.expectedCategory,
+                cpl = testCase.expectedCpl,
+                engineCp = testCase.engineCp,
+                actualMoveCp = testCase.expectedActualMoveHeuristicCp ?: testCase.actualCp!!,
             ),
             calculateMoveAnnotation(engineBest, actualMove),
         )
@@ -223,7 +223,7 @@ class MoveAnnotationCalculationTest {
      * @param cp centipawn score, when present
      * @param mate mate score, when present
      */
-    private fun analysis(
+    private fun buildTestInfoLineResultDto(
         fen: String,
         cp: Int?,
         depth: Int,
