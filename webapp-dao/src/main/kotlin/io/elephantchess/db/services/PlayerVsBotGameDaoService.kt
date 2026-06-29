@@ -24,6 +24,7 @@ import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Record2
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
@@ -34,7 +35,7 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
 
-    suspend fun countGamesByAnalysisStatus(): List<org.jooq.Record2<AnalysisStatus, Int>> {
+    suspend fun countGamesByAnalysisStatus(): List<Record2<AnalysisStatus, Int>> {
         return dslContext
             .select(BOT_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
             .from(BOT_GAME)

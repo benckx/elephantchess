@@ -35,6 +35,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Record2
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
