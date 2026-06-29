@@ -1,10 +1,10 @@
 package io.elephantchess.servicelayer.analysis
 
-import io.elephantchess.model.dto.analysis.AnnotationAggregate
-import io.elephantchess.model.dto.analysis.MoveAnnotationCategory
-import io.elephantchess.model.dto.analysis.MoveAnnotationDetails
-import io.elephantchess.model.dto.analysis.MoveAnnotationResult
-import io.elephantchess.model.dto.analysis.MoveAnnotationSummary
+import io.elephantchess.model.MoveAnnotationCategory
+import io.elephantchess.servicelayer.dto.analysis.AnnotationAggregate
+import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationDetails
+import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationResult
+import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationSummary
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
@@ -13,18 +13,10 @@ import kotlin.math.abs
 
 // Mirrors MAX_ABS_CP in webapp/src/main/resources/public/js/modules/engine.js
 private const val MAX_ABS_CP = 7_706
+
 // This is the minimum depth for any comparable annotation calculation; callers can still
 // apply stricter reporting filters separately (for example, the script's depth-20 split).
 private const val MIN_COMPARABLE_ANALYSIS_DEPTH = 18
-
-val moveAnnotationCategoriesInOrder = listOf(
-    MoveAnnotationCategory.BLUNDER,
-    MoveAnnotationCategory.MISTAKE,
-    MoveAnnotationCategory.INACCURACY,
-    MoveAnnotationCategory.INTERESTING,
-    MoveAnnotationCategory.GOOD,
-    MoveAnnotationCategory.BRILLIANT,
-)
 
 fun summarizeMoveAnnotations(
     moves: List<String>,
@@ -36,7 +28,7 @@ fun summarizeMoveAnnotations(
     var annotatedMoves = 0
     var neutralMoves = 0
     var skippedMoves = 0
-    val categoryTotals = moveAnnotationCategoriesInOrder
+    val categoryTotals = MoveAnnotationCategory.entries
         .associateWith { AnnotationAggregate() }
         .toMutableMap()
 
@@ -65,7 +57,8 @@ fun summarizeMoveAnnotations(
                 if (annotation == null) {
                     neutralMoves++
                 } else {
-                    categoryTotals[annotation.category] = categoryTotals.getValue(annotation.category).add(annotation.cpl)
+                    categoryTotals[annotation.category] =
+                        categoryTotals.getValue(annotation.category).add(annotation.cpl)
                     annotatedMoves++
                 }
             }
@@ -124,7 +117,11 @@ fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove: InfoLine
 }
 
 fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): Int? {
-    if (engineBest == null || actualMove == null || actualMove.isCheckmate || !hasComparableAnalysisData(engineBest, actualMove)) {
+    if (engineBest == null || actualMove == null || actualMove.isCheckmate || !hasComparableAnalysisData(
+            engineBest,
+            actualMove
+        )
+    ) {
         return null
     }
 
@@ -185,8 +182,8 @@ private fun hasComparableAnalysisData(
     val engineDepth = engineBest.depth ?: return false
     val actualDepth = actualMove.depth ?: return false
     return engineDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
-        actualDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
-        engineDepth == actualDepth &&
-        heuristicCp(engineBest) != null &&
-        heuristicCp(actualMove) != null
+            actualDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
+            engineDepth == actualDepth &&
+            heuristicCp(engineBest) != null &&
+            heuristicCp(actualMove) != null
 }

@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.dto.analysis
 
-import io.elephantchess.model.dto.analysis.MoveAnnotationCategory
+import io.elephantchess.model.MoveAnnotationCategory
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 
 data class GameAnalysisResponse(

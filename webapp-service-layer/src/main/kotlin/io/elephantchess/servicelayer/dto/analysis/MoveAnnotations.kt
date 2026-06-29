@@ -1,13 +1,6 @@
-package io.elephantchess.model.dto.analysis
+package io.elephantchess.servicelayer.dto.analysis
 
-enum class MoveAnnotationCategory {
-    BLUNDER,
-    MISTAKE,
-    INACCURACY,
-    INTERESTING,
-    GOOD,
-    BRILLIANT,
-}
+import io.elephantchess.model.MoveAnnotationCategory
 
 data class MoveAnnotationResult(
     val category: MoveAnnotationCategory,
@@ -67,3 +60,4 @@ data class MoveAnnotationSummary(
     val totalMoves: Int
         get() = annotatedMoves + neutralMoves + skippedMoves
 }
+

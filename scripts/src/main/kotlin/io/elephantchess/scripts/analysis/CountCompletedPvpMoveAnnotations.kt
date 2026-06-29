@@ -6,9 +6,7 @@ import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.model.AnalysisStatus.COMPLETED
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
-import io.elephantchess.model.dto.analysis.AnnotationAggregate
-import io.elephantchess.model.dto.analysis.MoveAnnotationCategory
-import io.elephantchess.model.dto.analysis.MoveAnnotationSummary
+import io.elephantchess.model.MoveAnnotationCategory
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.servicelayer.analysis.moveAnnotationCategoriesInOrder
 import io.elephantchess.servicelayer.analysis.calculateMoveAnnotation
