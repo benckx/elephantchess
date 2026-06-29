@@ -50,14 +50,3 @@ data class AnnotationAggregate(
     fun averageCpl(): Double? =
         if (count == 0) null else totalCpl.toDouble() / count.toDouble()
 }
-
-data class MoveAnnotationSummary(
-    val annotatedMoves: Int,
-    val neutralMoves: Int,
-    val skippedMoves: Int,
-    val categoryTotals: Map<MoveAnnotationCategory, AnnotationAggregate>,
-) {
-    val totalMoves: Int
-        get() = annotatedMoves + neutralMoves + skippedMoves
-}
-

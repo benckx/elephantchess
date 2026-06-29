@@ -1,10 +1,8 @@
 package io.elephantchess.servicelayer.utils
 
 import io.elephantchess.model.MoveAnnotationCategory
-import io.elephantchess.servicelayer.dto.analysis.AnnotationAggregate
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationDetails
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationResult
-import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationSummary
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
@@ -17,59 +15,6 @@ private const val MAX_ABS_CP = 7_706
 // This is the minimum depth for any comparable annotation calculation; callers can still
 // apply stricter reporting filters separately (for example, the script's depth-20 split).
 private const val MIN_COMPARABLE_ANALYSIS_DEPTH = 18
-
-fun summarizeMoveAnnotations(
-    moves: List<String>,
-    analysisMap: Map<String, InfoLineResultDto>,
-    startFen: String = DEFAULT_START_FEN,
-    actualMoveFilter: (InfoLineResultDto?) -> Boolean = { true },
-): MoveAnnotationSummary {
-    val board = Board(startFen)
-    var annotatedMoves = 0
-    var neutralMoves = 0
-    var skippedMoves = 0
-    val categoryTotals = MoveAnnotationCategory.entries.associateWith { AnnotationAggregate() }.toMutableMap()
-
-    moves.forEach { move ->
-        val previousNodeData = analysisMap[resetFullMoveCount(board.outputFen())]
-        val engineBestAnalysis = previousNodeData?.let { findAnalysisDataFromEngineBestMove(analysisMap, it) }
-
-        board.registerMove(move)
-        val actualMoveAnalysis = analysisMap[resetFullMoveCount(board.outputFen())]
-        if (!actualMoveFilter(actualMoveAnalysis)) {
-            return@forEach
-        }
-
-        when {
-            previousNodeData == null || engineBestAnalysis == null || actualMoveAnalysis == null -> {
-                skippedMoves++
-            }
-
-            else -> {
-                if (!hasComparableAnalysisData(engineBestAnalysis, actualMoveAnalysis)) {
-                    skippedMoves++
-                    return@forEach
-                }
-
-                val annotation = calculateMoveAnnotation(engineBestAnalysis, actualMoveAnalysis)
-                if (annotation == null) {
-                    neutralMoves++
-                } else {
-                    categoryTotals[annotation.category] =
-                        categoryTotals.getValue(annotation.category).add(annotation.cpl)
-                    annotatedMoves++
-                }
-            }
-        }
-    }
-
-    return MoveAnnotationSummary(
-        annotatedMoves = annotatedMoves,
-        neutralMoves = neutralMoves,
-        skippedMoves = skippedMoves,
-        categoryTotals = categoryTotals,
-    )
-}
 
 fun collectMoveAnnotations(
     moves: List<String>,
@@ -106,6 +51,7 @@ fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove: InfoLine
     val actualMoveCp = actualMove?.let(::heuristicCp) ?: return null
     val cpl = calculateCpl(engineBest, actualMove) ?: return null
     val category = moveAnnotationCategoryFromCpl(cpl) ?: return null
+
     return MoveAnnotationResult(
         category = category,
         cpl = cpl,
@@ -172,7 +118,7 @@ private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
     }
 }
 
-private fun hasComparableAnalysisData(
+fun hasComparableAnalysisData(
     engineBest: InfoLineResultDto,
     actualMove: InfoLineResultDto,
 ): Boolean {

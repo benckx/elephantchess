@@ -8,13 +8,12 @@ import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.MoveAnnotationCategory
 import io.elephantchess.scripts.KoinScriptInit
-import io.elephantchess.servicelayer.utils.calculateMoveAnnotation
-import io.elephantchess.servicelayer.utils.findAnalysisDataFromEngineBestMove
-import io.elephantchess.servicelayer.utils.summarizeMoveAnnotations
 import io.elephantchess.servicelayer.dto.analysis.AnnotationAggregate
-import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationSummary
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.servicelayer.services.GameDataService
+import io.elephantchess.servicelayer.utils.calculateMoveAnnotation
+import io.elephantchess.servicelayer.utils.findAnalysisDataFromEngineBestMove
+import io.elephantchess.servicelayer.utils.hasComparableAnalysisData
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
@@ -23,7 +22,7 @@ import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
-import java.util.Locale
+import java.util.*
 import kotlin.random.Random
 import kotlin.system.exitProcess
 
@@ -221,6 +220,59 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             ?.let { String.format(Locale.US, "%.1f%%", count.toDouble() * 100.0 / it) }
             ?: "-"
 
+    private fun summarizeMoveAnnotations(
+        moves: List<String>,
+        analysisMap: Map<String, InfoLineResultDto>,
+        startFen: String = DEFAULT_START_FEN,
+        actualMoveFilter: (InfoLineResultDto?) -> Boolean = { true },
+    ): MoveAnnotationSummary {
+        val board = Board(startFen)
+        var annotatedMoves = 0
+        var neutralMoves = 0
+        var skippedMoves = 0
+        val categoryTotals = MoveAnnotationCategory.entries.associateWith { AnnotationAggregate() }.toMutableMap()
+
+        moves.forEach { move ->
+            val previousNodeData = analysisMap[resetFullMoveCount(board.outputFen())]
+            val engineBestAnalysis = previousNodeData?.let { findAnalysisDataFromEngineBestMove(analysisMap, it) }
+
+            board.registerMove(move)
+            val actualMoveAnalysis = analysisMap[resetFullMoveCount(board.outputFen())]
+            if (!actualMoveFilter(actualMoveAnalysis)) {
+                return@forEach
+            }
+
+            when {
+                previousNodeData == null || engineBestAnalysis == null || actualMoveAnalysis == null -> {
+                    skippedMoves++
+                }
+
+                else -> {
+                    if (!hasComparableAnalysisData(engineBestAnalysis, actualMoveAnalysis)) {
+                        skippedMoves++
+                        return@forEach
+                    }
+
+                    val annotation = calculateMoveAnnotation(engineBestAnalysis, actualMoveAnalysis)
+                    if (annotation == null) {
+                        neutralMoves++
+                    } else {
+                        categoryTotals[annotation.category] =
+                            categoryTotals.getValue(annotation.category).add(annotation.cpl)
+                        annotatedMoves++
+                    }
+                }
+            }
+        }
+
+        return MoveAnnotationSummary(
+            annotatedMoves = annotatedMoves,
+            neutralMoves = neutralMoves,
+            skippedMoves = skippedMoves,
+            categoryTotals = categoryTotals,
+        )
+    }
+
     internal fun collectAnnotatedMoves(
         gameId: String,
         moves: List<String>,
@@ -396,6 +448,16 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                 categoryTotals[category] = categoryTotals.getValue(category).merge(aggregate)
             }
         }
+    }
+
+    private data class MoveAnnotationSummary(
+        val annotatedMoves: Int,
+        val neutralMoves: Int,
+        val skippedMoves: Int,
+        val categoryTotals: Map<MoveAnnotationCategory, AnnotationAggregate>,
+    ) {
+        val totalMoves: Int
+            get() = annotatedMoves + neutralMoves + skippedMoves
     }
 
     private data class CategoryRow(
