@@ -171,17 +171,17 @@ class StatusPerYearEntryDto {
 class StatusByGameTypeEntryDto {
 
     /**
-     * @return {string}
+     * @type {string}
      */
     #gameType;
 
     /**
-     * @return {string}
+     * @type {string}
      */
     #status;
 
     /**
-     * @return {number}
+     * @type {number}
      */
     #count;
 
