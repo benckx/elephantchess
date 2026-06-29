@@ -47,10 +47,12 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
 
-    suspend fun countGamesByAnalysisStatus(): List<Record2<AnalysisStatus, Int>> {
+    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> {
         return dslContext
             .select(GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
             .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.VARIANT.eq(Variant.XIANGQI))
             .groupBy(GAME.ANALYSIS_STATUS)
             .orderBy(GAME.ANALYSIS_STATUS.asc())
             .awaitRecords()

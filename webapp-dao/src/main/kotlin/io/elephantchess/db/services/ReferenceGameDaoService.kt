@@ -33,10 +33,11 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitRecords()
     }
 
-    suspend fun countGamesByAnalysisStatus(): List<Record2<AnalysisStatus, Int>> {
+    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> {
         return dslContext
             .select(REFERENCE_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
             .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.ge(minMoveIndex))
             .groupBy(REFERENCE_GAME.ANALYSIS_STATUS)
             .orderBy(REFERENCE_GAME.ANALYSIS_STATUS.asc())
             .awaitRecords()

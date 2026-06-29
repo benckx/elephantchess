@@ -12,6 +12,7 @@ import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.model.GameType.DB
 import io.elephantchess.model.GameType.PVB
 import io.elephantchess.model.GameType.PVP
+import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 
 class AdminAnalysisService(
     private val moveAnalysisDaoService: MoveAnalysisDaoService,
@@ -22,9 +23,11 @@ class AdminAnalysisService(
 ) {
 
     suspend fun listPreAnalysisStatusByGameType(): PreAnalysisStatusByGameTypeResponse {
+        val minMoveIndex = MIN_MOVE_INDEX
+
         val entries =
             referenceGameDaoService
-                .countGamesByAnalysisStatus()
+                .countGamesByAnalysisStatus(minMoveIndex)
                 .map { record ->
                     PreAnalysisStatusByGameTypeResponse.Entry(
                         gameType = DB,
@@ -32,24 +35,24 @@ class AdminAnalysisService(
                         count = record.value2()
                     )
                 } +
-                playerVsBotGameDaoService
-                    .countGamesByAnalysisStatus()
-                    .map { record ->
-                        PreAnalysisStatusByGameTypeResponse.Entry(
-                            gameType = PVB,
-                            status = record.value1(),
-                            count = record.value2()
-                        )
-                    } +
-                playerVsPlayerGameDaoService
-                    .countGamesByAnalysisStatus()
-                    .map { record ->
-                        PreAnalysisStatusByGameTypeResponse.Entry(
-                            gameType = PVP,
-                            status = record.value1(),
-                            count = record.value2()
-                        )
-                    }
+                    playerVsBotGameDaoService
+                        .countGamesByAnalysisStatus(minMoveIndex)
+                        .map { record ->
+                            PreAnalysisStatusByGameTypeResponse.Entry(
+                                gameType = PVB,
+                                status = record.value1(),
+                                count = record.value2()
+                            )
+                        } +
+                    playerVsPlayerGameDaoService
+                        .countGamesByAnalysisStatus(minMoveIndex)
+                        .map { record ->
+                            PreAnalysisStatusByGameTypeResponse.Entry(
+                                gameType = PVP,
+                                status = record.value1(),
+                                count = record.value2()
+                            )
+                        }
 
         return PreAnalysisStatusByGameTypeResponse(entries)
     }

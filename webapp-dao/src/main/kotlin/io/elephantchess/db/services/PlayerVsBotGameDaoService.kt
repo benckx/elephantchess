@@ -12,6 +12,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.BotGameMove
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGameStatusEvent
 import io.elephantchess.db.model.BotGameStatusRecord
 import io.elephantchess.db.utils.*
+import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.BotGameMoveType
@@ -34,10 +35,12 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
 
-    suspend fun countGamesByAnalysisStatus(): List<Record2<io.elephantchess.model.AnalysisStatus, Int>> {
+    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> {
         return dslContext
             .select(BOT_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
             .from(BOT_GAME)
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(BOT_GAME.VARIANT.eq(Variant.XIANGQI))
             .groupBy(BOT_GAME.ANALYSIS_STATUS)
             .orderBy(BOT_GAME.ANALYSIS_STATUS.asc())
             .awaitRecords()
