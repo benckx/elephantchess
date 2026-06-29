@@ -8,10 +8,11 @@ import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.MoveAnnotationCategory
 import io.elephantchess.scripts.KoinScriptInit
-import io.elephantchess.servicelayer.analysis.moveAnnotationCategoriesInOrder
 import io.elephantchess.servicelayer.analysis.calculateMoveAnnotation
 import io.elephantchess.servicelayer.analysis.findAnalysisDataFromEngineBestMove
 import io.elephantchess.servicelayer.analysis.summarizeMoveAnnotations
+import io.elephantchess.servicelayer.dto.analysis.AnnotationAggregate
+import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationSummary
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.xiangqi.Board
@@ -145,7 +146,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         println("Neutral moves: ${totals.neutralMoves}")
         println("Skipped moves (missing or incomparable analysis data): ${totals.skippedMoves}")
         println()
-        val categoryRows = moveAnnotationCategoriesInOrder.map { category ->
+        val categoryRows = MoveAnnotationCategory.entries.map { category ->
             val aggregate = totals.categoryTotals.getValue(category)
             val avg = aggregate.averageCpl()
             val avgLabel = if (avg == null) "-" else String.format(Locale.US, "%.1f", avg)
@@ -268,12 +269,14 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         sampleSize: Int = RANDOM_SAMPLE_SIZE_PER_CATEGORY,
         random: Random = Random.Default,
     ): Map<MoveAnnotationCategory, List<AnnotatedMoveDetail>> =
-        moveAnnotationCategoriesInOrder.associateWith { category ->
-            annotatedMoves
-                .filter { it.category == category }
-                .shuffled(random)
-                .take(sampleSize)
-        }
+        MoveAnnotationCategory
+            .entries
+            .associateWith { category ->
+                annotatedMoves
+                    .filter { it.category == category }
+                    .shuffled(random)
+                    .take(sampleSize)
+            }
 
     internal fun buildAnnotatedMoveLines(
         title: String,
@@ -288,8 +291,8 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             annotatedMoves.forEachIndexed { index, detail ->
                 add(
                     "game=${detail.gameId} ply=${detail.ply} moveIndex=${detail.moveIndex} " +
-                        "fullMoveIndex=${detail.fullMoveIndex} playedMove=${detail.playedMove} " +
-                        "engineMove=${detail.engineMove} cpl=${detail.cpl} annotation=${detail.category}",
+                            "fullMoveIndex=${detail.fullMoveIndex} playedMove=${detail.playedMove} " +
+                            "engineMove=${detail.engineMove} cpl=${detail.cpl} annotation=${detail.category}",
                 )
                 add("  fen: ${detail.fenBeforeMove}")
                 add("  localhost: ${LOCALHOST_GAME_URL_PREFIX}${detail.gameId}")
@@ -317,14 +320,14 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         val sampledMoves = sampleAnnotatedMovesByCategory(annotatedMoves)
         val countsByCategory = annotatedMoves.groupingBy { it.category }.eachCount()
 
-        moveAnnotationCategoriesInOrder.forEachIndexed { index, category ->
+        MoveAnnotationCategory.entries.forEachIndexed { index, category ->
             val sample = sampledMoves.getValue(category)
             val total = countsByCategory[category] ?: 0
             buildAnnotatedMoveLines(
                 title = "$category samples (random ${sample.size} of $total)",
                 annotatedMoves = sample,
             ).forEach(::println)
-            if (index < moveAnnotationCategoriesInOrder.lastIndex) {
+            if (index < MoveAnnotationCategory.entries.lastIndex) {
                 println()
             }
         }
@@ -379,9 +382,10 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         var annotatedMoves: Int = 0,
         var neutralMoves: Int = 0,
         var skippedMoves: Int = 0,
-        val categoryTotals: MutableMap<MoveAnnotationCategory, AnnotationAggregate> = moveAnnotationCategoriesInOrder
-            .associateWith { AnnotationAggregate() }
-            .toMutableMap(),
+        val categoryTotals: MutableMap<MoveAnnotationCategory, AnnotationAggregate> =
+            MoveAnnotationCategory.entries
+                .associateWith { AnnotationAggregate() }
+                .toMutableMap(),
     ) {
         fun merge(summary: MoveAnnotationSummary) {
             totalMoves += summary.totalMoves
