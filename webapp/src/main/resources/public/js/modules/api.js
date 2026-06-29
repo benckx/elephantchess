@@ -95,12 +95,15 @@ function getToken() {
 /**
  * @return {object}
  */
-function headers() {
+function headers(includeJsonContentType = true) {
     const headers =
         {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Accept': 'application/json'
         };
+
+    if (includeJsonContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
 
     const token = getToken();
     if (token != null) {
@@ -141,7 +144,11 @@ function postAndHandle(url, body, cb) {
 function postAndHandleWith(url, body, handler) {
     let init;
     if (body != null) {
-        init = {method: 'POST', headers: headers(), body: JSON.stringify(body)};
+        if (body instanceof FormData) {
+            init = {method: 'POST', headers: headers(false), body: body};
+        } else {
+            init = {method: 'POST', headers: headers(), body: JSON.stringify(body)};
+        }
     } else {
         init = {method: 'POST', headers: headers()};
     }
