@@ -78,9 +78,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.BLUNDER,
                 expectedCpl = -2577,
                 actualCp = 885,
-                expectedActualCp = 885,
                 engineCp = -1692,
-                expectedEngineCp = -1692,
             ),
         )
         assertMatchesSample(
@@ -88,9 +86,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.BLUNDER,
                 expectedCpl = -328,
                 actualCp = 320,
-                expectedActualCp = 320,
                 engineCp = -8,
-                expectedEngineCp = -8,
             ),
         )
     }
@@ -102,9 +98,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.MISTAKE,
                 expectedCpl = -122,
                 actualCp = 190,
-                expectedActualCp = 190,
                 engineCp = 68,
-                expectedEngineCp = 68,
             ),
         )
         assertMatchesSample(
@@ -112,9 +106,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.MISTAKE,
                 expectedCpl = -141,
                 actualCp = 206,
-                expectedActualCp = 206,
                 engineCp = 65,
-                expectedEngineCp = 65,
             ),
         )
     }
@@ -126,9 +118,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.INACCURACY,
                 expectedCpl = -66,
                 actualCp = -1,
-                expectedActualCp = -1,
                 engineCp = -67,
-                expectedEngineCp = -67,
             ),
         )
         assertMatchesSample(
@@ -136,9 +126,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.INACCURACY,
                 expectedCpl = -68,
                 actualCp = 58,
-                expectedActualCp = 58,
                 engineCp = -10,
-                expectedEngineCp = -10,
             ),
         )
     }
@@ -150,9 +138,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.INTERESTING,
                 expectedCpl = 65,
                 actualCp = -2232,
-                expectedActualCp = -2232,
                 engineCp = -2167,
-                expectedEngineCp = -2167,
             ),
         )
         assertMatchesSample(
@@ -160,9 +146,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.INTERESTING,
                 expectedCpl = 94,
                 actualCp = -3901,
-                expectedActualCp = -3901,
                 engineCp = -3807,
-                expectedEngineCp = -3807,
             ),
         )
     }
@@ -174,9 +158,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.GOOD,
                 expectedCpl = 180,
                 actualCp = 606,
-                expectedActualCp = 606,
                 engineCp = 786,
-                expectedEngineCp = 786,
             ),
         )
         assertMatchesSample(
@@ -184,9 +166,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.GOOD,
                 expectedCpl = 107,
                 actualCp = -1013,
-                expectedActualCp = -1013,
                 engineCp = -906,
-                expectedEngineCp = -906,
             ),
         )
     }
@@ -198,9 +178,8 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.BRILLIANT,
                 expectedCpl = 890,
                 actualMate = -12,
-                expectedActualCp = MATE_NEGATIVE_TWELVE_HEURISTIC_CP,
+                expectedActualMoveHeuristicCp = MATE_NEGATIVE_TWELVE_HEURISTIC_CP,
                 engineCp = -7040,
-                expectedEngineCp = -7040,
             ),
         )
         assertMatchesSample(
@@ -208,9 +187,7 @@ class MoveAnnotationCalculationTest {
                 expectedCategory = MoveAnnotationCategory.BRILLIANT,
                 expectedCpl = 312,
                 actualCp = -2917,
-                expectedActualCp = -2917,
                 engineCp = -2605,
-                expectedEngineCp = -2605,
             ),
         )
     }
@@ -233,8 +210,8 @@ class MoveAnnotationCalculationTest {
             MoveAnnotationResult(
                 category = case.expectedCategory,
                 cpl = case.expectedCpl,
-                engineCp = case.expectedEngineCp,
-                actualMoveCp = case.expectedActualCp,
+                engineCp = case.engineCp,
+                actualMoveCp = case.expectedActualMoveHeuristicCp ?: case.actualCp!!,
             ),
             calculateMoveAnnotation(engineBest, actualMove),
         )
@@ -271,12 +248,14 @@ class MoveAnnotationCalculationTest {
         val expectedCpl: Int,
         val actualCp: Int? = null,
         val actualMate: Int? = null,
-        val expectedActualCp: Int,
         val engineCp: Int,
-        val expectedEngineCp: Int,
+        val expectedActualMoveHeuristicCp: Int? = null,
     ) {
         init {
             require((actualCp != null).xor(actualMate != null)) { "Exactly one of actualCp or actualMate must be provided" }
+            require(actualCp != null || expectedActualMoveHeuristicCp != null) {
+                "Mate-based cases must provide expectedActualMoveHeuristicCp"
+            }
         }
     }
 }
