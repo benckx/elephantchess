@@ -34,6 +34,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Record2
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -45,6 +46,17 @@ import kotlin.time.Instant
 class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
+
+    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> {
+        return dslContext
+            .select(GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.VARIANT.eq(Variant.XIANGQI))
+            .groupBy(GAME.ANALYSIS_STATUS)
+            .orderBy(GAME.ANALYSIS_STATUS.asc())
+            .awaitRecords()
+    }
 
     suspend fun insertGame(userId: String, game: Game) {
         dslContext.transactionCoroutine { cfg ->
