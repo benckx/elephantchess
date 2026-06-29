@@ -16,6 +16,7 @@ import io.elephantchess.db.model.*
 import io.elephantchess.db.model.analytics.PvpJoinSourceRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
+import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
 import io.elephantchess.model.AnalysisStatus.NOT_STARTED
 import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
@@ -45,6 +46,15 @@ import kotlin.time.Instant
 class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
+
+    suspend fun countGamesByAnalysisStatus(): List<Record2<AnalysisStatus, Int>> {
+        return dslContext
+            .select(GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
+            .from(GAME)
+            .groupBy(GAME.ANALYSIS_STATUS)
+            .orderBy(GAME.ANALYSIS_STATUS.asc())
+            .awaitRecords()
+    }
 
     suspend fun insertGame(userId: String, game: Game) {
         dslContext.transactionCoroutine { cfg ->

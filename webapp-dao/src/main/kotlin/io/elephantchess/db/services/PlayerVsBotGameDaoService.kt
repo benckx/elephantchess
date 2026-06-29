@@ -12,6 +12,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.BotGameMove
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGameStatusEvent
 import io.elephantchess.db.model.BotGameStatusRecord
 import io.elephantchess.db.utils.*
+import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.BotGameMoveType
@@ -32,6 +33,15 @@ import kotlin.time.Instant
 class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
+
+    suspend fun countGamesByAnalysisStatus(): List<org.jooq.Record2<AnalysisStatus, Int>> {
+        return dslContext
+            .select(BOT_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
+            .from(BOT_GAME)
+            .groupBy(BOT_GAME.ANALYSIS_STATUS)
+            .orderBy(BOT_GAME.ANALYSIS_STATUS.asc())
+            .awaitRecords()
+    }
 
     suspend fun insertGame(gameRecord: BotGame, statusRecord: BotGameStatusEvent) {
         dslContext.transactionCoroutine { configuration ->
