@@ -253,8 +253,11 @@ class MoveAnnotationCalculationTest {
     ) {
         init {
             require((actualCp != null).xor(actualMate != null)) { "Exactly one of actualCp or actualMate must be provided" }
-            require(actualCp != null || expectedActualMoveHeuristicCp != null) {
+            require(actualMate == null || expectedActualMoveHeuristicCp != null) {
                 "Mate-based cases must provide expectedActualMoveHeuristicCp"
+            }
+            require(actualCp == null || expectedActualMoveHeuristicCp == null) {
+                "CP-based cases should not provide expectedActualMoveHeuristicCp"
             }
         }
     }
