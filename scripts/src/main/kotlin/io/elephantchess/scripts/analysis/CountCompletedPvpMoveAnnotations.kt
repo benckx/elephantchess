@@ -8,9 +8,9 @@ import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.MoveAnnotationCategory
 import io.elephantchess.scripts.KoinScriptInit
-import io.elephantchess.servicelayer.analysis.calculateMoveAnnotation
-import io.elephantchess.servicelayer.analysis.findAnalysisDataFromEngineBestMove
-import io.elephantchess.servicelayer.analysis.summarizeMoveAnnotations
+import io.elephantchess.servicelayer.utils.calculateMoveAnnotation
+import io.elephantchess.servicelayer.utils.findAnalysisDataFromEngineBestMove
+import io.elephantchess.servicelayer.utils.summarizeMoveAnnotations
 import io.elephantchess.servicelayer.dto.analysis.AnnotationAggregate
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationSummary
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto

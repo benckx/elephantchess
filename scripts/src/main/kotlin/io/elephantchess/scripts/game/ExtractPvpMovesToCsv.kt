@@ -7,7 +7,7 @@ import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
-import io.elephantchess.servicelayer.analysis.calculateCpl
+import io.elephantchess.servicelayer.utils.calculateCpl
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount

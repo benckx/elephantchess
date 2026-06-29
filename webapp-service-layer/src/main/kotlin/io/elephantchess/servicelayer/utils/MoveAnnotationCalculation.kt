@@ -1,4 +1,4 @@
-package io.elephantchess.servicelayer.analysis
+package io.elephantchess.servicelayer.utils
 
 import io.elephantchess.model.MoveAnnotationCategory
 import io.elephantchess.servicelayer.dto.analysis.AnnotationAggregate

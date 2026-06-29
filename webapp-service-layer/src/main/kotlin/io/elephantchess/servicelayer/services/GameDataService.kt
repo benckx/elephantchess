@@ -14,7 +14,7 @@ import io.elephantchess.engines.protocol.model.InfoLineResult.Companion.parseInf
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.*
 import io.elephantchess.model.GameType.*
-import io.elephantchess.servicelayer.analysis.collectMoveAnnotations
+import io.elephantchess.servicelayer.utils.collectMoveAnnotations
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisResponse
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisStatusResponse
 import io.elephantchess.servicelayer.dto.analysis.StartGameAnalysisResponse
