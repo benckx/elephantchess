@@ -81,9 +81,11 @@ fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove: InfoLine
  * expose a heuristic score. Checkmate actual moves are excluded from this calculation.
  */
 fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): Int? {
-    if (engineBest == null || actualMove == null || actualMove.isCheckmate || !hasComparableAnalysisData(
-            engineBest, actualMove
-        )
+    if (
+        engineBest == null ||
+        actualMove == null ||
+        actualMove.isCheckmate ||
+        !hasComparableAnalysisData(engineBest, actualMove)
     ) {
         return null
     }
