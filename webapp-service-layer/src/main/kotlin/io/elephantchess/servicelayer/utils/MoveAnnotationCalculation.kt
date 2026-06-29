@@ -28,9 +28,7 @@ fun summarizeMoveAnnotations(
     var annotatedMoves = 0
     var neutralMoves = 0
     var skippedMoves = 0
-    val categoryTotals = MoveAnnotationCategory.entries
-        .associateWith { AnnotationAggregate() }
-        .toMutableMap()
+    val categoryTotals = MoveAnnotationCategory.entries.associateWith { AnnotationAggregate() }.toMutableMap()
 
     moves.forEach { move ->
         val previousNodeData = analysisMap[resetFullMoveCount(board.outputFen())]
@@ -118,8 +116,7 @@ fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove: InfoLine
 
 fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): Int? {
     if (engineBest == null || actualMove == null || actualMove.isCheckmate || !hasComparableAnalysisData(
-            engineBest,
-            actualMove
+            engineBest, actualMove
         )
     ) {
         return null
@@ -131,17 +128,17 @@ fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?)
 }
 
 fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
-    if (abs(cpl) < 50) {
-        return null
+    return if (abs(cpl) < 50) {
+        null
     } else if (cpl < 0) {
         val deltaLoss = abs(cpl)
-        return when {
+        when {
             deltaLoss >= 300 -> MoveAnnotationCategory.BLUNDER
             deltaLoss >= 100 -> MoveAnnotationCategory.MISTAKE
             else -> MoveAnnotationCategory.INACCURACY
         }
     } else {
-        return when {
+        when {
             cpl >= 300 -> MoveAnnotationCategory.BRILLIANT
             cpl >= 100 -> MoveAnnotationCategory.GOOD
             else -> MoveAnnotationCategory.INTERESTING
@@ -181,6 +178,7 @@ private fun hasComparableAnalysisData(
 ): Boolean {
     val engineDepth = engineBest.depth ?: return false
     val actualDepth = actualMove.depth ?: return false
+
     return engineDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
             actualDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
             engineDepth == actualDepth &&
