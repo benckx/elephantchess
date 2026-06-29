@@ -16,6 +16,12 @@ private const val MAX_ABS_CP = 7_706
 // apply stricter reporting filters separately (for example, the script's depth-20 split).
 private const val MIN_COMPARABLE_ANALYSIS_DEPTH = 18
 
+/**
+ * Replays the game move list from [startFen] and returns the backend annotation details for each
+ * move that can be compared against the engine's best continuation from the preceding position.
+ *
+ * The returned list only contains annotated moves; neutral or incomparable moves are omitted.
+ */
 fun collectMoveAnnotations(
     moves: List<String>,
     analysisMap: Map<String, InfoLineResultDto>,
@@ -46,6 +52,13 @@ fun collectMoveAnnotations(
     return annotations
 }
 
+/**
+ * Builds the full move-annotation result for a played move by combining the comparable heuristic
+ * scores, CPL delta, and the annotation category derived from that delta.
+ *
+ * Returns `null` whenever the two analysis lines cannot be compared or when the CPL falls into the
+ * neutral range.
+ */
 fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): MoveAnnotationResult? {
     val engineCp = engineBest?.let(::heuristicCp) ?: return null
     val actualMoveCp = actualMove?.let(::heuristicCp) ?: return null
@@ -60,6 +73,13 @@ fun calculateMoveAnnotation(engineBest: InfoLineResultDto?, actualMove: InfoLine
     )
 }
 
+/**
+ * Computes the centipawn-loss style delta between the engine's preferred continuation and the move
+ * that was actually played.
+ *
+ * The comparison is only valid when both analysis lines are deep enough, have matching depth, and
+ * expose a heuristic score. Checkmate actual moves are excluded from this calculation.
+ */
 fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?): Int? {
     if (engineBest == null || actualMove == null || actualMove.isCheckmate || !hasComparableAnalysisData(
             engineBest, actualMove
@@ -73,6 +93,13 @@ fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?)
     return engineCp - actualMoveCp
 }
 
+/**
+ * Maps a CPL delta to the user-facing annotation category thresholds shared by the backend, script,
+ * and frontend consumers.
+ *
+ * Small deltas inside the neutral band return `null`; negative deltas represent missed chances and
+ * positive deltas represent stronger-than-expected moves.
+ */
 fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
     return if (abs(cpl) < 50) {
         null
@@ -92,6 +119,12 @@ fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
     }
 }
 
+/**
+ * Looks up the analysis line that corresponds to the engine's best move from [previousNodeData].
+ *
+ * This follows the best move from the previous position, rebuilds the resulting FEN, normalizes its
+ * full-move count, and uses that normalized FEN as the key into [analysisMap].
+ */
 fun findAnalysisDataFromEngineBestMove(
     analysisMap: Map<String, InfoLineResultDto>,
     previousNodeData: InfoLineResultDto,
@@ -103,6 +136,12 @@ fun findAnalysisDataFromEngineBestMove(
     return analysisMap[resultingFen]
 }
 
+/**
+ * Normalizes either a centipawn score or a mate score into a bounded heuristic centipawn value so
+ * different engine score types can still be compared on one axis.
+ *
+ * Mate scores are pushed beyond the regular centipawn ceiling, with shorter mates ranked higher.
+ */
 private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
     val cp = infoLineResult.cp
     val mate = infoLineResult.mate
@@ -118,6 +157,12 @@ private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
     }
 }
 
+/**
+ * Checks whether two engine info lines are safe to compare for annotation purposes.
+ *
+ * Both lines must have a depth, reach the minimum comparable depth, match each other's depth, and
+ * expose a heuristic score after cp/mate normalization.
+ */
 fun hasComparableAnalysisData(
     engineBest: InfoLineResultDto,
     actualMove: InfoLineResultDto,
