@@ -244,7 +244,11 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
                         val simplifiedJoinSource = when (row.get(GAME.JOIN_SOURCE)) {
                             GameJoinSource.LINK -> "LINK"
-                            GameJoinSource.LOBBY, GameJoinSource.MATCHED, GameJoinSource.DYNAMIC_MATCHED -> "LOBBY"
+
+                            GameJoinSource.LOBBY,
+                            GameJoinSource.MATCHED,
+                            GameJoinSource.DYNAMIC_MATCHED -> "LOBBY"
+
                             GameJoinSource.DISCORD_NOTIFICATION -> "DISCORD"
                             else -> ""
                         }
