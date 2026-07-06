@@ -4,6 +4,7 @@ import com.opencsv.CSVWriter
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.model.GameId
+import io.elephantchess.model.GameJoinSource
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
@@ -27,7 +28,7 @@ import kotlin.time.Instant
 
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
-private const val GAMES_PER_FILE = 1000
+private const val GAMES_PER_FILE = 200
 private const val MUST_ANONYMIZE = true
 
 private val CSV_HEADER = arrayOf(
@@ -47,7 +48,8 @@ private val CSV_HEADER = arrayOf(
     "game_status",
     "outcome",
     "game_join_source",
-    "analysis",
+    "move_analysis",
+    "engine_analysis",
     "cpl",
     "red_account_age",
     "red_user_type",
@@ -137,11 +139,16 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             .map { row -> row.get(GAME.ID) }
             .distinct()
             .associateWith { gameId ->
-                gameDataService
-                    .fetchAnalysisData(GameId(PVP, gameId))
-                    .entries
-                    .filter { entry -> entry.line != null }
-                    .associateBy { entry -> entry.fen }
+                runCatching {
+                    gameDataService
+                        .fetchAnalysisData(GameId(PVP, gameId))
+                        .entries
+                        .filter { entry -> entry.line != null }
+                        .associateBy { entry -> entry.fen }
+                }.getOrElse { throwable ->
+                    println("skipping analysis for game $gameId due to bad data: ${throwable.message}")
+                    emptyMap()
+                }
             }
 
         // Assign each game (in encounter order) to a 1000-game batch so we can write one CSV per batch.
@@ -208,7 +215,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         val fenKey = fenKeys[index]
                         val gameAnalysis = analysisByGameAndFenKey[row.get(GAME.ID)]
                         val actualMoveAnalysis = gameAnalysis?.get(fenKey)
-                        val analysis = actualMoveAnalysis?.line ?: ""
 
                         val engineBestAnalysis = gameAnalysis
                             ?.get(resetFullMoveCount(fenBeforeMove[index]))
@@ -236,6 +242,17 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         val redUserType = if (inviterIsRed) inviterUserType else inviteeUserType
                         val blackUserType = if (inviterIsRed) inviteeUserType else inviterUserType
 
+                        val simplifiedJoinSource = when (row.get(GAME.JOIN_SOURCE)) {
+                            GameJoinSource.LINK -> "LINK"
+
+                            GameJoinSource.LOBBY,
+                            GameJoinSource.MATCHED,
+                            GameJoinSource.DYNAMIC_MATCHED -> "LOBBY"
+
+                            GameJoinSource.DISCORD_NOTIFICATION -> "DISCORD"
+                            else -> ""
+                        }
+
                         writer.writeNext(
                             arrayOf(
                                 row.get(GAME_MOVE.EVENT_TIME).toString(),
@@ -257,8 +274,9 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 if (row.get(GAME.IS_RATED) == true) "rated" else "casual",
                                 row.get(GAME.GAME_STATUS)?.name ?: "",
                                 row.get(GAME.OUTCOME)?.name ?: "",
-                                row.get(GAME.JOIN_SOURCE)?.name ?: "",
-                                analysis,
+                                simplifiedJoinSource,
+                                actualMoveAnalysis?.line ?: "",
+                                engineBestAnalysis?.line ?: "",
                                 cpl?.toString() ?: "",
                                 redAccountAge,
                                 redUserType?.name ?: "",
