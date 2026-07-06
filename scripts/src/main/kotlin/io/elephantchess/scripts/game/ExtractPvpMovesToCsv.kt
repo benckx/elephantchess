@@ -47,7 +47,8 @@ private val CSV_HEADER = arrayOf(
     "game_status",
     "outcome",
     "game_join_source",
-    "analysis",
+    "move_analysis",
+    "engine_analysis",
     "cpl",
     "red_account_age",
     "red_user_type",
@@ -208,7 +209,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         val fenKey = fenKeys[index]
                         val gameAnalysis = analysisByGameAndFenKey[row.get(GAME.ID)]
                         val actualMoveAnalysis = gameAnalysis?.get(fenKey)
-                        val analysis = actualMoveAnalysis?.line ?: ""
 
                         val engineBestAnalysis = gameAnalysis
                             ?.get(resetFullMoveCount(fenBeforeMove[index]))
@@ -258,7 +258,8 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 row.get(GAME.GAME_STATUS)?.name ?: "",
                                 row.get(GAME.OUTCOME)?.name ?: "",
                                 row.get(GAME.JOIN_SOURCE)?.name ?: "",
-                                analysis,
+                                actualMoveAnalysis?.line ?: "",
+                                engineBestAnalysis?.line ?: "",
                                 cpl?.toString() ?: "",
                                 redAccountAge,
                                 redUserType?.name ?: "",
