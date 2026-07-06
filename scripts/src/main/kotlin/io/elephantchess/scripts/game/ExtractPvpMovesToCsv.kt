@@ -28,7 +28,7 @@ import kotlin.time.Instant
 
 private const val MIN_MOVE_INDEX = 6
 private const val DEFAULT_OUTPUT_PATH = "pvp_game_moves.csv"
-private const val GAMES_PER_FILE = 1000
+private const val GAMES_PER_FILE = 500
 private const val MUST_ANONYMIZE = true
 
 private val CSV_HEADER = arrayOf(
