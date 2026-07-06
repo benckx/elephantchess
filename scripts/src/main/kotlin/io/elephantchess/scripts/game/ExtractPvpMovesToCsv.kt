@@ -138,11 +138,16 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
             .map { row -> row.get(GAME.ID) }
             .distinct()
             .associateWith { gameId ->
-                gameDataService
-                    .fetchAnalysisData(GameId(PVP, gameId))
-                    .entries
-                    .filter { entry -> entry.line != null }
-                    .associateBy { entry -> entry.fen }
+                runCatching {
+                    gameDataService
+                        .fetchAnalysisData(GameId(PVP, gameId))
+                        .entries
+                        .filter { entry -> entry.line != null }
+                        .associateBy { entry -> entry.fen }
+                }.getOrElse { throwable ->
+                    println("skipping analysis for game $gameId due to bad data: ${throwable.message}")
+                    emptyMap()
+                }
             }
 
         // Assign each game (in encounter order) to a 1000-game batch so we can write one CSV per batch.
