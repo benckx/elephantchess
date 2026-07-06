@@ -4,6 +4,7 @@ import com.opencsv.CSVWriter
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.model.GameId
+import io.elephantchess.model.GameJoinSource
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
@@ -241,6 +242,13 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         val redUserType = if (inviterIsRed) inviterUserType else inviteeUserType
                         val blackUserType = if (inviterIsRed) inviteeUserType else inviterUserType
 
+                        val simplifiedJoinSource = when (row.get(GAME.JOIN_SOURCE)) {
+                            GameJoinSource.LINK -> "LINK"
+                            GameJoinSource.LOBBY, GameJoinSource.MATCHED, GameJoinSource.DYNAMIC_MATCHED -> "LOBBY"
+                            GameJoinSource.DISCORD_NOTIFICATION -> "DISCORD"
+                            else -> ""
+                        }
+
                         writer.writeNext(
                             arrayOf(
                                 row.get(GAME_MOVE.EVENT_TIME).toString(),
@@ -262,7 +270,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 if (row.get(GAME.IS_RATED) == true) "rated" else "casual",
                                 row.get(GAME.GAME_STATUS)?.name ?: "",
                                 row.get(GAME.OUTCOME)?.name ?: "",
-                                row.get(GAME.JOIN_SOURCE)?.name ?: "",
+                                simplifiedJoinSource,
                                 actualMoveAnalysis?.line ?: "",
                                 engineBestAnalysis?.line ?: "",
                                 cpl?.toString() ?: "",
