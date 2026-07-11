@@ -225,6 +225,14 @@ project(":engine-api") {
     }
 }
 
+project(":csv-dump-parser") {
+    dependencies {
+        api(project(":xiangqi-core"))
+        api(project(":engine-api"))
+        implementation(rootLibs.opencsv)
+    }
+}
+
 project(":xiangqi-core") {
     dependencies {
         testImplementation(project(":xiangqi-core-test-utils"))
