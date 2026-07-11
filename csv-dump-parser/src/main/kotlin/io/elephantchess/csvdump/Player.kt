@@ -17,11 +17,18 @@ data class Player(
 
     /**
      * Approximates when this account was created by subtracting its [accountAge] from the start of
-     * the game. Returns `null` when the account age is unknown. The result is only as precise as the
-     * source data, which rounds the age to whole days (or hours for very young accounts).
+     * the game, rounded to the nearest hour. Returns `null` when the account age is unknown. The
+     * result is only as precise as the source data, which itself rounds the age to whole days (or
+     * hours for very young accounts).
      */
     fun approximateAccountCreation(gameStart: Instant): Instant? =
-        accountAge?.let { age -> gameStart - age }
+        accountAge?.let { age -> (gameStart - age).roundToNearestHour() }
+
+    private fun Instant.roundToNearestHour(): Instant {
+        val secondsPerHour = 60L * 60L
+        val rounded = (epochSeconds + secondsPerHour / 2).floorDiv(secondsPerHour) * secondsPerHour
+        return Instant.fromEpochSeconds(rounded)
+    }
 
     companion object {
 

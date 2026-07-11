@@ -11,8 +11,8 @@ data class PvpGame(
     val gameId: String,
     val redPlayer: Player,
     val blackPlayer: Player,
-    val redElo: PlayerEloChange?,
-    val blackElo: PlayerEloChange?,
+    val redPlayerEloUpdate: PlayerEloUpdate?,
+    val blackPlayerEloChange: PlayerEloUpdate?,
     val timeControl: TimeControl,
     val timeControlCategory: TimeControlCategory,
     val ratingMode: RatingMode,
@@ -54,8 +54,14 @@ data class PvpGame(
                             accountAge = Player.parseAccountAge(first.value("black_account_age")),
                             userType = UserType.fromCsv(first.value("black_user_type")),
                         ),
-                        redElo = PlayerEloChange.of(first.intOrNull("red_elo_before"), first.intOrNull("red_elo_after")),
-                        blackElo = PlayerEloChange.of(first.intOrNull("black_elo_before"), first.intOrNull("black_elo_after")),
+                        redPlayerEloUpdate = PlayerEloUpdate.of(
+                            first.intOrNull("red_elo_before"),
+                            first.intOrNull("red_elo_after")
+                        ),
+                        blackPlayerEloChange = PlayerEloUpdate.of(
+                            first.intOrNull("black_elo_before"),
+                            first.intOrNull("black_elo_after")
+                        ),
                         timeControl = TimeControl.fromCsv(first.value("time_control")),
                         timeControlCategory = TimeControlCategory.fromCsv(first.value("time_control_category")),
                         ratingMode = RatingMode.fromCsv(first.value("rating_mode")),
@@ -66,4 +72,5 @@ data class PvpGame(
                     )
                 }
     }
+
 }

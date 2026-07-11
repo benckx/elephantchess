@@ -60,8 +60,8 @@ class PvpMovesCsvParserTest {
         assertEquals(UserType.GUEST, game.redPlayer.userType)
 
         // elo
-        assertEquals(PlayerEloChange(before = 1111, after = 1115), game.redElo)
-        assertEquals(PlayerEloChange(before = 898, after = 894), game.blackElo)
+        assertEquals(PlayerEloUpdate(before = 1111, after = 1115), game.redPlayerEloUpdate)
+        assertEquals(PlayerEloUpdate(before = 898, after = 894), game.blackPlayerEloChange)
 
         // time control
         assertEquals(TimeControl(base = 1800.seconds, increment = 0.seconds, isPerMove = false), game.timeControl)
@@ -93,10 +93,11 @@ class PvpMovesCsvParserTest {
         // Game starts at the first move's timestamp.
         assertEquals(Instant.parse("2026-07-07T08:31:02.894710Z"), game.startTime)
 
-        // Red player's account age is "27d", so creation is 27 days before the game start.
+        // Red player's account age is "27d", so creation is ~27 days before the game start,
+        // rounded to the nearest hour (08:31 -> 09:00).
         assertEquals(27.days, game.redPlayer.accountAge)
         assertEquals(
-            Instant.parse("2026-06-10T08:31:02.894710Z"),
+            Instant.parse("2026-06-10T09:00:00Z"),
             game.redPlayer.approximateAccountCreation(game.startTime),
         )
     }
@@ -105,6 +106,13 @@ class PvpMovesCsvParserTest {
     fun `approximate account creation is null when account age is unknown`() {
         val player = Player(name = "someone", accountAge = null, userType = UserType.GUEST)
         assertNull(player.approximateAccountCreation(Instant.parse("2026-07-07T08:31:02.894710Z")))
+    }
+
+    @Test
+    fun `elo update delta is the signed difference between after and before`() {
+        assertEquals(4, PlayerEloUpdate(before = 1111, after = 1115).delta)
+        assertEquals(-4, PlayerEloUpdate(before = 898, after = 894).delta)
+        assertEquals(0, PlayerEloUpdate(before = 1000, after = 1000).delta)
     }
 
     @Test
