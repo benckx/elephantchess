@@ -58,7 +58,7 @@ class GlobalAnalyticsService(
         initialDelay = 5.seconds,
         period = longRefresh / 2
     ) {
-        logger.debug { "refreshing global analytics caches..." }
+        logger.info { "refreshing global analytics caches..." }
 
         // overwrite cached values with freshly computed ones (no empty window)
         val gameStats = computeGlobalGameStats().also { longCache.put(GLOBAL_GAME_STATS, it) }
