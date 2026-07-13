@@ -9,11 +9,11 @@ import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleCategoryTag
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleHalfMove
 import io.elephantchess.db.model.PuzzleDailyStatsEntry
 import io.elephantchess.db.model.PuzzleRecord
+import io.elephantchess.db.model.PuzzleResultCountsRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.model.PuzzleOutcome
 import org.jooq.DSLContext
-import org.jooq.Record2
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDate
@@ -206,33 +206,25 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
             .toList()
     }
 
-    suspend fun fetchPuzzleSolved(userIds: List<String>): List<Record2<String, Int>> {
-        return dslContext
-            .select(PUZZLE_RESULT.USER_ID, DSL.count().`as`("nbr_solved"))
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.SOLVED))
-            .and(PUZZLE_RESULT.USER_ID.`in`(userIds))
-            .groupBy(PUZZLE_RESULT.USER_ID)
-            .awaitRecords()
-    }
+    suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCountsRecord> {
+        val solvedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.SOLVED)).`as`("nbr_solved")
+        val failedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.FAILED)).`as`("nbr_failed")
+        val totalField = DSL.count().`as`("nbr_total")
 
-    suspend fun fetchPuzzleFailed(userIds: List<String>): List<Record2<String, Int>> {
         return dslContext
-            .select(PUZZLE_RESULT.USER_ID, DSL.count().`as`("nbr_failed"))
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.FAILED))
-            .and(PUZZLE_RESULT.USER_ID.`in`(userIds))
-            .groupBy(PUZZLE_RESULT.USER_ID)
-            .awaitRecords()
-    }
-
-    suspend fun fetchPuzzleTotal(userIds: List<String>): List<Record2<String, Int>> {
-        return dslContext
-            .select(PUZZLE_RESULT.USER_ID, DSL.count().`as`("nbr_failed"))
+            .select(PUZZLE_RESULT.USER_ID, solvedField, failedField, totalField)
             .from(PUZZLE_RESULT)
             .where(PUZZLE_RESULT.USER_ID.`in`(userIds))
             .groupBy(PUZZLE_RESULT.USER_ID)
             .awaitRecords()
+            .map { record ->
+                PuzzleResultCountsRecord(
+                    userId = record.value1()!!,
+                    solved = record.value2(),
+                    failed = record.value3(),
+                    total = record.value4()
+                )
+            }
     }
 
 }
