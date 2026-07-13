@@ -44,13 +44,13 @@ class GlobalAnalyticsService(
     private val shortCache =
         Cache
             .Builder<CacheKey, Any>()
-            .expireAfterAccess(shortRefresh)
+            .expireAfterWrite(shortRefresh)
             .build()
 
     private val longCache =
         Cache
             .Builder<CacheKey, Any>()
-            .expireAfterAccess(longRefresh)
+            .expireAfterWrite(longRefresh)
             .build()
 
     private val refreshJob = launchAtFixedRate(
@@ -59,12 +59,16 @@ class GlobalAnalyticsService(
         period = longRefresh / 3
     ) {
         logger.debug { "refreshing global analytics caches..." }
-        val gameStats = fetchGlobalGameStats()
-        val appData = fetchGlobalAppData()
-        val userStats = fetchGlobalUserStats()
+
+        // overwrite cached values with freshly computed ones (no empty window)
+        val gameStats = computeGlobalGameStats().also { longCache.put(GLOBAL_GAME_STATS, it) }
+        val appData = computeGlobalAppData().also { longCache.put(GLOBAL_APP_DATA, it) }
+        val userStats = computeGlobalUserStats().also { longCache.put(USER_ANALYTICS, it) }
+        val puzzleStats = computeGlobalPuzzleStats().also { longCache.put(GLOBAL_PUZZLE_STATS, it) }
         logger.debug { "scheduled refresh: $gameStats" }
         logger.debug { "scheduled refresh: $appData" }
         logger.debug { "scheduled refresh: $userStats" }
+        logger.debug { "scheduled refresh: $puzzleStats" }
     }
 
     fun cancel() {
@@ -123,79 +127,95 @@ class GlobalAnalyticsService(
 
     suspend fun fetchGlobalPuzzleStats(): GlobalPuzzleStatsResponse =
         longCache.typedGet(GLOBAL_PUZZLE_STATS) {
-            val totalPuzzles = puzzleCache.countAll()
-            val puzzlesPlayedAtLeast10x = puzzleCache.countPuzzlePlayedAtLeast(10)
-            val puzzlesPlayedAtLeast20x = puzzleCache.countPuzzlePlayedAtLeast(20)
-            val puzzlesPlayedRatio10x = puzzlesPlayedAtLeast10x.toFloat() / totalPuzzles.toFloat()
-            val puzzlesPlayedRatio20x = puzzlesPlayedAtLeast20x.toFloat() / totalPuzzles.toFloat()
-
-            GlobalPuzzleStatsResponse(
-                totalPuzzles = totalPuzzles,
-                totalPuzzlesPlayed = puzzleCache.countAllAttempts(),
-                puzzlesPlayedRatio10x = puzzlesPlayedRatio10x,
-                puzzlesPlayedRatio20x = puzzlesPlayedRatio20x,
-            )
+            computeGlobalPuzzleStats()
         }
+
+    private fun computeGlobalPuzzleStats(): GlobalPuzzleStatsResponse {
+        val totalPuzzles = puzzleCache.countAll()
+        val puzzlesPlayedAtLeast10x = puzzleCache.countPuzzlePlayedAtLeast(10)
+        val puzzlesPlayedAtLeast20x = puzzleCache.countPuzzlePlayedAtLeast(20)
+        val puzzlesPlayedRatio10x = puzzlesPlayedAtLeast10x.toFloat() / totalPuzzles.toFloat()
+        val puzzlesPlayedRatio20x = puzzlesPlayedAtLeast20x.toFloat() / totalPuzzles.toFloat()
+
+        return GlobalPuzzleStatsResponse(
+            totalPuzzles = totalPuzzles,
+            totalPuzzlesPlayed = puzzleCache.countAllAttempts(),
+            puzzlesPlayedRatio10x = puzzlesPlayedRatio10x,
+            puzzlesPlayedRatio20x = puzzlesPlayedRatio20x,
+        )
+    }
 
     suspend fun fetchGlobalGameStats(): GlobalGameStatsResponse =
         longCache.typedGet(GLOBAL_GAME_STATS) {
-            val totalGames = gameDataService.countTotalGames()
-            val totalInAppGames = gameDataService.countTotalAppGames()
-
-            val totalMovesMap = gameDataService.countTotalMoves()
-            val totalMoves = totalMovesMap.values.sum()
-            val totalInAppMovesMap = totalMovesMap.filter { (key, _) -> key != GameType.DB }.values.sum()
-
-            GlobalGameStatsResponse(
-                totalGames = totalGames,
-                totalInAppGames = totalInAppGames,
-                totalMoves = totalMoves,
-                totalInAppMoves = totalInAppMovesMap,
-                totalManchuGames = gameDataService.countTotalManchuGames()
-            )
+            computeGlobalGameStats()
         }
+
+    private suspend fun computeGlobalGameStats(): GlobalGameStatsResponse {
+        val totalGames = gameDataService.countTotalGames()
+        val totalInAppGames = gameDataService.countTotalAppGames()
+
+        val totalMovesMap = gameDataService.countTotalMoves()
+        val totalMoves = totalMovesMap.values.sum()
+        val totalInAppMovesMap = totalMovesMap.filter { (key, _) -> key != GameType.DB }.values.sum()
+
+        return GlobalGameStatsResponse(
+            totalGames = totalGames,
+            totalInAppGames = totalInAppGames,
+            totalMoves = totalMoves,
+            totalInAppMoves = totalInAppMovesMap,
+            totalManchuGames = gameDataService.countTotalManchuGames()
+        )
+    }
 
     suspend fun fetchGlobalUserStats(): GlobalUserStatsResponse {
         val response: GlobalUserStatsResponse =
             longCache.typedGet(USER_ANALYTICS) {
-                val minGuestDuration = 30.minutes
-                val recentlyDuration = 14.days
-
-                val totalUsers =
-                    userDaoService.countAuthenticated() +
-                            userDaoService.countGuestsWithSessionAtLeast(minGuestDuration)
-
-                val totalRecentlyActive =
-                    userDaoService.countActiveRecently(recentlyDuration, listOf(AUTHENTICATED)) +
-                            userDaoService.countGuestsWithSessionAtLeastAndActiveWithin(
-                                minGuestDuration,
-                                recentlyDuration
-                            )
-
-                GlobalUserStatsResponse(
-                    totalUsers = totalUsers,
-                    recentlyActiveUsers = totalRecentlyActive,
-                    onlineUsers = 0
-                )
+                computeGlobalUserStats()
             }
 
         // we don't cache "countOnline"
         return response.copy(onlineUsers = userService.countOnline())
     }
 
+    private suspend fun computeGlobalUserStats(): GlobalUserStatsResponse {
+        val minGuestDuration = 30.minutes
+        val recentlyDuration = 14.days
+
+        val totalUsers =
+            userDaoService.countAuthenticated() +
+                    userDaoService.countGuestsWithSessionAtLeast(minGuestDuration)
+
+        val totalRecentlyActive =
+            userDaoService.countActiveRecently(recentlyDuration, listOf(AUTHENTICATED)) +
+                    userDaoService.countGuestsWithSessionAtLeastAndActiveWithin(
+                        minGuestDuration,
+                        recentlyDuration
+                    )
+
+        return GlobalUserStatsResponse(
+            totalUsers = totalUsers,
+            recentlyActiveUsers = totalRecentlyActive,
+            onlineUsers = 0
+        )
+    }
+
     suspend fun fetchGlobalAppData(): GlobalAppDataResponse =
         longCache.typedGet(GLOBAL_APP_DATA) {
-            val lastDeploy =
-                if (isDockerized) {
-                    podService.getLastRedeployTime() ?: Clock.System.now()
-                } else {
-                    Clock.System.now().minusHours(4L)
-                }
-
-            GlobalAppDataResponse(
-                lastDeploy = lastDeploy.toEpochMilliseconds()
-            )
+            computeGlobalAppData()
         }
+
+    private fun computeGlobalAppData(): GlobalAppDataResponse {
+        val lastDeploy =
+            if (isDockerized) {
+                podService.getLastRedeployTime() ?: Clock.System.now()
+            } else {
+                Clock.System.now().minusHours(4L)
+            }
+
+        return GlobalAppDataResponse(
+            lastDeploy = lastDeploy.toEpochMilliseconds()
+        )
+    }
 
     private suspend fun mapPuzzleLeaderboardRecords(records: List<PuzzleLeaderboardRecord>): PuzzleStatsLeaderboardResponse {
         val userIds = records.map { record -> record.userId }
