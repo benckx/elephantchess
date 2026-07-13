@@ -812,9 +812,14 @@ class PlayerVsPlayerGameService(
                 winnerColor = color.reverse(),
                 updateRatingsCallback = updateRatingsCallback
             )
+            val notificationSettings = userDaoService.fetchNotificationSettings(userId)
             val email = userDaoService.findById(userId)?.email
             if (email == null) {
                 logger.info { "not sending 'user flagged' notification for $userId in $gameId because email is null" }
+            } else if (notificationSettings?.userFlagged != true) {
+                logger.info {
+                    "not sending 'user flagged' notification for $userId in $gameId because notification is disabled"
+                }
             } else {
                 mailService.sendUserFlaggedNotification(
                     recipient = email,

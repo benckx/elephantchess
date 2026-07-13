@@ -2480,4 +2480,14 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="0109" author="benckx">
+        <comment>Add opt-in setting for own flagged notifications</comment>
+        <addColumn tableName="user">
+            <column name="email_notification_enabled_user_flagged"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.dto.user
 data class NotificationsSettingsDto(
     val newsletter: Boolean,
     val opponentJoinedGame: Boolean,
+    val userFlagged: Boolean,
     val opponentFlagged: Boolean,
     val opponentPlayedMove: Boolean,
     val opponentResigned: Boolean,

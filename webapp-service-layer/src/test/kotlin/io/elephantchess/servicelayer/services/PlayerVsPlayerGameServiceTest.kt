@@ -205,6 +205,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 request = NotificationsSettingsDto(
                     newsletter = false,
                     opponentJoinedGame = enabled,
+                    userFlagged = false,
                     opponentFlagged = false,
                     opponentPlayedMove = false,
                     opponentResigned = false,
