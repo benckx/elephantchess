@@ -65,6 +65,38 @@ abstract class EngineProcess(
     }
 
     /**
+     * Query the engine using a fixed number of nodes (`go nodes N`).
+     *
+     * Unlike a fixed depth or a fixed time/move, the node count is reproducible across different machines and lets the
+     * engine search deeper in positions with fewer pieces (e.g. endgame positions). Useful for R&D work.
+     */
+    suspend fun queryForNodes(
+        fen: String,
+        maxNodes: Long,
+        variant: Variant = Variant.XIANGQI,
+        maxDelay: Long = DEFAULT_MAX_DELAY,
+        checkPeriod: Long = DEFAULT_CHECK_PERIOD,
+    ): InfoLinesResult {
+        val infoListener = InfoLineListener()
+        lineListener = infoListener
+
+        setVariant(variant)
+        inputCommand("position fen $fen")
+        inputCommand("go nodes $maxNodes")
+val gotResult = waitForCondition(maxDelay, checkPeriod) {
+    infoListener.hasResult()
+}
+if (!gotResult) {
+    inputCommand("stop")
+    val gotResultAfterStop = waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }
+    if (!gotResultAfterStop) {
+        throw Exception("Engine did not return a result for 'go nodes $maxNodes' within ${maxDelay}ms.")
+    }
+}
+return infoListener.getResult()
+    }
+
+    /**
      * Override in engine implementations to set the variant before queries.
      * Default implementation does nothing (for engines that do not support variants).
      */

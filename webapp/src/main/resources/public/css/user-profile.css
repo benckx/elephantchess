@@ -241,6 +241,11 @@ h2 {
         height: 25px;
     }
 
+    #profile-flag,
+    #status-indicator {
+        margin-top: 28px;
+    }
+
     #profile-description {
         font-size: 30px;
     }

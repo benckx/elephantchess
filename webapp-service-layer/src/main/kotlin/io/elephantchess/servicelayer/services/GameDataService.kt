@@ -14,6 +14,7 @@ import io.elephantchess.engines.protocol.model.InfoLineResult.Companion.parseInf
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.*
 import io.elephantchess.model.GameType.*
+import io.elephantchess.servicelayer.utils.collectMoveAnnotations
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisResponse
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisStatusResponse
 import io.elephantchess.servicelayer.dto.analysis.StartGameAnalysisResponse
@@ -261,7 +262,25 @@ class GameDataService(
                     mapToInfoLineResultDto(fenKey, infoLineResult)
                 }
 
-        return GameAnalysisResponse(entries)
+        val analysisMap = entries.associateBy { it.fen }
+        val moveAnnotations = collectMoveAnnotations(
+            moves = findMoves(gameId),
+            analysisMap = analysisMap,
+            startFen = findStartFen(gameId),
+        ).map { annotation ->
+            GameAnalysisResponse.MoveAnnotationDto(
+                moveIndex = annotation.moveIndex,
+                annotation = annotation.category,
+                cpl = annotation.cpl,
+                engineCp = annotation.engineCp,
+                actualMoveCp = annotation.actualMoveCp,
+            )
+        }
+
+        return GameAnalysisResponse(
+            entries = entries,
+            moveAnnotations = moveAnnotations,
+        )
     }
 
     suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<GameId, Instant>> {

@@ -11,14 +11,6 @@ import org.jooq.meta.jaxb.*
 import org.jooq.meta.jaxb.Target
 import java.sql.Connection
 
-fun DependencyHandlerScope.api(dependencyNotation: Any) = add("api", dependencyNotation)
-
-fun DependencyHandlerScope.implementation(dependencyNotation: Any) = add("implementation", dependencyNotation)
-
-fun DependencyHandlerScope.compileOnly(dependencyNotation: Any) = add("compileOnly", dependencyNotation)
-
-fun DependencyHandlerScope.testImplementation(dependencyNotation: Any) = add("testImplementation", dependencyNotation)
-
 val rootLibs = libs
 
 val publishableModules = listOf(
@@ -84,7 +76,7 @@ subprojects {
         testImplementation(rootLibs.junit.jupiter.params)
     }
 
-    val nettyVersion = "4.2.12.Final"
+    val nettyVersion = "4.2.15.Final"
     configurations.configureEach {
         resolutionStrategy {
             force("org.apache.commons:commons-lang3:${rootLibs.versions.commonsLang3.get()}")
@@ -222,6 +214,14 @@ project(":engine-api") {
         implementation(rootLibs.coroutines.core)
         api(rootLibs.kotlin.logging)
         api(project(":xiangqi-core"))
+    }
+}
+
+project(":csv-dump-parser") {
+    dependencies {
+        api(project(":xiangqi-core"))
+        api(project(":engine-api"))
+        implementation(rootLibs.opencsv)
     }
 }
 

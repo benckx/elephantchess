@@ -585,6 +585,15 @@ Test data for unit tests of `xiangqi-core`.
 This is the logic for the [Seven Kingdoms](https://elephantchess.io/7k/about) xiangqi variant, which is still in
 development.
 
+### csv-dump-parser
+
+Kotlin library to parse the PvP games CSV dumps exported from [elephantchess](https://elephantchess.io) (via the
+`ExtractPvpMovesToCsv` script). It turns the `pvp_game_moves_*.csv` files (or the zipped archive of them) into
+typed `PvpGame` / `PvpMoveRecord` objects, reusing `HalfMove` from `xiangqi-core` and `InfoLineResult` from
+`engine-api`.
+
+The datasets themselves can be found at https://elephantchess.io/about/datasets.
+
 ## Libraries Usage
 
 [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
