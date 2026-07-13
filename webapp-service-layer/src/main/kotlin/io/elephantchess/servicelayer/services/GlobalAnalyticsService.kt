@@ -2,7 +2,7 @@ package io.elephantchess.servicelayer.services
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
-import io.elephantchess.db.services.PuzzleDaoService
+import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.minusHours
 import io.elephantchess.db.utils.rating
@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 class GlobalAnalyticsService(
     private val userService: UserService,
     private val userDaoService: UserDaoService,
-    private val puzzleDaoService: PuzzleDaoService,
+    private val puzzleResultDaoService: PuzzleResultDaoService,
     private val puzzleCache: PuzzleCache,
     private val gameDataService: GameDataService,
     private val podService: PodService,
@@ -39,7 +39,7 @@ class GlobalAnalyticsService(
     private val isDockerized = appConfig.isDockerized
 
     private val shortRefresh = 20.minutes
-    private val longRefresh = 6.hours
+    private val longRefresh = 4.hours
 
     private val shortCache =
         Cache
@@ -56,7 +56,7 @@ class GlobalAnalyticsService(
     private val refreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = 5.seconds,
-        period = longRefresh / 3
+        period = longRefresh / 2
     ) {
         logger.debug { "refreshing global analytics caches..." }
 
@@ -219,7 +219,7 @@ class GlobalAnalyticsService(
 
     private suspend fun mapPuzzleLeaderboardRecords(records: List<PuzzleLeaderboardRecord>): PuzzleStatsLeaderboardResponse {
         val userIds = records.map { record -> record.userId }
-        val counts = puzzleDaoService.fetchPuzzleResultCounts(userIds)
+        val counts = puzzleResultDaoService.fetchPuzzleResultCounts(userIds)
 
         return records
             .map { record ->
