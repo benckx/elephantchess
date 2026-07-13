@@ -222,12 +222,16 @@ class GlobalAnalyticsService(
     }
 
     private suspend fun mapPuzzleLeaderboardRecords(records: List<PuzzleLeaderboardRecord>): PuzzleStatsLeaderboardResponse {
+        if (records.isEmpty()) {
+            return PuzzleStatsLeaderboardResponse(emptyList())
+        }
+
         val userIds = records.map { record -> record.userId }
-        val counts = puzzleResultDaoService.fetchPuzzleResultCounts(userIds)
+        val countsByUserId = puzzleResultDaoService.fetchPuzzleResultCounts(userIds).associateBy { it.userId }
 
         return records
             .map { record ->
-                val userCounts = counts.find { it.userId == record.userId }
+                val userCounts = countsByUserId[record.userId]
                 val total = userCounts?.total ?: 0
                 val solved = userCounts?.solved ?: 0
                 val failed = userCounts?.failed ?: 0
