@@ -11,16 +11,6 @@ import org.jooq.meta.jaxb.*
 import org.jooq.meta.jaxb.Target
 import java.sql.Connection
 
-fun DependencyHandlerScope.api(dependencyNotation: Any) = add("api", dependencyNotation)
-
-fun DependencyHandlerScope.implementation(dependencyNotation: Any) = add("implementation", dependencyNotation)
-
-fun DependencyHandlerScope.compileOnly(dependencyNotation: Any) = add("compileOnly", dependencyNotation)
-
-fun DependencyHandlerScope.testImplementation(dependencyNotation: Any) = add("testImplementation", dependencyNotation)
-
-val rootLibs = libs
-
 val publishableModules = listOf(
     "engine-api",
     "xiangqi-core",
@@ -62,7 +52,7 @@ subprojects {
     }
 
     dependencies {
-        implementation(rootLibs.kotlin.stdlib)
+        implementation(libs.kotlin.stdlib)
 
         // Logging and coroutines pollute the published library classpath, so only
         // non-publishable modules get them by default. Publishable libraries declare
@@ -70,25 +60,25 @@ subprojects {
         // Tests are never published, so publishable modules still get logging in test
         // scope to keep release artifacts free of logging dependencies.
         if (project.name !in publishableModules) {
-            implementation(rootLibs.kotlin.logging)
-            implementation(rootLibs.coroutines.core)
-            implementation(rootLibs.logback.classic)
+            implementation(libs.kotlin.logging)
+            implementation(libs.coroutines.core)
+            implementation(libs.logback.classic)
         } else {
-            testImplementation(rootLibs.kotlin.logging)
-            testImplementation(rootLibs.logback.classic)
+            testImplementation(libs.kotlin.logging)
+            testImplementation(libs.logback.classic)
         }
 
-        testImplementation(rootLibs.kotlin.test)
-        testImplementation(rootLibs.coroutines.test)
-        testImplementation(rootLibs.mockito.kotlin)
-        testImplementation(rootLibs.junit.jupiter.params)
+        testImplementation(libs.kotlin.test)
+        testImplementation(libs.coroutines.test)
+        testImplementation(libs.mockito.kotlin)
+        testImplementation(libs.junit.jupiter.params)
     }
 
     val nettyVersion = "4.2.12.Final"
     configurations.configureEach {
         resolutionStrategy {
-            force("org.apache.commons:commons-lang3:${rootLibs.versions.commonsLang3.get()}")
-            force("org.checkerframework:checker-qual:${rootLibs.versions.checkerQual.get()}")
+            force("org.apache.commons:commons-lang3:${libs.versions.commonsLang3.get()}")
+            force("org.checkerframework:checker-qual:${libs.versions.checkerQual.get()}")
             force("io.netty:netty-buffer:$nettyVersion")
             force("io.netty:netty-codec:$nettyVersion")
             force("io.netty:netty-codec-base:$nettyVersion")
@@ -219,8 +209,8 @@ configure(publishableModules.map { project(":$it") }) {
 
 project(":engine-api") {
     dependencies {
-        implementation(rootLibs.coroutines.core)
-        api(rootLibs.kotlin.logging)
+        implementation(libs.coroutines.core)
+        api(libs.kotlin.logging)
         api(project(":xiangqi-core"))
     }
 }
@@ -229,7 +219,7 @@ project(":csv-dump-parser") {
     dependencies {
         api(project(":xiangqi-core"))
         api(project(":engine-api"))
-        implementation(rootLibs.opencsv)
+        implementation(libs.opencsv)
     }
 }
 
@@ -248,15 +238,15 @@ project(":seven-kingdoms-core") {
 project(":seven-kingdoms-core-test-utils") {
     dependencies {
         implementation(project(":seven-kingdoms-core"))
-        api(rootLibs.jackson.datatype.jsr310)
-        api(rootLibs.jackson.module.kotlin)
+        api(libs.jackson.datatype.jsr310)
+        api(libs.jackson.module.kotlin)
     }
 }
 
 project(":webapp-dao-migration") {
     dependencies {
-        implementation(rootLibs.liquibase.core)
-        implementation(rootLibs.postgresql)
+        implementation(libs.liquibase.core)
+        implementation(libs.postgresql)
     }
 }
 
@@ -271,20 +261,20 @@ project(":webapp-dao") {
         implementation(project(":webapp-model-common"))
         implementation(project(":xiangqi-core"))
         implementation(project(":engine-api"))
-        implementation(rootLibs.jooq)
-        implementation(rootLibs.jooq.kotlin)
-        implementation(rootLibs.jooq.kotlin.coroutines)
-        implementation(rootLibs.liquibase.core)
-        implementation(rootLibs.r2dbc.postgresql)
-        implementation(rootLibs.r2dbc.pool)
+        implementation(libs.jooq)
+        implementation(libs.jooq.kotlin)
+        implementation(libs.jooq.kotlin.coroutines)
+        implementation(libs.liquibase.core)
+        implementation(libs.r2dbc.postgresql)
+        implementation(libs.r2dbc.pool)
     }
 }
 
 project(":webapp-html-renderer") {
     dependencies {
         implementation(project(":utils"))
-        implementation(rootLibs.ktor.server.html.builder)
-        implementation(rootLibs.jsoup)
+        implementation(libs.ktor.server.html.builder)
+        implementation(libs.jsoup)
     }
 }
 
@@ -296,57 +286,57 @@ project(":webapp-service-layer") {
         api(project(":webapp-html-renderer"))
         implementation(project(":seven-kingdoms-core"))
         implementation(project(":webapp-dao"))
-        api(rootLibs.koin.core)
+        api(libs.koin.core)
         api(project(":xiangqi-core"))
         api(project(":engine-api"))
-        api(rootLibs.commons.lang3)
-        implementation(rootLibs.jsoup)
-        implementation(rootLibs.commons.validator)
-        implementation(rootLibs.java.jwt)
-        implementation(rootLibs.javax.mail)
-        implementation(rootLibs.cache4k)
-        implementation(rootLibs.kubernetes.client)
-        implementation(rootLibs.jooq)
-        implementation(rootLibs.ktor.client.core)
-        implementation(rootLibs.ktor.client.cio)
-        implementation(rootLibs.ktor.client.content.negotiation)
-        implementation(rootLibs.ktor.client.logging)
-        implementation(rootLibs.ktor.serialization.jackson)
-        implementation(rootLibs.ktor.serialization.kotlinx.json)
-        implementation(rootLibs.ktor.server.html.builder)
+        api(libs.commons.lang3)
+        implementation(libs.jsoup)
+        implementation(libs.commons.validator)
+        implementation(libs.java.jwt)
+        implementation(libs.javax.mail)
+        implementation(libs.cache4k)
+        implementation(libs.kubernetes.client)
+        implementation(libs.jooq)
+        implementation(libs.ktor.client.core)
+        implementation(libs.ktor.client.cio)
+        implementation(libs.ktor.client.content.negotiation)
+        implementation(libs.ktor.client.logging)
+        implementation(libs.ktor.serialization.jackson)
+        implementation(libs.ktor.serialization.kotlinx.json)
+        implementation(libs.ktor.server.html.builder)
         testImplementation(project(":xiangqi-core-test-utils"))
         testImplementation(project(":seven-kingdoms-core-test-utils"))
-        testImplementation(rootLibs.commons.rng.simple)
-        testImplementation(rootLibs.commons.text)
-        testImplementation(rootLibs.h2)
-        testImplementation(rootLibs.liquibase.core)
-        testImplementation(rootLibs.testcontainers.postgresql)
+        testImplementation(libs.commons.rng.simple)
+        testImplementation(libs.commons.text)
+        testImplementation(libs.h2)
+        testImplementation(libs.liquibase.core)
+        testImplementation(libs.testcontainers.postgresql)
     }
 }
 
 project(":webapp-config") {
     dependencies {
-        implementation(rootLibs.commons.cli)
+        implementation(libs.commons.cli)
     }
 }
 
 project(":webapp") {
     dependencies {
         implementation(project(":webapp-service-layer"))
-        implementation(rootLibs.ktor.server.core)
-        implementation(rootLibs.ktor.server.netty)
-        implementation(rootLibs.ktor.server.status.pages)
-        implementation(rootLibs.ktor.server.default.headers)
-        implementation(rootLibs.ktor.server.content.negotiation)
-        implementation(rootLibs.ktor.server.caching.headers)
-        implementation(rootLibs.ktor.server.html.builder)
-        implementation(rootLibs.ktor.serialization.jackson)
-        implementation(rootLibs.ktor.serialization.kotlinx.json)
-        implementation(rootLibs.ktor.server.websockets)
-        implementation(rootLibs.ktor.server.compression)
-        implementation(rootLibs.jackson.datatype.jsr310)
-        implementation(rootLibs.jackson.module.kotlin)
-        implementation(rootLibs.cache4k)
+        implementation(libs.ktor.server.core)
+        implementation(libs.ktor.server.netty)
+        implementation(libs.ktor.server.status.pages)
+        implementation(libs.ktor.server.default.headers)
+        implementation(libs.ktor.server.content.negotiation)
+        implementation(libs.ktor.server.caching.headers)
+        implementation(libs.ktor.server.html.builder)
+        implementation(libs.ktor.serialization.jackson)
+        implementation(libs.ktor.serialization.kotlinx.json)
+        implementation(libs.ktor.server.websockets)
+        implementation(libs.ktor.server.compression)
+        implementation(libs.jackson.datatype.jsr310)
+        implementation(libs.jackson.module.kotlin)
+        implementation(libs.cache4k)
     }
 
     tasks.named<Jar>("jar") {
@@ -374,17 +364,17 @@ project(":scripts") {
         implementation(project(":webapp-service-layer"))
         implementation(project(":webapp-config"))
         implementation(project(":webapp"))
-        implementation(rootLibs.guava)
+        implementation(libs.guava)
         implementation(project(":xiangqi-core"))
         implementation(project(":engine-api"))
-        implementation(rootLibs.ktor.client.core)
-        implementation(rootLibs.ktor.client.cio)
-        implementation(rootLibs.ktor.client.logging)
-        implementation(rootLibs.ktor.client.content.negotiation)
-        implementation(rootLibs.opencsv)
-        implementation(rootLibs.javax.mail)
-        implementation(rootLibs.log4j.core)
-        implementation(rootLibs.mockito.kotlin)
+        implementation(libs.ktor.client.core)
+        implementation(libs.ktor.client.cio)
+        implementation(libs.ktor.client.logging)
+        implementation(libs.ktor.client.content.negotiation)
+        implementation(libs.opencsv)
+        implementation(libs.javax.mail)
+        implementation(libs.log4j.core)
+        implementation(libs.mockito.kotlin)
     }
 
     val sourceSets = the<SourceSetContainer>()
