@@ -38,7 +38,8 @@ internal fun Routing.databasePages() {
                 databasePlayer = databasePlayer,
                 requestedVersion = version,
                 edit = databaseService.fetchPlayerEdit(databasePlayer.id, version),
-                fetchEditorsUsername = fetchEditorsUsername
+                fetchEditorsUsername = fetchEditorsUsername,
+                hasOpeningData = databaseService.hasPlayerOpeningData(databasePlayer.id)
             )
         }
     }

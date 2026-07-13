@@ -44,6 +44,11 @@ class MoveAnalysisByGame {
      */
     #analysisStatus
 
+    /**
+     * @type {boolean}
+     */
+    #analyzedFromBatch
+
     constructor(json) {
         this.#gameId = new GameId(json.gameId.type, json.gameId.id);
         this.#first = Number(json.first);
@@ -51,6 +56,7 @@ class MoveAnalysisByGame {
         // noinspection JSUnresolvedReference
         this.#totalAnalyzedMoves = Number(json.totalAnalyzedMoves);
         this.#analysisStatus = json.analysisStatus;
+        this.#analyzedFromBatch = json.analyzedFromBatch;
     }
 
     /**
@@ -94,6 +100,13 @@ class MoveAnalysisByGame {
      */
     get analysisStatus() {
         return this.#analysisStatus;
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get analyzedFromBatch() {
+        return this.#analyzedFromBatch;
     }
 
 }
@@ -153,4 +166,57 @@ class StatusPerYearEntryDto {
         return entries;
     }
 
+}
+
+class StatusByGameTypeEntryDto {
+
+    /**
+     * @type {string}
+     */
+    #gameType;
+
+    /**
+     * @type {string}
+     */
+    #status;
+
+    /**
+     * @type {number}
+     */
+    #count;
+
+    constructor(json) {
+        this.#gameType = json.gameType;
+        this.#status = json.status;
+        this.#count = Number(json.count);
+    }
+
+    /**
+     * @return {string}
+     */
+    get gameType() {
+        return this.#gameType;
+    }
+
+    /**
+     * @return {string}
+     */
+    get status() {
+        return this.#status;
+    }
+
+    /**
+     * @return {number}
+     */
+    get count() {
+        return this.#count;
+    }
+
+    /**
+     * @param json
+     * @returns {StatusByGameTypeEntryDto[]}
+     */
+    static parse(json) {
+        return json.entries.map(jsonEntry => new StatusByGameTypeEntryDto(jsonEntry));
+    }
 }

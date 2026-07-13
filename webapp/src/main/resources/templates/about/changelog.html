@@ -20,15 +20,148 @@
         </a>
     </h1>
     <hr/>
+    <h4>2026-06-29</h4>
+    <ul>
+        <li>
+            New dataset added to <a href="/about/datasets?medium=changelog">datasets page</a> with anonymized and
+            pre-analyzed PVP game data and a parser library csv-dump-parser.
+        </li>
+    </ul>
+    <h4>2026-06-29</h4>
+    <ul>
+        <li>
+            Technical changes (admin console)
+        </li>
+        <li>
+            Overhaul of the <a href="about/faq#analysis-summary-report?medium=changelog">move annotation system</a>.
+            They are now calculated on the back-end only (as a single source of truth). Also, a lot of moves were
+            erroneously annotated as Brilliant, so the calculation has been updated.
+            (<a href="https://github.com/benckx/elephantchess/issues/815" target="_blank">issue #815</a>)
+        </li>
+    </ul>
+    <h4>2026-06-27</h4>
+    <ul>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2026-06-22</h4>
+    <ul>
+        <li>
+            Technical changes (admin console)
+        </li>
+    </ul>
+    <h4>2026-06-21</h4>
+    <ul>
+        <li>
+            Adjust flag margin-top on user profile on mobile
+            (<a href="https://github.com/benckx/elephantchess/issues/803" target="_blank">issue #803</a>)
+        </li>
+    </ul>
+    <h4>2026-06-20</h4>
+    <ul>
+        <li>
+            Add Tool Tip on Move Tree Widget containing the details information about a move evaluation (actual move,
+            engine best, evaluation).
+        </li>
+        <li>
+            Add link to <i>Revenge of Ashes</i> on the home page. Unpaid cross-promotion.
+        </li>
+        <li>
+            Technical changes (admin console, dependencies upgrades)
+        </li>
+    </ul>
+    <h4>2026-06-15</h4>
+    <ul>
+        <li>
+            Technical changes (admin console, data extract script)
+        </li>
+    </ul>
+    <h4>2026-06-14</h4>
+    <ul>
+        <li>
+            Show an opening repertoire (opening explorer and board) on Database player profiles that
+            have pre-calculated opening data
+            (<a href="https://github.com/benckx/elephantchess/issues/795" target="_blank">issue #795</a>)
+        </li>
+        <li>
+            Add a <a href="/about/datasets?medium=changelog">datasets page</a> with anonymized game data
+            (<a href="https://github.com/benckx/elephantchess/issues/797" target="_blank">issue #797</a>)
+        </li>
+        <li>
+            Technical changes (admin console, data extract script)
+        </li>
+    </ul>
+    <h4>2026-06-13</h4>
+    <ul>
+        <li>
+            Restrict the "Always show in lobby (also when I'm offline)" option in the New Game modal to users with a
+            valid email address and the "someone joined my game" email notification enabled, so they can be notified
+            when an opponent joins while they're offline
+            (<a href="https://github.com/benckx/elephantchess/issues/673" target="_blank">issue #673</a>)
+        </li>
+        <li>
+            Increased email confirmation code validity from 1h to 24h.
+        </li>
+        <li>
+            Add background batch to analysis <a href="/database/search?medium=changelog">Database</a>
+            games when server activity is low
+            (<a href="https://github.com/benckx/elephantchess/pull/779" target="_blank">issue #779</a>)
+        </li>
+        <li>
+            Map openings to Database games and players, in order to later implement search by opening and create an
+            opening repertoire by player
+            (<a href="https://github.com/benckx/elephantchess/issues/788" target="_blank">issue #788</a>)
+        </li>
+    </ul>
+    <h4>2026-06-11</h4>
+    <ul>
+        <li>
+            Adjust Ko-fi button CSS so it's not visible on top of the modals content
+            (<a href="https://github.com/benckx/elephantchess/issues/743" target="_blank">issue #743</a>)
+        </li>
+    </ul>
+    <h4>2026-06-10</h4>
+    <ul>
+        <li>
+            Advanced settings: use checkboxes for on/off options and dropdowns for multi-choice options
+            (<a href="https://github.com/benckx/elephantchess/pull/792" target="_blank">issue #792</a>)
+        </li>
+        <li>
+            Add "Modern" and "Ink Brush" piece styles, selectable in the advanced settings
+            (<a href="https://github.com/benckx/elephantchess/issues/790" target="_blank">issue #790</a>)
+        </li>
+        <li>
+            Technical changes (reuse existing DTO mappers in <code>fetchGameMetadata</code>)
+            (<a href="https://github.com/benckx/elephantchess/issues/785" target="_blank">issue #785</a>)
+        </li>
+    </ul>
+    <h4>2026-06-09</h4>
+    <ul>
+        <li>
+            Technical changes (refactor AppConfig to use typed property accessors instead of generic load functions,
+            admin console)
+        </li>
+    </ul>
+    <h4>2026-06-08</h4>
+    <ul>
+        <li>
+            Fix error persisting user sessions with very long User-Agent strings
+        </li>
+    </ul>
     <h4>2026-06-07</h4>
     <ul>
+        <li>
+            Show total game duration on "My Games" and "My Bot Games" view
+            (<a href="https://github.com/benckx/elephantchess/issues/554" target="_blank">issue #554</a>)
+        </li>
         <li>
             Modal style on mobile (94% width and close button in the corner)
             (<a href="https://github.com/benckx/elephantchess/issues/765" target="_blank">issue #765</a>)
         </li>
         <li>
             Technical changes (minify JavaScript and CSS locally instead of a remote endpoint, admin console,
-            .well-known and exception handling)
+            .well-known and exception handling, libraries upgrades)
         </li>
     </ul>
     <h4>2026-06-05</h4>

@@ -7,17 +7,20 @@ import io.elephantchess.db.dao.codegen.tables.records.UserRecord
 import io.elephantchess.db.model.NotificationsSettingsRecord
 import io.elephantchess.db.model.PlayerVsPlayerNumberOfGamesAndLastPlayedRecord
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
+import io.elephantchess.db.model.UserRatingSummaryRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.utils.safeRandomAlphaNumericString
 import io.github.oshai.kotlinlogging.KLogger
+import io.elephantchess.xiangqi.Variant
 import org.jooq.DSLContext
 import org.jooq.Record2
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
+import java.math.BigDecimal
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -476,7 +479,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .map { record ->
                 PuzzleLeaderboardRecord(
                     userId = record.get(USER.ID),
-                    username = record.get(USER.HANDLE),
+                    username = record.get(USER.HANDLE, String::class.java),
                     countryCode = record.get(USER.COUNTRY),
                     currentRating = record.get(USER.PUZZLE_RATING),
                     maxRating = record.get("max_rating", Int::class.java),
@@ -525,8 +528,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
     }
 
     suspend fun fetchUsersWithHighestRating(numberOfUsers: Int): Map<TimeControlCategory, List<User>> {
-        return listRatingFields().mapNotNull { field ->
-            mapRatingFieldToTimeControlCategory(field)?.let { category ->
+        return listXiangqiRatingFields().mapNotNull { field ->
+            mapXiangqiRatingFieldToTimeControlCategory(field)?.let { category ->
                 val users = dslContext
                     .select()
                     .from(USER)
@@ -540,6 +543,60 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             }
         }
             .toMap()
+    }
+
+    suspend fun fetchRatingSummary(
+        timeControlCategory: TimeControlCategory,
+        variant: Variant,
+        userType: UserType? = null,
+    ): UserRatingSummaryRecord {
+        val ratingField = findRatingField(timeControlCategory, variant)
+        val userTypeCondition = userType?.let { USER.USER_TYPE.eq(it) } ?: DSL.noCondition()
+        val aggregateRecord =
+            dslContext
+                .select(
+                    DSL.count().`as`("user_count"),
+                    DSL.avg(ratingField).`as`("avg_rating")
+                )
+                .from(USER)
+                .where(userTypeCondition)
+                .awaitSingleRecord()
+
+        suspend fun fetchUserWithExtremeRating(ascending: Boolean): UserRatingExtremum? {
+            val sortField = if (ascending) ratingField.asc() else ratingField.desc()
+            val record =
+                dslContext
+                    .select(USER.ID, USER.HANDLE, ratingField.`as`("rating"))
+                    .from(USER)
+                    .where(ratingField.isNotNull)
+                    .and(userTypeCondition)
+                .orderBy(sortField, USER.HANDLE.asc())
+                .limit(1)
+                .awaitSingleRecord()
+                ?: return null
+
+            return UserRatingExtremum(
+                userId = record.get(USER.ID),
+                username = record.get(USER.HANDLE),
+                rating = record.get("rating", Int::class.java)
+            )
+        }
+
+        val minUser = fetchUserWithExtremeRating(ascending = true)
+        val maxUser = fetchUserWithExtremeRating(ascending = false)
+
+        return UserRatingSummaryRecord(
+            variant = variant,
+            timeControlCategory = timeControlCategory,
+            userCount = aggregateRecord?.get("user_count", Int::class.java) ?: 0,
+            averageRating = aggregateRecord?.get("avg_rating", BigDecimal::class.java)?.toDouble(),
+            minUserId = minUser?.userId,
+            minUsername = minUser?.username,
+            minRating = minUser?.rating,
+            maxUserId = maxUser?.userId,
+            maxUsername = maxUser?.username,
+            maxRating = maxUser?.rating,
+        )
     }
 
     suspend fun countAuthenticated(): Int {
@@ -607,42 +664,6 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .awaitMappedRecords<User>()
     }
 
-    private companion object {
-
-        const val GUEST_ID_MIN = 3
-        const val GUEST_ID_MAX = 8
-
-        fun listRatingFields(): List<TableField<UserRecord, Int>> {
-            val fields = mutableListOf<TableField<UserRecord, Int>>()
-            fields += USER.GAME_RATING_BULLET
-            fields += USER.GAME_RATING_BLITZ
-            fields += USER.GAME_RATING_RAPID
-            fields += USER.GAME_RATING_CLASSICAL
-            fields += USER.GAME_RATING_SEVERAL_DAYS
-            fields += USER.GAME_RATING_CORRESPONDENCE
-            fields += USER.GAME_RATING_MANCHU_BULLET
-            fields += USER.GAME_RATING_MANCHU_BLITZ
-            fields += USER.GAME_RATING_MANCHU_RAPID
-            fields += USER.GAME_RATING_MANCHU_CLASSICAL
-            fields += USER.GAME_RATING_MANCHU_SEVERAL_DAYS
-            fields += USER.GAME_RATING_MANCHU_CORRESPONDENCE
-            return fields
-        }
-
-        fun mapRatingFieldToTimeControlCategory(field: TableField<UserRecord, Int>): TimeControlCategory? {
-            return when (field) {
-                USER.GAME_RATING_BULLET -> TimeControlCategory.BULLET
-                USER.GAME_RATING_BLITZ -> TimeControlCategory.BLITZ
-                USER.GAME_RATING_RAPID -> TimeControlCategory.RAPID
-                USER.GAME_RATING_CLASSICAL -> TimeControlCategory.CLASSICAL
-                USER.GAME_RATING_SEVERAL_DAYS -> TimeControlCategory.SEVERAL_DAYS
-                USER.GAME_RATING_CORRESPONDENCE -> TimeControlCategory.CORRESPONDENCE
-                else -> null
-            }
-        }
-
-    }
-
     suspend fun latestNewGuestUser(): Instant? {
         return dslContext
             .select(USER.CREATION)
@@ -675,6 +696,67 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .map { record ->
                 record.get(USER.HANDLE) to record.get(USER.LAST_PROFILE_UPDATE)
             }
+    }
+
+    private companion object {
+
+        const val GUEST_ID_MIN = 3
+        const val GUEST_ID_MAX = 8
+
+        data class RatingFieldDefinition(
+            val timeControlCategory: TimeControlCategory,
+            val variant: Variant,
+            val field: TableField<UserRecord, Int>,
+        )
+
+        data class UserRatingExtremum(
+            val userId: String,
+            val username: String?,
+            val rating: Int,
+        )
+
+        fun listRatingFieldDefinitions(): List<RatingFieldDefinition> {
+            return listOf(
+                RatingFieldDefinition(TimeControlCategory.BULLET, Variant.XIANGQI, USER.GAME_RATING_BULLET),
+                RatingFieldDefinition(TimeControlCategory.BLITZ, Variant.XIANGQI, USER.GAME_RATING_BLITZ),
+                RatingFieldDefinition(TimeControlCategory.RAPID, Variant.XIANGQI, USER.GAME_RATING_RAPID),
+                RatingFieldDefinition(TimeControlCategory.CLASSICAL, Variant.XIANGQI, USER.GAME_RATING_CLASSICAL),
+                RatingFieldDefinition(TimeControlCategory.SEVERAL_DAYS, Variant.XIANGQI, USER.GAME_RATING_SEVERAL_DAYS),
+                RatingFieldDefinition(TimeControlCategory.CORRESPONDENCE, Variant.XIANGQI, USER.GAME_RATING_CORRESPONDENCE),
+                RatingFieldDefinition(TimeControlCategory.BULLET, Variant.MANCHU, USER.GAME_RATING_MANCHU_BULLET),
+                RatingFieldDefinition(TimeControlCategory.BLITZ, Variant.MANCHU, USER.GAME_RATING_MANCHU_BLITZ),
+                RatingFieldDefinition(TimeControlCategory.RAPID, Variant.MANCHU, USER.GAME_RATING_MANCHU_RAPID),
+                RatingFieldDefinition(TimeControlCategory.CLASSICAL, Variant.MANCHU, USER.GAME_RATING_MANCHU_CLASSICAL),
+                RatingFieldDefinition(TimeControlCategory.SEVERAL_DAYS, Variant.MANCHU, USER.GAME_RATING_MANCHU_SEVERAL_DAYS),
+                RatingFieldDefinition(TimeControlCategory.CORRESPONDENCE, Variant.MANCHU, USER.GAME_RATING_MANCHU_CORRESPONDENCE),
+            )
+        }
+
+        fun listRatingFields(): List<TableField<UserRecord, Int>> {
+            return listRatingFieldDefinitions().map { it.field }
+        }
+
+        fun listXiangqiRatingFields(): List<TableField<UserRecord, Int>> {
+            return listRatingFieldDefinitions()
+                .filter { it.variant == Variant.XIANGQI }
+                .map { it.field }
+        }
+
+        fun mapXiangqiRatingFieldToTimeControlCategory(field: TableField<UserRecord, Int>): TimeControlCategory? {
+            return listRatingFieldDefinitions()
+                .firstOrNull { it.field == field && it.variant == Variant.XIANGQI }
+                ?.timeControlCategory
+        }
+
+        fun findRatingField(
+            timeControlCategory: TimeControlCategory,
+            variant: Variant,
+        ): TableField<UserRecord, Int> {
+            return listRatingFieldDefinitions()
+                .first { it.timeControlCategory == timeControlCategory && it.variant == variant }
+                .field
+        }
+
     }
 
 }

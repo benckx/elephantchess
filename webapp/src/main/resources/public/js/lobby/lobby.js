@@ -17,9 +17,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const YOUTUBE_EMBED = `
+const HOW_TO_PLAY_YOUTUBE_EMBED = `
             <iframe src="https://www.youtube.com/embed/nApZihrdQGo?si=iUZBitjMJCAQYiTL"
-                    title="YouTube video player" frameborder="0"
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+
+const REVENGE_OF_ASHES_YOUTUBE_EMBED = `
+            <iframe src="https://www.youtube.com/embed/Kg-wRgAt3tw"
+                    title="Revenge of Ashes"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
@@ -79,7 +85,22 @@ class LobbyPage extends BasePage {
     #puzzleBoardLinkMask = document.getElementById('puzzle-board-link-mask');
 
     #youTubeDiv = document.getElementById('youtube-embed-container');
-    #isYouTubeEmbedRendered = false;
+    #revengeOfAshesDiv = document.getElementById('revenge-of-ashes-embed-container');
+    #shouldRenderRevengeOfAshesEmbed = this.#revengeOfAshesDiv?.dataset.renderEmbed === 'true';
+
+    #youtubeEmbeds = [
+        {
+            element: this.#youTubeDiv,
+            embed: HOW_TO_PLAY_YOUTUBE_EMBED,
+            rendered: false,
+        },
+        {
+            element: this.#revengeOfAshesDiv,
+            embed: REVENGE_OF_ASHES_YOUTUBE_EMBED,
+            rendered: false,
+            enabled: this.#shouldRenderRevengeOfAshesEmbed,
+        },
+    ];
 
     constructor() {
         super();
@@ -104,8 +125,9 @@ class LobbyPage extends BasePage {
             }
         }, 800);
 
-        addEventListener('scroll', (_) => this.#renderYouTubeEmbed());
-        addEventListener('resize', (_) => this.#renderYouTubeEmbed());
+        addEventListener('scroll', (_) => this.#renderYouTubeEmbeds());
+        addEventListener('resize', (_) => this.#renderYouTubeEmbeds());
+        this.#renderYouTubeEmbeds();
 
         const settingsGui = new SettingsGui(this.#puzzleBoardGui, null, false, false);
         new LiveGamesViewer(settingsGui);
@@ -381,13 +403,17 @@ class LobbyPage extends BasePage {
         });
     }
 
-    #renderYouTubeEmbed() {
-        if (!this.#isYouTubeEmbedRendered) {
-            if (isInViewport(this.#youTubeDiv)) {
-                this.#youTubeDiv.innerHTML = YOUTUBE_EMBED;
-                this.#isYouTubeEmbedRendered = true;
+    #renderYouTubeEmbeds() {
+        this.#youtubeEmbeds.forEach((youtubeEmbed) => {
+            if (youtubeEmbed.enabled === false) {
+                return;
             }
-        }
+
+            if (!youtubeEmbed.rendered && youtubeEmbed.element != null && isInViewport(youtubeEmbed.element)) {
+                youtubeEmbed.element.innerHTML = youtubeEmbed.embed;
+                youtubeEmbed.rendered = true;
+            }
+        });
     }
 
 }

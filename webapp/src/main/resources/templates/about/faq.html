@@ -162,11 +162,17 @@
     <hr/>
     <p>
         We keep track of your session information (like the IP) to get information about where our users come from and
-        when they were last online (which is required for some functionalities). It is planned to add functionality to
-        list and delete your session data in your settings.
+        when they were last online. This data can be deleted by authenticated users in the settings.
     </p>
     <p>
-        Chat messages are public and not encrypted. They can be reviewed by the admins and moderators.
+        Chat messages are public and not encrypted. They can be reviewed by the admins and moderators, and by anyone who
+        has the game link.
+    </p>
+    <p>
+        Games played by users of the webapp are public and data is available under GPL-3.0 license. The available <a
+            href="/about/datasets?medium=faq">datasets</a> are anonymized. Non-anonymized game data can be shared with
+        third parties for research or technical purposes (non-anonymized meaning with usernames, but without email
+        address, IP or any personal data).
     </p>
     <p>
         We don't share your information (like your email or your activity) with anyone, however we use an <a
@@ -274,7 +280,11 @@
     </p>
     <p>
         In any case, computer analysis of games is just a tool, it is not perfect, and it can not replace an analysis
-        made by master player or a teacher. But it can already help players identify blunders and mistakes.
+        made by a master player or a teacher. But it can already help players identify blunders and mistakes.
+    </p>
+    <p>
+        In theory, there should be no Brilliant moves at all, if we only use computer analysis. In practice, 0.4% of
+        analyzed PvP moves are still annotated as Brilliant. So the definition and calculation could still be improved.
     </p>
 
     <!-- supported-import-formats-->
@@ -287,6 +297,31 @@
         select "Import moves". You can then paste the moves in one of the following formats:
     </p>
     {{faq_import_moves_formats_examples}}[[keepIndentation:false]]
+
+    <!-- always show in lobby -->
+    <h1 id="always-visible-in-lobby">When can I use option "Always show in lobby (also when I'm offline)"?</h1>
+    <hr/>
+    <p>
+        By default, games you create are only listed in the lobby while you are online. The <b>Always show in lobby
+        (also when I'm offline)</b> option in the New Game modal keeps your game visible to other players even after you
+        go offline.
+    </p>
+    <p>
+        However, because someone could join while you are away, we need to be able to notify you in some way, so you
+        don't keep an opponent waiting. For that reason, the option is only available if both conditions are met:
+    </p>
+    <ul>
+        <li>
+            Your email address is valid (verified automatically or manually)
+        </li>
+        <li>
+            The <b>Someone joined a game you created</b> email notification is enabled
+        </li>
+    </ul>
+    <p>
+        You can check both settings in your <b><a href="/user/settings">user settings</a></b> page (if you're logged
+        in), not with a guest session. This option is always disabled for guests.
+    </p>
 
     <!-- perpetual checking -->
     <h1 id="perpetual-checking">What is perpetual checking?</h1>

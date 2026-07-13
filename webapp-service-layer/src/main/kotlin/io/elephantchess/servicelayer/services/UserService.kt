@@ -47,7 +47,7 @@ class UserService(
     private val logger: KLogger,
 ) {
 
-    private val excludedFromAnalyticsUserIds = appConfig.loadListOfStrings("excluded.from.analytics")
+    private val excludedFromAnalyticsUserIds = appConfig.excludedFromAnalytics
 
     private fun normalizeCountry(country: String?): String? =
         country
@@ -58,7 +58,7 @@ class UserService(
     private var onlineUserIds: Set<String> = emptySet()
 
     // password hashing
-    private val salt: ByteArray = appConfig.loadString("salt").toByteArray()
+    private val salt: ByteArray = appConfig.salt.toByteArray()
     private val secretKeyFactory = SecretKeyFactory.getInstance(SALT_ALGO)
 
     private val refreshJob = launchAtFixedRateStartImmediately(
@@ -159,18 +159,30 @@ class UserService(
         if (code.isBlank()) {
             return false
         }
+
         val user = userDaoService.findByEmailConfirmationCode(code) ?: return false
-        if (user.emailConfirmedAt == null) {
-            val createdAt = user.emailConfirmationCodeCreatedAt
-            if (createdAt == null || createdAt.plusHours(EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS)
-                    .isBefore(Clock.System.now())
-            ) {
-                logger.info { "email confirmation code expired for user ${user.id}" }
-                return false
-            }
-            userDaoService.markEmailConfirmed(user.id, Clock.System.now())
-            logger.info { "email confirmed for user ${user.id}" }
+
+        if (user.emailConfirmedAt != null) {
+            logger.debug { "email already confirmed for user ${user.id}, skipping confirmation" }
+            return true
         }
+
+        val now = Clock.System.now()
+        val createdAt = user.emailConfirmationCodeCreatedAt
+
+        if (createdAt == null) {
+            logger.warn { "email confirmation code createdAt is null for user ${user.id}" }
+            return false
+        }
+
+        val isExpired = createdAt.plusHours(EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS).isBefore(now)
+        if (isExpired) {
+            logger.info { "email confirmation code expired for user ${user.id}" }
+            return false
+        }
+
+        userDaoService.markEmailConfirmed(user.id, now)
+        logger.info { "email confirmed for user ${user.id}" }
         return true
     }
 
@@ -396,6 +408,10 @@ class UserService(
             opponentAcceptedDraw = request.opponentAcceptedDraw,
             opponentDeclinedDraw = request.opponentDeclinedDraw,
         )
+
+        if (!request.opponentJoinedGame) {
+            playerVsPlayerGameDaoService.disableAlwaysVisibleInLobbyOptionForUserCreatedGames(userId)
+        }
     }
 
     suspend fun fetchEmailAddressSettings(userId: String): EmailAddressSettingsResponse {
@@ -532,7 +548,7 @@ class UserService(
     companion object {
 
         const val PASSWORD_RECOVERY_TIMEOUT_HOURS = 1L
-        const val EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS = 1L
+        const val EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS = 24L
         const val SALT_ALGO = "PBKDF2WithHmacSHA1"
 
         const val USERNAME_MIN_LENGTH = 4
