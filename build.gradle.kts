@@ -76,7 +76,7 @@ subprojects {
         testImplementation(rootLibs.junit.jupiter.params)
     }
 
-    val nettyVersion = "4.2.12.Final"
+    val nettyVersion = "4.2.15.Final"
     configurations.configureEach {
         resolutionStrategy {
             force("org.apache.commons:commons-lang3:${rootLibs.versions.commonsLang3.get()}")
