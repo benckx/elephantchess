@@ -78,26 +78,28 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
-    suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCountsRecord> {
-        val solvedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.SOLVED)).`as`("nbr_solved")
-        val failedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.FAILED)).`as`("nbr_failed")
-        val totalField = DSL.count().`as`("nbr_total")
+suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCountsRecord> {
+    if (userIds.isEmpty()) return emptyList()
 
-        return dslContext
-            .select(PUZZLE_RESULT.USER_ID, solvedField, failedField, totalField)
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.USER_ID.`in`(userIds))
-            .groupBy(PUZZLE_RESULT.USER_ID)
-            .awaitRecords()
-            .map { record ->
-                PuzzleResultCountsRecord(
-                    userId = record.value1()!!,
-                    solved = record.value2(),
-                    failed = record.value3(),
-                    total = record.value4()
-                )
-            }
-    }
+    val solvedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.SOLVED)).`as`("nbr_solved")
+    val failedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.FAILED)).`as`("nbr_failed")
+    val totalField = DSL.count().`as`("nbr_total")
+
+    return dslContext
+        .select(PUZZLE_RESULT.USER_ID, solvedField, failedField, totalField)
+        .from(PUZZLE_RESULT)
+        .where(PUZZLE_RESULT.USER_ID.`in`(userIds))
+        .groupBy(PUZZLE_RESULT.USER_ID)
+        .awaitRecords()
+        .map { record ->
+            PuzzleResultCountsRecord(
+                userId = requireNotNull(record.value1()),
+                solved = record.value2(),
+                failed = record.value3(),
+                total = record.value4()
+            )
+        }
+}
 
     suspend fun latestPuzzleVote(): Instant? {
         return dslContext
