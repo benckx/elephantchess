@@ -17,7 +17,8 @@
     <script defer src="/js/user-profile/user-profile-dto.js"></script>
     <script defer src="/js/user-profile/user-profile.js"></script>
 </head>
-<body data-user-id="{{user_id}}" data-username="{{username}}">
+<body data-user-id="{{user_id}}" data-username="{{username}}" data-is-own-profile="{{is_own_profile}}"
+      data-profile-country="{{user_country}}">
 {{body_init}}
 <div class="main-container-text">
     <div id="profile-header">
@@ -31,6 +32,7 @@
     </div>
     <hr/>
     {{user_profile_description}}
+    {{edit_profile_description}}
     <br/>
     <h1>Game Stats</h1>
     <hr/>
