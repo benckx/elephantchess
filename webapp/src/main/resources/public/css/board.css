@@ -449,7 +449,7 @@ a.board-outer-container-link-mask {
         border-right-width: 1px;
     }
 
-    .file-coordinates-bottom,
+    .file-coordinates-top,
     .file-coordinates-bottom {
         font-size: 24px;
     }
