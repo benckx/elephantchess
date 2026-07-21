@@ -53,7 +53,7 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
 
     companion object {
 
-        const val DIST_VERSION = "0.1.1"
+        const val DIST_VERSION = "0.1.2"
 
     }
 
