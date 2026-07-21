@@ -431,6 +431,28 @@ a.board-outer-container-link-mask {
         height: 612px;
         width: 552px;
     }
+
+    /* Thinner 1px grid lines on mobile (mini boards keep their own rules) */
+    .board-container:not(.mini-board-container) .visible-square,
+    .board-container:not(.mini-board-container) .large-river {
+        border-width: 1px;
+        border-bottom-width: 0;
+        border-right-width: 0;
+    }
+
+    .board-container:not(.mini-board-container) .visible-square-last-row {
+        border-bottom-width: 1px;
+    }
+
+    .board-container:not(.mini-board-container) .visible-square-last-file,
+    .board-container:not(.mini-board-container) .large-river {
+        border-right-width: 1px;
+    }
+
+    .file-coordinates-top,
+    .file-coordinates-bottom {
+        font-size: 24px;
+    }
 }
 
 /* Touch drag ghost: the floating piece image that follows the finger */
