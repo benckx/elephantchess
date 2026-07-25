@@ -2,6 +2,7 @@ package io.elephantchess.engines.process
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class PikafishEngineIdTest {
 
@@ -23,5 +24,18 @@ class PikafishEngineIdTest {
             "pikafish/2027-01-01/pikafish-sse41-popcnt",
             PikafishEngineId.pathOfExecutable("2027-01-01")
         )
+    }
+
+    @Test
+    fun `version must use yyyy-MM-dd format`() {
+        assertFailsWith<IllegalArgumentException> {
+            PikafishEngineId.pathOfExecutable("2026")
+        }
+        assertFailsWith<IllegalArgumentException> {
+            PikafishEngineId.pathOfExecutable("2026-1-2")
+        }
+        assertFailsWith<IllegalArgumentException> {
+            PikafishEngineId.pathOfExecutable(null)
+        }
     }
 }
