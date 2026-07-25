@@ -12,7 +12,7 @@ import kotlinx.html.meta
 import kotlinx.html.stream.createHTML
 import kotlin.math.floor
 
-private const val COST_IN_EUR_PER_DAY = 4
+private const val COST_IN_EUR_PER_DAY = 5
 private val supportedCurrencies = setOf("USD", "EUR", "GBP")
 
 /**
