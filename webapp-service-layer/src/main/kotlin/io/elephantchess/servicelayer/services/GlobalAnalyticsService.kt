@@ -55,7 +55,7 @@ class GlobalAnalyticsService(
 
     private val refreshJob = launchAtFixedRate(
         scope = refresherScope,
-        initialDelay = 5.seconds,
+        initialDelay = 30.seconds,
         period = longRefresh / 2
     ) {
         logger.info { "refreshing global analytics caches..." }

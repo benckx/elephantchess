@@ -151,7 +151,7 @@ class PodService(
     private companion object {
 
         const val REFRESH_RATE_SECONDS = 30
-        const val DEPLOYMENT_NAME = "xiangqi-webapp"
+        const val DEPLOYMENT_NAME = "elephantchess-webapp"
 
     }
 
