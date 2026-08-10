@@ -31,6 +31,10 @@ h2 {
     margin-top: 20px;
 }
 
+.hidden-by-default {
+    display: none;
+}
+
 .empty-block-placeholder {
     border: 1px dashed rgba(98, 98, 99, 0.71);
     color: rgba(113, 113, 114, 0.78);
@@ -66,10 +70,56 @@ h2 {
     margin-top: 13px;
 }
 
+.profile-country-edit-button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+}
+
+.profile-country-edit-text {
+    font-size: 12px;
+    font-style: italic;
+    color: rgba(113, 113, 114, 0.78);
+}
+
+#profile-country-select {
+    margin-top: 4px;
+}
+
 #profile-description {
     font-size: 15px;
     font-style: italic;
     margin-bottom: 8px;
+    margin-top: 8px;
+}
+
+.profile-description-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.profile-description-edit-button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.profile-description-edit-button:hover,
+.profile-description-edit-button:focus-visible {
+    color: #19681d;
+    outline: none;
+}
+
+#profile-description-editor {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#profile-description-save-button {
     margin-top: 8px;
 }
 
@@ -198,6 +248,14 @@ h2 {
 
     #profile-description {
         font-size: 30px;
+    }
+
+    .profile-description-edit-button {
+        font-size: 34px;
+    }
+
+    .profile-country-add-text {
+        font-size: 24px;
     }
 
     #ratings-table {
