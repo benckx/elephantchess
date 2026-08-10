@@ -3,6 +3,7 @@ package io.elephantchess.webapp.routing.api
 import io.elephantchess.servicelayer.dto.ContactFormRequest
 import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
 import io.elephantchess.servicelayer.dto.user.*
+import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.model.GuestToken
 import io.elephantchess.servicelayer.services.ContentSectionFeedbackService
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService
@@ -12,11 +13,14 @@ import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.content.PartData
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 
 private val userService by koin<UserService>()
 private val userProfileAnalyticsService by koin<UserProfileAnalyticsService>()
@@ -140,6 +144,12 @@ private fun Route.userSettingsRoutes() {
                 userService.updateProfileSettings(verifiedToken.userId, request)
             }
         }
+        post("/profile-picture") {
+            requireAuthentication { verifiedToken ->
+                val upload = call.receiveProfilePictureUpload()
+                userService.uploadProfilePicture(verifiedToken.userId, upload.fileName, upload.bytes)
+            }
+        }
         get("/notifications") {
             requireAuthentication { verifiedToken ->
                 userService.fetchNotificationsSettings(verifiedToken.userId)
@@ -187,6 +197,30 @@ private fun Route.userSettingsRoutes() {
             }
         }
     }
+}
+
+private data class ProfilePictureUpload(
+    val fileName: String,
+    val bytes: ByteArray,
+)
+
+private suspend fun ApplicationCall.receiveProfilePictureUpload(): ProfilePictureUpload {
+    var upload: ProfilePictureUpload? = null
+    val multipart = receiveMultipart()
+
+    while (true) {
+        val part = multipart.readPart() ?: break
+        try {
+            if (part is PartData.FileItem && upload == null) {
+                val fileName = part.originalFileName ?: throw NotAcceptableException("Missing profile picture file name")
+                upload = ProfilePictureUpload(fileName, part.provider().toByteArray())
+            }
+        } finally {
+            part.dispose()
+        }
+    }
+
+    return upload ?: throw NotAcceptableException("Missing profile picture file")
 }
 
 private fun Route.passwordRecoveryRoutes() {
