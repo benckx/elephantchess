@@ -805,13 +805,45 @@ class PlayerVsPlayerGameService(
         if (userId == null) {
             logger.error { "$color user not found for $gameId" }
         } else {
+            val username = userCache.fetchUsernameOrDefault(userId)
             pvpGameDaoService.flag(
                 userId = userId,
                 gameId = gameId,
                 winnerColor = color.reverse(),
                 updateRatingsCallback = updateRatingsCallback
             )
-            // TODO: send email when offline?
+            val notificationSettings = userDaoService.fetchNotificationSettings(userId)
+            if (notificationSettings?.userFlagged != true) {
+                logger.info {
+                    "not sending 'user flagged' notification for $userId in $gameId because notification is disabled"
+                }
+            } else {
+                val email = userDaoService.findById(userId)?.email
+                if (email == null) {
+                    logger.info { "not sending 'user flagged' notification for $userId in $gameId because email is null" }
+                } else {
+                    mailService.sendUserFlaggedNotification(
+                        recipient = email,
+                        gameId = gameId,
+                        username = username,
+                    )
+                }
+            }
+            val gamePlayersStatus = fetchPlayersAndStatus(gameId)
+            pvpGameDaoService
+                .shouldSendOpponentFlaggedNotification(
+                    gameId = gameId,
+                    flaggedUserId = userId,
+                    gamePlayersStatus = gamePlayersStatus,
+                    duration = NOTIFICATIONS_OFFLINE_FOR
+                )
+                ?.let { recipient ->
+                    mailService.sendOpponentFlaggedWhileOffline(
+                        recipient = recipient,
+                        opponent = username,
+                        gameId = gameId,
+                    )
+                }
         }
     }
 

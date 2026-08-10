@@ -688,6 +688,23 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     /**
      * Returns email if we should send a notification, null otherwise
      */
+    suspend fun shouldSendOpponentFlaggedNotification(
+        gameId: String,
+        flaggedUserId: String,
+        gamePlayersStatus: GamePlayersStatus,
+        duration: Duration,
+    ): String? {
+        return shouldSendNotification(
+            gameId = gameId,
+            duration = duration,
+            allowNotificationField = USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_FLAGGED,
+            userIdField = findOpponentUserIdField(gamePlayersStatus, flaggedUserId)
+        )
+    }
+
+    /**
+     * Returns email if we should send a notification, null otherwise
+     */
     suspend fun shouldSendGameResignedNotification(
         gameId: String,
         userId: String,
