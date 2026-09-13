@@ -22,7 +22,7 @@ class AdminOverviewService(
 
     suspend fun listOnlineUsers(): OnlineUsersResponse {
         return userDaoService
-            .listRecentlyActiveSeconds(20)
+            .listRecentlyActiveSeconds(10)
             .map { record ->
                 val username = userCache.fetchUsernameOrDefault(record.id)
                 OnlineUsersResponse.Entry(record.id, username, record.userType)
