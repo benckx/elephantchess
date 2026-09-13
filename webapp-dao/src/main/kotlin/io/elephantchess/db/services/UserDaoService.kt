@@ -280,25 +280,6 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .awaitSingleOrNull()
     }
 
-    suspend fun fetchDescriptionByUsername(username: String): String? {
-        return dslContext
-            .select(USER.DESCRIPTION)
-            .from(USER)
-            .where(USER.HANDLE.eq(username))
-            .awaitSingleValue()
-    }
-
-    suspend fun fetchLastOnline(userIds: List<String>): Map<String, Instant> {
-        return dslContext
-            .select(USER.ID, USER.LAST_ONLINE)
-            .from(USER)
-            .where(USER.ID.`in`(userIds))
-            .awaitRecords()
-            .associate { record ->
-                record.get(USER.ID) to record.get(USER.LAST_ONLINE)
-            }
-    }
-
     suspend fun findById(userId: String): User? {
         return dslContext
             .select()
