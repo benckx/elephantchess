@@ -719,20 +719,56 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
 
         fun listRatingFieldDefinitions(): List<RatingFieldDefinition> {
             return listOf(
-                RatingFieldDefinition(TimeControlCategory.BULLET, Variant.XIANGQI, USER.GAME_RATING_BULLET),
-                RatingFieldDefinition(TimeControlCategory.BLITZ, Variant.XIANGQI, USER.GAME_RATING_BLITZ),
-                RatingFieldDefinition(TimeControlCategory.RAPID, Variant.XIANGQI, USER.GAME_RATING_RAPID),
-                RatingFieldDefinition(TimeControlCategory.CLASSICAL, Variant.XIANGQI, USER.GAME_RATING_CLASSICAL),
-                RatingFieldDefinition(TimeControlCategory.SEVERAL_DAYS, Variant.XIANGQI, USER.GAME_RATING_SEVERAL_DAYS),
+                RatingFieldDefinition(
+                    TimeControlCategory.BULLET,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_BULLET
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.BLITZ,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_BLITZ
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.RAPID,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_RAPID
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.CLASSICAL,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_CLASSICAL
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.SEVERAL_DAYS,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_SEVERAL_DAYS
+                ),
                 RatingFieldDefinition(
                     TimeControlCategory.CORRESPONDENCE,
                     Variant.XIANGQI,
                     USER.GAME_RATING_CORRESPONDENCE
                 ),
-                RatingFieldDefinition(TimeControlCategory.BULLET, Variant.MANCHU, USER.GAME_RATING_MANCHU_BULLET),
-                RatingFieldDefinition(TimeControlCategory.BLITZ, Variant.MANCHU, USER.GAME_RATING_MANCHU_BLITZ),
-                RatingFieldDefinition(TimeControlCategory.RAPID, Variant.MANCHU, USER.GAME_RATING_MANCHU_RAPID),
-                RatingFieldDefinition(TimeControlCategory.CLASSICAL, Variant.MANCHU, USER.GAME_RATING_MANCHU_CLASSICAL),
+                RatingFieldDefinition(
+                    TimeControlCategory.BULLET,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_BULLET
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.BLITZ,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_BLITZ
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.RAPID,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_RAPID
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.CLASSICAL,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_CLASSICAL
+                ),
                 RatingFieldDefinition(
                     TimeControlCategory.SEVERAL_DAYS,
                     Variant.MANCHU,
