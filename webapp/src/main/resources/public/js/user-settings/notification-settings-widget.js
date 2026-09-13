@@ -130,6 +130,8 @@ class NotificationSettingsWidget {
     #notificationSettings = [
         new NotificationSetting('newsletter', 'Newsletter. At most once a month.'),
         new NotificationSetting('opponent-joined-game', 'Somebody joined a game you created - but you\'re offline.'),
+        new NotificationSetting('user-flagged', 'You flagged on time.'),
+        new NotificationSetting('opponent-flagged', 'Your opponent flagged on time - but you\'re offline.'),
         new NotificationSetting('opponent-played-move', 'Your opponent played a move - but you\'re offline.'),
         new NotificationSetting('opponent-resigned', 'Your opponent resigned - but you\'re offline.'),
         new NotificationSetting('opponent-proposed-draw', 'Your opponent proposed a draw - but you\'re offline.'),
@@ -141,6 +143,8 @@ class NotificationSettingsWidget {
         getAndHandle(NOTIFICATIONS_API, json => {
             this.#findSettingById('newsletter').isChecked = json.newsletter;
             this.#findSettingById('opponent-joined-game').isChecked = json.opponentJoinedGame;
+            this.#findSettingById('user-flagged').isChecked = json.userFlagged;
+            this.#findSettingById('opponent-flagged').isChecked = json.opponentFlagged;
             this.#findSettingById('opponent-played-move').isChecked = json.opponentPlayedMove;
             this.#findSettingById('opponent-resigned').isChecked = json.opponentResigned;
             this.#findSettingById('opponent-proposed-draw').isChecked = json.opponentProposedDraw;
@@ -156,6 +160,8 @@ class NotificationSettingsWidget {
         let body = {
             'newsletter': this.#findSettingById('newsletter').isChecked,
             'opponentJoinedGame': this.#findSettingById('opponent-joined-game').isChecked,
+            'userFlagged': this.#findSettingById('user-flagged').isChecked,
+            'opponentFlagged': this.#findSettingById('opponent-flagged').isChecked,
             'opponentPlayedMove': this.#findSettingById('opponent-played-move').isChecked,
             'opponentResigned': this.#findSettingById('opponent-resigned').isChecked,
             'opponentProposedDraw': this.#findSettingById('opponent-proposed-draw').isChecked,
