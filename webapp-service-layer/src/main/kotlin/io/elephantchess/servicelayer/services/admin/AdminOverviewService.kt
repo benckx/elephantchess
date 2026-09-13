@@ -8,8 +8,8 @@ import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.model.UserType
 import kotlin.time.Duration.Companion.minutes
-
 class AdminOverviewService(
     private val userDaoService: UserDaoService,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
@@ -32,17 +32,21 @@ class AdminOverviewService(
             }
     }
 
-    suspend fun listOnlineWithinHours(hours: Int): OnlineUsersResponse {
-        val entries =
+    suspend fun listOnlineWithinHours(hours: Int): RecentlyOnlineUsersResponse {
+        val duration = (hours * 60).minutes
+
+        val authenticatedUsers =
             userDaoService
-                .listRecentlyActiveMinutes(hours * 60)
+                .listRecentlyActiveMinutes(hours * 60, listOf(UserType.AUTHENTICATED))
                 .map { record ->
                     val username = userCache.fetchUsernameOrDefault(record.id)
-                    OnlineUsersResponse.Entry(record.id, username, record.userType)
+                    RecentlyOnlineUsersResponse.Entry(record.id, username)
                 }
                 .sortedBy { entry -> entry.username.lowercase() }
 
-        return OnlineUsersResponse(entries)
+        val guestCount = userDaoService.countActiveRecently(duration, listOf(UserType.GUEST))
+
+        return RecentlyOnlineUsersResponse(authenticatedUsers, guestCount)
     }
 
 

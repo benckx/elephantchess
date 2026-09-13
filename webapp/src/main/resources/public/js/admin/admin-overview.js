@@ -17,9 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-function formatCounters(json) {
-    const nbrOfAuthenticated = json.entries.filter(entry => entry.userType === UserType.AUTHENTICATED).length;
-    const nbrOfGuests = json.entries.filter(entry => entry.userType === UserType.GUEST).length;
+function formatCounters(nbrOfAuthenticated, nbrOfGuests) {
     const total = nbrOfAuthenticated + nbrOfGuests;
     return `${nbrOfAuthenticated} authenticated, ${nbrOfGuests} guests, total ${total}`;
 }
@@ -57,10 +55,13 @@ class AdminOverviewPage extends BasePage {
         // right now
         getAndHandle(ADMIN_URL_PREFIX + '/online-users', json => {
             this.#onlineUsersDiv.innerHTML = '';
-            this.#onlineUsersCounterDiv.innerText = formatCounters(json);
+
+            const nbrOfAuthenticated = json.entries.filter(entry => entry.userType === UserType.AUTHENTICATED).length;
+            const nbrOfGuests = json.entries.filter(entry => entry.userType === UserType.GUEST).length;
+            this.#onlineUsersCounterDiv.innerText = formatCounters(nbrOfAuthenticated, nbrOfGuests);
 
             this
-                .#renderOnlineUsersResponse(json, true)
+                .#renderOnlineUsers(json.entries)
                 .forEach((userLinkDiv) => {
                     this.#onlineUsersDiv.append(userLinkDiv);
                 });
@@ -70,10 +71,10 @@ class AdminOverviewPage extends BasePage {
     #fetchRecentlyOnlineUsers(div, counter, hours) {
         getAndHandle(ADMIN_URL_PREFIX + '/online-within-hours?hours=' + hours, json => {
             div.innerHTML = '';
-            counter.innerText = formatCounters(json);
+            counter.innerText = formatCounters(json.authenticatedUsers.length, json.guestCount);
 
             this
-                .#renderOnlineUsersResponse(json, false)
+                .#renderAuthenticatedUsers(json.authenticatedUsers)
                 .forEach((userLinkDiv) => {
                     div.append(userLinkDiv);
                 });
@@ -81,29 +82,32 @@ class AdminOverviewPage extends BasePage {
     }
 
     /**
+     * Renders online users of any type (authenticated and guests).
      *
-     * @return {HTMLDivElement[]}
+     * @return {HTMLElement[]}
      */
-    #renderOnlineUsersResponse(json, showGuests) {
-        return json
-            .entries
+    #renderOnlineUsers(entries) {
+        return entries
             .sort((a, b) => a.userType.localeCompare(b.userType))
             .map(entry => {
-                let element;
-                if (entry.userType === UserType.GUEST) {
-                    if (showGuests) {
-                        element = buildUsernameSpan(entry.id, entry.username, entry.userType);
-                    } else {
-                        element = document.createElement('span');
-                    }
-                } else {
-                    element = buildUsernameSpan(entry.id, entry.username, entry.userType);
-                }
-
+                const element = buildUsernameSpan(entry.id, entry.username, entry.userType);
                 element.classList.add('user-link');
                 return element;
-            })
-            .filter(element => element.innerText.length > 0);
+            });
+    }
+
+    /**
+     * Renders authenticated users only (guests are represented by a count elsewhere).
+     *
+     * @return {HTMLElement[]}
+     */
+    #renderAuthenticatedUsers(entries) {
+        return entries
+            .map(entry => {
+                const element = buildUsernameSpan(entry.id, entry.username, UserType.AUTHENTICATED);
+                element.classList.add('user-link');
+                return element;
+            });
     }
 
     #fetchLatestExceptions() {

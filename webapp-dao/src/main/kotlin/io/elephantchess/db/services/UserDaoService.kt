@@ -642,20 +642,31 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         return select.awaitSingleValue()!!
     }
 
-    suspend fun listRecentlyActiveMinutes(minutes: Int) = listRecentlyActive(minutes.minutes)
+    suspend fun listRecentlyActiveMinutes(minutes: Int, userTypes: List<UserType> = emptyList()) =
+        listRecentlyActive(minutes.minutes, userTypes)
 
-    suspend fun listRecentlyActiveSeconds(seconds: Int) = listRecentlyActive(seconds.seconds)
+    suspend fun listRecentlyActiveSeconds(seconds: Int, userTypes: List<UserType> = emptyList()) =
+        listRecentlyActive(seconds.seconds, userTypes)
 
-    private suspend fun listRecentlyActive(duration: Duration): List<User> {
-        return dslContext
-            .select(
-                USER.ID,
-                USER.HANDLE,
-                USER.USER_TYPE
-            )
-            .from(USER)
-            .where(USER.LAST_ONLINE.isWithin(duration))
-            .awaitMappedRecords<User>()
+    private suspend fun listRecentlyActive(
+        duration: Duration,
+        userTypes: List<UserType> = emptyList(),
+    ): List<User> {
+        var select =
+            dslContext
+                .select(
+                    USER.ID,
+                    USER.HANDLE,
+                    USER.USER_TYPE
+                )
+                .from(USER)
+                .where(USER.LAST_ONLINE.isWithin(duration))
+
+        if (userTypes.isNotEmpty()) {
+            select = select.and(USER.USER_TYPE.`in`(userTypes))
+        }
+
+        return select.awaitMappedRecords<User>()
     }
 
     suspend fun latestNewGuestUser(): Instant? {
