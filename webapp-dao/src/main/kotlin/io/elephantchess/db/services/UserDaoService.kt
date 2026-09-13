@@ -564,10 +564,10 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                     .from(USER)
                     .where(ratingField.isNotNull)
                     .and(userTypeCondition)
-                .orderBy(sortField, USER.HANDLE.asc())
-                .limit(1)
-                .awaitSingleRecord()
-                ?: return null
+                    .orderBy(sortField, USER.HANDLE.asc())
+                    .limit(1)
+                    .awaitSingleRecord()
+                    ?: return null
 
             return UserRatingExtremum(
                 userId = record.get(USER.ID),
@@ -648,10 +648,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
     suspend fun listRecentlyActiveSeconds(seconds: Int, userTypes: List<UserType> = emptyList()) =
         listRecentlyActive(seconds.seconds, userTypes)
 
-    private suspend fun listRecentlyActive(
-        duration: Duration,
-        userTypes: List<UserType> = emptyList(),
-    ): List<User> {
+    private suspend fun listRecentlyActive(duration: Duration, userTypes: List<UserType>): List<User> {
         var select =
             dslContext
                 .select(
@@ -727,13 +724,25 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 RatingFieldDefinition(TimeControlCategory.RAPID, Variant.XIANGQI, USER.GAME_RATING_RAPID),
                 RatingFieldDefinition(TimeControlCategory.CLASSICAL, Variant.XIANGQI, USER.GAME_RATING_CLASSICAL),
                 RatingFieldDefinition(TimeControlCategory.SEVERAL_DAYS, Variant.XIANGQI, USER.GAME_RATING_SEVERAL_DAYS),
-                RatingFieldDefinition(TimeControlCategory.CORRESPONDENCE, Variant.XIANGQI, USER.GAME_RATING_CORRESPONDENCE),
+                RatingFieldDefinition(
+                    TimeControlCategory.CORRESPONDENCE,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_CORRESPONDENCE
+                ),
                 RatingFieldDefinition(TimeControlCategory.BULLET, Variant.MANCHU, USER.GAME_RATING_MANCHU_BULLET),
                 RatingFieldDefinition(TimeControlCategory.BLITZ, Variant.MANCHU, USER.GAME_RATING_MANCHU_BLITZ),
                 RatingFieldDefinition(TimeControlCategory.RAPID, Variant.MANCHU, USER.GAME_RATING_MANCHU_RAPID),
                 RatingFieldDefinition(TimeControlCategory.CLASSICAL, Variant.MANCHU, USER.GAME_RATING_MANCHU_CLASSICAL),
-                RatingFieldDefinition(TimeControlCategory.SEVERAL_DAYS, Variant.MANCHU, USER.GAME_RATING_MANCHU_SEVERAL_DAYS),
-                RatingFieldDefinition(TimeControlCategory.CORRESPONDENCE, Variant.MANCHU, USER.GAME_RATING_MANCHU_CORRESPONDENCE),
+                RatingFieldDefinition(
+                    TimeControlCategory.SEVERAL_DAYS,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_SEVERAL_DAYS
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.CORRESPONDENCE,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_CORRESPONDENCE
+                ),
             )
         }
 
