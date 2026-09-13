@@ -17,6 +17,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.elephantchess.xiangqi.Variant
 import org.jooq.DSLContext
 import org.jooq.Record2
+import org.jooq.Record3
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -28,6 +29,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
+    private val profilePictureExtensionField = DSL.field(DSL.name("profile_picture_extension"), String::class.java)
 
     suspend fun save(user: User): String {
         dslContext.transactionCoroutine { cfg ->
@@ -80,11 +82,12 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         return id!!
     }
 
-    suspend fun fetchProfileSettings(userId: String): Record2<String, String>? {
+    suspend fun fetchProfileSettings(userId: String): Record3<String?, String?, String?>? {
         return dslContext
             .select(
                 USER.DESCRIPTION,
-                USER.COUNTRY
+                USER.COUNTRY,
+                profilePictureExtensionField
             )
             .from(USER)
             .where(USER.ID.eq(userId))
@@ -103,6 +106,33 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .where(USER.ID.fixed().eq(userId))
                 .awaitExecute()
         }
+    }
+
+    suspend fun updateProfilePictureExtension(userId: String, extension: String) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL
+                .using(cfg)
+                .update(USER.fixed())
+                .set(profilePictureExtensionField, extension)
+                .set(USER.LAST_PROFILE_UPDATE.fixed(), Clock.System.now())
+                .where(USER.ID.fixed().eq(userId))
+                .awaitExecute()
+        }
+    }
+
+    suspend fun fetchPublicProfile(username: String): User? {
+        return dslContext
+            .select(
+                USER.ID,
+                USER.HANDLE,
+                USER.COUNTRY,
+                USER.DESCRIPTION,
+                USER.PUZZLE_RATING,
+                profilePictureExtensionField
+            )
+            .from(USER)
+            .where(USER.HANDLE.eqIgnoreCaseTrimmed(username))
+            .awaitSingleMappedRecord<User>()
     }
 
     suspend fun fetchNotificationSettings(userId: String): NotificationsSettingsRecord? {
