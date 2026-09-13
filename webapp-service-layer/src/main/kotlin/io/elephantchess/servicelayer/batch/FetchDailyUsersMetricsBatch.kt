@@ -6,6 +6,7 @@ import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserStatsDaoService
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
+import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESPAN_SECONDS
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.days
 
@@ -40,14 +41,16 @@ class FetchDailyUsersMetricsBatch(
             userDaoService.countActiveRecently(
                 duration = 7.days,
                 userTypes = listOf(UserType.GUEST),
-                excludeIds = excludedIds
+                excludeIds = excludedIds,
+                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
             )
 
         record.guestsUsers_30d =
             userDaoService.countActiveRecently(
                 duration = 30.days,
                 userTypes = listOf(UserType.GUEST),
-                excludeIds = excludedIds
+                excludeIds = excludedIds,
+                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
             )
 
         userStatsDaoService.save(record)

@@ -605,6 +605,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         duration: Duration,
         userTypes: List<UserType>,
         excludeIds: List<String> = emptyList(),
+        minSessionSeconds: Int? = null,
     ): Int {
         var select =
             dslContext
@@ -618,6 +619,12 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
 
         if (userTypes.isNotEmpty()) {
             select = select.and(USER.USER_TYPE.`in`(userTypes))
+        }
+
+        // Filter out short-lived accounts (typically scraper guests that ping once and never come back)
+        // by requiring a minimum lifespan between creation and last activity.
+        if (minSessionSeconds != null) {
+            select = select.and(diffInSeconds(USER.LAST_ONLINE, USER.CREATION).ge(minSessionSeconds))
         }
 
         return select.awaitSingleValue()!!
