@@ -10,6 +10,7 @@ import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.model.UserType
 import kotlin.time.Duration.Companion.minutes
+
 class AdminOverviewService(
     private val userDaoService: UserDaoService,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
@@ -48,7 +49,6 @@ class AdminOverviewService(
 
         return RecentlyOnlineUsersResponse(authenticatedUsers, guestCount)
     }
-
 
     suspend fun fetchLatestPvpActivity(): LatestPvpActivityResponse {
         val latestPvpActivity =
