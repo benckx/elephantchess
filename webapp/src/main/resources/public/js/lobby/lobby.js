@@ -94,12 +94,12 @@ class LobbyPage extends BasePage {
             embed: HOW_TO_PLAY_YOUTUBE_EMBED,
             rendered: false,
         },
-        {
-            element: this.#revengeOfAshesDiv,
-            embed: REVENGE_OF_ASHES_YOUTUBE_EMBED,
-            rendered: false,
-            enabled: this.#shouldRenderRevengeOfAshesEmbed,
-        },
+        // {
+        //     element: this.#revengeOfAshesDiv,
+        //     embed: REVENGE_OF_ASHES_YOUTUBE_EMBED,
+        //     rendered: false,
+        //     enabled: this.#shouldRenderRevengeOfAshesEmbed,
+        // },
     ];
 
     constructor() {
