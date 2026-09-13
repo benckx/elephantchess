@@ -84,7 +84,7 @@ jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 
 [plugins]
-versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
+versions = { id = "io.github.ben-manes.versions", version.ref = "versionsPlugin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 test-logger = { id = "com.adarshr.test-logger", version.ref = "testLoggerPlugin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
