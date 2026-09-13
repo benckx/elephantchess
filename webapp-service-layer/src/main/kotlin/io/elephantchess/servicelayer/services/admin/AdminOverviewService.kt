@@ -8,6 +8,7 @@ import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESPAN_SECONDS
 import io.elephantchess.model.UserType
 import kotlin.time.Duration.Companion.minutes
 
@@ -45,7 +46,11 @@ class AdminOverviewService(
                 }
                 .sortedBy { entry -> entry.username.lowercase() }
 
-        val guestCount = userDaoService.countActiveRecently(duration, listOf(UserType.GUEST))
+        val guestCount = userDaoService.countActiveRecently(
+            duration = duration,
+            userTypes = listOf(UserType.GUEST),
+            minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
+        )
 
         return RecentlyOnlineUsersResponse(authenticatedUsers, guestCount)
     }
