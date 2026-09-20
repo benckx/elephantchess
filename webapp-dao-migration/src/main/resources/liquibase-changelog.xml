@@ -2697,4 +2697,9 @@
             ON bot_game (analysis_end_time, analyzed_from_batch);
         </sql>
     </changeSet>
+    <changeSet id="0108" author="benckx">
+        <addColumn tableName="user">
+            <column name="profile_picture_extension" type="varchar(10)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

@@ -6,4 +6,5 @@ data class UserProfile(
     val country: String?,
     val profileDescription: String?,
     val puzzleRating: Int,
+    val profilePictureUrl: String? = null,
 )
