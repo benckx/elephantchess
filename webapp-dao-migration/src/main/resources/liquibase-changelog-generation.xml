@@ -2470,4 +2470,10 @@
     <changeSet id="0107" author="benckx">
         <comment>Indexes for latest move analysis aggregation and analyzed flag lookup</comment>
     </changeSet>
+    <changeSet id="0108" author="benckx">
+        <comment>Index on bot_game.last_updated to speed up the latest PvB games listing (ORDER BY last_updated DESC LIMIT)</comment>
+        <createIndex tableName="bot_game" indexName="bot_game_last_updated_idx">
+            <column name="last_updated"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

@@ -84,7 +84,6 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         minMoveIndex: Int? = null,
         beforeTs: Long? = null,
         excludeAutoResigned: Boolean = false,
-        distinctByUsers: Boolean = false,
         variantsToInclude: List<Variant>
     ): List<BotGame> {
         val conditions = mutableListOf<Condition>()
@@ -103,38 +102,17 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             conditions += BOT_GAME.GAME_STATUS.ne(AUTO_RESIGNED)
         }
 
-        return if (distinctByUsers) {
-            val rn = DSL.rowNumber()
-                .over(DSL.partitionBy(BOT_GAME.USER_ID).orderBy(BOT_GAME.LAST_UPDATED.desc()))
-                .`as`("rn")
-
-            // Use explicit fields instead of BOT_GAME.asterisk(): a literal "bot_game".* is expanded by
-            // Postgres to every physical column at runtime, but jOOQ maps the result positionally using its
-            // generated field list. If the generated schema is out of sync with the table, the extra physical
-            // column shifts "rn" onto the wrong column and decoding fails. Explicit fields keep the projection
-            // aligned with jOOQ's known schema.
-            val sub = dslContext
-                .select(listOf(*BOT_GAME.fields(), rn))
-                .from(BOT_GAME)
-                .where(conditions)
-                .asTable("t")
-
-            dslContext
-                .select(sub.asterisk())
-                .from(sub)
-                .where(sub.field("rn", Int::class.java)!!.eq(1))
-                .orderBy(sub.field(BOT_GAME.LAST_UPDATED)!!.desc())
-                .limit(limit)
-                .awaitMappedRecords()
-        } else {
-            dslContext
-                .select()
-                .from(BOT_GAME)
-                .where(conditions)
-                .orderBy(BOT_GAME.LAST_UPDATED.desc())
-                .limit(limit)
-                .awaitMappedRecords()
-        }
+        // Distinct-by-user is applied in the service layer (see GameDataService.listLatestPvbGames) by
+        // over-fetching and de-duplicating in memory. Doing the deduplication here with a window function over
+        // the whole table forced Postgres to scan and sort every eligible row on each request, which scaled
+        // poorly with the number of (guest) users. This query relies on the bot_game_last_updated_idx index.
+        return dslContext
+            .select()
+            .from(BOT_GAME)
+            .where(conditions)
+            .orderBy(BOT_GAME.LAST_UPDATED.desc())
+            .limit(limit)
+            .awaitMappedRecords()
     }
 
     suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<String, Instant>> {

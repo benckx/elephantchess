@@ -2697,4 +2697,11 @@
             ON bot_game (analysis_end_time, analyzed_from_batch);
         </sql>
     </changeSet>
+    <changeSet id="0108" author="benckx">
+        <comment>Index on bot_game.last_updated to speed up the latest PvB games listing (ORDER BY last_updated DESC LIMIT)</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS bot_game_last_updated_idx
+            ON bot_game (last_updated);
+        </sql>
+    </changeSet>
 </databaseChangeLog>
