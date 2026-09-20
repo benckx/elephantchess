@@ -92,6 +92,8 @@ class UserDaoServiceTest : ServiceTest() {
 
         assertFalse(user.emailNotificationEnabledNewsletter)
         assertFalse(user.emailNotificationEnabledUserJoinedGame)
+        assertFalse(user.emailNotificationEnabledUserFlagged)
+        assertFalse(user.emailNotificationEnabledOpponentFlagged)
         assertFalse(user.emailNotificationEnabledOpponentPlayedMove)
         assertFalse(user.emailNotificationEnabledOpponentResigned)
         assertFalse(user.emailNotificationEnabledOpponentProposedDraw)
@@ -106,6 +108,8 @@ class UserDaoServiceTest : ServiceTest() {
 
         assertTrue(user.emailNotificationEnabledNewsletter)
         assertTrue(user.emailNotificationEnabledUserJoinedGame)
+        assertTrue(user.emailNotificationEnabledUserFlagged)
+        assertTrue(user.emailNotificationEnabledOpponentFlagged)
         assertTrue(user.emailNotificationEnabledOpponentPlayedMove)
         assertTrue(user.emailNotificationEnabledOpponentResigned)
         assertTrue(user.emailNotificationEnabledOpponentProposedDraw)
