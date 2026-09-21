@@ -54,20 +54,19 @@ The webapp offers the following features:
   Chinese chess, the starting position is encoded as
   `rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0`. It is convenient for data transfer and
   indexing.
-- The algebraic notation is a standard notation to represent chess moves. The "columns" or the board are called "files"
-  and the "rows" are named "ranks". In the algebraic notation, the files are numbered from a to i and the ranks are
-  numbered from 1 to 10. So the move `C2=5` is represented in algebraic notation as "h3e3" (i.e. move the piece from
-  file h, rank 2 to file e, rank 2).
+- The algebraic notation is a standard notation to represent chess moves. The files are numbered from `a` to `i` and the
+  ranks are numbered from 1 to 10. So the move `C2=5` is represented in algebraic notation as `h3e3` (i.e. move the
+  piece from file `h`, rank `3` to file `e`, rank `3`), or `h2e2` in UCI notation (see below).
 - The UCI (Universal Chess Interface) is a standard protocol to communicate with chess engines. It defines a set of
   commands and responses that allow a chess engine to be controlled by a user interface. For example, the command
   `position fen rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0` tells the engine to set up the
   board with the given FEN position; and the command `go depth 10` tells the engine to start calculating the best move
   from that position with a search depth of 10.
 - The UCI move notation is similar to the algebraic notation, except that the ranks are 0-based. Therefore, any
-  move can be encoded as 4 characters. For example, move h3e3 is encoded in UCI as h2e2.
+  move can be encoded as 4 characters. For example, move `h3e3` is encoded in UCI as `h2e2`.
 - The WXF notation is the traditional Chinese chess notation (e.g. `C2=5`), widely in use. It's not as convenient
   technically because move can be ambiguous and the files are numbered from the right to the left relative to the
-  player (so it's not the same numbers for the red and black players). Therefore, it's not used in code, expect for
+  player (so it's not the same numbers for the red and black players). Therefore, it's not used in code, except for
   labeling moves in the GUI.
 - OTB: Over The Board, i.e. in-person chess games, as opposed to online games.
 
@@ -735,8 +734,8 @@ https://elephantchess.io/about/developers/board-gui-example
 
 JavaScript and CSS assets are minified locally via the small Node project in
 [`scripts/minifier`](scripts/minifier): JavaScript with [SWC](https://swc.rs) and CSS with
-[Lightning CSS](https://lightningcss.dev). The minifier dependencies are installed automatically
-(`npm install`) the first time the task runs, which also handles modern syntax such as ES6 private
+[Lightning CSS](https://lightningcss.dev). The minifier dependencies are installed automatically (`npm install`) the
+first time the task runs, which also handles modern syntax such as ES6 private
 class fields out of the box.
 
 The task looks for `node` and `npm` on the `PATH` as well as common install locations (nvm, fnm, asdf,
