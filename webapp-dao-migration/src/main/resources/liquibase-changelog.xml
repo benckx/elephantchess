@@ -2704,4 +2704,10 @@
             ON bot_game (last_updated);
         </sql>
     </changeSet>
+    <changeSet id="0109" author="benckx">
+        <comment>Store the stack trace of thrown exceptions to see where they come from</comment>
+        <addColumn tableName="thrown_exception">
+            <column name="exception_trace" type="text"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

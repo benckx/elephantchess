@@ -2472,8 +2472,11 @@
     </changeSet>
     <changeSet id="0108" author="benckx">
         <comment>Index on bot_game.last_updated to speed up the latest PvB games listing (ORDER BY last_updated DESC LIMIT)</comment>
-        <createIndex tableName="bot_game" indexName="bot_game_last_updated_idx">
-            <column name="last_updated"/>
-        </createIndex>
+    </changeSet>
+    <changeSet id="0109" author="benckx">
+        <comment>Store the stack trace of thrown exceptions to see where they come from</comment>
+        <addColumn tableName="thrown_exception">
+            <column name="exception_trace" type="text"/>
+        </addColumn>
     </changeSet>
 </databaseChangeLog>

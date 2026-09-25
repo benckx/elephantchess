@@ -28,6 +28,7 @@ class ExceptionService(
                 record.httpCode = httpCode
                 record.exceptionClass = throwable::class.qualifiedName ?: throwable::class.simpleName ?: "Unknown"
                 record.exceptionMessage = throwable.message ?: throwable.toString()
+                record.exceptionTrace = throwable.stackTraceToString()
                 daoService.save(record)
             } catch (e: Exception) {
                 logger.error(e) { "Error saving exception to database" }

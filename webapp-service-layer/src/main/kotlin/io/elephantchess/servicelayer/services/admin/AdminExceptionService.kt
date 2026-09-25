@@ -16,6 +16,7 @@ class AdminExceptionService(
                     httpCode = record.httpCode,
                     exceptionClass = record.exceptionClass,
                     exceptionMessage = record.exceptionMessage,
+                    exceptionTrace = record.exceptionTrace,
                 )
             }
             .let { entries ->
