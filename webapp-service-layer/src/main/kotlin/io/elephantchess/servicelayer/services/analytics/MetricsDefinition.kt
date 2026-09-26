@@ -50,6 +50,9 @@ val allMetrics: List<Metric> by lazy {
             "archived guests",
             ARCHIVED_GUEST_DAILY,
             ARCHIVED_GUEST_DAILY.DAY,
+            // "only count > 15 min" (issue #858): the buckets are lifespan ranges, so >15 min is the
+            // GUESTS_UNDER_30MIN bucket (15-30 min) plus GUESTS_OTHER (>= 30 min). GUESTS_UNDER_15MIN
+            // (5-15 min) is intentionally excluded because those guests stayed less than 15 min.
             ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN
                 .plus(ARCHIVED_GUEST_DAILY.GUESTS_OTHER)
         ),
