@@ -332,7 +332,7 @@ class AdminAnalyticsService(
         val entries = pageViewsByDay.map { (day, pageViews) ->
             DailyPageViewsResponse.Entry(
                 day = day.toString(),
-                pageViews = pageViews.toInt()
+                pageViews = pageViews.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
             )
         }
 

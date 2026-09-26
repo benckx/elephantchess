@@ -32,6 +32,9 @@ val allMetrics: List<Metric> by lazy {
                 isLongLivedGuest
             ),
             listOf(
+                // archived guests with a lifespan >= 1 min, mirroring [isLongLivedGuest]. The
+                // GUESTS_UNDER_1MIN bucket is deliberately excluded: sub-minute guests are scrapers that
+                // were never counted as "new guests" while live either (see MIN_GENUINE_GUEST_LIFESPAN_SECONDS).
                 DaySumMetric(
                     "archived new guests",
                     ARCHIVED_GUEST_DAILY,

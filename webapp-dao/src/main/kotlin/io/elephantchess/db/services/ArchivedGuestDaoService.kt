@@ -280,7 +280,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
          * into a `date` column), while matching the `to_char` day bucketing used by the live metrics.
          */
         fun dayExpr(field: Field<Instant>): Field<LocalDate> =
-            DSL.field("cast(to_char(${field.name}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE)
+            DSL.field("cast(to_char({0}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE, field)
     }
 
 }
