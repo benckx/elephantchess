@@ -18,14 +18,24 @@
  */
 
 const NO_LABEL_DAYS = 50;
+const USER_SETTINGS_API = '/api/user/settings';
+const PROFILE_URL = USER_SETTINGS_API + '/profile';
 
 class UserProfilePage extends BasePage {
 
+    #isOwnProfile = document.querySelector('body').dataset.isOwnProfile === 'true';
+    #country = document.querySelector('body').dataset.profileCountry ?? '';
     #userId = document.querySelector('body').dataset.userId;
     #username = document.querySelector('body').dataset.username;
     #client = new UserProfileClient(this.#userId);
     #statusIndicator = document.getElementById('status-indicator');
     #puzzleStatsSection = document.getElementById('puzzle-stats-section');
+    #profileDescription = document.getElementById('profile-description');
+    #profileDescriptionEditButton = document.getElementById('profile-description-edit-button');
+    #profileDescriptionEditor = document.getElementById('profile-description-editor');
+    #profileDescriptionSaveButton = document.getElementById('profile-description-save-button');
+    #profileCountryEditButton = document.getElementById('profile-country-edit-button');
+    #profileCountrySelect = document.getElementById('profile-country-select');
 
     constructor() {
         super();
@@ -36,9 +46,12 @@ class UserProfilePage extends BasePage {
         this.#updateIndicatorStatusAtInterval();
 
         const flagHeaderPanel = document.getElementById('flag-header-panel');
-        if (flagHeaderPanel != null) {
+        if (flagHeaderPanel?.dataset.countryCode) {
             addCountryToolTip(flagHeaderPanel, flagHeaderPanel.dataset.countryCode);
         }
+
+        this.#setupCountryEditor();
+        this.#setupDescriptionEditor();
     }
 
     #fetchLatestPvpGames() {
@@ -97,6 +110,62 @@ class UserProfilePage extends BasePage {
                 }
             });
         }, 2_000);
+    }
+
+    #setupDescriptionEditor() {
+        if (!this.#isOwnProfile || this.#profileDescriptionEditButton == null ||
+            this.#profileDescriptionEditor == null || this.#profileDescriptionSaveButton == null ||
+            this.#profileDescription == null) {
+            return;
+        }
+
+        this.#profileDescriptionEditButton.addEventListener('click', () => {
+            this.#profileDescriptionEditor.value = this.#profileDescription.classList.contains('empty-block-placeholder') ?
+                '' : this.#profileDescription.innerText.trim();
+            this.#profileDescription.classList.add('hidden-by-default');
+            this.#profileDescriptionEditButton.classList.add('hidden-by-default');
+            this.#profileDescriptionEditor.classList.remove('hidden-by-default');
+            this.#profileDescriptionSaveButton.classList.remove('hidden-by-default');
+            this.#profileDescriptionEditor.focus();
+        });
+
+        this.#profileDescriptionSaveButton.addEventListener('click', () => {
+            const rawCountry = this.#profileCountrySelect?.value ?? this.#country;
+            const country = rawCountry === 'none' ? '' : rawCountry;
+            postAndHandle(PROFILE_URL, {
+                description: this.#profileDescriptionEditor.value,
+                country: country
+            }, () => {
+                UI.pushInfoNotification('Profile settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
+                window.location.reload();
+            });
+        });
+    }
+
+    #setupCountryEditor() {
+        if (!this.#isOwnProfile || this.#profileCountryEditButton == null || this.#profileCountrySelect == null ||
+            this.#profileDescriptionSaveButton == null) {
+            return;
+        }
+
+        fillSelect('profile-country-select');
+        const initialCountry = this.#country?.trim()?.toLowerCase();
+        if (!initialCountry) {
+            this.#profileCountrySelect.value = 'none';
+        } else {
+            const option = Array.from(this.#profileCountrySelect.options)
+                .find(o => o.value.toLowerCase() === initialCountry);
+            if (option != null) {
+                option.selected = true;
+            }
+        }
+
+        this.#profileCountryEditButton.addEventListener('click', () => {
+            this.#profileCountryEditButton.classList.add('hidden-by-default');
+            this.#profileCountrySelect.classList.remove('hidden-by-default');
+            this.#profileDescriptionSaveButton.classList.remove('hidden-by-default');
+            this.#profileCountrySelect.focus();
+        });
     }
 
 }
