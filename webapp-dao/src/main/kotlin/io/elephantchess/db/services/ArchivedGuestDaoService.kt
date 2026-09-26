@@ -23,11 +23,12 @@ import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.diffInSeconds
-import io.elephantchess.db.utils.localDate
 import io.elephantchess.model.UserType
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.impl.DSL
+import org.jooq.impl.SQLDataType
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDate
 import kotlin.time.Clock
@@ -135,7 +136,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
     }
 
     private suspend fun archiveGuestCounts(transactional: DSLContext, guestIds: List<String>) {
-        val creationDay = USER.CREATION.localDate(null)
+        val creationDay = dayExpr(USER.CREATION)
         val lifespan = diffInSeconds(USER.LAST_ONLINE, USER.CREATION)
 
         fun bucket(condition: Condition) = DSL.count().filterWhere(condition)
@@ -189,7 +190,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
     }
 
     private suspend fun archivePageViews(transactional: DSLContext, guestIds: List<String>) {
-        val eventDay = PAGE_VIEW_EVENT.EVENT_TIME.localDate(null)
+        val eventDay = dayExpr(PAGE_VIEW_EVENT.EVENT_TIME)
         val uniqueGuests = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID)
 
         transactional
@@ -273,6 +274,13 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
         const val LIFESPAN_5_MIN = 5 * 60
         const val LIFESPAN_15_MIN = 15 * 60
         const val LIFESPAN_30_MIN = 30 * 60
+
+        /**
+         * The UTC calendar day of an instant, as a genuine `date` SQL expression (so it can be inserted
+         * into a `date` column), while matching the `to_char` day bucketing used by the live metrics.
+         */
+        fun dayExpr(field: Field<Instant>): Field<LocalDate> =
+            DSL.field("cast(to_char(${field.name}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE)
     }
 
 }
