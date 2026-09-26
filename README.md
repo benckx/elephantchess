@@ -1,3 +1,26 @@
+[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml) [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
+
+# Table of Contents
+
+- [About](#about)
+  - [Features](#features)
+  - [Principles](#principles)
+  - [Glossary](#glossary)
+- [Run Locally](#run-locally)
+  - [Pre-requisites](#pre-requisites)
+  - [Set-up](#set-up)
+  - [Build and Run](#build-and-run)
+  - [Common Issues](#common-issues)
+- [Back-End (Kotlin)](#back-end-kotlin)
+  - [Gradle Modules](#gradle-modules)
+  - [Libraries](#libraries)
+  - [Libraries Usage](#libraries-usage)
+- [Front-End](#front-end)
+  - [HTML](#html)
+  - [JavaScript](#javascript)
+  - [JavaScript Libraries](#javascript-libraries)
+  - [Minification](#minification)
+
 # About
 
 [elephantchess.io](https://elephantchess.io) is a web application to play and
@@ -12,8 +35,6 @@ The releases and tags are only ever used to version the libraries (see below), i
 the changes to the webapp.
 
 We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
-
-[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml) [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
 
 ## Features
 
