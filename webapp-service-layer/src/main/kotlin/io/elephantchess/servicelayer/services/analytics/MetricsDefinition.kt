@@ -23,11 +23,32 @@ val allMetrics: List<Metric> by lazy {
             USER.CREATION,
             USER.USER_TYPE.eq(UserType.AUTHENTICATED)
         ),
-        DateTimeCountMetric(
+        CompositeSumMetric(
             "new guests",
-            USER,
-            USER.CREATION,
-            isLongLivedGuest
+            DateTimeCountMetric(
+                "new guests",
+                USER,
+                USER.CREATION,
+                isLongLivedGuest
+            ),
+            listOf(
+                DaySumMetric(
+                    "archived new guests",
+                    ARCHIVED_GUEST_DAILY,
+                    ARCHIVED_GUEST_DAILY.DAY,
+                    ARCHIVED_GUEST_DAILY.GUESTS_UNDER_5MIN
+                        .plus(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_15MIN)
+                        .plus(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN)
+                        .plus(ARCHIVED_GUEST_DAILY.GUESTS_OTHER)
+                )
+            )
+        ),
+        DaySumMetric(
+            "archived guests",
+            ARCHIVED_GUEST_DAILY,
+            ARCHIVED_GUEST_DAILY.DAY,
+            ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN
+                .plus(ARCHIVED_GUEST_DAILY.GUESTS_OTHER)
         ),
         TotalPuzzleMetric(),
         DateTimeCountMetric(
