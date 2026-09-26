@@ -2710,4 +2710,35 @@
             <column name="exception_trace" type="text"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0110" author="benckx">
+        <comment>Tables holding archived metrics for deleted guest users, aggregated by day</comment>
+        <createTable tableName="archived_page_view_daily">
+            <column name="day" type="date">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="archived_guest_daily">
+            <column name="day" type="date">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="guests_under_1min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_under_5min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_under_15min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_under_30min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_other" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

@@ -23,11 +23,38 @@ val allMetrics: List<Metric> by lazy {
             USER.CREATION,
             USER.USER_TYPE.eq(UserType.AUTHENTICATED)
         ),
-        DateTimeCountMetric(
+        CompositeSumMetric(
             "new guests",
-            USER,
-            USER.CREATION,
-            isLongLivedGuest
+            DateTimeCountMetric(
+                "new guests",
+                USER,
+                USER.CREATION,
+                isLongLivedGuest
+            ),
+            listOf(
+                // archived guests with a lifespan >= 1 min, mirroring [isLongLivedGuest]. The
+                // GUESTS_UNDER_1MIN bucket is deliberately excluded: sub-minute guests are scrapers that
+                // were never counted as "new guests" while live either (see MIN_GENUINE_GUEST_LIFESPAN_SECONDS).
+                DaySumMetric(
+                    "archived new guests",
+                    ARCHIVED_GUEST_DAILY,
+                    ARCHIVED_GUEST_DAILY.DAY,
+                    ARCHIVED_GUEST_DAILY.GUESTS_UNDER_5MIN
+                        .plus(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_15MIN)
+                        .plus(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN)
+                        .plus(ARCHIVED_GUEST_DAILY.GUESTS_OTHER)
+                )
+            )
+        ),
+        DaySumMetric(
+            "archived guests",
+            ARCHIVED_GUEST_DAILY,
+            ARCHIVED_GUEST_DAILY.DAY,
+            // "only count > 15 min" (issue #858): the buckets are lifespan ranges, so >15 min is the
+            // GUESTS_UNDER_30MIN bucket (15-30 min) plus GUESTS_OTHER (>= 30 min). GUESTS_UNDER_15MIN
+            // (5-15 min) is intentionally excluded because those guests stayed less than 15 min.
+            ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN
+                .plus(ARCHIVED_GUEST_DAILY.GUESTS_OTHER)
         ),
         TotalPuzzleMetric(),
         DateTimeCountMetric(

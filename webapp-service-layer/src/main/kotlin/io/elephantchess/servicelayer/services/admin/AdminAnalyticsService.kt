@@ -6,6 +6,7 @@ import io.elephantchess.db.model.MonthlyValueRecord
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
 import io.elephantchess.db.services.AnalysisDaoService
+import io.elephantchess.db.services.ArchivedGuestDaoService
 import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserStatsDaoService
@@ -27,6 +28,7 @@ import java.time.YearMonth
 
 class AdminAnalyticsService(
     private val analysisDaoService: AnalysisDaoService,
+    private val archivedGuestDaoService: ArchivedGuestDaoService,
     private val userStatsDaoService: UserStatsDaoService,
     private val pageViewEventDaoService: PageViewEventDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
@@ -319,10 +321,18 @@ class AdminAnalyticsService(
             excludedUserIds = excludedUserIds
         )
 
-        val entries = records.map { record ->
+        val archivedRecords = archivedGuestDaoService.fetchArchivedPageViewsByDay(days = days)
+
+        // guests are archived into a disjoint set of users, so per-day counts can simply be summed
+        val pageViewsByDay = sortedMapOf<LocalDate, Long>()
+        (records + archivedRecords).forEach { record ->
+            pageViewsByDay.merge(record.day, record.value.toLong(), Long::plus)
+        }
+
+        val entries = pageViewsByDay.map { (day, pageViews) ->
             DailyPageViewsResponse.Entry(
-                day = record.day.toString(),
-                pageViews = record.value.toInt()
+                day = day.toString(),
+                pageViews = pageViews.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
             )
         }
 
