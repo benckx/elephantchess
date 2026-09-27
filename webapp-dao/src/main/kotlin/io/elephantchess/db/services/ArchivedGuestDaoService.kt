@@ -23,16 +23,16 @@ import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitRecords
+import io.elephantchess.db.utils.currentTimestamp
 import io.elephantchess.db.utils.diffInSeconds
 import io.elephantchess.db.utils.isBefore
+import io.elephantchess.db.utils.localDateValue
 import io.elephantchess.db.utils.yearMonthOfDay
 import io.elephantchess.model.UserType
 import org.jooq.Condition
 import org.jooq.DSLContext
-import org.jooq.Field
 import org.jooq.Select
 import org.jooq.impl.DSL
-import org.jooq.impl.SQLDataType
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDate
 import kotlin.time.Clock
@@ -173,7 +173,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
     }
 
     private suspend fun archiveGuestCounts(transactional: DSLContext, guestIds: List<String>) {
-        val creationDay = dayExpr(USER.CREATION)
+        val creationDay = USER.CREATION.localDateValue()
         val lifespan = diffInSeconds(USER.LAST_ONLINE, USER.CREATION)
 
         fun bucket(condition: Condition) = DSL.count().filterWhere(condition)
@@ -223,12 +223,12 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
                 ARCHIVED_GUEST_DAILY.GUESTS_OTHER,
                 ARCHIVED_GUEST_DAILY.GUESTS_OTHER.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.GUESTS_OTHER)),
             )
-            .set(ARCHIVED_GUEST_DAILY.UPDATED_AT, nowExpr(ARCHIVED_GUEST_DAILY.UPDATED_AT))
+            .set(ARCHIVED_GUEST_DAILY.UPDATED_AT, currentTimestamp(ARCHIVED_GUEST_DAILY.UPDATED_AT))
             .awaitExecute()
     }
 
     private suspend fun archivePageViews(transactional: DSLContext, guestIds: List<String>) {
-        val eventDay = dayExpr(PAGE_VIEW_EVENT.EVENT_TIME)
+        val eventDay = PAGE_VIEW_EVENT.EVENT_TIME.localDateValue()
         // truncate to the archive column width so overly long paths (long query strings) never overflow;
         // inline the bounds so the SELECT and GROUP BY expressions render identically for Postgres
         val url = DSL.substring(PAGE_VIEW_EVENT.EVENT_PATH, DSL.inline(1), DSL.inline(URL_MAX_LENGTH))
@@ -263,7 +263,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
      * primary key: guest-count columns default to 0 for days that only carry searches, and vice versa.
      */
     private suspend fun archiveSearchQueries(transactional: DSLContext, guestIds: List<String>) {
-        val queryDay = dayExpr(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME)
+        val queryDay = REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME.localDateValue()
         val searchCount = DSL.count()
 
         transactional
@@ -285,7 +285,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
                 ARCHIVED_GUEST_DAILY.DELETED_SEARCHES,
                 ARCHIVED_GUEST_DAILY.DELETED_SEARCHES.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.DELETED_SEARCHES)),
             )
-            .set(ARCHIVED_GUEST_DAILY.UPDATED_AT, nowExpr(ARCHIVED_GUEST_DAILY.UPDATED_AT))
+            .set(ARCHIVED_GUEST_DAILY.UPDATED_AT, currentTimestamp(ARCHIVED_GUEST_DAILY.UPDATED_AT))
             .awaitExecute()
     }
 
@@ -410,21 +410,6 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
 
         // matches the archived_page_view_daily.url column width
         const val URL_MAX_LENGTH = 2048
-
-        /**
-         * The UTC calendar day of an instant, as a genuine `date` SQL expression (so it can be inserted
-         * into a `date` column), while matching the `to_char` day bucketing used by the live metrics.
-         */
-        fun dayExpr(field: Field<Instant>): Field<LocalDate> =
-            DSL.field("cast(to_char({0}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE, field)
-
-        /**
-         * The current transaction timestamp rendered for [target], reusing that column's data type so
-         * the `timestamptz`/[Instant] forced-type converter is applied when assigning `updated_at` on
-         * upsert conflicts.
-         */
-        fun <T> nowExpr(target: Field<T>): Field<T> =
-            DSL.field("current_timestamp", target.dataType)
     }
 
 }

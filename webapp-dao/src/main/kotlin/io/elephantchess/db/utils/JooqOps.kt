@@ -4,6 +4,7 @@ import io.elephantchess.utils.TryEither
 import kotlinx.coroutines.reactive.awaitSingle
 import org.jooq.*
 import org.jooq.impl.DSL
+import org.jooq.impl.SQLDataType
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.reactivestreams.Publisher
 import reactor.core.publisher.Flux
@@ -75,6 +76,20 @@ fun Field<Instant>.localDate(alias: String? = "day"): Field<LocalDate> {
         base
     }
 }
+
+/**
+ * The UTC calendar day of an instant, as a genuine `date` SQL expression (so it can be inserted into a
+ * `date` column), while matching the `to_char` day bucketing used by [localDate].
+ */
+fun Field<Instant>.localDateValue(): Field<LocalDate> =
+    DSL.field("cast(to_char({0}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE, this)
+
+/**
+ * The current transaction timestamp rendered for [target], reusing that column's data type so the
+ * `timestamptz`/[Instant] forced-type converter is applied when assigning it on upsert conflicts.
+ */
+fun <T> currentTimestamp(target: Field<T>): Field<T> =
+    DSL.field("current_timestamp", target.dataType)
 
 fun Field<Instant>.yearMonth(alias: String? = "month"): Field<YearMonth> {
     val base = DSL
