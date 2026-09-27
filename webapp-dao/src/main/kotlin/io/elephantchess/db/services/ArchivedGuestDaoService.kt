@@ -297,11 +297,14 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             .and(USER.CREATION.lessThan(cutoff))
             .and(lastActivity.lessThan(cutoff))
             .andNotExists(
-                DSL.selectOne().from(GAME).where(
-                    GAME.INVITER.eq(USER.ID)
-                        .or(GAME.INVITEE.eq(USER.ID))
-                        .or(GAME.DRAW_PROPOSITION_USER.eq(USER.ID))
-                )
+                DSL
+                    .selectOne()
+                    .from(GAME)
+                    .where(
+                        GAME.INVITER.eq(USER.ID)
+                            .or(GAME.INVITEE.eq(USER.ID))
+                            .or(GAME.DRAW_PROPOSITION_USER.eq(USER.ID))
+                    )
             )
             .andNotExists(
                 DSL
