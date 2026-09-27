@@ -31,7 +31,7 @@ class ArchiveOldGuestsBatch(
                 batchSize = CHUNK_SIZE,
             )
 
-            logger.info { "archive result: $result" }
+            logger.info { "iteration result: $result" }
 
             totalArchived += result.archivedGuests
             iterations++
@@ -42,11 +42,12 @@ class ArchiveOldGuestsBatch(
         }
 
         if (totalArchived > 0) {
-            logger.info { "archived and deleted $totalArchived old guest users" }
+            logger.info { "total archived $totalArchived" }
         }
     }
 
     private companion object {
+        // 25_000
         const val CHUNK_SIZE = 500
         const val MAX_CHUNKS_PER_RUN = 50
     }
