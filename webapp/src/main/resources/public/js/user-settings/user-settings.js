@@ -33,6 +33,8 @@ class UserSettingsPage extends BasePage {
     #descriptionField = document.getElementById('description');
     #countryField = document.getElementById('countries');
     #descriptionCharacterCounter = document.getElementById('description-character-counter');
+    #showPvpGamesCheckbox = document.getElementById('show-pvp-games-on-profile');
+    #showPvbGamesCheckbox = document.getElementById('show-pvb-games-on-profile');
 
     // email notifications section
     #notificationSettingsWidget = new NotificationSettingsWidget();
@@ -74,6 +76,8 @@ class UserSettingsPage extends BasePage {
         getAndHandle(PROFILE_URL, json => {
             this.#descriptionField.value = json.description ?? '';
             this.#updateDescriptionCharacterCounter();
+            this.#showPvpGamesCheckbox.checked = json.showPvpGamesOnProfile !== false;
+            this.#showPvbGamesCheckbox.checked = json.showPvbGamesOnProfile !== false;
             if (json.country != null) {
                 let countryName = getCountryName(json.country)
                 if (countryName != null) {
@@ -97,7 +101,12 @@ class UserSettingsPage extends BasePage {
         if (country === 'none') {
             country = '';
         }
-        let body = {'description': description, 'country': country};
+        let body = {
+            'description': description,
+            'country': country,
+            'showPvpGamesOnProfile': this.#showPvpGamesCheckbox.checked,
+            'showPvbGamesOnProfile': this.#showPvbGamesCheckbox.checked,
+        };
         postAndHandle(PROFILE_URL, body, () => {
             UI.pushInfoNotification('Profile settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
         });

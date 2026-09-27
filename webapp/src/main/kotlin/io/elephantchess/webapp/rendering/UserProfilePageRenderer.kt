@@ -37,6 +37,8 @@ class UserProfilePageRenderer(
                 noIndexMeta(description),
                 SimpleValueTagResolver("user_id", userProfile.userId),
                 SimpleValueTagResolver("username", userProfile.username),
+                SimpleValueTagResolver("show_pvp_games", userProfile.showPvpGamesOnProfile.toString()),
+                SimpleValueTagResolver("show_pvb_games", userProfile.showPvbGamesOnProfile.toString()),
                 descriptionMeta(username, description),
                 flagPanelTagResolver(countryCode),
                 descriptionDivTagResolver(username, description),
@@ -157,6 +159,13 @@ class UserProfilePageRenderer(
     suspend fun renderUserBrowsePvpGames(username: String): String {
         return htmlRenderer.renderHtml(
             "/templates/user_browse_pvp_games.html",
+            specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
+        )
+    }
+
+    suspend fun renderUserBrowsePvbGames(username: String): String {
+        return htmlRenderer.renderHtml(
+            "/templates/user_browse_pvb_games.html",
             specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
         )
     }

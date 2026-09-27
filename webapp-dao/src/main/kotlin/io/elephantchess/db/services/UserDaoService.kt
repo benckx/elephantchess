@@ -16,7 +16,6 @@ import io.elephantchess.utils.safeRandomAlphaNumericString
 import io.github.oshai.kotlinlogging.KLogger
 import io.elephantchess.xiangqi.Variant
 import org.jooq.DSLContext
-import org.jooq.Record2
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -80,25 +79,34 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         return id!!
     }
 
-    suspend fun fetchProfileSettings(userId: String): Record2<String, String>? {
+    suspend fun fetchProfileSettings(userId: String): User? {
         return dslContext
             .select(
                 USER.DESCRIPTION,
-                USER.COUNTRY
+                USER.COUNTRY,
+                USER.SHOW_PVP_GAMES_ON_PROFILE,
+                USER.SHOW_PVB_GAMES_ON_PROFILE
             )
             .from(USER)
             .where(USER.ID.eq(userId))
-            .awaitRecords()
-            .firstOrNull()
+            .awaitSingleMappedRecord<User>()
     }
 
-    suspend fun updateProfileSettings(userId: String, description: String, country: String?) {
+    suspend fun updateProfileSettings(
+        userId: String,
+        description: String,
+        country: String?,
+        showPvpGamesOnProfile: Boolean,
+        showPvbGamesOnProfile: Boolean,
+    ) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
                 .update(USER.fixed())
                 .set(USER.DESCRIPTION.fixed(), description)
                 .set(USER.COUNTRY.fixed(), country)
+                .set(USER.SHOW_PVP_GAMES_ON_PROFILE.fixed(), showPvpGamesOnProfile)
+                .set(USER.SHOW_PVB_GAMES_ON_PROFILE.fixed(), showPvbGamesOnProfile)
                 .set(USER.LAST_PROFILE_UPDATE.fixed(), Clock.System.now())
                 .where(USER.ID.fixed().eq(userId))
                 .awaitExecute()

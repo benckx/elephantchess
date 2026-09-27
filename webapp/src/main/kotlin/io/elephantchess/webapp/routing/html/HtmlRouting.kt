@@ -203,6 +203,13 @@ private fun Route.userProfile() {
         userService.validateUserExists(username)
         call.respondHtml(renderer.renderUserBrowsePvpGames(username))
     }
+    get("/@/{username}/browse-pvb-games") {
+        val username = call.parameters["username"]
+            ?: throw BadRequestException("username not provided")
+
+        userService.validateUserExists(username)
+        call.respondHtml(renderer.renderUserBrowsePvbGames(username))
+    }
 }
 
 private fun Route.aboutPages() {

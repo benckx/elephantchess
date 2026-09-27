@@ -6,4 +6,6 @@ data class UserProfile(
     val country: String?,
     val profileDescription: String?,
     val puzzleRating: Int,
+    val showPvpGamesOnProfile: Boolean = true,
+    val showPvbGamesOnProfile: Boolean = true,
 )

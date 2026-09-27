@@ -315,6 +315,31 @@ class UserServiceTest : ServiceTest() {
     }
 
     @Test
+    fun `profile game visibility preferences default to true and can be toggled`() = runTest {
+        val (_, userId) = signUpTestUser()
+
+        // Defaults: both preferences enabled.
+        val defaults = userService.fetchProfileSettings(userId)
+        assertTrue(defaults.showPvpGamesOnProfile)
+        assertTrue(defaults.showPvbGamesOnProfile)
+
+        // Disabling PvB games (and keeping PvP enabled) is persisted round-trip.
+        userService.updateProfileSettings(
+            userId,
+            ProfileSettingsDto(
+                description = "",
+                country = "none",
+                showPvpGamesOnProfile = true,
+                showPvbGamesOnProfile = false,
+            )
+        )
+
+        val updated = userService.fetchProfileSettings(userId)
+        assertTrue(updated.showPvpGamesOnProfile)
+        assertFalse(updated.showPvbGamesOnProfile)
+    }
+
+    @Test
     fun `signUp should generate an email confirmation code and confirmEmail should mark the email as confirmed`() =
         runTest {
             val (_, userId) = signUpTestUser()

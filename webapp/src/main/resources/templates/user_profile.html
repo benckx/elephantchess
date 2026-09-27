@@ -17,7 +17,7 @@
     <script defer src="/js/user-profile/user-profile-dto.js"></script>
     <script defer src="/js/user-profile/user-profile.js"></script>
 </head>
-<body data-user-id="{{user_id}}" data-username="{{username}}">
+<body data-user-id="{{user_id}}" data-username="{{username}}" data-show-pvp-games="{{show_pvp_games}}" data-show-pvb-games="{{show_pvb_games}}">
 {{body_init}}
 <div class="main-container-text">
     <div id="profile-header">
@@ -41,13 +41,27 @@
     <div id="latest-games-section" style="display: none;">
         <h1>Latest Games</h1>
         <hr/>
-        <div id="pvp-games-container">
-            {{game_thumb}}[[iterations:4; {gameType: 'pvp', parentClass: 'pvp-game-thumb'}]]
+        <div id="pvp-games-subsection" style="display: none;">
+            <h2>Player vs Player</h2>
+            <div id="pvp-games-container">
+                {{game_thumb}}[[iterations:4; {gameType: 'pvp', parentClass: 'pvp-game-thumb'}]]
+            </div>
+            <div class="center-content-div browse-more-link-container">
+                <a id="browse-more-pvp-games-link" href="/@/{{username}}/browse-pvp-games" class="browse-more-link">
+                    Browse More Games
+                </a>
+            </div>
         </div>
-        <div class="center-content-div browse-more-link-container">
-            <a id="browse-more-games-link" href="/@/{{username}}/browse-pvp-games" class="browse-more-link">
-                Browse More Games
-            </a>
+        <div id="pvb-games-subsection" style="display: none;">
+            <h2>Player vs Bot</h2>
+            <div id="pvb-games-container">
+                {{game_thumb}}[[iterations:4; {gameType: 'pvb', parentClass: 'pvb-game-thumb'}]]
+            </div>
+            <div class="center-content-div browse-more-link-container">
+                <a id="browse-more-pvb-games-link" href="/@/{{username}}/browse-pvb-games" class="browse-more-link">
+                    Browse More Games
+                </a>
+            </div>
         </div>
     </div>
     <div id="puzzle-stats-section">

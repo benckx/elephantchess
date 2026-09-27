@@ -347,7 +347,9 @@ class UserService(
                 username = user.handle,
                 country = normalizeCountry(user.country),
                 profileDescription = user.description,
-                puzzleRating = user.puzzleRating
+                puzzleRating = user.puzzleRating,
+                showPvpGamesOnProfile = user.showPvpGamesOnProfile,
+                showPvbGamesOnProfile = user.showPvbGamesOnProfile,
             )
         }
     }
@@ -356,8 +358,10 @@ class UserService(
         val record = userDaoService.fetchProfileSettings(userId)
         if (record != null) {
             return ProfileSettingsDto(
-                description = record.value1().orEmpty(),
-                country = record.value2().orEmpty()
+                description = record.description.orEmpty(),
+                country = record.country.orEmpty(),
+                showPvpGamesOnProfile = record.showPvpGamesOnProfile,
+                showPvbGamesOnProfile = record.showPvbGamesOnProfile,
             )
         } else {
             throw NotFoundException("User not found")
@@ -377,7 +381,13 @@ class UserService(
 
         val description = stripHtml(removeSuperfluousLineBreaks(request.description))
         val country = normalizeCountry(request.country)
-        userDaoService.updateProfileSettings(userId, description, country)
+        userDaoService.updateProfileSettings(
+            userId = userId,
+            description = description,
+            country = country,
+            showPvpGamesOnProfile = request.showPvpGamesOnProfile,
+            showPvbGamesOnProfile = request.showPvbGamesOnProfile,
+        )
     }
 
     suspend fun fetchNotificationsSettings(userId: String): NotificationsSettingsDto {
