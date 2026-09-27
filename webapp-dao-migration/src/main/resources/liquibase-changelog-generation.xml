@@ -2491,6 +2491,12 @@
             <column name="page_views" type="int" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
         <createTable tableName="archived_guest_daily">
             <column name="day" type="date">
@@ -2512,6 +2518,12 @@
                 <constraints nullable="false"/>
             </column>
             <column name="deleted_searches" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
         </createTable>
