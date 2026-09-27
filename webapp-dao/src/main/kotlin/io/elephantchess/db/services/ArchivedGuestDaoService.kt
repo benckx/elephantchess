@@ -20,9 +20,11 @@ import io.elephantchess.db.dao.codegen.Tables.UPCOMING_EVENT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.Tables.USER_SESSION
 import io.elephantchess.db.model.analytics.DailyValueRecord
+import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.diffInSeconds
+import io.elephantchess.db.utils.yearMonthOfDay
 import io.elephantchess.model.UserType
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -118,20 +120,52 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
     }
 
     /**
-     * Archived unique daily page views (one per guest per day), aggregated by day, over the last [days].
-     * Mirrors the counting used for live page views so both can be summed.
+     * Archived unique daily page views (one per guest per day per url), aggregated by day, over the last
+     * [days]. Mirrors the counting used for live page views so both can be summed.
      */
     suspend fun fetchArchivedPageViewsByDay(days: Int): List<DailyValueRecord> {
+        val pageViews = DSL.sum(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS).`as`("page_views")
+
         return dslContext
-            .select(ARCHIVED_PAGE_VIEW_DAILY.DAY, ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
+            .select(ARCHIVED_PAGE_VIEW_DAILY.DAY, pageViews)
             .from(ARCHIVED_PAGE_VIEW_DAILY)
             .where(ARCHIVED_PAGE_VIEW_DAILY.DAY.ge(LocalDate.now().minusDays(days.toLong())))
+            .groupBy(ARCHIVED_PAGE_VIEW_DAILY.DAY)
             .orderBy(ARCHIVED_PAGE_VIEW_DAILY.DAY.asc())
             .awaitRecords()
             .map { record ->
                 DailyValueRecord(
                     day = record.get(ARCHIVED_PAGE_VIEW_DAILY.DAY),
-                    value = record.get(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS),
+                    value = record.get(pageViews).toInt(),
+                )
+            }
+    }
+
+    /**
+     * Archived monthly page views for the given [eventPath] (and its tracked query-parameter variants),
+     * bucketed by month and url. Mirrors [io.elephantchess.db.services.PageViewEventDaoService.fetchMonthlyPageViews]
+     * so archived rows can be summed into the live per-url monthly page views.
+     */
+    suspend fun fetchArchivedMonthlyPageViews(eventPath: String): List<MonthlyPageViewRecord> {
+        val month = ARCHIVED_PAGE_VIEW_DAILY.DAY.yearMonthOfDay()
+        val pageViews = DSL.sum(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS).`as`("page_views")
+
+        return dslContext
+            .select(month, ARCHIVED_PAGE_VIEW_DAILY.URL, pageViews)
+            .from(ARCHIVED_PAGE_VIEW_DAILY)
+            .where(
+                ARCHIVED_PAGE_VIEW_DAILY.URL.eq(eventPath)
+                    .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?medium=%"))
+                    .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?gad_source=1%"))
+                    .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?fbclid=%"))
+            )
+            .groupBy(month, ARCHIVED_PAGE_VIEW_DAILY.URL)
+            .awaitRecords()
+            .map { record ->
+                MonthlyPageViewRecord(
+                    yearMonth = record.get(month),
+                    label = record.get(ARCHIVED_PAGE_VIEW_DAILY.URL),
+                    uniquePageViews = record.get(pageViews).toInt(),
                 )
             }
     }
@@ -192,22 +226,26 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
 
     private suspend fun archivePageViews(transactional: DSLContext, guestIds: List<String>) {
         val eventDay = dayExpr(PAGE_VIEW_EVENT.EVENT_TIME)
+        // truncate to the archive column width so overly long paths (long query strings) never overflow;
+        // inline the bounds so the SELECT and GROUP BY expressions render identically for Postgres
+        val url = DSL.substring(PAGE_VIEW_EVENT.EVENT_PATH, DSL.inline(1), DSL.inline(URL_MAX_LENGTH))
         val uniqueGuests = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID)
 
         transactional
             .insertInto(
                 ARCHIVED_PAGE_VIEW_DAILY,
                 ARCHIVED_PAGE_VIEW_DAILY.DAY,
+                ARCHIVED_PAGE_VIEW_DAILY.URL,
                 ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS,
             )
             .select(
                 transactional
-                    .select(eventDay, uniqueGuests)
+                    .select(eventDay, url, uniqueGuests)
                     .from(PAGE_VIEW_EVENT)
                     .where(PAGE_VIEW_EVENT.USER_ID.`in`(guestIds))
-                    .groupBy(eventDay)
+                    .groupBy(eventDay, url)
             )
-            .onConflict(ARCHIVED_PAGE_VIEW_DAILY.DAY)
+            .onConflict(ARCHIVED_PAGE_VIEW_DAILY.DAY, ARCHIVED_PAGE_VIEW_DAILY.URL)
             .doUpdate()
             .set(
                 ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS,
@@ -306,6 +344,9 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
         const val LIFESPAN_5_MIN = 5 * 60
         const val LIFESPAN_15_MIN = 15 * 60
         const val LIFESPAN_30_MIN = 30 * 60
+
+        // matches the archived_page_view_daily.url column width
+        const val URL_MAX_LENGTH = 2048
 
         /**
          * The UTC calendar day of an instant, as a genuine `date` SQL expression (so it can be inserted

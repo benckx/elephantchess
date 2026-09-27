@@ -281,7 +281,8 @@ class AdminAnalyticsService(
 
     suspend fun fetchPageViewStatsByEventPath(eventPath: String): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyPageViews(eventPath, excludedUserIds)
-        return mapPageViewRecordsToMultipleTimeseries(records)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedMonthlyPageViews(eventPath)
+        return mapPageViewRecordsToMultipleTimeseries(mergeMonthlyPageViews(records, archivedRecords))
     }
 
     suspend fun fetchPageViewStatsForDatabaseGames(): MultipleTimeSeriesResponse {
@@ -433,6 +434,29 @@ class AdminAnalyticsService(
             percentageOver3LinkJoinSource = linkJoinSourcePercentageValues,
             joinSourceBreakdown = joinSourceSeries
         )
+    }
+
+    /**
+     * Merges live and archived monthly page-view records. Live guests and archived (deleted) guests are
+     * disjoint sets, so counts for the same month and url are summed.
+     */
+    private fun mergeMonthlyPageViews(
+        live: List<MonthlyPageViewRecord>,
+        archived: List<MonthlyPageViewRecord>,
+    ): List<MonthlyPageViewRecord> {
+        if (archived.isEmpty()) {
+            return live
+        }
+
+        return (live + archived)
+            .groupBy { it.yearMonth to it.label }
+            .map { (key, records) ->
+                MonthlyPageViewRecord(
+                    yearMonth = key.first,
+                    label = key.second,
+                    uniquePageViews = records.sumOf { it.uniquePageViews },
+                )
+            }
     }
 
     private fun mapPageViewRecordsToMultipleTimeseries(records: List<MonthlyPageViewRecord>): MultipleTimeSeriesResponse {

@@ -2485,6 +2485,9 @@
             <column name="day" type="date">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
+            <column name="url" type="varchar(2048)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
             <column name="page_views" type="int" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>

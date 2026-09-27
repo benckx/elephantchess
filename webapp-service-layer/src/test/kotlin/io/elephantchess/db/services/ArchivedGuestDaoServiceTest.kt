@@ -114,6 +114,36 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
         assertEquals(0, newGuests)
     }
 
+    @Test
+    fun `archives page views per url and feeds monthly page views by url`() = runTest {
+        val creation = instantOfUtc(2021, 7, 12, 12, 0, 0)
+        val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+
+        // two distinct urls on the same day, "/database" viewed on two days
+        insertPageView(guestId, instantOfUtc(2021, 7, 12, 12, 1, 0), eventPath = "/database")
+        insertPageView(guestId, instantOfUtc(2021, 7, 13, 9, 0, 0), eventPath = "/database")
+        insertPageView(guestId, instantOfUtc(2021, 7, 12, 12, 5, 0), eventPath = "/puzzles")
+
+        archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
+
+        // per-url rows are stored distinctly
+        assertEquals(1, archivedPageViews(LocalDate.of(2021, 7, 12), "/database"))
+        assertEquals(1, archivedPageViews(LocalDate.of(2021, 7, 12), "/puzzles"))
+        assertEquals(1, archivedPageViews(LocalDate.of(2021, 7, 13), "/database"))
+
+        // the day-level total sums across urls (2 urls on 2021-07-12)
+        assertEquals(2, archivedPageViews(LocalDate.of(2021, 7, 12)))
+
+        // monthly-by-url aggregates the two "/database" days into one month
+        val databaseMonthly = archivedGuestDaoService.fetchArchivedMonthlyPageViews("/database")
+        assertEquals(1, databaseMonthly.size)
+        assertEquals(2, databaseMonthly.first().uniquePageViews)
+        assertEquals("/database", databaseMonthly.first().label)
+
+        val puzzlesMonthly = archivedGuestDaoService.fetchArchivedMonthlyPageViews("/puzzles")
+        assertEquals(1, puzzlesMonthly.first().uniquePageViews)
+    }
+
     private suspend fun metricValueForYear(metricName: String, year: Int): Int {
         val metric = allMetrics.first { it.name == metricName }
         return metric.countByYear(dslContext)
@@ -134,13 +164,13 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
         return guestId
     }
 
-    private suspend fun insertPageView(userId: String, eventTime: Instant) {
+    private suspend fun insertPageView(userId: String, eventTime: Instant, eventPath: String = "/") {
         dslContext
             .insertInto(PAGE_VIEW_EVENT)
             .set(PAGE_VIEW_EVENT.EVENT_ID, insecure().nextAlphanumeric(12))
             .set(PAGE_VIEW_EVENT.USER_ID, userId)
             .set(PAGE_VIEW_EVENT.EVENT_TIME, eventTime)
-            .set(PAGE_VIEW_EVENT.EVENT_PATH, "/")
+            .set(PAGE_VIEW_EVENT.EVENT_PATH, eventPath)
             .awaitExecute()
     }
 
@@ -187,7 +217,13 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
             .awaitSingleValue<Int>() ?: 0
 
     private suspend fun archivedPageViews(day: LocalDate): Int =
+        dslContext.select(org.jooq.impl.DSL.sum(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS))
+            .from(ARCHIVED_PAGE_VIEW_DAILY)
+            .where(ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)).awaitSingleValue<java.math.BigDecimal>()?.toInt() ?: 0
+
+    private suspend fun archivedPageViews(day: LocalDate, url: String): Int =
         dslContext.select(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS).from(ARCHIVED_PAGE_VIEW_DAILY)
-            .where(ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)).awaitSingleValue<Int>() ?: 0
+            .where(ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day).and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url)))
+            .awaitSingleValue<Int>() ?: 0
 
 }
