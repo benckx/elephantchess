@@ -24,6 +24,7 @@ import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.diffInSeconds
+import io.elephantchess.db.utils.isBefore
 import io.elephantchess.db.utils.yearMonthOfDay
 import io.elephantchess.model.UserType
 import org.jooq.Condition
@@ -294,11 +295,8 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
      * queries and sessions).
      */
     private fun archivableCondition(cutoff: Instant): Condition {
-        val lastActivity = DSL.coalesce(USER.LAST_ONLINE, USER.CREATION)
-
         return USER.USER_TYPE.eq(UserType.GUEST)
-            .and(USER.CREATION.lessThan(cutoff))
-            .and(lastActivity.lessThan(cutoff))
+            .and(USER.LAST_ONLINE.isBefore(cutoff))
             .andNotExists(gameExists())
             .andNotExists(botGameExists())
             .andNotExists(puzzleResultExists())
