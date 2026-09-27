@@ -31,6 +31,8 @@ class ArchiveOldGuestsBatch(
                 batchSize = CHUNK_SIZE,
             )
 
+            logger.info { "archive result: $result" }
+
             totalArchived += result.archivedGuests
             iterations++
 
@@ -40,7 +42,7 @@ class ArchiveOldGuestsBatch(
         }
 
         if (totalArchived > 0) {
-            logger.info { "Archived and deleted $totalArchived old guest users" }
+            logger.info { "archived and deleted $totalArchived old guest users" }
         }
     }
 
