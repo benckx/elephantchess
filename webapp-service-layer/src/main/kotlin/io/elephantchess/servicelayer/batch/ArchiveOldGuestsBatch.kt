@@ -19,7 +19,7 @@ class ArchiveOldGuestsBatch(
     override val logger: KLogger,
 ) : SinglePodBatch {
 
-    override val podNumber: Int = 0
+    override val podNumber: Int = 1
 
     override suspend fun run() {
         var totalArchived = 0
@@ -47,9 +47,9 @@ class ArchiveOldGuestsBatch(
     }
 
     private companion object {
-        // 25_000
+        // 10_000
         const val CHUNK_SIZE = 500
-        const val MAX_CHUNKS_PER_RUN = 50
+        const val MAX_CHUNKS_PER_RUN = 20
     }
 
 }
