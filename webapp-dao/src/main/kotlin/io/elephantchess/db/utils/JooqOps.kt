@@ -13,20 +13,6 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-/**
- * Workaround for insert
- */
-fun <R : Record> Table<R>.fixed(): Table<Record> {
-    return DSL.table("public.${name.lowercase()}")
-}
-
-/**
- * Workaround for inserts and updates
- */
-fun <T : Any> Field<T>.fixed(): Field<Any> {
-    return DSL.field(DSL.quotedName(name.lowercase()))
-}
-
 fun Field<String>.eqIgnoreCaseTrimmed(value: String): Condition =
     DSL.trim(DSL.lower(this)).eq(value.trim().lowercase())
 

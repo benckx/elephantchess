@@ -308,9 +308,9 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             DSL
                 .using(cfg)
                 .update(BOT_GAME)
-                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX.fixed(), 1)
-                .set(BOT_GAME.CURRENT_FEN.fixed(), newFen)
-                .set(BOT_GAME.LAST_UPDATED.fixed(), now)
+                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX, 1)
+                .set(BOT_GAME.CURRENT_FEN, newFen)
+                .set(BOT_GAME.LAST_UPDATED, now)
                 .where(BOT_GAME.ID.eq(gameId))
                 .awaitExecute()
 
@@ -389,16 +389,16 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                         var update =
                             transactional
                                 .update(BOT_GAME)
-                                .set(BOT_GAME.CURRENT_FEN.fixed(), playMoveResult.newFen)
-                                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX.fixed(), newPosition)
-                                .set(BOT_GAME.LAST_UPDATED.fixed(), afterCallbackTime)
+                                .set(BOT_GAME.CURRENT_FEN, playMoveResult.newFen)
+                                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX, newPosition)
+                                .set(BOT_GAME.LAST_UPDATED, afterCallbackTime)
 
                         playMoveResult.gameEventType?.let { gameEventType ->
-                            update = update.set(BOT_GAME.GAME_STATUS.fixed(), gameEventType)
+                            update = update.set(BOT_GAME.GAME_STATUS, gameEventType)
                         }
 
                         playMoveResult.outcome?.let { outcome ->
-                            update = update.set(BOT_GAME.OUTCOME.fixed(), outcome)
+                            update = update.set(BOT_GAME.OUTCOME, outcome)
                         }
 
                         update
@@ -428,12 +428,12 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                 DSL
                     .using(cfg)
                     .update(BOT_GAME)
-                    .set(BOT_GAME.GAME_STATUS.fixed(), status)
-                    .set(BOT_GAME.LAST_UPDATED.fixed(), eventTime)
+                    .set(BOT_GAME.GAME_STATUS, status)
+                    .set(BOT_GAME.LAST_UPDATED, eventTime)
 
             update = when (winnerColor) {
-                Color.RED -> update.set(BOT_GAME.OUTCOME.fixed(), Outcome.RED_WINS)
-                Color.BLACK -> update.set(BOT_GAME.OUTCOME.fixed(), Outcome.BLACK_WINS)
+                Color.RED -> update.set(BOT_GAME.OUTCOME, Outcome.RED_WINS)
+                Color.BLACK -> update.set(BOT_GAME.OUTCOME, Outcome.BLACK_WINS)
                 null -> update
             }
 

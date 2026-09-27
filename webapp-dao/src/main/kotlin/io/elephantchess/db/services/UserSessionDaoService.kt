@@ -56,7 +56,7 @@ class UserSessionDaoService(
                 // update existing
                 transaction
                     .update(USER_SESSION)
-                    .set(USER_SESSION.LAST_UPDATED.fixed(), now)
+                    .set(USER_SESSION.LAST_UPDATED, now)
                     .where(conditions)
                     .awaitExecute()
             } else {
@@ -182,10 +182,10 @@ class UserSessionDaoService(
                 DSL
                     .using(cfg)
                     .update(USER_SESSION)
-                    .set(USER_SESSION.COUNTRY_NAME.fixed(), country)
-                    .set(USER_SESSION.COUNTRY_CODE.fixed(), countryCode)
-                    .set(USER_SESSION.REGION.fixed(), region)
-                    .set(USER_SESSION.CITY.fixed(), city)
+                    .set(USER_SESSION.COUNTRY_NAME, country)
+                    .set(USER_SESSION.COUNTRY_CODE, countryCode)
+                    .set(USER_SESSION.REGION, region)
+                    .set(USER_SESSION.CITY, city)
                     .where(USER_SESSION.USER_ID.eq(userId))
                     .and(USER_SESSION.REMOTE_ADDRESS.eq(remoteAddress))
                     .awaitExecute()

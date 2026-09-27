@@ -83,8 +83,8 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.LAST_PUZZLE_ASSIGNED.fixed(), puzzleId)
+                .update(USER)
+                .set(USER.LAST_PUZZLE_ASSIGNED, puzzleId)
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
@@ -94,8 +94,8 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .setNull(USER.LAST_PUZZLE_ASSIGNED.fixed())
+                .update(USER)
+                .setNull(USER.LAST_PUZZLE_ASSIGNED)
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }

@@ -191,8 +191,8 @@ suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCou
             if (id != null) {
                 transactional
                     .update(PUZZLE_RESULT)
-                    .set(PUZZLE_RESULT.UP_VOTED.fixed(), upVoted)
-                    .where(PUZZLE_RESULT.ID.fixed().eq(id))
+                    .set(PUZZLE_RESULT.UP_VOTED, upVoted)
+                    .where(PUZZLE_RESULT.ID.eq(id))
                     .awaitExecute()
             }
 
@@ -218,16 +218,16 @@ suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCou
 
     private suspend fun updatePuzzleRating(puzzleId: String, rating: Int, context: DSLContext) {
         context
-            .update(PUZZLE.fixed())
-            .set(PUZZLE.RATING.fixed(), rating)
+            .update(PUZZLE)
+            .set(PUZZLE.RATING, rating)
             .where(PUZZLE.ID.eq(puzzleId))
             .awaitExecute()
     }
 
     private suspend fun updateUserRating(userId: String, rating: Int, context: DSLContext) {
         context
-            .update(USER.fixed())
-            .set(USER.PUZZLE_RATING.fixed(), rating)
+            .update(USER)
+            .set(USER.PUZZLE_RATING, rating)
             .where(USER.ID.eq(userId))
             .awaitExecute()
     }
