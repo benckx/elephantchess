@@ -19,6 +19,7 @@ import io.elephantchess.db.dao.codegen.Tables.SEVEN_KINGDOMS_GAME_EVENT
 import io.elephantchess.db.dao.codegen.Tables.UPCOMING_EVENT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.Tables.USER_SESSION
+import io.elephantchess.db.model.ArchiveResult
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
 import io.elephantchess.db.utils.accumulate
@@ -52,17 +53,6 @@ import kotlin.time.Instant
  */
 class ArchivedGuestDaoService(private val dslContext: DSLContext) {
 
-    data class ArchiveResult(
-        val archivedGuests: Int,
-        val deletedPageViews: Int,
-        val deletedSearchQueries: Int,
-        val deletedSessions: Int,
-    ) {
-        companion object {
-            val EMPTY = ArchiveResult(0, 0, 0, 0)
-        }
-    }
-
     /**
      * Archives and deletes at most [batchSize] guests that are older than [maxAge] and inactive for at
      * least [maxAge]. Runs in a single transaction so archiving and deletion are atomic.
@@ -70,9 +60,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
     suspend fun archiveAndDeleteOldGuests(maxAge: Duration, batchSize: Int): ArchiveResult {
         val cutoff = Clock.System.now() - maxAge
 
-        var result = ArchiveResult.EMPTY
-
-        dslContext.transactionCoroutine { cfg ->
+        return dslContext.transactionCoroutine { cfg ->
             val transactional = DSL.using(cfg)
 
             val guestIds = transactional
@@ -84,42 +72,40 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
                 .map { it.get(USER.ID) }
 
             if (guestIds.isEmpty()) {
-                return@transactionCoroutine
+                ArchiveResult(0, 0, 0, 0)
+            } else {
+                archiveGuestCounts(transactional, guestIds)
+                archivePageViews(transactional, guestIds)
+                archiveSearchQueries(transactional, guestIds)
+
+                val deletedPageViews = transactional
+                    .deleteFrom(PAGE_VIEW_EVENT)
+                    .where(PAGE_VIEW_EVENT.USER_ID.`in`(guestIds))
+                    .awaitExecute()
+
+                val deletedSearchQueries = transactional
+                    .deleteFrom(REFERENCE_GAME_SEARCH_QUERY)
+                    .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.`in`(guestIds))
+                    .awaitExecute()
+
+                val deletedSessions = transactional
+                    .deleteFrom(USER_SESSION)
+                    .where(USER_SESSION.USER_ID.`in`(guestIds))
+                    .awaitExecute()
+
+                transactional
+                    .deleteFrom(USER)
+                    .where(USER.ID.`in`(guestIds))
+                    .awaitExecute()
+
+                ArchiveResult(
+                    archivedGuests = guestIds.size,
+                    deletedPageViews = deletedPageViews,
+                    deletedSearchQueries = deletedSearchQueries,
+                    deletedSessions = deletedSessions,
+                )
             }
-
-            archiveGuestCounts(transactional, guestIds)
-            archivePageViews(transactional, guestIds)
-            archiveSearchQueries(transactional, guestIds)
-
-            val deletedPageViews = transactional
-                .deleteFrom(PAGE_VIEW_EVENT)
-                .where(PAGE_VIEW_EVENT.USER_ID.`in`(guestIds))
-                .awaitExecute()
-
-            val deletedSearchQueries = transactional
-                .deleteFrom(REFERENCE_GAME_SEARCH_QUERY)
-                .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.`in`(guestIds))
-                .awaitExecute()
-
-            val deletedSessions = transactional
-                .deleteFrom(USER_SESSION)
-                .where(USER_SESSION.USER_ID.`in`(guestIds))
-                .awaitExecute()
-
-            transactional
-                .deleteFrom(USER)
-                .where(USER.ID.`in`(guestIds))
-                .awaitExecute()
-
-            result = ArchiveResult(
-                archivedGuests = guestIds.size,
-                deletedPageViews = deletedPageViews,
-                deletedSearchQueries = deletedSearchQueries,
-                deletedSessions = deletedSessions,
-            )
         }
-
-        return result
     }
 
     /**
