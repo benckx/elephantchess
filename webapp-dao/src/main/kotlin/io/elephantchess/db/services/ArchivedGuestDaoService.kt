@@ -29,6 +29,7 @@ import io.elephantchess.model.UserType
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Field
+import org.jooq.Select
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -296,94 +297,110 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
         return USER.USER_TYPE.eq(UserType.GUEST)
             .and(USER.CREATION.lessThan(cutoff))
             .and(lastActivity.lessThan(cutoff))
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(GAME)
-                    .where(
-                        GAME.INVITER.eq(USER.ID)
-                            .or(GAME.INVITEE.eq(USER.ID))
-                            .or(GAME.DRAW_PROPOSITION_USER.eq(USER.ID))
-                    )
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(BOT_GAME)
-                    .where(BOT_GAME.USER_ID.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(PUZZLE_RESULT)
-                    .where(PUZZLE_RESULT.USER_ID.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(ANALYSIS)
-                    .where(ANALYSIS.OWNER_USER_ID.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(GAME_STATUS_EVENT)
-                    .where(GAME_STATUS_EVENT.USER_ID.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(GAME_CHAT_MESSAGE)
-                    .where(GAME_CHAT_MESSAGE.AUTHOR.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(DISCORD_GAME_NOTIFICATION)
-                    .where(DISCORD_GAME_NOTIFICATION.USER_ID.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL.selectOne().from(SEVEN_KINGDOMS_GAME).where(
-                    SEVEN_KINGDOMS_GAME.PLAYER_WHITE.eq(USER.ID)
-                        .or(SEVEN_KINGDOMS_GAME.PLAYER_RED.eq(USER.ID))
-                        .or(SEVEN_KINGDOMS_GAME.PLAYER_ORANGE.eq(USER.ID))
-                        .or(SEVEN_KINGDOMS_GAME.PLAYER_BLUE.eq(USER.ID))
-                        .or(SEVEN_KINGDOMS_GAME.PLAYER_GREEN.eq(USER.ID))
-                        .or(SEVEN_KINGDOMS_GAME.PLAYER_PURPLE.eq(USER.ID))
-                        .or(SEVEN_KINGDOMS_GAME.PLAYER_BLACK.eq(USER.ID))
-                )
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(SEVEN_KINGDOMS_GAME_EVENT)
-                    .where(SEVEN_KINGDOMS_GAME_EVENT.USER_ID.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(REFERENCE_PLAYER_PROFILE_EDIT)
-                    .where(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
-                    .where(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(KOFI_EVENT)
-                    .where(KOFI_EVENT.MATCHED_USER_ID.eq(USER.ID))
-            )
-            .andNotExists(
-                DSL
-                    .selectOne()
-                    .from(UPCOMING_EVENT)
-                    .where(UPCOMING_EVENT.CREATED_BY.eq(USER.ID))
-            )
+            .andNotExists(gameExists())
+            .andNotExists(botGameExists())
+            .andNotExists(puzzleResultExists())
+            .andNotExists(analysisExists())
+            .andNotExists(gameStatusEventExists())
+            .andNotExists(gameChatMessageExists())
+            .andNotExists(discordGameNotificationExists())
+            .andNotExists(sevenKingdomsGameExists())
+            .andNotExists(sevenKingdomsGameEventExists())
+            .andNotExists(referencePlayerProfileEditExists())
+            .andNotExists(referencePlayerProfileEditSourceExists())
+            .andNotExists(kofiEventExists())
+            .andNotExists(upcomingEventExists())
     }
+
+    private fun gameExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(GAME)
+            .where(
+                GAME.INVITER.eq(USER.ID)
+                    .or(GAME.INVITEE.eq(USER.ID))
+                    .or(GAME.DRAW_PROPOSITION_USER.eq(USER.ID))
+            )
+
+    private fun botGameExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(BOT_GAME)
+            .where(BOT_GAME.USER_ID.eq(USER.ID))
+
+    private fun puzzleResultExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.USER_ID.eq(USER.ID))
+
+    private fun analysisExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(ANALYSIS)
+            .where(ANALYSIS.OWNER_USER_ID.eq(USER.ID))
+
+    private fun gameStatusEventExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(GAME_STATUS_EVENT)
+            .where(GAME_STATUS_EVENT.USER_ID.eq(USER.ID))
+
+    private fun gameChatMessageExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(GAME_CHAT_MESSAGE)
+            .where(GAME_CHAT_MESSAGE.AUTHOR.eq(USER.ID))
+
+    private fun discordGameNotificationExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(DISCORD_GAME_NOTIFICATION)
+            .where(DISCORD_GAME_NOTIFICATION.USER_ID.eq(USER.ID))
+
+    private fun sevenKingdomsGameExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(SEVEN_KINGDOMS_GAME)
+            .where(
+                SEVEN_KINGDOMS_GAME.PLAYER_WHITE.eq(USER.ID)
+                    .or(SEVEN_KINGDOMS_GAME.PLAYER_RED.eq(USER.ID))
+                    .or(SEVEN_KINGDOMS_GAME.PLAYER_ORANGE.eq(USER.ID))
+                    .or(SEVEN_KINGDOMS_GAME.PLAYER_BLUE.eq(USER.ID))
+                    .or(SEVEN_KINGDOMS_GAME.PLAYER_GREEN.eq(USER.ID))
+                    .or(SEVEN_KINGDOMS_GAME.PLAYER_PURPLE.eq(USER.ID))
+                    .or(SEVEN_KINGDOMS_GAME.PLAYER_BLACK.eq(USER.ID))
+            )
+
+    private fun sevenKingdomsGameEventExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(SEVEN_KINGDOMS_GAME_EVENT)
+            .where(SEVEN_KINGDOMS_GAME_EVENT.USER_ID.eq(USER.ID))
+
+    private fun referencePlayerProfileEditExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(REFERENCE_PLAYER_PROFILE_EDIT)
+            .where(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID.eq(USER.ID))
+
+    private fun referencePlayerProfileEditSourceExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
+            .where(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID.eq(USER.ID))
+
+    private fun kofiEventExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(KOFI_EVENT)
+            .where(KOFI_EVENT.MATCHED_USER_ID.eq(USER.ID))
+
+    private fun upcomingEventExists(): Select<*> =
+        DSL
+            .selectOne()
+            .from(UPCOMING_EVENT)
+            .where(UPCOMING_EVENT.CREATED_BY.eq(USER.ID))
 
     private companion object {
         const val LIFESPAN_1_MIN = 60
