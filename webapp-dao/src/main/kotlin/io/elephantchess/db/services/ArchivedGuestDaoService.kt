@@ -303,13 +303,40 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
                         .or(GAME.DRAW_PROPOSITION_USER.eq(USER.ID))
                 )
             )
-            .andNotExists(DSL.selectOne().from(BOT_GAME).where(BOT_GAME.USER_ID.eq(USER.ID)))
-            .andNotExists(DSL.selectOne().from(PUZZLE_RESULT).where(PUZZLE_RESULT.USER_ID.eq(USER.ID)))
-            .andNotExists(DSL.selectOne().from(ANALYSIS).where(ANALYSIS.OWNER_USER_ID.eq(USER.ID)))
-            .andNotExists(DSL.selectOne().from(GAME_STATUS_EVENT).where(GAME_STATUS_EVENT.USER_ID.eq(USER.ID)))
-            .andNotExists(DSL.selectOne().from(GAME_CHAT_MESSAGE).where(GAME_CHAT_MESSAGE.AUTHOR.eq(USER.ID)))
             .andNotExists(
-                DSL.selectOne().from(DISCORD_GAME_NOTIFICATION)
+                DSL
+                    .selectOne()
+                    .from(BOT_GAME)
+                    .where(BOT_GAME.USER_ID.eq(USER.ID))
+            )
+            .andNotExists(
+                DSL
+                    .selectOne()
+                    .from(PUZZLE_RESULT)
+                    .where(PUZZLE_RESULT.USER_ID.eq(USER.ID))
+            )
+            .andNotExists(
+                DSL
+                    .selectOne()
+                    .from(ANALYSIS)
+                    .where(ANALYSIS.OWNER_USER_ID.eq(USER.ID))
+            )
+            .andNotExists(
+                DSL
+                    .selectOne()
+                    .from(GAME_STATUS_EVENT)
+                    .where(GAME_STATUS_EVENT.USER_ID.eq(USER.ID))
+            )
+            .andNotExists(
+                DSL
+                    .selectOne()
+                    .from(GAME_CHAT_MESSAGE)
+                    .where(GAME_CHAT_MESSAGE.AUTHOR.eq(USER.ID))
+            )
+            .andNotExists(
+                DSL
+                    .selectOne()
+                    .from(DISCORD_GAME_NOTIFICATION)
                     .where(DISCORD_GAME_NOTIFICATION.USER_ID.eq(USER.ID))
             )
             .andNotExists(
@@ -324,19 +351,35 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
                 )
             )
             .andNotExists(
-                DSL.selectOne().from(SEVEN_KINGDOMS_GAME_EVENT)
+                DSL
+                    .selectOne()
+                    .from(SEVEN_KINGDOMS_GAME_EVENT)
                     .where(SEVEN_KINGDOMS_GAME_EVENT.USER_ID.eq(USER.ID))
             )
             .andNotExists(
-                DSL.selectOne().from(REFERENCE_PLAYER_PROFILE_EDIT)
+                DSL
+                    .selectOne()
+                    .from(REFERENCE_PLAYER_PROFILE_EDIT)
                     .where(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID.eq(USER.ID))
             )
             .andNotExists(
-                DSL.selectOne().from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
+                DSL
+                    .selectOne()
+                    .from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
                     .where(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID.eq(USER.ID))
             )
-            .andNotExists(DSL.selectOne().from(KOFI_EVENT).where(KOFI_EVENT.MATCHED_USER_ID.eq(USER.ID)))
-            .andNotExists(DSL.selectOne().from(UPCOMING_EVENT).where(UPCOMING_EVENT.CREATED_BY.eq(USER.ID)))
+            .andNotExists(
+                DSL
+                    .selectOne()
+                    .from(KOFI_EVENT)
+                    .where(KOFI_EVENT.MATCHED_USER_ID.eq(USER.ID))
+            )
+            .andNotExists(
+                DSL
+                    .selectOne()
+                    .from(UPCOMING_EVENT)
+                    .where(UPCOMING_EVENT.CREATED_BY.eq(USER.ID))
+            )
     }
 
     private companion object {
