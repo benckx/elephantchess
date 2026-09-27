@@ -14,5 +14,4 @@ const val MIN_GENUINE_GUEST_LIFESPAN_SECONDS = 60
  * Guests older than this (and inactive for at least as long) that never played a PvP, PvB or puzzle
  * game are archived into aggregated daily tables and then deleted.
  */
-const val ARCHIVE_GUEST_AFTER_DAYS = 90
-
+const val ARCHIVE_GUEST_AFTER_DAYS = 60
