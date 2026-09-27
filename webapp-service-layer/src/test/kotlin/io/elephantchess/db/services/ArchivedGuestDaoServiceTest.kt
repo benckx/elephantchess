@@ -202,28 +202,48 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
     }
 
     private suspend fun userExists(userId: String): Boolean =
-        dslContext.selectCount().from(USER).where(USER.ID.eq(userId)).awaitSingleValue<Int>()!! > 0
+        dslContext
+            .selectCount()
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue<Int>()!! > 0
 
     private suspend fun countPageViews(userId: String): Int =
-        dslContext.selectCount().from(PAGE_VIEW_EVENT).where(PAGE_VIEW_EVENT.USER_ID.eq(userId))
-            .awaitSingleValue<Int>()!!
+        dslContext
+            .selectCount()
+            .from(PAGE_VIEW_EVENT)
+            .where(PAGE_VIEW_EVENT.USER_ID.eq(userId))
+            .awaitSingleValue()!!
 
     private suspend fun countSessions(userId: String): Int =
-        dslContext.selectCount().from(USER_SESSION).where(USER_SESSION.USER_ID.eq(userId))
-            .awaitSingleValue<Int>()!!
+        dslContext
+            .selectCount()
+            .from(USER_SESSION)
+            .where(USER_SESSION.USER_ID.eq(userId))
+            .awaitSingleValue()!!
 
     private suspend fun archivedGuestBucket(day: LocalDate, field: org.jooq.TableField<*, Int>): Int =
-        dslContext.select(field).from(ARCHIVED_GUEST_DAILY).where(ARCHIVED_GUEST_DAILY.DAY.eq(day))
-            .awaitSingleValue<Int>() ?: 0
+        dslContext
+            .select(field)
+            .from(ARCHIVED_GUEST_DAILY)
+            .where(ARCHIVED_GUEST_DAILY.DAY.eq(day))
+            .awaitSingleValue() ?: 0
 
     private suspend fun archivedPageViews(day: LocalDate): Int =
-        dslContext.select(org.jooq.impl.DSL.sum(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS))
+        dslContext
+            .select(org.jooq.impl.DSL.sum(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS))
             .from(ARCHIVED_PAGE_VIEW_DAILY)
-            .where(ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)).awaitSingleValue<java.math.BigDecimal>()?.toInt() ?: 0
+            .where(ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day))
+            .awaitSingleValue<java.math.BigDecimal>()?.toInt() ?: 0
 
     private suspend fun archivedPageViews(day: LocalDate, url: String): Int =
-        dslContext.select(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS).from(ARCHIVED_PAGE_VIEW_DAILY)
-            .where(ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day).and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url)))
-            .awaitSingleValue<Int>() ?: 0
+        dslContext
+            .select(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
+            .from(ARCHIVED_PAGE_VIEW_DAILY)
+            .where(
+                ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)
+                    .and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url))
+            )
+            .awaitSingleValue() ?: 0
 
 }
