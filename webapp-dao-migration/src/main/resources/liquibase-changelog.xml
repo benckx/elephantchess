@@ -2711,6 +2711,16 @@
         </addColumn>
     </changeSet>
     <changeSet id="0110" author="benckx">
+        <sql>
+            CREATE INDEX IF NOT EXISTS user_session_user_id_idx
+            ON user_session (user_id);
+        </sql>
+        <sql>
+            CREATE INDEX IF NOT EXISTS user_session_last_updated_idx
+            ON user_session (last_updated);
+        </sql>
+    </changeSet>
+    <changeSet id="0111" author="benckx">
         <comment>Tables holding archived metrics for deleted guest users, aggregated by day</comment>
         <createTable tableName="archived_page_view_daily">
             <column name="day" type="date">
