@@ -253,7 +253,6 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
                 ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS,
                 ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS.plus(DSL.excluded(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)),
             )
-            .set(ARCHIVED_PAGE_VIEW_DAILY.UPDATED_AT, nowExpr(ARCHIVED_PAGE_VIEW_DAILY.UPDATED_AT))
             .awaitExecute()
     }
 
