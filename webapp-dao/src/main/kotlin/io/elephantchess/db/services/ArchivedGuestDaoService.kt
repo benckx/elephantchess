@@ -43,7 +43,7 @@ import kotlin.time.Instant
  * search queries and sessions). This keeps the deletion free of foreign-key violations.
  *
  * Guests are archived by their creation day, bucketed by lifespan (creation to last activity), while
- * their page views are archived by the day the view happened.
+ * their page views and database search queries are archived by the day they happened.
  */
 class ArchivedGuestDaoService(private val dslContext: DSLContext) {
 
@@ -84,6 +84,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
 
             archiveGuestCounts(transactional, guestIds)
             archivePageViews(transactional, guestIds)
+            archiveSearchQueries(transactional, guestIds)
 
             val deletedPageViews = transactional
                 .deleteFrom(PAGE_VIEW_EVENT)
@@ -211,6 +212,37 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             .set(
                 ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS,
                 ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS.plus(DSL.excluded(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)),
+            )
+            .awaitExecute()
+    }
+
+    /**
+     * Archives the guests' database search queries into [ARCHIVED_GUEST_DAILY], counted by the day the
+     * query happened (matching the live "db searches" metric). Reuses the [ARCHIVED_GUEST_DAILY.DAY]
+     * primary key: guest-count columns default to 0 for days that only carry searches, and vice versa.
+     */
+    private suspend fun archiveSearchQueries(transactional: DSLContext, guestIds: List<String>) {
+        val queryDay = dayExpr(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME)
+        val searchCount = DSL.count()
+
+        transactional
+            .insertInto(
+                ARCHIVED_GUEST_DAILY,
+                ARCHIVED_GUEST_DAILY.DAY,
+                ARCHIVED_GUEST_DAILY.DELETED_SEARCHES,
+            )
+            .select(
+                transactional
+                    .select(queryDay, searchCount)
+                    .from(REFERENCE_GAME_SEARCH_QUERY)
+                    .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.`in`(guestIds))
+                    .groupBy(queryDay)
+            )
+            .onConflict(ARCHIVED_GUEST_DAILY.DAY)
+            .doUpdate()
+            .set(
+                ARCHIVED_GUEST_DAILY.DELETED_SEARCHES,
+                ARCHIVED_GUEST_DAILY.DELETED_SEARCHES.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.DELETED_SEARCHES)),
             )
             .awaitExecute()
     }

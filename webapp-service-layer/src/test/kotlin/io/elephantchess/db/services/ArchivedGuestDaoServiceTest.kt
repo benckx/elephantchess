@@ -4,6 +4,7 @@ import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_GUEST_DAILY
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_PAGE_VIEW_DAILY
 import io.elephantchess.db.dao.codegen.Tables.ANALYSIS
 import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
+import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME_SEARCH_QUERY
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.Tables.USER_SESSION
 import io.elephantchess.db.utils.awaitExecute
@@ -43,6 +44,8 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
         insertPageView(guestId, instantOfUtc(2020, 3, 10, 12, 2, 0))
         insertPageView(guestId, instantOfUtc(2020, 3, 9, 8, 0, 0))
         insertSession(guestId)
+        insertSearchQuery(guestId, instantOfUtc(2020, 3, 10, 12, 3, 0))
+        insertSearchQuery(guestId, instantOfUtc(2020, 3, 10, 12, 4, 0))
 
         val under30MinBefore = archivedGuestBucket(creationDay, ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN)
 
@@ -62,6 +65,9 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
         // two views on 2020-03-10 collapse to one unique daily view; one on 2020-03-09
         assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 10)))
         assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 9)))
+
+        // both searches happened on 2020-03-10 and are archived on that day
+        assertEquals(2, archivedGuestBucket(creationDay, ARCHIVED_GUEST_DAILY.DELETED_SEARCHES))
     }
 
     @Test
@@ -93,18 +99,19 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `archived guests feed the archived guests and new guests metrics`() = runTest {
+    fun `archived guest feeds the archived guests metric`() = runTest {
         val creation = instantOfUtc(2018, 6, 20, 12, 0, 0)
-        // 20 minutes -> counts both as a "new guest" (>= 1 min) and an "archived guest" (>= 15 min)
+        // 20 minutes -> counts as an "archived guest" (>= 15 min)
         createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
 
         archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
 
         val archivedGuests = metricValueForYear("archived guests", 2018)
+        // the guest was deleted, so the live-only "new guests" metric no longer counts it
         val newGuests = metricValueForYear("new guests", 2018)
 
         assertEquals(1, archivedGuests)
-        assertEquals(1, newGuests)
+        assertEquals(0, newGuests)
     }
 
     private suspend fun metricValueForYear(metricName: String, year: Int): Int {
@@ -149,6 +156,18 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
             .set(USER_SESSION.AGENT_CLASS, "test")
             .set(USER_SESSION.CREATED, now)
             .set(USER_SESSION.LAST_UPDATED, now)
+            .awaitExecute()
+    }
+
+    private suspend fun insertSearchQuery(userId: String, queryTime: Instant) {
+        dslContext
+            .insertInto(REFERENCE_GAME_SEARCH_QUERY)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID, insecure().nextAlphanumeric(12))
+            .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID, userId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME, queryTime)
+            .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME, queryTime)
+            .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS, 0)
+            .set(REFERENCE_GAME_SEARCH_QUERY.LIMIT, 10)
             .awaitExecute()
     }
 

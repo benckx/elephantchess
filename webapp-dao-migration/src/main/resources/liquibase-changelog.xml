@@ -2739,6 +2739,9 @@
             <column name="guests_other" type="int" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
+            <column name="deleted_searches" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 </databaseChangeLog>
