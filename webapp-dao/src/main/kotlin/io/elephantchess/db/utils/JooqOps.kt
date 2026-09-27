@@ -159,7 +159,7 @@ suspend fun <T> DSLContext.transactionalContextTry(block: suspend (DSLContext) -
 
 suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleMappedRecord(): T? {
     return Flux
-        .from<Record>(this)
+        .from(this)
         .collectList()
         .awaitSingle()
         .firstOrNull()
@@ -168,7 +168,7 @@ suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleMappedRe
 
 suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitMappedRecords(): List<T> {
     return Flux
-        .from<Record>(this)
+        .from(this)
         .collectList()
         .awaitSingle()
         .map<Record, T> { record -> record.into<T>(T::class.java) }
