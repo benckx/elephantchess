@@ -222,6 +222,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
                 ARCHIVED_GUEST_DAILY.GUESTS_OTHER,
                 ARCHIVED_GUEST_DAILY.GUESTS_OTHER.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.GUESTS_OTHER)),
             )
+            .set(ARCHIVED_GUEST_DAILY.UPDATED_AT, nowExpr(ARCHIVED_GUEST_DAILY.UPDATED_AT))
             .awaitExecute()
     }
 
@@ -283,6 +284,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
                 ARCHIVED_GUEST_DAILY.DELETED_SEARCHES,
                 ARCHIVED_GUEST_DAILY.DELETED_SEARCHES.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.DELETED_SEARCHES)),
             )
+            .set(ARCHIVED_GUEST_DAILY.UPDATED_AT, nowExpr(ARCHIVED_GUEST_DAILY.UPDATED_AT))
             .awaitExecute()
     }
 
@@ -417,6 +419,14 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
          */
         fun dayExpr(field: Field<Instant>): Field<LocalDate> =
             DSL.field("cast(to_char({0}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE, field)
+
+        /**
+         * The current transaction timestamp rendered for [target], reusing that column's data type so
+         * the `timestamptz`/[Instant] forced-type converter is applied when assigning `updated_at` on
+         * upsert conflicts.
+         */
+        fun <T> nowExpr(target: Field<T>): Field<T> =
+            DSL.field("current_timestamp", target.dataType)
     }
 
 }
