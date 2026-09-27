@@ -47,8 +47,8 @@ class ArchiveOldGuestsBatch(
     }
 
     private companion object {
-        const val CHUNK_SIZE = 1_000
-        const val MAX_CHUNKS_PER_RUN = 20
+        const val CHUNK_SIZE = 500
+        const val MAX_CHUNKS_PER_RUN = 50
     }
 
 }
