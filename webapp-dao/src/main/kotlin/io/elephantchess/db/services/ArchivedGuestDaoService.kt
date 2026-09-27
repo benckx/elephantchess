@@ -163,7 +163,8 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
         val creationDay = USER.CREATION.localDate(null)
         val lifespan = diffInSeconds(USER.LAST_ONLINE, USER.CREATION)
 
-        fun bucket(condition: Condition) = DSL.count().filterWhere(condition)
+        fun bucket(condition: Condition) =
+            DSL.count().filterWhere(condition)
 
         val under1min = bucket(lifespan.lt(LIFESPAN_1_MIN))
         val under5min = bucket(lifespan.ge(LIFESPAN_1_MIN).and(lifespan.lt(LIFESPAN_5_MIN)))
@@ -183,7 +184,14 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             )
             .select(
                 transactional
-                    .select(creationDay, under1min, under5min, under15min, under30min, other)
+                    .select(
+                        creationDay,
+                        under1min,
+                        under5min,
+                        under15min,
+                        under30min,
+                        other
+                    )
                     .from(USER)
                     .where(USER.ID.`in`(guestIds))
                     .groupBy(creationDay)
