@@ -65,24 +65,15 @@ fun Field<Instant>.hourOfDay(): Field<Int> {
         .`as`("hour")
 }
 
-fun Field<Instant>.localDate(alias: String? = "day"): Field<LocalDate> {
-    val base = DSL
-        .field("to_char(${this.name}, 'YYYY-MM-DD')")
-        .convertFrom { LocalDate.parse(it.toString()) }
-
-    return if (alias != null) {
-        base.`as`(alias)
-    } else {
-        base
-    }
-}
-
 /**
- * The UTC calendar day of an instant, as a genuine `date` SQL expression (so it can be inserted into a
- * `date` column), while matching the `to_char` day bucketing used by [localDate].
+ * The UTC calendar day of an instant, bucketed via `to_char(..., 'YYYY-MM-DD')` and cast to a genuine
+ * `date` SQL expression (so it can be grouped/selected and also inserted into a `date` column).
+ * When [alias] is non-null the field is aliased (defaulting to `day`).
  */
-fun Field<Instant>.localDateValue(): Field<LocalDate> =
-    DSL.field("cast(to_char({0}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE, this)
+fun Field<Instant>.localDate(alias: String? = "day"): Field<LocalDate> {
+    val base = DSL.field("cast(to_char({0}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE, this)
+    return if (alias != null) base.`as`(alias) else base
+}
 
 /**
  * The current transaction timestamp rendered for [target], reusing that column's data type so the

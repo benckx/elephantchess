@@ -28,7 +28,7 @@ import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.currentTimestamp
 import io.elephantchess.db.utils.diffInSeconds
 import io.elephantchess.db.utils.isBefore
-import io.elephantchess.db.utils.localDateValue
+import io.elephantchess.db.utils.localDate
 import io.elephantchess.db.utils.yearMonthOfDay
 import io.elephantchess.model.UserType
 import org.jooq.Condition
@@ -160,7 +160,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
     }
 
     private suspend fun archiveGuestCounts(transactional: DSLContext, guestIds: List<String>) {
-        val creationDay = USER.CREATION.localDateValue()
+        val creationDay = USER.CREATION.localDate(null)
         val lifespan = diffInSeconds(USER.LAST_ONLINE, USER.CREATION)
 
         fun bucket(condition: Condition) = DSL.count().filterWhere(condition)
@@ -200,7 +200,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
     }
 
     private suspend fun archivePageViews(transactional: DSLContext, guestIds: List<String>) {
-        val eventDay = PAGE_VIEW_EVENT.EVENT_TIME.localDateValue()
+        val eventDay = PAGE_VIEW_EVENT.EVENT_TIME.localDate(null)
         // truncate to the archive column width so overly long paths (long query strings) never overflow;
         // inline the bounds so the SELECT and GROUP BY expressions render identically for Postgres
         val url = DSL.substring(PAGE_VIEW_EVENT.EVENT_PATH, DSL.inline(1), DSL.inline(URL_MAX_LENGTH))
@@ -232,7 +232,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
      * primary key: guest-count columns default to 0 for days that only carry searches, and vice versa.
      */
     private suspend fun archiveSearchQueries(transactional: DSLContext, guestIds: List<String>) {
-        val queryDay = REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME.localDateValue()
+        val queryDay = REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME.localDate(null)
         val searchCount = DSL.count()
 
         transactional
