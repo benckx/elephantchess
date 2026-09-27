@@ -21,6 +21,7 @@ import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.Tables.USER_SESSION
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
+import io.elephantchess.db.utils.accumulate
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.currentTimestamp
@@ -203,26 +204,11 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             )
             .onConflict(ARCHIVED_GUEST_DAILY.DAY)
             .doUpdate()
-            .set(
-                ARCHIVED_GUEST_DAILY.GUESTS_UNDER_1MIN,
-                ARCHIVED_GUEST_DAILY.GUESTS_UNDER_1MIN.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_1MIN)),
-            )
-            .set(
-                ARCHIVED_GUEST_DAILY.GUESTS_UNDER_5MIN,
-                ARCHIVED_GUEST_DAILY.GUESTS_UNDER_5MIN.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_5MIN)),
-            )
-            .set(
-                ARCHIVED_GUEST_DAILY.GUESTS_UNDER_15MIN,
-                ARCHIVED_GUEST_DAILY.GUESTS_UNDER_15MIN.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_15MIN)),
-            )
-            .set(
-                ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN,
-                ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN)),
-            )
-            .set(
-                ARCHIVED_GUEST_DAILY.GUESTS_OTHER,
-                ARCHIVED_GUEST_DAILY.GUESTS_OTHER.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.GUESTS_OTHER)),
-            )
+            .accumulate(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_1MIN)
+            .accumulate(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_5MIN)
+            .accumulate(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_15MIN)
+            .accumulate(ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN)
+            .accumulate(ARCHIVED_GUEST_DAILY.GUESTS_OTHER)
             .set(ARCHIVED_GUEST_DAILY.UPDATED_AT, currentTimestamp(ARCHIVED_GUEST_DAILY.UPDATED_AT))
             .awaitExecute()
     }
@@ -250,10 +236,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             )
             .onConflict(ARCHIVED_PAGE_VIEW_DAILY.DAY, ARCHIVED_PAGE_VIEW_DAILY.URL)
             .doUpdate()
-            .set(
-                ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS,
-                ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS.plus(DSL.excluded(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)),
-            )
+            .accumulate(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
             .awaitExecute()
     }
 
@@ -281,10 +264,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             )
             .onConflict(ARCHIVED_GUEST_DAILY.DAY)
             .doUpdate()
-            .set(
-                ARCHIVED_GUEST_DAILY.DELETED_SEARCHES,
-                ARCHIVED_GUEST_DAILY.DELETED_SEARCHES.plus(DSL.excluded(ARCHIVED_GUEST_DAILY.DELETED_SEARCHES)),
-            )
+            .accumulate(ARCHIVED_GUEST_DAILY.DELETED_SEARCHES)
             .set(ARCHIVED_GUEST_DAILY.UPDATED_AT, currentTimestamp(ARCHIVED_GUEST_DAILY.UPDATED_AT))
             .awaitExecute()
     }

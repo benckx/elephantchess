@@ -91,6 +91,16 @@ fun Field<Instant>.localDateValue(): Field<LocalDate> =
 fun <T> currentTimestamp(target: Field<T>): Field<T> =
     DSL.field("current_timestamp", target.dataType)
 
+/**
+ * On an `ON CONFLICT ... DO UPDATE` upsert, accumulate [field] by adding the value that would have been
+ * inserted (`excluded.field`) to the existing row's value, i.e. `set(field, field + excluded(field))`.
+ * Chainable across several columns.
+ */
+fun <R : Record, T : Number> InsertOnDuplicateSetStep<R>.accumulate(
+    field: Field<T>,
+): InsertOnDuplicateSetMoreStep<R> =
+    set(field, field.plus(DSL.excluded(field)))
+
 fun Field<Instant>.yearMonth(alias: String? = "month"): Field<YearMonth> {
     val base = DSL
         .field("to_char(${this.name}, 'YYYY-MM')")
