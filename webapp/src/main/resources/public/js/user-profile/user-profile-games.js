@@ -28,7 +28,7 @@ class UserProfileGamesSection {
 
     #username;
     #gameType;
-    #subsection;
+    #section;
 
     /**
      * @type {HTMLDivElement[]}
@@ -47,7 +47,7 @@ class UserProfileGamesSection {
     constructor(username, gameType) {
         this.#username = username;
         this.#gameType = gameType;
-        this.#subsection = document.getElementById(`${gameType}-games-subsection`);
+        this.#section = document.getElementById(`${gameType}-games-section`);
         this.#thumbDivs = getElementsByClassNameArray(`${gameType}-game-thumb`);
 
         this.#thumbs = this.#thumbDivs.map((div, i) => {
@@ -66,9 +66,10 @@ class UserProfileGamesSection {
     }
 
     /**
-     * @param onDone {function(boolean): void} called with whether any games were rendered
+     * Fetches the latest games and renders them, revealing the section only if
+     * there is at least one game.
      */
-    fetchGames(onDone) {
+    fetchGames() {
         const limit = this.#thumbs.length;
         const url = `/api/game-data/list-latest-${this.#gameType}-games-by-user`
             + `?limit=${limit}`
@@ -76,22 +77,20 @@ class UserProfileGamesSection {
 
         getAndHandle(url, (json) => {
             const entries = (json.entries || []).map((entry) => new GameMetadataDto(entry));
-            const hasGames = this.#renderEntries(entries);
-            onDone(hasGames);
+            this.#renderEntries(entries);
         });
     }
 
     /**
      * @param entries {GameMetadataDto[]}
-     * @returns {boolean} whether any games were rendered
      */
     #renderEntries(entries) {
         if (entries.length === 0) {
-            return false;
+            return;
         }
 
-        if (this.#subsection != null) {
-            this.#subsection.style.display = 'block';
+        if (this.#section != null) {
+            this.#section.style.display = 'block';
         }
 
         for (let i = 0; i < this.#thumbs.length; i++) {
@@ -102,19 +101,15 @@ class UserProfileGamesSection {
                 this.#thumbDivs[i].style.display = 'none';
             }
         }
-
-        return true;
     }
 }
 
 /**
  * Coordinates the PvP and PvB game sections of the user profile page,
- * showing each one only if the profile owner enabled it, and revealing the
- * overall "Latest Games" section if any games are shown.
+ * showing each one only if the profile owner enabled it. Each section reveals
+ * itself only if it has games to display.
  */
 class UserProfileGames {
-
-    #section = document.getElementById('latest-games-section');
 
     /**
      * @param username {string}
@@ -122,29 +117,11 @@ class UserProfileGames {
      * @param showPvbGames {boolean}
      */
     constructor(username, showPvpGames, showPvbGames) {
-        let pending = 0;
-        let anyShown = false;
-
-        const onSectionDone = (hasGames) => {
-            anyShown = anyShown || hasGames;
-            pending--;
-            if (pending === 0 && anyShown && this.#section != null) {
-                this.#section.style.display = 'block';
-            }
-        };
-
         if (showPvpGames) {
-            pending++;
+            new UserProfileGamesSection(username, 'pvp').fetchGames();
         }
         if (showPvbGames) {
-            pending++;
-        }
-
-        if (showPvpGames) {
-            new UserProfileGamesSection(username, 'pvp').fetchGames(onSectionDone);
-        }
-        if (showPvbGames) {
-            new UserProfileGamesSection(username, 'pvb').fetchGames(onSectionDone);
+            new UserProfileGamesSection(username, 'pvb').fetchGames();
         }
     }
 }
