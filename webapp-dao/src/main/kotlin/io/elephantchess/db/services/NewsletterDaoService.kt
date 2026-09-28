@@ -76,7 +76,7 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
             DSL
                 .using(cfg)
                 .update(NEWSLETTER_EMAIL)
-                .set(NEWSLETTER_EMAIL.SENT_TIME.fixed(), Clock.System.now())
+                .set(NEWSLETTER_EMAIL.SENT_TIME, Clock.System.now())
                 .where(NEWSLETTER_EMAIL.NEWSLETTER_ID.eq(newsletterId))
                 .and(NEWSLETTER_EMAIL.EMAIL_ADDRESS.eq(emailAddress))
                 .awaitExecute()
@@ -98,7 +98,7 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
             DSL
                 .using(cfg)
                 .update(NEWSLETTER_EMAIL)
-                .set(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_NEWSLETTER.fixed(), Clock.System.now())
+                .set(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_NEWSLETTER, Clock.System.now())
                 .where(NEWSLETTER_EMAIL.UNSUBSCRIBE_FROM_NEWSLETTER_CODE.eq(code))
                 .awaitExecute()
         }
@@ -109,7 +109,7 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
             DSL
                 .using(cfg)
                 .update(NEWSLETTER_EMAIL)
-                .set(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_ALL.fixed(), Clock.System.now())
+                .set(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_ALL, Clock.System.now())
                 .where(NEWSLETTER_EMAIL.UNSUBSCRIBE_FROM_ALL_CODE.eq(code))
                 .awaitExecute()
         }
