@@ -108,7 +108,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .set(USER.SHOW_PVP_GAMES_ON_PROFILE, showPvpGamesOnProfile)
                 .set(USER.SHOW_PVB_GAMES_ON_PROFILE, showPvbGamesOnProfile)
                 .set(USER.LAST_PROFILE_UPDATE, Clock.System.now())
-                .where(USER.ID.fixed().eq(userId))
+                .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
     }
