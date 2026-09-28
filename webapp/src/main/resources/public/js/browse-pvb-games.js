@@ -17,17 +17,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class BrowsePlayerVsBotOfUserPage extends BrowseGamesPage {
+class BrowsePlayerVsBotForUserPage extends BrowseGamesPage {
 
     /**
      * @param username {string}
      */
     constructor(username) {
         super('pvb');
-        // Use a regular property (not a private field) so it is set before any
-        // base-class call to additionalParameters() that happens during super().
-        // Note: super() runs before subclass field initializers, so private
-        // fields declared on the subclass are not yet available there.
         this.username = username;
     }
 
@@ -42,11 +38,13 @@ class BrowsePlayerVsBotOfUserPage extends BrowseGamesPage {
     }
 }
 
+// if "username" data attribute is present on the body,
+// we are browsing PvB games of a single user
 window.onload = () => {
     const username = document.body.dataset.username;
     if (username) {
         // browse PvB for a single user
-        new BrowsePlayerVsBotOfUserPage(username);
+        new BrowsePlayerVsBotForUserPage(username);
     } else {
         // general PvB browse
         new BrowseGamesPage('pvb');
