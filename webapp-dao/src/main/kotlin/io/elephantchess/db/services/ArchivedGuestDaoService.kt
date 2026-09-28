@@ -109,6 +109,24 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
     }
 
     /**
+     * Total number of archived guests whose session lasted at least 30 minutes (the [ARCHIVED_GUEST_DAILY.GUESTS_OTHER]
+     * bucket). Mirrors the live `countGuestsWithSessionAtLeast(30.minutes)` count used on the "Global" page so
+     * archived guests (deleted from the `user` table) are still counted in total users.
+     */
+    suspend fun countArchivedGuestsWithSessionAtLeast30Min(): Int {
+        val total = DSL.coalesce(DSL.sum(ARCHIVED_GUEST_DAILY.GUESTS_OTHER), DSL.inline(0))
+
+        return dslContext
+            .select(total)
+            .from(ARCHIVED_GUEST_DAILY)
+            .awaitRecords()
+            .firstOrNull()
+            ?.get(total)
+            ?.toInt()
+            ?: 0
+    }
+
+    /**
      * Archived unique daily page views (one per guest per day per url), aggregated by day, over the last
      * [days]. Mirrors the counting used for live page views so both can be summed.
      */
