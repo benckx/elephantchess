@@ -38,6 +38,26 @@
     background-color: #d7d3ce;
 }
 
+.profile-games-visibility-label {
+    margin-top: 25px;
+}
+
+.profile-games-visibility {
+    display: flex;
+    flex-direction: column;
+    font-size: 17px;
+}
+
+.profile-games-visibility-hit-box {
+    cursor: pointer;
+    padding: 6px 16px;
+    width: 500px;
+}
+
+.profile-games-visibility-hit-box:hover {
+    background-color: #d7d3ce;
+}
+
 .little-message {
     font-size: 17px;
     margin-left: 15px;
@@ -116,6 +136,14 @@
     }
 
     .notifications-hit-box {
+        width: 90%;
+    }
+
+    .profile-games-visibility {
+        font-size: 30px;
+    }
+
+    .profile-games-visibility-hit-box {
         width: 90%;
     }
 
