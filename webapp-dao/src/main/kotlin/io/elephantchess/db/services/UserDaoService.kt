@@ -96,11 +96,11 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.DESCRIPTION.fixed(), description)
-                .set(USER.COUNTRY.fixed(), country)
-                .set(USER.LAST_PROFILE_UPDATE.fixed(), Clock.System.now())
-                .where(USER.ID.fixed().eq(userId))
+                .update(USER)
+                .set(USER.DESCRIPTION, description)
+                .set(USER.COUNTRY, country)
+                .set(USER.LAST_PROFILE_UPDATE, Clock.System.now())
+                .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
     }
@@ -145,14 +145,14 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER.fixed(), newsletter)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME.fixed(), opponentJoinedGame)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE.fixed(), opponentPlayedMove)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED.fixed(), opponentResigned)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW.fixed(), opponentProposedDraw)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW.fixed(), opponentAcceptedDraw)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW.fixed(), opponentDeclinedDraw)
+                .update(USER)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, newsletter)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME, opponentJoinedGame)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE, opponentPlayedMove)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED, opponentResigned)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW, opponentProposedDraw)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW, opponentAcceptedDraw)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW, opponentDeclinedDraw)
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
@@ -162,8 +162,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER.fixed(), false)
+                .update(USER)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, false)
                 .where(USER.EMAIL.eqIgnoreCaseTrimmed(emailAddress))
                 .awaitExecute()
         }
@@ -173,14 +173,14 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW.fixed(), false)
+                .update(USER)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW, false)
                 .where(USER.EMAIL.eqIgnoreCaseTrimmed(emailAddress))
                 .awaitExecute()
         }
@@ -208,9 +208,9 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.PASSWORD.fixed(), password)
-                .where(USER.ID.fixed().eq(userId))
+                .update(USER)
+                .set(USER.PASSWORD, password)
+                .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
     }
@@ -310,7 +310,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             DSL
                 .using(cfg)
                 .update(USER)
-                .set(USER.EMAIL_CONFIRMED_AT.fixed(), confirmedAt)
+                .set(USER.EMAIL_CONFIRMED_AT, confirmedAt)
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
@@ -322,7 +322,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .using(cfg)
                 .update(USER)
                 .set(USER.EMAIL_CONFIRMATION_CODE, code)
-                .set(USER.EMAIL_CONFIRMATION_CODE_CREATED_AT.fixed(), createdAt)
+                .set(USER.EMAIL_CONFIRMATION_CODE_CREATED_AT, createdAt)
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
@@ -360,7 +360,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             DSL
                 .using(cfg)
                 .update(USER)
-                .set(USER.LAST_ONLINE.fixed(), Clock.System.now())
+                .set(USER.LAST_ONLINE, Clock.System.now())
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
@@ -399,7 +399,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 DSL
                     .using(cfg)
                     .update(USER)
-                    .set(USER.LAST_ONLINE.fixed(), Clock.System.now())
+                    .set(USER.LAST_ONLINE, Clock.System.now())
                     .where(USER.ID.`in`(userIds))
                     .awaitExecute()
             }
@@ -415,10 +415,10 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             DSL
                 .using(cfg)
                 .update(USER)
-                .set(USER.SESSION_PROLONGED_AT.fixed(), Clock.System.now())
-                .set(USER.OLD_EXPIRATION_TIME.fixed(), oldExpirationTime)
-                .set(USER.NEW_EXPIRATION_TIME.fixed(), newExpirationTime)
-                .where(USER.ID.fixed().eq(userId))
+                .set(USER.SESSION_PROLONGED_AT, Clock.System.now())
+                .set(USER.OLD_EXPIRATION_TIME, oldExpirationTime)
+                .set(USER.NEW_EXPIRATION_TIME, newExpirationTime)
+                .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
     }

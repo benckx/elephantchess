@@ -35,8 +35,8 @@ class PodDaoService(private val dslContext: DSLContext) {
                 DSL
                     .using(cfg)
                     .update(KUBERNETES_POD)
-                    .set(KUBERNETES_POD.ENTRY_UPDATE.fixed(), now)
-                    .where(KUBERNETES_POD.POD_NAME.fixed().eq(podName))
+                    .set(KUBERNETES_POD.ENTRY_UPDATE, now)
+                    .where(KUBERNETES_POD.POD_NAME.eq(podName))
                     .awaitExecute()
             }
         }

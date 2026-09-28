@@ -253,9 +253,9 @@ class AnalysisDaoService(private val dslContext: DSLContext) {
                     DSL
                         .using(cfg)
                         .update(ANALYSIS)
-                        .set(ANALYSIS.CURRENT_VERSION_NUMBER.fixed(), newVersion)
-                        .set(ANALYSIS.LAST_UPDATED.fixed(), lastUpdated)
-                        .set(ANALYSIS.ANALYSIS_NAME.fixed(), analysisName)
+                        .set(ANALYSIS.CURRENT_VERSION_NUMBER, newVersion)
+                        .set(ANALYSIS.LAST_UPDATED, lastUpdated)
+                        .set(ANALYSIS.ANALYSIS_NAME, analysisName)
                         .where(ANALYSIS.ID.eq(analysisId))
                         .awaitExecute()
                 }
@@ -403,8 +403,8 @@ class AnalysisDaoService(private val dslContext: DSLContext) {
     suspend fun renameAnalysis(analysisId: String, name: String, lastUpdated: Instant) {
         dslContext
             .update(ANALYSIS)
-            .set(ANALYSIS.ANALYSIS_NAME.fixed(), name)
-            .set(ANALYSIS.LAST_UPDATED.fixed(), lastUpdated)
+            .set(ANALYSIS.ANALYSIS_NAME, name)
+            .set(ANALYSIS.LAST_UPDATED, lastUpdated)
             .where(ANALYSIS.ID.eq(analysisId))
             .awaitExecute()
     }
