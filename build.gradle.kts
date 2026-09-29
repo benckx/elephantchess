@@ -19,6 +19,7 @@ val publishableModules = listOf(
     "xiangqi-core-test-utils",
     "seven-kingdoms-core",
     "seven-kingdoms-core-test-utils",
+    "csv-dump-parser",
 )
 
 buildscript {
