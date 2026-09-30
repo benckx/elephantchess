@@ -157,6 +157,18 @@ class MyBotGamesPage extends InfiniteScrollPage {
                 lastUpdatedDiv,
                 moveDiv
             );
+
+            // duration (only for games that actually ended, i.e. not canceled and not ongoing)
+            if (isStatusFinished(entry.status)
+                && entry.status !== GameEventType.CANCELED
+                && entry.status !== GameEventType.AUTO_CANCELED) {
+                const durationDiv = buildDivWithTextAndClass(
+                    formatDurationShorthand(entry.lastUpdated - entry.created),
+                    'game-duration'
+                );
+                addToolTip(durationDiv, 'game duration');
+                rightPane.append(durationDiv);
+            }
         });
     }
 

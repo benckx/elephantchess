@@ -25,6 +25,9 @@ import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * To test that on the home page (lobby), we can see the active games updated and animated on the thumb boards
+ */
 object SimulateLiveGames : KoinScriptInit() {
 
     private val dslContext by inject<DSLContext>()

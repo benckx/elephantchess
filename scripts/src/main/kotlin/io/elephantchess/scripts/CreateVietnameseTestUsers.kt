@@ -5,8 +5,6 @@ import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.services.UserService
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 object CreateVietnameseTestUsers : KoinScriptInit() {
 

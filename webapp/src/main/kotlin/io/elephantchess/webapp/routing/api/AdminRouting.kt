@@ -19,6 +19,7 @@ fun Route.adminConsoleRoutes() {
         adminDatabaseSearchRoutes()
         adminPasswordRecoveryRoutes()
         adminUserSessionRoutes()
+        adminUserEloRoutes()
         adminAnalysisRoutes()
         adminPostgresRoutes()
         adminDatabaseRoutes()
@@ -67,10 +68,16 @@ private fun Route.adminFeedsRoutes() {
     val adminFeedService by koin<AdminFeedService>()
 
     get("/list-games") {
-        requireAdminRole { adminFeedService.listLastGames() }
+        requireAdminRole { adminFeedService.listLatestPvpGames() }
+    }
+    get("/list-variant-games") {
+        requireAdminRole { adminFeedService.listLatestVariantPvpGames() }
     }
     get("/list-bot-games") {
-        requireAdminRole { adminFeedService.listLastBotGames() }
+        requireAdminRole { adminFeedService.listLatestPvbGames() }
+    }
+    get("/list-variant-bot-games") {
+        requireAdminRole { adminFeedService.listLatestVariantPvbGames() }
     }
     get("/last-played-puzzles") {
         requireAdminRole { adminFeedService.listLastPuzzlePlayedByLoggedUsers() }
@@ -198,11 +205,22 @@ private fun Route.adminUserSessionRoutes() {
     }
 }
 
+private fun Route.adminUserEloRoutes() {
+    val adminUserEloService by koin<AdminUserEloService>()
+
+    get("/elo-stats") {
+        requireAdminRole { adminUserEloService.listUserEloStats() }
+    }
+}
+
 private fun Route.adminAnalysisRoutes() {
     val adminAnalysisService by koin<AdminAnalysisService>()
 
     get("/list-latest-move-analysis-by-game") {
         requireAdminRole { adminAnalysisService.listLatestMoveAnalysisByGame() }
+    }
+    get("/pre-analysis-status-by-game-type") {
+        requireAdminRole { adminAnalysisService.listPreAnalysisStatusByGameType() }
     }
     get("/pre-analyzed-reference-games-per-year") {
         requireAdminRole { adminAnalysisService.listPreAnalyzedReferenceGamesPerYear() }

@@ -26,7 +26,7 @@ class KofiService(
     private val logger: KLogger
 ) {
 
-    private val verificationToken by lazy { appConfig.loadString("kofi.verification.token") }
+    private val verificationToken by lazy { appConfig.kofiVerificationToken }
 
     suspend fun processEvent(kofiEvent: KofiEventDto) {
         logger.info { "processing Ko-fi event: transactionId=${kofiEvent.kofiTransactionId}, messageId=${kofiEvent.messageId}" }

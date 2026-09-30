@@ -3,40 +3,76 @@ package io.elephantchess.scripts.minification
 import io.elephantchess.scripts.listAllCssFiles
 import io.elephantchess.scripts.listAllJsFiles
 import java.io.File
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.math.BigInteger
-import java.net.HttpURLConnection
-import java.net.URI
-import java.net.URLEncoder
-import java.security.MessageDigest
 import kotlin.system.exitProcess
-import kotlin.time.Clock
-import kotlin.time.Instant
 
-const val JS_API = "https://www.toptal.com/developers/javascript-minifier/api/raw"
-const val CSS_API = "https://www.toptal.com/developers/cssminifier/api/raw"
+/**
+ * Local Node project that minifies assets without any network round-trip:
+ * JavaScript with SWC (https://swc.rs, the same engine the previously used Toptal
+ * endpoint is based on) and CSS with Lightning CSS (https://lightningcss.dev).
+ */
+private val MINIFIER_DIR = File("scripts/minifier")
+private val MINIFIER_SCRIPT = File(MINIFIER_DIR, "minify.mjs")
 
-const val CSV_FILE = "minified_files.csv"
+private val IS_WINDOWS = System.getProperty("os.name").orEmpty().lowercase().contains("win")
 
-private data class MinificationCsvEntry(
-    val filePath: String,
-    val checksum: String,
-    val dateTime: Instant,
-) {
+/**
+ * Resolves the absolute path of a Node executable (`node` or `npm`).
+ *
+ * [ProcessBuilder] only looks at the JVM process `PATH`, which frequently omits
+ * version-manager (nvm, fnm, asdf) and Homebrew directories — for example when the
+ * task is launched from an IDE rather than an interactive shell. We therefore search
+ * the `PATH` plus those common install locations, honor an explicit `NODE_BIN` /
+ * `NPM_BIN` override, and account for the `.cmd` wrappers used on Windows.
+ *
+ * Falls back to the bare name (letting the OS resolve it) when nothing is found, so
+ * setups that already work keep working.
+ */
+private fun resolveNodeExecutable(name: String): String {
+    System.getenv("${name.uppercase()}_BIN")
+        ?.takeIf { it.isNotBlank() }
+        ?.let { return it }
 
-    override fun hashCode(): Int {
-        return filePath.hashCode()
+    val candidateNames = if (IS_WINDOWS) listOf("$name.cmd", "$name.exe", name) else listOf(name)
+
+    val home = System.getProperty("user.home").orEmpty()
+    val pathDirs = System.getenv("PATH").orEmpty()
+        .split(File.pathSeparatorChar)
+        .filter { it.isNotBlank() }
+        .map { File(it) }
+
+    val versionManagerBinDirs = listOf(
+        File(home, ".nvm/versions/node"),
+        File(home, ".local/share/fnm/node-versions"),
+        File(home, ".asdf/installs/nodejs"),
+    ).flatMap { root -> root.listFiles()?.toList().orEmpty() }
+        .filter { it.isDirectory }
+        .flatMap { version -> listOf(File(version, "bin"), File(version, "installation/bin")) }
+
+    val commonDirs = if (IS_WINDOWS) {
+        emptyList()
+    } else {
+        listOf(
+            File("/usr/local/bin"),
+            File("/opt/homebrew/bin"),
+            File("/usr/bin"),
+            File(home, ".volta/bin"),
+        )
     }
 
-    override fun equals(other: Any?): Boolean {
-        return other is MinificationCsvEntry && filePath == other.filePath
+    (pathDirs + versionManagerBinDirs + commonDirs).forEach { dir ->
+        candidateNames.forEach { candidate ->
+            val file = File(dir, candidate)
+            if (file.isFile && file.canExecute()) {
+                return file.absolutePath
+            }
+        }
     }
 
-    fun toCsv(): String {
-        return "$filePath,$checksum,$dateTime"
-    }
+    return candidateNames.first()
 }
+
+private val NODE_EXECUTABLE by lazy { resolveNodeExecutable("node") }
+private val NPM_EXECUTABLE by lazy { resolveNodeExecutable("npm") }
 
 private fun minifiedFile(file: File): File {
     val extension = file.extension
@@ -44,75 +80,75 @@ private fun minifiedFile(file: File): File {
     return File(file.parentFile, outputName)
 }
 
-// https://www.toptal.com/developers/javascript-minifier/documentation
-private fun minifyFile(file: File): Int {
-    val input = file.readLines().joinToString("\n")
+private fun minifyFile(file: File) {
     val outputFile = minifiedFile(file)
     outputFile.delete()
 
-    // content
-    val content = StringBuilder().apply {
-        append(URLEncoder.encode("input", "UTF-8"))
-        append("=")
-        append(URLEncoder.encode(input, "UTF-8"))
-    }.toString()
-
-    val api = when (file.extension) {
-        "js" -> JS_API
-        "css" -> CSS_API
+    when (file.extension) {
+        "js" -> minifyWithNode(file, outputFile, "js")
+        "css" -> minifyWithNode(file, outputFile, "css")
         else -> throw IllegalArgumentException("unsupported extension ${file.extension}")
     }
-
-    // request
-    val request =
-        (URI(api).toURL().openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            doOutput = true
-            setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-            setRequestProperty("charset", "utf-8")
-            setRequestProperty("Content-Length", content.length.toString())
-            OutputStreamWriter(outputStream).apply {
-                write(content)
-                flush()
-            }
-        }
-
-    // persist response
-    if (request.responseCode == 200) {
-        val output = InputStreamReader(request.inputStream).readText()
-        outputFile.writeText(output)
-    }
-
-    return request.responseCode
-}
-
-private fun checksum(file: File): String {
-    val md = MessageDigest.getInstance("MD5")
-    return BigInteger(1, md.digest(file.readBytes())).toString(16).padStart(32, '0')
 }
 
 /**
- * To ensure we don't minify multiple times the same file if it didn't change,
- * therefore speeding up the minification script.
+ * Ensures the local minifier dependencies are installed (runs `npm install`
+ * the first time, when `node_modules` is missing).
  */
-private fun loadCsv(): List<MinificationCsvEntry> {
-    val csvFile = File(CSV_FILE)
-    val entries = mutableListOf<MinificationCsvEntry>()
-    if (csvFile.exists()) {
-        csvFile.readLines().forEach { line ->
-            val (filePath, checksum, dateTime) = line.split(",")
-            entries.add(MinificationCsvEntry(filePath, checksum, Instant.parse(dateTime)))
-        }
+private fun ensureMinifierInstalled() {
+    if (File(MINIFIER_DIR, "node_modules/@swc/core").exists() &&
+        File(MINIFIER_DIR, "node_modules/lightningcss").exists()
+    ) {
+        return
     }
-    return entries.toList()
+
+    println("[minifier] installing dependencies in ${MINIFIER_DIR.path} ...")
+    val exitCode = try {
+        ProcessBuilder(NPM_EXECUTABLE, "install")
+            .directory(MINIFIER_DIR)
+            .inheritIO()
+            .start()
+            .waitFor()
+    } catch (e: java.io.IOException) {
+        println(
+            "ERROR: failed to start '$NPM_EXECUTABLE' (is Node.js/npm installed and on the PATH?): ${e.message}. " +
+                "If npm is installed in a non-standard location, set the NPM_BIN environment variable to its full path.",
+        )
+        exitProcess(1)
+    }
+
+    if (exitCode != 0) {
+        println("ERROR: 'npm install' failed with code $exitCode")
+        exitProcess(1)
+    }
 }
 
-private fun writeCsv(entries: List<MinificationCsvEntry>) {
-    val csvFile = File(CSV_FILE)
-    csvFile.delete()
-    csvFile.createNewFile()
-    csvFile.writeText(entries.sortedBy { it.filePath }.joinToString("\n") { entry -> entry.toCsv() })
-    println("wrote ${entries.size} entries to $csvFile")
+/**
+ * Minifies a file locally by piping its content through the Node [MINIFIER_SCRIPT],
+ * which uses SWC for `js` and Lightning CSS for `css`.
+ */
+private fun minifyWithNode(file: File, outputFile: File, type: String) {
+    val process = try {
+        ProcessBuilder(NODE_EXECUTABLE, MINIFIER_SCRIPT.path, type).start()
+    } catch (e: java.io.IOException) {
+        println(
+            "ERROR: failed to start '$NODE_EXECUTABLE' (is Node.js installed and on the PATH?): ${e.message}. " +
+                "If node is installed in a non-standard location, set the NODE_BIN environment variable to its full path.",
+        )
+        exitProcess(1)
+    }
+
+    process.outputStream.use { stdin -> stdin.write(file.readBytes()) }
+
+    val output = process.inputStream.readBytes().decodeToString()
+    val errors = process.errorStream.readBytes().decodeToString()
+    val exitCode = process.waitFor()
+
+    if (exitCode != 0) {
+        throw IllegalStateException("failed to minify ${file.path}: $errors")
+    }
+
+    outputFile.writeText(output)
 }
 
 private fun sizeUnminified(files: List<File>): Long {
@@ -128,75 +164,30 @@ private fun formatBytes(bytes: Long): String {
 }
 
 /**
- * Minifies the given files if they have no up-to-date minified counterpart.
- * A file is considered up-to-date when an entry exists in [CSV_FILE], the
- * minified file exists on disk, and the source checksum still matches.
+ * Minifies all the given files, overwriting any existing minified counterparts.
  */
-fun minifyIfNeeded(files: List<File>) {
+fun minifyAll(files: List<File>) {
     files.forEach { file -> println("[found] ${file.path}") }
 
-    val csvEntries = loadCsv().toMutableList()
+    println("files to minify -> ${files.size}")
 
-    csvEntries
-        .filterNot { entry -> File(entry.filePath).exists() }
-        .toList()
-        .forEach { entry ->
-            println("[file not found] ${entry.filePath}")
-            csvEntries.remove(entry)
-        }
-
-    val filesToMinify = files.filter { file ->
-        val entry = csvEntries.find { entry -> entry.filePath == file.path }
-        if (entry == null) {
-            println("[entry not found] ${file.path}")
-            true
-        } else if (!minifiedFile(file).exists()) {
-            println("[not minified] ${file.path}")
-            true
-        } else if (entry.checksum != checksum(file)) {
-            println("[checksum changed] ${file.path}")
-            true
-        } else {
-            false
-        }
+    if (files.isEmpty()) {
+        return
     }
 
-    println("input files -> ${files.size}")
-    println("files to minify -> ${filesToMinify.size}")
+    ensureMinifierInstalled()
 
-    val chunkSize = 20
-    var processed = 0
-
-    filesToMinify
-        .chunked(chunkSize)
-        .forEach { chunk ->
-            chunk.forEach { file ->
-                val code = minifyFile(file)
-                println("[${file.path}] -> $code")
-                if (code != 200) {
-                    println("ERROR: exiting due to code $code")
-                    exitProcess(1)
-                }
-                csvEntries.removeIf { entry -> entry.filePath == file.path }
-                csvEntries += (MinificationCsvEntry(file.path, checksum(file), Clock.System.now()))
-                processed++
-            }
-            if (chunk.size == chunkSize) {
-                writeCsv(csvEntries)
-                val toWait = 90_000L
-                println("sleeping rate limit for $toWait ms., remaining ${filesToMinify.size - processed}")
-                Thread.sleep(toWait)
-            }
-        }
-
-    writeCsv(csvEntries)
+    files.forEach { file ->
+        minifyFile(file)
+        println("[minified] ${file.path}")
+    }
 }
 
 fun main() {
     val allCss = listAllCssFiles()
     val allJs = listAllJsFiles()
 
-    minifyIfNeeded(allCss + allJs)
+    minifyAll(allCss + allJs)
 
     val cssUnminified = sizeUnminified(allCss)
     val cssMinified = sizeMinified(allCss)

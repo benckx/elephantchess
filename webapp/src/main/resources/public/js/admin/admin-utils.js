@@ -62,13 +62,31 @@ function renderExceptionRow(entry, row, options = {}) {
         classCell.title = entry.exceptionClass; // Show full class name on hover
     }
 
-    // exception message
+    // exception message (with an expandable stack trace when available)
     const messageCell = row.insertCell();
     messageCell.className = 'label-cell';
-    messageCell.innerText = entry.exceptionMessage;
-    messageCell.style.maxWidth = '500px';
-    messageCell.style.overflow = 'hidden';
-    messageCell.style.textOverflow = 'ellipsis';
-    messageCell.style.whiteSpace = 'nowrap';
-    messageCell.title = entry.exceptionMessage; // Show full message on hover
+
+    if (entry.exceptionTrace) {
+        const details = document.createElement('details');
+        details.className = 'exception-trace';
+
+        const summary = document.createElement('summary');
+        summary.innerText = entry.exceptionMessage;
+        summary.title = entry.exceptionMessage;
+        details.appendChild(summary);
+
+        const trace = document.createElement('pre');
+        trace.className = 'exception-trace-content';
+        trace.innerText = entry.exceptionTrace;
+        details.appendChild(trace);
+
+        messageCell.appendChild(details);
+    } else {
+        messageCell.innerText = entry.exceptionMessage;
+        messageCell.style.maxWidth = '500px';
+        messageCell.style.overflow = 'hidden';
+        messageCell.style.textOverflow = 'ellipsis';
+        messageCell.style.whiteSpace = 'nowrap';
+        messageCell.title = entry.exceptionMessage; // Show full message on hover
+    }
 }

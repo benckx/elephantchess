@@ -20,12 +20,14 @@ import io.elephantchess.model.Outcome.RED_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
+import io.elephantchess.servicelayer.dto.lobby.AlwaysVisibleInLobbyAllowedResponse
 import io.elephantchess.servicelayer.dto.ws.*
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.ForbiddenException
 import io.elephantchess.servicelayer.exceptions.InternalErrorException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.model.UserId
+import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.ws.GamesToPlayWebSocketSession
 import io.elephantchess.servicelayer.services.ws.PlayerVsPlayerWebSocketSession
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
@@ -333,6 +335,18 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to create correspondence games")
         }
 
+        if (userId.userType == UserType.GUEST && request.alwaysVisibleInLobby) {
+            throw BadRequestException("Guest users are not allowed to use the 'always show in lobby' option")
+        }
+
+        if (!request.privateInvite && request.alwaysVisibleInLobby && !isOptionAlwaysVisibleInLobbyAllowed(userId.id)) {
+            throw BadRequestException(
+                "The 'always show in lobby' option is not allowed for this game. " +
+                        "It can only be enabled for correspondence games or if you have a valid email address and the" +
+                        " 'someone joined my game' email notification enabled."
+            )
+        }
+
         // limit the number of CREATED games a user can have with the same settings
         val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
         val createdGamesCount = pvpGameDaoService.countCreatedGamesByUser(
@@ -393,6 +407,35 @@ class PlayerVsPlayerGameService(
         pvpGameDaoService.insertGame(userId.id, game)
         discordService.gameCreated(userId.id, game)
         return CreateGameResponse(game.id, CREATED, request.inviterColor)
+    }
+
+    suspend fun isOptionAlwaysVisibleInLobbyAllowed(verifiedToken: VerifiedToken): AlwaysVisibleInLobbyAllowedResponse {
+        if (verifiedToken.userId().userType == UserType.GUEST) {
+            return AlwaysVisibleInLobbyAllowedResponse(false)
+        }
+
+        return AlwaysVisibleInLobbyAllowedResponse(
+            allowed = isOptionAlwaysVisibleInLobbyAllowed(verifiedToken.userId().id)
+        )
+    }
+
+    /**
+     * Whether the user is allowed to use the "always show in lobby (also when I'm offline)" option when creating
+     * a new game. The option only makes sense if we can notify the user by email when someone joins their
+     * game while they are offline, so it requires:
+     *
+     * - a valid email address (manually confirmed or automatically verified)
+     * - the "someone joined my game" email notification to be enabled.
+     *
+     * Guest users have no email address and are therefore never allowed.
+     */
+    internal suspend fun isOptionAlwaysVisibleInLobbyAllowed(userId: String): Boolean {
+        val email = userDaoService.fetchEmail(userId) ?: return false
+        if (!mailService.isEmailAddressValid(email)) {
+            return false
+        }
+        val notificationSettings = userDaoService.fetchNotificationSettings(userId) ?: return false
+        return notificationSettings.opponentJoinedGame
     }
 
     private suspend fun findMatchingGame(

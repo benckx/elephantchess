@@ -280,11 +280,6 @@ img#kofi-logo {
     color: #a0a0a0;
 }
 
-.modal-form-label input[type=text].custom-time-control {
-    width: 30px;
-    margin: 0;
-}
-
 #logo-holder {
     width: 100%;
     margin-top: 40px;

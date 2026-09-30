@@ -352,6 +352,16 @@ class MyGamesPage extends InfiniteScrollPage {
                 lastModifiedDiv,
                 buildDivWithTextAndClass(`move ${entry.fullMoveIndex}`, 'move-index')
             );
+
+            // duration (only for games that actually ended, i.e. not canceled and not ongoing)
+            if (isStatusFinished(entry.status) && !entry.isCanceled()) {
+                const durationDiv = buildDivWithTextAndClass(
+                    formatDurationShorthand(entry.lastUpdated - entry.created),
+                    'game-duration'
+                );
+                addToolTip(durationDiv, 'game duration');
+                rightPane.append(durationDiv);
+            }
         });
     }
 

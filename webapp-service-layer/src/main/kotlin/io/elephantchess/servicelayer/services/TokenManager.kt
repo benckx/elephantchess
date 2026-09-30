@@ -35,7 +35,7 @@ class TokenManager(
 
     private val algorithm by lazy {
         logger.warn { "initializing algorithm for profile ${appConfig.profile}" }
-        val symmetricKey = appConfig.loadString("key")
+        val symmetricKey = appConfig.symmetricKey
         Algorithm.HMAC256(symmetricKey)
     }
 

@@ -16,7 +16,7 @@ import kotlinx.serialization.json.Json
 
 class DiscordClient(appConfig: AppConfig) {
 
-    private val token by lazy { appConfig.loadString("discord.token") }
+    private val token by lazy { appConfig.discordToken }
 
     private val client = HttpClient(CIO) {
         install(Logging) {

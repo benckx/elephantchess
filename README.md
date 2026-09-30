@@ -1,3 +1,26 @@
+[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml) [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
+
+# Table of Contents
+
+- [About](#about)
+  - [Features](#features)
+  - [Principles](#principles)
+  - [Glossary](#glossary)
+- [Run Locally](#run-locally)
+  - [Pre-requisites](#pre-requisites)
+  - [Set-up](#set-up)
+  - [Build and Run](#build-and-run)
+  - [Common Issues](#common-issues)
+- [Back-End (Kotlin)](#back-end-kotlin)
+  - [Gradle Modules](#gradle-modules)
+  - [Libraries](#libraries)
+  - [Libraries Usage](#libraries-usage)
+- [Front-End](#front-end)
+  - [HTML](#html)
+  - [JavaScript](#javascript)
+  - [JavaScript Libraries](#javascript-libraries)
+  - [Minification](#minification)
+
 # About
 
 [elephantchess.io](https://elephantchess.io) is a web application to play and
@@ -7,9 +30,11 @@ By default, the project is under GPL-3.0 license. Libraries (like the Kotlin xia
 JavaScript [board-gui](https://elephantchess.io/about/developers/board-gui-example)) are under LGPL-3.0 license to allow
 for a more permissive use (i.e. to re-use the libraries in a commercial application).
 
-We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
+The releases and tags are only ever used to version the libraries (see below), i.e. packages `xiangqi-core`,
+`xiangqicore-test-utils`, `engine-api`, etc. The webapp itself is not really versioned. The changelog.html file tracks
+the changes to the webapp.
 
-[![Build](https://github.com/benckx/elephantchess/actions/workflows/build.yml/badge.svg)](https://github.com/benckx/elephantchess/actions/workflows/build.yml) [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
+We have a little [Discord server](https://discord.gg/WEGDqnWXNg) for open discussion.
 
 ## Features
 
@@ -50,20 +75,19 @@ The webapp offers the following features:
   Chinese chess, the starting position is encoded as
   `rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0`. It is convenient for data transfer and
   indexing.
-- The algebraic notation is a standard notation to represent chess moves. The "columns" or the board are called "files"
-  and the "rows" are named "ranks". In the algebraic notation, the files are numbered from a to i and the ranks are
-  numbered from 1 to 10. So the move `C2=5` is represented in algebraic notation as "h3e3" (i.e. move the piece from
-  file h, rank 2 to file e, rank 2).
+- The algebraic notation is a standard notation to represent chess moves. The files are numbered from `a` to `i` and the
+  ranks are numbered from 1 to 10. So the move `C2=5` is represented in algebraic notation as `h3e3` (i.e. move the
+  piece from file `h`, rank `3` to file `e`, rank `3`), or `h2e2` in UCI notation (see below).
 - The UCI (Universal Chess Interface) is a standard protocol to communicate with chess engines. It defines a set of
   commands and responses that allow a chess engine to be controlled by a user interface. For example, the command
   `position fen rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0` tells the engine to set up the
   board with the given FEN position; and the command `go depth 10` tells the engine to start calculating the best move
   from that position with a search depth of 10.
 - The UCI move notation is similar to the algebraic notation, except that the ranks are 0-based. Therefore, any
-  move can be encoded as 4 characters. For example, move h3e3 is encoded in UCI as h2e2.
+  move can be encoded as 4 characters. For example, move `h3e3` is encoded in UCI as `h2e2`.
 - The WXF notation is the traditional Chinese chess notation (e.g. `C2=5`), widely in use. It's not as convenient
   technically because move can be ambiguous and the files are numbered from the right to the left relative to the
-  player (so it's not the same numbers for the red and black players). Therefore, it's not used in code, expect for
+  player (so it's not the same numbers for the red and black players). Therefore, it's not used in code, except for
   labeling moves in the GUI.
 - OTB: Over The Board, i.e. in-person chess games, as opposed to online games.
 
@@ -95,9 +119,9 @@ Docker version 29.4.2, build 055a478
 _Note: for the sake of simplicity, the engine binaries have been added to this repo, so you don't have anything else to
 do to be able to run the webapp locally with the engines features. Nevertheless, this section covers engine set-up._
 
-_Note: Those binaries (at least for Pikafish, not sure for Fairy Stockfish) don't work with ARM64 machines, but most
-recent releases of Pikafish have multiple binaries that I don't fully understand yet, but I assume some of them may be
-ARM64 compatible. But on my older Linux Mint laptop at least, that's the binaries I used._
+_Note: The bundled Pikafish binary targets x86-64 Linux and does not work on ARM64 machines. Pikafish publishes several
+x86-64 binaries optimized for different CPU instruction sets; elephantchess uses the `sse41-popcnt` build for broad
+compatibility._
 
 The webapp assumes engine binaries can be found locally. So you need to create folder `engines` at the root of this
 repository, download the binaries from their repositories and copying them in this format:
@@ -111,14 +135,13 @@ engines
 │   └── 14.0.1
 │       └── fairy-stockfish
 └── pikafish
-    └── 2023-03-05
-        ├── pikafish-modern
+    └── 2026-01-02
+        ├── pikafish-sse41-popcnt
         └── pikafish.nnue
 ```
 
-Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. Versions posterior to
-2023-03-05 contain a number of binaries that I don't know how to use, so as of
-now [elephantchess](https://elephantchess.io) uses Pikafish 2023-03-05.
+Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. As of now,
+[elephantchess](https://elephantchess.io) uses Pikafish 2026-01-02 with the `sse41-popcnt` binary.
 
 Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now
 [elephantchess](https://elephantchess.io) uses 11.2 but is planning to upgrade to 14.0.1.
@@ -415,11 +438,14 @@ engines
     ├── 2023-02-16
     │   ├── pikafish-modern
     │   └── pikafish.nnue
-    └── 2023-03-05
-        ├── pikafish-modern
+    ├── 2023-03-05
+    │   ├── pikafish-modern
+    │   └── pikafish.nnue
+    └── 2026-01-02
+        ├── pikafish-sse41-popcnt
         └── pikafish.nnue
 
-7 directories, 8 files
+8 directories, 10 files
 ```
 
 In the above example, multiple binaries and versions are available, but you can use the `engine-api` library with just
@@ -428,8 +454,8 @@ one version:
 ```
 engines
 └── pikafish
-    └── 2023-03-05
-        ├── pikafish-modern
+    └── 2026-01-02
+        ├── pikafish-sse41-popcnt
         └── pikafish.nnue
 ```
 
@@ -445,9 +471,9 @@ object DockerizedProcessLocator : EngineProcessLocator {
 }
 ```
 
-Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. Versions posterior to
-2023-03-05 contain a number of binaries that I don't know how to use, so as of
-now [elephantchess](https://elephantchess.io) uses Pikafish 2023-03-05.
+Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. Releases before 2026 use the
+`pikafish-modern` executable name in this project; releases from 2026 onward use `pikafish-sse41-popcnt`. As of now,
+[elephantchess](https://elephantchess.io) uses Pikafish 2026-01-02.
 
 Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now
 [elephantchess](https://elephantchess.io) supports versions 11.2 and 14.0.1, stored under the `fairy/<version>` folder.
@@ -465,7 +491,7 @@ import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors.newFixedThreadPool
 
 fun main() {
-    val engineConfig = EngineConfig("2023-03-05", poolSize = 1, numberOfThreads = 8)
+    val engineConfig = EngineConfig("2026-01-02", poolSize = 1, numberOfThreads = 8)
     val enginePool = EnginePool(mapOf(PikafishEngineId to engineConfig), newFixedThreadPool(2))
 
     runBlocking {
@@ -483,9 +509,9 @@ fun main() {
 outputs
 
 ```
-10:21:17.168 [pool-1-thread-1] INFO  i.e.e.process.PikafishEngineProcess - running Pikafish engine, launching ./engines/pikafish/2023-03-05/pikafish-modern
+10:21:17.168 [pool-1-thread-1] INFO  i.e.e.process.PikafishEngineProcess - running Pikafish engine, launching ./engines/pikafish/2026-01-02/pikafish-sse41-popcnt
 10:21:17.199 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: setoption name Threads value 8
-10:21:17.200 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - Pikafish 2023-03-05 by the Pikafish developers (see AUTHORS file)
+10:21:17.200 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - Pikafish 2026-01-02 by the Pikafish developers (see AUTHORS file)
 10:21:17.222 [main] INFO  i.e.e.process.PikafishEngineProcess - Pikafish process has started
 10:21:17.224 [main] DEBUG i.e.e.process.PikafishEngineProcess - sending to engine: isready
 10:21:17.641 [pool-1-thread-1] DEBUG i.e.e.process.PikafishEngineProcess - readyok
@@ -581,6 +607,15 @@ Test data for unit tests of `xiangqi-core`.
 This is the logic for the [Seven Kingdoms](https://elephantchess.io/7k/about) xiangqi variant, which is still in
 development.
 
+### csv-dump-parser
+
+Kotlin library to parse the PvP games CSV dumps exported from [elephantchess](https://elephantchess.io) (via the
+`ExtractPvpMovesToCsv` script). It turns the `pvp_game_moves_*.csv` files (or the zipped archive of them) into
+typed `PvpGame` / `PvpMoveRecord` objects, reusing `HalfMove` from `xiangqi-core` and `InfoLineResult` from
+`engine-api`.
+
+The datasets themselves can be found at https://elephantchess.io/about/datasets.
+
 ## Libraries Usage
 
 [![](https://www.jitpack.io/v/benckx/elephantchess.svg)](https://www.jitpack.io/#benckx/elephantchess)
@@ -597,9 +632,10 @@ repositories {
 Then you can use the dependencies:
 
 ```Groovy
-implementation "com.github.benckx.elephantchess:xiangqi-core:2.0.0"
-implementation "com.github.benckx.elephantchess:engine-api:2.0.0"
-implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.0.0"
+implementation "com.github.benckx.elephantchess:xiangqi-core:2.1.1"
+implementation "com.github.benckx.elephantchess:engine-api:2.1.1"
+implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.1.1"
+implementation "com.github.benckx.elephantchess:csv-dump-parser:2.1.1"
 ```
 
 We added a sample project that uses the libraries
@@ -718,9 +754,12 @@ https://elephantchess.io/about/developers/board-gui-example
 
 ## Minification
 
-The minification of JavaScript and CSS assets is done via a REST call to https://www.toptal.com. To avoid reminify the
-same files, we keep track of the checksum of the input files in a local `minified_files.csv` file. The endpoint we use
-is rate limited, so we minify chuck of 20 files every 90 seconds.
+JavaScript and CSS assets are minified locally via the small Node project in
+[`scripts/minifier`](scripts/minifier): JavaScript with [SWC](https://swc.rs) and CSS with
+[Lightning CSS](https://lightningcss.dev). The minifier dependencies are installed automatically (`npm install`) the
+first time the task runs, which also handles modern syntax such as ES6 private
+class fields out of the box.
 
-It's a bit of a funny approach but Gradle plugins I tried wouldn't support the JavaScript files since they contained
-private class fields (i.e. ES6).
+The task looks for `node` and `npm` on the `PATH` as well as common install locations (nvm, fnm, asdf,
+Homebrew). If they live somewhere else (or aren't picked up when running from an IDE), point the task at
+them explicitly with the `NODE_BIN` and `NPM_BIN` environment variables.

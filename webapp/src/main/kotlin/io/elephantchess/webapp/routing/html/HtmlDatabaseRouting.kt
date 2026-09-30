@@ -38,7 +38,8 @@ internal fun Routing.databasePages() {
                 databasePlayer = databasePlayer,
                 requestedVersion = version,
                 edit = databaseService.fetchPlayerEdit(databasePlayer.id, version),
-                fetchEditorsUsername = fetchEditorsUsername
+                fetchEditorsUsername = fetchEditorsUsername,
+                hasOpeningData = databaseService.hasPlayerOpeningData(databasePlayer.id)
             )
         }
     }
@@ -108,13 +109,13 @@ internal fun Routing.databasePages() {
         val round = call.request.queryParameters["round"]?.toIntOrNull()
 
         val eventName = databaseService.fetchEventName(eventId)
-            ?: throw NotFoundException("Event not found")
+            ?: throw NotFoundException("Event $eventId not found")
 
         call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, eventName, round))
     }
     get("/database/game") {
         val gameId = call.parameters["id"] ?: throw BadRequestException("id query parameter not provided")
-        val summary = databaseService.fetchGameSummary(gameId) ?: throw NotFoundException("Game not found")
+        val summary = databaseService.fetchGameSummary(gameId) ?: throw NotFoundException("Game $gameId not found")
         val orientation = call.request.queryParameters["orientation"]
         call.respondHtml(databasePageRenderer.renderGamePage(summary, orientation))
     }

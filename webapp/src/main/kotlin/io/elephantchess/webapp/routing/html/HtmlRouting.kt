@@ -36,6 +36,7 @@ private val simplePublicPageMapping = mapOf(
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
     "/about/roadmap" to "about/roadmap",
+    "/about/datasets" to "about/datasets",
     "/contact" to "contact_form",
     "/how-to-play-xiangqi" to "how_to_play_xiangqi",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
@@ -70,6 +71,8 @@ private val authenticatedRequiredPagesMapping = mapOf(
 private val adminPagesMapping = mapOf(
     "/admin" to "admin/admin_overview",
     "/admin/feeds" to "admin/admin_feeds",
+    "/admin/variant-feeds" to "admin/admin_variant_feeds",
+    "/admin/elo-stats" to "admin/admin_user_elo_stats",
     "/admin/content-section-feedback" to "admin/admin_content_section_feedback",
     "/admin/sessions" to "admin/admin_user_sessions",
     "/admin/analytics" to "admin/admin_analytics",

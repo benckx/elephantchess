@@ -180,6 +180,11 @@
     font-size: 13px;
 }
 
+.my-game-item .game-duration {
+    color: #626161;
+    font-size: 13px;
+}
+
 .my-game-item .outcome-label-holder {
     display: flex;
     align-items: center;
@@ -301,6 +306,10 @@
     }
 
     .my-game-item .move-index {
+        font-size: 22px;
+    }
+
+    .my-game-item .game-duration {
         font-size: 22px;
     }
 

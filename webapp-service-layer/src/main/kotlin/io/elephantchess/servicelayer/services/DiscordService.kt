@@ -23,8 +23,8 @@ class DiscordService(
 ) {
 
     private val webHost = appConfig.webHost
-    private val suffix = appConfig.loadString("discord.suffix")
-    private val isEnabled = appConfig.loadBoolean("discord.notification.enabled", false)
+    private val suffix = appConfig.discordSuffix
+    private val isEnabled = appConfig.discordNotificationEnabled
 
     private val discordServiceScope by lazy { CoroutineScope(Dispatchers.IO) }
 

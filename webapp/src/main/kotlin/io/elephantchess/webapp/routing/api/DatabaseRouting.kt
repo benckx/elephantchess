@@ -1,14 +1,17 @@
 package io.elephantchess.webapp.routing.api
 
+import io.elephantchess.servicelayer.dto.analysis.OpeningReferencePlayerNextMovesRequest
 import io.elephantchess.servicelayer.dto.database.DatabasePlayerUpdateRequest
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.DatabaseService
+import io.elephantchess.servicelayer.services.OpeningService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.handleValidatedResponse
 import io.elephantchess.webapp.ops.requireEditorRole
 import io.elephantchess.webapp.ops.requireIdentification
 import io.elephantchess.xiangqi.Color
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
@@ -20,6 +23,7 @@ private const val MIN_LETTERS_TO_SEARCH = 2
 
 fun Route.databaseRoutes() {
     val databaseService by koin<DatabaseService>()
+    val openingService by koin<OpeningService>()
 
     route("/api/database") {
         route("/autocomplete") {
@@ -55,6 +59,10 @@ fun Route.databaseRoutes() {
 
                 call.respond(databaseService.fetchPlayerGameStats(playerId))
             }
+        }
+        post("/player/openings/next-moves-info") {
+            val request = call.receive<OpeningReferencePlayerNextMovesRequest>()
+            call.respond(openingService.fetchReferencePlayerNextMovesData(request))
         }
         get("/list-user-edits") {
             requireEditorRole { verifiedToken ->

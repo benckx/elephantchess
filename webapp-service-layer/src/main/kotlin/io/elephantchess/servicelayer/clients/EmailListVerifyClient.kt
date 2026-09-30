@@ -21,7 +21,7 @@ class EmailListVerifyClient(
     private val logger: KLogger,
 ) {
 
-    private val apiKey by lazy { appConfig.loadString("emaillistverify.apikey") }
+    private val apiKey by lazy { appConfig.emailListVerifyApiKey }
 
     private val json = Json {
         prettyPrint = true
