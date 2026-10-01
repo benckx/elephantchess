@@ -7,6 +7,7 @@ data class ThrownExceptionsResponse(val entries: List<Entry>) {
         val httpCode: Int,
         val exceptionClass: String,
         val exceptionMessage: String,
+        val exceptionTrace: String?,
     )
 
 }

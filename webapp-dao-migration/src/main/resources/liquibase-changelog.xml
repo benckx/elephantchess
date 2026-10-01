@@ -2698,6 +2698,29 @@
         </sql>
     </changeSet>
     <changeSet id="0108" author="benckx">
+        <comment>Index on bot_game.last_updated to speed up the latest PvB games listing (ORDER BY last_updated DESC LIMIT)</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS bot_game_last_updated_idx
+            ON bot_game (last_updated);
+        </sql>
+    </changeSet>
+    <changeSet id="0109" author="benckx">
+        <comment>Store the stack trace of thrown exceptions to see where they come from</comment>
+        <addColumn tableName="thrown_exception">
+            <column name="exception_trace" type="text"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0110" author="benckx">
+        <sql>
+            CREATE INDEX IF NOT EXISTS user_session_user_id_idx
+            ON user_session (user_id);
+        </sql>
+        <sql>
+            CREATE INDEX IF NOT EXISTS user_session_last_updated_idx
+            ON user_session (last_updated);
+        </sql>
+    </changeSet>
+    <changeSet id="0111" author="benckx">
         <addColumn tableName="user">
             <column name="profile_picture_extension" type="varchar(10)"/>
         </addColumn>

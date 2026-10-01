@@ -4,6 +4,7 @@ import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.PuzzleResultDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleResult
 import io.elephantchess.db.model.PlayedPuzzleRecord
+import io.elephantchess.db.model.PuzzleResultCountsRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.PuzzleOutcome
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -76,6 +77,29 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             .limit(1)
             .awaitSingleValue()
     }
+
+suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCountsRecord> {
+    if (userIds.isEmpty()) return emptyList()
+
+    val solvedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.SOLVED)).`as`("nbr_solved")
+    val failedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.FAILED)).`as`("nbr_failed")
+    val totalField = DSL.count().`as`("nbr_total")
+
+    return dslContext
+        .select(PUZZLE_RESULT.USER_ID, solvedField, failedField, totalField)
+        .from(PUZZLE_RESULT)
+        .where(PUZZLE_RESULT.USER_ID.`in`(userIds))
+        .groupBy(PUZZLE_RESULT.USER_ID)
+        .awaitRecords()
+        .map { record ->
+            PuzzleResultCountsRecord(
+                userId = requireNotNull(record.value1()),
+                solved = record.value2(),
+                failed = record.value3(),
+                total = record.value4()
+            )
+        }
+}
 
     suspend fun latestPuzzleVote(): Instant? {
         return dslContext
@@ -167,8 +191,8 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             if (id != null) {
                 transactional
                     .update(PUZZLE_RESULT)
-                    .set(PUZZLE_RESULT.UP_VOTED.fixed(), upVoted)
-                    .where(PUZZLE_RESULT.ID.fixed().eq(id))
+                    .set(PUZZLE_RESULT.UP_VOTED, upVoted)
+                    .where(PUZZLE_RESULT.ID.eq(id))
                     .awaitExecute()
             }
 
@@ -194,16 +218,16 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
 
     private suspend fun updatePuzzleRating(puzzleId: String, rating: Int, context: DSLContext) {
         context
-            .update(PUZZLE.fixed())
-            .set(PUZZLE.RATING.fixed(), rating)
+            .update(PUZZLE)
+            .set(PUZZLE.RATING, rating)
             .where(PUZZLE.ID.eq(puzzleId))
             .awaitExecute()
     }
 
     private suspend fun updateUserRating(userId: String, rating: Int, context: DSLContext) {
         context
-            .update(USER.fixed())
-            .set(USER.PUZZLE_RATING.fixed(), rating)
+            .update(USER)
+            .set(USER.PUZZLE_RATING, rating)
             .where(USER.ID.eq(userId))
             .awaitExecute()
     }

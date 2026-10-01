@@ -219,6 +219,9 @@ private fun Route.adminAnalysisRoutes() {
     get("/list-latest-move-analysis-by-game") {
         requireAdminRole { adminAnalysisService.listLatestMoveAnalysisByGame() }
     }
+    get("/pre-analysis-status-by-game-type") {
+        requireAdminRole { adminAnalysisService.listPreAnalysisStatusByGameType() }
+    }
     get("/pre-analyzed-reference-games-per-year") {
         requireAdminRole { adminAnalysisService.listPreAnalyzedReferenceGamesPerYear() }
     }

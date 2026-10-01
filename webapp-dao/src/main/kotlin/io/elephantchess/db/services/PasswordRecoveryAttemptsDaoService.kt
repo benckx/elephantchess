@@ -5,7 +5,6 @@ import io.elephantchess.db.dao.codegen.tables.daos.PasswordRecoveryAttemptDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PasswordRecoveryAttempt
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
-import io.elephantchess.db.utils.fixed
 import io.elephantchess.db.utils.insertReactive
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -37,9 +36,9 @@ class PasswordRecoveryAttemptsDaoService(private val dslContext: DSLContext) {
             DSL
                 .using(cfg)
                 .update(PASSWORD_RECOVERY_ATTEMPT)
-                .set(PASSWORD_RECOVERY_ATTEMPT.DATE_RECOVERED.fixed(), Clock.System.now())
-                .set(PASSWORD_RECOVERY_ATTEMPT.HAS_BEEN_RECOVERED.fixed(), true)
-                .where(PASSWORD_RECOVERY_ATTEMPT.ID.fixed().eq(id))
+                .set(PASSWORD_RECOVERY_ATTEMPT.DATE_RECOVERED, Clock.System.now())
+                .set(PASSWORD_RECOVERY_ATTEMPT.HAS_BEEN_RECOVERED, true)
+                .where(PASSWORD_RECOVERY_ATTEMPT.ID.eq(id))
                 .awaitExecute()
         }
     }

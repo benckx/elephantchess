@@ -167,3 +167,56 @@ class StatusPerYearEntryDto {
     }
 
 }
+
+class StatusByGameTypeEntryDto {
+
+    /**
+     * @type {string}
+     */
+    #gameType;
+
+    /**
+     * @type {string}
+     */
+    #status;
+
+    /**
+     * @type {number}
+     */
+    #count;
+
+    constructor(json) {
+        this.#gameType = json.gameType;
+        this.#status = json.status;
+        this.#count = Number(json.count);
+    }
+
+    /**
+     * @return {string}
+     */
+    get gameType() {
+        return this.#gameType;
+    }
+
+    /**
+     * @return {string}
+     */
+    get status() {
+        return this.#status;
+    }
+
+    /**
+     * @return {number}
+     */
+    get count() {
+        return this.#count;
+    }
+
+    /**
+     * @param json
+     * @returns {StatusByGameTypeEntryDto[]}
+     */
+    static parse(json) {
+        return json.entries.map(jsonEntry => new StatusByGameTypeEntryDto(jsonEntry));
+    }
+}

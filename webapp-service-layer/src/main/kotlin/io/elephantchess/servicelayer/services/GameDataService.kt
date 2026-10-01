@@ -14,6 +14,7 @@ import io.elephantchess.engines.protocol.model.InfoLineResult.Companion.parseInf
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.*
 import io.elephantchess.model.GameType.*
+import io.elephantchess.servicelayer.utils.collectMoveAnnotations
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisResponse
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisStatusResponse
 import io.elephantchess.servicelayer.dto.analysis.StartGameAnalysisResponse
@@ -261,7 +262,25 @@ class GameDataService(
                     mapToInfoLineResultDto(fenKey, infoLineResult)
                 }
 
-        return GameAnalysisResponse(entries)
+        val analysisMap = entries.associateBy { it.fen }
+        val moveAnnotations = collectMoveAnnotations(
+            moves = findMoves(gameId),
+            analysisMap = analysisMap,
+            startFen = findStartFen(gameId),
+        ).map { annotation ->
+            GameAnalysisResponse.MoveAnnotationDto(
+                moveIndex = annotation.moveIndex,
+                annotation = annotation.category,
+                cpl = annotation.cpl,
+                engineCp = annotation.engineCp,
+                actualMoveCp = annotation.actualMoveCp,
+            )
+        }
+
+        return GameAnalysisResponse(
+            entries = entries,
+            moveAnnotations = moveAnnotations,
+        )
     }
 
     suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<GameId, Instant>> {
@@ -513,20 +532,39 @@ class GameDataService(
         beforeTs: Long? = null,
         excludeAutoResigned: Boolean
     ): ListLastGamesResponse {
+        // ensure each user appears at most once in the list
+        fun distinctByUserId(games: List<BotGame>): List<BotGame> {
+            val gamesByUniqueUserId = mutableListOf<BotGame>()
+            val seenUserIds = mutableSetOf<String>()
+            var i = 0
+            while (gamesByUniqueUserId.size < requestedLimit && i < games.size) {
+                val game = games[i]
+                val userId = game.userId
+                if (userId != null && seenUserIds.add(userId)) {
+                    gamesByUniqueUserId.add(game)
+                }
+                i++
+            }
+
+            return gamesByUniqueUserId
+        }
+
+        val actualLimit = if (distinctByUsers) requestedLimit * 20 else requestedLimit
         val gameRecords = pvbGameDaoService
             .listLatestGamesByIdentifiedUsers(
-                limit = requestedLimit,
+                limit = actualLimit,
                 minMoveIndex = MIN_MOVE_INDEX,
                 beforeTs = beforeTs,
                 excludeAutoResigned = excludeAutoResigned,
-                distinctByUsers = distinctByUsers,
                 variantsToInclude = Variant.entries
             )
 
-        val userIds = gameRecords.map { game -> game.userId }.distinct().filterNotNull()
+        val selectedGames = if (distinctByUsers) distinctByUserId(gameRecords) else gameRecords
+
+        val userIds = selectedGames.map { game -> game.userId }.distinct().filterNotNull()
         val onlineUserIds = userService.areOnline(userIds).onlineUserIds
 
-        return gameRecords
+        return selectedGames
             .take(requestedLimit)
             .map { record -> mapPlayerVsBotGameToDto(record, onlineUserIds) }
             .let { entries -> ListLastGamesResponse(entries) }

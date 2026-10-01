@@ -2,8 +2,18 @@ package io.elephantchess.servicelayer.services.analytics
 
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.BotGame.BOT_GAME
+import io.elephantchess.db.utils.diffInSeconds
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
+
+/**
+ * A guest that stayed around for at least [MIN_GENUINE_GUEST_LIFESPAN_SECONDS] between its creation and
+ * its last activity. Guests that never became active (`last_online` is null) yield a null difference and
+ * are therefore excluded.
+ */
+private val isLongLivedGuest =
+    USER.USER_TYPE.eq(UserType.GUEST)
+        .and(diffInSeconds(USER.LAST_ONLINE, USER.CREATION).ge(MIN_GENUINE_GUEST_LIFESPAN_SECONDS))
 
 val allMetrics: List<Metric> by lazy {
     listOf(
@@ -17,7 +27,7 @@ val allMetrics: List<Metric> by lazy {
             "new guests",
             USER,
             USER.CREATION,
-            USER.USER_TYPE.eq(UserType.GUEST)
+            isLongLivedGuest
         ),
         TotalPuzzleMetric(),
         DateTimeCountMetric(
