@@ -61,6 +61,38 @@
     padding-right: 3px;
 }
 
+#profile-picture-settings {
+    margin: 15px 0 15px 4px;
+}
+
+#profile-picture-preview {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(98, 98, 99, 0.25);
+    display: block;
+    margin-bottom: 14px;
+}
+
+#profile-picture-editor {
+    margin-top: 14px;
+    max-width: 340px;
+}
+
+#profile-picture-editor-canvas {
+    border: 1px solid rgba(98, 98, 99, 0.35);
+    border-radius: 12px;
+    cursor: grab;
+    display: block;
+    margin: 8px 0 10px;
+    max-width: 100%;
+}
+
+.profile-picture-help {
+    font-size: 15px;
+    max-width: 500px;
+}
 #sessions-actions-container {
     margin: 10px 0 12px 12px;
 }
@@ -141,6 +173,19 @@
         padding-right: 6px;
     }
 
+    #profile-picture-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 16px;
+    }
+
+    #profile-picture-editor {
+        max-width: 90%;
+    }
+
+    .profile-picture-help {
+        font-size: 28px;
+    }
     #sessions-actions-container {
         font-size: 30px;
         margin-left: 10px;
@@ -151,7 +196,6 @@
         margin-left: 0;
         margin-top: 10px;
     }
-
     .session-os-icon {
         width: 34px;
         height: 34px;

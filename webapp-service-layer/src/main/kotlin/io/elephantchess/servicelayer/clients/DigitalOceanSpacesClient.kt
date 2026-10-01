@@ -23,7 +23,7 @@ class DigitalOceanSpacesClient(
     private val secretAccessKey by lazy { appConfig.doSpacesKeySecret }
     private val bucketName by lazy { appConfig.doSpacesBucket }
     private val region = "ams3"
-    private val endpoint = "$bucketName.$region.digitaloceanspaces.com"
+    private val endpoint by lazy { "$bucketName.$region.digitaloceanspaces.com" }
 
     private val client = HttpClient(CIO) {
         install(Logging) {

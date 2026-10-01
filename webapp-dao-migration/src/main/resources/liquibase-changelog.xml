@@ -2720,4 +2720,9 @@
             ON user_session (last_updated);
         </sql>
     </changeSet>
+    <changeSet id="0111" author="benckx">
+        <addColumn tableName="user">
+            <column name="profile_picture_extension" type="varchar(10)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
