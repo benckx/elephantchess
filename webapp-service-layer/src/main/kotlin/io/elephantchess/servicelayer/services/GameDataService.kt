@@ -526,6 +526,39 @@ class GameDataService(
             }
     }
 
+    suspend fun listLatestPvbGamesByUsername(
+        username: String,
+        requestedLimit: Int,
+        beforeTs: Long?
+    ): ListLastGamesResponse {
+        val user = userDaoService.findByUserName(username)
+            ?: throw NotFoundException("User $username could not be found")
+        return listLatestPvbGamesByUserId(
+            userId = user.id,
+            requestedLimit = requestedLimit,
+            beforeTs = beforeTs
+        )
+    }
+
+    suspend fun listLatestPvbGamesByUserId(
+        userId: String,
+        requestedLimit: Int,
+        beforeTs: Long?
+    ): ListLastGamesResponse {
+        val gameRecords = pvbGameDaoService.listGamesByUserId(
+            userId = userId,
+            limit = requestedLimit,
+            beforeTs = beforeTs,
+            minMoveIndex = MIN_MOVE_INDEX
+        )
+
+        val onlineUserIds = userService.areOnline(listOf(userId)).onlineUserIds
+
+        return gameRecords
+            .map { record -> mapPlayerVsBotGameToDto(record, onlineUserIds) }
+            .let { entries -> ListLastGamesResponse(entries) }
+    }
+
     suspend fun listLatestPvbGames(
         requestedLimit: Int,
         distinctByUsers: Boolean = true,

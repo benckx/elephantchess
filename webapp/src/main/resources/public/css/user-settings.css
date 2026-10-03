@@ -17,24 +17,40 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#notifications-settings-table {
+#notifications-settings-table,
+#profile-games-visibility-table {
     margin-bottom: 5px;
     margin-left: 8px;
     font-size: 17px;
     border-spacing: 0 4px;
 }
 
-#notifications-settings-table .checkbox-cell {
+#notifications-settings-table .checkbox-cell,
+#profile-games-visibility-table .checkbox-cell {
     width: 26px;
 }
 
-.notifications-hit-box {
+.settings-hit-box {
     cursor: pointer;
-    padding: 6px 16px;
+    padding: 5px 10px;
     width: 500px;
+    display: block;
 }
 
-.notifications-hit-box:hover {
+#profile-games-visibility-table .settings-hit-box {
+    width: 350px;
+}
+
+.profile-games-visibility-label {
+    margin-top: 25px;
+}
+
+#notifications-select-shortcuts {
+    margin-left: 8px;
+    margin-bottom: 6px;
+}
+
+.settings-hit-box:hover {
     background-color: #d7d3ce;
 }
 
@@ -115,7 +131,7 @@
         font-size: 24px;
     }
 
-    .notifications-hit-box {
+    .settings-hit-box {
         width: 90%;
     }
 
@@ -124,7 +140,8 @@
         margin-left: 20px;
     }
 
-    #notifications-settings-table {
+    #notifications-settings-table,
+    #profile-games-visibility-table {
         margin-bottom: 5px;
         margin-left: 8px;
         font-size: 30px;

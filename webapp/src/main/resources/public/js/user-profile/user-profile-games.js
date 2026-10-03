@@ -18,20 +18,22 @@
  */
 
 /**
- * Loads the latest PvP games of a given user and renders them into the
- * pre-rendered {@code .pvp-game-thumb} divs of the user profile page.
+ * Loads the latest games of a given type ('pvp' or 'pvb') for a user and
+ * renders them into the pre-rendered {@code .{type}-game-thumb} divs of the
+ * user profile page.
  *
- * Uses the {@code /api/game-data/list-latest-pvp-games-by-user} endpoint.
+ * Uses the {@code /api/game-data/list-latest-{type}-games-by-user} endpoint.
  */
-class UserProfileGames {
+class UserProfileGamesSection {
 
     #username;
-    #section = document.getElementById('latest-games-section');
+    #gameType;
+    #section;
 
     /**
      * @type {HTMLDivElement[]}
      */
-    #thumbDivs = getElementsByClassNameArray('pvp-game-thumb');
+    #thumbDivs;
 
     /**
      * @type {GameThumb[]}
@@ -40,12 +42,16 @@ class UserProfileGames {
 
     /**
      * @param username {string}
+     * @param gameType {'pvp'|'pvb'}
      */
-    constructor(username) {
+    constructor(username, gameType) {
         this.#username = username;
+        this.#gameType = gameType;
+        this.#section = document.getElementById(`${gameType}-games-section`);
+        this.#thumbDivs = getElementsByClassNameArray(`${gameType}-game-thumb`);
 
         this.#thumbs = this.#thumbDivs.map((div, i) => {
-            const boardId = `last-pvp-game-board-${i}`;
+            const boardId = `last-${gameType}-game-board-${i}`;
             const boardGui = createWebappBoardGui({
                 elementId: boardId,
                 showCoordinates: false,
@@ -57,13 +63,15 @@ class UserProfileGames {
         for (let i = 2; i < this.#thumbDivs.length; i++) {
             this.#thumbDivs[i].classList.add('only-desktop-flex');
         }
-
-        this.#fetchGames();
     }
 
-    #fetchGames() {
+    /**
+     * Fetches the latest games and renders them, revealing the section only if
+     * there is at least one game.
+     */
+    fetchGames() {
         const limit = this.#thumbs.length;
-        const url = `/api/game-data/list-latest-pvp-games-by-user`
+        const url = `/api/game-data/list-latest-${this.#gameType}-games-by-user`
             + `?limit=${limit}`
             + `&username=${encodeURIComponent(this.#username)}`;
 
@@ -78,7 +86,6 @@ class UserProfileGames {
      */
     #renderEntries(entries) {
         if (entries.length === 0) {
-            // No games to show: keep the whole "Latest Games" section hidden.
             return;
         }
 
@@ -93,6 +100,28 @@ class UserProfileGames {
                 // Hide unused pre-rendered thumbs when fewer games than slots
                 this.#thumbDivs[i].style.display = 'none';
             }
+        }
+    }
+}
+
+/**
+ * Coordinates the PvP and PvB game sections of the user profile page,
+ * showing each one only if the profile owner enabled it. Each section reveals
+ * itself only if it has games to display.
+ */
+class UserProfileGames {
+
+    /**
+     * @param username {string}
+     * @param showPvpGames {boolean}
+     * @param showPvbGames {boolean}
+     */
+    constructor(username, showPvpGames, showPvbGames) {
+        if (showPvpGames) {
+            new UserProfileGamesSection(username, 'pvp').fetchGames();
+        }
+        if (showPvbGames) {
+            new UserProfileGamesSection(username, 'pvb').fetchGames();
         }
     }
 }

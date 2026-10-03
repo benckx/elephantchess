@@ -2479,4 +2479,19 @@
             <column name="exception_trace" type="text"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0111" author="benckx">
+        <comment>Preferences to show/hide PvP and PvB games on the user profile page</comment>
+        <addColumn tableName="user">
+            <column name="show_pvp_games_on_profile"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="show_pvb_games_on_profile"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
