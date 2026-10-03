@@ -632,9 +632,10 @@ repositories {
 Then you can use the dependencies:
 
 ```Groovy
-implementation "com.github.benckx.elephantchess:xiangqi-core:2.1.0"
-implementation "com.github.benckx.elephantchess:engine-api:2.1.0"
-implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.1.0"
+implementation "com.github.benckx.elephantchess:xiangqi-core:2.1.1"
+implementation "com.github.benckx.elephantchess:engine-api:2.1.1"
+implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.1.1"
+implementation "com.github.benckx.elephantchess:csv-dump-parser:2.1.1"
 ```
 
 We added a sample project that uses the libraries

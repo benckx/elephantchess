@@ -53,11 +53,20 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listGamesByUserId(userId: String, limit: Int, beforeTs: Long?): List<BotGame> {
+    suspend fun listGamesByUserId(
+        userId: String,
+        limit: Int,
+        beforeTs: Long?,
+        minMoveIndex: Int? = null,
+    ): List<BotGame> {
         var sql = dslContext
             .select()
             .from(BOT_GAME)
             .where(BOT_GAME.USER_ID.eq(userId))
+
+        if (minMoveIndex != null) {
+            sql = sql.and(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+        }
 
         if (beforeTs != null) {
             sql = sql.and(BOT_GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))

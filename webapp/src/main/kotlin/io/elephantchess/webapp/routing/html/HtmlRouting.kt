@@ -64,7 +64,6 @@ private val identificationRequiredPagesMapping = mapOf(
 
 // only available authenticated users
 private val authenticatedRequiredPagesMapping = mapOf(
-    "/user/settings" to "user_settings",
     "/user/settings/sessions" to "user_sessions",
 )
 
@@ -100,6 +99,7 @@ fun Application.htmlRoutingModule() {
         gamePages()
         boardGuiExample()
         userProfile()
+        userSettingsPage()
         modals()
         databasePages()
         aboutPages()
@@ -202,6 +202,23 @@ private fun Route.userProfile() {
 
         userService.validateUserExists(username)
         call.respondHtml(renderer.renderUserBrowsePvpGames(username))
+    }
+    get("/@/{username}/browse-pvb-games") {
+        val username = call.parameters["username"]
+            ?: throw BadRequestException("username not provided")
+
+        userService.validateUserExists(username)
+        call.respondHtml(renderer.renderUserBrowsePvbGames(username))
+    }
+}
+
+private fun Route.userSettingsPage() {
+    val renderer by koin<UserSettingsPageRenderer>()
+
+    get("/user/settings") {
+        requireAuthentication { token ->
+            TextContent(renderer.renderUserSettingsPage(token.userId), Html)
+        }
     }
 }
 

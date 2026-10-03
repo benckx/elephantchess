@@ -2,4 +2,4 @@ jdk:
   - openjdk21
 
 install:
-  - ./gradlew :engine-api:publishToMavenLocal :xiangqi-core:publishToMavenLocal :xiangqi-core-test-utils:publishToMavenLocal :seven-kingdoms-core:publishToMavenLocal :seven-kingdoms-core-test-utils:publishToMavenLocal -PpublishVersion=$VERSION
+  - ./gradlew :engine-api:publishToMavenLocal :xiangqi-core:publishToMavenLocal :xiangqi-core-test-utils:publishToMavenLocal :seven-kingdoms-core:publishToMavenLocal :seven-kingdoms-core-test-utils:publishToMavenLocal :csv-dump-parser:publishToMavenLocal -PpublishVersion=$VERSION
