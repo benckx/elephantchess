@@ -1,11 +1,11 @@
 package io.elephantchess.servicelayer.dto.user
 
-data class UserProfile(
+data class UserProfileDto(
     val userId: String,
     val username: String,
     val country: String?,
     val profileDescription: String?,
     val puzzleRating: Int,
-    val showPvpGamesOnProfile: Boolean = true,
-    val showPvbGamesOnProfile: Boolean = true,
+    val showPvpGamesOnProfile: Boolean,
+    val showPvbGamesOnProfile: Boolean,
 )

@@ -16,7 +16,6 @@ import io.elephantchess.servicelayer.model.AuthenticatedToken
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.TokenManager.Companion.RENEW_SESSION_INTERVAL
-import io.elephantchess.servicelayer.services.UserService.Companion.EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRateStartImmediately
 import io.elephantchess.utils.stripHtml
 import io.github.oshai.kotlinlogging.KLogger
@@ -336,13 +335,13 @@ class UserService(
         }
     }
 
-    suspend fun fetchProfile(username: String): UserProfile {
+    suspend fun fetchProfile(username: String): UserProfileDto {
         // TODO: only fetch relevant fields
         val user = userDaoService.findByUserName(username)
         return if (user == null) {
             throw NotFoundException("User $username could not be found")
         } else {
-            UserProfile(
+            UserProfileDto(
                 userId = user.id,
                 username = user.handle,
                 country = normalizeCountry(user.country),
