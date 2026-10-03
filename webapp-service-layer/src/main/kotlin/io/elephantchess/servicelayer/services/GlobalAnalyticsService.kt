@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.services
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
+import io.elephantchess.db.services.ArchivedGuestDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.minusHours
@@ -27,6 +28,7 @@ import kotlin.time.Duration.Companion.seconds
 class GlobalAnalyticsService(
     private val userService: UserService,
     private val userDaoService: UserDaoService,
+    private val archivedGuestDaoService: ArchivedGuestDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val puzzleCache: PuzzleCache,
     private val gameDataService: GameDataService,
@@ -187,7 +189,8 @@ class GlobalAnalyticsService(
 
         val totalUsers =
             userDaoService.countAuthenticated() +
-                    userDaoService.countGuestsWithSessionAtLeast(minGuestDuration)
+                    userDaoService.countGuestsWithSessionAtLeast(minGuestDuration) +
+                    archivedGuestDaoService.countArchivedGuestsWithSessionAtLeast30Min()
 
         val totalRecentlyActive =
             userDaoService.countActiveRecently(recentlyDuration, listOf(AUTHENTICATED)) +
