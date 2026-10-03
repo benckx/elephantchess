@@ -101,7 +101,7 @@ class NotificationSetting {
         span.innerText = this.#label;
         let outerDiv = this.#buildCellContent(span);
         outerDiv.id = this.#id + '-hit-box';
-        outerDiv.classList.add('notifications-hit-box');
+        outerDiv.classList.add('settings-hit-box');
         return outerDiv;
     }
 

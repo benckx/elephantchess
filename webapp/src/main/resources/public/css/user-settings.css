@@ -30,18 +30,22 @@
     width: 26px;
 }
 
-.notifications-hit-box {
+.settings-hit-box {
     cursor: pointer;
     padding: 5px 10px;
     width: 500px;
     display: block;
 }
 
+#profile-games-visibility-table .settings-hit-box {
+    width: 350px;
+}
+
 .profile-games-visibility-label {
     margin-top: 25px;
 }
 
-.notifications-hit-box:hover {
+.settings-hit-box:hover {
     background-color: #d7d3ce;
 }
 
@@ -122,7 +126,7 @@
         font-size: 24px;
     }
 
-    .notifications-hit-box {
+    .settings-hit-box {
         width: 90%;
     }
 
