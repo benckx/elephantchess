@@ -22,6 +22,11 @@
     margin-bottom: 12px;
 }
 
+#profile-meta-info {
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+
 #player-profile-description .profile-sources {
     margin-top: 20px;
     padding: 15px;
