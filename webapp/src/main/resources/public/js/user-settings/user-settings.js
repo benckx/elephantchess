@@ -79,12 +79,12 @@ class UserSettingsPage extends BasePage {
             this.#showPvpGamesCheckbox.checked = json.showPvpGamesOnProfile !== false;
             this.#showPvbGamesCheckbox.checked = json.showPvbGamesOnProfile !== false;
             if (json.country != null) {
-                let countryName = getCountryName(json.country)
+                const countryName = getCountryName(json.country);
                 if (countryName != null) {
-                    let select = document.getElementById('countries');
-                    let options = select.getElementsByTagName('option');
+                    const select = document.getElementById('countries');
+                    const options = select.getElementsByTagName('option');
                     for (let i = 0; i < options.length; i++) {
-                        let option = options[i];
+                        const option = options[i];
                         if (option.value.toLowerCase() === json.country.toLowerCase()) {
                             option.selected = true;
                             break;
