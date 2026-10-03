@@ -34,10 +34,6 @@
     width: 500px;
 }
 
-.notifications-hit-box:hover {
-    background-color: #d7d3ce;
-}
-
 .profile-games-visibility-label {
     margin-top: 25px;
 }
@@ -50,11 +46,12 @@
 
 .profile-games-visibility-hit-box {
     cursor: pointer;
-    padding: 6px 16px;
-    width: 500px;
+    padding: 6px 2px;
+    width: 350px;
 }
 
-.profile-games-visibility-hit-box:hover {
+.profile-games-visibility-hit-box:hover,
+.notifications-hit-box:hover {
     background-color: #d7d3ce;
 }
 
