@@ -26,16 +26,32 @@
     </select>
     <br/>
     <h4 class="label profile-games-visibility-label">Games shown on profile</h4>
-    <div class="profile-games-visibility">
-        <label class="profile-games-visibility-hit-box">
-            <input id="show-pvp-games-on-profile" type="checkbox" checked/>
-            Show Player-vs-Player games
-        </label>
-        <label class="profile-games-visibility-hit-box">
-            <input id="show-pvb-games-on-profile" type="checkbox" checked/>
-            Show Player-vs-Bot games
-        </label>
-    </div>
+    <table id="profile-games-visibility-table">
+        <tr>
+            <td class="checkbox-cell">
+                <div>
+                    <div><input id="show-pvp-games-on-profile" type="checkbox" checked/></div>
+                </div>
+            </td>
+            <td>
+                <label for="show-pvp-games-on-profile" class="notifications-hit-box">
+                    <div><span>Show Player-vs-Player games</span></div>
+                </label>
+            </td>
+        </tr>
+        <tr>
+            <td class="checkbox-cell">
+                <div>
+                    <div><input id="show-pvb-games-on-profile" type="checkbox" checked/></div>
+                </div>
+            </td>
+            <td>
+                <label for="show-pvb-games-on-profile" class="notifications-hit-box">
+                    <div><span>Show Player-vs-Bot games</span></div>
+                </label>
+            </td>
+        </tr>
+    </table>
     <br/>
     <input id="save-profile-button" type="button" class="app-buttons-bigger" value="save">
     <h1>Email Notifications Settings</h1>
