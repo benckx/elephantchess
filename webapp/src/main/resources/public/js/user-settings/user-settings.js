@@ -46,24 +46,40 @@ class UserSettingsPage extends BasePage {
     // sessions section
     #sessionsWidget = new UserSessionsWidget({limit: 8, selectable: false});
 
+    // Serialized snapshots of the last saved (unchanged) values, used to detect
+    // whether the current form state differs and the save buttons should enable.
+    #profileBaseline;
+    #notificationsBaseline;
+
     constructor() {
         super();
 
         // profile section
         fillSelect('countries');
-        this.#fetchProfileSettings();
+        this.#selectLoadedCountry();
+        this.#updateDescriptionCharacterCounter();
         this.#saveProfileButton.addEventListener('click', () => this.#updateProfileSettings());
         this.#descriptionField.addEventListener('input', () => this.#updateDescriptionCharacterCounter());
         this.#descriptionField.setAttribute('maxlength', USERNAME_MAX_DESCRIPTION_LENGTH.toString());
+        this.#profileBaseline = this.#profileStateSignature();
+        [this.#descriptionField, this.#countryField, this.#showPvpGamesCheckbox, this.#showPvbGamesCheckbox]
+            .forEach(field => {
+                field.addEventListener('input', () => this.#refreshProfileSaveButton());
+                field.addEventListener('change', () => this.#refreshProfileSaveButton());
+            });
+        this.#refreshProfileSaveButton();
 
         // notifications section
-        let notificationsSettingsTable = document.getElementById('notifications-settings-table');
-        this.#notificationSettingsWidget.renderToTable(notificationsSettingsTable);
         this.#saveNotificationsButton.addEventListener('click', () => {
             this.#notificationSettingsWidget.updateSettings(() => {
                 UI.pushInfoNotification('Notifications settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
+                this.#notificationsBaseline = this.#notificationSettingsWidget.stateSignature();
+                this.#refreshNotificationsSaveButton();
             })
         });
+        this.#notificationsBaseline = this.#notificationSettingsWidget.stateSignature();
+        this.#notificationSettingsWidget.addChangeListener(() => this.#refreshNotificationsSaveButton());
+        this.#refreshNotificationsSaveButton();
 
         // email address section
         this.#fetchEmailAddressSettings();
@@ -72,27 +88,37 @@ class UserSettingsPage extends BasePage {
         this.#sessionsWidget.fetchAndRender();
     }
 
-    #fetchProfileSettings() {
-        getAndHandle(PROFILE_URL, json => {
-            this.#descriptionField.value = json.description ?? '';
-            this.#updateDescriptionCharacterCounter();
-            this.#showPvpGamesCheckbox.checked = json.showPvpGamesOnProfile !== false;
-            this.#showPvbGamesCheckbox.checked = json.showPvbGamesOnProfile !== false;
-            if (json.country != null) {
-                const countryName = getCountryName(json.country);
-                if (countryName != null) {
-                    const select = document.getElementById('countries');
-                    const options = select.getElementsByTagName('option');
-                    for (let i = 0; i < options.length; i++) {
-                        const option = options[i];
-                        if (option.value.toLowerCase() === json.country.toLowerCase()) {
-                            option.selected = true;
-                            break;
-                        }
-                    }
-                }
-            }
+    #profileStateSignature() {
+        return JSON.stringify({
+            description: this.#descriptionField.value,
+            country: this.#countryField.value,
+            showPvpGamesOnProfile: this.#showPvpGamesCheckbox.checked,
+            showPvbGamesOnProfile: this.#showPvbGamesCheckbox.checked,
         });
+    }
+
+    #refreshProfileSaveButton() {
+        this.#saveProfileButton.disabled = this.#profileStateSignature() === this.#profileBaseline;
+    }
+
+    #refreshNotificationsSaveButton() {
+        this.#saveNotificationsButton.disabled =
+            this.#notificationSettingsWidget.stateSignature() === this.#notificationsBaseline;
+    }
+
+    #selectLoadedCountry() {
+        const country = this.#countryField.dataset.selectedCountry;
+        if (country == null || country === '') {
+            return;
+        }
+        const options = this.#countryField.getElementsByTagName('option');
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            if (option.value.toLowerCase() === country.toLowerCase()) {
+                option.selected = true;
+                break;
+            }
+        }
     }
 
     #updateProfileSettings() {
@@ -109,6 +135,8 @@ class UserSettingsPage extends BasePage {
         };
         postAndHandle(PROFILE_URL, body, () => {
             UI.pushInfoNotification('Profile settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
+            this.#profileBaseline = this.#profileStateSignature();
+            this.#refreshProfileSaveButton();
         });
     }
 
