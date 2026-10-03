@@ -79,6 +79,14 @@ class UserSettingsPage extends BasePage {
         });
         this.#notificationsBaseline = this.#notificationSettingsWidget.stateSignature();
         this.#notificationSettingsWidget.addChangeListener(() => this.#refreshNotificationsSaveButton());
+        document.getElementById('notifications-select-all').addEventListener('click', () => {
+            this.#notificationSettingsWidget.setAll(true);
+            this.#refreshNotificationsSaveButton();
+        });
+        document.getElementById('notifications-unselect-all').addEventListener('click', () => {
+            this.#notificationSettingsWidget.setAll(false);
+            this.#refreshNotificationsSaveButton();
+        });
         this.#refreshNotificationsSaveButton();
 
         // email address section

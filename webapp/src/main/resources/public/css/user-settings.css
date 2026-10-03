@@ -45,6 +45,11 @@
     margin-top: 25px;
 }
 
+#notifications-select-shortcuts {
+    margin-left: 8px;
+    margin-bottom: 6px;
+}
+
 .settings-hit-box:hover {
     background-color: #d7d3ce;
 }

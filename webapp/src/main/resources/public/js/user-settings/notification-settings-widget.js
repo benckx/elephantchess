@@ -80,6 +80,13 @@ class NotificationSettingsWidget {
     }
 
     /**
+     * @param checked {boolean}
+     */
+    setAll(checked) {
+        this.#notificationSettings.forEach(setting => setting.checkbox.checked = checked);
+    }
+
+    /**
      * @return {string}
      */
     stateSignature() {
