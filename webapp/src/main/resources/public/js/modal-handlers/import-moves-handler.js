@@ -17,14 +17,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// TODO: pass a callback instead of the widgets directly
 class ImportMovesHandler extends ModalHandler {
 
     /**
      * @param boardGui {BoardGui}
      * @param moveTreeWidget {MoveTreeWidget}
+     * @param afterImportCallback {function|null} optional callback invoked after a successful import
      */
-    constructor(boardGui, moveTreeWidget) {
+    constructor(boardGui, moveTreeWidget, afterImportCallback = null) {
         super();
 
         let area = document.getElementById('moves-to-import-text-area');
@@ -41,6 +41,9 @@ class ImportMovesHandler extends ModalHandler {
                     boardGui.loadFen(calculateFen(moves), false);
                     moveTreeWidget.setMoves(moves);
                     UI.hideModal(null);
+                    if (afterImportCallback != null) {
+                        afterImportCallback();
+                    }
                 } catch (error) {
                     console.error(error);
                     UI.pushErrorNotification(error.message, 5_000);
