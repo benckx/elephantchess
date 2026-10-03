@@ -304,8 +304,24 @@ class UserServiceTest : ServiceTest() {
     fun `updateProfileSettings should unset country when none is selected`() = runTest {
         val (request, userId) = signUpTestUser()
 
-        userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "be"))
-        userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "none"))
+        userService.updateProfileSettings(
+            userId,
+            ProfileSettingsDto(
+                description = "",
+                country = "be",
+                showPvpGamesOnProfile = true,
+                showPvbGamesOnProfile = true,
+            ),
+        )
+        userService.updateProfileSettings(
+            userId,
+            ProfileSettingsDto(
+                description = "",
+                country = "none",
+                showPvpGamesOnProfile = true,
+                showPvbGamesOnProfile = true,
+            ),
+        )
 
         val profile = userService.fetchProfile(request.username)
         assertNull(profile.country)
