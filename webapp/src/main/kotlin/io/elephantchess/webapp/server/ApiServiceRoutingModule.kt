@@ -9,6 +9,7 @@ import io.elephantchess.webapp.routing.api.databaseRoutes
 import io.elephantchess.webapp.routing.api.gameDataRoutes
 import io.elephantchess.webapp.routing.api.globalPageRoutes
 import io.elephantchess.webapp.routing.api.lobbyRoutes
+import io.elephantchess.webapp.routing.api.lobbyWsRoutes
 import io.elephantchess.webapp.routing.api.puzzleRoutes
 import io.elephantchess.webapp.routing.api.pvpGameRoutes
 import io.elephantchess.webapp.routing.api.pvpGameWsRoutes
@@ -45,6 +46,7 @@ fun Application.apiServiceModule() {
         globalPageRoutes()
         userRoutes()
         lobbyRoutes()
+        lobbyWsRoutes()
         supporterRoutes()
         adminConsoleRoutes()
         integrationRoutes()
