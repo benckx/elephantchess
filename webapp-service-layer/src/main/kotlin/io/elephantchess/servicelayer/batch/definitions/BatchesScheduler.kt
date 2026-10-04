@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.batch.definitions
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.metrics.MetricsLogger
+import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.services.PodService
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.github.oshai.kotlinlogging.KLogger
@@ -16,6 +17,7 @@ class BatchesScheduler(
     appConfig: AppConfig,
     schedules: List<BatchSchedule<out Batch>>,
     private val podService: PodService,
+    private val exceptionService: ExceptionService,
     refresherScope: CoroutineScope,
     private val logger: KLogger,
 ) {
@@ -61,6 +63,7 @@ class BatchesScheduler(
                                             schedule.batch.run(pod)
                                         } catch (e: Exception) {
                                             logger.error(e) { "error running batch ${schedule.batchName}" }
+                                            exceptionService.saveException(e)
                                         }
                                     }
 
@@ -71,6 +74,7 @@ class BatchesScheduler(
                                                 schedule.batch.run()
                                             } catch (e: Exception) {
                                                 logger.error(e) { "error running batch ${schedule.batchName}" }
+                                                exceptionService.saveException(e)
                                             }
                                         }
                                     }

@@ -16,9 +16,13 @@ class ExceptionService(
 
     private val exceptionServiceScope by lazy { CoroutineScope(Dispatchers.Default) }
 
+    /**
+     * @param httpCode the HTTP status to associate with the exception, or null for exceptions
+     * thrown outside of an HTTP request (e.g. scheduled batches).
+     */
     fun saveException(
         throwable: Throwable,
-        httpCode: Int,
+        httpCode: Int? = null,
     ) {
         exceptionServiceScope.launch {
             try {

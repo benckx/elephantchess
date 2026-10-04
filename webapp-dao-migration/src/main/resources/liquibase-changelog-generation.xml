@@ -2536,5 +2536,6 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <dropNotNullConstraint tableName="thrown_exception" columnName="http_code"/>
     </changeSet>
 </databaseChangeLog>
