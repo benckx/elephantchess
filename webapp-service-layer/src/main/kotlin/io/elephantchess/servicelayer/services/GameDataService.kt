@@ -289,7 +289,7 @@ class GameDataService(
                 moveAnnotations = moveAnnotationDtos,
             )
         } catch (e: Exception) {
-            throw PreConditionFailedException("Error while collecting move annotations for $gameId: ${e.message}", e)
+            throw PreConditionFailedException("Error while collecting move annotations for $gameId: ${e.message}")
         }
     }
 
