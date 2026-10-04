@@ -173,14 +173,6 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    private fun ownProfileViewCondition(): Condition {
-        val safeHandle = DSL.coalesce(USER.HANDLE, DSL.inline(""))
-        val ownPath = DSL.concat(DSL.inline("/@/"), safeHandle)
-        val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), safeHandle, DSL.inline("?%"))
-        return PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
-            .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
-    }
-
     suspend fun fetchHourlyPageViews(
         hours: Int,
         excludedUserIds: List<String>

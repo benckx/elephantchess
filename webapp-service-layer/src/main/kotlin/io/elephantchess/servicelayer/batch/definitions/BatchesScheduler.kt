@@ -2,9 +2,11 @@ package io.elephantchess.servicelayer.batch.definitions
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.metrics.MetricsLogger
+import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.services.PodService
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.github.oshai.kotlinlogging.KLogger
+import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
@@ -15,6 +17,7 @@ class BatchesScheduler(
     appConfig: AppConfig,
     schedules: List<BatchSchedule<out Batch>>,
     private val podService: PodService,
+    private val exceptionService: ExceptionService,
     refresherScope: CoroutineScope,
     private val logger: KLogger,
 ) {
@@ -26,42 +29,52 @@ class BatchesScheduler(
 
     init {
         schedules
-            .filter { entry -> disabledBatches.contains(entry.name()) }
+            .filter { entry -> disabledBatches.contains(entry.batchName) }
             .forEach { entry ->
-                logger.info { "batch ${entry.name()} disabled, not scheduling" }
+                logger.info { "batch ${entry.batchName} disabled, not scheduling" }
             }
 
         schedules
-            .filterNot { batch -> disabledBatches.contains(batch.name()) }
-            .forEach { batch ->
-                if (disabledBatches.contains(batch.name())) {
-                    logger.info { "batch ${batch.name()} disabled, not scheduling" }
+            .filterNot { schedule -> disabledBatches.contains(schedule.batchName) }
+            .filter { schedule -> schedule.batch.instanceOf(SinglePodBatch::class) }
+            .forEach { schedule ->
+                val podNumber = (schedule.batch as SinglePodBatch).podNumber
+                logger.info { "${schedule.batchName} will be scheduled on pod $podNumber" }
+            }
+
+        schedules
+            .filterNot { schedule -> disabledBatches.contains(schedule.batchName) }
+            .forEach { schedule ->
+                if (disabledBatches.contains(schedule.batchName)) {
+                    logger.info { "batch ${schedule.batchName} disabled, not scheduling" }
                 } else {
-                    logger.info { "scheduling batch ${batch.name()}" }
+                    logger.info { "scheduling batch ${schedule.batchName}" }
 
                     jobs += launchAtFixedRate(
                         scope = refresherScope,
-                        period = batch.period,
-                        initialDelay = batch.delay,
+                        period = schedule.period,
+                        initialDelay = schedule.delay,
                         action = {
                             podService.findPod()?.let { pod ->
-                                when (batch.batch) {
+                                when (schedule.batch) {
                                     is ShardedBatch<*> -> {
                                         try {
-                                            logger.debug { "running ${batch.name()}" }
-                                            batch.batch.run(pod)
+                                            logger.debug { "running ${schedule.batchName}" }
+                                            schedule.batch.run(pod)
                                         } catch (e: Exception) {
-                                            logger.error(e) { "error running batch ${batch.name()}" }
+                                            logger.error(e) { "error running batch ${schedule.batchName}" }
+                                            exceptionService.saveException(e)
                                         }
                                     }
 
                                     is SinglePodBatch -> {
-                                        if (pod.index == batch.batch.podNumber) {
+                                        if (pod.index == schedule.batch.podNumber || !isDockerized) {
                                             try {
-                                                logger.debug { "running ${batch.name()}" }
-                                                batch.batch.run()
+                                                logger.debug { "running ${schedule.batchName}" }
+                                                schedule.batch.run()
                                             } catch (e: Exception) {
-                                                logger.error(e) { "error running batch ${batch.name()}" }
+                                                logger.error(e) { "error running batch ${schedule.batchName}" }
+                                                exceptionService.saveException(e)
                                             }
                                         }
                                     }
