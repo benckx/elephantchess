@@ -30,6 +30,7 @@ private val MUTED_WELL_KNOWN_URIS = setOf(
     "/.well-known/apple-app-site-association",
     "/apple-app-site-association",
     "/.well-known/passkey-endpoints",
+    "/.well-known/appspecific/com.chrome.devtools.json",
 )
 
 fun Application.exceptionHandler() {
