@@ -292,12 +292,14 @@ class AdminAnalyticsService(
 
     suspend fun fetchPageViewStatsForOwnUserProfiles(): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyOwnUserProfilePageViews(excludedUserIds)
-        return mapPageViewRecordsToMultipleTimeseries(records)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedMonthlyOwnProfilePageViews()
+        return mapPageViewRecordsToMultipleTimeseries(mergeMonthlyPageViews(records, archivedRecords))
     }
 
     suspend fun fetchPageViewStatsForOtherUserProfiles(): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyOtherUserProfilePageViews(excludedUserIds)
-        return mapPageViewRecordsToMultipleTimeseries(records)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedMonthlyOtherProfilePageViews()
+        return mapPageViewRecordsToMultipleTimeseries(mergeMonthlyPageViews(records, archivedRecords))
     }
 
     suspend fun fetchHourlyPageViews(hours: Int = 12): HourlyPageViewsResponse {

@@ -144,6 +144,29 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
         assertEquals(1, puzzlesMonthly.first().uniquePageViews)
     }
 
+    @Test
+    fun `archives guest profile page views as other-profile monthly metrics`() = runTest {
+        val creation = instantOfUtc(2022, 2, 8, 12, 0, 0)
+        val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+
+        // guests have no handle, so any "/@/{username}" profile view is an "other" profile view
+        insertPageView(guestId, instantOfUtc(2022, 2, 8, 12, 1, 0), eventPath = "/@/alice")
+        insertPageView(guestId, instantOfUtc(2022, 2, 8, 12, 2, 0), eventPath = "/@/bob")
+        // a profile sub-path is not a profile view and must be excluded
+        insertPageView(guestId, instantOfUtc(2022, 2, 8, 12, 3, 0), eventPath = "/@/alice/games")
+
+        archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
+
+        val otherMonthly = archivedGuestDaoService.fetchArchivedMonthlyOtherProfilePageViews()
+        assertEquals(1, otherMonthly.size)
+        // two distinct profile urls viewed by the single guest on the same day
+        assertEquals(2, otherMonthly.first().uniquePageViews)
+        assertEquals("/@/{username}", otherMonthly.first().label)
+
+        // the guest has no own profile, so own-profile archived views are empty
+        assertTrue(archivedGuestDaoService.fetchArchivedMonthlyOwnProfilePageViews().isEmpty())
+    }
+
     private suspend fun metricValueForYear(metricName: String, year: Int): Int {
         val metric = allMetrics.first { it.name == metricName }
         return metric.countByYear(dslContext)

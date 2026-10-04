@@ -177,6 +177,42 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             }
     }
 
+    /**
+     * Archived monthly "own profile" page views (guests viewing their own `/@/{handle}` profile),
+     * summed per month. Mirrors [io.elephantchess.db.services.PageViewEventDaoService.fetchMonthlyOwnUserProfilePageViews]
+     * so archived rows can be summed into the live series; label matches the live `/@/{username}` label.
+     */
+    suspend fun fetchArchivedMonthlyOwnProfilePageViews(): List<MonthlyPageViewRecord> =
+        fetchArchivedMonthlyProfilePageViews(ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS)
+
+    /**
+     * Archived monthly "other profile" page views (guests viewing another user's `/@/{handle}` profile),
+     * summed per month. Mirrors [io.elephantchess.db.services.PageViewEventDaoService.fetchMonthlyOtherUserProfilePageViews].
+     */
+    suspend fun fetchArchivedMonthlyOtherProfilePageViews(): List<MonthlyPageViewRecord> =
+        fetchArchivedMonthlyProfilePageViews(ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS)
+
+    private suspend fun fetchArchivedMonthlyProfilePageViews(
+        column: org.jooq.TableField<*, Int>,
+    ): List<MonthlyPageViewRecord> {
+        val month = ARCHIVED_PAGE_VIEW_DAILY.DAY.yearMonthOfDay()
+        val pageViews = DSL.sum(column).`as`("page_views")
+
+        return dslContext
+            .select(month, pageViews)
+            .from(ARCHIVED_PAGE_VIEW_DAILY)
+            .groupBy(month)
+            .having(DSL.sum(column).gt(DSL.inline(java.math.BigDecimal.ZERO)))
+            .awaitRecords()
+            .map { record ->
+                MonthlyPageViewRecord(
+                    yearMonth = record.get(month),
+                    label = "/@/{username}",
+                    uniquePageViews = record.get(pageViews).toInt(),
+                )
+            }
+    }
+
     private suspend fun archiveGuestCounts(transactional: DSLContext, guestIds: List<String>) {
         val creationDay = USER.CREATION.localDate(null)
         val lifespan = diffInSeconds(USER.LAST_ONLINE, USER.CREATION)
@@ -232,24 +268,52 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
         val url = DSL.substring(PAGE_VIEW_EVENT.EVENT_PATH, DSL.inline(1), DSL.inline(URL_MAX_LENGTH))
         val uniqueGuests = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID)
 
+        // own/other profile view counts are computed here (while the viewing user still exists) because
+        // "own" means the viewed profile's handle equals the viewer's handle, which can't be reconstructed
+        // once the guest is deleted. Mirrors PageViewEventDaoService's ownProfileViewCondition and the
+        // "/@/{username}" (no sub-path) profile-view filter.
+        val isProfileView = PAGE_VIEW_EVENT.EVENT_PATH.like("/@/%")
+            .and(PAGE_VIEW_EVENT.EVENT_PATH.notLike("/@/%/%"))
+        val ownProfileView = isProfileView.and(ownProfileViewCondition())
+        val otherProfileView = isProfileView.and(ownProfileViewCondition().not())
+        val uniqueOwnProfileGuests = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID).filterWhere(ownProfileView)
+        val uniqueOtherProfileGuests = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID).filterWhere(otherProfileView)
+
         transactional
             .insertInto(
                 ARCHIVED_PAGE_VIEW_DAILY,
                 ARCHIVED_PAGE_VIEW_DAILY.DAY,
                 ARCHIVED_PAGE_VIEW_DAILY.URL,
                 ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS,
+                ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS,
+                ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS,
             )
             .select(
                 transactional
-                    .select(eventDay, url, uniqueGuests)
+                    .select(eventDay, url, uniqueGuests, uniqueOwnProfileGuests, uniqueOtherProfileGuests)
                     .from(PAGE_VIEW_EVENT)
+                    .leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
                     .where(PAGE_VIEW_EVENT.USER_ID.`in`(guestIds))
                     .groupBy(eventDay, url)
             )
             .onConflict(ARCHIVED_PAGE_VIEW_DAILY.DAY, ARCHIVED_PAGE_VIEW_DAILY.URL)
             .doUpdate()
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
+            .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS)
+            .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS)
             .awaitExecute()
+    }
+
+    /**
+     * Shares [io.elephantchess.db.services.PageViewEventDaoService.ownProfileViewCondition]'s logic: a
+     * profile view is "own" when the viewed profile path matches the viewing user's own handle.
+     */
+    private fun ownProfileViewCondition(): Condition {
+        val safeHandle = DSL.coalesce(USER.HANDLE, DSL.inline(""))
+        val ownPath = DSL.concat(DSL.inline("/@/"), safeHandle)
+        val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), safeHandle, DSL.inline("?%"))
+        return PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
+            .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
     }
 
     /**
