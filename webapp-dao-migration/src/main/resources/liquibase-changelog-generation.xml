@@ -2006,7 +2006,8 @@
     </changeSet>
     <changeSet id="0077" author="benckx">
         <renameTable oldTableName="reference_player_profile_version" newTableName="reference_player_profile_edit"/>
-        <renameTable oldTableName="reference_player_profile_source" newTableName="reference_player_profile_edit_source"/>
+        <renameTable oldTableName="reference_player_profile_source"
+                     newTableName="reference_player_profile_edit_source"/>
         <dropColumn tableName="reference_player_profile_edit_source" columnName="comment"/>
     </changeSet>
     <changeSet id="0078" author="benckx">
@@ -2471,7 +2472,9 @@
         <comment>Indexes for latest move analysis aggregation and analyzed flag lookup</comment>
     </changeSet>
     <changeSet id="0108" author="benckx">
-        <comment>Index on bot_game.last_updated to speed up the latest PvB games listing (ORDER BY last_updated DESC LIMIT)</comment>
+        <comment>Index on bot_game.last_updated to speed up the latest PvB games listing (ORDER BY last_updated DESC
+            LIMIT)
+        </comment>
     </changeSet>
     <changeSet id="0109" author="benckx">
         <comment>Store the stack trace of thrown exceptions to see where they come from</comment>
@@ -2551,11 +2554,6 @@
             Index on user.last_online: the online-users cache refreshes every 2s via a filter on this column.
             Without the index it was a full seq scan over all users (~365ms each), saturating DB CPU.
         </comment>
-        <preconditions onFail="MARK_RAN">
-            <not>
-                <indexExists tableName="user" indexName="user_last_online_index"/>
-            </not>
-        </preconditions>
         <createIndex tableName="user" indexName="user_last_online_index">
             <column name="last_online"/>
         </createIndex>

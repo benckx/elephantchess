@@ -2790,11 +2790,6 @@
             Index on user.last_online: the online-users cache refreshes every 2s via a filter on this column.
             Without the index it was a full seq scan over all users (~365ms each), saturating DB CPU.
         </comment>
-        <preconditions onFail="MARK_RAN">
-            <not>
-                <indexExists tableName="user" indexName="user_last_online_index"/>
-            </not>
-        </preconditions>
         <createIndex tableName="user" indexName="user_last_online_index">
             <column name="last_online"/>
         </createIndex>
