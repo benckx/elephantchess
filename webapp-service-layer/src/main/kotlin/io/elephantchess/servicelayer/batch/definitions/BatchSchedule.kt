@@ -9,8 +9,9 @@ data class BatchSchedule<T : Batch>(
     val delay: Duration = 5.minutes,
 ) {
 
-    fun name(): String = batch.javaClass.simpleName
+    val batchName: String
+        get() = batch.javaClass.simpleName
 
-    override fun toString() = "BatchSchedule(${name()}, period=$period, delay=$delay)"
+    override fun toString() = "BatchSchedule(${batchName}, period=$period, delay=$delay)"
 
 }
