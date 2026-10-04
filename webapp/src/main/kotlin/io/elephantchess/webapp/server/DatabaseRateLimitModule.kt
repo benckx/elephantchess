@@ -2,8 +2,10 @@ package io.elephantchess.webapp.server
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.utils.ops.koin
+import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
@@ -12,6 +14,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
 private val appConfig by koin<AppConfig>()
+private val simplePageRenderer by koin<SimplePageRenderer>()
 
 /**
  * Installs a per-IP rate limiter in front of the public reference-database HTML pages to throttle
@@ -49,9 +52,12 @@ fun Application.databaseRateLimitModule() {
                         "| User-Agent: ${call.request.headers[HttpHeaders.UserAgent]?.take(100)}"
             }
             call.response.headers.append(HttpHeaders.RetryAfter, limiter.retryAfterSeconds.toString())
-            call.respondText(
-                text = "Too many requests. Please slow down.",
-                status = HttpStatusCode.TooManyRequests,
+            call.respond(
+                TextContent(
+                    text = simplePageRenderer.renderTemplate("429"),
+                    contentType = ContentType.Text.Html,
+                    status = HttpStatusCode.TooManyRequests,
+                )
             )
             finish()
         }
