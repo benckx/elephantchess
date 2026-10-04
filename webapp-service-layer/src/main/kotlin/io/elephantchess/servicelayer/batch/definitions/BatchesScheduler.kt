@@ -36,7 +36,7 @@ class BatchesScheduler(
 
         schedules
             .filterNot { schedule -> disabledBatches.contains(schedule.batchName) }
-            .filterNot { schedule -> schedule.batch.instanceOf(SinglePodBatch::class) }
+            .filter { schedule -> schedule.batch.instanceOf(SinglePodBatch::class) }
             .forEach { schedule ->
                 val podNumber = (schedule.batch as SinglePodBatch).podNumber
                 logger.info { "${schedule.batchName} will be scheduled on pod $podNumber" }
