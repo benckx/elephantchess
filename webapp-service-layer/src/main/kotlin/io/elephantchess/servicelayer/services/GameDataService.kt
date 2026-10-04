@@ -26,6 +26,7 @@ import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateRequest
 import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateResponse
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.servicelayer.exceptions.PreConditionFailedException
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
@@ -263,24 +264,33 @@ class GameDataService(
                 }
 
         val analysisMap = entries.associateBy { it.fen }
-        val moveAnnotations = collectMoveAnnotations(
-            moves = findMoves(gameId),
-            analysisMap = analysisMap,
-            startFen = findStartFen(gameId),
-        ).map { annotation ->
-            GameAnalysisResponse.MoveAnnotationDto(
-                moveIndex = annotation.moveIndex,
-                annotation = annotation.category,
-                cpl = annotation.cpl,
-                engineCp = annotation.engineCp,
-                actualMoveCp = annotation.actualMoveCp,
-            )
-        }
 
-        return GameAnalysisResponse(
-            entries = entries,
-            moveAnnotations = moveAnnotations,
-        )
+        try {
+            val moveAnnotationDetails = collectMoveAnnotations(
+                moves = findMoves(gameId),
+                analysisMap = analysisMap,
+                startFen = findStartFen(gameId),
+            )
+
+            val moveAnnotationDtos =
+                moveAnnotationDetails
+                    .map { annotation ->
+                        GameAnalysisResponse.MoveAnnotationDto(
+                            moveIndex = annotation.moveIndex,
+                            annotation = annotation.category,
+                            cpl = annotation.cpl,
+                            engineCp = annotation.engineCp,
+                            actualMoveCp = annotation.actualMoveCp,
+                        )
+                    }
+
+            return GameAnalysisResponse(
+                entries = entries,
+                moveAnnotations = moveAnnotationDtos,
+            )
+        } catch (e: Exception) {
+            throw PreConditionFailedException("Error while collecting move annotations for $gameId: ${e.message}", e)
+        }
     }
 
     suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<GameId, Instant>> {
