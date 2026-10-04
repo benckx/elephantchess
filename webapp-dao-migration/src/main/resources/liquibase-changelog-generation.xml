@@ -2479,6 +2479,8 @@
             <column name="exception_trace" type="text"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0110" author="benckx">
+    </changeSet>
     <changeSet id="0111" author="benckx">
         <comment>Preferences to show/hide PvP and PvB games on the user profile page</comment>
         <addColumn tableName="user">
@@ -2543,5 +2545,19 @@
             </column>
         </createTable>
         <dropNotNullConstraint tableName="thrown_exception" columnName="http_code"/>
+    </changeSet>
+    <changeSet id="0113" author="benckx">
+        <comment>
+            Index on user.last_online: the online-users cache refreshes every 2s via a filter on this column.
+            Without the index it was a full seq scan over all users (~365ms each), saturating DB CPU.
+        </comment>
+        <preconditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="user" indexName="user_last_online_index"/>
+            </not>
+        </preconditions>
+        <createIndex tableName="user" indexName="user_last_online_index">
+            <column name="last_online"/>
+        </createIndex>
     </changeSet>
 </databaseChangeLog>
