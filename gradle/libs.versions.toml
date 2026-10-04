@@ -25,6 +25,7 @@ r2dbcPool = "1.0.2.RELEASE"
 commonsValidator = "1.11.0"
 javaJwt = "4.6.1"
 kubernetesClient = "8.0.0"
+netty = "4.2.18.Final"
 commonsRngSimple = "1.7"
 commonsText = "1.15.0"
 commonsCli = "1.11.0"
@@ -57,6 +58,7 @@ kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = 
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kubernetes-client = { module = "io.fabric8:kubernetes-client", version.ref = "kubernetesClient" }
+netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

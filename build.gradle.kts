@@ -57,6 +57,12 @@ subprojects {
     dependencies {
         implementation(rootLibs.kotlin.stdlib)
 
+        // Align all transitive Netty modules via the Netty BOM. Vert.x 5 (pulled in by
+        // the fabric8 kubernetes-client) requires Netty >= 4.2.16 (HttpHeaderNames.ACCEPT_QUERY).
+        val nettyBom = enforcedPlatform(rootLibs.netty.bom)
+        implementation(nettyBom)
+        testImplementation(nettyBom)
+
         // Logging and coroutines pollute the published library classpath, so only
         // non-publishable modules get them by default. Publishable libraries declare
         // exactly what they need (e.g. engine-api adds coroutines in its own block).
@@ -77,30 +83,10 @@ subprojects {
         testImplementation(rootLibs.junit.jupiter.params)
     }
 
-    val nettyVersion = "4.2.15.Final"
     configurations.configureEach {
         resolutionStrategy {
             force("org.apache.commons:commons-lang3:${rootLibs.versions.commonsLang3.get()}")
             force("org.checkerframework:checker-qual:${rootLibs.versions.checkerQual.get()}")
-            force("io.netty:netty-buffer:$nettyVersion")
-            force("io.netty:netty-codec:$nettyVersion")
-            force("io.netty:netty-codec-base:$nettyVersion")
-            force("io.netty:netty-codec-compression:$nettyVersion")
-            force("io.netty:netty-codec-dns:$nettyVersion")
-            force("io.netty:netty-codec-http:$nettyVersion")
-            force("io.netty:netty-codec-http2:$nettyVersion")
-            force("io.netty:netty-codec-socks:$nettyVersion")
-            force("io.netty:netty-common:$nettyVersion")
-            force("io.netty:netty-handler:$nettyVersion")
-            force("io.netty:netty-handler-proxy:$nettyVersion")
-            force("io.netty:netty-resolver:$nettyVersion")
-            force("io.netty:netty-resolver-dns:$nettyVersion")
-            force("io.netty:netty-transport:$nettyVersion")
-            force("io.netty:netty-transport-classes-epoll:$nettyVersion")
-            force("io.netty:netty-transport-classes-kqueue:$nettyVersion")
-            force("io.netty:netty-transport-native-epoll:$nettyVersion")
-            force("io.netty:netty-transport-native-kqueue:$nettyVersion")
-            force("io.netty:netty-transport-native-unix-common:$nettyVersion")
         }
     }
 
