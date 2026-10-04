@@ -29,6 +29,7 @@ import io.elephantchess.db.utils.currentTimestamp
 import io.elephantchess.db.utils.diffInSeconds
 import io.elephantchess.db.utils.isBefore
 import io.elephantchess.db.utils.localDate
+import io.elephantchess.db.utils.ownProfileViewCondition
 import io.elephantchess.db.utils.yearMonthOfDay
 import io.elephantchess.model.UserType
 import org.jooq.Condition
@@ -302,18 +303,6 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS)
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS)
             .awaitExecute()
-    }
-
-    /**
-     * Shares [io.elephantchess.db.services.PageViewEventDaoService.ownProfileViewCondition]'s logic: a
-     * profile view is "own" when the viewed profile path matches the viewing user's own handle.
-     */
-    private fun ownProfileViewCondition(): Condition {
-        val safeHandle = DSL.coalesce(USER.HANDLE, DSL.inline(""))
-        val ownPath = DSL.concat(DSL.inline("/@/"), safeHandle)
-        val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), safeHandle, DSL.inline("?%"))
-        return PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
-            .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
     }
 
     /**
