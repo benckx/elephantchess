@@ -44,7 +44,7 @@ fun Application.databaseRateLimitModule() {
             )
 
         if (rateLimited) {
-            logger.debug {
+            logger.info {
                 "rate limited ${call.request.httpMethod.value} ${call.request.path()} " +
                         "| User-Agent: ${call.request.headers[HttpHeaders.UserAgent]?.take(100)}"
             }
