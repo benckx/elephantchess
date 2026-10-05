@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.services.UserSessionDaoService
@@ -9,7 +9,7 @@ import io.elephantchess.servicelayer.clients.ApiLayerClient
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.minutes
 
-@Inject
+@Service
 class FetchUserSessionGeographicDataBatch(
     private val userSessionDaoService: UserSessionDaoService,
     private val client: ApiLayerClient,

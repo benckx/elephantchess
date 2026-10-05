@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.clients
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.clients.dto.DiscordMessage
@@ -16,7 +16,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-@Inject
+@Service
 class DiscordClient(appConfig: AppConfig) {
 
     private val token by lazy { appConfig.discordToken }

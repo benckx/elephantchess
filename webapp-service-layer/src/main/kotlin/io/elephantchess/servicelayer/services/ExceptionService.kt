@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.tables.pojos.ThrownException
 import io.elephantchess.db.services.ThrownExceptionDaoService
@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
-@Inject
+@Service
 class ExceptionService(
     private val daoService: ThrownExceptionDaoService,
     private val logger: KLogger,

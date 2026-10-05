@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.UserSessionRecord
@@ -13,7 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.apache.commons.validator.routines.InetAddressValidator
 
-@Inject
+@Service
 class UserSessionService(
     appConfig: AppConfig,
     private val apiLayerClient: ApiLayerClient,

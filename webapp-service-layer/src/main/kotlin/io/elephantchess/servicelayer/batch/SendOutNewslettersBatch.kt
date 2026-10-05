@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.tables.pojos.NewsletterEmail
 import io.elephantchess.db.services.NewsletterDaoService
@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.minutes
  * - Daily 20
  * - 3 days 50
  */
-@Inject
+@Service
 class SendOutNewslettersBatch(
     override val logger: KLogger,
     private val newsletterDaoService: NewsletterDaoService,

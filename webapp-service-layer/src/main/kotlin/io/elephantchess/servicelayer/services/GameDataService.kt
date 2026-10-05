@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
@@ -45,7 +45,7 @@ import kotlin.time.Instant
 /**
  * Generic service that handles game and analysis data for games of all [GameType]
  */
-@Inject
+@Service
 class GameDataService(
     private val appConfig: AppConfig,
     private val enginesPool: EnginePool,

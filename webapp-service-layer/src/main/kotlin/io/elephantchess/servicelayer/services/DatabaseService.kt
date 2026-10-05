@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayer
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEditSource
@@ -37,7 +37,7 @@ import kotlin.time.Duration.Companion.hours
  * What we call "database" in this context is a repository of games played in tournaments,
  * and not specifically the SQL database.
  */
-@Inject
+@Service
 class DatabaseService(
     private val referenceEventDaoService: ReferenceEventDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,

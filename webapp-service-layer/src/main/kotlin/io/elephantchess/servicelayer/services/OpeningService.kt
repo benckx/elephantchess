@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.services.OpeningRepositoryCacheDaoService
 import io.elephantchess.db.services.OpeningRepositoryReferencePlayerCacheDaoService
@@ -10,7 +10,7 @@ import io.elephantchess.servicelayer.dto.analysis.OpeningNextMovesResponse
 import io.elephantchess.servicelayer.dto.analysis.OpeningReferencePlayerNextMovesRequest
 import io.elephantchess.xiangqi.Color
 
-@Inject
+@Service
 class OpeningService(
     private val openingRepositoryCacheDaoService: OpeningRepositoryCacheDaoService,
     private val openingRepositoryReferencePlayerCacheDaoService: OpeningRepositoryReferencePlayerCacheDaoService,

@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.services.MoveAnalysisDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
@@ -14,7 +14,7 @@ import io.elephantchess.servicelayer.services.GameDataService
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.minutes
 
-@Inject
+@Service
 class BackgroundGameAnalysisBatch(
     private val gameDataService: GameDataService,
     private val moveAnalysisDaoService: MoveAnalysisDaoService,

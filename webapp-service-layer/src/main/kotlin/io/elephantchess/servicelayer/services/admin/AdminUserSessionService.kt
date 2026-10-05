@@ -1,13 +1,13 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.servicelayer.dto.admin.UserSessionsResponse
 import io.elephantchess.servicelayer.services.UserCache
 
-@Inject
+@Service
 class AdminUserSessionService(
     private val userSessionDaoService: UserSessionDaoService,
     private val userCache: UserCache,

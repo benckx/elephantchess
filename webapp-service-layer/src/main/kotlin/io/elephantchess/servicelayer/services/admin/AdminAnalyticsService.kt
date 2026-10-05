@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.IntDimensionValueRecord
@@ -28,7 +28,7 @@ import org.jooq.DSLContext
 import java.time.LocalDate
 import java.time.YearMonth
 
-@Inject
+@Service
 class AdminAnalyticsService(
     private val analysisDaoService: AnalysisDaoService,
     private val archivedGuestDaoService: ArchivedGuestDaoService,

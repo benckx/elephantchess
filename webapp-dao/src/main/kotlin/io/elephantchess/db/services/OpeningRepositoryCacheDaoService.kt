@@ -1,13 +1,13 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.Tables.OPENING_PRE_CALCULATION_CACHE
 import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCache
 import io.elephantchess.db.utils.awaitMappedRecords
 import org.jooq.DSLContext
 
-@Inject
+@Service
 class OpeningRepositoryCacheDaoService(private val dslContext: DSLContext) {
 
     suspend fun fetchNextMovesData(moves: List<String>): List<OpeningPreCalculationCache> {

@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.StatsOnlineUsersDays
@@ -12,7 +12,7 @@ import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESP
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.days
 
-@Inject
+@Service
 class FetchDailyUsersMetricsBatch(
     private val userDaoService: UserDaoService,
     private val userStatsDaoService: UserStatsDaoService,

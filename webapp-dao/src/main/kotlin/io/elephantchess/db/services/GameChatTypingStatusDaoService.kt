@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.Tables.GAME_CHAT_TYPING_STATUS
 import io.elephantchess.db.dao.codegen.tables.pojos.GameChatTypingStatus
@@ -12,7 +12,7 @@ import org.jooq.impl.DSL
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-@Inject
+@Service
 class GameChatTypingStatusDaoService(private val dslContext: DSLContext) {
 
     suspend fun upsertTypingStatus(gameId: String, userId: String) {

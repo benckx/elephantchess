@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.tables.PasswordRecoveryAttempt.PASSWORD_RECOVERY_ATTEMPT
 import io.elephantchess.db.dao.codegen.tables.daos.PasswordRecoveryAttemptDao
@@ -13,7 +13,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 
-@Inject
+@Service
 class PasswordRecoveryAttemptsDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(pojo: PasswordRecoveryAttempt) {

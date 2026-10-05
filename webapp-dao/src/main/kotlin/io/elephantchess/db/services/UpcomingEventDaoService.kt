@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.Tables.UPCOMING_EVENT
 import io.elephantchess.db.dao.codegen.tables.daos.UpcomingEventDao
@@ -11,7 +11,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDate
 
-@Inject
+@Service
 class UpcomingEventDaoService(private val dslContext: DSLContext) {
 
     suspend fun listUpcomingEventsForLobby(): List<UpcomingEvent> {

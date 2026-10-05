@@ -1,11 +1,11 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.servicelayer.dto.admin.ThrownExceptionsResponse
 
-@Inject
+@Service
 class AdminExceptionService(
     private val thrownExceptionDaoService: ThrownExceptionDaoService,
 ) {

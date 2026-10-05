@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.PageViewEvent
@@ -11,7 +11,7 @@ import io.elephantchess.servicelayer.model.VerifiedToken
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.random.Random.Default.nextDouble
 
-@Inject
+@Service
 class PageViewEventService(
     private val pageViewDaoService: PageViewEventDaoService,
     private val userCache: UserCache,

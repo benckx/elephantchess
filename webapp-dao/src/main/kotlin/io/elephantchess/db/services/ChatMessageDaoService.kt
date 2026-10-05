@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.Tables.GAME_CHAT_MESSAGE
 import io.elephantchess.db.dao.codegen.tables.daos.GameChatMessageDao
@@ -14,7 +14,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 
-@Inject
+@Service
 class ChatMessageDaoService(private val dslContext: DSLContext) {
 
     suspend fun insertChat(gameId: String, userId: String, content: String) {

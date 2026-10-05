@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.roles
@@ -15,7 +15,7 @@ import kotlin.time.Instant
 /**
  * Store basic info in cache (username, userType, roles)
  */
-@Inject
+@Service
 class UserCache(private val userDaoService: UserDaoService) :
     NullableCache<String, CachedUser>(
         expireAfterWrite = 30.minutes,

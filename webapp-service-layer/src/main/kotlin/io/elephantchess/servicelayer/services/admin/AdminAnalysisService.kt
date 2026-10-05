@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME
 import io.elephantchess.db.services.MoveAnalysisDaoService
@@ -16,7 +16,7 @@ import io.elephantchess.model.GameType.PVB
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 
-@Inject
+@Service
 class AdminAnalysisService(
     private val moveAnalysisDaoService: MoveAnalysisDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,

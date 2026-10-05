@@ -1,13 +1,13 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.services.ReferencePlayerDaoService
 import io.elephantchess.servicelayer.dto.database.DatabasePlayerProfileVersionHistoryEntry
 import io.elephantchess.servicelayer.dto.database.DatabasePlayerVersionHistory
 import io.elephantchess.servicelayer.services.UserCache
 
-@Inject
+@Service
 class AdminDatabaseService(
     private val referencePlayerDaoService: ReferencePlayerDaoService,
     private val userCache: UserCache

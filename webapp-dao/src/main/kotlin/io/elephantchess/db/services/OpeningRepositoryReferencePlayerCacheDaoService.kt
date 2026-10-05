@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.dao.codegen.Tables.OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER
 import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCacheReferencePlayer
@@ -10,7 +10,7 @@ import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.xiangqi.Color
 import org.jooq.DSLContext
 
-@Inject
+@Service
 class OpeningRepositoryReferencePlayerCacheDaoService(private val dslContext: DSLContext) {
 
     /**

@@ -1,12 +1,12 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.model.DatabaseTableSizeRecord
 import io.elephantchess.db.utils.awaitRecords
 import org.jooq.DSLContext
 
-@Inject
+@Service
 class DatabaseAdminDaoService(private val dslContext: DSLContext) {
 
     suspend fun fetchTableSizes(): List<DatabaseTableSizeRecord> {

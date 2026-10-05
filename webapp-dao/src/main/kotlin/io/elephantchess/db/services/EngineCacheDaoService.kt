@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Inject
+import io.elephantchess.utils.di.Service
 
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.engines.protocol.model.InfoLineResult
@@ -8,7 +8,7 @@ import io.elephantchess.engines.protocol.model.InfoLineResult.Companion.parseInf
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 
-@Inject
+@Service
 class EngineCacheDaoService(private val dslContext: DSLContext) {
 
     suspend fun fetchInfoLine(fenKey: String, minDepth: Int): InfoLineResult? {

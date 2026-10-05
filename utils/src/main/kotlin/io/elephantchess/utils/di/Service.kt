@@ -9,4 +9,4 @@ package io.elephantchess.utils.di
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Inject(val eager: Boolean = false)
+annotation class Service(val eager: Boolean = false)
