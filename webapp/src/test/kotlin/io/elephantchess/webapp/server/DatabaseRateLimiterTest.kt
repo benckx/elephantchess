@@ -2,7 +2,6 @@ package io.elephantchess.webapp.server
 
 import kotlin.time.Duration.Companion.seconds
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -91,28 +90,46 @@ class DatabaseRateLimiterTest {
     }
 
     @Test
-    fun `isMonitoredPath matches database prefixes and ignores query string`() {
-        assertTrue(DatabaseRateLimiter.isMonitoredPath("/database"))
-        assertTrue(DatabaseRateLimiter.isMonitoredPath("/database/player/Wang_Tianyi"))
-        assertTrue(DatabaseRateLimiter.isMonitoredPath("/database/game?id=abc"))
-        assertTrue(DatabaseRateLimiter.isMonitoredPath("/browse/event?id=abc"))
-        assertFalse(DatabaseRateLimiter.isMonitoredPath("/databases"))
-        assertFalse(DatabaseRateLimiter.isMonitoredPath("/game"))
-        assertFalse(DatabaseRateLimiter.isMonitoredPath("/"))
+    fun `monitored path detection ignores query string and avoids false prefixes`() {
+        // monitored: limited on the 2nd hit (max = 1)
+        for (path in listOf("/database", "/database/player/Wang_Tianyi", "/database/game?id=abc", "/browse/event?id=abc")) {
+            val limiter = limiter(max = 1)
+            assertFalse(limiter.hit(path = path), "first hit to $path should pass")
+            assertTrue(limiter.hit(path = path), "second hit to $path should be limited")
+        }
+
+        // not monitored: never limited, even with a similar prefix
+        for (path in listOf("/databases", "/game", "/")) {
+            val limiter = limiter(max = 1)
+            repeat(5) { assertFalse(limiter.hit(path = path), "$path must never be limited") }
+        }
     }
 
     @Test
-    fun `isAllowlistedCrawler is case-insensitive and null-safe`() {
-        assertTrue(DatabaseRateLimiter.isAllowlistedCrawler("something GOOGLEBOT something"))
-        assertTrue(DatabaseRateLimiter.isAllowlistedCrawler("Applebot/0.1"))
-        assertFalse(DatabaseRateLimiter.isAllowlistedCrawler(chromeScraperUa))
-        assertFalse(DatabaseRateLimiter.isAllowlistedCrawler(null))
-        assertFalse(DatabaseRateLimiter.isAllowlistedCrawler(""))
+    fun `crawler allow-list is case-insensitive and loaded from the resource file`() {
+        // tokens come from /config/crawler_user_agents.txt
+        val crawlerUserAgents = listOf(
+            "something GOOGLEBOT something",
+            "Applebot/0.1",
+            "Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)",
+        )
+        for (ua in crawlerUserAgents) {
+            val limiter = limiter(max = 1)
+            repeat(10) { assertFalse(limiter.hit(ua = ua), "crawler UA must never be limited: $ua") }
+        }
+
+        // a regular browser UA is still subject to the limit
+        val limiter = limiter(max = 1)
+        assertFalse(limiter.hit(ua = chromeScraperUa))
+        assertTrue(limiter.hit(ua = chromeScraperUa))
     }
 
     @Test
-    fun `clientKey prefers first forwarded-for ip and trims`() {
-        assertEquals("198.51.100.5", DatabaseRateLimiter.clientKey("10.0.0.1", "198.51.100.5, 10.0.0.1"))
-        assertEquals("203.0.113.9", DatabaseRateLimiter.clientKey("203.0.113.9", null))
+    fun `distinct forwarded-for client IPs get independent buckets`() {
+        val limiter = limiter(max = 1)
+        assertFalse(limiter.hit(ip = "10.0.0.1", forwardedFor = "198.51.100.5, 10.0.0.1"))
+        assertTrue(limiter.hit(ip = "10.0.0.1", forwardedFor = "198.51.100.5"))
+        // a different client IP (same proxy socket peer) keeps its own allowance
+        assertFalse(limiter.hit(ip = "10.0.0.1", forwardedFor = "203.0.113.9"))
     }
 }
