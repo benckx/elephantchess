@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
@@ -13,6 +15,7 @@ import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESP
 import io.elephantchess.model.UserType
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton
 class AdminOverviewService(
     private val userDaoService: UserDaoService,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,

@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.tables.PasswordRecoveryAttempt.PASSWORD_RECOVERY_ATTEMPT
 import io.elephantchess.db.dao.codegen.tables.daos.PasswordRecoveryAttemptDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PasswordRecoveryAttempt
@@ -11,6 +13,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 
+@KoinSingleton
 class PasswordRecoveryAttemptsDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(pojo: PasswordRecoveryAttempt) {

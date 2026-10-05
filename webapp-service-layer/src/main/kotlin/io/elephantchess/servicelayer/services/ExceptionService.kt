@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.tables.pojos.ThrownException
 import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.db.utils.generateId
@@ -9,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
+@KoinSingleton
 class ExceptionService(
     private val daoService: ThrownExceptionDaoService,
     private val logger: KLogger,

@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.PUZZLE_RESULT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
@@ -21,6 +23,7 @@ import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.Variant.XIANGQI
 
+@KoinSingleton
 class AdminFeedService(
     private val analysisDaoService: AnalysisDaoService,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
