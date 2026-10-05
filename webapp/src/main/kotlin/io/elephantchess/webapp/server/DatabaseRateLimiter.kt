@@ -1,6 +1,7 @@
 package io.elephantchess.webapp.server
 
 import io.elephantchess.servicelayer.utils.extractAddress
+import io.elephantchess.utils.ResourceUtils
 import io.github.reactivecircus.cache4k.Cache
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration
@@ -56,39 +57,17 @@ class DatabaseRateLimiter(private val maxRequests: Int, window: Duration) {
         /**
          * Lower-cased substrings identifying well-known search engine and AI crawlers that must never be
          * rate limited (protects indexing / SEO). Matched case-insensitively against the User-Agent.
+         *
+         * Loaded from the bundled classpath resource so the list can be edited without touching code; the
+         * resource travels inside the jar, so it also resolves when the app runs Dockerized. Blank lines
+         * and '#' comments are ignored.
          */
-        val CRAWLER_USER_AGENT_TOKENS = listOf(
-            "googlebot",
-            "apis-google",
-            "adsbot-google",
-            "mediapartners-google",
-            "storebot-google",
-            "google-inspectiontool",
-            "bingbot",
-            "bingpreview",
-            "applebot",
-            "duckduckbot",
-            "baiduspider",
-            "yandex",
-            "sogou",
-            "exabot",
-            "facebookexternalhit",
-            "meta-externalagent",
-            "meta-webindexer",
-            "facebot",
-            "ia_archiver",
-            "petalbot",
-            "bytespider",
-            "oai-searchbot",
-            "chatgpt-user",
-            "gptbot",
-            "perplexitybot",
-            "claudebot",
-            "amazonbot",
-            "ahrefsbot",
-            "semrushbot",
-            "slurp",
-        )
+        val CRAWLER_USER_AGENT_TOKENS: List<String> =
+            ResourceUtils
+                .resourceAsLines("/config/crawler_user_agents.txt")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && !it.startsWith("#") }
+                .map { it.lowercase() }
 
         fun isMonitoredPath(path: String): Boolean {
             val normalized = path.substringBefore('?')
