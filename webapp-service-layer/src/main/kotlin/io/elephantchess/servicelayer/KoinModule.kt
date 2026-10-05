@@ -13,6 +13,7 @@ import io.elephantchess.engines.process.PikafishEngineId
 import io.elephantchess.engines.protocol.commands.LocalProcessLocator
 import io.elephantchess.servicelayer.batch.*
 import io.elephantchess.servicelayer.batch.definitions.BatchSchedule
+import io.elephantchess.servicelayer.batch.definitions.SinglePodBatchSchedule
 import io.elephantchess.servicelayer.batch.definitions.BatchesScheduler
 import io.elephantchess.servicelayer.clients.ApiLayerClient
 import io.elephantchess.servicelayer.clients.DigitalOceanSpacesClient
@@ -113,13 +114,13 @@ private fun batchModule() = module {
             BatchSchedule(get<FlagGamesBatch>(), period = 5.seconds, delay = 10.seconds),
             BatchSchedule(get<AutoCancelCreatedGamesFromOfflineUsersBatch>(), period = 15.minutes, delay = 2.minutes),
             BatchSchedule(get<AutoResignIdleBotGamesBatch>(), period = 15.minutes, delay = 4.minutes),
-            BatchSchedule(get<FetchMinutesUsersMetricsBatch>(), period = 5.minutes, delay = 5.seconds),
-            BatchSchedule(get<FetchDailyUsersMetricsBatch>(), period = 6.hours, delay = 15.minutes),
-            BatchSchedule(get<ArchiveOldGuestsBatch>(), period = 6.hours, delay = 30.minutes),
-            BatchSchedule(get<ArchiveOldPageViewsBatch>(), period = 6.hours, delay = 45.minutes),
-            BatchSchedule(get<SendOutNewslettersBatch>(), period = 5.minutes, delay = 3.minutes),
-            BatchSchedule(get<CheckEmailListVerifyCreditBatch>(), period = 48.hours, delay = 30.seconds),
-            BatchSchedule(get<VerifyEmailsBatch>(), period = 48.hours, delay = 12.hours),
+            SinglePodBatchSchedule(get<FetchMinutesUsersMetricsBatch>(), period = 5.minutes, delay = 5.seconds, podNumber = 0),
+            SinglePodBatchSchedule(get<FetchDailyUsersMetricsBatch>(), period = 6.hours, delay = 15.minutes, podNumber = 0),
+            SinglePodBatchSchedule(get<ArchiveOldGuestsBatch>(), period = 6.hours, delay = 30.minutes, podNumber = 1),
+            SinglePodBatchSchedule(get<ArchiveOldPageViewsBatch>(), period = 6.hours, delay = 45.minutes, podNumber = 0),
+            SinglePodBatchSchedule(get<SendOutNewslettersBatch>(), period = 5.minutes, delay = 3.minutes, podNumber = 0),
+            SinglePodBatchSchedule(get<CheckEmailListVerifyCreditBatch>(), period = 48.hours, delay = 30.seconds, podNumber = 1),
+            SinglePodBatchSchedule(get<VerifyEmailsBatch>(), period = 48.hours, delay = 12.hours, podNumber = 1),
             BatchSchedule(get<BackgroundGameAnalysisBatch>(), period = 5.minutes, delay = 1.minutes),
         )
     }

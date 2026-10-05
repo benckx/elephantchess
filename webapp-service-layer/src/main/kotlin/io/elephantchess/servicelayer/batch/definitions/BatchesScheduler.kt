@@ -6,7 +6,6 @@ import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.services.PodService
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.github.oshai.kotlinlogging.KLogger
-import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
@@ -36,10 +35,9 @@ class BatchesScheduler(
 
         schedules
             .filterNot { schedule -> disabledBatches.contains(schedule.batchName) }
-            .filter { schedule -> schedule.batch.instanceOf(SinglePodBatch::class) }
+            .filterIsInstance<SinglePodBatchSchedule<*>>()
             .forEach { schedule ->
-                val podNumber = (schedule.batch as SinglePodBatch).podNumber
-                logger.info { "${schedule.batchName} will be scheduled on pod $podNumber" }
+                logger.info { "${schedule.batchName} will be scheduled on pod ${schedule.podNumber}" }
             }
 
         schedules
@@ -56,11 +54,11 @@ class BatchesScheduler(
                         initialDelay = schedule.delay,
                         action = {
                             podService.findPod()?.let { pod ->
-                                when (schedule.batch) {
+                                when (val batch = schedule.batch) {
                                     is ShardedBatch<*> -> {
                                         try {
                                             logger.debug { "running ${schedule.batchName}" }
-                                            schedule.batch.run(pod)
+                                            batch.run(pod)
                                         } catch (e: Exception) {
                                             logger.error(e) { "error running batch ${schedule.batchName}" }
                                             exceptionService.saveException(e)
@@ -68,10 +66,11 @@ class BatchesScheduler(
                                     }
 
                                     is SinglePodBatch -> {
-                                        if (pod.index == schedule.batch.podNumber || !isDockerized) {
+                                        val podNumber = (schedule as? SinglePodBatchSchedule<*>)?.podNumber ?: 0
+                                        if (pod.index == podNumber || !isDockerized) {
                                             try {
                                                 logger.debug { "running ${schedule.batchName}" }
-                                                schedule.batch.run()
+                                                batch.run()
                                             } catch (e: Exception) {
                                                 logger.error(e) { "error running batch ${schedule.batchName}" }
                                                 exceptionService.saveException(e)

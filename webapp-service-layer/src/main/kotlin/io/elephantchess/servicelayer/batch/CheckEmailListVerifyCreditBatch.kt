@@ -11,7 +11,6 @@ class CheckEmailListVerifyCreditBatch(
 ) : SinglePodBatch {
 
     override val logger = KotlinLogging.logger {}
-    override val podNumber: Int = 1
 
     override suspend fun run() {
         client.getCredits()?.onDemand?.available

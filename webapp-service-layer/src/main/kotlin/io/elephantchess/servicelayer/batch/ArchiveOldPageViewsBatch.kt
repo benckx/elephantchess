@@ -20,8 +20,6 @@ class ArchiveOldPageViewsBatch(
     override val logger: KLogger,
 ) : SinglePodBatch {
 
-    override val podNumber: Int = 1
-
     override suspend fun run() {
         val eventIds = archivedPageViewDaoService.selectOldPageViewEventIds(
             maxAge = ARCHIVE_PAGE_VIEW_AFTER_DAYS.days,
