@@ -101,16 +101,20 @@ class AdminOverviewService(
     }
 
     suspend fun fetchLivePvpGames(): LivePvpGamesResponse {
-        val liveGameDuration = 3.minutes
         return LivePvpGamesResponse(
-            livePvpGames = pvpGameDaoService.countLiveGames(liveGameDuration),
+            pvpGameDaoService.countLiveGames(
+                lastUpdated = liveGameDuration,
+                userIds = userService.onlineUserIds()
+            ),
         )
     }
 
     suspend fun fetchLivePvbGames(): LivePvbGamesResponse {
-        val liveGameDuration = 3.minutes
         return LivePvbGamesResponse(
-            livePvbGames = pvbGameDaoService.countLiveGames(liveGameDuration),
+            pvbGameDaoService.countLiveGames(
+                lastUpdated = liveGameDuration,
+                userIds = userService.onlineUserIds()
+            ),
         )
     }
 
@@ -134,5 +138,10 @@ class AdminOverviewService(
         )
     }
 
+    private companion object {
+
+        private val liveGameDuration = 3.minutes
+
+    }
 
 }

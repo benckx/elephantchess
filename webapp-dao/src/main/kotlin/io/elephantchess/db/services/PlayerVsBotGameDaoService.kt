@@ -156,12 +156,13 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
-    suspend fun countLiveGames(duration: Duration): Int {
+    suspend fun countLiveGames(lastUpdated: Duration, userIds: Set<String>): Int {
         return dslContext
             .selectCount()
             .from(BOT_GAME)
             .where(BOT_GAME.GAME_STATUS.`in`(CREATED))
-            .and(BOT_GAME.LAST_UPDATED.isWithin(duration))
+            .and(BOT_GAME.LAST_UPDATED.isWithin(lastUpdated))
+            .and(BOT_GAME.USER_ID.`in`(userIds))
             .awaitSingleValue()!!
     }
 
