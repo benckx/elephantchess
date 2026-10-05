@@ -64,7 +64,7 @@ class DatabaseRateLimiter(private val maxRequests: Int, window: Duration) {
          */
         val CRAWLER_USER_AGENT_TOKENS: List<String> =
             ResourceUtils
-                .resourceAsLines("/config/crawler_user_agents.txt")
+                .resourceAsLines("/config/crawler-user-agents.txt")
                 .map { it.trim() }
                 .filter { it.isNotEmpty() && !it.startsWith("#") }
                 .map { it.lowercase() }
