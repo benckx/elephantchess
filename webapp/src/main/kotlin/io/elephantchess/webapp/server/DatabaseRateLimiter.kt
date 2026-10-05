@@ -3,9 +3,7 @@ package io.elephantchess.webapp.server
 import io.elephantchess.servicelayer.utils.extractAddress
 import io.github.reactivecircus.cache4k.Cache
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.time.Clock
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Per-IP rate limiter for the public reference-database HTML pages (`/database/...`, `/browse/event`).
@@ -20,15 +18,7 @@ import kotlin.time.Duration.Companion.seconds
  * The counters are kept in-memory (per pod). With multiple pods behind the load balancer the effective
  * limit is multiplied by the number of pods, which is acceptable for this best-effort protection.
  */
-class DatabaseRateLimiter(
-    private val maxRequests: Int,
-    window: Duration,
-    private val clock: Clock = Clock.System,
-) {
-
-    private val retryAfter: Duration = window
-
-    val retryAfterSeconds: Long = window.inWholeSeconds
+class DatabaseRateLimiter(private val maxRequests: Int, window: Duration) {
 
     private val counters: Cache<String, AtomicInteger> =
         Cache
@@ -124,4 +114,5 @@ class DatabaseRateLimiter(
             return address.substringBefore(',').trim()
         }
     }
+
 }
