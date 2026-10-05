@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.batch.definitions
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.metrics.MetricsLogger
 import io.elephantchess.servicelayer.services.ExceptionService
@@ -13,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
+@Inject(eager = true)
 class BatchesScheduler(
     appConfig: AppConfig,
     schedules: List<BatchSchedule<out Batch>>,

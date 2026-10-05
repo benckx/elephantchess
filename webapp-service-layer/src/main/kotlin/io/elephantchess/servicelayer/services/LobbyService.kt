@@ -1,9 +1,12 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.services.UpcomingEventDaoService
 import io.elephantchess.servicelayer.dto.lobby.GetUpcomingEventsResponse
 import io.elephantchess.servicelayer.dto.lobby.GetUpcomingEventsResponse.UpcomingEvent
 
+@Inject
 class LobbyService(
     private val upcomingEventDaoService: UpcomingEventDaoService
 ) {

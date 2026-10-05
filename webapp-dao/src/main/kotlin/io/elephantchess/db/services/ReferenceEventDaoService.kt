@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME
 import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME_EVENT
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGameEvent
@@ -11,6 +13,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import java.time.LocalDate
 
+@Inject
 class ReferenceEventDaoService(private val dslContext: DSLContext) {
 
     suspend fun fetchEventById(eventId: String): ReferenceGameEvent? {

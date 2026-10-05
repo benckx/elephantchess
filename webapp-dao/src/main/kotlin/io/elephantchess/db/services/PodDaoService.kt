@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.Tables.KUBERNETES_POD
 import io.elephantchess.db.dao.codegen.tables.daos.KubernetesPodDao
 import io.elephantchess.db.dao.codegen.tables.pojos.KubernetesPod
@@ -10,6 +12,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Duration
 
+@Inject
 class PodDaoService(private val dslContext: DSLContext) {
 
     suspend fun insertOrUpdate(podName: String) {

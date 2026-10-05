@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.SevenKingdomsGameDao
 import io.elephantchess.db.dao.codegen.tables.daos.SevenKingdomsGameEventDao
@@ -18,6 +20,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 
+@Inject
 class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(gameRecord: SevenKingdomsGame) =

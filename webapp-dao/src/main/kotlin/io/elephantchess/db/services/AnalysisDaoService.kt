@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.*
 import io.elephantchess.db.dao.codegen.tables.pojos.*
@@ -14,6 +16,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Instant
 
+@Inject
 class AnalysisDaoService(private val dslContext: DSLContext) {
 
     suspend fun listAnalysisForAllUsers(limit: Int): List<AnalysisAndUserRecord> {

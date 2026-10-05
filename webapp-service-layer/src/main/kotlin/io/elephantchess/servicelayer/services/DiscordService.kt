@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.services.DiscordGameNotificationDaoService
@@ -14,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Instant
 import kotlin.time.toKotlinInstant
 
+@Inject
 class DiscordService(
     private val discordClient: DiscordClient,
     private val userCache: UserCache,

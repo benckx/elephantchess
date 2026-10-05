@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.Inject
+
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.elephantchess.config.AppConfig
@@ -21,6 +23,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.time.Duration.Companion.minutes
 
+@Inject(eager = true)
 class TokenManager(
     private val appConfig: AppConfig,
     private val userDaoService: UserDaoService,

@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
 import io.elephantchess.db.services.ArchivedGuestDaoService
@@ -25,6 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Data shown on the "Global" page
  */
+@Inject(eager = true)
 class GlobalAnalyticsService(
     private val userService: UserService,
     private val userDaoService: UserDaoService,

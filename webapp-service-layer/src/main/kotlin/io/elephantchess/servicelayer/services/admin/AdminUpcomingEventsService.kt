@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.tables.pojos.UpcomingEvent
 import io.elephantchess.db.services.UpcomingEventDaoService
 import io.elephantchess.servicelayer.dto.admin.*
@@ -10,6 +12,7 @@ import org.apache.commons.validator.routines.UrlValidator
 import java.time.LocalDate
 import kotlin.time.Clock
 
+@Inject
 class AdminUpcomingEventsService(
     private val upcomingEventDaoService: UpcomingEventDaoService,
     private val userCache: UserCache

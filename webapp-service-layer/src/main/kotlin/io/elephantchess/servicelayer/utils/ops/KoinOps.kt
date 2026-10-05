@@ -1,9 +1,15 @@
 package io.elephantchess.servicelayer.utils.ops
 
+import io.elephantchess.utils.di.Inject
+import io.github.classgraph.ClassGraph
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import org.koin.core.component.KoinComponent
+import org.koin.core.definition.BeanDefinition
+import org.koin.core.definition.Kind
 import org.koin.core.definition.KoinDefinition
+import org.koin.core.instance.SingleInstanceFactory
 import org.koin.core.module.Module
+import org.koin.core.annotation.KoinInternalApi
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.java.KoinJavaComponent.inject
@@ -13,6 +19,50 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.jvm.jvmErasure
 
 private val kLogger = logger {}
+
+/**
+ * Scans [packageName] for classes annotated with [Inject] and registers each as a Koin singleton,
+ * resolving constructor dependencies reflectively (see [reflectiveResolver]).
+ *
+ * A class annotated with `@Inject(eager = true)` is created at startup only when [eagerAllowed] is true.
+ */
+fun Module.registerInjectables(eagerAllowed: Boolean, packageName: String = "io.elephantchess") {
+    ClassGraph()
+        .enableAnnotationInfo()
+        .acceptPackages(packageName)
+        .scan()
+        .use { scanResult ->
+            scanResult.getClassesWithAnnotation(Inject::class.java.name).forEach { classInfo ->
+                @Suppress("UNCHECKED_CAST")
+                val klass = classInfo.loadClass().kotlin as KClass<Any>
+                val eager = (classInfo
+                    .getAnnotationInfo(Inject::class.java.name)
+                    ?.parameterValues
+                    ?.getValue("eager") as? Boolean) ?: false
+                kLogger.info { "registering injectable ${klass.simpleName} (eager=$eager)" }
+                registerInjectable(klass, createdAtStart = eager && eagerAllowed)
+            }
+        }
+}
+
+private fun Module.registerInjectable(klass: KClass<Any>, createdAtStart: Boolean) {
+    @OptIn(KoinInternalApi::class)
+    val beanDefinition = BeanDefinition(
+        scopeQualifier = named("_root_"),
+        primaryType = klass,
+        qualifier = null,
+        definition = { reflectiveResolver(klass) },
+        kind = Kind.Singleton,
+        secondaryTypes = emptyList(),
+    )
+    val factory = SingleInstanceFactory(beanDefinition)
+    @OptIn(KoinInternalApi::class)
+    indexPrimaryType(factory)
+    if (createdAtStart) {
+        @OptIn(KoinInternalApi::class)
+        prepareForCreationAtStart(factory)
+    }
+}
 
 inline fun <reified T : Any> Module.singleAuto(eager: Boolean = false): KoinDefinition<T> {
     return single(createdAtStart = eager) { reflectiveResolver(T::class) }

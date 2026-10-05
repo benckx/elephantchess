@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.services.PuzzleDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.model.PuzzleCategory
@@ -8,6 +10,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlin.time.Duration.Companion.hours
 
+@Inject(eager = true)
 class PuzzleCache(
     private val puzzleDaoService: PuzzleDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,

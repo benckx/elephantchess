@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayer
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEdit
@@ -24,6 +26,7 @@ import java.math.BigDecimal
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+@Inject
 class ReferencePlayerDaoService(private val dslContext: DSLContext) {
 
     suspend fun findPlayer(id: String): ReferencePlayer? {

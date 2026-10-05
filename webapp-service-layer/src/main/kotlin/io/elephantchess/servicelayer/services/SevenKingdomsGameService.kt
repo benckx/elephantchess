@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.tables.pojos.SevenKingdomsGame
 import io.elephantchess.db.services.SevenKingdomsGameDaoService
 import io.elephantchess.db.utils.*
@@ -16,6 +18,7 @@ import io.elephantchess.sevenkingdoms.Color.Companion.areContiguous
 import io.elephantchess.sevenkingdoms.ExtraEliminationEvent
 import kotlin.time.Clock
 
+@Inject
 class SevenKingdomsGameService(
     private val gameDaoService: SevenKingdomsGameDaoService,
     private val userCache: UserCache

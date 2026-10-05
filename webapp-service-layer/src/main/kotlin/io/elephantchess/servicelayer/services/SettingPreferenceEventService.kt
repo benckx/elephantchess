@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.tables.pojos.SettingPreferenceEvent
 import io.elephantchess.db.services.SettingPreferenceEventDaoService
 import io.elephantchess.db.utils.generateId
@@ -13,6 +15,7 @@ import kotlin.random.Random.Default.nextDouble
  *
  * Only a fraction of the page views are sampled (see [SAMPLE_RATE]).
  */
+@Inject
 class SettingPreferenceEventService(
     private val settingPreferenceEventDaoService: SettingPreferenceEventDaoService,
     private val logger: KLogger,

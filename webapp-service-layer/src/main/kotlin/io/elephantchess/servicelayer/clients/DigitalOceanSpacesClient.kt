@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.clients
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.config.AppConfig
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -15,6 +17,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 @Suppress("SameParameterValue")
+@Inject
 class DigitalOceanSpacesClient(
     appConfig: AppConfig
 ) {

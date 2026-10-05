@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.Tables.NEWSLETTER
 import io.elephantchess.db.dao.codegen.Tables.NEWSLETTER_EMAIL
 import io.elephantchess.db.dao.codegen.tables.daos.NewsletterEmailDao
@@ -13,6 +15,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+@Inject
 class NewsletterDaoService(private val dslContext: DSLContext) {
 
     /**

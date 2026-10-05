@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.utils
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.servicelayer.batch.definitions.BatchesScheduler
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
@@ -17,6 +19,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * Handles graceful shutdown of application resources
  */
+@Inject(eager = true)
 class ShutdownHandler(
     private val dslContext: DSLContext,
     private val playerVsPlayerGameService: PlayerVsPlayerGameService,

@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
@@ -8,6 +10,7 @@ import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.days
 
+@Inject
 class AutoCancelCreatedGamesFromOfflineUsersBatch(
     private val pvpGameService: PlayerVsPlayerGameService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,

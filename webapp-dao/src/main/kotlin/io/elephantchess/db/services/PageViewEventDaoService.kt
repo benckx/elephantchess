@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.daos.PageViewEventDao
@@ -22,6 +24,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
+@Inject
 class PageViewEventDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(record: PageViewEvent) {

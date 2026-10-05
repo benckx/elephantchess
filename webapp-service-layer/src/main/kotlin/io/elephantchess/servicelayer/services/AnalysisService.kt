@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.dao.codegen.tables.pojos.*
 import io.elephantchess.db.services.AnalysisDaoService
 import io.elephantchess.db.services.UserDaoService
@@ -22,6 +24,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+@Inject
 class AnalysisService(
     private val analysisDaoService: AnalysisDaoService,
     private val userDaoService: UserDaoService,

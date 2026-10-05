@@ -1,9 +1,12 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.servicelayer.dto.admin.LastChatMessageResponse
 import io.elephantchess.servicelayer.services.UserCache
 
+@Inject
 class AdminChatService(
     private val userCache: UserCache,
     private val chatMessageDaoService: ChatMessageDaoService,

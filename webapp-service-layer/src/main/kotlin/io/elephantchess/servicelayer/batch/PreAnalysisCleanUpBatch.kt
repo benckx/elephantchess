@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.utils.di.Inject
+
 import io.elephantchess.model.GameId
 import io.elephantchess.servicelayer.batch.definitions.ShardedBatch
 import io.elephantchess.servicelayer.services.GameDataService
@@ -7,6 +9,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
+@Inject
 class PreAnalysisCleanUpBatch(
     private val gameDataService: GameDataService,
     override val logger: KLogger,
