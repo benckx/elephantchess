@@ -6,9 +6,8 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.servicelayer.clients.DigitalOceanSpacesClient
-import io.elephantchess.servicelayer.utils.ops.singleAuto
+import io.elephantchess.servicelayer.utils.ops.registerInjectables
 import io.elephantchess.webapp.rendering.*
-import io.elephantchess.servicelayer.services.sitemap.SiteMapService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.koin.core.module.Module
@@ -20,9 +19,7 @@ import java.util.jar.JarFile
 private val webAppLogger = KotlinLogging.logger {}
 
 fun webAppKoinModule(eagerAllowed: Boolean): Module = module {
-    singleAuto<SiteMapService>(eager = eagerAllowed)
     includes(htmlRendering())
-    includes(pageRendererModule(eagerAllowed))
     single(named("wsJsonMapper")) {
         JsonMapper
             .builder()
@@ -30,6 +27,9 @@ fun webAppKoinModule(eagerAllowed: Boolean): Module = module {
             .configure(INDENT_OUTPUT, false)
             .build()
     }
+
+    // page renderers annotated with @Service
+    registerInjectables(eagerAllowed, "io.elephantchess.webapp")
 }
 
 private fun htmlRendering() = module {
@@ -69,18 +69,6 @@ private fun htmlRendering() = module {
             )
         }
     }
-}
-
-private fun pageRendererModule(eagerAllowed: Boolean) = module {
-    singleAuto<SimplePageRenderer>(eager = eagerAllowed)
-    singleAuto<GamePageRenderer>(eager = eagerAllowed)
-    singleAuto<UserProfilePageRenderer>(eager = eagerAllowed)
-    singleAuto<UserSettingsPageRenderer>(eager = eagerAllowed)
-    singleAuto<DatabasePageRenderer>(eager = eagerAllowed)
-    singleAuto<BoardGuiExampleRenderer>(eager = eagerAllowed)
-    singleAuto<ModalRenderer>(eager = eagerAllowed)
-    singleAuto<FaqPageRenderer>(eager = eagerAllowed)
-    singleAuto<ChangelogPageRenderer>(eager = eagerAllowed)
 }
 
 private fun listFragmentTags(): List<String> {

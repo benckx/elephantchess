@@ -1,11 +1,14 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.services.NewsletterDaoService
 import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.servicelayer.dto.admin.NewsletterStatsResponse
 import io.elephantchess.servicelayer.services.MailService
 
+@KoinSingleton
 class AdminNewsletterService(
     private val newsletterDaoService: NewsletterDaoService,
     private val pageViewEventDaoService: PageViewEventDaoService,

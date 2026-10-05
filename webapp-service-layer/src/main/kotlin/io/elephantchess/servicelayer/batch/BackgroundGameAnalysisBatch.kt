@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.services.MoveAnalysisDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserDaoService
@@ -12,6 +14,7 @@ import io.elephantchess.servicelayer.services.GameDataService
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton
 class BackgroundGameAnalysisBatch(
     private val gameDataService: GameDataService,
     private val moveAnalysisDaoService: MoveAnalysisDaoService,

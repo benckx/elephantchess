@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.services.ArchivedPageViewDaoService
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.services.analytics.ARCHIVE_PAGE_VIEW_AFTER_DAYS
@@ -15,6 +17,7 @@ import kotlin.time.Duration.Companion.days
  * Views are processed in bounded chunks so a single run stays cheap; the schedule drains the backlog
  * over multiple runs.
  */
+@KoinSingleton
 class ArchiveOldPageViewsBatch(
     private val archivedPageViewDaoService: ArchivedPageViewDaoService,
     override val logger: KLogger,

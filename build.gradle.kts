@@ -276,6 +276,7 @@ project(":webapp-service-layer") {
         implementation(project(":seven-kingdoms-core"))
         implementation(project(":webapp-dao"))
         api(rootLibs.koin.core)
+        implementation(rootLibs.classgraph)
         api(project(":xiangqi-core"))
         api(project(":engine-api"))
         api(rootLibs.commons.lang3)

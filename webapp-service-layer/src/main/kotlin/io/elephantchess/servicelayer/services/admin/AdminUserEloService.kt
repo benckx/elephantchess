@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
@@ -8,6 +10,7 @@ import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.admin.UserEloStatsResponse
 import io.elephantchess.xiangqi.Variant
 
+@KoinSingleton
 class AdminUserEloService(private val userDaoService: UserDaoService) {
 
     suspend fun listUserEloStats(): UserEloStatsResponse {

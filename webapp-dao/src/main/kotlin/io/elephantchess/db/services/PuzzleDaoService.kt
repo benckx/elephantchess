@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.PuzzleCategoryTagDao
 import io.elephantchess.db.dao.codegen.tables.daos.PuzzleDao
@@ -17,6 +19,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDate
 
+@KoinSingleton
 class PuzzleDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(puzzle: Puzzle, moves: List<PuzzleHalfMove>, categories: List<PuzzleCategoryTag>) {

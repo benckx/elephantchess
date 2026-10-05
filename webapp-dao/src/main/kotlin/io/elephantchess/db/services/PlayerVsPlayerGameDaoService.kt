@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.callback.PerpetualCheckingCallbackResult
 import io.elephantchess.db.callback.PlayMoveCallbackResult
 import io.elephantchess.db.callback.UpdateRatingsCallbackResult
@@ -43,6 +45,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
+@KoinSingleton
 class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
@@ -311,12 +314,13 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue() ?: 0
     }
 
-    suspend fun countLiveGames(duration: Duration): Int {
+    suspend fun countLiveGames(lastUpdated: Duration, userIds: Set<String>): Int {
         return dslContext
             .selectCount()
             .from(GAME)
             .where(GAME.GAME_STATUS.`in`(inProgressStatuses))
-            .and(GAME.LAST_UPDATED.isWithin(duration))
+            .and(GAME.LAST_UPDATED.isWithin(lastUpdated))
+            .and(GAME.INVITER.`in`(userIds).and(GAME.INVITEE.`in`(userIds)))
             .awaitSingleValue()!!
     }
 

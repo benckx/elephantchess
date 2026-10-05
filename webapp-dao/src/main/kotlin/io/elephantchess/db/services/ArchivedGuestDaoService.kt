@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.ANALYSIS
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_GUEST_DAILY
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_PAGE_VIEW_DAILY
@@ -52,6 +54,7 @@ import kotlin.time.Instant
  * Guests are archived by their creation day, bucketed by lifespan (creation to last activity), while
  * their page views and database search queries are archived by the day they happened.
  */
+@KoinSingleton
 class ArchivedGuestDaoService(private val dslContext: DSLContext) {
 
     /**

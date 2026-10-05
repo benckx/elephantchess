@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
@@ -13,6 +15,7 @@ import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESP
 import io.elephantchess.model.UserType
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton
 class AdminOverviewService(
     private val userDaoService: UserDaoService,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
@@ -101,16 +104,20 @@ class AdminOverviewService(
     }
 
     suspend fun fetchLivePvpGames(): LivePvpGamesResponse {
-        val liveGameDuration = 3.minutes
         return LivePvpGamesResponse(
-            livePvpGames = pvpGameDaoService.countLiveGames(liveGameDuration),
+            pvpGameDaoService.countLiveGames(
+                lastUpdated = liveGameDuration,
+                userIds = userService.onlineUserIds()
+            ),
         )
     }
 
     suspend fun fetchLivePvbGames(): LivePvbGamesResponse {
-        val liveGameDuration = 3.minutes
         return LivePvbGamesResponse(
-            livePvbGames = pvbGameDaoService.countLiveGames(liveGameDuration),
+            pvbGameDaoService.countLiveGames(
+                lastUpdated = liveGameDuration,
+                userIds = userService.onlineUserIds()
+            ),
         )
     }
 
@@ -134,5 +141,10 @@ class AdminOverviewService(
         )
     }
 
+    private companion object {
+
+        private val liveGameDuration = 3.minutes
+
+    }
 
 }

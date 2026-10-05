@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_PAGE_VIEW_DAILY
 import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
 import io.elephantchess.db.dao.codegen.Tables.USER
@@ -27,6 +29,7 @@ import kotlin.time.Duration
  * the user is gone. Mirrors [ArchivedGuestDaoService]'s page-view archiving so both feed the same
  * aggregated metrics.
  */
+@KoinSingleton
 class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
 
     /**

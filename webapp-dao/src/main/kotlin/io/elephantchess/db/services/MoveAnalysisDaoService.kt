@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.MoveAnalysisDao
 import io.elephantchess.db.dao.codegen.tables.pojos.MoveAnalysis
@@ -16,6 +18,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+@KoinSingleton
 class MoveAnalysisDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(moveAnalysis: MoveAnalysis) {

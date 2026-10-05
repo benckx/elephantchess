@@ -1,5 +1,7 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
@@ -16,6 +18,7 @@ import kotlinx.html.table
 import kotlinx.html.td
 import kotlinx.html.tr
 
+@KoinSingleton(eager = true)
 class UserSettingsPageRenderer(
     private val htmlRenderer: HtmlRenderer,
     private val userService: UserService,

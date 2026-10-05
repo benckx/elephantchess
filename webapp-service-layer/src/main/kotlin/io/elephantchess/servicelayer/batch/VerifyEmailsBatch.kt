@@ -1,11 +1,14 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.services.EmailVerificationDaoService
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.services.MailService
 import io.elephantchess.servicelayer.services.MailService.Companion.emailValidityUpdateTime
 import io.github.oshai.kotlinlogging.KotlinLogging
 
+@KoinSingleton
 class VerifyEmailsBatch(
     private val mailService: MailService,
     private val emailVerificationDaoService: EmailVerificationDaoService,

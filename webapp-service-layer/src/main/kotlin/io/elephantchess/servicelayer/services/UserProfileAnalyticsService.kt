@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.services.PuzzleDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserDaoService
@@ -22,6 +24,7 @@ import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.UserService.Companion.PUZZLE_START_RATING
 import java.time.LocalDate
 
+@KoinSingleton
 class UserProfileAnalyticsService(
     private val userDaoService: UserDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
