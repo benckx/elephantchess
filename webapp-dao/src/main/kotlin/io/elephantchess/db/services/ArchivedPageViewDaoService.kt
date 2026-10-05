@@ -30,14 +30,39 @@ import kotlin.time.Duration
 class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
 
     /**
-     * Archives and deletes all page views older than [maxAge], in bounded chunks of at most [limit]
-     * events per run so a single run stays cheap. Returns the number of archived (deleted) page view
-     * events.
+     * Selects up to [limit] ids of page view events older than [maxAge]. Fetched once per batch run so
+     * the (indexed) age scan is not repeated for every chunk; see ArchiveOldPageViewsBatch.
      */
-    suspend fun archiveAndDeleteOldPageViews(maxAge: Duration, limit: Int): Int {
+    suspend fun selectOldPageViewEventIds(maxAge: Duration, limit: Int): List<String> {
         val cutoff = Clock.System.now() - maxAge
-        val eventIds = selectOldPageViewEventIds(cutoff, limit)
-        return archiveAndDeletePageViews(eventIds)
+        return dslContext
+            .select(PAGE_VIEW_EVENT.EVENT_ID)
+            .from(PAGE_VIEW_EVENT)
+            .where(PAGE_VIEW_EVENT.EVENT_TIME.isBefore(cutoff))
+            .limit(limit)
+            .awaitRecords()
+            .map { it.get(PAGE_VIEW_EVENT.EVENT_ID) }
+    }
+
+    /**
+     * Archives and deletes the page view events with the given [eventIds]. Returns the number of
+     * archived (deleted) page view events.
+     */
+    suspend fun archiveAndDeletePageViews(eventIds: List<String>): Int {
+        if (eventIds.isEmpty()) {
+            return 0
+        }
+
+        return dslContext.transactionCoroutine { cfg ->
+            val transactional = DSL.using(cfg)
+
+            archivePageViews(transactional, PAGE_VIEW_EVENT.EVENT_ID.`in`(eventIds))
+
+            transactional
+                .deleteFrom(PAGE_VIEW_EVENT)
+                .where(PAGE_VIEW_EVENT.EVENT_ID.`in`(eventIds))
+                .awaitExecute()
+        }
     }
 
     /**
@@ -84,33 +109,6 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
                     eventTime = record.get(PAGE_VIEW_EVENT.EVENT_TIME),
                 )
             }
-    }
-
-    private suspend fun selectOldPageViewEventIds(cutoff: kotlin.time.Instant, limit: Int): List<String> {
-        return dslContext
-            .select(PAGE_VIEW_EVENT.EVENT_ID)
-            .from(PAGE_VIEW_EVENT)
-            .where(PAGE_VIEW_EVENT.EVENT_TIME.isBefore(cutoff))
-            .limit(limit)
-            .awaitRecords()
-            .map { it.get(PAGE_VIEW_EVENT.EVENT_ID) }
-    }
-
-    private suspend fun archiveAndDeletePageViews(eventIds: List<String>): Int {
-        if (eventIds.isEmpty()) {
-            return 0
-        }
-
-        return dslContext.transactionCoroutine { cfg ->
-            val transactional = DSL.using(cfg)
-
-            archivePageViews(transactional, PAGE_VIEW_EVENT.EVENT_ID.`in`(eventIds))
-
-            transactional
-                .deleteFrom(PAGE_VIEW_EVENT)
-                .where(PAGE_VIEW_EVENT.EVENT_ID.`in`(eventIds))
-                .awaitExecute()
-        }
     }
 
     private suspend fun archivePageViews(transactional: DSLContext, selector: Condition) {

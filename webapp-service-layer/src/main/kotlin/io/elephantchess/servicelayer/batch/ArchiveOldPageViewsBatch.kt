@@ -23,19 +23,19 @@ class ArchiveOldPageViewsBatch(
     override val podNumber: Int = 1
 
     override suspend fun run() {
+        val eventIds = archivedPageViewDaoService.selectOldPageViewEventIds(
+            maxAge = ARCHIVE_PAGE_VIEW_AFTER_DAYS.days,
+            limit = CHUNK_SIZE * MAX_CHUNKS_PER_RUN,
+        )
+
+        if (eventIds.isEmpty()) {
+            return
+        }
+
         var totalArchived = 0
 
-        for (iteration in 1..MAX_CHUNKS_PER_RUN) {
-            val archived = archivedPageViewDaoService.archiveAndDeleteOldPageViews(
-                maxAge = ARCHIVE_PAGE_VIEW_AFTER_DAYS.days,
-                limit = CHUNK_SIZE,
-            )
-
-            if (archived == 0) {
-                break
-            }
-
-            totalArchived += archived
+        for (chunk in eventIds.chunked(CHUNK_SIZE)) {
+            totalArchived += archivedPageViewDaoService.archiveAndDeletePageViews(chunk)
         }
 
         if (totalArchived > 0) {

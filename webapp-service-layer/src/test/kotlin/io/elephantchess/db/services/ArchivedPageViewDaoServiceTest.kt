@@ -32,7 +32,7 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
         insertPageView(userId, instantOfUtc(2020, 3, 10, 12, 2, 0), eventPath = "/database")
         insertPageView(userId, instantOfUtc(2020, 3, 9, 8, 0, 0), eventPath = "/puzzles")
 
-        val archived = archivedPageViewDaoService.archiveAndDeleteOldPageViews(maxAge = 90.days, limit = 1_000)
+        val archived = archiveOldPageViews(maxAge = 90.days)
 
         assertEquals(3, archived)
         assertEquals(0, countPageViews(userId))
@@ -45,7 +45,7 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
         val (_, userId) = signUpTestUser()
         insertPageView(userId, Clock.System.now(), eventPath = "/database")
 
-        val archived = archivedPageViewDaoService.archiveAndDeleteOldPageViews(maxAge = 90.days, limit = 1_000)
+        val archived = archiveOldPageViews(maxAge = 90.days)
 
         assertEquals(0, archived)
         assertEquals(1, countPageViews(userId))
@@ -89,10 +89,15 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
         // a profile sub-path is not a profile view and must be excluded from both buckets
         insertPageView(userId, instantOfUtc(2021, 7, 12, 12, 3, 0), eventPath = "/@/$handle/games")
 
-        archivedPageViewDaoService.archiveAndDeleteOldPageViews(maxAge = 90.days, limit = 1_000)
+        archiveOldPageViews(maxAge = 90.days)
 
         assertEquals(1, archivedBucket(LocalDate.of(2021, 7, 12), "/@/$handle", ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS))
         assertEquals(1, archivedBucket(LocalDate.of(2021, 7, 12), "/@/someoneelse", ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS))
+    }
+
+    private suspend fun archiveOldPageViews(maxAge: kotlin.time.Duration): Int {
+        val eventIds = archivedPageViewDaoService.selectOldPageViewEventIds(maxAge, limit = 1_000)
+        return archivedPageViewDaoService.archiveAndDeletePageViews(eventIds)
     }
 
     private suspend fun insertPageView(userId: String, eventTime: Instant, eventPath: String = "/") {
