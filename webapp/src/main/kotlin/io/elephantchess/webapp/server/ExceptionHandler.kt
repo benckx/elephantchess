@@ -4,6 +4,7 @@ import io.elephantchess.servicelayer.dto.ValidationErrorsResponse
 import io.elephantchess.servicelayer.exceptions.HttpErrorException
 import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.utils.ops.koin
+import io.elephantchess.utils.ResourceUtils
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -21,17 +22,20 @@ import java.io.IOException
 import java.nio.channels.ClosedChannelException
 import kotlin.coroutines.cancellation.CancellationException
 
+private const val MUTED_URI_PATTERNS_RESOURCE = "/config/muted-uri-patterns.txt"
+
 /**
- * Well-known URIs that clients (mobile OSes, password managers, ...) probe automatically. We don't
- * ship native apps or passkeys, so these always 404 - mute them to avoid noisy WARN logs.
+ * Substring patterns (lower-cased) for 404 URIs that are only ever hit by vulnerability scanners or
+ * benign automatic client probes. Requests matching one of these are logged at DEBUG instead of WARN
+ * to keep the logs readable. Maintained in [MUTED_URI_PATTERNS_RESOURCE] rather than hard-coded here.
  */
-private val MUTED_WELL_KNOWN_URIS = setOf(
-    "/.well-known/assetlinks.json",
-    "/.well-known/apple-app-site-association",
-    "/apple-app-site-association",
-    "/.well-known/passkey-endpoints",
-    "/.well-known/appspecific/com.chrome.devtools.json",
-)
+private val MUTED_URI_PATTERNS: List<String> by lazy {
+    ResourceUtils
+        .resourceAsLines(MUTED_URI_PATTERNS_RESOURCE)
+        .map { it.substringBefore('#').trim() }
+        .filter { it.isNotEmpty() }
+        .map { it.lowercase() }
+}
 
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}
@@ -69,11 +73,12 @@ fun Application.exceptionHandler() {
                 return@status
             }
 
-            // Native-app / passkey association probes hit these standard well-known URIs automatically
-            // (Android App Links, iOS Universal Links, WebAuthn passkey discovery). We don't ship native
-            // apps or passkeys, so a 404 is the correct response - just don't spam WARN logs for them.
-            if (uri.substringBefore('?') in MUTED_WELL_KNOWN_URIS) {
-                logger.debug { "Ignoring well-known probe: $method $uri | User-Agent: ${userAgent?.take(100)}" }
+            // Vulnerability-scanner noise and benign automatic client probes (native-app / passkey
+            // association files, favicon variants, ...) always 404. They flood the logs, so mute them:
+            // respond with a plain 404 and log at DEBUG. Patterns live in MUTED_URI_PATTERNS_RESOURCE.
+            val path = uri.substringBefore('?').lowercase()
+            if (MUTED_URI_PATTERNS.any { path.contains(it) }) {
+                logger.debug { "Ignoring muted 404 probe: $method $uri | User-Agent: ${userAgent?.take(100)}" }
                 call.respondNotFound(uri)
                 return@status
             }

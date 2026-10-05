@@ -107,7 +107,7 @@ class DatabaseRateLimiterTest {
 
     @Test
     fun `crawler allow-list is case-insensitive and loaded from the resource file`() {
-        // tokens come from /config/crawler_user_agents.txt
+        // tokens come from /config/crawler-user-agents.txt
         val crawlerUserAgents = listOf(
             "something GOOGLEBOT something",
             "Applebot/0.1",
