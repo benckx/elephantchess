@@ -38,6 +38,7 @@ fun main(args: Array<String>) {
 private fun Application.kTorModule() {
     configureDefaultHeaders()
     exceptionHandler()
+    databaseRateLimitModule()
     cachingModule()
     staticAssetsModule()
     apiServiceModule()

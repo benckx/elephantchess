@@ -31,6 +31,8 @@ class PropertiesFile(
 
     fun loadInt(key: String) = getProperty(key).toInt()
 
+    fun loadIntOrDefault(key: String, default: Int) = getPropertyOrNull(key)?.toIntOrNull() ?: default
+
     fun loadList(key: String): List<String> {
         return if (!properties.containsKey(key)) {
             logger.warn { "list property not found $key" }
