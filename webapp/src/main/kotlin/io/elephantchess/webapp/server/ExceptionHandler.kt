@@ -4,6 +4,7 @@ import io.elephantchess.servicelayer.dto.ValidationErrorsResponse
 import io.elephantchess.servicelayer.exceptions.HttpErrorException
 import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.utils.ops.koin
+import io.elephantchess.utils.ResourceUtils
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -29,14 +30,11 @@ private const val MUTED_URI_PATTERNS_RESOURCE = "/config/muted-uri-patterns.txt"
  * to keep the logs readable. Maintained in [MUTED_URI_PATTERNS_RESOURCE] rather than hard-coded here.
  */
 private val MUTED_URI_PATTERNS: List<String> by lazy {
-    val resource = object {}.javaClass.getResource(MUTED_URI_PATTERNS_RESOURCE)
-        ?: throw IllegalStateException("Resource not found: $MUTED_URI_PATTERNS_RESOURCE")
-    resource.readText()
-        .lineSequence()
+    ResourceUtils
+        .resourceAsLines(MUTED_URI_PATTERNS_RESOURCE)
         .map { it.substringBefore('#').trim() }
         .filter { it.isNotEmpty() }
         .map { it.lowercase() }
-        .toList()
 }
 
 fun Application.exceptionHandler() {
