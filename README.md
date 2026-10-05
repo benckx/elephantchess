@@ -3,23 +3,24 @@
 # Table of Contents
 
 - [About](#about)
-  - [Features](#features)
-  - [Principles](#principles)
-  - [Glossary](#glossary)
+    - [Features](#features)
+    - [Principles](#principles)
+    - [Glossary](#glossary)
 - [Run Locally](#run-locally)
-  - [Pre-requisites](#pre-requisites)
-  - [Set-up](#set-up)
-  - [Build and Run](#build-and-run)
-  - [Common Issues](#common-issues)
+    - [TL;DR](#tldr)
+    - [Pre-requisites](#pre-requisites)
+    - [Set-up](#set-up)
+    - [Build and Run](#build-and-run)
+    - [Common Issues](#common-issues)
 - [Back-End (Kotlin)](#back-end-kotlin)
-  - [Gradle Modules](#gradle-modules)
-  - [Libraries](#libraries)
-  - [Libraries Usage](#libraries-usage)
+    - [Gradle Modules](#gradle-modules)
+    - [Libraries](#libraries)
+    - [Libraries Usage](#libraries-usage)
 - [Front-End](#front-end)
-  - [HTML](#html)
-  - [JavaScript](#javascript)
-  - [JavaScript Libraries](#javascript-libraries)
-  - [Minification](#minification)
+    - [HTML](#html)
+    - [JavaScript](#javascript)
+    - [JavaScript Libraries](#javascript-libraries)
+    - [Minification](#minification)
 
 # About
 
@@ -95,6 +96,10 @@ The webapp offers the following features:
 
 This section describes how to run the back-end and front-end of [elephantchess.io](https://elephantchess.io) locally for
 development or learning purposes.
+
+## TL;DR
+
+You just need Docker to run PostgreSQL and Java 21 to run the app.
 
 ## Pre-requisites
 
