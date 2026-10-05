@@ -32,7 +32,7 @@ fun Application.databaseRateLimitModule() {
 
     val maxRequests = appConfig.databaseRateLimitMaxRequests
     val windowSeconds = appConfig.databaseRateLimitWindowSeconds
-    val limiter = DatabaseRateLimiter(maxRequests = maxRequests, window = windowSeconds.seconds)
+    val limiter = DatabaseRateLimiter(maxRequests, windowSeconds.seconds)
 
     logger.info { "database rate limiting enabled: $maxRequests requests / ${windowSeconds}s per IP" }
 
@@ -47,11 +47,11 @@ fun Application.databaseRateLimitModule() {
             )
 
         if (rateLimited) {
-            logger.info {
+            logger.warn {
                 "rate limited ${call.request.httpMethod.value} ${call.request.path()} " +
                         "| User-Agent: ${call.request.headers[HttpHeaders.UserAgent]?.take(100)}"
             }
-            call.response.headers.append(HttpHeaders.RetryAfter, limiter.retryAfterSeconds.toString())
+            call.response.headers.append(HttpHeaders.RetryAfter, windowSeconds.toString())
             call.respond(
                 TextContent(
                     text = simplePageRenderer.renderTemplate("429"),

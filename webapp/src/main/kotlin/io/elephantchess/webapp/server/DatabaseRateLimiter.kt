@@ -48,16 +48,16 @@ class DatabaseRateLimiter(private val maxRequests: Int, window: Duration) {
         return counter.incrementAndGet() > maxRequests
     }
 
-    companion object {
+    private companion object {
 
         /** Path prefixes of the public reference-database pages targeted by scrapers. */
-        private val MONITORED_PREFIXES = listOf("/database", "/browse/event")
+        val MONITORED_PREFIXES = listOf("/database", "/browse/event")
 
         /**
          * Lower-cased substrings identifying well-known search engine and AI crawlers that must never be
          * rate limited (protects indexing / SEO). Matched case-insensitively against the User-Agent.
          */
-        private val CRAWLER_USER_AGENT_TOKENS = listOf(
+        val CRAWLER_USER_AGENT_TOKENS = listOf(
             "googlebot",
             "apis-google",
             "adsbot-google",
