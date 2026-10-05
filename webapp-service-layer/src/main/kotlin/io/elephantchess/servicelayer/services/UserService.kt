@@ -33,6 +33,7 @@ class UserService(
     private val passwordRecoveryRequestDaoService: PasswordRecoveryAttemptsDaoService,
     private val userDaoService: UserDaoService,
     private val userSessionDaoService: UserSessionDaoService,
+    private val archivedPageViewDaoService: ArchivedPageViewDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
     private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
@@ -470,6 +471,29 @@ class UserService(
     suspend fun deleteAllUserSessions(userId: String): DeleteUserSessionsResponse {
         val deletedCount = userSessionDaoService.deleteAllAuthenticatedSessionsForUser(userId)
         return DeleteUserSessionsResponse(deletedCount)
+    }
+
+    suspend fun fetchUserPageViews(userId: String, limit: Int, offset: Int = 0): UserPageViewsSettingsResponse {
+        val total = archivedPageViewDaoService.countPageViewsForUser(userId)
+        val entries =
+            archivedPageViewDaoService
+                .listPageViewsForUser(userId, limit, offset)
+                .map { record ->
+                    UserPageViewsSettingsResponse.Entry(
+                        url = record.url,
+                        time = record.eventTime.toEpochMilliseconds(),
+                    )
+                }
+
+        return UserPageViewsSettingsResponse(
+            entries = entries,
+            total = total,
+        )
+    }
+
+    suspend fun archiveUserPageViews(userId: String): ArchiveUserPageViewsResponse {
+        val archivedCount = archivedPageViewDaoService.archiveAndDeletePageViewsForUser(userId)
+        return ArchiveUserPageViewsResponse(archivedCount)
     }
 
     fun isOnline(userId: String): Boolean {

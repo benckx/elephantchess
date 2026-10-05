@@ -1,0 +1,42 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Page Views</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/common/nice-table.css"/>
+    <link rel="stylesheet" href="/css/user-settings.css"/>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/user-settings/user-page-views-widget.js"></script>
+    <script defer src="/js/user-settings/user-page-views-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    <h1>Page Views</h1>
+    <hr/>
+    <p>Page views are automatically archived after 90 days and are no longer associated with your account.</p>
+    <div id="page-views-actions-container">
+        <input id="archive-page-views-button" type="button" class="app-buttons-bigger" value="archive now my views">
+    </div>
+    <div id="user-page-views-table-container">
+        <table id="user-page-views-table" class="nice-table nice-table-striped nice-table-hover">
+            <thead>
+            <tr>
+                <th class="label-cell">url</th>
+                <th class="label-cell">time</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <p id="user-page-views-empty-message" class="hidden">No page views found.</p>
+    <div id="is-loading-message" style="display: none;">
+        Loading more page views...
+    </div>
+    <div id="end-of-pagination-message" style="display: none;">
+        No more page views to show
+    </div>
+</div>
+</body>
+</html>

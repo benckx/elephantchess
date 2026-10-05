@@ -60,6 +60,7 @@ fun serviceLayerModule(
 private fun daoModule() = module {
     singleAuto<AnalysisDaoService>()
     singleAuto<ArchivedGuestDaoService>()
+    singleAuto<ArchivedPageViewDaoService>()
     singleAuto<ChatMessageDaoService>()
     singleAuto<ContentSectionVoteDaoService>()
     singleAuto<DatabaseAdminDaoService>()
@@ -100,6 +101,7 @@ private fun batchModule() = module {
     singleAuto<FetchMinutesUsersMetricsBatch>()
     singleAuto<FetchDailyUsersMetricsBatch>()
     singleAuto<ArchiveOldGuestsBatch>()
+    singleAuto<ArchiveOldPageViewsBatch>()
     singleAuto<SendOutNewslettersBatch>()
     singleAuto<CheckEmailListVerifyCreditBatch>()
     singleAuto<VerifyEmailsBatch>()
@@ -114,6 +116,7 @@ private fun batchModule() = module {
             BatchSchedule(get<FetchMinutesUsersMetricsBatch>(), period = 5.minutes, delay = 5.seconds),
             BatchSchedule(get<FetchDailyUsersMetricsBatch>(), period = 6.hours, delay = 15.minutes),
             BatchSchedule(get<ArchiveOldGuestsBatch>(), period = 6.hours, delay = 30.minutes),
+            BatchSchedule(get<ArchiveOldPageViewsBatch>(), period = 6.hours, delay = 45.minutes),
             BatchSchedule(get<SendOutNewslettersBatch>(), period = 5.minutes, delay = 3.minutes),
             BatchSchedule(get<CheckEmailListVerifyCreditBatch>(), period = 48.hours, delay = 30.seconds),
             BatchSchedule(get<VerifyEmailsBatch>(), period = 48.hours, delay = 12.hours),

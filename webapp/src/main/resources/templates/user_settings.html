@@ -8,6 +8,7 @@
     <script defer src="/js/modules/countries.js"></script>
     <script defer src="/js/user-settings/notification-settings-widget.js"></script>
     <script defer src="/js/user-settings/user-sessions-widget.js"></script>
+    <script defer src="/js/user-settings/user-page-views-widget.js"></script>
     <script defer src="/js/user-settings/user-settings.js"></script>
 </head>
 <body>
@@ -138,6 +139,26 @@
     </div>
     <p id="user-sessions-empty-message" class="hidden">No sessions found.</p>
     <a id="all-sessions-link" class="hidden" href="/user/settings/sessions">See all sessions</a>
+    <h1>Latest Page Views</h1>
+    <hr/>
+    <p>Page views are automatically archived after 90 days and are no longer associated with your account.</p>
+    <div id="page-views-actions-container">
+        <input id="archive-page-views-button" type="button" class="app-buttons-bigger" value="archive now my views">
+    </div>
+    <div id="user-page-views-table-container">
+        <table id="user-page-views-table" class="nice-table nice-table-striped nice-table-hover">
+            <thead>
+            <tr>
+                <th class="label-cell">url</th>
+                <th class="label-cell">time</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <p id="user-page-views-empty-message" class="hidden">No page views found.</p>
+    <a id="all-page-views-link" class="hidden" href="/user/settings/views">See all page views</a>
 </div>
 </body>
 </html>

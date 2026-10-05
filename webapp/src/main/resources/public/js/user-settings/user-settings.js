@@ -46,6 +46,9 @@ class UserSettingsPage extends BasePage {
     // sessions section
     #sessionsWidget = new UserSessionsWidget({limit: 8, selectable: false});
 
+    // page views section
+    #pageViewsWidget = new UserPageViewsWidget({limit: 8});
+
     // Serialized snapshots of the last saved (unchanged) values, used to detect
     // whether the current form state differs and the save buttons should enable.
     #profileBaseline;
@@ -94,6 +97,9 @@ class UserSettingsPage extends BasePage {
 
         // sessions section
         this.#sessionsWidget.fetchAndRender();
+
+        // page views section
+        this.#pageViewsWidget.fetchAndRender();
     }
 
     #profileStateSignature() {

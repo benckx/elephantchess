@@ -65,6 +65,7 @@ private val identificationRequiredPagesMapping = mapOf(
 // only available authenticated users
 private val authenticatedRequiredPagesMapping = mapOf(
     "/user/settings/sessions" to "user_sessions",
+    "/user/settings/views" to "user_views",
 )
 
 private val adminPagesMapping = mapOf(
