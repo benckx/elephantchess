@@ -1118,10 +1118,10 @@ class PlayerVsPlayerGameService(
         if (map.isNotEmpty()) {
             map.toList().sortedBy { (key, _) -> key }.forEach { (key, sequence) ->
                 val fullMovesStr = sequence.fullMoves().joinToString(", ")
-                logger.info { "[$key] ${sequence.attackers} / $fullMovesStr [${sequence.size()}]" }
+                logger.debug { "[$key] ${sequence.attackers} / $fullMovesStr [${sequence.size()}]" }
                 perpetualCheckRules.forEach { rule ->
                     val hasExceeded = sequence.exceeds(rule)
-                    logger.info { "exceeds $rule -> $hasExceeded" }
+                    logger.debug { "exceeds $rule -> $hasExceeded" }
                     if (hasExceeded) {
                         return PerpetualCheckingCallbackResult(PERPETUAL_CHECKING, playerColor.asLoserOutcome())
                     }
