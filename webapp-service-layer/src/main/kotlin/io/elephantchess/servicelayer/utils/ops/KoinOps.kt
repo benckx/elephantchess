@@ -31,16 +31,18 @@ fun Module.registerInjectables(eagerAllowed: Boolean, vararg packages: String) {
         .acceptPackages(*packages)
         .scan()
         .use { scanResult ->
-            scanResult.getClassesWithAnnotation(KoinSingleton::class.java.name).forEach { classInfo ->
-                @Suppress("UNCHECKED_CAST")
-                val klass = classInfo.loadClass().kotlin as KClass<Any>
-                val eager = (classInfo
-                    .getAnnotationInfo(KoinSingleton::class.java.name)
-                    ?.parameterValues
-                    ?.getValue("eager") as? Boolean) ?: false
-                kLogger.info { "registering injectable ${klass.simpleName} (eager=$eager)" }
-                registerInjectable(klass, createdAtStart = eager && eagerAllowed)
-            }
+            scanResult
+                .getClassesWithAnnotation(KoinSingleton::class.java.name)
+                .forEach { classInfo ->
+                    @Suppress("UNCHECKED_CAST")
+                    val klass = classInfo.loadClass().kotlin as KClass<Any>
+                    val eager = (classInfo
+                        .getAnnotationInfo(KoinSingleton::class.java.name)
+                        ?.parameterValues
+                        ?.getValue("eager") as? Boolean) ?: false
+                    kLogger.info { "registering injectable ${klass.simpleName} (eager=$eager)" }
+                    registerInjectable(klass, createdAtStart = eager && eagerAllowed)
+                }
         }
 }
 

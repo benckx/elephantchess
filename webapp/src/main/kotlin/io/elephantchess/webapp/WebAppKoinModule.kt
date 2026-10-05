@@ -28,7 +28,7 @@ fun webAppKoinModule(eagerAllowed: Boolean): Module = module {
             .build()
     }
 
-    // page renderers annotated with @Service
+    // page renderers annotated with @KoinSingleton
     registerInjectables(eagerAllowed, "io.elephantchess.webapp")
 }
 
