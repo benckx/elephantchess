@@ -75,7 +75,7 @@ fun serviceLayerModule(
         )
     }
 
-    // all services, DAOs, clients and batches annotated with @Service
+    // all services, DAOs, clients and batches annotated with @KoinSingleton
     registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
 }
 
