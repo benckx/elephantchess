@@ -1,12 +1,12 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.servicelayer.dto.admin.ReferenceGameSearchQueryResponse
 import io.elephantchess.servicelayer.services.UserCache
 
-@Service
+@KoinSingleton
 class AdminDatabaseSearchService(
     private val referenceGameDaoService: ReferenceGameDaoService,
     private val userCache: UserCache,

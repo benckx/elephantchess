@@ -1,6 +1,6 @@
 package io.elephantchess.webapp.rendering
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
@@ -21,7 +21,7 @@ import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.tr
 
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class UserProfilePageRenderer(
     private val htmlRenderer: HtmlRenderer,
     private val userProfileAnalyticsService: UserProfileAnalyticsService

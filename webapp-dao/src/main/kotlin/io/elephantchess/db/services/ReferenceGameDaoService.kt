@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.ReferenceGameHalfMove.REFERENCE_GAME_HALF_MOVE
@@ -23,7 +23,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-@Service
+@KoinSingleton
 class ReferenceGameDaoService(private val dslContext: DSLContext) {
 
     suspend fun listPreAnalyzedGamesByYear(): List<Record3<Int, AnalysisStatus, Int>> {

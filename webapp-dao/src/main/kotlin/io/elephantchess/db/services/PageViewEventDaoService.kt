@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
 import io.elephantchess.db.dao.codegen.Tables.USER
@@ -24,7 +24,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
-@Service
+@KoinSingleton
 class PageViewEventDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(record: PageViewEvent) {

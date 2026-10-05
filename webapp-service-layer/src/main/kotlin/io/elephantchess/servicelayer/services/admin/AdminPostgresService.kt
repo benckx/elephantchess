@@ -1,11 +1,11 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.services.DatabaseAdminDaoService
 import io.elephantchess.servicelayer.dto.admin.DatabaseTableSizeResponse
 
-@Service
+@KoinSingleton
 class AdminPostgresService(
     private val databaseAdminDaoService: DatabaseAdminDaoService
 ) {

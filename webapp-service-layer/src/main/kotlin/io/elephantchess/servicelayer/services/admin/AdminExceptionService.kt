@@ -1,11 +1,11 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.servicelayer.dto.admin.ThrownExceptionsResponse
 
-@Service
+@KoinSingleton
 class AdminExceptionService(
     private val thrownExceptionDaoService: ThrownExceptionDaoService,
 ) {

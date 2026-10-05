@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.model.PuzzleRecord
@@ -29,7 +29,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class PuzzleService(
     private val enginesPool: EnginePool,
     private val puzzleDaoService: PuzzleDaoService,

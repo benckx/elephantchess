@@ -1,11 +1,11 @@
 package io.elephantchess.webapp.rendering
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
 
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class FaqPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
     suspend fun renderFaqPage(): String =

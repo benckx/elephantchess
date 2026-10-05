@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.EmailVerification
@@ -36,7 +36,7 @@ import javax.mail.internet.MimeMultipart
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
-@Service
+@KoinSingleton
 class MailService(
     private val appConfig: AppConfig,
     private val emailVerificationDaoService: EmailVerificationDaoService,

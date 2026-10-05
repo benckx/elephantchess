@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.callback.PerpetualCheckingCallbackResult
 import io.elephantchess.db.callback.PlayMoveCallbackResult
@@ -45,7 +45,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-@Service
+@KoinSingleton
 class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}

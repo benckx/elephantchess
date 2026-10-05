@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Data shown on the "Global" page
  */
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class GlobalAnalyticsService(
     private val userService: UserService,
     private val userDaoService: UserDaoService,

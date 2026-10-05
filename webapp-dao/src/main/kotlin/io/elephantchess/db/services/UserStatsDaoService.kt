@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.dao.codegen.Tables.STATS_ONLINE_USERS_MINUTES
 import io.elephantchess.db.dao.codegen.tables.daos.StatsOnlineUsersDaysDao
@@ -18,7 +18,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.YearMonth
 import kotlin.time.Clock
 
-@Service
+@KoinSingleton
 class UserStatsDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(entry: StatsOnlineUsersDays) {

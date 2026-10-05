@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.services.PuzzleDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
@@ -10,7 +10,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlin.time.Duration.Companion.hours
 
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class PuzzleCache(
     private val puzzleDaoService: PuzzleDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,

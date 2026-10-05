@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.PasswordRecoveryAttempt
@@ -30,7 +30,7 @@ import javax.crypto.spec.PBEKeySpec
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class UserService(
     appConfig: AppConfig,
     private val passwordRecoveryRequestDaoService: PasswordRecoveryAttemptsDaoService,

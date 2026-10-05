@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.clients
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.clients.dto.CreditResponse
@@ -18,7 +18,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
-@Service
+@KoinSingleton
 class EmailListVerifyClient(
     appConfig: AppConfig,
     private val logger: KLogger,

@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.engines.protocol.model.InfoLineResult
@@ -13,7 +13,7 @@ import io.elephantchess.servicelayer.exceptions.InternalErrorException
 import io.elephantchess.servicelayer.utils.modelToProcess
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 
-@Service
+@KoinSingleton
 class EngineService(
     private val enginesPool: EnginePool,
     private val engineCacheService: EngineCacheService,

@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.batch.definitions
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.metrics.MetricsLogger
@@ -15,7 +15,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class BatchesScheduler(
     appConfig: AppConfig,
     schedules: List<BatchSchedule<out Batch>>,

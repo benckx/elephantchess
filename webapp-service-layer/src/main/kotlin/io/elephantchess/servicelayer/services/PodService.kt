@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.services.PodDaoService
@@ -20,7 +20,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class PodService(
     appConfig: AppConfig,
     private val podDaoService: PodDaoService,

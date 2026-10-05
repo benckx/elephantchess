@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.utils
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.servicelayer.batch.definitions.BatchesScheduler
@@ -19,7 +19,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * Handles graceful shutdown of application resources
  */
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class ShutdownHandler(
     private val dslContext: DSLContext,
     private val playerVsPlayerGameService: PlayerVsPlayerGameService,

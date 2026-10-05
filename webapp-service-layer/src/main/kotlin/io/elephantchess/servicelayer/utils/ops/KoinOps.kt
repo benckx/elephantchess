@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.utils.ops
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.classgraph.ClassGraph
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import org.koin.core.annotation.KoinInternalApi
@@ -20,7 +20,7 @@ import kotlin.reflect.jvm.jvmErasure
 private val kLogger = logger {}
 
 /**
- * Scans [packages] for classes annotated with [Service] and registers each as a Koin singleton,
+ * Scans [packages] for classes annotated with [KoinSingleton] and registers each as a Koin singleton,
  * resolving constructor dependencies reflectively (see [reflectiveResolver]).
  *
  * A class annotated with `@Service(eager = true)` is created at startup only when [eagerAllowed] is true.
@@ -31,11 +31,11 @@ fun Module.registerInjectables(eagerAllowed: Boolean, vararg packages: String) {
         .acceptPackages(*packages)
         .scan()
         .use { scanResult ->
-            scanResult.getClassesWithAnnotation(Service::class.java.name).forEach { classInfo ->
+            scanResult.getClassesWithAnnotation(KoinSingleton::class.java.name).forEach { classInfo ->
                 @Suppress("UNCHECKED_CAST")
                 val klass = classInfo.loadClass().kotlin as KClass<Any>
                 val eager = (classInfo
-                    .getAnnotationInfo(Service::class.java.name)
+                    .getAnnotationInfo(KoinSingleton::class.java.name)
                     ?.parameterValues
                     ?.getValue("eager") as? Boolean) ?: false
                 kLogger.info { "registering injectable ${klass.simpleName} (eager=$eager)" }

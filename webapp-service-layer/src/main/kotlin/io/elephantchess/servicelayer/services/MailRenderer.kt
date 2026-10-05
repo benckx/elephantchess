@@ -1,11 +1,11 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
 
-@Service
+@KoinSingleton
 class MailRenderer(private val mailTemplateRenderer: MailTemplateRender) {
 
     suspend fun renderEmail(templateName: String, specificTagResolvers: List<TagResolver>): String =

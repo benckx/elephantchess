@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Instant
 import kotlin.time.toKotlinInstant
 
-@Service
+@KoinSingleton
 class DiscordService(
     private val discordClient: DiscordClient,
     private val userCache: UserCache,

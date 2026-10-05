@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.services.ContentSectionVoteDaoService
 import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
@@ -8,7 +8,7 @@ import io.elephantchess.servicelayer.dto.ContentSectionVotesResponse
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.model.UserId
 
-@Service
+@KoinSingleton
 class ContentSectionFeedbackService(
     private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
     private val mailService: MailService,

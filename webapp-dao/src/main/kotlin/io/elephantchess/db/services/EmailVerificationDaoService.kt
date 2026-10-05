@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.EmailVerificationBounceDao
@@ -14,7 +14,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Duration
 
-@Service
+@KoinSingleton
 class EmailVerificationDaoService(
     private val dslContext: DSLContext,
     private val logger: KLogger

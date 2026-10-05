@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services.sitemap
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.services.DatabaseService
@@ -16,7 +16,7 @@ import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class SiteMapService(
     private val databaseService: DatabaseService,
     private val userService: UserService,

@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.services.ArchivedGuestDaoService
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
@@ -16,7 +16,7 @@ import kotlin.time.Duration.Companion.days
  * Guests are processed in bounded chunks so a single run stays cheap; the schedule drains the backlog
  * over multiple runs.
  */
-@Service
+@KoinSingleton
 class ArchiveOldGuestsBatch(
     private val archivedGuestDaoService: ArchivedGuestDaoService,
     override val logger: KLogger,

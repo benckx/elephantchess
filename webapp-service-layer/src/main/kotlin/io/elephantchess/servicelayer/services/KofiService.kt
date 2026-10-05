@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.KofiEvent
@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import java.util.*
 import kotlin.time.Instant
 
-@Service
+@KoinSingleton
 class KofiService(
     private val kofiEventDaoService: KofiEventDaoService,
     private val userDaoService: UserDaoService,

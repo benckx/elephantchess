@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.dao.codegen.Tables.CONTENT_SECTION_VOTE
 import io.elephantchess.db.dao.codegen.tables.pojos.ContentSectionVote
@@ -9,7 +9,7 @@ import io.elephantchess.db.utils.awaitMappedRecords
 import org.jooq.DSLContext
 import kotlin.time.Clock
 
-@Service
+@KoinSingleton
 class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
 
     suspend fun persistVote(userId: String, pageId: String, sectionId: String, upVoted: Boolean, feedback: String?) {

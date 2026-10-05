@@ -1,12 +1,12 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.servicelayer.dto.admin.LastChatMessageResponse
 import io.elephantchess.servicelayer.services.UserCache
 
-@Service
+@KoinSingleton
 class AdminChatService(
     private val userCache: UserCache,
     private val chatMessageDaoService: ChatMessageDaoService,

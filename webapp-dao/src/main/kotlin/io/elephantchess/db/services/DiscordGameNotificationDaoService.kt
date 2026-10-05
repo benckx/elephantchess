@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.dao.codegen.Tables.DISCORD_GAME_NOTIFICATION
 import io.elephantchess.db.dao.codegen.tables.daos.DiscordGameNotificationDao
@@ -12,7 +12,7 @@ import org.jooq.DSLContext
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Instant
 
-@Service
+@KoinSingleton
 class DiscordGameNotificationDaoService(
     private val dslContext: DSLContext
 ) {

@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
@@ -23,7 +23,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.time.Duration.Companion.minutes
 
-@Service(eager = true)
+@KoinSingleton(eager = true)
 class TokenManager(
     private val appConfig: AppConfig,
     private val userDaoService: UserDaoService,

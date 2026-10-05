@@ -1,6 +1,6 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.Service
+import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.dao.codegen.tables.ThrownException.THROWN_EXCEPTION
 import io.elephantchess.db.dao.codegen.tables.daos.ThrownExceptionDao
@@ -10,7 +10,7 @@ import io.elephantchess.db.utils.insertReactive
 import org.jooq.DSLContext
 import org.jooq.kotlin.coroutines.transactionCoroutine
 
-@Service
+@KoinSingleton
 class ThrownExceptionDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(record: ThrownException) {
