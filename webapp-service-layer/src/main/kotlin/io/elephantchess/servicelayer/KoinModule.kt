@@ -75,8 +75,8 @@ fun serviceLayerModule(
         )
     }
 
-    // all services, DAOs, clients and batches annotated with @Inject
-    registerInjectables(eagerAllowed)
+    // all services, DAOs, clients and batches annotated with @Service
+    registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
 }
 
 private fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {

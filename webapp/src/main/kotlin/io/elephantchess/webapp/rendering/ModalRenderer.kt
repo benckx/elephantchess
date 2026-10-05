@@ -1,10 +1,13 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.Service
+
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlin.time.Duration.Companion.hours
 
+@Service(eager = true)
 class ModalRenderer(
     private val htmlRenderer: HtmlRenderer,
     private val logger: KLogger,

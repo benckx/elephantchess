@@ -1,5 +1,7 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.Service
+
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
@@ -15,6 +17,7 @@ import kotlinx.html.table
 import kotlinx.html.td
 import kotlinx.html.tr
 
+@Service(eager = true)
 class UserSettingsPageRenderer(
     private val htmlRenderer: HtmlRenderer,
     private val userService: UserService,

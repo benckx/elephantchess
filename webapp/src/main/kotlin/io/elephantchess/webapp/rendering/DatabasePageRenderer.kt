@@ -1,5 +1,7 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.Service
+
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
@@ -19,6 +21,7 @@ import kotlinx.html.style
 import kotlinx.html.unsafe
 import kotlin.time.Duration.Companion.hours
 
+@Service(eager = true)
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
     private val eventPagesCache =

@@ -1,8 +1,11 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.Service
+
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
 
+@Service(eager = true)
 class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
     suspend fun renderChangelogPage(): String =

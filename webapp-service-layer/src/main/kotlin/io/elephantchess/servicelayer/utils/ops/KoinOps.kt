@@ -3,13 +3,12 @@ package io.elephantchess.servicelayer.utils.ops
 import io.elephantchess.utils.di.Service
 import io.github.classgraph.ClassGraph
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
+import org.koin.core.annotation.KoinInternalApi
 import org.koin.core.component.KoinComponent
 import org.koin.core.definition.BeanDefinition
 import org.koin.core.definition.Kind
-import org.koin.core.definition.KoinDefinition
 import org.koin.core.instance.SingleInstanceFactory
 import org.koin.core.module.Module
-import org.koin.core.annotation.KoinInternalApi
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.java.KoinJavaComponent.inject
@@ -21,15 +20,15 @@ import kotlin.reflect.jvm.jvmErasure
 private val kLogger = logger {}
 
 /**
- * Scans [packageName] for classes annotated with [Service] and registers each as a Koin singleton,
+ * Scans [packages] for classes annotated with [Service] and registers each as a Koin singleton,
  * resolving constructor dependencies reflectively (see [reflectiveResolver]).
  *
- * A class annotated with `@Inject(eager = true)` is created at startup only when [eagerAllowed] is true.
+ * A class annotated with `@Service(eager = true)` is created at startup only when [eagerAllowed] is true.
  */
-fun Module.registerInjectables(eagerAllowed: Boolean, packageName: String = "io.elephantchess") {
+fun Module.registerInjectables(eagerAllowed: Boolean, vararg packages: String) {
     ClassGraph()
         .enableAnnotationInfo()
-        .acceptPackages(packageName)
+        .acceptPackages(*packages)
         .scan()
         .use { scanResult ->
             scanResult.getClassesWithAnnotation(Service::class.java.name).forEach { classInfo ->
@@ -63,11 +62,7 @@ private fun Module.registerInjectable(klass: KClass<Any>, createdAtStart: Boolea
     }
 }
 
-inline fun <reified T : Any> Module.singleAuto(eager: Boolean = false): KoinDefinition<T> {
-    return single(createdAtStart = eager) { reflectiveResolver(T::class) }
-}
-
-fun <T : Any> Scope.reflectiveResolver(klass: KClass<T>): T {
+private fun <T : Any> Scope.reflectiveResolver(klass: KClass<T>): T {
     val constructors = klass.constructors
     if (constructors.size != 1) {
         throw IllegalArgumentException("class ${klass.simpleName} must have exactly one constructor")
