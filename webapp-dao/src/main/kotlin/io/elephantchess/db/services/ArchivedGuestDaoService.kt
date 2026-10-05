@@ -55,57 +55,74 @@ import kotlin.time.Instant
 class ArchivedGuestDaoService(private val dslContext: DSLContext) {
 
     /**
+     * Selects up to [limit] guests that are older than [maxAge] and inactive for at least [maxAge] and
+     * are archivable (not referenced by any table other than the ones deleted along with them).
+     *
+     * This runs the expensive multi-table anti-join [archivableCondition] exactly once; callers should
+     * drain the returned ids in small chunks via [archiveAndDeleteGuests] instead of re-running the scan
+     * per chunk. Read-only, so it holds no write locks.
+     */
+    suspend fun selectArchivableGuestIds(maxAge: Duration, limit: Int): List<String> {
+        val cutoff = Clock.System.now() - maxAge
+
+        return dslContext
+            .select(USER.ID)
+            .from(USER)
+            .where(archivableCondition(cutoff))
+            .limit(limit)
+            .awaitRecords()
+            .map { it.get(USER.ID) }
+    }
+
+    /**
      * Archives and deletes at most [batchSize] guests that are older than [maxAge] and inactive for at
      * least [maxAge]. Runs in a single transaction so archiving and deletion are atomic.
      */
-    suspend fun archiveAndDeleteOldGuests(maxAge: Duration, batchSize: Int): ArchiveResult {
-        val cutoff = Clock.System.now() - maxAge
+    suspend fun archiveAndDeleteOldGuests(maxAge: Duration, batchSize: Int): ArchiveResult =
+        archiveAndDeleteGuests(selectArchivableGuestIds(maxAge, batchSize))
+
+    /**
+     * Archives and deletes the given [guestIds] in a single transaction so archiving and deletion are
+     * atomic. The caller is responsible for selecting the ids (see [selectArchivableGuestIds]).
+     */
+    suspend fun archiveAndDeleteGuests(guestIds: List<String>): ArchiveResult {
+        if (guestIds.isEmpty()) {
+            return ArchiveResult(0, 0, 0, 0)
+        }
 
         return dslContext.transactionCoroutine { cfg ->
             val transactional = DSL.using(cfg)
 
-            val guestIds = transactional
-                .select(USER.ID)
-                .from(USER)
-                .where(archivableCondition(cutoff))
-                .limit(batchSize)
-                .awaitRecords()
-                .map { it.get(USER.ID) }
+            archiveGuestCounts(transactional, guestIds)
+            archivePageViews(transactional, guestIds)
+            archiveSearchQueries(transactional, guestIds)
 
-            if (guestIds.isEmpty()) {
-                ArchiveResult(0, 0, 0, 0)
-            } else {
-                archiveGuestCounts(transactional, guestIds)
-                archivePageViews(transactional, guestIds)
-                archiveSearchQueries(transactional, guestIds)
+            val deletedPageViews = transactional
+                .deleteFrom(PAGE_VIEW_EVENT)
+                .where(PAGE_VIEW_EVENT.USER_ID.`in`(guestIds))
+                .awaitExecute()
 
-                val deletedPageViews = transactional
-                    .deleteFrom(PAGE_VIEW_EVENT)
-                    .where(PAGE_VIEW_EVENT.USER_ID.`in`(guestIds))
-                    .awaitExecute()
+            val deletedSearchQueries = transactional
+                .deleteFrom(REFERENCE_GAME_SEARCH_QUERY)
+                .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.`in`(guestIds))
+                .awaitExecute()
 
-                val deletedSearchQueries = transactional
-                    .deleteFrom(REFERENCE_GAME_SEARCH_QUERY)
-                    .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.`in`(guestIds))
-                    .awaitExecute()
+            val deletedSessions = transactional
+                .deleteFrom(USER_SESSION)
+                .where(USER_SESSION.USER_ID.`in`(guestIds))
+                .awaitExecute()
 
-                val deletedSessions = transactional
-                    .deleteFrom(USER_SESSION)
-                    .where(USER_SESSION.USER_ID.`in`(guestIds))
-                    .awaitExecute()
+            transactional
+                .deleteFrom(USER)
+                .where(USER.ID.`in`(guestIds))
+                .awaitExecute()
 
-                transactional
-                    .deleteFrom(USER)
-                    .where(USER.ID.`in`(guestIds))
-                    .awaitExecute()
-
-                ArchiveResult(
-                    archivedGuests = guestIds.size,
-                    deletedPageViews = deletedPageViews,
-                    deletedSearchQueries = deletedSearchQueries,
-                    deletedSessions = deletedSessions,
-                )
-            }
+            ArchiveResult(
+                archivedGuests = guestIds.size,
+                deletedPageViews = deletedPageViews,
+                deletedSearchQueries = deletedSearchQueries,
+                deletedSessions = deletedSessions,
+            )
         }
     }
 
@@ -349,8 +366,9 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             .andNotExists(gameStatusEventExists())
             .andNotExists(gameChatMessageExists())
             .andNotExists(discordGameNotificationExists())
-            .andNotExists(sevenKingdomsGameExists())
-            .andNotExists(sevenKingdomsGameEventExists())
+            // no seven kingdoms games exist yet; skip these anti-joins (and their indexes) until they do.
+            // .andNotExists(sevenKingdomsGameExists())
+            // .andNotExists(sevenKingdomsGameEventExists())
             .andNotExists(referencePlayerProfileEditExists())
             .andNotExists(referencePlayerProfileEditSourceExists())
             .andNotExists(kofiEventExists())

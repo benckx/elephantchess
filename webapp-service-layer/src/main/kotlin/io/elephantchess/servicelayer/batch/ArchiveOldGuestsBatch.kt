@@ -22,23 +22,21 @@ class ArchiveOldGuestsBatch(
     override val podNumber: Int = 1
 
     override suspend fun run() {
+        val guestIds = archivedGuestDaoService.selectArchivableGuestIds(
+            maxAge = ARCHIVE_GUEST_AFTER_DAYS.days,
+            limit = CHUNK_SIZE * MAX_CHUNKS_PER_RUN,
+        )
+
+        if (guestIds.isEmpty()) {
+            return
+        }
+
         var totalArchived = 0
-        var iterations = 0
 
-        while (iterations < MAX_CHUNKS_PER_RUN) {
-            val result = archivedGuestDaoService.archiveAndDeleteOldGuests(
-                maxAge = ARCHIVE_GUEST_AFTER_DAYS.days,
-                batchSize = CHUNK_SIZE,
-            )
-
+        for (chunk in guestIds.chunked(CHUNK_SIZE)) {
+            val result = archivedGuestDaoService.archiveAndDeleteGuests(chunk)
             logger.info { "iteration result: $result" }
-
             totalArchived += result.archivedGuests
-            iterations++
-
-            if (result.archivedGuests < CHUNK_SIZE) {
-                break
-            }
         }
 
         if (totalArchived > 0) {
