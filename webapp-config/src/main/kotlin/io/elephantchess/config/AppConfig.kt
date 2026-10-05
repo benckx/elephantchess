@@ -76,7 +76,7 @@ data class AppConfig(
 
     /** Maximum number of monitored database requests allowed per IP within [databaseRateLimitWindowSeconds]. */
     val databaseRateLimitMaxRequests: Int
-        get() = loadIntOrDefault("database.rate.limit.max.requests", 40)
+        get() = loadIntOrDefault("database.rate.limit.max.requests", 30)
 
     /** Length of the rate-limit window, in seconds. */
     val databaseRateLimitWindowSeconds: Int
