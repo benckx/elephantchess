@@ -1,0 +1,60 @@
+.setting-preference-field {
+    margin-bottom: 40px;
+    padding: 10px;
+}
+
+.setting-preference-field h3 {
+    font-family: monospace;
+}
+
+.setting-preference-segment {
+    margin-bottom: 16px;
+    padding: 10px;
+}
+
+.setting-preference-user-type {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.setting-preference-summary {
+    margin: 2px 0 6px 0;
+}
+
+.setting-preference-chart-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 10px;
+}
+
+/* Pie-chart rows (string fields) are more compact than the full-width histogram rows. */
+.setting-preference-chart-row.setting-preference-chart-row-compact {
+    max-width: 70%;
+}
+
+.setting-preference-null-column {
+    flex: 0 0 280px;
+    padding: 10px;
+}
+
+.setting-preference-values-column {
+    flex: 1 1 420px;
+    min-width: 320px;
+    padding: 10px;
+}
+
+.setting-preference-chart-label {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.setting-preference-evolution {
+    max-width: 70%;
+    margin-top: 8px;
+    padding: 10px;
+}

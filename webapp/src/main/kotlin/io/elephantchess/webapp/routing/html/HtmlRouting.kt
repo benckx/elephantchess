@@ -86,6 +86,7 @@ private val adminPagesMapping = mapOf(
     "/admin/db-search-queries" to "admin/admin_db_search_queries",
     "/admin/password-recovery-attempts" to "admin/admin_password_recovery_attempts",
     "/admin/database-table-sizes" to "admin/admin_database_table_sizes",
+    "/admin/setting-preferences" to "admin/admin_setting_preferences",
     "/admin/thrown-exceptions" to "admin/admin_thrown_exceptions",
     "/admin/newsletter-stats" to "admin/admin_newsletter_stats",
     "/admin/player-profile-edits" to "admin/admin_player_profile_edits",
