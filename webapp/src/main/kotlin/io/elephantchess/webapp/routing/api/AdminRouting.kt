@@ -26,6 +26,15 @@ fun Route.adminConsoleRoutes() {
         adminExceptionRoutes()
         adminNewsletterRoutes()
         adminUpcomingEventsRoutes()
+        adminSettingPreferenceRoutes()
+    }
+}
+
+private fun Route.adminSettingPreferenceRoutes() {
+    val adminSettingPreferenceService by koin<AdminSettingPreferenceService>()
+
+    get("/setting-preference-stats") {
+        requireAdminRole { adminSettingPreferenceService.fetchStats() }
     }
 }
 
