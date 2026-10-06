@@ -19,45 +19,72 @@
 
 class AdminSettingPreferencesPage extends BasePage {
 
-    #totalEventsSpan = document.getElementById('total-events');
+    #segmentTotalsSpan = document.getElementById('segment-totals');
     #stringFieldsContainer = document.getElementById('string-fields');
     #numberFieldsContainer = document.getElementById('number-fields');
-    #userTypeFilter = document.getElementById('user-type-filter');
-    #charts = [];
 
     constructor() {
         super();
-        this.#userTypeFilter.addEventListener('change', () => this.#fetchStats());
         this.#fetchStats();
     }
 
     #fetchStats() {
-        const userType = this.#userTypeFilter.value;
-        const query = userType ? `?userType=${encodeURIComponent(userType)}` : '';
-        getAndHandle(ADMIN_URL_PREFIX + '/setting-preference-stats' + query, json => this.#render(json));
+        getAndHandle(ADMIN_URL_PREFIX + '/setting-preference-stats', json => this.#render(json));
     }
 
     /**
      * @param json {object}
      */
     #render(json) {
-        // tear down any previously rendered charts before re-rendering
-        this.#charts.forEach(chart => chart.destroy());
-        this.#charts = [];
-        this.#stringFieldsContainer.innerHTML = '';
-        this.#numberFieldsContainer.innerHTML = '';
+        const segments = json.segments || [];
 
-        const total = json.totalCount || 0;
-        this.#totalEventsSpan.innerText = total.toLocaleString();
+        this.#segmentTotalsSpan.innerText = segments
+            .map(segment => `${this.#prettifyUserType(segment.userType)}: ${segment.totalCount.toLocaleString()}`)
+            .join(' \u00b7 ');
 
         const charts = [];
-        (json.stringFields || []).forEach((field, index) =>
-            charts.push(...this.#renderStringField(field, index, total)));
-        (json.numberFields || []).forEach((field, index) =>
-            charts.push(...this.#renderNumberField(field, index, total)));
+
+        this.#groupByField(segments, 'stringFields').forEach((perSegment, index) =>
+            charts.push(...this.#renderStringField(perSegment, index)));
+
+        this.#groupByField(segments, 'numberFields').forEach((perSegment, index) =>
+            charts.push(...this.#renderNumberField(perSegment, index)));
 
         charts.forEach(chart => chart.render());
-        this.#charts = charts;
+    }
+
+    /**
+     * Groups the stats of each field across all segments.
+     * @param segments {Array}
+     * @param collectionKey {string} - 'stringFields' or 'numberFields'
+     * @returns {Array<Array<{segment: object, field: object}>>}
+     */
+    #groupByField(segments, collectionKey) {
+        const fieldNames = [];
+        segments.forEach(segment => {
+            (segment[collectionKey] || []).forEach(field => {
+                if (!fieldNames.includes(field.fieldName)) {
+                    fieldNames.push(field.fieldName);
+                }
+            });
+        });
+
+        return fieldNames.map(fieldName =>
+            segments
+                .map(segment => ({
+                    segment: segment,
+                    field: (segment[collectionKey] || []).find(f => f.fieldName === fieldName)
+                }))
+                .filter(entry => entry.field)
+        );
+    }
+
+    /**
+     * @param userType {string}
+     * @returns {string}
+     */
+    #prettifyUserType(userType) {
+        return userType.toLowerCase();
     }
 
     /**
@@ -79,28 +106,55 @@ class AdminSettingPreferencesPage extends BasePage {
     }
 
     /**
-     * Builds the shared layout for a single field and returns the two chart container ids.
+     * Builds a field section containing one sub-block per user type.
      * @param parent {HTMLElement}
      * @param fieldName {string}
-     * @param summaryHtml {string}
-     * @param nullContainerId {string}
-     * @param valuesContainerId {string}
+     * @param perSegment {Array<{segment: object, field: object}>}
      * @param valuesTitle {string}
+     * @param renderBlock {function(HTMLElement, object, object, string): ApexChartWidget[]}
+     * @returns {ApexChartWidget[]}
      */
-    #buildFieldSection(parent, fieldName, summaryHtml, nullContainerId, valuesContainerId, valuesTitle) {
+    #buildFieldSection(parent, fieldName, perSegment, valuesTitle, renderBlock) {
         const section = document.createElement('div');
         section.className = 'setting-preference-field';
-        section.style.marginBottom = '32px';
+        section.style.marginBottom = '40px';
 
         const title = document.createElement('h3');
         title.innerText = this.#prettifyFieldName(fieldName);
         title.style.fontFamily = 'monospace';
         section.appendChild(title);
 
-        const summary = document.createElement('p');
-        summary.innerHTML = summaryHtml;
-        section.appendChild(summary);
+        const charts = [];
 
+        perSegment.forEach(({segment, field}) => {
+            const block = document.createElement('div');
+            block.style.marginBottom = '16px';
+
+            const blockTitle = document.createElement('div');
+            blockTitle.innerText = this.#prettifyUserType(segment.userType);
+            blockTitle.style.fontWeight = '700';
+            blockTitle.style.textTransform = 'uppercase';
+            blockTitle.style.fontSize = '0.85em';
+            blockTitle.style.letterSpacing = '0.05em';
+            blockTitle.style.marginBottom = '2px';
+            block.appendChild(blockTitle);
+
+            charts.push(...renderBlock(block, segment, field, valuesTitle));
+            section.appendChild(block);
+        });
+
+        parent.appendChild(section);
+        return charts;
+    }
+
+    /**
+     * Lays out a null-vs-not-null chart next to a values/histogram chart.
+     * @param block {HTMLElement}
+     * @param nullContainerId {string}
+     * @param valuesContainerId {string}
+     * @param valuesTitle {string}
+     */
+    #buildChartRow(block, nullContainerId, valuesContainerId, valuesTitle) {
         const chartsRow = document.createElement('div');
         chartsRow.style.display = 'flex';
         chartsRow.style.flexWrap = 'wrap';
@@ -132,75 +186,84 @@ class AdminSettingPreferencesPage extends BasePage {
         valuesColumn.appendChild(valuesContainer);
         chartsRow.appendChild(valuesColumn);
 
-        section.appendChild(chartsRow);
-        parent.appendChild(section);
+        block.appendChild(chartsRow);
     }
 
     /**
-     * @param field {object}
+     * @param perSegment {Array<{segment: object, field: object}>}
      * @param index {number}
-     * @param total {number}
      * @returns {ApexChartWidget[]}
      */
-    #renderStringField(field, index, total) {
-        const nullContainerId = `string-null-${index}`;
-        const valuesContainerId = `string-values-${index}`;
+    #renderStringField(perSegment, index) {
+        const fieldName = perSegment[0].field.fieldName;
 
-        const summary =
-            `null: ${this.#formatCountWithPercent(field.nullCount, total)}` +
-            ` &middot; not null: ${this.#formatCountWithPercent(field.nonNullCount, total)}` +
-            ` &middot; distinct values: ${(field.values || []).length}`;
-
-        this.#buildFieldSection(
+        return this.#buildFieldSection(
             this.#stringFieldsContainer,
-            field.fieldName,
-            summary,
-            nullContainerId,
-            valuesContainerId,
-            'non-null value distribution'
-        );
+            fieldName,
+            perSegment,
+            'non-null value distribution',
+            (block, segment, field, valuesTitle) => {
+                const nullContainerId = `string-null-${index}-${segment.userType}`;
+                const valuesContainerId = `string-values-${index}-${segment.userType}`;
 
-        return [
-            new NullVsNotNullChart(nullContainerId, field.nullCount, field.nonNullCount),
-            new CategoryDistributionBarChart(valuesContainerId, field.values || [])
-        ];
+                const summary = document.createElement('p');
+                summary.style.margin = '2px 0 6px 0';
+                summary.innerHTML =
+                    `null: ${this.#formatCountWithPercent(field.nullCount, segment.totalCount)}` +
+                    ` &middot; not null: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}` +
+                    ` &middot; distinct values: ${(field.values || []).length}`;
+                block.appendChild(summary);
+
+                this.#buildChartRow(block, nullContainerId, valuesContainerId, valuesTitle);
+
+                return [
+                    new NullVsNotNullChart(nullContainerId, field.nullCount, field.nonNullCount),
+                    new CategoryDistributionBarChart(valuesContainerId, field.values || [])
+                ];
+            }
+        );
     }
 
     /**
-     * @param field {object}
+     * @param perSegment {Array<{segment: object, field: object}>}
      * @param index {number}
-     * @param total {number}
      * @returns {ApexChartWidget[]}
      */
-    #renderNumberField(field, index, total) {
-        const nullContainerId = `number-null-${index}`;
-        const bucketsContainerId = `number-buckets-${index}`;
+    #renderNumberField(perSegment, index) {
+        const fieldName = perSegment[0].field.fieldName;
 
-        const minMaxAvg =
-            field.min === null || field.min === undefined
-                ? ''
-                : ` &middot; min: ${Math.round(field.min).toLocaleString()}` +
-                  ` &middot; max: ${Math.round(field.max).toLocaleString()}` +
-                  ` &middot; avg: ${field.avg.toFixed(1)}`;
-
-        const summary =
-            `null: ${this.#formatCountWithPercent(field.nullCount, total)}` +
-            ` &middot; not null: ${this.#formatCountWithPercent(field.nonNullCount, total)}` +
-            minMaxAvg;
-
-        this.#buildFieldSection(
+        return this.#buildFieldSection(
             this.#numberFieldsContainer,
-            field.fieldName,
-            summary,
-            nullContainerId,
-            bucketsContainerId,
-            'non-null value histogram'
-        );
+            fieldName,
+            perSegment,
+            'non-null value histogram',
+            (block, segment, field, valuesTitle) => {
+                const nullContainerId = `number-null-${index}-${segment.userType}`;
+                const bucketsContainerId = `number-buckets-${index}-${segment.userType}`;
 
-        return [
-            new NullVsNotNullChart(nullContainerId, field.nullCount, field.nonNullCount),
-            new NumberBucketBarChart(bucketsContainerId, field.buckets || [])
-        ];
+                const minMaxAvg =
+                    field.min === null || field.min === undefined
+                        ? ''
+                        : ` &middot; min: ${Math.round(field.min).toLocaleString()}` +
+                          ` &middot; max: ${Math.round(field.max).toLocaleString()}` +
+                          ` &middot; avg: ${field.avg.toFixed(1)}`;
+
+                const summary = document.createElement('p');
+                summary.style.margin = '2px 0 6px 0';
+                summary.innerHTML =
+                    `null: ${this.#formatCountWithPercent(field.nullCount, segment.totalCount)}` +
+                    ` &middot; not null: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}` +
+                    minMaxAvg;
+                block.appendChild(summary);
+
+                this.#buildChartRow(block, nullContainerId, bucketsContainerId, valuesTitle);
+
+                return [
+                    new NullVsNotNullChart(nullContainerId, field.nullCount, field.nonNullCount),
+                    new NumberBucketBarChart(bucketsContainerId, field.buckets || [])
+                ];
+            }
+        );
     }
 
 }
