@@ -6,11 +6,11 @@
     font-family: monospace;
 }
 
-.sp-segment {
+.setting-preference-segment {
     margin-bottom: 16px;
 }
 
-.sp-segment-user-type {
+.setting-preference-user-type {
     font-weight: 700;
     text-transform: uppercase;
     font-size: 0.85em;
@@ -18,11 +18,11 @@
     margin-bottom: 2px;
 }
 
-.sp-summary {
+.setting-preference-summary {
     margin: 2px 0 6px 0;
 }
 
-.sp-chart-row {
+.setting-preference-chart-row {
     display: flex;
     flex-wrap: wrap;
     gap: 24px;
@@ -30,20 +30,20 @@
 }
 
 /* Pie-chart rows (string fields) are more compact than the full-width histogram rows. */
-.sp-chart-row.sp-chart-row-compact {
+.setting-preference-chart-row.setting-preference-chart-row-compact {
     max-width: 70%;
 }
 
-.sp-null-col {
+.setting-preference-null-column {
     flex: 0 0 280px;
 }
 
-.sp-values-col {
+.setting-preference-values-column {
     flex: 1 1 420px;
     min-width: 320px;
 }
 
-.sp-chart-label {
+.setting-preference-chart-label {
     font-weight: 600;
     margin-bottom: 4px;
 }

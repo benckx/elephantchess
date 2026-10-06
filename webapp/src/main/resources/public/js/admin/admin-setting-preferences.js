@@ -130,10 +130,10 @@ class AdminSettingPreferencesPage extends BasePage {
 
         perSegment.forEach(({segment, field}) => {
             const block = document.createElement('div');
-            block.className = 'sp-segment';
+            block.className = 'setting-preference-segment';
 
             const blockTitle = document.createElement('div');
-            blockTitle.className = 'sp-segment-user-type';
+            blockTitle.className = 'setting-preference-user-type';
             blockTitle.innerText = this.#prettifyUserType(segment.userType);
             block.appendChild(blockTitle);
             section.appendChild(block);
@@ -154,12 +154,12 @@ class AdminSettingPreferencesPage extends BasePage {
      */
     #buildChartRow(block, nullContainerId, valuesContainerId, valuesTitle, compact = false) {
         const chartsRow = document.createElement('div');
-        chartsRow.className = compact ? 'sp-chart-row sp-chart-row-compact' : 'sp-chart-row';
+        chartsRow.className = compact ? 'setting-preference-chart-row setting-preference-chart-row-compact' : 'setting-preference-chart-row';
 
         const nullColumn = document.createElement('div');
-        nullColumn.className = 'sp-null-col';
+        nullColumn.className = 'setting-preference-null-column';
         const nullTitle = document.createElement('div');
-        nullTitle.className = 'sp-chart-label';
+        nullTitle.className = 'setting-preference-chart-label';
         nullTitle.innerText = 'null vs not null';
         nullColumn.appendChild(nullTitle);
         const nullContainer = document.createElement('div');
@@ -168,9 +168,9 @@ class AdminSettingPreferencesPage extends BasePage {
         chartsRow.appendChild(nullColumn);
 
         const valuesColumn = document.createElement('div');
-        valuesColumn.className = 'sp-values-col';
+        valuesColumn.className = 'setting-preference-values-column';
         const valuesTitleEl = document.createElement('div');
-        valuesTitleEl.className = 'sp-chart-label';
+        valuesTitleEl.className = 'setting-preference-chart-label';
         valuesTitleEl.innerText = valuesTitle;
         valuesColumn.appendChild(valuesTitleEl);
         const valuesContainer = document.createElement('div');
@@ -199,7 +199,7 @@ class AdminSettingPreferencesPage extends BasePage {
                 const valuesContainerId = `string-values-${index}-${segment.userType}`;
 
                 const summary = document.createElement('p');
-                summary.className = 'sp-summary';
+                summary.className = 'setting-preference-summary';
                 summary.innerHTML =
                     `set: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}`;
                 block.appendChild(summary);
@@ -239,7 +239,7 @@ class AdminSettingPreferencesPage extends BasePage {
                           ` &middot; avg: ${field.avg.toFixed(1)}`;
 
                 const summary = document.createElement('p');
-                summary.className = 'sp-summary';
+                summary.className = 'setting-preference-summary';
                 summary.innerHTML =
                     `set: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}` +
                     minMaxAvg;
