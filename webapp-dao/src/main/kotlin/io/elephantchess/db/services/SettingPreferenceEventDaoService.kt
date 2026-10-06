@@ -155,7 +155,6 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
         private const val BUCKET_COUNT = 20
 
         private val STRING_FIELDS: List<TableField<SettingPreferenceEventRecord, String>> = listOf(
-            SETTING_PREFERENCE_EVENT.USER_TYPE,
             SETTING_PREFERENCE_EVENT.PIECE_STYLE,
             SETTING_PREFERENCE_EVENT.SHOW_COORDINATES,
             SETTING_PREFERENCE_EVENT.MOVE_FORMAT,

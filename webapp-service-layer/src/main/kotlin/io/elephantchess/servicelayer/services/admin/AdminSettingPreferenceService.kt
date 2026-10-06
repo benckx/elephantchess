@@ -25,8 +25,6 @@ class AdminSettingPreferenceService(
 
         val stringFields = settingPreferenceEventDaoService
             .listStringFieldStats(userTypeName)
-            // the user_type column is constant within a segment, so its distribution is not useful here
-            .filter { it.fieldName != USER_TYPE_FIELD }
             .map { field ->
                 SettingPreferenceStatsResponse.StringFieldStats(
                     fieldName = field.fieldName,
@@ -56,10 +54,6 @@ class AdminSettingPreferenceService(
             stringFields = stringFields,
             numberFields = numberFields
         )
-    }
-
-    private companion object {
-        private const val USER_TYPE_FIELD = "user_type"
     }
 
 }

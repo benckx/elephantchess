@@ -86,19 +86,12 @@ class CategoryDistributionPieChart extends ApexChartWidget {
         const labels = sorted.map(entry => entry.value);
         const data = sorted.map(entry => entry.count);
 
-        const palette = [
-            '#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0',
-            '#3F51B5', '#546E7A', '#D4526E', '#8D5B4C', '#F86624',
-            '#1B998B', '#2E294E', '#662E9B', '#C5D86D'
-        ];
-        const colors = labels.map((label, index) => {
-            if (label === 'true') {
-                return '#00E396';
-            } else if (label === 'false') {
-                return '#FF4560';
-            }
-            return palette[index % palette.length];
-        });
+        // Only override the default ApexCharts colors for boolean fields, to keep true green and
+        // false red. Everything else uses the default palette.
+        const isBooleanField = labels.every(label => label === 'true' || label === 'false');
+        const colors = isBooleanField
+            ? labels.map(label => (label === 'true' ? '#00E396' : '#FF4560'))
+            : undefined;
 
         this.chartOptions = {
             series: data,
