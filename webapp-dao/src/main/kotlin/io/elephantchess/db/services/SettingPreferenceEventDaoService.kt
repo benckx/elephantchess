@@ -7,6 +7,7 @@ import io.elephantchess.db.dao.codegen.tables.daos.SettingPreferenceEventDao
 import io.elephantchess.db.dao.codegen.tables.pojos.SettingPreferenceEvent
 import io.elephantchess.db.dao.codegen.tables.records.SettingPreferenceEventRecord
 import io.elephantchess.db.model.FieldValueCountRecord
+import io.elephantchess.db.model.SettingPreferenceMonthlyValueCountRecord
 import io.elephantchess.db.model.SettingPreferenceNumberBucketRecord
 import io.elephantchess.db.model.SettingPreferenceNumberFieldStatsRecord
 import io.elephantchess.db.model.SettingPreferenceStringFieldStatsRecord
@@ -16,6 +17,7 @@ import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.db.utils.insertReactive
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.DatePart
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
@@ -66,6 +68,35 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
                 nonNullCount = distribution.filter { it.value != null }.sumOf { it.count },
                 values = distribution.filter { it.value != null }
             )
+        }
+    }
+
+    /**
+     * Monthly evolution of the non-null value distribution of every (string) preference field,
+     * across all user types. One record per (field, year, month, value).
+     */
+    suspend fun listStringFieldMonthlyValueCounts(userType: String? = null): List<SettingPreferenceMonthlyValueCountRecord> {
+        return STRING_FIELDS.flatMap { field ->
+            val yearField = DSL.extract(SETTING_PREFERENCE_EVENT.EVENT_TIME, DatePart.YEAR)
+            val monthField = DSL.extract(SETTING_PREFERENCE_EVENT.EVENT_TIME, DatePart.MONTH)
+            val countField = DSL.count()
+
+            dslContext
+                .select(yearField.`as`("year"), monthField.`as`("month"), field, countField)
+                .from(SETTING_PREFERENCE_EVENT)
+                .where(field.isNotNull.and(userTypeCondition(userType)))
+                .groupBy(yearField, monthField, field)
+                .orderBy(yearField, monthField)
+                .awaitRecords()
+                .map { record ->
+                    SettingPreferenceMonthlyValueCountRecord(
+                        fieldName = field.name.lowercase(),
+                        year = record.get("year", Int::class.java),
+                        month = record.get("month", Int::class.java),
+                        value = record.get(field),
+                        count = record.get(countField).toLong()
+                    )
+                }
         }
     }
 

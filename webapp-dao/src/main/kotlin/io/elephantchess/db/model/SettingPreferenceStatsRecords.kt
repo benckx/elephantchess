@@ -26,3 +26,11 @@ data class SettingPreferenceNumberFieldStatsRecord(
     val avg: Double?,
     val buckets: List<SettingPreferenceNumberBucketRecord>
 )
+
+data class SettingPreferenceMonthlyValueCountRecord(
+    val fieldName: String,
+    val year: Int,
+    val month: Int,
+    val value: String,
+    val count: Long
+)

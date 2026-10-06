@@ -1,5 +1,6 @@
 .setting-preference-field {
     margin-bottom: 40px;
+    padding: 10px;
 }
 
 .setting-preference-field h3 {
@@ -8,6 +9,7 @@
 
 .setting-preference-segment {
     margin-bottom: 16px;
+    padding: 10px;
 }
 
 .setting-preference-user-type {
@@ -27,6 +29,7 @@
     flex-wrap: wrap;
     gap: 24px;
     align-items: flex-start;
+    padding: 10px;
 }
 
 /* Pie-chart rows (string fields) are more compact than the full-width histogram rows. */
@@ -36,14 +39,22 @@
 
 .setting-preference-null-column {
     flex: 0 0 280px;
+    padding: 10px;
 }
 
 .setting-preference-values-column {
     flex: 1 1 420px;
     min-width: 320px;
+    padding: 10px;
 }
 
 .setting-preference-chart-label {
     font-weight: 600;
     margin-bottom: 4px;
+}
+
+.setting-preference-evolution {
+    max-width: 70%;
+    margin-top: 8px;
+    padding: 10px;
 }

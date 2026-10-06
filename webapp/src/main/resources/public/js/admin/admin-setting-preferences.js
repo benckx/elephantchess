@@ -206,12 +206,45 @@ class AdminSettingPreferencesPage extends BasePage {
 
                 this.#buildChartRow(block, nullContainerId, valuesContainerId, valuesTitle, true);
 
-                return [
+                const charts = [
                     new NullVsNotNullChart(nullContainerId, field.nullCount, field.nonNullCount),
                     new CategoryDistributionPieChart(valuesContainerId, field.values || [])
                 ];
+                charts.push(...this.#renderMonthlyEvolution(block, index, segment, field));
+                return charts;
             }
         );
+    }
+
+    /**
+     * Appends a compact monthly-evolution line chart (% share) for one user-type block.
+     * @param block {HTMLElement}
+     * @param index {number}
+     * @param segment {object}
+     * @param field {object}
+     * @returns {ApexChartWidget[]}
+     */
+    #renderMonthlyEvolution(block, index, segment, field) {
+        const evolution = field.evolution;
+        if (!evolution || !evolution.months || evolution.months.length === 0) {
+            return [];
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'setting-preference-evolution';
+
+        const label = document.createElement('div');
+        label.className = 'setting-preference-chart-label';
+        label.innerText = 'monthly evolution (% share)';
+        wrapper.appendChild(label);
+
+        const containerId = `string-evolution-${index}-${segment.userType}`;
+        const container = document.createElement('div');
+        container.id = containerId;
+        wrapper.appendChild(container);
+        block.appendChild(wrapper);
+
+        return [new CategoryMonthlyShareLineChart(containerId, evolution.months, evolution.sampleSizes, evolution.series)];
     }
 
     /**

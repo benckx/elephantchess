@@ -192,3 +192,77 @@ class NumberBucketBarChart extends ApexChartWidget {
     }
 
 }
+
+/**
+ * Line chart showing the monthly evolution of the percentage share of each non-null value of a
+ * (string) column. Shares (not raw counts) are plotted because the sampling rate changes over time.
+ */
+class CategoryMonthlyShareLineChart extends ApexChartWidget {
+
+    /**
+     * @param containerId {string}
+     * @param months {Array<string>}
+     * @param sampleSizes {Array<number>} - non-null sample size per month, aligned with months
+     * @param series {Array<{value: string, shares: Array<number>}>}
+     */
+    constructor(containerId, months, sampleSizes, series) {
+        super(containerId);
+
+        if (!months || months.length === 0 || !series || series.length === 0) {
+            return;
+        }
+
+        const isBooleanField = series.every(s => s.value === 'true' || s.value === 'false');
+        const colors = isBooleanField
+            ? series.map(s => (s.value === 'true' ? '#00E396' : '#FF4560'))
+            : undefined;
+
+        this.chartOptions = {
+            series: series.map(s => ({name: s.value, data: s.shares})),
+            chart: {
+                height: 220,
+                type: 'line',
+                toolbar: {show: false},
+                animations: {enabled: false}
+            },
+            colors: colors,
+            stroke: {
+                width: 2,
+                curve: 'straight'
+            },
+            markers: {
+                size: 4
+            },
+            dataLabels: {
+                enabled: false
+            },
+            legend: {
+                position: 'bottom'
+            },
+            xaxis: {
+                categories: months
+            },
+            yaxis: {
+                min: 0,
+                max: 100,
+                labels: {
+                    formatter: (val) => val.toFixed(0) + '%'
+                }
+            },
+            tooltip: {
+                x: {
+                    formatter: (val, opts) => {
+                        const size = (sampleSizes && sampleSizes[opts.dataPointIndex]) || 0;
+                        return `${val} (n=${size.toLocaleString()})`;
+                    }
+                },
+                y: {
+                    formatter: (val) => val.toFixed(1) + '%'
+                }
+            }
+        };
+
+        this.enableRender();
+    }
+
+}
