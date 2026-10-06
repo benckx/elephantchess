@@ -14,6 +14,7 @@ import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.awaitSingleRecord
 import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.db.utils.insertReactive
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.TableField
 import org.jooq.impl.DSL
@@ -31,24 +32,27 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun countAll(): Long {
+    suspend fun countAll(userType: String? = null): Long {
         return dslContext
             .selectCount()
             .from(SETTING_PREFERENCE_EVENT)
+            .where(userTypeCondition(userType))
             .awaitSingleValue<Int>()
             ?.toLong()
             ?: 0L
     }
 
     /**
-     * Null-vs-not-null counts and non-null value distribution for every (string) preference field.
+     * Null-vs-not-null counts and non-null value distribution for every (string) preference field,
+     * optionally restricted to a single [userType] (e.g. AUTHENTICATED vs GUEST).
      */
-    suspend fun listStringFieldStats(): List<SettingPreferenceStringFieldStatsRecord> {
+    suspend fun listStringFieldStats(userType: String? = null): List<SettingPreferenceStringFieldStatsRecord> {
         return STRING_FIELDS.map { field ->
             val countField = DSL.count()
             val distribution = dslContext
                 .select(field, countField)
                 .from(SETTING_PREFERENCE_EVENT)
+                .where(userTypeCondition(userType))
                 .groupBy(field)
                 .orderBy(countField.desc())
                 .awaitRecords()
@@ -69,7 +73,7 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
      * Null-vs-not-null counts and a bucketed histogram for every numeric preference field
      * (stored as text, parsed as numeric for aggregation).
      */
-    suspend fun listNumberFieldStats(): List<SettingPreferenceNumberFieldStatsRecord> {
+    suspend fun listNumberFieldStats(userType: String? = null): List<SettingPreferenceNumberFieldStatsRecord> {
         return NUMBER_FIELDS.map { field ->
             val numeric = field.cast(SQLDataType.NUMERIC)
             val nullCountField = DSL.count().filterWhere(field.isNull)
@@ -81,6 +85,7 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
             val stats = dslContext
                 .select(nullCountField, nonNullCountField, minField, maxField, avgField)
                 .from(SETTING_PREFERENCE_EVENT)
+                .where(userTypeCondition(userType))
                 .awaitSingleRecord()
 
             val nonNullCount = stats?.get(nonNullCountField)?.toLong() ?: 0L
@@ -94,13 +99,14 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
                 min = min,
                 max = max,
                 avg = stats?.get(avgField)?.toDouble(),
-                buckets = fetchBuckets(field, nonNullCount, min, max)
+                buckets = fetchBuckets(field, userType, nonNullCount, min, max)
             )
         }
     }
 
     private suspend fun fetchBuckets(
         field: TableField<SettingPreferenceEventRecord, String>,
+        userType: String?,
         nonNullCount: Long,
         min: Double?,
         max: Double?
@@ -123,7 +129,7 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
         return dslContext
             .select(bucketIndexField, countField)
             .from(SETTING_PREFERENCE_EVENT)
-            .where(field.isNotNull)
+            .where(field.isNotNull.and(userTypeCondition(userType)))
             .groupBy(bucketIndexField)
             .orderBy(bucketIndexField)
             .awaitRecords()
@@ -134,6 +140,14 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
                 val label = if (width == 1L) low.toString() else "$low\u2013$high"
                 SettingPreferenceNumberBucketRecord(label, record.get(countField).toLong())
             }
+    }
+
+    private fun userTypeCondition(userType: String?): Condition {
+        return if (userType == null) {
+            DSL.noCondition()
+        } else {
+            SETTING_PREFERENCE_EVENT.USER_TYPE.eq(userType)
+        }
     }
 
     private companion object {

@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.services.admin
 import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.db.services.SettingPreferenceEventDaoService
+import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.admin.SettingPreferenceStatsResponse
 
 @KoinSingleton
@@ -10,9 +11,17 @@ class AdminSettingPreferenceService(
     private val settingPreferenceEventDaoService: SettingPreferenceEventDaoService
 ) {
 
-    suspend fun fetchStats(): SettingPreferenceStatsResponse {
+    /**
+     * @param userType when set (AUTHENTICATED or GUEST), stats are restricted to that user type.
+     *                 When null, all events are considered.
+     */
+    suspend fun fetchStats(userType: UserType? = null): SettingPreferenceStatsResponse {
+        val userTypeName = userType?.name
+
         val stringFields = settingPreferenceEventDaoService
-            .listStringFieldStats()
+            .listStringFieldStats(userTypeName)
+            // when filtering on a user type, its own distribution chart is redundant
+            .filter { userType == null || it.fieldName != USER_TYPE_FIELD }
             .map { field ->
                 SettingPreferenceStatsResponse.StringFieldStats(
                     fieldName = field.fieldName,
@@ -23,7 +32,7 @@ class AdminSettingPreferenceService(
             }
 
         val numberFields = settingPreferenceEventDaoService
-            .listNumberFieldStats()
+            .listNumberFieldStats(userTypeName)
             .map { field ->
                 SettingPreferenceStatsResponse.NumberFieldStats(
                     fieldName = field.fieldName,
@@ -37,10 +46,15 @@ class AdminSettingPreferenceService(
             }
 
         return SettingPreferenceStatsResponse(
-            totalCount = settingPreferenceEventDaoService.countAll(),
+            userType = userTypeName,
+            totalCount = settingPreferenceEventDaoService.countAll(userTypeName),
             stringFields = stringFields,
             numberFields = numberFields
         )
+    }
+
+    private companion object {
+        private const val USER_TYPE_FIELD = "user_type"
     }
 
 }

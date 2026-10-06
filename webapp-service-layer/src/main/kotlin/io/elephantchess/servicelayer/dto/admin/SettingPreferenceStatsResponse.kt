@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.dto.admin
 
 data class SettingPreferenceStatsResponse(
+    val userType: String?,
     val totalCount: Long,
     val stringFields: List<StringFieldStats>,
     val numberFields: List<NumberFieldStats>

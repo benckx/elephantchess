@@ -22,20 +22,31 @@ class AdminSettingPreferencesPage extends BasePage {
     #totalEventsSpan = document.getElementById('total-events');
     #stringFieldsContainer = document.getElementById('string-fields');
     #numberFieldsContainer = document.getElementById('number-fields');
+    #userTypeFilter = document.getElementById('user-type-filter');
+    #charts = [];
 
     constructor() {
         super();
+        this.#userTypeFilter.addEventListener('change', () => this.#fetchStats());
         this.#fetchStats();
     }
 
     #fetchStats() {
-        getAndHandle(ADMIN_URL_PREFIX + '/setting-preference-stats', json => this.#render(json));
+        const userType = this.#userTypeFilter.value;
+        const query = userType ? `?userType=${encodeURIComponent(userType)}` : '';
+        getAndHandle(ADMIN_URL_PREFIX + '/setting-preference-stats' + query, json => this.#render(json));
     }
 
     /**
      * @param json {object}
      */
     #render(json) {
+        // tear down any previously rendered charts before re-rendering
+        this.#charts.forEach(chart => chart.destroy());
+        this.#charts = [];
+        this.#stringFieldsContainer.innerHTML = '';
+        this.#numberFieldsContainer.innerHTML = '';
+
         const total = json.totalCount || 0;
         this.#totalEventsSpan.innerText = total.toLocaleString();
 
@@ -46,6 +57,7 @@ class AdminSettingPreferencesPage extends BasePage {
             charts.push(...this.#renderNumberField(field, index, total)));
 
         charts.forEach(chart => chart.render());
+        this.#charts = charts;
     }
 
     /**
