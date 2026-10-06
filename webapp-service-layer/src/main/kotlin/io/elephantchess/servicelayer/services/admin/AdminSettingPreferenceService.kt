@@ -12,16 +12,21 @@ class AdminSettingPreferenceService(
 ) {
 
     /**
-     * @param userType when set (AUTHENTICATED or GUEST), stats are restricted to that user type.
-     *                 When null, all events are considered.
+     * Returns one stats segment per user type (AUTHENTICATED, GUEST) so the admin page can
+     * display them separately side by side.
      */
-    suspend fun fetchStats(userType: UserType? = null): SettingPreferenceStatsResponse {
-        val userTypeName = userType?.name
+    suspend fun fetchStats(): SettingPreferenceStatsResponse {
+        val segments = UserType.entries.map { userType -> buildSegment(userType) }
+        return SettingPreferenceStatsResponse(segments)
+    }
+
+    private suspend fun buildSegment(userType: UserType): SettingPreferenceStatsResponse.Segment {
+        val userTypeName = userType.name
 
         val stringFields = settingPreferenceEventDaoService
             .listStringFieldStats(userTypeName)
-            // when filtering on a user type, its own distribution chart is redundant
-            .filter { userType == null || it.fieldName != USER_TYPE_FIELD }
+            // the user_type column is constant within a segment, so its distribution is not useful here
+            .filter { it.fieldName != USER_TYPE_FIELD }
             .map { field ->
                 SettingPreferenceStatsResponse.StringFieldStats(
                     fieldName = field.fieldName,
@@ -45,7 +50,7 @@ class AdminSettingPreferenceService(
                 )
             }
 
-        return SettingPreferenceStatsResponse(
+        return SettingPreferenceStatsResponse.Segment(
             userType = userTypeName,
             totalCount = settingPreferenceEventDaoService.countAll(userTypeName),
             stringFields = stringFields,

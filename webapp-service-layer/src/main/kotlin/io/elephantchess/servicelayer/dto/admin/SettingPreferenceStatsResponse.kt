@@ -1,11 +1,18 @@
 package io.elephantchess.servicelayer.dto.admin
 
 data class SettingPreferenceStatsResponse(
-    val userType: String?,
-    val totalCount: Long,
-    val stringFields: List<StringFieldStats>,
-    val numberFields: List<NumberFieldStats>
+    val segments: List<Segment>
 ) {
+
+    /**
+     * One user-type slice of the stats (e.g. AUTHENTICATED or GUEST).
+     */
+    data class Segment(
+        val userType: String,
+        val totalCount: Long,
+        val stringFields: List<StringFieldStats>,
+        val numberFields: List<NumberFieldStats>
+    )
 
     data class StringFieldStats(
         val fieldName: String,

@@ -4,7 +4,6 @@ import io.elephantchess.servicelayer.dto.admin.CreateUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.ToggleUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.UpdateUpcomingEventRequest
 import io.elephantchess.servicelayer.services.admin.*
-import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.requireAdminRole
 import io.ktor.server.request.*
@@ -35,12 +34,7 @@ private fun Route.adminSettingPreferenceRoutes() {
     val adminSettingPreferenceService by koin<AdminSettingPreferenceService>()
 
     get("/setting-preference-stats") {
-        requireAdminRole { _ ->
-            val userType = call.parameters["userType"]
-                ?.takeIf { it.isNotBlank() }
-                ?.let { value -> UserType.entries.firstOrNull { it.name.equals(value, ignoreCase = true) } }
-            adminSettingPreferenceService.fetchStats(userType)
-        }
+        requireAdminRole { adminSettingPreferenceService.fetchStats() }
     }
 }
 

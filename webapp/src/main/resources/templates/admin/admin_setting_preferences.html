@@ -15,29 +15,23 @@
     <h1>Setting Preferences</h1>
     <hr/>
     <p>
-        Anonymous sample of cookie-based user preferences.
-        <label for="user-type-filter" style="margin-left: 12px;">user type:</label>
-        <select id="user-type-filter">
-            <option value="">all</option>
-            <option value="AUTHENTICATED">authenticated</option>
-            <option value="GUEST">guest</option>
-        </select>
-        Total events: <span id="total-events">-</span>
+        Anonymous sample of cookie-based user preferences, shown separately per user type.
+        <span id="segment-totals"></span>
     </p>
 
     <h2>String fields</h2>
     <hr/>
     <p>
-        For each field: how often it is set (not null) vs unset (null), and the distribution of the
-        non-null values.
+        For each field and user type: how often it is set (not null) vs unset (null), and the
+        distribution of the non-null values.
     </p>
     <div id="string-fields"></div>
 
     <h2>Number fields</h2>
     <hr/>
     <p>
-        For each field: how often it is set (not null) vs unset (null), and a bucketed histogram of
-        the non-null values.
+        For each field and user type: how often it is set (not null) vs unset (null), and a bucketed
+        histogram of the non-null values.
     </p>
     <div id="number-fields"></div>
 </div>
