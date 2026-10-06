@@ -122,7 +122,7 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
 
         val numeric = field.cast(SQLDataType.NUMERIC)
         val bucketIndexField = DSL
-            .floor(numeric.minus(minValue).div(width))
+            .floor(numeric.minus(DSL.inline(minValue)).div(DSL.inline(width)))
             .cast(SQLDataType.INTEGER)
         val countField = DSL.count()
 
