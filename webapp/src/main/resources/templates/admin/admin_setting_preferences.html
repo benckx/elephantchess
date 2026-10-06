@@ -1,0 +1,39 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Setting Preferences</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    {{apex_charts}}
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/widgets/setting-preferences-charts.js"></script>
+    <script defer src="/js/admin/admin-setting-preferences.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Setting Preferences</h1>
+    <hr/>
+    <p>
+        Anonymous sample of cookie-based user preferences.
+        Total events: <span id="total-events">-</span>
+    </p>
+
+    <h2>String fields</h2>
+    <hr/>
+    <p>
+        For each field: how often it is set (not null) vs unset (null), and the distribution of the
+        non-null values.
+    </p>
+    <div id="string-fields"></div>
+
+    <h2>Number fields</h2>
+    <hr/>
+    <p>
+        For each field: how often it is set (not null) vs unset (null), and a bucketed histogram of
+        the non-null values.
+    </p>
+    <div id="number-fields"></div>
+</div>
+</body>
+</html>
