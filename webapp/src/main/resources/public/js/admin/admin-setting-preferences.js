@@ -124,6 +124,10 @@ class AdminSettingPreferencesPage extends BasePage {
         title.style.fontFamily = 'monospace';
         section.appendChild(title);
 
+        // Attach the section before building charts so the chart containers are already part of the
+        // document when ApexCharts looks them up by id.
+        parent.appendChild(section);
+
         const charts = [];
 
         perSegment.forEach(({segment, field}) => {
@@ -138,12 +142,11 @@ class AdminSettingPreferencesPage extends BasePage {
             blockTitle.style.letterSpacing = '0.05em';
             blockTitle.style.marginBottom = '2px';
             block.appendChild(blockTitle);
+            section.appendChild(block);
 
             charts.push(...renderBlock(block, segment, field, valuesTitle));
-            section.appendChild(block);
         });
 
-        parent.appendChild(section);
         return charts;
     }
 
@@ -209,16 +212,14 @@ class AdminSettingPreferencesPage extends BasePage {
                 const summary = document.createElement('p');
                 summary.style.margin = '2px 0 6px 0';
                 summary.innerHTML =
-                    `null: ${this.#formatCountWithPercent(field.nullCount, segment.totalCount)}` +
-                    ` &middot; not null: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}` +
-                    ` &middot; distinct values: ${(field.values || []).length}`;
+                    `set: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}`;
                 block.appendChild(summary);
 
                 this.#buildChartRow(block, nullContainerId, valuesContainerId, valuesTitle);
 
                 return [
                     new NullVsNotNullChart(nullContainerId, field.nullCount, field.nonNullCount),
-                    new CategoryDistributionBarChart(valuesContainerId, field.values || [])
+                    new CategoryDistributionPieChart(valuesContainerId, field.values || [])
                 ];
             }
         );
@@ -251,8 +252,7 @@ class AdminSettingPreferencesPage extends BasePage {
                 const summary = document.createElement('p');
                 summary.style.margin = '2px 0 6px 0';
                 summary.innerHTML =
-                    `null: ${this.#formatCountWithPercent(field.nullCount, segment.totalCount)}` +
-                    ` &middot; not null: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}` +
+                    `set: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}` +
                     minMaxAvg;
                 block.appendChild(summary);
 

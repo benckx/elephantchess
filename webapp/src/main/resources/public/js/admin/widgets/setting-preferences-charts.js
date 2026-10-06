@@ -67,9 +67,9 @@ class NullVsNotNullChart extends ApexChartWidget {
 }
 
 /**
- * Horizontal bar chart showing the distribution of the non-null values of a (string) column.
+ * Pie chart showing the distribution of the non-null values of a (string) column.
  */
-class CategoryDistributionBarChart extends ApexChartWidget {
+class CategoryDistributionPieChart extends ApexChartWidget {
 
     /**
      * @param containerId {string}
@@ -83,36 +83,38 @@ class CategoryDistributionBarChart extends ApexChartWidget {
         }
 
         const sorted = [...values].sort((a, b) => b.count - a.count);
-        const categories = sorted.map(entry => entry.value);
+        const labels = sorted.map(entry => entry.value);
         const data = sorted.map(entry => entry.count);
 
+        const palette = [
+            '#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0',
+            '#3F51B5', '#546E7A', '#D4526E', '#8D5B4C', '#F86624',
+            '#1B998B', '#2E294E', '#662E9B', '#C5D86D'
+        ];
+        const colors = labels.map((label, index) => {
+            if (label === 'true') {
+                return '#00E396';
+            } else if (label === 'false') {
+                return '#FF4560';
+            }
+            return palette[index % palette.length];
+        });
+
         this.chartOptions = {
-            series: [{
-                name: 'count',
-                data: data
-            }],
+            series: data,
+            labels: labels,
             chart: {
-                height: Math.max(220, 40 + categories.length * 28),
-                type: 'bar',
-                toolbar: {show: false},
+                height: Math.max(260, 220 + labels.length * 6),
+                type: 'pie',
                 animations: {enabled: false}
             },
-            plotOptions: {
-                bar: {
-                    horizontal: true,
-                    distributed: true
-                }
-            },
-            colors: ['#008FFB'],
+            colors: colors,
             legend: {
-                show: false
+                position: 'bottom'
             },
             dataLabels: {
                 enabled: true,
-                formatter: (val) => val.toLocaleString()
-            },
-            xaxis: {
-                categories: categories
+                formatter: (val) => val.toFixed(1) + '%'
             },
             tooltip: {
                 y: {
@@ -127,7 +129,8 @@ class CategoryDistributionBarChart extends ApexChartWidget {
 }
 
 /**
- * Vertical bar chart (histogram) of the bucketed non-null values of a number column.
+ * Vertical bar chart rendered as a histogram (no gaps between bars) of the bucketed non-null
+ * values of a number column.
  */
 class NumberBucketBarChart extends ApexChartWidget {
 
@@ -158,10 +161,15 @@ class NumberBucketBarChart extends ApexChartWidget {
             },
             plotOptions: {
                 bar: {
-                    columnWidth: '90%'
+                    columnWidth: '100%'
                 }
             },
             colors: ['#008FFB'],
+            stroke: {
+                show: true,
+                width: 1,
+                colors: ['#fff']
+            },
             legend: {
                 show: false
             },
