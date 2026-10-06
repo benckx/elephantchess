@@ -117,11 +117,9 @@ class AdminSettingPreferencesPage extends BasePage {
     #buildFieldSection(parent, fieldName, perSegment, valuesTitle, renderBlock) {
         const section = document.createElement('div');
         section.className = 'setting-preference-field';
-        section.style.marginBottom = '40px';
 
         const title = document.createElement('h3');
         title.innerText = this.#prettifyFieldName(fieldName);
-        title.style.fontFamily = 'monospace';
         section.appendChild(title);
 
         // Attach the section before building charts so the chart containers are already part of the
@@ -132,15 +130,11 @@ class AdminSettingPreferencesPage extends BasePage {
 
         perSegment.forEach(({segment, field}) => {
             const block = document.createElement('div');
-            block.style.marginBottom = '16px';
+            block.className = 'sp-segment';
 
             const blockTitle = document.createElement('div');
+            blockTitle.className = 'sp-segment-user-type';
             blockTitle.innerText = this.#prettifyUserType(segment.userType);
-            blockTitle.style.fontWeight = '700';
-            blockTitle.style.textTransform = 'uppercase';
-            blockTitle.style.fontSize = '0.85em';
-            blockTitle.style.letterSpacing = '0.05em';
-            blockTitle.style.marginBottom = '2px';
             block.appendChild(blockTitle);
             section.appendChild(block);
 
@@ -156,20 +150,17 @@ class AdminSettingPreferencesPage extends BasePage {
      * @param nullContainerId {string}
      * @param valuesContainerId {string}
      * @param valuesTitle {string}
+     * @param compact {boolean} - when true, constrains the row width (used for pie-chart rows)
      */
-    #buildChartRow(block, nullContainerId, valuesContainerId, valuesTitle) {
+    #buildChartRow(block, nullContainerId, valuesContainerId, valuesTitle, compact = false) {
         const chartsRow = document.createElement('div');
-        chartsRow.style.display = 'flex';
-        chartsRow.style.flexWrap = 'wrap';
-        chartsRow.style.gap = '24px';
-        chartsRow.style.alignItems = 'flex-start';
+        chartsRow.className = compact ? 'sp-chart-row sp-chart-row-compact' : 'sp-chart-row';
 
         const nullColumn = document.createElement('div');
-        nullColumn.style.flex = '0 0 280px';
+        nullColumn.className = 'sp-null-col';
         const nullTitle = document.createElement('div');
+        nullTitle.className = 'sp-chart-label';
         nullTitle.innerText = 'null vs not null';
-        nullTitle.style.fontWeight = '600';
-        nullTitle.style.marginBottom = '4px';
         nullColumn.appendChild(nullTitle);
         const nullContainer = document.createElement('div');
         nullContainer.id = nullContainerId;
@@ -177,12 +168,10 @@ class AdminSettingPreferencesPage extends BasePage {
         chartsRow.appendChild(nullColumn);
 
         const valuesColumn = document.createElement('div');
-        valuesColumn.style.flex = '1 1 420px';
-        valuesColumn.style.minWidth = '320px';
+        valuesColumn.className = 'sp-values-col';
         const valuesTitleEl = document.createElement('div');
+        valuesTitleEl.className = 'sp-chart-label';
         valuesTitleEl.innerText = valuesTitle;
-        valuesTitleEl.style.fontWeight = '600';
-        valuesTitleEl.style.marginBottom = '4px';
         valuesColumn.appendChild(valuesTitleEl);
         const valuesContainer = document.createElement('div');
         valuesContainer.id = valuesContainerId;
@@ -210,12 +199,12 @@ class AdminSettingPreferencesPage extends BasePage {
                 const valuesContainerId = `string-values-${index}-${segment.userType}`;
 
                 const summary = document.createElement('p');
-                summary.style.margin = '2px 0 6px 0';
+                summary.className = 'sp-summary';
                 summary.innerHTML =
                     `set: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}`;
                 block.appendChild(summary);
 
-                this.#buildChartRow(block, nullContainerId, valuesContainerId, valuesTitle);
+                this.#buildChartRow(block, nullContainerId, valuesContainerId, valuesTitle, true);
 
                 return [
                     new NullVsNotNullChart(nullContainerId, field.nullCount, field.nonNullCount),
@@ -250,7 +239,7 @@ class AdminSettingPreferencesPage extends BasePage {
                           ` &middot; avg: ${field.avg.toFixed(1)}`;
 
                 const summary = document.createElement('p');
-                summary.style.margin = '2px 0 6px 0';
+                summary.className = 'sp-summary';
                 summary.innerHTML =
                     `set: ${this.#formatCountWithPercent(field.nonNullCount, segment.totalCount)}` +
                     minMaxAvg;
