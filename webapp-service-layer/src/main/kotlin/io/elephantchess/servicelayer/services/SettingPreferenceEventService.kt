@@ -49,7 +49,7 @@ class SettingPreferenceEventService(
     }
 
     companion object {
-        private const val SAMPLE_RATE = 1 / 50.0
+        private const val SAMPLE_RATE = 1 / 25.0
 
         const val PIECE_STYLE_SETTING = "setting.piece.style"
         const val SHOW_COORDINATES_SETTING = "setting.show.coordinates"
