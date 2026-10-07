@@ -1,17 +1,9 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.db.dao.codegen.Tables.*
+import io.elephantchess.db.model.PageViewRecord
+import io.elephantchess.db.utils.*
 import io.elephantchess.utils.di.KoinSingleton
-
-import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_PAGE_VIEW_DAILY
-import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
-import io.elephantchess.db.dao.codegen.Tables.USER
-import io.elephantchess.db.utils.accumulate
-import io.elephantchess.db.utils.awaitExecute
-import io.elephantchess.db.utils.awaitRecords
-import io.elephantchess.db.utils.awaitSingleValue
-import io.elephantchess.db.utils.isBefore
-import io.elephantchess.db.utils.localDate
-import io.elephantchess.db.utils.ownProfileViewCondition
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -157,11 +149,6 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS)
             .awaitExecute()
     }
-
-    data class PageViewRecord(
-        val url: String,
-        val eventTime: kotlin.time.Instant,
-    )
 
     private companion object {
         // matches the archived_page_view_daily.url column width
