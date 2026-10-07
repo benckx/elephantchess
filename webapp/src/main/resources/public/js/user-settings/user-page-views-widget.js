@@ -18,7 +18,7 @@
  */
 
 const USER_PAGE_VIEWS_URL = '/api/user/settings/views';
-const ARCHIVE_USER_PAGE_VIEWS_URL = USER_PAGE_VIEWS_URL + '/archive-now';
+const ARCHIVE_USER_PAGE_VIEWS_URL = `${USER_PAGE_VIEWS_URL}/archive-now`;
 
 class UserPageViewsWidget {
 

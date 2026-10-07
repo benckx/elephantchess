@@ -61,19 +61,76 @@ fun serviceLayerModule(
     // batch schedule, built from the @Inject-registered batches
     single {
         listOf(
-            BatchSchedule(get<PreAnalysisCleanUpBatch>(), period = 6.hours),
-            BatchSchedule(get<FetchUserSessionGeographicDataBatch>(), period = 15.minutes),
-            BatchSchedule(get<FlagGamesBatch>(), period = 5.seconds, delay = 10.seconds),
-            BatchSchedule(get<AutoCancelCreatedGamesFromOfflineUsersBatch>(), period = 15.minutes, delay = 2.minutes),
-            BatchSchedule(get<AutoResignIdleBotGamesBatch>(), period = 15.minutes, delay = 4.minutes),
-            BatchSchedule(get<BackgroundGameAnalysisBatch>(), period = 5.minutes, delay = 1.minutes),
-            SinglePodBatchSchedule(get<FetchMinutesUsersMetricsBatch>(), period = 5.minutes, delay = 5.seconds, podNumber = 0),
-            SinglePodBatchSchedule(get<FetchDailyUsersMetricsBatch>(), period = 6.hours, delay = 15.minutes, podNumber = 0),
-            SinglePodBatchSchedule(get<ArchiveOldGuestsBatch>(), period = 6.hours, delay = 30.minutes, podNumber = 1),
-            SinglePodBatchSchedule(get<ArchiveOldPageViewsBatch>(), period = 6.hours, delay = 45.minutes, podNumber = 0),
-            SinglePodBatchSchedule(get<SendOutNewslettersBatch>(), period = 5.minutes, delay = 3.minutes, podNumber = 0),
-            SinglePodBatchSchedule(get<CheckEmailListVerifyCreditBatch>(), period = 48.hours, delay = 30.seconds, podNumber = 1),
-            SinglePodBatchSchedule(get<VerifyEmailsBatch>(), period = 48.hours, delay = 12.hours, podNumber = 1),
+            BatchSchedule(
+                get<PreAnalysisCleanUpBatch>(),
+                period = 6.hours
+            ),
+            BatchSchedule(
+                get<FetchUserSessionGeographicDataBatch>(),
+                period = 15.minutes
+            ),
+            BatchSchedule(
+                get<FlagGamesBatch>(),
+                period = 5.seconds,
+                delay = 10.seconds
+            ),
+            BatchSchedule(
+                get<AutoCancelCreatedGamesFromOfflineUsersBatch>(),
+                period = 15.minutes,
+                delay = 2.minutes
+            ),
+            BatchSchedule(
+                get<AutoResignIdleBotGamesBatch>(),
+                period = 15.minutes,
+                delay = 4.minutes
+            ),
+            BatchSchedule(
+                get<BackgroundGameAnalysisBatch>(),
+                period = 5.minutes,
+                delay = 1.minutes
+            ),
+            SinglePodBatchSchedule(
+                get<FetchMinutesUsersMetricsBatch>(),
+                period = 5.minutes,
+                delay = 5.seconds,
+                podNumber = 0
+            ),
+            SinglePodBatchSchedule(
+                get<FetchDailyUsersMetricsBatch>(),
+                period = 6.hours,
+                delay = 15.minutes,
+                podNumber = 0
+            ),
+            SinglePodBatchSchedule(
+                get<ArchiveOldGuestsBatch>(),
+                period = 6.hours,
+                delay = 30.minutes,
+                podNumber = 1
+            ),
+            SinglePodBatchSchedule(
+                get<ArchiveOldPageViewsBatch>(),
+                period = 6.hours,
+                delay = 45.minutes,
+                podNumber = 0
+            ),
+            SinglePodBatchSchedule(
+                get<SendOutNewslettersBatch>(),
+                period = 5.minutes,
+                delay = 3.minutes,
+                podNumber = 0
+            ),
+            SinglePodBatchSchedule(
+                get<CheckEmailListVerifyCreditBatch>(),
+                period = 48.hours,
+                delay = 30.seconds,
+                podNumber = 1
+            ),
+            SinglePodBatchSchedule(
+                get<VerifyEmailsBatch>(),
+                period = 48.hours,
+                delay = 12.hours,
+                podNumber = 1
+            ),
         )
     }
 
