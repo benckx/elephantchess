@@ -114,7 +114,12 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    private suspend fun archivePageViews(transactional: DSLContext, selector: Condition) {
+    /**
+     * Archives the [PAGE_VIEW_EVENT] rows matched by [selector] into [ARCHIVED_PAGE_VIEW_DAILY]. Shared
+     * with [ArchivedGuestDaoService] (which passes a user-id selector) so both archive flows aggregate
+     * page views identically. Runs on the caller-provided [transactional] context.
+     */
+    internal suspend fun archivePageViews(transactional: DSLContext, selector: Condition) {
         val eventDay = PAGE_VIEW_EVENT.EVENT_TIME.localDate(null)
         // truncate to the archive column width so overly long paths (long query strings) never overflow;
         // inline the bounds so the SELECT and GROUP BY expressions render identically for Postgres
