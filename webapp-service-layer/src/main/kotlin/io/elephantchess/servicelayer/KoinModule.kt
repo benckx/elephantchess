@@ -58,7 +58,13 @@ fun serviceLayerModule(
         )
     }
 
-    // batch schedule, built from the @Inject-registered batches
+    // all services, DAOs, clients and batches annotated with @KoinSingleton
+    registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
+
+    includes(batchSchedulesModule())
+}
+
+private fun batchSchedulesModule() = module {
     single {
         listOf(
             BatchSchedule(
@@ -133,9 +139,6 @@ fun serviceLayerModule(
             ),
         )
     }
-
-    // all services, DAOs, clients and batches annotated with @KoinSingleton
-    registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
 }
 
 private fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
