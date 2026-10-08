@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
@@ -14,6 +16,7 @@ import io.elephantchess.engines.protocol.model.InfoLineResult.Companion.parseInf
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.*
 import io.elephantchess.model.GameType.*
+import io.elephantchess.servicelayer.utils.collectMoveAnnotations
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisResponse
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisStatusResponse
 import io.elephantchess.servicelayer.dto.analysis.StartGameAnalysisResponse
@@ -25,6 +28,7 @@ import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateRequest
 import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateResponse
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.servicelayer.exceptions.PreConditionFailedException
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
@@ -41,6 +45,7 @@ import kotlin.time.Instant
 /**
  * Generic service that handles game and analysis data for games of all [GameType]
  */
+@KoinSingleton
 class GameDataService(
     private val appConfig: AppConfig,
     private val enginesPool: EnginePool,
@@ -261,7 +266,34 @@ class GameDataService(
                     mapToInfoLineResultDto(fenKey, infoLineResult)
                 }
 
-        return GameAnalysisResponse(entries)
+        val analysisMap = entries.associateBy { it.fen }
+
+        try {
+            val moveAnnotationDetails = collectMoveAnnotations(
+                moves = findMoves(gameId),
+                analysisMap = analysisMap,
+                startFen = findStartFen(gameId),
+            )
+
+            val moveAnnotationDtos =
+                moveAnnotationDetails
+                    .map { annotation ->
+                        GameAnalysisResponse.MoveAnnotationDto(
+                            moveIndex = annotation.moveIndex,
+                            annotation = annotation.category,
+                            cpl = annotation.cpl,
+                            engineCp = annotation.engineCp,
+                            actualMoveCp = annotation.actualMoveCp,
+                        )
+                    }
+
+            return GameAnalysisResponse(
+                entries = entries,
+                moveAnnotations = moveAnnotationDtos,
+            )
+        } catch (e: Exception) {
+            throw PreConditionFailedException("Error while collecting move annotations for $gameId: ${e.message}")
+        }
     }
 
     suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<GameId, Instant>> {
@@ -507,26 +539,78 @@ class GameDataService(
             }
     }
 
+    suspend fun listLatestPvbGamesByUsername(
+        username: String,
+        requestedLimit: Int,
+        beforeTs: Long?
+    ): ListLastGamesResponse {
+        val user = userDaoService.findByUserName(username)
+            ?: throw NotFoundException("User $username could not be found")
+        return listLatestPvbGamesByUserId(
+            userId = user.id,
+            requestedLimit = requestedLimit,
+            beforeTs = beforeTs
+        )
+    }
+
+    suspend fun listLatestPvbGamesByUserId(
+        userId: String,
+        requestedLimit: Int,
+        beforeTs: Long?
+    ): ListLastGamesResponse {
+        val gameRecords = pvbGameDaoService.listGamesByUserId(
+            userId = userId,
+            limit = requestedLimit,
+            beforeTs = beforeTs,
+            minMoveIndex = MIN_MOVE_INDEX
+        )
+
+        val onlineUserIds = userService.areOnline(listOf(userId)).onlineUserIds
+
+        return gameRecords
+            .map { record -> mapPlayerVsBotGameToDto(record, onlineUserIds) }
+            .let { entries -> ListLastGamesResponse(entries) }
+    }
+
     suspend fun listLatestPvbGames(
         requestedLimit: Int,
         distinctByUsers: Boolean = true,
         beforeTs: Long? = null,
         excludeAutoResigned: Boolean
     ): ListLastGamesResponse {
+        // ensure each user appears at most once in the list
+        fun distinctByUserId(games: List<BotGame>): List<BotGame> {
+            val gamesByUniqueUserId = mutableListOf<BotGame>()
+            val seenUserIds = mutableSetOf<String>()
+            var i = 0
+            while (gamesByUniqueUserId.size < requestedLimit && i < games.size) {
+                val game = games[i]
+                val userId = game.userId
+                if (userId != null && seenUserIds.add(userId)) {
+                    gamesByUniqueUserId.add(game)
+                }
+                i++
+            }
+
+            return gamesByUniqueUserId
+        }
+
+        val actualLimit = if (distinctByUsers) requestedLimit * 20 else requestedLimit
         val gameRecords = pvbGameDaoService
             .listLatestGamesByIdentifiedUsers(
-                limit = requestedLimit,
+                limit = actualLimit,
                 minMoveIndex = MIN_MOVE_INDEX,
                 beforeTs = beforeTs,
                 excludeAutoResigned = excludeAutoResigned,
-                distinctByUsers = distinctByUsers,
                 variantsToInclude = Variant.entries
             )
 
-        val userIds = gameRecords.map { game -> game.userId }.distinct().filterNotNull()
+        val selectedGames = if (distinctByUsers) distinctByUserId(gameRecords) else gameRecords
+
+        val userIds = selectedGames.map { game -> game.userId }.distinct().filterNotNull()
         val onlineUserIds = userService.areOnline(userIds).onlineUserIds
 
-        return gameRecords
+        return selectedGames
             .take(requestedLimit)
             .map { record -> mapPlayerVsBotGameToDto(record, onlineUserIds) }
             .let { entries -> ListLastGamesResponse(entries) }

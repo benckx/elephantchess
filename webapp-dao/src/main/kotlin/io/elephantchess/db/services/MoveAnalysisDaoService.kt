@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.MoveAnalysisDao
 import io.elephantchess.db.dao.codegen.tables.pojos.MoveAnalysis
@@ -16,6 +18,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+@KoinSingleton
 class MoveAnalysisDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(moveAnalysis: MoveAnalysis) {
@@ -84,22 +87,22 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             when (gameId.type) {
                 DB -> DSL
                     .using(cfg)
-                    .update(REFERENCE_GAME.fixed())
-                    .set(REFERENCE_GAME.ANALYZED_FROM_BATCH.fixed(), value)
+                    .update(REFERENCE_GAME)
+                    .set(REFERENCE_GAME.ANALYZED_FROM_BATCH, value)
                     .where(REFERENCE_GAME.ID.eq(gameId.id))
                     .awaitExecute()
 
                 PVP -> DSL
                     .using(cfg)
-                    .update(GAME.fixed())
-                    .set(GAME.ANALYZED_FROM_BATCH.fixed(), value)
+                    .update(GAME)
+                    .set(GAME.ANALYZED_FROM_BATCH, value)
                     .where(GAME.ID.eq(gameId.id))
                     .awaitExecute()
 
                 PVB -> DSL
                     .using(cfg)
-                    .update(BOT_GAME.fixed())
-                    .set(BOT_GAME.ANALYZED_FROM_BATCH.fixed(), value)
+                    .update(BOT_GAME)
+                    .set(BOT_GAME.ANALYZED_FROM_BATCH, value)
                     .where(BOT_GAME.ID.eq(gameId.id))
                     .awaitExecute()
             }
@@ -121,15 +124,15 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             val baseUpdate = DSL
                 .using(cfg)
                 .update(gameTableUpdate(gameId))
-                .set(gameTableAnalysisStatusField(gameId).fixed(), status)
+                .set(gameTableAnalysisStatusField(gameId), status)
 
             val update = if (timeField != null) {
                 baseUpdate
-                    .set(timeField.fixed(), Clock.System.now())
+                    .set(timeField, Clock.System.now())
             } else {
                 baseUpdate
-                    .set(startTimeField(gameId).fixed(), null as Instant?)
-                    .set(endTimeField(gameId).fixed(), null as Instant?)
+                    .set(startTimeField(gameId), null as Instant?)
+                    .set(endTimeField(gameId), null as Instant?)
             }
 
             update
@@ -325,7 +328,7 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             }
         }
 
-        fun gameTableUpdate(gameId: GameId) = gameTable(gameId).fixed()
+        fun gameTableUpdate(gameId: GameId) = gameTable(gameId)
 
         fun gameTable(gameId: GameId) = gameTable(gameId.type)
 

@@ -1,0 +1,78 @@
+# Muted 404 URI patterns
+#
+# One pattern per line. Blank lines and lines starting with '#' are ignored.
+# A request whose path (the part before '?') contains any of these patterns
+# (case-insensitive substring match) is logged at DEBUG instead of WARN and
+# answered with a plain 404. This keeps the logs free of the constant
+# background noise from vulnerability scanners and automatic client probes.
+#
+# ElephantChess ships no PHP, WordPress, Joomla, cgi-bin, .NET or native app,
+# so every pattern below can only ever come from a scanner or a benign probe.
+
+# --- PHP / web-shell scans (never served by this app) ---
+.php
+.phtml
+.php7
+.php5
+
+# --- Secret / config file harvesting ---
+.env
+.git/
+.gitignore
+.aws/
+.s3cfg
+.npmrc
+.htaccess
+.htpasswd
+.travis.yml
+docker-compose.yml
+appsettings.json
+credentials.json
+secrets.json
+service-account.json
+serviceaccountkey.json
+firebase-key.json
+firebase-adminsdk.json
+google-services.json
+google-credentials.json
+gcp-key.json
+gcp-credentials.json
+
+# --- WordPress scans ---
+wp-admin
+wp-content
+wp-includes
+wp-login
+wp-config
+wp-trackback
+wp-activate
+xmlrpc
+xmrlpc
+
+# --- cgi-bin / router / appliance exploits ---
+cgi-bin
+.gch
+/level/16/exec
+
+# --- .NET / IIS scans ---
+.aspx
+.asmx
+web.config
+
+# --- Java / Struts scans ---
+.action
+.do
+
+# --- Joomla scans ---
+/administrator/components
+com_jce
+/media/system/js
+/media/jui
+
+# --- Benign automatic client / OS probes ---
+apple-touch-icon
+/.well-known/assetlinks.json
+/.well-known/apple-app-site-association
+/apple-app-site-association
+/.well-known/passkey-endpoints
+/.well-known/appspecific/com.chrome.devtools.json

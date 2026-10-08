@@ -23,6 +23,8 @@ class UserProfilePage extends BasePage {
 
     #userId = document.querySelector('body').dataset.userId;
     #username = document.querySelector('body').dataset.username;
+    #showPvpGames = document.querySelector('body').dataset.showPvpGames !== 'false';
+    #showPvbGames = document.querySelector('body').dataset.showPvbGames !== 'false';
     #client = new UserProfileClient(this.#userId);
     #statusIndicator = document.getElementById('status-indicator');
     #puzzleStatsSection = document.getElementById('puzzle-stats-section');
@@ -43,7 +45,7 @@ class UserProfilePage extends BasePage {
 
     #fetchLatestPvpGames() {
         if (this.#username) {
-            new UserProfileGames(this.#username);
+            new UserProfileGames(this.#username, this.#showPvpGames, this.#showPvbGames);
         }
     }
 

@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.daos.PageViewEventDao
@@ -7,6 +9,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.PageViewEvent
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.HourlyPageViewRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
+import io.elephantchess.db.model.analytics.NewsletterLinkClickRecord
 import io.elephantchess.db.utils.*
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -21,6 +24,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
+@KoinSingleton
 class PageViewEventDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(record: PageViewEvent) {
@@ -172,14 +176,6 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    private fun ownProfileViewCondition(): Condition {
-        val safeHandle = DSL.coalesce(USER.HANDLE, DSL.inline(""))
-        val ownPath = DSL.concat(DSL.inline("/@/"), safeHandle)
-        val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), safeHandle, DSL.inline("?%"))
-        return PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
-            .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
-    }
-
     suspend fun fetchHourlyPageViews(
         hours: Int,
         excludedUserIds: List<String>
@@ -243,6 +239,77 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                     day = record.getValue("day", LocalDate::class.java),
                     value = record.getValue("unique_page_views", Int::class.java)
                 )
+            }
+    }
+
+    suspend fun countNewsletterClicksPerTemplate(excludedUserIds: List<String>): Map<String, Int> {
+        val newsletterTemplateField = DSL.field(
+            "substring({0} from 'medium=newsletter-([^&#]+)')",
+            String::class.java,
+            PAGE_VIEW_EVENT.EVENT_PATH
+        )
+
+        return dslContext
+            .select(
+                newsletterTemplateField,
+                DSL.count().`as`("click_count")
+            )
+            .from(PAGE_VIEW_EVENT)
+            .where(PAGE_VIEW_EVENT.EVENT_PATH.like("%medium=newsletter-%"))
+            .and(excludedUsersCondition(excludedUserIds))
+            .groupBy(newsletterTemplateField)
+            .awaitRecords()
+            .mapNotNull { record ->
+                val templateName = record.get(newsletterTemplateField)
+                if (templateName.isNullOrBlank()) {
+                    null
+                } else {
+                    val clickCount = record.get("click_count", Int::class.java) ?: 0
+                    templateName to clickCount
+                }
+            }
+            .toMap()
+    }
+
+    suspend fun listNewsletterClicksPerTemplateAndLink(excludedUserIds: List<String>): List<NewsletterLinkClickRecord> {
+        // extracts the newsletter template name from event paths like "/some/page?medium=newsletter-templateName&..."
+        val newsletterTemplateField = DSL.field(
+            "substring({0} from 'medium=newsletter-([^&#]+)')",
+            String::class.java,
+            PAGE_VIEW_EVENT.EVENT_PATH
+        )
+        // extracts the clicked link, i.e. the path before the query string ("?...")
+        val linkField = DSL.field(
+            "substring({0} from '^([^?]+)')",
+            String::class.java,
+            PAGE_VIEW_EVENT.EVENT_PATH
+        )
+        val clickCountField = DSL.count().`as`("click_count")
+
+        return dslContext
+            .select(
+                newsletterTemplateField,
+                linkField,
+                clickCountField
+            )
+            .from(PAGE_VIEW_EVENT)
+            .where(PAGE_VIEW_EVENT.EVENT_PATH.like("%medium=newsletter-%"))
+            .and(excludedUsersCondition(excludedUserIds))
+            .groupBy(newsletterTemplateField, linkField)
+            .orderBy(clickCountField.desc())
+            .awaitRecords()
+            .mapNotNull { record ->
+                val templateName = record.get(newsletterTemplateField)
+                val link = record.get(linkField)
+                if (templateName.isNullOrBlank() || link.isNullOrBlank()) {
+                    null
+                } else {
+                    NewsletterLinkClickRecord(
+                        templateName = templateName,
+                        link = link,
+                        clickCount = record.get("click_count", Int::class.java) ?: 0
+                    )
+                }
             }
     }
 

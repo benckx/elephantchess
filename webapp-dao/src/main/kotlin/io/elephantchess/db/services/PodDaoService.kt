@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.KUBERNETES_POD
 import io.elephantchess.db.dao.codegen.tables.daos.KubernetesPodDao
 import io.elephantchess.db.dao.codegen.tables.pojos.KubernetesPod
@@ -10,6 +12,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Duration
 
+@KoinSingleton
 class PodDaoService(private val dslContext: DSLContext) {
 
     suspend fun insertOrUpdate(podName: String) {
@@ -35,8 +38,8 @@ class PodDaoService(private val dslContext: DSLContext) {
                 DSL
                     .using(cfg)
                     .update(KUBERNETES_POD)
-                    .set(KUBERNETES_POD.ENTRY_UPDATE.fixed(), now)
-                    .where(KUBERNETES_POD.POD_NAME.fixed().eq(podName))
+                    .set(KUBERNETES_POD.ENTRY_UPDATE, now)
+                    .where(KUBERNETES_POD.POD_NAME.eq(podName))
                     .awaitExecute()
             }
         }

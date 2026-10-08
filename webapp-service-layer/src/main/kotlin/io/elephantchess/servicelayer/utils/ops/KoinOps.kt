@@ -1,8 +1,13 @@
 package io.elephantchess.servicelayer.utils.ops
 
+import io.elephantchess.utils.di.KoinSingleton
+import io.github.classgraph.ClassGraph
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
+import org.koin.core.annotation.KoinInternalApi
 import org.koin.core.component.KoinComponent
-import org.koin.core.definition.KoinDefinition
+import org.koin.core.definition.BeanDefinition
+import org.koin.core.definition.Kind
+import org.koin.core.instance.SingleInstanceFactory
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
@@ -14,11 +19,52 @@ import kotlin.reflect.jvm.jvmErasure
 
 private val kLogger = logger {}
 
-inline fun <reified T : Any> Module.singleAuto(eager: Boolean = false): KoinDefinition<T> {
-    return single(createdAtStart = eager) { reflectiveResolver(T::class) }
+/**
+ * Scans [packages] for classes annotated with [KoinSingleton] and registers each as a Koin singleton,
+ * resolving constructor dependencies reflectively (see [reflectiveResolver]).
+ *
+ * A class annotated with `@Service(eager = true)` is created at startup only when [eagerAllowed] is true.
+ */
+fun Module.registerInjectables(eagerAllowed: Boolean, vararg packages: String) {
+    ClassGraph()
+        .enableAnnotationInfo()
+        .acceptPackages(*packages)
+        .scan()
+        .use { scanResult ->
+            scanResult
+                .getClassesWithAnnotation(KoinSingleton::class.java.name)
+                .forEach { classInfo ->
+                    @Suppress("UNCHECKED_CAST")
+                    val klass = classInfo.loadClass().kotlin as KClass<Any>
+                    val eager = (classInfo
+                        .getAnnotationInfo(KoinSingleton::class.java.name)
+                        ?.parameterValues
+                        ?.getValue("eager") as? Boolean) ?: false
+                    kLogger.info { "registering injectable ${klass.simpleName} (eager=$eager)" }
+                    registerInjectable(klass, createdAtStart = eager && eagerAllowed)
+                }
+        }
 }
 
-fun <T : Any> Scope.reflectiveResolver(klass: KClass<T>): T {
+private fun Module.registerInjectable(klass: KClass<Any>, createdAtStart: Boolean) {
+    val beanDefinition = BeanDefinition(
+        scopeQualifier = named("_root_"),
+        primaryType = klass,
+        qualifier = null,
+        definition = { reflectiveResolver(klass) },
+        kind = Kind.Singleton,
+        secondaryTypes = emptyList(),
+    )
+    val factory = SingleInstanceFactory(beanDefinition)
+    @OptIn(KoinInternalApi::class)
+    indexPrimaryType(factory)
+    if (createdAtStart) {
+        @OptIn(KoinInternalApi::class)
+        prepareForCreationAtStart(factory)
+    }
+}
+
+private fun <T : Any> Scope.reflectiveResolver(klass: KClass<T>): T {
     val constructors = klass.constructors
     if (constructors.size != 1) {
         throw IllegalArgumentException("class ${klass.simpleName} must have exactly one constructor")

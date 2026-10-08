@@ -941,6 +941,18 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     cursor: unset;
 }
 
+.app-buttons:disabled,
+.app-buttons-smaller:disabled,
+.app-buttons-bigger:disabled,
+.app-buttons-much-bigger:disabled,
+.app-buttons:disabled:hover,
+.app-buttons-smaller:disabled:hover,
+.app-buttons-bigger:disabled:hover,
+.app-buttons-much-bigger:disabled:hover {
+    background-color: #848484;
+    cursor: not-allowed;
+}
+
 #modal-background {
     display: none;
     align-items: center;

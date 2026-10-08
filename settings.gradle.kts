@@ -9,6 +9,7 @@ rootProject.name = "elephantchess.io"
 
 include("utils")
 include("engine-api")
+include("csv-dump-parser")
 include("xiangqi-core")
 include("xiangqi-core-test-utils")
 include("seven-kingdoms-core")

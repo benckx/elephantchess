@@ -40,7 +40,11 @@ class InfoLineListener : LineListener {
     }
 
     fun shouldStopSearch(depth : Int): Boolean {
-        return (deepestDepth != null && deepestDepth!! >= depth) || bestMove != null || checkmate
+        return (deepestDepth != null && deepestDepth!! >= depth) || hasResult()
+    }
+
+    fun hasResult(): Boolean {
+        return bestMove != null || checkmate
     }
 
     fun getResult(): InfoLinesResult {

@@ -1,5 +1,7 @@
 package io.elephantchess.db.utils
 
+import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
+import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.pojos.*
 import io.elephantchess.db.model.RatingUpdateRecord
 import io.elephantchess.db.model.TimeControlRecord
@@ -8,6 +10,8 @@ import io.elephantchess.model.GameEventType.*
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 import org.apache.commons.lang3.BooleanUtils
+import org.jooq.Condition
+import org.jooq.impl.DSL
 import io.elephantchess.sevenkingdoms.Color as Color7k
 
 // When possible, add the record ops here
@@ -302,4 +306,12 @@ fun SevenKingdomsGame.colorToUserIdMap(): Map<Color7k, String?> {
         Color7k.PURPLE to playerPurple,
         Color7k.BLACK to playerBlack,
     )
+}
+
+fun ownProfileViewCondition(): Condition {
+    val safeHandle = DSL.coalesce(USER.HANDLE, DSL.inline(""))
+    val ownPath = DSL.concat(DSL.inline("/@/"), safeHandle)
+    val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), safeHandle, DSL.inline("?%"))
+    return PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
+        .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
 }

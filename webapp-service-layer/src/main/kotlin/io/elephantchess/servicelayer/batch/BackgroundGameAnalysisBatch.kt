@@ -1,8 +1,9 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.services.MoveAnalysisDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
-import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType
@@ -13,10 +14,10 @@ import io.elephantchess.servicelayer.services.GameDataService
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton
 class BackgroundGameAnalysisBatch(
     private val gameDataService: GameDataService,
     private val moveAnalysisDaoService: MoveAnalysisDaoService,
-    private val referenceGameDaoService: ReferenceGameDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
     private val userDaoService: UserDaoService,
     override val logger: KLogger,
@@ -42,11 +43,11 @@ class BackgroundGameAnalysisBatch(
             return emptyList()
         }
 
-        // Try to pick a random reference game first
-        val refGameId = referenceGameDaoService.pickRandomGameForAnalysis()
-        if (refGameId != null) {
-            return listOf(GameId(GameType.DB, refGameId))
-        }
+//        // Try to pick a random reference game first
+//        val refGameId = referenceGameDaoService.pickRandomGameForAnalysis()
+//        if (refGameId != null) {
+//            return listOf(GameId(GameType.DB, refGameId))
+//        }
 
         // If no reference game found, try a PvP game
         val pvpGameId = pvpGameDaoService.pickRandomGameForAnalysis()

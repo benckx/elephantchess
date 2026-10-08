@@ -66,6 +66,22 @@ data class AppConfig(
     val adminEmail: String
         get() = loadString("admin.email")
 
+    /**
+     * Per-IP rate limiting for the public reference-database HTML pages (`/database/...`, `/browse/event`).
+     * These are the pages targeted by scrapers (player and game enumeration). Well-known search/AI crawler
+     * user-agents are always exempt (see DatabaseRateLimiter), so this does not affect SEO.
+     */
+    val isDatabaseRateLimitEnabled: Boolean
+        get() = loadBoolean("database.rate.limit.enabled", true)
+
+    /** Maximum number of monitored database requests allowed per IP within [databaseRateLimitWindowSeconds]. */
+    val databaseRateLimitMaxRequests: Int
+        get() = loadIntOrDefault("database.rate.limit.max.requests", 30)
+
+    /** Length of the rate-limit window, in seconds. */
+    val databaseRateLimitWindowSeconds: Int
+        get() = loadIntOrDefault("database.rate.limit.window.seconds", 60)
+
     val mailConfig: MailConfig
         get() = MailConfig(
             smtpHost = loadString("mail.smtp.host"),
@@ -94,6 +110,7 @@ data class AppConfig(
         lines += "parseUserAgent -> $parseUserAgent"
         lines += "disabled batches -> ${disabledBatches.joinToString(", ")}"
         lines += "CDN enabled -> $cdnEnabled"
+        lines += "database rate limit -> $isDatabaseRateLimitEnabled ($databaseRateLimitMaxRequests req / ${databaseRateLimitWindowSeconds}s per IP)"
         return lines
     }
 
@@ -107,6 +124,10 @@ data class AppConfig(
 
     private fun loadBoolean(key: String, default: Boolean): Boolean {
         return properties.loadBoolean(key, default)
+    }
+
+    private fun loadIntOrDefault(key: String, default: Int): Int {
+        return properties.loadIntOrDefault(key, default)
     }
 
 }

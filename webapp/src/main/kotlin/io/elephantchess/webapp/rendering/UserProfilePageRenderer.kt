@@ -1,10 +1,12 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
-import io.elephantchess.servicelayer.dto.user.UserProfile
+import io.elephantchess.servicelayer.dto.user.UserProfileDto
 import io.elephantchess.servicelayer.dto.user.GameStatsResponse
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.utils.cropToFirstNWords
@@ -19,24 +21,27 @@ import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.tr
 
+@KoinSingleton(eager = true)
 class UserProfilePageRenderer(
     private val htmlRenderer: HtmlRenderer,
     private val userProfileAnalyticsService: UserProfileAnalyticsService
 ) {
 
-    suspend fun renderUserProfile(userProfile: UserProfile): String {
-        val username = userProfile.username
-        val description = userProfile.profileDescription
-        val countryCode = userProfile.country?.lowercase()
-        val gameStats = userProfileAnalyticsService.fetchGameRatings(userProfile.userId)
+    suspend fun renderUserProfile(userProfileDto: UserProfileDto): String {
+        val username = userProfileDto.username
+        val description = userProfileDto.profileDescription
+        val countryCode = userProfileDto.country?.lowercase()
+        val gameStats = userProfileAnalyticsService.fetchGameRatings(userProfileDto.userId)
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/user_profile.html",
             canonicalPath = "/@/${username.encodeURLPath()}",
             specificTagResolvers = listOf(
                 noIndexMeta(description),
-                SimpleValueTagResolver("user_id", userProfile.userId),
-                SimpleValueTagResolver("username", userProfile.username),
+                SimpleValueTagResolver("user_id", userProfileDto.userId),
+                SimpleValueTagResolver("username", userProfileDto.username),
+                SimpleValueTagResolver("show_pvp_games", userProfileDto.showPvpGamesOnProfile.toString()),
+                SimpleValueTagResolver("show_pvb_games", userProfileDto.showPvbGamesOnProfile.toString()),
                 descriptionMeta(username, description),
                 flagPanelTagResolver(countryCode),
                 descriptionDivTagResolver(username, description),
@@ -157,6 +162,13 @@ class UserProfilePageRenderer(
     suspend fun renderUserBrowsePvpGames(username: String): String {
         return htmlRenderer.renderHtml(
             "/templates/user_browse_pvp_games.html",
+            specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
+        )
+    }
+
+    suspend fun renderUserBrowsePvbGames(username: String): String {
+        return htmlRenderer.renderHtml(
+            "/templates/user_browse_pvb_games.html",
             specificTagResolvers = listOf(SimpleValueTagResolver("username", username))
         )
     }

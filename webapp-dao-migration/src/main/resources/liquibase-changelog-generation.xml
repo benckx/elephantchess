@@ -2471,6 +2471,121 @@
         <comment>Indexes for latest move analysis aggregation and analyzed flag lookup</comment>
     </changeSet>
     <changeSet id="0108" author="benckx">
+        <comment>Index on bot_game.last_updated to speed up the latest PvB games listing (ORDER BY last_updated DESC LIMIT)</comment>
+    </changeSet>
+    <changeSet id="0109" author="benckx">
+        <comment>Store the stack trace of thrown exceptions to see where they come from</comment>
+        <addColumn tableName="thrown_exception">
+            <column name="exception_trace" type="text"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0110" author="benckx">
+    </changeSet>
+    <changeSet id="0111" author="benckx">
+        <comment>Preferences to show/hide PvP and PvB games on the user profile page</comment>
+        <addColumn tableName="user">
+            <column name="show_pvp_games_on_profile"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="show_pvb_games_on_profile"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0112" author="benckx">
+        <comment>Tables holding archived metrics for deleted guest users, aggregated by day</comment>
+        <createTable tableName="archived_page_view_daily">
+            <column name="day" type="date">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="url" type="varchar(2048)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="own_profile_page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="other_profile_page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="archived_guest_daily">
+            <column name="day" type="date">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="guests_under_1min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_under_5min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_under_15min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_under_30min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_other" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_searches" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <dropNotNullConstraint tableName="thrown_exception" columnName="http_code"/>
+    </changeSet>
+    <changeSet id="0114" author="benckx">
+        <comment>
+            Indexes supporting ArchiveOldGuestsBatch's archivable-guest selection. That query filters the
+            user table and runs ~13 NOT EXISTS anti-joins against these tables; without indexes on the
+            referenced user columns each anti-join was a full seq scan, saturating DB CPU. Also adds a
+            composite (user_type, last_online) index so the driving filter is index-seekable.
+        </comment>
+        <createIndex tableName="user" indexName="user_type_last_online_index">
+            <column name="user_type"/>
+            <column name="last_online"/>
+        </createIndex>
+        <createIndex tableName="game" indexName="game_draw_proposition_user_index">
+            <column name="draw_proposition_user"/>
+        </createIndex>
+        <createIndex tableName="puzzle_result" indexName="puzzle_result_user_id_index">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="game_status_event" indexName="game_status_event_user_id_index">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="game_chat_message" indexName="game_chat_message_author_index">
+            <column name="author"/>
+        </createIndex>
+        <createIndex tableName="discord_game_notification" indexName="discord_game_notification_user_id_index">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="reference_player_profile_edit" indexName="reference_player_profile_edit_editor_id_index">
+            <column name="editor_id"/>
+        </createIndex>
+        <createIndex tableName="reference_player_profile_edit_source" indexName="reference_player_profile_edit_source_editor_id_index">
+            <column name="editor_id"/>
+        </createIndex>
+        <createIndex tableName="kofi_event" indexName="kofi_event_matched_user_id_index">
+            <column name="matched_user_id"/>
+        </createIndex>
+        <createIndex tableName="upcoming_event" indexName="upcoming_event_created_by_index">
+            <column name="created_by"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0115" author="benckx">
         <comment>Disabled puzzles (disabled_at is set) are not served when picking the next puzzle to assign</comment>
         <addColumn tableName="puzzle">
             <column name="disabled_at" type="datetime"/>
