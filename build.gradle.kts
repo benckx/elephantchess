@@ -392,4 +392,20 @@ project(":scripts") {
         classpath = sourceSets["main"].runtimeClasspath
         workingDir = rootProject.projectDir
     }
+
+    tasks.register<JavaExec>("findMatePuzzleCandidates") {
+        group = "puzzles"
+        description = "Find mate-in-X puzzle candidates among reference games not used by any puzzle yet"
+        mainClass.set("io.elephantchess.scripts.puzzles.FindMatePuzzleCandidates")
+        classpath = sourceSets["main"].runtimeClasspath
+        workingDir = rootProject.projectDir
+    }
+
+    tasks.register<JavaExec>("createPuzzlesFromCsv") {
+        group = "puzzles"
+        description = "Create MATE_IN_X puzzles from the candidates found by findMatePuzzleCandidates"
+        mainClass.set("io.elephantchess.scripts.puzzles.CreatePuzzlesFromCsv")
+        classpath = sourceSets["main"].runtimeClasspath
+        workingDir = rootProject.projectDir
+    }
 }
