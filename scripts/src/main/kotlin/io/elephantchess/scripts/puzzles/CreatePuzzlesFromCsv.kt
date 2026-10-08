@@ -11,6 +11,7 @@ import io.elephantchess.model.Engine
 import io.elephantchess.model.PuzzleAlgo
 import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.scripts.KoinScriptInit
+import io.elephantchess.xiangqi.Board
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
@@ -22,9 +23,13 @@ private val logger = KotlinLogging.logger {}
 /**
  * Creates MATE_IN_1, MATE_IN_2, ... puzzles from the candidates produced by [FindMatePuzzleCandidates].
  *
- * Each candidate becomes a puzzle starting from the final game position, where the solution is the
- * engine line leading to the forced mate. Candidates whose reference game already has a puzzle are
- * skipped, so the script is safe to re-run.
+ * A candidate is a forced mate in N found from the final position of a reference game. From it we create:
+ *  - one [PuzzleAlgo.FIND_PATH_TO_MATE] puzzle (MATE_IN_N) solved from the final position, and
+ *  - for every shorter length k in `1 until N`, one [PuzzleAlgo.FIND_PATH_TO_MATE_SHORTENED] puzzle
+ *    (MATE_IN_k) whose start position is the engine line advanced by `2 * (N - k)` plies, so only the
+ *    last `k` player moves remain to be found.
+ *
+ * Candidates whose reference game already has a puzzle are skipped, so the script is safe to re-run.
  */
 object CreatePuzzlesFromCsv : KoinScriptInit() {
 
@@ -44,34 +49,72 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
             .awaitMappedRecords<String>()
             .toSet()
 
-    private suspend fun createPuzzle(candidate: MatePuzzleCandidate) {
-        val puzzleId = generateId(PUZZLE_ID_SIZE)
-        val rating = candidate.mate * RATING_PER_MATE
+    /**
+     * Creates the full-length puzzle plus every shorter shortened variant for a candidate.
+     * @return the number of puzzles created.
+     */
+    private suspend fun createPuzzles(candidate: MatePuzzleCandidate): Int {
+        val solutionLine = candidate.solutionMoves
+        val mate = candidate.mate
 
-        val puzzle = Puzzle(
-            puzzleId,
-            candidate.refGameSource,
-            candidate.refGameSourceId,
-            PuzzleAlgo.FIND_PATH_TO_MATE,
-            Engine.PIKAFISH,
-            null,
-            candidate.playerColor,
-            candidate.startFen,
-            rating,
-            rating,
-            null
-        )
+        // a clean "mate in N" line has 2N-1 plies (player, opponent, ..., player); if the engine line
+        // does not match, only create the full-length puzzle to stay on the safe side
+        val canShorten = solutionLine.size == 2 * mate - 1
 
-        val halfMoves = candidate.solutionMoves.mapIndexed { position, uci ->
-            PuzzleHalfMove(puzzleId, position, uci, true)
+        var created = 0
+        for (length in 1..mate) {
+            if (length < mate && !canShorten) {
+                continue
+            }
+
+            val revealedPlies = 2 * (mate - length)
+            if (revealedPlies >= solutionLine.size) {
+                continue
+            }
+
+            val revealedMoves = solutionLine.subList(0, revealedPlies)
+            val solutionMoves = solutionLine.subList(revealedPlies, solutionLine.size)
+
+            // the puzzle starts from the final position advanced by the revealed moves
+            val board = Board(candidate.startFen)
+            revealedMoves.forEach { move -> board.registerMove(move) }
+            val startFen = board.outputFen()
+
+            val algorithm =
+                if (length == mate) PuzzleAlgo.FIND_PATH_TO_MATE else PuzzleAlgo.FIND_PATH_TO_MATE_SHORTENED
+            val puzzleId = generateId(PUZZLE_ID_SIZE)
+            val rating = length * RATING_PER_MATE
+
+            val puzzle = Puzzle(
+                puzzleId,
+                candidate.refGameSource,
+                candidate.refGameSourceId,
+                algorithm,
+                Engine.PIKAFISH,
+                null,
+                candidate.playerColor,
+                startFen,
+                rating,
+                rating,
+                null
+            )
+
+            val halfMoves =
+                revealedMoves.mapIndexed { position, uci -> PuzzleHalfMove(puzzleId, position, uci, false) } +
+                    solutionMoves.mapIndexed { index, uci ->
+                        PuzzleHalfMove(puzzleId, revealedPlies + index, uci, true)
+                    }
+
+            val categories = listOf(
+                PuzzleCategoryTag(puzzleId, PuzzleCategory.findMateInN(length))
+            )
+
+            puzzleDaoService.save(puzzle, halfMoves, categories)
+            created++
+            logger.info { "created $algorithm puzzle $puzzleId (MATE_IN_$length) from ${candidate.refGameSource}/${candidate.refGameSourceId}" }
         }
 
-        val categories = listOf(
-            PuzzleCategoryTag(puzzleId, PuzzleCategory.findMateInN(candidate.mate))
-        )
-
-        puzzleDaoService.save(puzzle, halfMoves, categories)
-        logger.info { "created puzzle $puzzleId (MATE_IN_${candidate.mate}) from ${candidate.refGameSource}/${candidate.refGameSourceId}" }
+        return created
     }
 
     @JvmStatic
@@ -96,8 +139,7 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
             if (candidate.refGameSourceId in usedSourceIds) {
                 logger.info { "skipping ${candidate.refGameSourceId}: already has a puzzle" }
             } else {
-                createPuzzle(candidate)
-                created++
+                created += createPuzzles(candidate)
             }
         }
 
