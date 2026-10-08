@@ -202,11 +202,11 @@ private suspend fun findEntryId(dslContext: DSLContext, moves: List<String>): In
 private suspend fun updateCache(transaction: DSLContext, id: Int, record: OpeningPreCalculationCache) {
     transaction
         .update(OPENING_PRE_CALCULATION_CACHE)
-        .set(OPENING_PRE_CALCULATION_CACHE.OCCURRENCES.fixed(), record.occurrences)
-        .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_RED_WINS.fixed(), record.outcomeRedWins)
-        .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_BLACK_WINS.fixed(), record.outcomeBlackWins)
-        .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_DRAWS.fixed(), record.outcomeDraws)
-        .set(OPENING_PRE_CALCULATION_CACHE.ENTRY_UPDATE.fixed(), record.entryUpdate)
+        .set(OPENING_PRE_CALCULATION_CACHE.OCCURRENCES, record.occurrences)
+        .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_RED_WINS, record.outcomeRedWins)
+        .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_BLACK_WINS, record.outcomeBlackWins)
+        .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_DRAWS, record.outcomeDraws)
+        .set(OPENING_PRE_CALCULATION_CACHE.ENTRY_UPDATE, record.entryUpdate)
         .where(OPENING_PRE_CALCULATION_CACHE.ID.eq(id))
         .awaitExecute()
 }

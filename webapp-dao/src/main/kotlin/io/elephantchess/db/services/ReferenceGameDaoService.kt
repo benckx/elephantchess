@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.ReferenceGameHalfMove.REFERENCE_GAME_HALF_MOVE
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGame
@@ -21,6 +23,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
+@KoinSingleton
 class ReferenceGameDaoService(private val dslContext: DSLContext) {
 
     suspend fun listPreAnalyzedGamesByYear(): List<Record3<Int, AnalysisStatus, Int>> {
@@ -30,6 +33,16 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .where(REFERENCE_GAME.YEAR.isNotNull)
             .groupBy(REFERENCE_GAME.YEAR, REFERENCE_GAME.ANALYSIS_STATUS)
             .orderBy(REFERENCE_GAME.YEAR.desc(), REFERENCE_GAME.ANALYSIS_STATUS.asc())
+            .awaitRecords()
+    }
+
+    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> {
+        return dslContext
+            .select(REFERENCE_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.ge(minMoveIndex))
+            .groupBy(REFERENCE_GAME.ANALYSIS_STATUS)
+            .orderBy(REFERENCE_GAME.ANALYSIS_STATUS.asc())
             .awaitRecords()
     }
 
@@ -363,8 +376,8 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         if (existingId != null) {
             dslContext
                 .update(REFERENCE_GAME_SEARCH_QUERY)
-                .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.fixed(), now)
-                .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS.fixed(), numberOfResults)
+                .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME, now)
+                .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS, numberOfResults)
                 .where(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.eq(existingId))
                 .awaitExecute()
             return
@@ -372,22 +385,22 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
 
         val queryId = generateId()
         dslContext
-            .insertInto(REFERENCE_GAME_SEARCH_QUERY.fixed())
-            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID.fixed(), queryId)
-            .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID.fixed(), userId)
-            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME.fixed(), now)
-            .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME.fixed(), now)
-            .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_START.fixed(), searchStart)
-            .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END.fixed(), searchEnd)
-            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME.fixed(), sanitizedPlayerName)
-            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID.fixed(), playerId)
-            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR.fixed(), playerColor)
-            .set(REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME.fixed(), eventName)
-            .set(REFERENCE_GAME_SEARCH_QUERY.EVENT_ID.fixed(), eventId)
-            .set(REFERENCE_GAME_SEARCH_QUERY.FEN.fixed(), fen)
-            .set(REFERENCE_GAME_SEARCH_QUERY.OFFSET.fixed(), offset)
-            .set(REFERENCE_GAME_SEARCH_QUERY.LIMIT.fixed(), limit)
-            .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS.fixed(), numberOfResults)
+            .insertInto(REFERENCE_GAME_SEARCH_QUERY)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_ID, queryId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID, userId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME, now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.UPDATE_TIME, now)
+            .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_START, searchStart)
+            .set(REFERENCE_GAME_SEARCH_QUERY.SEARCH_END, searchEnd)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_NAME, sanitizedPlayerName)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_ID, playerId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.PLAYER_COLOR, playerColor)
+            .set(REFERENCE_GAME_SEARCH_QUERY.EVENT_NAME, eventName)
+            .set(REFERENCE_GAME_SEARCH_QUERY.EVENT_ID, eventId)
+            .set(REFERENCE_GAME_SEARCH_QUERY.FEN, fen)
+            .set(REFERENCE_GAME_SEARCH_QUERY.OFFSET, offset)
+            .set(REFERENCE_GAME_SEARCH_QUERY.LIMIT, limit)
+            .set(REFERENCE_GAME_SEARCH_QUERY.NUMBER_OF_RESULTS, numberOfResults)
             .awaitExecute()
     }
 

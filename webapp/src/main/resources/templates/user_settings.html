@@ -17,18 +17,50 @@
     <hr/>
     <h4 class="label">Description</h4>
     <label for="description"></label>
-    <textarea id="description" rows="8" cols="50"></textarea>
+    <textarea id="description" rows="8" cols="50">{{profile_description}}</textarea>
     <div id="description-character-counter" class="character-counter"></div>
     <h4 class="label">Country</h4>
     <label for="countries"></label>
-    <select name="countries" id="countries">
+    <select name="countries" id="countries" data-selected-country="{{profile_country}}">
         <option value="none">none</option>
     </select>
+    <br/>
+    <h4 class="label profile-games-visibility-label">Show my games</h4>
+    <table id="profile-games-visibility-table">
+        <tr>
+            <td class="checkbox-cell">
+                <div>
+                    <div><input id="show-pvp-games-on-profile" type="checkbox" {{show_pvp_games_checked}}/></div>
+                </div>
+            </td>
+            <td>
+                <label for="show-pvp-games-on-profile" class="settings-hit-box">
+                    <div><span>Show Player-vs-Player games</span></div>
+                </label>
+            </td>
+        </tr>
+        <tr>
+            <td class="checkbox-cell">
+                <div>
+                    <div><input id="show-pvb-games-on-profile" type="checkbox" {{show_pvb_games_checked}}/></div>
+                </div>
+            </td>
+            <td>
+                <label for="show-pvb-games-on-profile" class="settings-hit-box">
+                    <div><span>Show Player-vs-Bot games</span></div>
+                </label>
+            </td>
+        </tr>
+    </table>
     <br/>
     <input id="save-profile-button" type="button" class="app-buttons-bigger" value="save">
     <h1>Email Notifications Settings</h1>
     <hr/>
-    <table id="notifications-settings-table"></table>
+    <div id="notifications-select-shortcuts">
+        <span id="notifications-select-all" class="action-link">select all</span> /
+        <span id="notifications-unselect-all" class="action-link">unselect all</span>
+    </div>
+    {{notifications_settings_table}}
     <input id="save-notifications-button" type="button" class="app-buttons-bigger" value="save">
     <h1>Email Address</h1>
     <hr/>

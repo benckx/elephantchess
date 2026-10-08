@@ -1,11 +1,14 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.engines.protocol.model.InfoLineResult
 import io.elephantchess.engines.protocol.model.InfoLineResult.Companion.parseInfoLine
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 
+@KoinSingleton
 class EngineCacheDaoService(private val dslContext: DSLContext) {
 
     suspend fun fetchInfoLine(fenKey: String, minDepth: Int): InfoLineResult? {

@@ -6,7 +6,6 @@ import io.elephantchess.db.dao.codegen.tables.pojos.Puzzle
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleHalfMove
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
-import io.elephantchess.db.utils.fixed
 import io.elephantchess.scripts.KoinScriptInit
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -64,8 +63,8 @@ object DisablePuzzlesWithoutEnoughMoves : KoinScriptInit() {
             dslContext.transactionCoroutine { cfg ->
                 DSL
                     .using(cfg)
-                    .update(PUZZLE.fixed())
-                    .set(PUZZLE.DISABLED_AT.fixed(), LocalDateTime.now())
+                    .update(PUZZLE)
+                    .set(PUZZLE.DISABLED_AT, LocalDateTime.now())
                     .where(PUZZLE.ID.`in`(puzzleIdsToDisable))
                     .awaitExecute()
             }

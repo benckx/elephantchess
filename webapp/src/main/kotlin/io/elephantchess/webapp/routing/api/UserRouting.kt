@@ -130,19 +130,9 @@ private fun Route.globalStatsRoutes() {
 
 private fun Route.userSettingsRoutes() {
     route("/api/user/settings") {
-        get("/profile") {
-            requireAuthentication { verifiedToken ->
-                userService.fetchProfileSettings(verifiedToken.userId)
-            }
-        }
         post("/profile") {
             requireAuthenticationWithBody<ProfileSettingsDto> { verifiedToken, request ->
                 userService.updateProfileSettings(verifiedToken.userId, request)
-            }
-        }
-        get("/notifications") {
-            requireAuthentication { verifiedToken ->
-                userService.fetchNotificationsSettings(verifiedToken.userId)
             }
         }
         post("/notifications") {

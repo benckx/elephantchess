@@ -4,6 +4,7 @@ import io.elephantchess.utils.TryEither
 import kotlinx.coroutines.reactive.awaitSingle
 import org.jooq.*
 import org.jooq.impl.DSL
+import org.jooq.impl.SQLDataType
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.reactivestreams.Publisher
 import reactor.core.publisher.Flux
@@ -12,20 +13,6 @@ import java.time.YearMonth
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
-
-/**
- * Workaround for insert
- */
-fun <R : Record> Table<R>.fixed(): Table<Record> {
-    return DSL.table("public.${name.lowercase()}")
-}
-
-/**
- * Workaround for inserts and updates
- */
-fun <T : Any> Field<T>.fixed(): Field<Any> {
-    return DSL.field(DSL.quotedName(name.lowercase()))
-}
 
 fun Field<String>.eqIgnoreCaseTrimmed(value: String): Condition =
     DSL.trim(DSL.lower(this)).eq(value.trim().lowercase())
@@ -64,17 +51,32 @@ fun Field<Instant>.hourOfDay(): Field<Int> {
         .`as`("hour")
 }
 
+/**
+ * The UTC calendar day of an instant, bucketed via `to_char(..., 'YYYY-MM-DD')` and cast to a genuine
+ * `date` SQL expression (so it can be grouped/selected and also inserted into a `date` column).
+ * When [alias] is non-null the field is aliased (defaulting to `day`).
+ */
 fun Field<Instant>.localDate(alias: String? = "day"): Field<LocalDate> {
-    val base = DSL
-        .field("to_char(${this.name}, 'YYYY-MM-DD')")
-        .convertFrom { LocalDate.parse(it.toString()) }
-
-    return if (alias != null) {
-        base.`as`(alias)
-    } else {
-        base
-    }
+    val base = DSL.field("cast(to_char({0}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE, this)
+    return if (alias != null) base.`as`(alias) else base
 }
+
+/**
+ * The current transaction timestamp rendered for [target], reusing that column's data type so the
+ * `timestamptz`/[Instant] forced-type converter is applied when assigning it on upsert conflicts.
+ */
+fun <T> currentTimestamp(target: Field<T>): Field<T> =
+    DSL.field("current_timestamp", target.dataType)
+
+/**
+ * On an `ON CONFLICT ... DO UPDATE` upsert, accumulate [field] by adding the value that would have been
+ * inserted (`excluded.field`) to the existing row's value, i.e. `set(field, field + excluded(field))`.
+ * Chainable across several columns.
+ */
+fun <R : Record, T : Number> InsertOnDuplicateSetStep<R>.accumulate(
+    field: Field<T>,
+): InsertOnDuplicateSetMoreStep<R> =
+    set(field, field.plus(DSL.excluded(field)))
 
 fun Field<Instant>.yearMonth(alias: String? = "month"): Field<YearMonth> {
     val base = DSL
@@ -144,7 +146,7 @@ suspend fun <T> DSLContext.transactionalContextTry(block: suspend (DSLContext) -
 
 suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleMappedRecord(): T? {
     return Flux
-        .from<Record>(this)
+        .from(this)
         .collectList()
         .awaitSingle()
         .firstOrNull()
@@ -153,7 +155,7 @@ suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleMappedRe
 
 suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitMappedRecords(): List<T> {
     return Flux
-        .from<Record>(this)
+        .from(this)
         .collectList()
         .awaitSingle()
         .map<Record, T> { record -> record.into<T>(T::class.java) }

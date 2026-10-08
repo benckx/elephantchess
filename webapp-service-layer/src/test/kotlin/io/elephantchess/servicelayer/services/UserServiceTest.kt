@@ -304,14 +304,55 @@ class UserServiceTest : ServiceTest() {
     fun `updateProfileSettings should unset country when none is selected`() = runTest {
         val (request, userId) = signUpTestUser()
 
-        userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "be"))
-        userService.updateProfileSettings(userId, ProfileSettingsDto(description = "", country = "none"))
+        userService.updateProfileSettings(
+            userId,
+            ProfileSettingsDto(
+                description = "",
+                country = "be",
+                showPvpGamesOnProfile = true,
+                showPvbGamesOnProfile = true,
+            ),
+        )
+        userService.updateProfileSettings(
+            userId,
+            ProfileSettingsDto(
+                description = "",
+                country = "none",
+                showPvpGamesOnProfile = true,
+                showPvbGamesOnProfile = true,
+            ),
+        )
 
         val profile = userService.fetchProfile(request.username)
         assertNull(profile.country)
 
         val storedCountry = dslContext.fetchValueAsync(USER.COUNTRY, USER.ID.eq(userId))
         assertNull(storedCountry)
+    }
+
+    @Test
+    fun `profile game visibility preferences default to true and can be toggled`() = runTest {
+        val (_, userId) = signUpTestUser()
+
+        // Defaults: both preferences enabled.
+        val defaults = userService.fetchProfileSettings(userId)
+        assertTrue(defaults.showPvpGamesOnProfile)
+        assertTrue(defaults.showPvbGamesOnProfile)
+
+        // Disabling PvB games (and keeping PvP enabled) is persisted round-trip.
+        userService.updateProfileSettings(
+            userId,
+            ProfileSettingsDto(
+                description = "",
+                country = "none",
+                showPvpGamesOnProfile = true,
+                showPvbGamesOnProfile = false,
+            )
+        )
+
+        val updated = userService.fetchProfileSettings(userId)
+        assertTrue(updated.showPvpGamesOnProfile)
+        assertFalse(updated.showPvbGamesOnProfile)
     }
 
     @Test

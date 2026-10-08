@@ -1,11 +1,14 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.IntDimensionValueRecord
 import io.elephantchess.db.model.MonthlyValueRecord
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
 import io.elephantchess.db.services.AnalysisDaoService
+import io.elephantchess.db.services.ArchivedGuestDaoService
 import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.UserStatsDaoService
@@ -25,8 +28,10 @@ import org.jooq.DSLContext
 import java.time.LocalDate
 import java.time.YearMonth
 
+@KoinSingleton
 class AdminAnalyticsService(
     private val analysisDaoService: AnalysisDaoService,
+    private val archivedGuestDaoService: ArchivedGuestDaoService,
     private val userStatsDaoService: UserStatsDaoService,
     private val pageViewEventDaoService: PageViewEventDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
@@ -279,7 +284,8 @@ class AdminAnalyticsService(
 
     suspend fun fetchPageViewStatsByEventPath(eventPath: String): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyPageViews(eventPath, excludedUserIds)
-        return mapPageViewRecordsToMultipleTimeseries(records)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedMonthlyPageViews(eventPath)
+        return mapPageViewRecordsToMultipleTimeseries(mergeMonthlyPageViews(records, archivedRecords))
     }
 
     suspend fun fetchPageViewStatsForDatabaseGames(): MultipleTimeSeriesResponse {
@@ -289,12 +295,14 @@ class AdminAnalyticsService(
 
     suspend fun fetchPageViewStatsForOwnUserProfiles(): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyOwnUserProfilePageViews(excludedUserIds)
-        return mapPageViewRecordsToMultipleTimeseries(records)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedMonthlyOwnProfilePageViews()
+        return mapPageViewRecordsToMultipleTimeseries(mergeMonthlyPageViews(records, archivedRecords))
     }
 
     suspend fun fetchPageViewStatsForOtherUserProfiles(): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyOtherUserProfilePageViews(excludedUserIds)
-        return mapPageViewRecordsToMultipleTimeseries(records)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedMonthlyOtherProfilePageViews()
+        return mapPageViewRecordsToMultipleTimeseries(mergeMonthlyPageViews(records, archivedRecords))
     }
 
     suspend fun fetchHourlyPageViews(hours: Int = 12): HourlyPageViewsResponse {
@@ -319,10 +327,18 @@ class AdminAnalyticsService(
             excludedUserIds = excludedUserIds
         )
 
-        val entries = records.map { record ->
+        val archivedRecords = archivedGuestDaoService.fetchArchivedPageViewsByDay(days = days)
+
+        // guests are archived into a disjoint set of users, so per-day counts can simply be summed
+        val pageViewsByDay = sortedMapOf<LocalDate, Long>()
+        (records + archivedRecords).forEach { record ->
+            pageViewsByDay.merge(record.day, record.value.toLong(), Long::plus)
+        }
+
+        val entries = pageViewsByDay.map { (day, pageViews) ->
             DailyPageViewsResponse.Entry(
-                day = record.day.toString(),
-                pageViews = record.value.toInt()
+                day = day.toString(),
+                pageViews = pageViews.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
             )
         }
 
@@ -423,6 +439,29 @@ class AdminAnalyticsService(
             percentageOver3LinkJoinSource = linkJoinSourcePercentageValues,
             joinSourceBreakdown = joinSourceSeries
         )
+    }
+
+    /**
+     * Merges live and archived monthly page-view records. Live guests and archived (deleted) guests are
+     * disjoint sets, so counts for the same month and url are summed.
+     */
+    private fun mergeMonthlyPageViews(
+        live: List<MonthlyPageViewRecord>,
+        archived: List<MonthlyPageViewRecord>,
+    ): List<MonthlyPageViewRecord> {
+        if (archived.isEmpty()) {
+            return live
+        }
+
+        return (live + archived)
+            .groupBy { it.yearMonth to it.label }
+            .map { (key, records) ->
+                MonthlyPageViewRecord(
+                    yearMonth = key.first,
+                    label = key.second,
+                    uniquePageViews = records.sumOf { it.uniquePageViews },
+                )
+            }
     }
 
     private fun mapPageViewRecordsToMultipleTimeseries(records: List<MonthlyPageViewRecord>): MultipleTimeSeriesResponse {

@@ -26,6 +26,15 @@ fun Route.adminConsoleRoutes() {
         adminExceptionRoutes()
         adminNewsletterRoutes()
         adminUpcomingEventsRoutes()
+        adminSettingPreferenceRoutes()
+    }
+}
+
+private fun Route.adminSettingPreferenceRoutes() {
+    val adminSettingPreferenceService by koin<AdminSettingPreferenceService>()
+
+    get("/setting-preference-stats") {
+        requireAdminRole { adminSettingPreferenceService.fetchStats() }
     }
 }
 
@@ -218,6 +227,9 @@ private fun Route.adminAnalysisRoutes() {
 
     get("/list-latest-move-analysis-by-game") {
         requireAdminRole { adminAnalysisService.listLatestMoveAnalysisByGame() }
+    }
+    get("/pre-analysis-status-by-game-type") {
+        requireAdminRole { adminAnalysisService.listPreAnalysisStatusByGameType() }
     }
     get("/pre-analyzed-reference-games-per-year") {
         requireAdminRole { adminAnalysisService.listPreAnalyzedReferenceGamesPerYear() }

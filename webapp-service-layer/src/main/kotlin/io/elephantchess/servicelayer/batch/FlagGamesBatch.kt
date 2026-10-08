@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.utils.timeControl
@@ -7,6 +9,7 @@ import io.elephantchess.servicelayer.batch.definitions.ShardedBatch
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.github.oshai.kotlinlogging.KLogger
 
+@KoinSingleton
 class FlagGamesBatch(
     private val pvpGameService: PlayerVsPlayerGameService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,

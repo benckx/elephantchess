@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.callback.PerpetualCheckingCallbackResult
 import io.elephantchess.db.callback.PlayMoveCallbackResult
 import io.elephantchess.db.callback.UpdateRatingsCallbackResult
@@ -60,6 +62,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import io.elephantchess.servicelayer.dto.ws.RatingUpdate as RatingUpdateWs
 
+@KoinSingleton
 class PlayerVsPlayerGameService(
     private val userService: UserService,
     private val userDaoService: UserDaoService,
@@ -1118,10 +1121,10 @@ class PlayerVsPlayerGameService(
         if (map.isNotEmpty()) {
             map.toList().sortedBy { (key, _) -> key }.forEach { (key, sequence) ->
                 val fullMovesStr = sequence.fullMoves().joinToString(", ")
-                logger.info { "[$key] ${sequence.attackers} / $fullMovesStr [${sequence.size()}]" }
+                logger.debug { "[$key] ${sequence.attackers} / $fullMovesStr [${sequence.size()}]" }
                 perpetualCheckRules.forEach { rule ->
                     val hasExceeded = sequence.exceeds(rule)
-                    logger.info { "exceeds $rule -> $hasExceeded" }
+                    logger.debug { "exceeds $rule -> $hasExceeded" }
                     if (hasExceeded) {
                         return PerpetualCheckingCallbackResult(PERPETUAL_CHECKING, playerColor.asLoserOutcome())
                     }
