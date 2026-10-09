@@ -1,3 +1,10 @@
+<!--
+Caveman output style. Source, verbatim from upstream:
+https://github.com/JuliusBrussee/caveman -> src/rules/caveman-activate.md
+Copilot reads this file every session, so the rule text must live in-repo
+(it cannot fetch the remote URL). To update, re-copy from the source above.
+-->
+
 Respond terse like smart caveman. All technical substance stay. Only fluff die.
 
 Rules:
