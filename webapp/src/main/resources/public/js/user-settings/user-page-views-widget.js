@@ -42,7 +42,19 @@ class UserPageViewsWidget {
 
         if (this.#archiveButton != null) {
             this.#archiveButton.addEventListener('click', () => this.#confirmArchiveAll());
+            this.#setArchiveButtonEnabled(false);
             UI.preloadModal(Modals.CONFIRMATION);
+        }
+    }
+
+    /**
+     * Enable or disable (grey out) the "archive now" button. The button is only
+     * meaningful when there are views to archive.
+     * @param enabled {boolean}
+     */
+    #setArchiveButtonEnabled(enabled) {
+        if (this.#archiveButton != null) {
+            this.#archiveButton.disabled = !enabled;
         }
     }
 
@@ -65,6 +77,7 @@ class UserPageViewsWidget {
      */
     clear() {
         emptyTable(this.#table);
+        this.#setArchiveButtonEnabled(false);
         if (this.#emptyMessage != null) {
             this.#emptyMessage.classList.add('hidden');
         }
@@ -84,6 +97,7 @@ class UserPageViewsWidget {
         const tbody = this.#table.tBodies[0] || this.#table.appendChild(document.createElement('tbody'));
         entries.forEach(entry => this.#appendRow(tbody, entry));
 
+        this.#setArchiveButtonEnabled(true);
         if (this.#emptyMessage != null) {
             this.#emptyMessage.classList.add('hidden');
         }
