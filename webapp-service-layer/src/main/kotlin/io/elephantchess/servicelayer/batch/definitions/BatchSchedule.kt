@@ -24,5 +24,5 @@ class SinglePodBatchSchedule<T : SinglePodBatch>(
     batch: T,
     period: Duration,
     delay: Duration = 5.minutes,
-    val podNumber: Int = 0,
+    val podNumber: Int,
 ) : BatchSchedule<T>(batch, period, delay)
