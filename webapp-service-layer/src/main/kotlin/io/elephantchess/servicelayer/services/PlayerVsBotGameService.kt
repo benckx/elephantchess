@@ -63,6 +63,7 @@ class PlayerVsBotGameService(
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     private val openingRepositoryDaoService: OpeningRepositoryCacheDaoService,
     private val userCache: UserCache,
+    private val exceptionService: ExceptionService,
     appConfig: AppConfig,
     refresherScope: CoroutineScope,
     private val logger: KLogger,
@@ -78,6 +79,10 @@ class PlayerVsBotGameService(
         scope = refresherScope,
         initialDelay = sessionsRefresh,
         period = sessionsRefresh,
+        onError = {
+            logger.error(it) { "error in player-vs-bot session refresh" }
+            exceptionService.saveException(it)
+        },
         action = {
             // remove the sessions that are not active anymore
             wsSessions.removeIf { session ->

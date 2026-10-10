@@ -73,6 +73,7 @@ class PlayerVsPlayerGameService(
     private val gameChatTypingStatusDaoService: GameChatTypingStatusDaoService,
     private val userCache: UserCache,
     private val discordService: DiscordService,
+    private val exceptionService: ExceptionService,
     private val logger: KLogger,
     refresherScope: CoroutineScope
 ) {
@@ -85,6 +86,10 @@ class PlayerVsPlayerGameService(
         scope = refresherScope,
         initialDelay = 500.milliseconds,
         period = 500.milliseconds,
+        onError = {
+            logger.error(it) { "error in player-vs-player session refresh" }
+            exceptionService.saveException(it)
+        },
         action = { refreshPlayerVsPlayerSessions() }
     )
 
@@ -92,6 +97,10 @@ class PlayerVsPlayerGameService(
         scope = refresherScope,
         initialDelay = 3.seconds,
         period = 3.seconds,
+        onError = {
+            logger.error(it) { "error in games-to-play session refresh" }
+            exceptionService.saveException(it)
+        },
         action = { refreshGamesToPlaySessions() }
     )
 
