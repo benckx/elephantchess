@@ -5,8 +5,12 @@ import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGame
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.engines.EnginePool
+import io.elephantchess.engines.process.EngineConfig
 import io.elephantchess.engines.process.PikafishEngineId
-import io.elephantchess.scripts.KoinScriptInit
+import io.elephantchess.engines.protocol.commands.LocalProcessLocator
+import io.elephantchess.scripts.KoinScript
+import io.elephantchess.scripts.puzzles.FindMatePuzzleCandidates.MAX_MATE
+import io.elephantchess.scripts.puzzles.FindMatePuzzleCandidates.OUTPUT_FILE_NAME
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.xiangqi.Board
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -14,6 +18,7 @@ import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
+import java.util.concurrent.Executors
 
 private val logger = KotlinLogging.logger {}
 
@@ -26,7 +31,7 @@ private val logger = KotlinLogging.logger {}
  *
  * The CSV is then consumed by [CreatePuzzlesFromCsv] to create the actual puzzles.
  */
-object FindMatePuzzleCandidates : KoinScript() {
+object FindMatePuzzleCandidates : KoinScript {
 
     private const val DEPTH = 30
     private const val MAX_MATE = 5
