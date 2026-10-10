@@ -11,6 +11,7 @@ import io.elephantchess.db.services.AnalysisDaoService
 import io.elephantchess.db.services.ArchivedGuestDaoService
 import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
+import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.db.services.UserStatsDaoService
 import io.elephantchess.model.GameJoinSource
 import io.elephantchess.model.GameJoinSource.DYNAMIC_MATCHED
@@ -35,6 +36,7 @@ class AdminAnalyticsService(
     private val userStatsDaoService: UserStatsDaoService,
     private val pageViewEventDaoService: PageViewEventDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
+    private val thrownExceptionDaoService: ThrownExceptionDaoService,
     private val dslContext: DSLContext,
     logger: KLogger,
     appConfig: AppConfig,
@@ -273,6 +275,21 @@ class AdminAnalyticsService(
             }
             .let { entries ->
                 OnlineUsersStatsByMonthResponse(entries)
+            }
+    }
+
+    suspend fun fetchThrownExceptionStatsByMonth(months: Int): ThrownExceptionStatsByMonthResponse {
+        return thrownExceptionDaoService
+            .fetchExceptionCountsByMonth(months)
+            .map { record ->
+                ThrownExceptionStatsByMonthResponse.Entry(
+                    month = record.month.toString(),
+                    clientErrors = record.clientErrors,
+                    serverErrors = record.serverErrors
+                )
+            }
+            .let { entries ->
+                ThrownExceptionStatsByMonthResponse(entries)
             }
     }
 

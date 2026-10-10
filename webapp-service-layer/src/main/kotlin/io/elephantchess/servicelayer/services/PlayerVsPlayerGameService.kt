@@ -51,6 +51,7 @@ import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.random.Random
@@ -72,18 +73,23 @@ class PlayerVsPlayerGameService(
     private val gameChatTypingStatusDaoService: GameChatTypingStatusDaoService,
     private val userCache: UserCache,
     private val discordService: DiscordService,
+    private val exceptionService: ExceptionService,
     private val logger: KLogger,
     refresherScope: CoroutineScope
 ) {
 
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
-    private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
-    private val playerVsPlayerSessions = mutableListOf<PlayerVsPlayerWebSocketSession>()
+    private val gamesToPlaySessions = CopyOnWriteArrayList<GamesToPlayWebSocketSession>()
+    private val playerVsPlayerSessions = CopyOnWriteArrayList<PlayerVsPlayerWebSocketSession>()
 
     private val pvpSessionsRefreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = 500.milliseconds,
         period = 500.milliseconds,
+        onError = {
+            logger.error(it) { "error in player-vs-player session refresh" }
+            exceptionService.saveException(it)
+        },
         action = { refreshPlayerVsPlayerSessions() }
     )
 
@@ -91,6 +97,10 @@ class PlayerVsPlayerGameService(
         scope = refresherScope,
         initialDelay = 3.seconds,
         period = 3.seconds,
+        onError = {
+            logger.error(it) { "error in games-to-play session refresh" }
+            exceptionService.saveException(it)
+        },
         action = { refreshGamesToPlaySessions() }
     )
 
@@ -166,7 +176,10 @@ class PlayerVsPlayerGameService(
         // Drop already-closed sessions before fetching anything from DB.
         removeClosedPlayerVsPlayerSessions()
 
-        val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
+        // Snapshot the sessions once so the derived gameIds stay consistent with the
+        // maps fetched below. New sessions added concurrently are picked up on the next run.
+        val sessions = playerVsPlayerSessions.toList()
+        val allGameIds = sessions.map { session -> session.gameId }.distinct()
 
         if (allGameIds.isEmpty()) {
             return
@@ -185,10 +198,16 @@ class PlayerVsPlayerGameService(
         val timeRemainingCache = mutableMapOf<String, CachedValue<TimeRemaining?>>()
         val drawPropositionUserCache = mutableMapOf<String, CachedValue<String?>>()
 
-        playerVsPlayerSessions
+        sessions
             .forEach { session ->
                 val gameId = session.gameId
-                val gameState = stateMap[gameId]!!
+                val gameState = stateMap[gameId]
+                if (gameState == null) {
+                    logger.warn {
+                        "Skipping refresh for gameId=$gameId because no game state was found (game removed?)"
+                    }
+                    return@forEach
+                }
                 val status = gameState.gameEventType
                 val index = gameState.index
 
@@ -239,7 +258,7 @@ class PlayerVsPlayerGameService(
                 }
 
                 val chatMessages = mutableListOf<ChatMessage>()
-                if (session.currentChatIndex() < chatIndexes[gameId]!!) {
+                if (session.currentChatIndex() < (chatIndexes[gameId] ?: 0)) {
                     chatMessages.addAll(
                         chatMessageDaoService
                             .listMessagesAfterOrEqualToIndex(gameId, session.currentChatIndex())
