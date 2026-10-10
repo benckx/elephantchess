@@ -43,6 +43,8 @@ fun launchAtFixedRate(
             } catch (e: Exception) {
                 try {
                     onError(e)
+                } catch (ce: CancellationException) {
+                    throw ce
                 } catch (handlerError: Exception) {
                     logger.error(handlerError) { "error in periodic coroutine onError handler" }
                 }
