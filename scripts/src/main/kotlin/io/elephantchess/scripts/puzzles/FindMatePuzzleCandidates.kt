@@ -33,8 +33,8 @@ private val logger = KotlinLogging.logger {}
  */
 object FindMatePuzzleCandidates : KoinScript {
 
-    private const val DEPTH = 30
-    private const val MAX_MATE = 5
+    private const val DEPTH = 20
+    private const val MAX_MATE = 6
     private const val MIN_LEGAL_MOVES = 2
     private const val TIME_OUT = 180_000L
     private const val OUTPUT_FILE_NAME = "mate_puzzle_candidates.csv"
