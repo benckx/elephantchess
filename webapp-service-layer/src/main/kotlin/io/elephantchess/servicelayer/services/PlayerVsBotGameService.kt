@@ -52,6 +52,7 @@ import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -71,7 +72,7 @@ class PlayerVsBotGameService(
     private val fairyStockfishVersion = appConfig.fairyStockfishVersion
 
     private val sessionsRefresh = 2.seconds
-    private val wsSessions = mutableListOf<PvbWebSocketSession>()
+    private val wsSessions = CopyOnWriteArrayList<PvbWebSocketSession>()
 
     private val refreshJob = launchAtFixedRate(
         scope = refresherScope,
