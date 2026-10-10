@@ -141,6 +141,12 @@ private fun Route.adminAnalyticsRoutes() {
             adminAnalyticsService.fetchOnlineUsersStatsByMonth(months)
         }
     }
+    get("/thrown-exception-stats-by-month") {
+        requireAdminRole { _ ->
+            val months = call.parameters["months"]?.toIntOrNull() ?: 12
+            adminAnalyticsService.fetchThrownExceptionStatsByMonth(months)
+        }
+    }
     get("/page-view-stats-by-event-path") {
         requireAdminRole { _ ->
             val encodedPath = call.parameters["path"] ?: "/"
