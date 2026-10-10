@@ -33,7 +33,7 @@ private val logger = KotlinLogging.logger {}
  */
 object FindMatePuzzleCandidates : KoinScript {
 
-    private const val DEPTH = 22
+    private const val DEPTH = 24
     private const val MAX_MATE = 6
     private const val MIN_LEGAL_MOVES = 2
     private const val TIME_OUT = 180_000L
