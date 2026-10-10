@@ -144,7 +144,7 @@ class UserPageViewsWidget {
     #archiveAll() {
         postAndHandle(ARCHIVE_USER_PAGE_VIEWS_URL, null, (json) => {
             const archivedCount = json.archivedCount || 0;
-            UI.pushInfoNotification(`${formatNumberWithSuffix(archivedCount)} page view(s) archived.`, 2_500);
+            UI.pushInfoNotification(`${formatNumberWithSuffix(archivedCount)} page view(s) archived.`, 3_000);
             if (this.#onArchive != null) {
                 this.#onArchive(archivedCount);
             } else {
