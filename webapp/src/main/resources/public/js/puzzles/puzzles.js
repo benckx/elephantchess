@@ -59,6 +59,7 @@ class PuzzlesPage extends BasePage {
     #revealSolutionButton = document.getElementById('reveal-solution-button');
 
     #puzzleIdLabel = document.getElementById('puzzle-id');
+    #puzzleDisabledIcon = document.getElementById('puzzle-disabled-icon');
     #attempts = document.getElementById('number-of-attempts');
     #puzzleCategoriesLabel = document.getElementById('puzzle-categories');
     #puzzleRatingLabel = document.getElementById('puzzle-rating');
@@ -170,6 +171,7 @@ class PuzzlesPage extends BasePage {
 
         // update UI info
         this.#puzzleIdLabel.textContent = '#' + this.#puzzleState.id;
+        this.#puzzleDisabledIcon.style.display = this.#puzzleState.enabled === false ? 'inline' : 'none';
         this.#attempts.textContent = this.#puzzleState.attempts.toString();
 
         switch (this.#puzzleState.playerColor) {

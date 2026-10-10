@@ -136,13 +136,13 @@ class GlobalAnalyticsService(
         }
 
     private fun computeGlobalPuzzleStats(): GlobalPuzzleStatsResponse {
-        val totalPuzzles = puzzleCache.countAll()
+        val totalPuzzles = puzzleCache.countAllEnabled()
         if (totalPuzzles == 0) {
             throw IllegalStateException("Cannot compute global puzzle stats while puzzle cache is empty")
         }
 
-        val puzzlesPlayedAtLeast10x = puzzleCache.countPuzzlePlayedAtLeast(10)
-        val puzzlesPlayedAtLeast20x = puzzleCache.countPuzzlePlayedAtLeast(20)
+        val puzzlesPlayedAtLeast10x = puzzleCache.countPuzzlePlayedAtLeastAmongEnabled(10)
+        val puzzlesPlayedAtLeast20x = puzzleCache.countPuzzlePlayedAtLeastAmongEnabled(20)
         val puzzlesPlayedRatio10x = puzzlesPlayedAtLeast10x.toFloat() / totalPuzzles.toFloat()
         val puzzlesPlayedRatio20x = puzzlesPlayedAtLeast20x.toFloat() / totalPuzzles.toFloat()
 

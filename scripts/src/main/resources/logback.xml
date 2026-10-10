@@ -9,7 +9,6 @@
 
     <logger name="org.jooq" level="INFO"/>
     <logger name="io.elephantchess.board.Board" level="INFO"/>
-    <logger name="io.elephantchess.engines" level="DEBUG"/>
     <logger name="io.r2dbc" level="INFO"/>
     <logger name="reactor.netty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
