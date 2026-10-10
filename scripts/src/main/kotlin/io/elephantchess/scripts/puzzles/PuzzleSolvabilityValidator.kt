@@ -28,7 +28,24 @@ object PuzzleSolvabilityValidator {
     ): Boolean {
         val board = Board()
         setupMoves.forEach { move -> board.registerMove(move) }
+        return hasEnoughMovesAtEachPlayerStep(board, solutionMoves, minLegalMoves)
+    }
 
+    /**
+     * Same rule as above, but for puzzles whose start position is given directly as a [startFen]
+     * (i.e. there are no setup moves and the player is the side to move in [startFen]).
+     */
+    fun hasEnoughMovesAtEachPlayerStep(
+        startFen: String,
+        solutionMoves: List<String>,
+        minLegalMoves: Int,
+    ): Boolean = hasEnoughMovesAtEachPlayerStep(Board(startFen), solutionMoves, minLegalMoves)
+
+    private fun hasEnoughMovesAtEachPlayerStep(
+        board: Board,
+        solutionMoves: List<String>,
+        minLegalMoves: Int,
+    ): Boolean {
         val playerColor = board.colorToPlay()
 
         solutionMoves.forEach { move ->

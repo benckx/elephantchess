@@ -35,6 +35,7 @@ object FindMatePuzzleCandidates : KoinScript {
 
     private const val DEPTH = 30
     private const val MAX_MATE = 5
+    private const val MIN_LEGAL_MOVES = 2
     private const val TIME_OUT = 180_000L
     private const val OUTPUT_FILE_NAME = "mate_puzzle_candidates.csv"
 
@@ -114,6 +115,18 @@ object FindMatePuzzleCandidates : KoinScript {
         solutionMoves.forEach { move -> replay.registerMove(move) }
         if (!replay.isCheckmated()) {
             logger.warn { "engine line for ${game.id} does not end in checkmate, skipping" }
+            return null
+        }
+
+        // apply the same solvability rule as DisablePuzzlesWithoutEnoughMoves: the player must have
+        // at least MIN_LEGAL_MOVES legal moves at every one of their turns
+        if (!PuzzleSolvabilityValidator.hasEnoughMovesAtEachPlayerStep(
+                startFen = finalFen,
+                solutionMoves = solutionMoves,
+                minLegalMoves = MIN_LEGAL_MOVES,
+            )
+        ) {
+            logger.info { "candidate for ${game.id} is too constrained (< $MIN_LEGAL_MOVES moves at some step), skipping" }
             return null
         }
 
