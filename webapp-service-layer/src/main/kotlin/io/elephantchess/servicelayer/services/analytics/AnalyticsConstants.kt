@@ -15,3 +15,10 @@ const val MIN_GENUINE_GUEST_LIFESPAN_SECONDS = 60
  * game are archived into aggregated daily tables and then deleted.
  */
 const val ARCHIVE_GUEST_AFTER_DAYS = 60
+
+/**
+ * Page views older than this are aggregated into [io.elephantchess.db.dao.codegen.Tables.ARCHIVED_PAGE_VIEW_DAILY]
+ * and then deleted, so they are no longer tied to a user. This applies to all users (guests and
+ * authenticated), independently of the guest-archiving job.
+ */
+const val ARCHIVE_PAGE_VIEW_AFTER_DAYS = 90

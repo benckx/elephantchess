@@ -31,7 +31,6 @@ import io.elephantchess.db.utils.currentTimestamp
 import io.elephantchess.db.utils.diffInSeconds
 import io.elephantchess.db.utils.isBefore
 import io.elephantchess.db.utils.localDate
-import io.elephantchess.db.utils.ownProfileViewCondition
 import io.elephantchess.db.utils.yearMonthOfDay
 import io.elephantchess.model.UserType
 import org.jooq.Condition
@@ -55,7 +54,10 @@ import kotlin.time.Instant
  * their page views and database search queries are archived by the day they happened.
  */
 @KoinSingleton
-class ArchivedGuestDaoService(private val dslContext: DSLContext) {
+class ArchivedGuestDaoService(
+    private val dslContext: DSLContext,
+    private val archivedPageViewDaoService: ArchivedPageViewDaoService,
+) {
 
     /**
      * Selects up to [limit] guests that are older than [maxAge] and inactive for at least [maxAge] and
@@ -97,7 +99,7 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             val transactional = DSL.using(cfg)
 
             archiveGuestCounts(transactional, guestIds)
-            archivePageViews(transactional, guestIds)
+            archivedPageViewDaoService.archivePageViews(transactional, PAGE_VIEW_EVENT.USER_ID.`in`(guestIds))
             archiveSearchQueries(transactional, guestIds)
 
             val deletedPageViews = transactional
@@ -282,49 +284,6 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    private suspend fun archivePageViews(transactional: DSLContext, guestIds: List<String>) {
-        val eventDay = PAGE_VIEW_EVENT.EVENT_TIME.localDate(null)
-        // truncate to the archive column width so overly long paths (long query strings) never overflow;
-        // inline the bounds so the SELECT and GROUP BY expressions render identically for Postgres
-        val url = DSL.substring(PAGE_VIEW_EVENT.EVENT_PATH, DSL.inline(1), DSL.inline(URL_MAX_LENGTH))
-        val uniqueGuests = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID)
-
-        // own/other profile view counts are computed here (while the viewing user still exists) because
-        // "own" means the viewed profile's handle equals the viewer's handle, which can't be reconstructed
-        // once the guest is deleted. Mirrors PageViewEventDaoService's ownProfileViewCondition and the
-        // "/@/{username}" (no sub-path) profile-view filter.
-        val isProfileView = PAGE_VIEW_EVENT.EVENT_PATH.like("/@/%")
-            .and(PAGE_VIEW_EVENT.EVENT_PATH.notLike("/@/%/%"))
-        val ownProfileView = isProfileView.and(ownProfileViewCondition())
-        val otherProfileView = isProfileView.and(ownProfileViewCondition().not())
-        val uniqueOwnProfileGuests = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID).filterWhere(ownProfileView)
-        val uniqueOtherProfileGuests = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID).filterWhere(otherProfileView)
-
-        transactional
-            .insertInto(
-                ARCHIVED_PAGE_VIEW_DAILY,
-                ARCHIVED_PAGE_VIEW_DAILY.DAY,
-                ARCHIVED_PAGE_VIEW_DAILY.URL,
-                ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS,
-                ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS,
-                ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS,
-            )
-            .select(
-                transactional
-                    .select(eventDay, url, uniqueGuests, uniqueOwnProfileGuests, uniqueOtherProfileGuests)
-                    .from(PAGE_VIEW_EVENT)
-                    .leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
-                    .where(PAGE_VIEW_EVENT.USER_ID.`in`(guestIds))
-                    .groupBy(eventDay, url)
-            )
-            .onConflict(ARCHIVED_PAGE_VIEW_DAILY.DAY, ARCHIVED_PAGE_VIEW_DAILY.URL)
-            .doUpdate()
-            .accumulate(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
-            .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS)
-            .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS)
-            .awaitExecute()
-    }
-
     /**
      * Archives the guests' database search queries into [ARCHIVED_GUEST_DAILY], counted by the day the
      * query happened (matching the live "db searches" metric). Reuses the [ARCHIVED_GUEST_DAILY.DAY]
@@ -473,9 +432,6 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext) {
         const val LIFESPAN_5_MIN = 5 * 60
         const val LIFESPAN_15_MIN = 15 * 60
         const val LIFESPAN_30_MIN = 30 * 60
-
-        // matches the archived_page_view_daily.url column width
-        const val URL_MAX_LENGTH = 2048
     }
 
 }

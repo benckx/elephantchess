@@ -30,8 +30,6 @@ class SendOutNewslettersBatch(
     private val mailService: MailService,
 ) : SinglePodBatch {
 
-    override val podNumber: Int = 0
-
     // max 192 emails/day
     private val minDurationBetweenBatch = 15.minutes
     private val batchSize = 2
