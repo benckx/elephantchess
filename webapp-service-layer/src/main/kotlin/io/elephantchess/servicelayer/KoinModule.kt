@@ -11,7 +11,7 @@ import io.elephantchess.engines.process.FairyStockfishEngineId
 import io.elephantchess.engines.process.PikafishEngineId
 import io.elephantchess.engines.protocol.commands.LocalProcessLocator
 import io.elephantchess.servicelayer.batch.*
-import io.elephantchess.servicelayer.batch.definitions.BatchSchedule
+import io.elephantchess.servicelayer.batch.definitions.ShardedBatchSchedule
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatchSchedule
 import io.elephantchess.servicelayer.services.MailTemplateRender
 import io.elephantchess.servicelayer.services.resolvers.ContactLinkTagResolver
@@ -71,30 +71,30 @@ private fun mailTemplateRenderModule() = module {
 private fun batchSchedulesModule() = module {
     single {
         listOf(
-            BatchSchedule(
+            ShardedBatchSchedule(
                 get<PreAnalysisCleanUpBatch>(),
                 period = 6.hours
             ),
-            BatchSchedule(
+            ShardedBatchSchedule(
                 get<FetchUserSessionGeographicDataBatch>(),
                 period = 15.minutes
             ),
-            BatchSchedule(
+            ShardedBatchSchedule(
                 get<FlagGamesBatch>(),
                 period = 5.seconds,
                 delay = 10.seconds
             ),
-            BatchSchedule(
+            ShardedBatchSchedule(
                 get<AutoCancelCreatedGamesFromOfflineUsersBatch>(),
                 period = 15.minutes,
                 delay = 2.minutes
             ),
-            BatchSchedule(
+            ShardedBatchSchedule(
                 get<AutoResignIdleBotGamesBatch>(),
                 period = 15.minutes,
                 delay = 4.minutes
             ),
-            BatchSchedule(
+            ShardedBatchSchedule(
                 get<BackgroundGameAnalysisBatch>(),
                 period = 5.minutes,
                 delay = 1.minutes
