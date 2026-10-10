@@ -26,15 +26,37 @@ private val logger = KotlinLogging.logger {}
  *
  * The CSV is then consumed by [CreatePuzzlesFromCsv] to create the actual puzzles.
  */
-object FindMatePuzzleCandidates : KoinScriptInit() {
+object FindMatePuzzleCandidates : KoinScript() {
 
     private const val DEPTH = 30
     private const val MAX_MATE = 5
     private const val TIME_OUT = 60_000L
     private const val OUTPUT_FILE_NAME = "mate_puzzle_candidates.csv"
 
+    private const val PROFILE = "local-backup"
+    private const val ENGINE_THREADS = 48
+
     private val dslContext by inject<DSLContext>()
     private val enginesPool by inject<EnginePool>()
+
+    init {
+        val enginePool = EnginePool(
+            configMap = mapOf(
+                PikafishEngineId to EngineConfig(
+                    version = "2023-03-05",
+                    poolSize = 1,
+                    numberOfThreads = ENGINE_THREADS
+                )
+            ),
+            executor = Executors.newVirtualThreadPerTaskExecutor(),
+            engineProcessLocator = LocalProcessLocator,
+        )
+
+        initKoin(
+            appProfile = PROFILE,
+            enginesPool = enginePool
+        )
+    }
 
     private suspend fun fetchReferenceGamesWithoutPuzzle(): List<ReferenceGame> =
         dslContext
