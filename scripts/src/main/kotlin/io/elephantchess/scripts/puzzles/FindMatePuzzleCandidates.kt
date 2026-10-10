@@ -35,7 +35,7 @@ object FindMatePuzzleCandidates : KoinScript {
 
     private const val DEPTH = 30
     private const val MAX_MATE = 5
-    private const val TIME_OUT = 60_000L
+    private const val TIME_OUT = 180_000L
     private const val OUTPUT_FILE_NAME = "mate_puzzle_candidates.csv"
 
     private const val PROFILE = "local-backup"
