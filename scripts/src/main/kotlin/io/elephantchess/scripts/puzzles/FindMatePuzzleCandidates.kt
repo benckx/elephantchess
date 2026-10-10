@@ -165,19 +165,24 @@ object FindMatePuzzleCandidates : KoinScript {
         logger.info { "checking ${games.size} reference games without puzzles" }
 
         var found = 0
+        val total = games.size
+        val startedAt = System.currentTimeMillis()
         File(OUTPUT_FILE_NAME).printWriter().use { writer ->
             writer.println(MatePuzzleCandidate.CSV_HEADER)
 
             games.forEachIndexed { index, game ->
                 val finalFen = game.finalFen ?: return@forEachIndexed
-                logger.info { "[${index + 1}/${games.size}] evaluating ${game.id}" }
+                val done = index + 1
+                val percent = done * 100.0 / total
+                val eta = formatEta(startedAt, done, total)
+                logger.info { "[$done/$total] (${"%.1f".format(percent)}%, ETA $eta) evaluating ${game.id}" }
                 try {
                     val candidate = evaluate(game, finalFen)
                     if (candidate != null) {
                         writer.println(candidate.toCsvLine())
                         writer.flush()
                         found++
-                        logger.info { "[${index + 1}/${games.size}] ${game.id}: mate in ${candidate.mate} -> candidate (total found: $found)" }
+                        logger.info { "[$done/$total] ${game.id}: mate in ${candidate.mate} -> candidate (total found: $found)" }
                     }
                 } catch (e: Exception) {
                     logger.warn { "could not evaluate ${game.id} due to ${e::class.simpleName}: ${e.message}" }
@@ -186,6 +191,16 @@ object FindMatePuzzleCandidates : KoinScript {
         }
 
         logger.info { "found $found mate puzzle candidates, written to $OUTPUT_FILE_NAME" }
+    }
+
+    private fun formatEta(startedAt: Long, done: Int, total: Int): String {
+        if (done <= 0) return "unknown"
+        val elapsed = System.currentTimeMillis() - startedAt
+        val remainingMs = (elapsed.toDouble() / done * (total - done)).toLong()
+        val seconds = remainingMs / 1000 % 60
+        val minutes = remainingMs / 1000 / 60 % 60
+        val hours = remainingMs / 1000 / 60 / 60
+        return "%02d:%02d:%02d".format(hours, minutes, seconds)
     }
 
 }
