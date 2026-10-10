@@ -176,6 +176,27 @@ private fun Route.userSettingsRoutes() {
                 userService.deleteAllUserSessions(verifiedToken.userId)
             }
         }
+        get("/views") {
+            requireAuthentication { verifiedToken ->
+                val limit =
+                    call.request.queryParameters["limit"]
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(1)
+                        ?: 10
+                val offset =
+                    call.request.queryParameters["offset"]
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(0)
+                        ?: 0
+
+                userService.fetchUserPageViews(verifiedToken.userId, limit, offset)
+            }
+        }
+        post("/views/archive-now") {
+            requireAuthentication { verifiedToken ->
+                userService.archiveUserPageViews(verifiedToken.userId)
+            }
+        }
     }
 }
 

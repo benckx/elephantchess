@@ -22,8 +22,6 @@ class ArchiveOldGuestsBatch(
     override val logger: KLogger,
 ) : SinglePodBatch {
 
-    override val podNumber: Int = 1
-
     override suspend fun run() {
         val guestIds = archivedGuestDaoService.selectArchivableGuestIds(
             maxAge = ARCHIVE_GUEST_AFTER_DAYS.days,

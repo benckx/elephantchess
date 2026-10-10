@@ -8,6 +8,7 @@ import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.NotificationsSettingsDto
 import io.elephantchess.servicelayer.services.UserService
+import io.elephantchess.servicelayer.services.analytics.ARCHIVE_PAGE_VIEW_AFTER_DAYS
 import kotlinx.html.checkBoxInput
 import kotlinx.html.div
 import kotlinx.html.id
@@ -34,6 +35,7 @@ class UserSettingsPageRenderer(
                 SimpleValueTagResolver("profile_country", escapeHtmlAttr(profile.country)),
                 SimpleValueTagResolver("show_pvp_games_checked", if (profile.showPvpGamesOnProfile) "checked" else ""),
                 SimpleValueTagResolver("show_pvb_games_checked", if (profile.showPvbGamesOnProfile) "checked" else ""),
+                SimpleValueTagResolver("page_views_retention_days", ARCHIVE_PAGE_VIEW_AFTER_DAYS.toString()),
                 notificationsTableTagResolver(notifications),
             )
         )

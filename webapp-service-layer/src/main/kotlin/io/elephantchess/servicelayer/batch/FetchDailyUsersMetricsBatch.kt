@@ -20,7 +20,6 @@ class FetchDailyUsersMetricsBatch(
     override val logger: KLogger,
 ) : SinglePodBatch {
 
-    override val podNumber: Int = 0
     private val excludedIds = appConfig.excludedFromAnalytics
 
     override suspend fun run() {
