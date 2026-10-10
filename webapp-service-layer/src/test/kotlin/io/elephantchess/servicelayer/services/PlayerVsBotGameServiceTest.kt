@@ -26,6 +26,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     private val pvbGameDaoService by inject<PlayerVsBotGameDaoService>()
     private val openingRepositoryDaoService by inject<OpeningRepositoryCacheDaoService>()
     private val userCache by inject<UserCache>()
+    private val exceptionService by inject<ExceptionService>()
     private val appConfig by inject<AppConfig>()
     private val refresherScope by inject<CoroutineScope>()
     private val mockEnginePool = mock<EnginePool>()
@@ -37,6 +38,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             pvbGameDaoService = pvbGameDaoService,
             openingRepositoryDaoService = openingRepositoryDaoService,
             userCache = userCache,
+            exceptionService = exceptionService,
             appConfig = appConfig,
             refresherScope = refresherScope,
             logger = logger,
