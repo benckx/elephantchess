@@ -218,8 +218,7 @@ object FindMatePuzzleCandidates : KoinScript {
 
         val lastCandidate = outputFile.useLines { lines ->
             lines
-                .filter { line -> line.isNotBlank() && line != MatePuzzleCandidate.CSV_HEADER }
-                .lastOrNull()
+                .lastOrNull { line -> line.isNotBlank() && line != MatePuzzleCandidate.CSV_HEADER }
                 ?.let { line -> runCatching { MatePuzzleCandidate.fromCsvLine(line) }.getOrNull() }
         } ?: return 0
 
