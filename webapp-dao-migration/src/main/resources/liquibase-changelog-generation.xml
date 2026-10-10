@@ -2591,4 +2591,13 @@
             <column name="disabled_at" type="datetime"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0116" author="benckx">
+        <comment>
+            Date a puzzle was inserted. Existing puzzles are backfilled with 2023-03-25, the day the initial
+            batch of ~18,000 puzzles was uploaded (see changelog.html).
+        </comment>
+        <addColumn tableName="puzzle">
+            <column name="created_at" type="datetime"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
