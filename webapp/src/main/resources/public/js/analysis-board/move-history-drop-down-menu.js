@@ -25,8 +25,9 @@ class MoveHistoryDropDownMenuWidget extends DropDownMenu {
      * @param moveTreeWidget {MoveTreeWidget}
      * @param getCurrentStartFenCb {function(): string}
      * @param selectedFenCb {function(string)} callback to be called when a fen is selected
+     * @param afterImportCallback {function|null} optional callback invoked after a successful import
      */
-    constructor(id, boardGui, moveTreeWidget, getCurrentStartFenCb, selectedFenCb) {
+    constructor(id, boardGui, moveTreeWidget, getCurrentStartFenCb, selectedFenCb, afterImportCallback = null) {
         super(id);
 
         const parentDivId = 'move-history-drop-down-menu-3-dots-button';
@@ -47,7 +48,7 @@ class MoveHistoryDropDownMenuWidget extends DropDownMenu {
         // callbacks
         this.addSimpleItem('Import moves', () => {
             UI.showModalByName(Modals.IMPORT_MOVES, () => {
-                new ImportMovesHandler(boardGui, moveTreeWidget);
+                new ImportMovesHandler(boardGui, moveTreeWidget, afterImportCallback);
             });
         });
 
