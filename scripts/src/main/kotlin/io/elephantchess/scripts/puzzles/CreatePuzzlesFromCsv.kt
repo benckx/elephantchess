@@ -1,11 +1,9 @@
 package io.elephantchess.scripts.puzzles
 
-import io.elephantchess.db.dao.codegen.Tables.PUZZLE
 import io.elephantchess.db.dao.codegen.tables.pojos.Puzzle
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleCategoryTag
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleHalfMove
 import io.elephantchess.db.services.PuzzleDaoService
-import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.generateId
 import io.elephantchess.model.Engine
 import io.elephantchess.model.PuzzleAlgo
@@ -14,7 +12,6 @@ import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.xiangqi.Board
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
 import java.time.LocalDateTime
@@ -40,15 +37,7 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
     // mirrors the existing puzzles: MATE_IN_1 -> 400, MATE_IN_2 -> 800, ...
     private const val RATING_PER_MATE = 400
 
-    private val dslContext by inject<DSLContext>()
     private val puzzleDaoService by inject<PuzzleDaoService>()
-
-    private suspend fun fetchUsedReferenceGameSourceIds(): Set<String> =
-        dslContext
-            .select(PUZZLE.REF_GAME_SOURCE_ID)
-            .from(PUZZLE)
-            .awaitMappedRecords<String>()
-            .toSet()
 
     /**
      * Creates the full-length puzzle plus every shorter shortened variant for a candidate.
@@ -86,26 +75,26 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
             val puzzleId = generateId(PUZZLE_ID_SIZE)
             val rating = length * RATING_PER_MATE
 
-            val puzzle = Puzzle(
-                puzzleId,
-                candidate.refGameSource,
-                candidate.refGameSourceId,
-                algorithm,
-                Engine.PIKAFISH,
-                null,
-                candidate.playerColor,
-                startFen,
-                rating,
-                rating,
-                null,
-                LocalDateTime.now()
-            )
+            val puzzle = Puzzle().apply {
+                id = puzzleId
+                refGameSource = candidate.refGameSource
+                refGameSourceId = candidate.refGameSourceId
+                this.algorithm = algorithm
+                engine = Engine.PIKAFISH
+                dataset = INPUT_FILE_NAME
+                playerColor = candidate.playerColor
+                this.startFen = startFen
+                initialRating = rating
+                this.rating = rating
+                disabledAt = null
+                createdAt = LocalDateTime.now()
+            }
 
             val halfMoves =
                 revealedMoves.mapIndexed { position, uci -> PuzzleHalfMove(puzzleId, position, uci, false) } +
-                    solutionMoves.mapIndexed { index, uci ->
-                        PuzzleHalfMove(puzzleId, revealedPlies + index, uci, true)
-                    }
+                        solutionMoves.mapIndexed { index, uci ->
+                            PuzzleHalfMove(puzzleId, revealedPlies + index, uci, true)
+                        }
 
             val categories = listOf(
                 PuzzleCategoryTag(puzzleId, PuzzleCategory.findMateInN(length))
@@ -127,7 +116,6 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
             return@runBlocking
         }
 
-        val usedSourceIds = fetchUsedReferenceGameSourceIds()
         val candidates = inputFile
             .readLines()
             .drop(1)
@@ -138,11 +126,7 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
 
         var created = 0
         candidates.forEach { candidate ->
-            if (candidate.refGameSourceId in usedSourceIds) {
-                logger.info { "skipping ${candidate.refGameSourceId}: already has a puzzle" }
-            } else {
-                created += createPuzzles(candidate)
-            }
+            created += createPuzzles(candidate)
         }
 
         logger.info { "created $created puzzles" }
