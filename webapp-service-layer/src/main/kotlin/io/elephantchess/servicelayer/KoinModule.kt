@@ -11,7 +11,8 @@ import io.elephantchess.engines.process.FairyStockfishEngineId
 import io.elephantchess.engines.process.PikafishEngineId
 import io.elephantchess.engines.protocol.commands.LocalProcessLocator
 import io.elephantchess.servicelayer.batch.*
-import io.elephantchess.servicelayer.batch.definitions.BatchSchedule
+import io.elephantchess.servicelayer.batch.definitions.ShardedBatchSchedule
+import io.elephantchess.servicelayer.batch.definitions.SinglePodBatchSchedule
 import io.elephantchess.servicelayer.services.MailTemplateRender
 import io.elephantchess.servicelayer.services.resolvers.ContactLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.MailFragmentResolver
@@ -38,14 +39,23 @@ fun serviceLayerModule(
     enginesPool: EnginePool? = null,
 ) = module {
     val appConfig = loadAppConfig(argConfig)
-
     single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     single { appConfig }
     single { appConfig.dbConfig }
     single { dslBuilder(get()) }
     single { enginesPool ?: buildDefaultEnginePool(get()) }
 
-    // emails: custom wiring that can't be auto-resolved from the constructor alone
+    // all services, DAOs, clients and batches annotated with @KoinSingleton
+    registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
+
+    includes(
+        mailTemplateRenderModule(),
+        batchSchedulesModule()
+    )
+}
+
+// emails: custom wiring that can't be auto-resolved from the constructor alone
+private fun mailTemplateRenderModule() = module {
     single {
         val config = get<AppConfig>()
         MailTemplateRender(
@@ -56,27 +66,83 @@ fun serviceLayerModule(
             )
         )
     }
+}
 
-    // batch schedule, built from the @Inject-registered batches
+private fun batchSchedulesModule() = module {
     single {
         listOf(
-            BatchSchedule(get<PreAnalysisCleanUpBatch>(), period = 6.hours),
-            BatchSchedule(get<FetchUserSessionGeographicDataBatch>(), period = 15.minutes),
-            BatchSchedule(get<FlagGamesBatch>(), period = 5.seconds, delay = 10.seconds),
-            BatchSchedule(get<AutoCancelCreatedGamesFromOfflineUsersBatch>(), period = 15.minutes, delay = 2.minutes),
-            BatchSchedule(get<AutoResignIdleBotGamesBatch>(), period = 15.minutes, delay = 4.minutes),
-            BatchSchedule(get<FetchMinutesUsersMetricsBatch>(), period = 5.minutes, delay = 5.seconds),
-            BatchSchedule(get<FetchDailyUsersMetricsBatch>(), period = 6.hours, delay = 15.minutes),
-            BatchSchedule(get<ArchiveOldGuestsBatch>(), period = 6.hours, delay = 30.minutes),
-            BatchSchedule(get<SendOutNewslettersBatch>(), period = 5.minutes, delay = 3.minutes),
-            BatchSchedule(get<CheckEmailListVerifyCreditBatch>(), period = 48.hours, delay = 30.seconds),
-            BatchSchedule(get<VerifyEmailsBatch>(), period = 48.hours, delay = 12.hours),
-            BatchSchedule(get<BackgroundGameAnalysisBatch>(), period = 5.minutes, delay = 1.minutes),
+            ShardedBatchSchedule(
+                get<PreAnalysisCleanUpBatch>(),
+                period = 6.hours
+            ),
+            ShardedBatchSchedule(
+                get<FetchUserSessionGeographicDataBatch>(),
+                period = 15.minutes
+            ),
+            ShardedBatchSchedule(
+                get<FlagGamesBatch>(),
+                period = 5.seconds,
+                delay = 10.seconds
+            ),
+            ShardedBatchSchedule(
+                get<AutoCancelCreatedGamesFromOfflineUsersBatch>(),
+                period = 15.minutes,
+                delay = 2.minutes
+            ),
+            ShardedBatchSchedule(
+                get<AutoResignIdleBotGamesBatch>(),
+                period = 15.minutes,
+                delay = 4.minutes
+            ),
+            ShardedBatchSchedule(
+                get<BackgroundGameAnalysisBatch>(),
+                period = 5.minutes,
+                delay = 1.minutes
+            ),
+            SinglePodBatchSchedule(
+                get<FetchMinutesUsersMetricsBatch>(),
+                period = 5.minutes,
+                delay = 5.seconds,
+                podNumber = 0
+            ),
+            SinglePodBatchSchedule(
+                get<FetchDailyUsersMetricsBatch>(),
+                period = 6.hours,
+                delay = 15.minutes,
+                podNumber = 0
+            ),
+            SinglePodBatchSchedule(
+                get<ArchiveOldGuestsBatch>(),
+                period = 6.hours,
+                delay = 30.minutes,
+                podNumber = 1
+            ),
+            SinglePodBatchSchedule(
+                get<ArchiveOldPageViewsBatch>(),
+                period = 6.hours,
+                delay = 45.minutes,
+                podNumber = 0
+            ),
+            SinglePodBatchSchedule(
+                get<SendOutNewslettersBatch>(),
+                period = 5.minutes,
+                delay = 3.minutes,
+                podNumber = 0
+            ),
+            SinglePodBatchSchedule(
+                get<CheckEmailListVerifyCreditBatch>(),
+                period = 48.hours,
+                delay = 30.seconds,
+                podNumber = 1
+            ),
+            SinglePodBatchSchedule(
+                get<VerifyEmailsBatch>(),
+                period = 48.hours,
+                delay = 12.hours,
+                podNumber = 1
+            ),
         )
     }
-
-    // all services, DAOs, clients and batches annotated with @KoinSingleton
-    registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
 }
 
 private fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
