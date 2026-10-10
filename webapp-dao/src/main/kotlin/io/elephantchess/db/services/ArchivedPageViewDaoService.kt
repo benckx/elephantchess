@@ -29,11 +29,10 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
      * the (indexed) age scan is not repeated for every chunk; see ArchiveOldPageViewsBatch.
      */
     suspend fun selectOldPageViewEventIds(maxAge: Duration, limit: Int): List<String> {
-        val cutoff = Clock.System.now() - maxAge
         return dslContext
             .select(PAGE_VIEW_EVENT.EVENT_ID)
             .from(PAGE_VIEW_EVENT)
-            .where(PAGE_VIEW_EVENT.EVENT_TIME.isBefore(cutoff))
+            .where(PAGE_VIEW_EVENT.EVENT_TIME.isOlderThan(maxAge))
             .limit(limit)
             .awaitRecords()
             .map { it.get(PAGE_VIEW_EVENT.EVENT_ID) }
