@@ -75,7 +75,9 @@ object FindMatePuzzleCandidates : KoinScript {
             .and(REFERENCE_GAME.IS_STALEMATE.ne(true).or(REFERENCE_GAME.IS_STALEMATE.isNull))
             .and(
                 REFERENCE_GAME.SOURCE_ID.notIn(
-                    dslContext.select(PUZZLE.REF_GAME_SOURCE_ID).from(PUZZLE)
+                    dslContext
+                        .select(PUZZLE.REF_GAME_SOURCE_ID)
+                        .from(PUZZLE)
                 )
             )
             .awaitMappedRecords<ReferenceGame>()
