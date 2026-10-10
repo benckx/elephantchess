@@ -5,8 +5,12 @@ import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGame
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.engines.EnginePool
+import io.elephantchess.engines.process.EngineConfig
 import io.elephantchess.engines.process.PikafishEngineId
-import io.elephantchess.scripts.KoinScriptInit
+import io.elephantchess.engines.protocol.commands.LocalProcessLocator
+import io.elephantchess.scripts.KoinScript
+import io.elephantchess.scripts.puzzles.FindMatePuzzleCandidates.MAX_MATE
+import io.elephantchess.scripts.puzzles.FindMatePuzzleCandidates.OUTPUT_FILE_NAME
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.xiangqi.Board
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -14,6 +18,7 @@ import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
+import java.util.concurrent.Executors
 
 private val logger = KotlinLogging.logger {}
 
@@ -26,15 +31,38 @@ private val logger = KotlinLogging.logger {}
  *
  * The CSV is then consumed by [CreatePuzzlesFromCsv] to create the actual puzzles.
  */
-object FindMatePuzzleCandidates : KoinScriptInit() {
+object FindMatePuzzleCandidates : KoinScript {
 
-    private const val DEPTH = 30
-    private const val MAX_MATE = 5
-    private const val TIME_OUT = 60_000L
+    private const val DEPTH = 22
+    private const val MAX_MATE = 6
+    private const val MIN_LEGAL_MOVES = 2
+    private const val TIME_OUT = 180_000L
     private const val OUTPUT_FILE_NAME = "mate_puzzle_candidates.csv"
+
+    private const val PROFILE = "local-backup"
+    private const val ENGINE_THREADS = 48
 
     private val dslContext by inject<DSLContext>()
     private val enginesPool by inject<EnginePool>()
+
+    init {
+        val enginePool = EnginePool(
+            configMap = mapOf(
+                PikafishEngineId to EngineConfig(
+                    version = "2023-03-05",
+                    poolSize = 1,
+                    numberOfThreads = ENGINE_THREADS
+                )
+            ),
+            executor = Executors.newVirtualThreadPerTaskExecutor(),
+            engineProcessLocator = LocalProcessLocator,
+        )
+
+        initKoin(
+            appProfile = PROFILE,
+            enginesPool = enginePool
+        )
+    }
 
     private suspend fun fetchReferenceGamesWithoutPuzzle(): List<ReferenceGame> =
         dslContext
@@ -53,32 +81,46 @@ object FindMatePuzzleCandidates : KoinScriptInit() {
             .awaitMappedRecords<ReferenceGame>()
 
     private suspend fun evaluate(game: ReferenceGame, finalFen: String): MatePuzzleCandidate? {
+        logger.info { "evaluating ${game.id} (fen=$finalFen)" }
+
         val board = Board(finalFen)
         val playerColor = board.colorToPlay()
         if (board.isCheckmated() || board.isStalemated(playerColor)) {
+            logger.info { "${game.id}: final position is already checkmate/stalemate, skipping" }
             return null
         }
 
+        logger.info { "${game.id}: querying engine at depth $DEPTH ($playerColor to play)" }
         val result = enginesPool.safeQueryForDepth(
             fen = finalFen,
             engineId = PikafishEngineId,
             depth = DEPTH,
             timeout = TIME_OUT
-        ) ?: return null
+        )
+        if (result == null) {
+            logger.info { "${game.id}: engine returned no result (timeout or acquisition failure), skipping" }
+            return null
+        }
 
         val mateLine = result.infoLines
             .filter { line -> line.mate != null }
             .maxByOrNull { line -> line.depth ?: 0 }
-            ?: return null
+        if (mateLine == null) {
+            logger.info { "${game.id}: no forced mate found by engine, skipping" }
+            return null
+        }
 
         // a positive mate means the side to move delivers the mate
         val mate = mateLine.mate ?: return null
         if (mate <= 0 || mate > MAX_MATE) {
+            logger.info { "${game.id}: mate in $mate out of accepted range (1..$MAX_MATE), skipping" }
             return null
         }
+        logger.info { "${game.id}: engine reports mate in $mate at depth ${mateLine.depth}" }
 
         val solutionMoves = mateLine.pv
         if (solutionMoves.isEmpty()) {
+            logger.info { "${game.id}: engine mate line has no principal variation, skipping" }
             return null
         }
 
@@ -89,6 +131,20 @@ object FindMatePuzzleCandidates : KoinScriptInit() {
             logger.warn { "engine line for ${game.id} does not end in checkmate, skipping" }
             return null
         }
+        logger.info { "${game.id}: engine line verified to end in checkmate (${solutionMoves.size} plies)" }
+
+        // apply the same solvability rule as DisablePuzzlesWithoutEnoughMoves: the player must have
+        // at least MIN_LEGAL_MOVES legal moves at every one of their turns
+        if (!PuzzleSolvabilityValidator.hasEnoughMovesAtEachPlayerStep(
+                startFen = finalFen,
+                solutionMoves = solutionMoves,
+                minLegalMoves = MIN_LEGAL_MOVES,
+            )
+        ) {
+            logger.info { "candidate for ${game.id} is too constrained (< $MIN_LEGAL_MOVES moves at some step), skipping" }
+            return null
+        }
+        logger.info { "${game.id}: passed solvability check, accepting as candidate" }
 
         return MatePuzzleCandidate(
             refGameSource = game.source,
@@ -112,13 +168,14 @@ object FindMatePuzzleCandidates : KoinScriptInit() {
 
             games.forEachIndexed { index, game ->
                 val finalFen = game.finalFen ?: return@forEachIndexed
+                logger.info { "[${index + 1}/${games.size}] evaluating ${game.id}" }
                 try {
                     val candidate = evaluate(game, finalFen)
                     if (candidate != null) {
                         writer.println(candidate.toCsvLine())
                         writer.flush()
                         found++
-                        logger.info { "[${index + 1}/${games.size}] ${game.id}: mate in ${candidate.mate}" }
+                        logger.info { "[${index + 1}/${games.size}] ${game.id}: mate in ${candidate.mate} -> candidate (total found: $found)" }
                     }
                 } catch (e: Exception) {
                     logger.warn { "could not evaluate ${game.id} due to ${e::class.simpleName}: ${e.message}" }
