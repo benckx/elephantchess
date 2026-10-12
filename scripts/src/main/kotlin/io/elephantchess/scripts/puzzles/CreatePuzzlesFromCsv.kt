@@ -90,11 +90,18 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
                 createdAt = LocalDateTime.now()
             }
 
+            val revealedMovesRecords = revealedMoves
+                .mapIndexed { position, uci ->
+                    PuzzleHalfMove(puzzleId, position, uci, false)
+                }
+
+            val solutionMovesRecords = solutionMoves
+                .mapIndexed { index, uci ->
+                    PuzzleHalfMove(puzzleId, revealedPlies + index, uci, true)
+                }
+
             val halfMoves =
-                revealedMoves.mapIndexed { position, uci -> PuzzleHalfMove(puzzleId, position, uci, false) } +
-                        solutionMoves.mapIndexed { index, uci ->
-                            PuzzleHalfMove(puzzleId, revealedPlies + index, uci, true)
-                        }
+                revealedMovesRecords + solutionMovesRecords
 
             val categories = listOf(
                 PuzzleCategoryTag(puzzleId, PuzzleCategory.findMateInN(length))
