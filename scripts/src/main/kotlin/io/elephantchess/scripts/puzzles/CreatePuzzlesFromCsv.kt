@@ -7,6 +7,8 @@ import io.elephantchess.db.services.PuzzleDaoService
 import io.elephantchess.db.utils.generateId
 import io.elephantchess.model.Engine
 import io.elephantchess.model.PuzzleAlgo
+import io.elephantchess.model.PuzzleAlgo.FIND_PATH_TO_MATE
+import io.elephantchess.model.PuzzleAlgo.FIND_PATH_TO_MATE_SHORTENED
 import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.xiangqi.Board
@@ -32,7 +34,6 @@ private val logger = KotlinLogging.logger {}
 object CreatePuzzlesFromCsv : KoinScriptInit() {
 
     private const val INPUT_FILE_NAME = "mate_puzzle_candidates.csv"
-    private const val PUZZLE_ID_SIZE = 8
 
     // mirrors the existing puzzles: MATE_IN_1 -> 400, MATE_IN_2 -> 800, ...
     private const val RATING_PER_MATE = 400
@@ -70,9 +71,8 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
             revealedMoves.forEach { move -> board.registerMove(move) }
             val startFen = board.outputFen()
 
-            val algorithm =
-                if (length == mate) PuzzleAlgo.FIND_PATH_TO_MATE else PuzzleAlgo.FIND_PATH_TO_MATE_SHORTENED
-            val puzzleId = generateId(PUZZLE_ID_SIZE)
+            val algorithm = if (length == mate) FIND_PATH_TO_MATE else FIND_PATH_TO_MATE_SHORTENED
+            val puzzleId = generateId()
             val rating = length * RATING_PER_MATE
 
             val puzzle = Puzzle().apply {
