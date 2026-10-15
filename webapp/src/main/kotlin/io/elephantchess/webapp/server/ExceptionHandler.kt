@@ -37,6 +37,30 @@ private val MUTED_URI_PATTERNS: List<String> by lazy {
         .map { it.lowercase() }
 }
 
+/**
+ * Checks if an exception is caused by the client disconnecting,
+ * these exceptions should be logged at debug level and not trigger error responses.
+ */
+internal fun isClientDisconnectException(t: Throwable): Boolean {
+    var current: Throwable? = t
+    while (current != null) {
+        if (current is ClosedChannelException ||
+            current is ClosedByteChannelException ||
+            current is CancellationException ||
+            current is IOException && current.message?.contains("Broken pipe") == true ||
+            current is IOException && current.message?.contains("Connection reset") == true ||
+            current is UnsupportedOperationException && current.message?.contains("response was already completed") == true ||
+            // Ktor Netty throws this when the client closes the connection during a WebSocket upgrade
+            // (e.g. page left right after load, often headless scrapers), as the channel pipeline is already gone
+            current is NullPointerException && current.message?.contains("RequestBodyHandler.upgrade()") == true
+        ) {
+            return true
+        }
+        current = current.cause
+    }
+    return false
+}
+
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}
     val exceptionService by koin<ExceptionService>()
@@ -130,25 +154,6 @@ fun Application.exceptionHandler() {
             call.respond(BadRequest, ValidationErrorsResponse("Bad Request: Content Transformation"))
         }
         exception<Throwable> { _, t ->
-            // checks if an exception is caused by the client disconnecting,
-            // these exceptions should be logged at debug level and not trigger error responses.
-            fun isClientDisconnectException(t: Throwable): Boolean {
-                var current: Throwable? = t
-                while (current != null) {
-                    if (current is ClosedChannelException ||
-                        current is ClosedByteChannelException ||
-                        current is CancellationException ||
-                        current is IOException && current.message?.contains("Broken pipe") == true ||
-                        current is IOException && current.message?.contains("Connection reset") == true ||
-                        current is UnsupportedOperationException && current.message?.contains("response was already completed") == true
-                    ) {
-                        return true
-                    }
-                    current = current.cause
-                }
-                return false
-            }
-
             // unlikely to reach here for client disconnects due to the specific handlers
             if (isClientDisconnectException(t)) {
                 logger.debug { "Client disconnected during request: ${t.message}" }
