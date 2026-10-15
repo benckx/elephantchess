@@ -22,10 +22,8 @@ val publishableModules = listOf(
     "csv-dump-parser",
 )
 
+// buildscript classpath resolves from settings.pluginManagement.repositories (which include mavenCentral)
 buildscript {
-    repositories {
-        mavenCentral()
-    }
     dependencies {
         classpath(libs.jooq.codegen)
         classpath(libs.h2)
