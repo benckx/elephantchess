@@ -1,10 +1,39 @@
-User-agent: MJ12bot
-Disallow: /
+# Allow-list: only search engines, AI assistants and link-preview bots may crawl.
+# Everything else (SEO/backlink crawlers like MJ12bot, DotBot, AhrefsBot, SemrushBot...) is disallowed.
+# DuckDuckGo, Ecosia, Yahoo and Qwant results are largely powered by Bing and Google.
 
-User-agent: DotBot
-Disallow: /
+# Search engines
+User-agent: Googlebot
+User-agent: Google-InspectionTool
+User-agent: Bingbot
+User-agent: DuckDuckBot
+User-agent: Applebot
+User-agent: Qwantbot
+User-agent: Yandex
+User-agent: Baiduspider
+User-agent: Sogou
+User-agent: coccocbot
+# AI assistants / AI search
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: PerplexityBot
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: Amazonbot
+# Link previews
+User-agent: facebookexternalhit
+User-agent: Facebot
+User-agent: Twitterbot
+User-agent: LinkedInBot
+User-agent: Discordbot
+User-agent: Slackbot
+User-agent: TelegramBot
+User-agent: WhatsApp
+Allow: /
 
 User-agent: *
-Allow: /
+Disallow: /
 
 Sitemap: https://elephantchess.io/sitemap.xml
