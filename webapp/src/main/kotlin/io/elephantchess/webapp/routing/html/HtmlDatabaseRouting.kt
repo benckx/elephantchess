@@ -109,13 +109,20 @@ internal fun Routing.databasePages() {
         val round = call.request.queryParameters["round"]?.toIntOrNull()
 
         val eventName = databaseService.fetchEventName(eventId)
-            ?: throw NotFoundException("Event $eventId not found")
+        if (eventName == null) {
+            call.respondHtml(simplePageRenderer.renderTemplate("404"), HttpStatusCode.NotFound)
+            return@get
+        }
 
         call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, eventName, round))
     }
     get("/database/game") {
         val gameId = call.parameters["id"] ?: throw BadRequestException("id query parameter not provided")
-        val summary = databaseService.fetchGameSummary(gameId) ?: throw NotFoundException("Game $gameId not found")
+        val summary = databaseService.fetchGameSummary(gameId)
+        if (summary == null) {
+            call.respondHtml(simplePageRenderer.renderTemplate("404"), HttpStatusCode.NotFound)
+            return@get
+        }
         val orientation = call.request.queryParameters["orientation"]
         call.respondHtml(databasePageRenderer.renderGamePage(summary, orientation))
     }
