@@ -132,7 +132,10 @@ private suspend fun RoutingContext.resolveDatabasePlayer(render: suspend (Databa
     val databasePlayer = databaseService.resolvePlayerByName(playerName)
     if (databasePlayer == null) {
         // player not found, render 404 page
-        call.respondHtml(simplePageRenderer.renderTemplate("404"))
+        call.respondHtml(
+            simplePageRenderer.renderTemplate("404"),
+            HttpStatusCode.NotFound
+        )
     } else if (databasePlayer.urlName != playerName.replace(" ", "_")) {
         // reconstruct the correct URL path by replacing the playerName segment
         val originalPath = call.request.path()
