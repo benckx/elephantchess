@@ -77,6 +77,18 @@ fun Application.exceptionHandler() {
         }
     }
 
+    // Generic 500 response for unexpected exceptions: the HTML error page for browsers, a JSON error payload
+    // otherwise. Never exposes the exception message to the client.
+    suspend fun ApplicationCall.respondServerError() {
+        if (response.isCommitted) return
+        val acceptsHtml = request.acceptItems().any { it.value == Html.toString() }
+        if (acceptsHtml) {
+            respond(TextContent(simplePageRenderer.renderTemplate("500"), Html, InternalServerError))
+        } else {
+            respond(InternalServerError, ValidationErrorsResponse("Server error"))
+        }
+    }
+
     install(StatusPages) {
         // handle 404 Not Found - log unmapped URIs
         status(HttpStatusCode.NotFound) { call, _ ->
@@ -153,13 +165,14 @@ fun Application.exceptionHandler() {
             exceptionService.saveException(e, BadRequest.value)
             call.respond(BadRequest, ValidationErrorsResponse("Bad Request: Content Transformation"))
         }
-        exception<Throwable> { _, t ->
+        exception<Throwable> { call, t ->
             // unlikely to reach here for client disconnects due to the specific handlers
             if (isClientDisconnectException(t)) {
                 logger.debug { "Client disconnected during request: ${t.message}" }
             } else {
                 logger.error(t) { t.toString() }
                 exceptionService.saveException(t, InternalServerError.value)
+                call.respondServerError()
             }
         }
     }
