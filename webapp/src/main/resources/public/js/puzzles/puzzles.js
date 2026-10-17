@@ -58,12 +58,12 @@ class PuzzlesPage extends BasePage {
     /**
      * In memory only (reset on page reload)
      */
-    #skipConfirmationDisabled = false;
+    #skipConfirmationEnabled = true;
 
     /**
      * In memory only (reset on page reload)
      */
-    #revealConfirmationDisabled = false;
+    #revealConfirmationEnabled = true;
 
     #nextPuzzleButton = document.getElementById('next-puzzle-button');
     #nextPuzzleButtonLabel = document.getElementById('next-puzzle-button-label');
@@ -384,14 +384,14 @@ class PuzzlesPage extends BasePage {
         if (this.#puzzleState == null) {
             return;
         }
-        if (this.#puzzleState.hasOutcome() || this.#skipConfirmationDisabled) {
+        if (this.#puzzleState.hasOutcome() || !this.#skipConfirmationEnabled) {
             this.#puzzlesController.skip();
         } else {
             this.#showRatingLossConfirmationModal(
                 'Skipping this puzzle counts as a failed attempt: you will lose Elo rating points. ' +
                 'Are you sure you want to skip it?',
                 'skip',
-                () => this.#skipConfirmationDisabled = true,
+                () => this.#skipConfirmationEnabled = false,
                 () => this.#puzzlesController.skip()
             );
         }
@@ -401,14 +401,14 @@ class PuzzlesPage extends BasePage {
         if (this.#puzzleState == null) {
             return;
         }
-        if (this.#puzzleState.hasOutcome() || this.#revealConfirmationDisabled) {
+        if (this.#puzzleState.hasOutcome() || !this.#revealConfirmationEnabled) {
             this.#revealSolution();
         } else {
             this.#showRatingLossConfirmationModal(
                 'Revealing the solution counts as a failed attempt: you will lose Elo rating points. ' +
                 'Are you sure you want to reveal it?',
                 'reveal',
-                () => this.#revealConfirmationDisabled = true,
+                () => this.#revealConfirmationEnabled = false,
                 () => this.#revealSolution()
             );
         }
