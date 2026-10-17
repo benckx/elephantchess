@@ -75,6 +75,7 @@ ktor-server-default-headers = { module = "io.ktor:ktor-server-default-headers", 
 ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder", version.ref = "ktor" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4jCore" }
