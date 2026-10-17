@@ -55,7 +55,13 @@ class PuzzlesPage extends BasePage {
     #debugMode = false;
     #newRatingToShow = null;
 
-    #skipPuzzleButton = document.getElementById('skip-puzzle-button');
+    /**
+     * In memory only (reset on page reload)
+     */
+    #skipConfirmationDisabled = false;
+
+    #nextPuzzleButton = document.getElementById('next-puzzle-button');
+    #nextPuzzleButtonLabel = document.getElementById('next-puzzle-button-label');
     #revealSolutionButton = document.getElementById('reveal-solution-button');
 
     #puzzleIdLabel = document.getElementById('puzzle-id');
@@ -127,7 +133,7 @@ class PuzzlesPage extends BasePage {
         new SettingsGui(this.#boardGui, this.#moveTreeWidget);
 
         // add listeners
-        this.#skipPuzzleButton.addEventListener('click', () => this.#puzzlesController.skip());
+        this.#nextPuzzleButton.addEventListener('click', () => this.#handleNextPuzzleButtonClicked());
         this.#revealSolutionButton.addEventListener('click', (e) => {
             if (isInfoBoxButtonEnabled(e)) {
                 this.#revealSolution();
@@ -192,6 +198,7 @@ class PuzzlesPage extends BasePage {
         }
 
         setInfoBoxButtonEnabled(this.#revealSolutionButton, true);
+        this.#renderNextPuzzleButtonAsSkipPuzzle();
         this.#displayVoteButtons(false);
 
         // update rating
@@ -291,6 +298,7 @@ class PuzzlesPage extends BasePage {
         this.#renderNextOpponentMove(submittedMove, nextOpponentMove);
         this.#moveTreeWidget.renderSubmittedMovesAsErroneous();
         this.#showFeedbackBox(FeedbackBoxes.MATED_BY_PUZZLE);
+        this.#renderNextPuzzleButtonAsNextPuzzle();
         this.#displayVoteButtons(true);
         this.#hideDebugHighlight();
     }
@@ -303,6 +311,7 @@ class PuzzlesPage extends BasePage {
         // update UI feedback info
         this.#allocatedPliesFeedbackLabel.innerText = this.#puzzleState.allocatedNumberOfMoves.toString();
         this.#showFeedbackBox(FeedbackBoxes.NO_SOLUTION);
+        this.#renderNextPuzzleButtonAsNextPuzzle();
         this.#displayVoteButtons(true);
 
         // update UI controls
@@ -324,6 +333,7 @@ class PuzzlesPage extends BasePage {
             // update UI feedback info
             this.#victoryTypeFeedbackLabel.innerText = victoryType;
             this.#showFeedbackBox(FeedbackBoxes.SOLVED);
+            this.#renderNextPuzzleButtonAsNextPuzzle();
             this.#displayVoteButtons(true);
 
             // update UI controls
@@ -358,10 +368,67 @@ class PuzzlesPage extends BasePage {
 
             // update feedback box
             this.#showFeedbackBox(FeedbackBoxes.SOLUTION_REVEALED);
+            this.#renderNextPuzzleButtonAsNextPuzzle();
             this.#displayVoteButtons(true);
         } else {
             console.warn('solution already revealed or puzzle solved')
         }
+    }
+
+    #handleNextPuzzleButtonClicked() {
+        if (this.#puzzleState == null) {
+            return;
+        }
+        if (this.#puzzleState.hasOutcome() || this.#skipConfirmationDisabled) {
+            this.#puzzlesController.skip();
+        } else {
+            this.#showSkipConfirmationModal();
+        }
+    }
+
+    #showSkipConfirmationModal() {
+        const content = document.createElement('div');
+
+        const text = document.createElement('p');
+        text.innerText = 'Skipping this puzzle counts as a failed attempt: you will lose Elo rating points. ' +
+            'Are you sure you want to skip it?';
+        content.append(text);
+
+        const checkboxContainer = document.createElement('div');
+        checkboxContainer.classList.add('standard-checkbox');
+        const checkboxSpan = document.createElement('span');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'skip-puzzle-do-not-show-again';
+        checkboxSpan.append(checkbox);
+        const labelSpan = document.createElement('span');
+        labelSpan.classList.add('label-span');
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.innerText = 'Do not show again';
+        labelSpan.append(label);
+        checkboxContainer.append(checkboxSpan, labelSpan);
+        content.append(checkboxContainer);
+
+        const yesCallback = () => {
+            if (checkbox.checked) {
+                this.#skipConfirmationDisabled = true;
+            }
+            this.#puzzlesController.skip();
+        };
+        const noCallback = () => UI.hideModal(null);
+        UI.showConfirmationModal(content, yesCallback, 'skip', noCallback, 'cancel');
+    }
+
+    #renderNextPuzzleButtonAsSkipPuzzle() {
+        this.#nextPuzzleButtonLabel.innerText = 'Skip Puzzle';
+    }
+
+    /**
+     * When the puzzle is over, the button only moves to the next puzzle (no penalty)
+     */
+    #renderNextPuzzleButtonAsNextPuzzle() {
+        this.#nextPuzzleButtonLabel.innerText = 'Next Puzzle';
     }
 
     #showFeedbackBox(id) {
