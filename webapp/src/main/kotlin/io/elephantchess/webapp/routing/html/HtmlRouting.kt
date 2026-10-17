@@ -13,7 +13,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import io.ktor.http.content.TextContent
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -135,12 +135,14 @@ private fun Route.gamePages() {
 
 private fun Route.puzzlesPage() {
     val appConfig by koin<AppConfig>()
+    val isPuzzlesDebugModeEnabled = appConfig.isPuzzlesDebugModeEnabled
+    val resolvers = listOf(SimpleValueTagResolver("puzzles_debug_mode", isPuzzlesDebugModeEnabled.toString()))
 
     get("/puzzles") {
         call.respondHtml(
             simplePageRenderer.renderTemplate(
                 "puzzles",
-                listOf(SimpleValueTagResolver("puzzles_debug_mode", appConfig.isPuzzlesDebugModeEnabled.toString()))
+                resolvers
             )
         )
     }
