@@ -17,6 +17,6 @@ suspend fun SimplePageRenderer.renderTemplateHtml(
     )
 }
 
-suspend fun ApplicationCall.respondHtml(htmlContent: String) {
-    respondText(htmlContent, ContentType.Text.Html)
+suspend fun ApplicationCall.respondHtml(htmlContent: String, status: HttpStatusCode? = null) {
+    respondText(htmlContent, ContentType.Text.Html, status)
 }

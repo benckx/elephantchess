@@ -10,7 +10,6 @@ import io.elephantchess.webapp.ops.requireEditorRole
 import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.rendering.DatabasePageRenderer
 import io.ktor.http.*
-import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -106,18 +105,23 @@ internal fun Routing.databasePages() {
         val eventId = call.parameters["id"]
             ?: throw BadRequestException("id query parameter not provided")
 
-        val round = call.request.queryParameters["round"]?.toIntOrNull()
-
         val eventName = databaseService.fetchEventName(eventId)
-            ?: throw NotFoundException("Event $eventId not found")
-
-        call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, eventName, round))
+        if (eventName == null) {
+            call.respondHtml(simplePageRenderer.renderTemplate("404"), HttpStatusCode.NotFound)
+        } else {
+            val round = call.request.queryParameters["round"]?.toIntOrNull()
+            call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, eventName, round))
+        }
     }
     get("/database/game") {
         val gameId = call.parameters["id"] ?: throw BadRequestException("id query parameter not provided")
-        val summary = databaseService.fetchGameSummary(gameId) ?: throw NotFoundException("Game $gameId not found")
-        val orientation = call.request.queryParameters["orientation"]
-        call.respondHtml(databasePageRenderer.renderGamePage(summary, orientation))
+        val summary = databaseService.fetchGameSummary(gameId)
+        if (summary == null) {
+            call.respondHtml(simplePageRenderer.renderTemplate("404"), HttpStatusCode.NotFound)
+        } else {
+            val orientation = call.request.queryParameters["orientation"]
+            call.respondHtml(databasePageRenderer.renderGamePage(summary, orientation))
+        }
     }
 }
 
@@ -128,7 +132,10 @@ private suspend fun RoutingContext.resolveDatabasePlayer(render: suspend (Databa
     val databasePlayer = databaseService.resolvePlayerByName(playerName)
     if (databasePlayer == null) {
         // player not found, render 404 page
-        call.respondHtml(simplePageRenderer.renderTemplate("404"))
+        call.respondHtml(
+            simplePageRenderer.renderTemplate("404"),
+            HttpStatusCode.NotFound
+        )
     } else if (databasePlayer.urlName != playerName.replace(" ", "_")) {
         // reconstruct the correct URL path by replacing the playerName segment
         val originalPath = call.request.path()
