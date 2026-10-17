@@ -71,7 +71,7 @@ class ExceptionHandlerTest {
         }
 
     private suspend fun ApplicationTestBuilder.getHtml(uri: String) =
-        client.get(uri) { header(HttpHeaders.Accept, "html") }
+        client.get(uri) { accept(ContentType.Text.Html) }
 
     // --- client disconnects ---
 
