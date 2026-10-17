@@ -52,7 +52,7 @@ class PuzzlesPage extends BasePage {
      */
     #moveTreeWidget = new PuzzleMoveTreeWidget({containerId: 'move-tree-container'});
 
-    #debugMode = false;
+    #debugMode = document.body.dataset.debugMode === 'true';
     #newRatingToShow = null;
 
     /**

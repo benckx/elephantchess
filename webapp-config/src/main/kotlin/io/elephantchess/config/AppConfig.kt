@@ -82,6 +82,12 @@ data class AppConfig(
     val databaseRateLimitWindowSeconds: Int
         get() = loadIntOrDefault("database.rate.limit.window.seconds", 60)
 
+    /**
+     * Highlights the expected solution moves on the puzzles page (for local debugging only).
+     */
+    val isPuzzlesDebugModeEnabled: Boolean
+        get() = loadBoolean("puzzles.debug.mode", false)
+
     val mailConfig: MailConfig
         get() = MailConfig(
             smtpHost = loadString("mail.smtp.host"),
