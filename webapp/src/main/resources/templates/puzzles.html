@@ -13,7 +13,7 @@
     <script defer src="/js/puzzles/puzzles-utils.js"></script>
     <script defer src="/js/puzzles/puzzles.js"></script>
 </head>
-<body>
+<body data-debug-mode="{{puzzles_debug_mode}}">
 {{body_init}}
 <div class="flex-triptych-container">
     <div class="flex-triptych-left-container">
@@ -177,14 +177,14 @@
         <div class="info-box">
             <table class="info-box-table">
                 <tbody>
-                <tr id="skip-puzzle-button" class="enabled-button">
+                <tr id="next-puzzle-button" class="enabled-button">
                     <td class="icon-cell">
                         <img src="/images/icons/navigation-beginning.png"
                              style="width:58%; transform: rotate(180deg)" class="less-dark-icons"
                              alt="skip"/>
                     </td>
-                    <td class="description-cell">
-                        Skip puzzle
+                    <td id="next-puzzle-button-label" class="description-cell">
+                        Skip Puzzle
                     </td>
                 </tr>
                 <tr id="reveal-solution-button" class="enabled-button">
@@ -192,7 +192,7 @@
                         <img src="/images/icons/open-book.png" class="less-dark-icons" alt="skip"/>
                     </td>
                     <td class="description-cell">
-                        Reveal solution
+                        Reveal Solution
                     </td>
                 </tr>
                 </tbody>
