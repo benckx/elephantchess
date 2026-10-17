@@ -117,6 +117,7 @@ data class AppConfig(
         lines += "disabled batches -> ${disabledBatches.joinToString(", ")}"
         lines += "CDN enabled -> $cdnEnabled"
         lines += "database rate limit -> $isDatabaseRateLimitEnabled ($databaseRateLimitMaxRequests req / ${databaseRateLimitWindowSeconds}s per IP)"
+        lines += "puzzles debug mode -> $isPuzzlesDebugModeEnabled"
         return lines
     }
 
