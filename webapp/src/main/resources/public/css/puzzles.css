@@ -33,6 +33,14 @@ span#puzzle-id {
     font-size: 15px;
 }
 
+.puzzle-disabled-icon {
+    width: 14px;
+    height: 14px;
+    margin-left: 4px;
+    margin-bottom: 4px;
+    vertical-align: middle;
+}
+
 #puzzle-feedback-info-box {
     height: 100px;
 }
@@ -160,5 +168,11 @@ table.feedback-info-box-table-rendered {
 
     #vote-up-down-container img:first-child {
         margin-right: 20px;
+    }
+
+    .puzzle-disabled-icon {
+        width: 28px;
+        height: 28px;
+        margin-bottom: 8px;
     }
 }
