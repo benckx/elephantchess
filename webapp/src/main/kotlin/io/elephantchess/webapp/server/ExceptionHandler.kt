@@ -11,14 +11,14 @@ import io.ktor.http.*
 import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
-import io.ktor.http.content.TextContent
+import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.utils.io.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
 import kotlin.coroutines.cancellation.CancellationException
@@ -70,12 +70,11 @@ internal fun isClientDisconnectException(t: Throwable): Boolean {
 internal fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, t: Throwable): Boolean =
     t is NullPointerException && call.response.status() == HttpStatusCode.SwitchingProtocols
 
-private val webSocketUpgradeFailurePhase = PipelinePhase("WebSocketUpgradeFailure")
-
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}
     val exceptionService by koin<ExceptionService>()
     val simplePageRenderer by koin<SimplePageRenderer>()
+    val webSocketUpgradeFailurePhase = PipelinePhase("WebSocketUpgradeFailure")
 
     // StatusPages rethrows exceptions when no response was sent (always the case for a failed WebSocket upgrade),
     // then Ktor logs them at ERROR level. Swallow the WebSocket upgrade NPE here: the client is gone anyway.
