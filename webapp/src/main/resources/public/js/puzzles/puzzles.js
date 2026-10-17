@@ -60,6 +60,11 @@ class PuzzlesPage extends BasePage {
      */
     #skipConfirmationDisabled = false;
 
+    /**
+     * In memory only (reset on page reload)
+     */
+    #revealConfirmationDisabled = false;
+
     #nextPuzzleButton = document.getElementById('next-puzzle-button');
     #nextPuzzleButtonLabel = document.getElementById('next-puzzle-button-label');
     #revealSolutionButton = document.getElementById('reveal-solution-button');
@@ -136,7 +141,7 @@ class PuzzlesPage extends BasePage {
         this.#nextPuzzleButton.addEventListener('click', () => this.#handleNextPuzzleButtonClicked());
         this.#revealSolutionButton.addEventListener('click', (e) => {
             if (isInfoBoxButtonEnabled(e)) {
-                this.#revealSolution();
+                this.#handleRevealSolutionButtonClicked();
             }
         });
 
@@ -382,16 +387,44 @@ class PuzzlesPage extends BasePage {
         if (this.#puzzleState.hasOutcome() || this.#skipConfirmationDisabled) {
             this.#puzzlesController.skip();
         } else {
-            this.#showSkipConfirmationModal();
+            this.#showRatingLossConfirmationModal(
+                'Skipping this puzzle counts as a failed attempt: you will lose Elo rating points. ' +
+                'Are you sure you want to skip it?',
+                'skip',
+                () => this.#skipConfirmationDisabled = true,
+                () => this.#puzzlesController.skip()
+            );
         }
     }
 
-    #showSkipConfirmationModal() {
+    #handleRevealSolutionButtonClicked() {
+        if (this.#puzzleState == null) {
+            return;
+        }
+        if (this.#puzzleState.hasOutcome() || this.#revealConfirmationDisabled) {
+            this.#revealSolution();
+        } else {
+            this.#showRatingLossConfirmationModal(
+                'Revealing the solution counts as a failed attempt: you will lose Elo rating points. ' +
+                'Are you sure you want to reveal it?',
+                'reveal',
+                () => this.#revealConfirmationDisabled = true,
+                () => this.#revealSolution()
+            );
+        }
+    }
+
+    /**
+     * @param message {string}
+     * @param yesButtonText {string}
+     * @param disableConfirmationCb {function} called when the user ticked "Do not show again"
+     * @param confirmedCb {function}
+     */
+    #showRatingLossConfirmationModal(message, yesButtonText, disableConfirmationCb, confirmedCb) {
         const content = document.createElement('div');
 
         const text = document.createElement('p');
-        text.innerText = 'Skipping this puzzle counts as a failed attempt: you will lose Elo rating points. ' +
-            'Are you sure you want to skip it?';
+        text.innerText = message;
         content.append(text);
 
         const checkboxContainer = document.createElement('div');
@@ -399,7 +432,7 @@ class PuzzlesPage extends BasePage {
         const checkboxSpan = document.createElement('span');
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.id = 'skip-puzzle-do-not-show-again';
+        checkbox.id = 'puzzle-confirmation-do-not-show-again';
         checkboxSpan.append(checkbox);
         const labelSpan = document.createElement('span');
         labelSpan.classList.add('label-span');
@@ -412,12 +445,12 @@ class PuzzlesPage extends BasePage {
 
         const yesCallback = () => {
             if (checkbox.checked) {
-                this.#skipConfirmationDisabled = true;
+                disableConfirmationCb();
             }
-            this.#puzzlesController.skip();
+            confirmedCb();
         };
         const noCallback = () => UI.hideModal(null);
-        UI.showConfirmationModal(content, yesCallback, 'skip', noCallback, 'cancel');
+        UI.showConfirmationModal(content, yesCallback, yesButtonText, noCallback, 'cancel');
     }
 
     #renderNextPuzzleButtonAsSkipPuzzle() {
