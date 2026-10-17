@@ -11,12 +11,13 @@ import io.ktor.http.*
 import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
-import io.ktor.http.content.TextContent
+import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
@@ -49,10 +50,7 @@ internal fun isClientDisconnectException(t: Throwable): Boolean {
             current is CancellationException ||
             current is IOException && current.message?.contains("Broken pipe") == true ||
             current is IOException && current.message?.contains("Connection reset") == true ||
-            current is UnsupportedOperationException && current.message?.contains("response was already completed") == true ||
-            // Ktor Netty throws this when the client closes the connection during a WebSocket upgrade
-            // (e.g. page left right after load, often headless scrapers), as the channel pipeline is already gone
-            current is NullPointerException && current.message?.contains("RequestBodyHandler.upgrade()") == true
+            current is UnsupportedOperationException && current.message?.contains("response was already completed") == true
         ) {
             return true
         }
@@ -61,10 +59,35 @@ internal fun isClientDisconnectException(t: Throwable): Boolean {
     return false
 }
 
+/**
+ * Ktor Netty throws `NullPointerException: Cannot invoke "RequestBodyHandler.upgrade()" because "bodyHandler" is null`
+ * when the client closes the connection during a WebSocket upgrade (e.g. page left right after load, often headless
+ * scrapers), as the Netty channel pipeline is already gone. The status has already been set to 101 at that point.
+ *
+ * The exception message can't be relied on: once the code is JIT-compiled, the JVM throws a pre-allocated NPE
+ * without message nor stack trace (`-XX:+OmitStackTraceInFastThrow`, enabled by default).
+ */
+internal fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, t: Throwable): Boolean =
+    t is NullPointerException && call.response.status() == HttpStatusCode.SwitchingProtocols
+
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}
     val exceptionService by koin<ExceptionService>()
     val simplePageRenderer by koin<SimplePageRenderer>()
+    val webSocketUpgradeFailurePhase = PipelinePhase("WebSocketUpgradeFailure")
+
+    // StatusPages rethrows exceptions when no response was sent (always the case for a failed WebSocket upgrade),
+    // then Ktor logs them at ERROR level. Swallow the WebSocket upgrade NPE here: the client is gone anyway.
+    // The phase is inserted before installing StatusPages, so it wraps the StatusPages phase.
+    insertPhaseBefore(ApplicationCallPipeline.Setup, webSocketUpgradeFailurePhase)
+    intercept(webSocketUpgradeFailurePhase) {
+        try {
+            proceed()
+        } catch (e: NullPointerException) {
+            if (!isClientDisconnectDuringWebSocketUpgrade(call, e)) throw e
+            logger.debug { "client disconnected during WebSocket upgrade: ${call.request.uri}" }
+        }
+    }
 
     // Renders the proper 404 response: the HTML template for browsers (clients whose Accept header
     // prefers text/html), a JSON error payload for API clients / bots.
@@ -167,7 +190,7 @@ fun Application.exceptionHandler() {
         }
         exception<Throwable> { call, t ->
             // unlikely to reach here for client disconnects due to the specific handlers
-            if (isClientDisconnectException(t)) {
+            if (isClientDisconnectException(t) || isClientDisconnectDuringWebSocketUpgrade(call, t)) {
                 logger.debug { "Client disconnected during request: ${t.message}" }
             } else {
                 logger.error(t) { t.toString() }

@@ -154,11 +154,13 @@ class PuzzlesPage extends BasePage {
      * @param puzzleState {PuzzleState}
      */
     #loadedPuzzleCb(puzzleState) {
+        // animate pieces only when transitioning from a previous puzzle (skip / next)
+        const animate = this.#puzzleState != null;
         this.#puzzleState = puzzleState;
 
         // re-init GUI elements
         this.#boardGui.flipToColor(this.#puzzleState.playerColor);
-        this.#boardGui.loadFen(this.#puzzleState.startFen);
+        this.#boardGui.loadFen(this.#puzzleState.startFen, animate);
         this.#boardGui.enablePlayerMove();
         this.#boardGui.addAfterMoveListener((submittedMove) => {
             this.#puzzlesController.submitSolution(submittedMove);
