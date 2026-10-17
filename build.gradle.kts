@@ -325,6 +325,7 @@ project(":webapp") {
         implementation(rootLibs.jackson.datatype.jsr310)
         implementation(rootLibs.jackson.module.kotlin)
         implementation(rootLibs.cache4k)
+        testImplementation(rootLibs.ktor.server.test.host)
     }
 
     tasks.named<Jar>("jar") {
