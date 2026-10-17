@@ -9,7 +9,9 @@ data class LatestGamesUpdateResponse(val entries: List<Entry>) {
         val gameId: GameId,
         val status: GameEventType,
         val fen: String,
-        val lastUpdated : Long
+        val lastUpdated: Long,
+        val moveIndex: Int? = null,
+        val newMoves: List<String> = emptyList()
     )
 
 }

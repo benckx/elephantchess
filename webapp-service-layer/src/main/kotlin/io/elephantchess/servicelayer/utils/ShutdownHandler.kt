@@ -4,6 +4,7 @@ import io.elephantchess.utils.di.KoinSingleton
 
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.servicelayer.batch.definitions.BatchesScheduler
+import io.elephantchess.servicelayer.services.LobbyService
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.servicelayer.services.PuzzleCache
@@ -29,6 +30,7 @@ class ShutdownHandler(
     private val enginePool: EnginePool,
     private val batchesScheduler: BatchesScheduler,
     private val siteMapService: SiteMapService,
+    private val lobbyService: LobbyService,
     private val coroutineScope: CoroutineScope,
 ) {
 
@@ -83,6 +85,14 @@ class ShutdownHandler(
             siteMapService.cancel()
         } catch (e: Exception) {
             logger.error(e) { "error cancelling batch scheduler" }
+        }
+
+        try {
+            // cancel LobbyService
+            logger.info { "cancelling LobbyService..." }
+            lobbyService.cancel()
+        } catch (e: Exception) {
+            logger.error(e) { "error cancelling LobbyService" }
         }
 
         try {
