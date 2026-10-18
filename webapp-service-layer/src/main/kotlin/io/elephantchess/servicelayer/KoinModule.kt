@@ -130,6 +130,12 @@ private fun batchSchedulesModule() = module {
                 podNumber = 0
             ),
             SinglePodBatchSchedule(
+                get<NotifyContentSectionFeedbackBatch>(),
+                period = 4.hours,
+                delay = 4.minutes,
+                podNumber = 0
+            ),
+            SinglePodBatchSchedule(
                 get<CheckEmailListVerifyCreditBatch>(),
                 period = 48.hours,
                 delay = 30.seconds,

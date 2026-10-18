@@ -211,23 +211,29 @@ class MailService(
         }
     }
 
-    suspend fun sendContentSectionVoteNotification(
-        userId: UserId,
-        pageId: String,
-        sectionId: String,
-        upVoted: Boolean,
-        feedback: String?,
-    ) {
+    suspend fun sendContentSectionVoteNotificationDigest(votes: List<ContentFeedbackEntry>) {
+        if (votes.isEmpty()) return
+
+        val rows = votes.map { vote ->
+            val cells = listOf(
+                "${escapeHtml(vote.pageId)} / ${escapeHtml(vote.sectionId)}",
+                escapeHtml(vote.userId),
+                if (vote.upVoted) "up" else "down",
+                vote.feedback?.let { escapeHtml(it) } ?: "-",
+            )
+            "<tr>${cells.joinToString("") { "<td>$it</td>" }}</tr>"
+        }
+
         resolveAndSendAsync(
             recipient = adminEmail,
-            subject = "new content feedback",
-            templateName = "new_content_feedback_notification",
+            subject = "new content feedback (${votes.size})",
+            templateName = "new_content_feedback_digest",
             resolvers = listOf(
-                SimpleValueTagResolver("user_id", userId.toString()),
-                SimpleValueTagResolver("page_id", pageId),
-                SimpleValueTagResolver("section_id", sectionId),
-                SimpleValueTagResolver("vote", if (upVoted) "up" else "down"),
-                SimpleValueTagResolver("feedback", feedback ?: "-"),
+                SimpleValueTagResolver("count", votes.size.toString()),
+                object : TagResolver {
+                    override val tagName = "rows"
+                    override suspend fun resolveContent() = rows
+                },
             ),
             skipRecipientValidityCheck = true
         )
@@ -545,6 +551,20 @@ class MailService(
         // 12 months
         val emailValidityUpdateTime = (12 * 30).days
 
+        private fun escapeHtml(value: String): String =
+            value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+
     }
 
 }
+
+data class ContentFeedbackEntry(
+    val userId: String,
+    val pageId: String,
+    val sectionId: String,
+    val upVoted: Boolean,
+    val feedback: String?,
+)
