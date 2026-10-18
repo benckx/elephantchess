@@ -14,6 +14,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
+import java.lang.management.ManagementFactory
 import java.net.InetAddress
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import kotlin.time.Duration.Companion.minutes
@@ -32,22 +33,40 @@ class PodService(
     private var expectedNbrOfPods: Int? = null
     private val client by lazy { KubernetesClientBuilder().build() }
 
+    // StatefulSet identity, injected via the downward API (see k8s/statefulset.yaml in the deploy repo).
+    // When present, the pod derives its shard index/count from these env vars and never touches the
+    // Kubernetes API or the "kubernetes_pod" table. When absent (e.g. the legacy Deployment), we fall
+    // back to the k8s-client + DB registry below, so this change is backward compatible during the
+    // Deployment -> StatefulSet transition.
+    private val podNameEnv: String? = System.getenv("POD_NAME")?.takeIf { it.isNotBlank() }
+    private val podCountEnv: Int? = System.getenv("POD_COUNT")?.toIntOrNull()
+    private val statefulSetMode: Boolean = isDockerized && podNameEnv != null && podCountEnv != null
+
     private val jobs = mutableListOf<Job>()
 
     init {
-        if (isDockerized) {
-            jobs += launchAtFixedRateStartImmediately(refresherScope, REFRESH_RATE_SECONDS.seconds) {
-                val podName = getPodName()
-                if (podName.startsWith("$DEPLOYMENT_NAME-")) {
-                    podDaoService.insertOrUpdate(podName)
-                }
+        when {
+            !isDockerized -> {
+                expectedNbrOfPods = 1
             }
 
-            jobs += launchAtFixedRateStartImmediately(refresherScope, 5.minutes) {
-                updateExpectedNbrOfPods()
+            statefulSetMode -> {
+                expectedNbrOfPods = podCountEnv
+                logger.info { "pod identity from StatefulSet env -> name=$podNameEnv, count=$podCountEnv" }
             }
-        } else {
-            expectedNbrOfPods = 1
+
+            else -> {
+                jobs += launchAtFixedRateStartImmediately(refresherScope, REFRESH_RATE_SECONDS.seconds) {
+                    val podName = getPodName()
+                    if (podName.startsWith("$DEPLOYMENT_NAME-")) {
+                        podDaoService.insertOrUpdate(podName)
+                    }
+                }
+
+                jobs += launchAtFixedRateStartImmediately(refresherScope, 5.minutes) {
+                    updateExpectedNbrOfPods()
+                }
+            }
         }
 
         if (logger.isDebugEnabled()) {
@@ -62,17 +81,26 @@ class PodService(
     }
 
     suspend fun listPodNamesFromDb(): List<String> {
-        return if (isDockerized) {
-            expectedNbrOfPods
-                ?.let { number -> podDaoService.listLastPodNames(number) }
-                .orEmpty()
-                .sorted()
-        } else {
-            podDaoService.listLastPodNames(2)
+        return when {
+            statefulSetMode -> podNamesFromEnv()
+            isDockerized -> {
+                expectedNbrOfPods
+                    ?.let { number -> podDaoService.listLastPodNames(number) }
+                    .orEmpty()
+                    .sorted()
+            }
+
+            else -> podDaoService.listLastPodNames(2)
         }
     }
 
     fun getLastRedeployTime(): Instant? {
+        if (statefulSetMode) {
+            // no Deployment object to query; the JVM start time is a good proxy for when this
+            // StatefulSet pod was last (re)deployed
+            return Instant.fromEpochMilliseconds(ManagementFactory.getRuntimeMXBean().startTime)
+        }
+
         return findDeployment()?.let { deployment ->
             deployment
                 .status
@@ -89,25 +117,47 @@ class PodService(
     }
 
     suspend fun findPod(): Pod? {
-        return if (isDockerized) {
-            val duration = (REFRESH_RATE_SECONDS + 10).seconds
-            val allPods = podDaoService.listAllPodNamesWithin(duration)
-
-            if (expectedNbrOfPods != null) {
-                if (allPods.size != expectedNbrOfPods) {
-                    logger.warn { "not the expected number of pods -> ${allPods.size} != $expectedNbrOfPods (normal during re-deploys)" }
-                    null
-                } else {
-                    val podIndex = allPods.indexOf(getPodName())
-                    Pod(podIndex, allPods.size)
-                }
-            } else {
-                logger.warn { "expectedNbrOfPods is not known" }
-                null
-            }
-        } else {
+        if (!isDockerized) {
             return Pod(0, 1)
         }
+
+        if (statefulSetMode) {
+            val index = podOrdinalFromEnv()
+            val total = podCountEnv
+            return if (index != null && total != null && index in 0 until total) {
+                Pod(index, total)
+            } else {
+                logger.warn { "invalid StatefulSet pod identity -> name=$podNameEnv, count=$podCountEnv" }
+                null
+            }
+        }
+
+        val duration = (REFRESH_RATE_SECONDS + 10).seconds
+        val allPods = podDaoService.listAllPodNamesWithin(duration)
+
+        return if (expectedNbrOfPods != null) {
+            if (allPods.size != expectedNbrOfPods) {
+                logger.warn { "not the expected number of pods -> ${allPods.size} != $expectedNbrOfPods (normal during re-deploys)" }
+                null
+            } else {
+                val podIndex = allPods.indexOf(getPodName())
+                Pod(podIndex, allPods.size)
+            }
+        } else {
+            logger.warn { "expectedNbrOfPods is not known" }
+            null
+        }
+    }
+
+    // StatefulSet pod names are stable ordinals, e.g. "elephantchess-webapp-0" -> index 0
+    private fun podOrdinalFromEnv(): Int? {
+        return podNameEnv?.substringAfterLast('-')?.toIntOrNull()
+    }
+
+    private fun podNamesFromEnv(): List<String> {
+        val total = podCountEnv ?: return emptyList()
+        val prefix = podNameEnv?.substringBeforeLast('-') ?: return emptyList()
+        return (0 until total).map { index -> "$prefix-$index" }
     }
 
     private fun updateExpectedNbrOfPods() {
