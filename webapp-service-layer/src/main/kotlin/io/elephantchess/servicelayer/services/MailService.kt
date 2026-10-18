@@ -9,8 +9,8 @@ import io.elephantchess.db.services.EmailVerificationDaoService
 import io.elephantchess.db.services.NewsletterDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.generateId
+import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
-import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.model.EmailVerifierService.EMAIL_LIST_VERIFY
 import io.elephantchess.servicelayer.clients.EmailListVerifyClient
 import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
@@ -26,6 +26,8 @@ import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.html.td
+import kotlinx.html.tr
 import javax.activation.DataHandler
 import javax.activation.URLDataSource
 import javax.mail.*
@@ -214,14 +216,15 @@ class MailService(
     suspend fun sendContentSectionVoteNotificationDigest(votes: List<ContentFeedbackEntry>) {
         if (votes.isEmpty()) return
 
-        val rows = votes.map { vote ->
-            val cells = listOf(
-                "${escapeHtml(vote.pageId)} / ${escapeHtml(vote.sectionId)}",
-                escapeHtml(vote.userId),
-                if (vote.upVoted) "up" else "down",
-                vote.feedback?.let { escapeHtml(it) } ?: "-",
-            )
-            "<tr>${cells.joinToString("") { "<td>$it</td>" }}</tr>"
+        val rowsResolver = KtorHtmlBuilderTagResolver("rows") {
+            votes.forEach { vote ->
+                tr {
+                    td { +"${vote.pageId} / ${vote.sectionId}" }
+                    td { +vote.userId }
+                    td { +(if (vote.upVoted) "up" else "down") }
+                    td { +(vote.feedback ?: "-") }
+                }
+            }
         }
 
         resolveAndSendAsync(
@@ -230,10 +233,7 @@ class MailService(
             templateName = "new_content_feedback_digest",
             resolvers = listOf(
                 SimpleValueTagResolver("count", votes.size.toString()),
-                object : TagResolver {
-                    override val tagName = "rows"
-                    override suspend fun resolveContent() = rows
-                },
+                rowsResolver,
             ),
             skipRecipientValidityCheck = true
         )
@@ -550,12 +550,6 @@ class MailService(
 
         // 12 months
         val emailValidityUpdateTime = (12 * 30).days
-
-        private fun escapeHtml(value: String): String =
-            value
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
 
     }
 
