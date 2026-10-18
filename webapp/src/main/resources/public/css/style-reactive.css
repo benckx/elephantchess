@@ -173,6 +173,21 @@
         box-shadow: rgba(0, 0, 0, 0.35) 0px 10px 25px;
     }
 
+    .modal-content .standard-checkbox .label-span label,
+    .modal-content .standard-radio .label-span label {
+        font-size: 38px;
+    }
+
+    .modal-content .standard-checkbox {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .modal-content .standard-checkbox .label-span,
+    .modal-content .standard-radio .label-span {
+        padding-top: 6px;
+    }
+
     .modal-close-button {
         display: block;
         position: absolute;

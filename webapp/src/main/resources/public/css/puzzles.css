@@ -162,3 +162,7 @@ table.feedback-info-box-table-rendered {
         margin-right: 20px;
     }
 }
+
+.rating-loss-confirmation-checkbox {
+    justify-content: center;
+}

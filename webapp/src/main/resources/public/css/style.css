@@ -982,6 +982,17 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     border: 2px solid #323232;
     text-align: center;
+    font-size: 15px;
+}
+
+.modal-content .standard-checkbox .label-span label,
+.modal-content .standard-radio .label-span label {
+    font-size: 15px;
+}
+
+.modal-content .standard-checkbox input[type=checkbox] {
+    width: 16px;
+    height: 16px;
 }
 
 .modal-content h2 {

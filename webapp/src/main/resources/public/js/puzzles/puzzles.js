@@ -388,8 +388,7 @@ class PuzzlesPage extends BasePage {
             this.#puzzlesController.skip();
         } else {
             this.#showRatingLossConfirmationModal(
-                'Skipping this puzzle counts as a failed attempt: you will lose Elo rating points. ' +
-                'Are you sure you want to skip it?',
+                'puzzle-skip-confirmation',
                 'skip',
                 () => this.#skipConfirmationEnabled = false,
                 () => this.#puzzlesController.skip()
@@ -405,8 +404,7 @@ class PuzzlesPage extends BasePage {
             this.#revealSolution();
         } else {
             this.#showRatingLossConfirmationModal(
-                'Revealing the solution counts as a failed attempt: you will lose Elo rating points. ' +
-                'Are you sure you want to reveal it?',
+                'puzzle-reveal-confirmation',
                 'reveal',
                 () => this.#revealConfirmationEnabled = false,
                 () => this.#revealSolution()
@@ -415,42 +413,27 @@ class PuzzlesPage extends BasePage {
     }
 
     /**
-     * @param message {string}
+     * @param modalName {string} name of the modal fragment holding the confirmation message
      * @param yesButtonText {string}
      * @param disableConfirmationCb {function} called when the user ticked "Do not show again"
      * @param confirmedCb {function}
      */
-    #showRatingLossConfirmationModal(message, yesButtonText, disableConfirmationCb, confirmedCb) {
-        const content = document.createElement('div');
+    #showRatingLossConfirmationModal(modalName, yesButtonText, disableConfirmationCb, confirmedCb) {
+        UI.fetchModalHtml(modalName).then((html) => {
+            const template = document.createElement('template');
+            template.innerHTML = html.trim();
+            const content = template.content.firstElementChild;
+            const checkbox = content.querySelector('#puzzle-confirmation-do-not-show-again');
 
-        const text = document.createElement('p');
-        text.innerText = message;
-        content.append(text);
-
-        const checkboxContainer = document.createElement('div');
-        checkboxContainer.classList.add('standard-checkbox');
-        const checkboxSpan = document.createElement('span');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = 'puzzle-confirmation-do-not-show-again';
-        checkboxSpan.append(checkbox);
-        const labelSpan = document.createElement('span');
-        labelSpan.classList.add('label-span');
-        const label = document.createElement('label');
-        label.htmlFor = checkbox.id;
-        label.innerText = 'Do not show again';
-        labelSpan.append(label);
-        checkboxContainer.append(checkboxSpan, labelSpan);
-        content.append(checkboxContainer);
-
-        const yesCallback = () => {
-            if (checkbox.checked) {
-                disableConfirmationCb();
-            }
-            confirmedCb();
-        };
-        const noCallback = () => UI.hideModal(null);
-        UI.showConfirmationModal(content, yesCallback, yesButtonText, noCallback, 'cancel');
+            const yesCallback = () => {
+                if (checkbox.checked) {
+                    disableConfirmationCb();
+                }
+                confirmedCb();
+            };
+            const noCallback = () => UI.hideModal(null);
+            UI.showConfirmationModal(content, yesCallback, yesButtonText, noCallback, 'cancel');
+        });
     }
 
     #renderNextPuzzleButtonAsSkipPuzzle() {
