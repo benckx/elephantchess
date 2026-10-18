@@ -1,4 +1,6 @@
-<div class="rating-loss-confirmation-content">
+<div id="puzzle-skip-confirmation-modal" class="modal-content" data-nosnippet>
+    <button class="modal-close-button" aria-label="Close">×</button>
+    <h2>Confirmation</h2>
     <p>
         Skipping this puzzle counts as a failed attempt: you will lose Elo rating points.
         Are you sure you want to skip it?
@@ -10,5 +12,9 @@
         <span class="label-span">
             <label for="puzzle-confirmation-do-not-show-again">Do not show again</label>
         </span>
+    </div>
+    <div class="modal-buttons-panel">
+        <input id="puzzle-confirmation-yes-button" type="button" class="app-buttons" value="skip">
+        <input id="puzzle-confirmation-no-button" type="button" class="app-buttons-red" value="cancel">
     </div>
 </div>

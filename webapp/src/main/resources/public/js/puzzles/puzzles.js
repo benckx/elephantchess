@@ -389,7 +389,6 @@ class PuzzlesPage extends BasePage {
         } else {
             this.#showRatingLossConfirmationModal(
                 'puzzle-skip-confirmation',
-                'skip',
                 () => this.#skipConfirmationEnabled = false,
                 () => this.#puzzlesController.skip()
             );
@@ -405,7 +404,6 @@ class PuzzlesPage extends BasePage {
         } else {
             this.#showRatingLossConfirmationModal(
                 'puzzle-reveal-confirmation',
-                'reveal',
                 () => this.#revealConfirmationEnabled = false,
                 () => this.#revealSolution()
             );
@@ -413,26 +411,28 @@ class PuzzlesPage extends BasePage {
     }
 
     /**
-     * @param modalName {string} name of the modal fragment holding the confirmation message
-     * @param yesButtonText {string}
+     * @param modalName {string} name of the modal to display
      * @param disableConfirmationCb {function} called when the user ticked "Do not show again"
      * @param confirmedCb {function}
      */
-    #showRatingLossConfirmationModal(modalName, yesButtonText, disableConfirmationCb, confirmedCb) {
-        UI.fetchModalHtml(modalName).then((html) => {
-            const template = document.createElement('template');
-            template.innerHTML = html.trim();
-            const content = template.content.firstElementChild;
-            const checkbox = content.querySelector('#puzzle-confirmation-do-not-show-again');
+    #showRatingLossConfirmationModal(modalName, disableConfirmationCb, confirmedCb) {
+        UI.showModalByName(modalName, () => {
+            const checkbox = document.getElementById('puzzle-confirmation-do-not-show-again');
 
-            const yesCallback = () => {
+            const yesButton = document.getElementById('puzzle-confirmation-yes-button');
+            yesButton.addEventListener('click', () => {
                 if (checkbox.checked) {
                     disableConfirmationCb();
                 }
+                UI.hideModal(null);
                 confirmedCb();
-            };
-            const noCallback = () => UI.hideModal(null);
-            UI.showConfirmationModal(content, yesCallback, yesButtonText, noCallback, 'cancel');
+            });
+
+            document
+                .getElementById('puzzle-confirmation-no-button')
+                .addEventListener('click', () => {
+                    UI.hideModal(null);
+                });
         });
     }
 

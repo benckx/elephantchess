@@ -907,21 +907,6 @@ class UI {
             });
     }
 
-    /**
-     * Fetches a modal's HTML as a string (cached), without displaying it.
-     * Useful to embed a modal fragment inside another modal's content.
-     * @param modalName {string}
-     * @returns {Promise<string>}
-     */
-    static async fetchModalHtml(modalName) {
-        if (modalCache.has(modalName)) {
-            return modalCache.get(modalName);
-        }
-        const modalHtml = await fetch('/modal/' + modalName).then((response) => response.text());
-        modalCache.set(modalName, modalHtml);
-        return modalHtml;
-    }
-
     static hideModal(mouseEvent) {
         const closeButtonClicked = mouseEvent?.target?.closest?.('.modal-close-button') != null;
         if (mouseEvent == null || mouseEvent.target === UI.#modalBackground || closeButtonClicked) {
