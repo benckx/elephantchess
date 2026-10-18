@@ -13,6 +13,7 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.params.ParameterizedTest
@@ -161,6 +162,10 @@ class ExceptionHandlerTest {
             "/actuator/health",
             "/api/config.json",
             "/firebase-config.js",
+            "/onboarding",
+            "/login",
+            "/dashboard/billing",
+            "/public/admin.json",
             "/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200/",
         ]
     )
@@ -217,6 +222,28 @@ class ExceptionHandlerTest {
         assertEquals(HttpStatusCode.InternalServerError, response.status)
         assertFalse(response.bodyAsText().contains("secret detail"))
         verify(exceptionService).saveException(isA<IllegalStateException>(), eq(500))
+    }
+
+    @Test
+    fun `path-traversal probe is a muted bad request, not logged as error or saved`() = testExceptionHandler({
+        get("/test") {
+            throw BadRequestException("Relative path should not contain path traversing characters: cache/original/../../.env")
+        }
+    }) {
+        val response = client.get("/test")
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals(emptyList(), errorLogs())
+        verifyNoInteractions(exceptionService)
+    }
+
+    @Test
+    fun `other bad requests are still logged as errors and saved`() = testExceptionHandler({
+        get("/test") { throw BadRequestException("malformed something") }
+    }) {
+        val response = client.get("/test")
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertTrue(errorLogs().isNotEmpty())
+        verify(exceptionService).saveException(isA<BadRequestException>(), eq(400))
     }
 
     @Test
