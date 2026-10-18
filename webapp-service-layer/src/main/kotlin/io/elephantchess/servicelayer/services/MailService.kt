@@ -214,26 +214,26 @@ class MailService(
         }
     }
 
-    suspend fun sendContentSectionVoteNotificationDigest(votes: List<ContentFeedbackEntry>) {
-        if (votes.isEmpty()) return
+    suspend fun sendContentSectionVoteNotificationDigest(contentFeedbackEntries: List<ContentFeedbackEntry>) {
+        if (contentFeedbackEntries.isEmpty()) return
 
         val rowsResolver = KtorHtmlBuilderTagResolver("rows") {
-            votes.forEach { vote ->
+            contentFeedbackEntries.forEach { entry ->
                 tr {
-                    td { +"${vote.pageId} / ${vote.sectionId}" }
-                    td { +vote.userId }
-                    td { +(if (vote.upVoted) "up" else "down") }
-                    td { +(vote.feedback ?: "-") }
+                    td { +"${entry.pageId} / ${entry.sectionId}" }
+                    td { +entry.userId }
+                    td { +(if (entry.upVoted) "up" else "down") }
+                    td { +(entry.feedback ?: "-") }
                 }
             }
         }
 
         resolveAndSendAsync(
             recipient = adminEmail,
-            subject = "new content feedback (${votes.size})",
+            subject = "new content feedback (${contentFeedbackEntries.size})",
             templateName = "new_content_feedback_digest",
             resolvers = listOf(
-                SimpleValueTagResolver("count", votes.size.toString()),
+                SimpleValueTagResolver("count", contentFeedbackEntries.size.toString()),
                 rowsResolver,
             ),
             skipRecipientValidityCheck = true
