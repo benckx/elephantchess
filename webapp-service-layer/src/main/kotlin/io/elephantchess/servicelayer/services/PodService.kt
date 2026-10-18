@@ -42,11 +42,7 @@ class PodService(
         }
     }
 
-    fun listPodNames(): List<String> {
-        return podNamesFromEnv()
-    }
-
-    fun getLastRedeployTime(): Instant? {
+    fun getLastRedeployTime(): Instant {
         // no Deployment/StatefulSet object is queried; the JVM start time is a good proxy for when
         // this pod was last (re)deployed
         return Instant.fromEpochMilliseconds(ManagementFactory.getRuntimeMXBean().startTime)
@@ -70,12 +66,6 @@ class PodService(
     // StatefulSet pod names are stable ordinals, e.g. "elephantchess-webapp-0" -> index 0
     private fun podOrdinalFromEnv(): Int? {
         return podNameEnv?.substringAfterLast('-')?.toIntOrNull()
-    }
-
-    private fun podNamesFromEnv(): List<String> {
-        val total = podCountEnv ?: return emptyList()
-        val prefix = podNameEnv?.substringBeforeLast('-') ?: return emptyList()
-        return (0 until total).map { index -> "$prefix-$index" }
     }
 
     fun cancel() {

@@ -95,13 +95,6 @@ class BatchesScheduler(
             action = {
                 metricsLogger.logAllMetrics()
                 if (isDockerized) {
-                    // log pod names
-                    try {
-                        logger.info { "pod names: ${podService.listPodNames()}" }
-                    } catch (e: Exception) {
-                        logger.error(e) { "error listing pods" }
-                    }
-
                     // log deploy time
                     try {
                         val lastRedeployTime = podService.getLastRedeployTime()
