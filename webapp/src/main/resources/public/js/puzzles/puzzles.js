@@ -17,13 +17,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FeedbackBoxes = Object.freeze({
-    PLAYING_RED: 'playing-red-feedback-box',
-    PLAYING_BLACK: 'playing-black-feedback-box',
-    NO_SOLUTION: 'no-solution-feedback-box',
-    MATED_BY_PUZZLE: 'mated-by-puzzle-feedback-box',
-    SOLVED: 'puzzle-solved-feedback-box',
-    SOLUTION_REVEALED: 'solution-revealed-feedback-box'
+const PuzzleStateBoxes = Object.freeze({
+    PLAYING_RED: 'playing-red-state',
+    PLAYING_BLACK: 'playing-black-state',
+    NO_SOLUTION: 'no-solution-state',
+    MATED_BY_PUZZLE: 'mated-by-puzzle-state',
+    SOLVED: 'puzzle-solved-state',
+    SOLUTION_REVEALED: 'solution-revealed-state'
 });
 
 const USER_RATING_DELTA_VALUE_BOX_NEGATIVE_CLASS = 'user-rating-delta-value-box-negative';
@@ -85,7 +85,7 @@ class PuzzlesPage extends BasePage {
     /**
      * @type {HTMLElement[]}
      */
-    #feedbackBoxes = getElementsByClassNameArray('feedback-info-box-table');
+    #stateBoxes = getElementsByClassNameArray('puzzle-state-info-box-table');
 
     #voteContainer = document.getElementById("vote-up-down-container");
     #voteThumbsUp = document.getElementById("vote-thumbs-up");
@@ -187,10 +187,10 @@ class PuzzlesPage extends BasePage {
 
         switch (this.#puzzleState.playerColor) {
             case Color.RED:
-                this.#showFeedbackBox(FeedbackBoxes.PLAYING_RED);
+                this.#showPuzzleStateBox(PuzzleStateBoxes.PLAYING_RED);
                 break;
             case Color.BLACK:
-                this.#showFeedbackBox(FeedbackBoxes.PLAYING_BLACK);
+                this.#showPuzzleStateBox(PuzzleStateBoxes.PLAYING_BLACK);
                 break;
             default:
                 throw new Error('unknown player color: ' + this.#puzzleState.playerColor);
@@ -302,7 +302,7 @@ class PuzzlesPage extends BasePage {
     #renderPlayerMated(submittedMove, nextOpponentMove) {
         this.#renderNextOpponentMove(submittedMove, nextOpponentMove);
         this.#moveTreeWidget.renderSubmittedMovesAsErroneous();
-        this.#showFeedbackBox(FeedbackBoxes.MATED_BY_PUZZLE);
+        this.#showPuzzleStateBox(PuzzleStateBoxes.MATED_BY_PUZZLE);
         this.#renderNextPuzzleButtonAsNextPuzzle();
         this.#displayVoteButtons(true);
         this.#hideDebugHighlight();
@@ -315,7 +315,7 @@ class PuzzlesPage extends BasePage {
 
         // update UI feedback info
         this.#allocatedPliesFeedbackLabel.innerText = this.#puzzleState.allocatedNumberOfMoves.toString();
-        this.#showFeedbackBox(FeedbackBoxes.NO_SOLUTION);
+        this.#showPuzzleStateBox(PuzzleStateBoxes.NO_SOLUTION);
         this.#renderNextPuzzleButtonAsNextPuzzle();
         this.#displayVoteButtons(true);
 
@@ -337,7 +337,7 @@ class PuzzlesPage extends BasePage {
 
             // update UI feedback info
             this.#victoryTypeFeedbackLabel.innerText = victoryType;
-            this.#showFeedbackBox(FeedbackBoxes.SOLVED);
+            this.#showPuzzleStateBox(PuzzleStateBoxes.SOLVED);
             this.#renderNextPuzzleButtonAsNextPuzzle();
             this.#displayVoteButtons(true);
 
@@ -372,7 +372,7 @@ class PuzzlesPage extends BasePage {
             this.#moveTreeWidget.renderLastMovesAsSolution(this.#puzzleState.preRecordedSolutionMoves.length);
 
             // update feedback box
-            this.#showFeedbackBox(FeedbackBoxes.SOLUTION_REVEALED);
+            this.#showPuzzleStateBox(PuzzleStateBoxes.SOLUTION_REVEALED);
             this.#renderNextPuzzleButtonAsNextPuzzle();
             this.#displayVoteButtons(true);
         } else {
@@ -450,12 +450,12 @@ class PuzzlesPage extends BasePage {
         this.#nextPuzzleButtonLabel.innerText = 'Next Puzzle';
     }
 
-    #showFeedbackBox(id) {
-        this.#feedbackBoxes.forEach(box => {
-            box.classList.remove('feedback-info-box-table-rendered');
+    #showPuzzleStateBox(id) {
+        this.#stateBoxes.forEach(box => {
+            box.classList.remove('puzzle-state-info-box-table-rendered');
         });
 
-        document.getElementById(id).classList.add('feedback-info-box-table-rendered');
+        document.getElementById(id).classList.add('puzzle-state-info-box-table-rendered');
     }
 
     /**
