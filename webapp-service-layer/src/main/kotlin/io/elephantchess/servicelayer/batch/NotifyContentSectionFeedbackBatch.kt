@@ -52,8 +52,4 @@ class NotifyContentSectionFeedbackBatch(
         logger.info { "notified ${votes.size} content section vote(s)" }
     }
 
-    private companion object {
-        const val BATCH_SIZE = 500
-    }
-
 }
