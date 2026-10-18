@@ -19,6 +19,7 @@ import io.elephantchess.servicelayer.model.MatchingEmail
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.UserService.Companion.PASSWORD_RECOVERY_TIMEOUT_HOURS
 import io.elephantchess.servicelayer.services.resolvers.EmailConfirmationLinkTagResolver
+import io.elephantchess.servicelayer.services.resolvers.ContentFeedbackRowsTagResolver
 import io.elephantchess.servicelayer.services.resolvers.GameLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.RecoveryLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.UnsubscribeTagResolver
@@ -211,23 +212,16 @@ class MailService(
         }
     }
 
-    suspend fun sendContentSectionVoteNotification(
-        userId: UserId,
-        pageId: String,
-        sectionId: String,
-        upVoted: Boolean,
-        feedback: String?,
-    ) {
+    suspend fun sendContentSectionVoteNotificationDigest(contentFeedbackEntries: List<ContentFeedbackEntry>) {
+        if (contentFeedbackEntries.isEmpty()) return
+
         resolveAndSendAsync(
             recipient = adminEmail,
-            subject = "new content feedback",
-            templateName = "new_content_feedback_notification",
+            subject = "new content feedback (${contentFeedbackEntries.size})",
+            templateName = "new_content_feedback_digest",
             resolvers = listOf(
-                SimpleValueTagResolver("user_id", userId.toString()),
-                SimpleValueTagResolver("page_id", pageId),
-                SimpleValueTagResolver("section_id", sectionId),
-                SimpleValueTagResolver("vote", if (upVoted) "up" else "down"),
-                SimpleValueTagResolver("feedback", feedback ?: "-"),
+                SimpleValueTagResolver("count", contentFeedbackEntries.size.toString()),
+                ContentFeedbackRowsTagResolver(contentFeedbackEntries),
             ),
             skipRecipientValidityCheck = true
         )
@@ -539,7 +533,7 @@ class MailService(
 
     companion object {
 
-                // 18 months
+        // 18 months
         val emailValidityDuration = (18 * 30).days
 
         // 12 months
@@ -548,3 +542,11 @@ class MailService(
     }
 
 }
+
+data class ContentFeedbackEntry(
+    val userId: String,
+    val pageId: String,
+    val sectionId: String,
+    val upVoted: Boolean,
+    val feedback: String?,
+)
