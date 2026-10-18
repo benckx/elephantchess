@@ -2618,4 +2618,11 @@
             <column name="created_at" type="datetime"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0118" author="benckx">
+        <comment>
+            Drop the kubernetes_pod registry: pod identity (shard index and count) now comes from the
+            StatefulSet POD_NAME/POD_COUNT env vars, so the DB registry and the k8s client are no longer used.
+        </comment>
+        <dropTable tableName="kubernetes_pod"/>
+    </changeSet>
 </databaseChangeLog>
