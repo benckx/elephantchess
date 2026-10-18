@@ -82,6 +82,12 @@ data class AppConfig(
     val databaseRateLimitWindowSeconds: Int
         get() = loadIntOrDefault("database.rate.limit.window.seconds", 60)
 
+    /**
+     * Highlights the expected solution moves on the puzzles page (for local debugging only).
+     */
+    val isPuzzlesDebugModeEnabled: Boolean
+        get() = loadBoolean("puzzles.debug.mode", false)
+
     val mailConfig: MailConfig
         get() = MailConfig(
             smtpHost = loadString("mail.smtp.host"),
@@ -111,6 +117,7 @@ data class AppConfig(
         lines += "disabled batches -> ${disabledBatches.joinToString(", ")}"
         lines += "CDN enabled -> $cdnEnabled"
         lines += "database rate limit -> $isDatabaseRateLimitEnabled ($databaseRateLimitMaxRequests req / ${databaseRateLimitWindowSeconds}s per IP)"
+        lines += "puzzles debug mode -> $isPuzzlesDebugModeEnabled"
         return lines
     }
 
