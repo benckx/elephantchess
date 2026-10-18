@@ -419,15 +419,18 @@ class PuzzlesPage extends BasePage {
         UI.showModalByName(modalName, () => {
             const checkbox = document.getElementById('puzzle-confirmation-do-not-show-again');
 
-            const yesButton = document.getElementById('puzzle-confirmation-yes-button');
-            yesButton.addEventListener('click', () => {
-                if (checkbox.checked) {
-                    disableConfirmationCb();
-                }
-                UI.hideModal(null);
-                confirmedCb();
-            });
+            // "confirm" button listener
+            document
+                .getElementById('puzzle-confirmation-yes-button')
+                .addEventListener('click', () => {
+                    if (checkbox.checked) {
+                        disableConfirmationCb();
+                    }
+                    UI.hideModal(null);
+                    confirmedCb();
+                });
 
+            // "cancel" button listener
             document
                 .getElementById('puzzle-confirmation-no-button')
                 .addEventListener('click', () => {
