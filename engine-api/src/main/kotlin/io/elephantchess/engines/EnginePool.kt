@@ -82,6 +82,7 @@ return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
                     acquiredProcess != null
                 }
                 acquiredProcess?.lock()
+                acquiredProcess?.let { ensureAlive(it) }
 
                 if (acquiredProcess == null) {
                     logger.warn { "acquireEngineProcess timed out after $timeout ms." }
@@ -112,6 +113,21 @@ return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
     fun close() {
         engineProcesses.forEach { engine -> engine.close() }
         executor.shutdown()
+    }
+
+    /**
+     * Relaunches the underlying engine process if it has died (e.g. after a crash). The pool otherwise
+     * keeps handing out a dead process that fails every query with "Stream closed".
+     */
+    private fun ensureAlive(lockableEngineProcess: LockableEngineProcess) {
+        val engineProcess = lockableEngineProcess.engineProcess
+        if (!engineProcess.isAlive()) {
+            logger.warn { "engine ${engineProcess.engineId} is not alive, relaunching it" }
+            engineProcess.prepareRelaunch()
+            executor.submit(engineProcess)
+            engineProcess.waitUntilReadyBlocking(10_000)
+            logger.info { "engine ${engineProcess.engineId} relaunched" }
+        }
     }
 
     /**
