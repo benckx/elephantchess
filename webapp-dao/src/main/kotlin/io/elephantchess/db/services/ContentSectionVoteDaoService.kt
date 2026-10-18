@@ -21,13 +21,33 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .set(CONTENT_SECTION_VOTE.SECTION_ID, sectionId)
             .set(CONTENT_SECTION_VOTE.UP_VOTED, upVoted)
             .set(CONTENT_SECTION_VOTE.FEEDBACK, feedback)
+            .set(CONTENT_SECTION_VOTE.NOTIFIED, false)
             .set(CONTENT_SECTION_VOTE.CREATION_TIME, now)
             .set(CONTENT_SECTION_VOTE.UPDATE_TIME, now)
             .onConflict(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID, CONTENT_SECTION_VOTE.USER_ID)
             .doUpdate()
             .set(CONTENT_SECTION_VOTE.UP_VOTED, upVoted)
             .set(CONTENT_SECTION_VOTE.FEEDBACK, feedback)
+            .set(CONTENT_SECTION_VOTE.NOTIFIED, false)
             .set(CONTENT_SECTION_VOTE.UPDATE_TIME, now)
+            .awaitExecute()
+    }
+
+    suspend fun listUnnotifiedVotes(): List<ContentSectionVote> {
+        return dslContext
+            .selectFrom(CONTENT_SECTION_VOTE)
+            .where(CONTENT_SECTION_VOTE.NOTIFIED.isFalse)
+            .orderBy(CONTENT_SECTION_VOTE.UPDATE_TIME.asc())
+            .awaitMappedRecords()
+    }
+
+    suspend fun markAsNotified(pageId: String, sectionId: String, userId: String) {
+        dslContext
+            .update(CONTENT_SECTION_VOTE)
+            .set(CONTENT_SECTION_VOTE.NOTIFIED, true)
+            .where(CONTENT_SECTION_VOTE.PAGE_ID.eq(pageId))
+            .and(CONTENT_SECTION_VOTE.SECTION_ID.eq(sectionId))
+            .and(CONTENT_SECTION_VOTE.USER_ID.eq(userId))
             .awaitExecute()
     }
 

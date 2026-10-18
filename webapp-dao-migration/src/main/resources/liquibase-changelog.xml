@@ -2839,12 +2839,30 @@
         </createIndex>
     </changeSet>
     <changeSet id="0115" author="benckx">
+        <comment>
+            Content section feedback notifications are no longer sent synchronously on each vote. A batch
+            picks up votes that have not been notified yet; this flag tracks that. Existing rows were
+            already notified under the old flow, so they are marked as notified.
+        </comment>
+        <addColumn tableName="content_section_vote">
+            <column name="notified" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <update tableName="content_section_vote">
+            <column name="notified" valueBoolean="true"/>
+        </update>
+        <createIndex tableName="content_section_vote" indexName="content_section_vote_notified_index">
+            <column name="notified"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0116" author="benckx">
         <comment>Disabled puzzles (disabled_at is set) are not served when picking the next puzzle to assign</comment>
         <addColumn tableName="puzzle">
             <column name="disabled_at" type="datetime"/>
         </addColumn>
     </changeSet>
-    <changeSet id="0116" author="benckx">
+    <changeSet id="0117" author="benckx">
         <comment>
             Date a puzzle was inserted. Existing puzzles are backfilled with 2023-03-25, the day the initial
             batch of ~18,000 puzzles was uploaded (see changelog.html).

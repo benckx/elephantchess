@@ -13,12 +13,12 @@
     <script defer src="/js/puzzles/puzzles-utils.js"></script>
     <script defer src="/js/puzzles/puzzles.js"></script>
 </head>
-<body>
+<body data-debug-mode="{{puzzles_debug_mode}}">
 {{body_init}}
 <div class="flex-triptych-container">
     <div class="flex-triptych-left-container">
         <div id="mobile-navigation-panel" class="navigation-panel mobile-navigation-panel only-mobile"></div>
-        <div class="info-box">
+        <div id="puzzle-details-info-box" class="info-box">
             <div id="vote-up-down-container">
                 <img id="vote-thumbs-up" src="/images/icons/thumbs-up.png" alt="vote up" loading="lazy"/>
                 <img id="vote-thumbs-down" src="/images/icons/thumbs-down.png" alt="vote down" loading="lazy"/>
@@ -83,9 +83,9 @@
                 </tbody>
             </table>
         </div>
-        <div id="puzzle-feedback-info-box" class="info-box center-content-vertical">
+        <div id="puzzle-state-info-box" class="info-box center-content-vertical">
             <div style="width: 100%">
-                <table id="playing-red-feedback-box" class="info-box-table feedback-info-box-table">
+                <table id="playing-red-state" class="info-box-table puzzle-state-info-box-table">
                     <tbody>
                     <tr>
                         <td class="icon-cell">
@@ -100,7 +100,7 @@
                     </tr>
                     </tbody>
                 </table>
-                <table id="playing-black-feedback-box" class="info-box-table feedback-info-box-table">
+                <table id="playing-black-state" class="info-box-table puzzle-state-info-box-table">
                     <tbody>
                     <tr>
                         <td class="icon-cell">
@@ -115,7 +115,7 @@
                     </tr>
                     </tbody>
                 </table>
-                <table id="no-solution-feedback-box" class="info-box-table feedback-info-box-table">
+                <table id="no-solution-state" class="info-box-table puzzle-state-info-box-table">
                     <tbody>
                     <tr>
                         <td class="icon-cell">
@@ -131,7 +131,7 @@
                     </tr>
                     </tbody>
                 </table>
-                <table id="mated-by-puzzle-feedback-box" class="info-box-table feedback-info-box-table">
+                <table id="mated-by-puzzle-state" class="info-box-table puzzle-state-info-box-table">
                     <tbody>
                     <tr>
                         <td class="icon-cell">
@@ -146,7 +146,7 @@
                     </tr>
                     </tbody>
                 </table>
-                <table id="puzzle-solved-feedback-box" class="info-box-table feedback-info-box-table">
+                <table id="puzzle-solved-state" class="info-box-table puzzle-state-info-box-table">
                     <tbody>
                     <tr>
                         <td class="icon-cell">
@@ -161,7 +161,7 @@
                     </tr>
                     </tbody>
                 </table>
-                <table id="solution-revealed-feedback-box" class="info-box-table feedback-info-box-table">
+                <table id="solution-revealed-state" class="info-box-table puzzle-state-info-box-table">
                     <tbody>
                     <tr>
                         <td class="icon-cell">
@@ -178,17 +178,17 @@
                 </table>
             </div>
         </div>
-        <div class="info-box">
+        <div id="puzzle-actions-info-box" class="info-box">
             <table class="info-box-table">
                 <tbody>
-                <tr id="skip-puzzle-button" class="enabled-button">
+                <tr id="next-puzzle-button" class="enabled-button">
                     <td class="icon-cell">
                         <img src="/images/icons/navigation-beginning.png"
                              style="width:58%; transform: rotate(180deg)" class="less-dark-icons"
                              alt="skip"/>
                     </td>
-                    <td class="description-cell">
-                        Skip puzzle
+                    <td id="next-puzzle-button-label" class="description-cell">
+                        Skip Puzzle
                     </td>
                 </tr>
                 <tr id="reveal-solution-button" class="enabled-button">
@@ -196,7 +196,7 @@
                         <img src="/images/icons/open-book.png" class="less-dark-icons" alt="skip"/>
                     </td>
                     <td class="description-cell">
-                        Reveal solution
+                        Reveal Solution
                     </td>
                 </tr>
                 </tbody>

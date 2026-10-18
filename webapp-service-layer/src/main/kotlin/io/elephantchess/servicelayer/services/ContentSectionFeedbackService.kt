@@ -11,7 +11,6 @@ import io.elephantchess.servicelayer.model.UserId
 @KoinSingleton
 class ContentSectionFeedbackService(
     private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
-    private val mailService: MailService,
 ) {
 
     suspend fun submitContentSectionVote(request: ContentSectionVoteRequest, userId: UserId) {
@@ -30,14 +29,6 @@ class ContentSectionFeedbackService(
             sectionId = request.sectionId,
             upVoted = request.upVoted,
             feedback = feedback
-        )
-
-        mailService.sendContentSectionVoteNotification(
-            userId = userId,
-            pageId = request.pageId,
-            sectionId = request.sectionId,
-            upVoted = request.upVoted,
-            feedback = feedback,
         )
     }
 

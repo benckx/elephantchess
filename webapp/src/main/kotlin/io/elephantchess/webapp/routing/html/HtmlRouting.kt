@@ -1,5 +1,7 @@
 package io.elephantchess.webapp.routing.html
 
+import io.elephantchess.config.AppConfig
+import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
@@ -11,7 +13,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import io.ktor.http.content.TextContent
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -24,7 +26,6 @@ private val simplePublicPageMapping = mapOf(
     "/401" to "401",
     "/403" to "403",
     "/404" to "404",
-    "/puzzles" to "puzzles",
     "/board" to "test_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
@@ -99,6 +100,7 @@ fun Application.htmlRoutingModule() {
         simpleMappings()
         simpleMappingsWithSupporterBanner()
         gamePages()
+        puzzlesPage()
         boardGuiExample()
         userProfile()
         userSettingsPage()
@@ -128,6 +130,21 @@ private fun Route.gamePages() {
         } else {
             call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId))
         }
+    }
+}
+
+private fun Route.puzzlesPage() {
+    val appConfig by koin<AppConfig>()
+    val isPuzzlesDebugModeEnabled = appConfig.isPuzzlesDebugModeEnabled
+    val resolvers = listOf(SimpleValueTagResolver("puzzles_debug_mode", isPuzzlesDebugModeEnabled.toString()))
+
+    get("/puzzles") {
+        call.respondHtml(
+            simplePageRenderer.renderTemplate(
+                "puzzles",
+                resolvers
+            )
+        )
     }
 }
 

@@ -17,13 +17,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FeedbackBoxes = Object.freeze({
-    PLAYING_RED: 'playing-red-feedback-box',
-    PLAYING_BLACK: 'playing-black-feedback-box',
-    NO_SOLUTION: 'no-solution-feedback-box',
-    MATED_BY_PUZZLE: 'mated-by-puzzle-feedback-box',
-    SOLVED: 'puzzle-solved-feedback-box',
-    SOLUTION_REVEALED: 'solution-revealed-feedback-box'
+const PuzzleStateBoxes = Object.freeze({
+    PLAYING_RED: 'playing-red-state',
+    PLAYING_BLACK: 'playing-black-state',
+    NO_SOLUTION: 'no-solution-state',
+    MATED_BY_PUZZLE: 'mated-by-puzzle-state',
+    SOLVED: 'puzzle-solved-state',
+    SOLUTION_REVEALED: 'solution-revealed-state'
 });
 
 const USER_RATING_DELTA_VALUE_BOX_NEGATIVE_CLASS = 'user-rating-delta-value-box-negative';
@@ -52,10 +52,21 @@ class PuzzlesPage extends BasePage {
      */
     #moveTreeWidget = new PuzzleMoveTreeWidget({containerId: 'move-tree-container'});
 
-    #debugMode = false;
+    #debugMode = document.body.dataset.debugMode === 'true';
     #newRatingToShow = null;
 
-    #skipPuzzleButton = document.getElementById('skip-puzzle-button');
+    /**
+     * In memory only (reset on page reload)
+     */
+    #skipConfirmationEnabled = true;
+
+    /**
+     * In memory only (reset on page reload)
+     */
+    #revealConfirmationEnabled = true;
+
+    #nextPuzzleButton = document.getElementById('next-puzzle-button');
+    #nextPuzzleButtonLabel = document.getElementById('next-puzzle-button-label');
     #revealSolutionButton = document.getElementById('reveal-solution-button');
 
     #puzzleIdLabel = document.getElementById('puzzle-id');
@@ -75,7 +86,7 @@ class PuzzlesPage extends BasePage {
     /**
      * @type {HTMLElement[]}
      */
-    #feedbackBoxes = getElementsByClassNameArray('feedback-info-box-table');
+    #stateBoxes = getElementsByClassNameArray('puzzle-state-info-box-table');
 
     #voteContainer = document.getElementById("vote-up-down-container");
     #voteThumbsUp = document.getElementById("vote-thumbs-up");
@@ -128,10 +139,10 @@ class PuzzlesPage extends BasePage {
         new SettingsGui(this.#boardGui, this.#moveTreeWidget);
 
         // add listeners
-        this.#skipPuzzleButton.addEventListener('click', () => this.#puzzlesController.skip());
+        this.#nextPuzzleButton.addEventListener('click', () => this.#handleNextPuzzleButtonClicked());
         this.#revealSolutionButton.addEventListener('click', (e) => {
             if (isInfoBoxButtonEnabled(e)) {
-                this.#revealSolution();
+                this.#handleRevealSolutionButtonClicked();
             }
         });
 
@@ -178,10 +189,10 @@ class PuzzlesPage extends BasePage {
 
         switch (this.#puzzleState.playerColor) {
             case Color.RED:
-                this.#showFeedbackBox(FeedbackBoxes.PLAYING_RED);
+                this.#showPuzzleStateBox(PuzzleStateBoxes.PLAYING_RED);
                 break;
             case Color.BLACK:
-                this.#showFeedbackBox(FeedbackBoxes.PLAYING_BLACK);
+                this.#showPuzzleStateBox(PuzzleStateBoxes.PLAYING_BLACK);
                 break;
             default:
                 throw new Error('unknown player color: ' + this.#puzzleState.playerColor);
@@ -194,6 +205,7 @@ class PuzzlesPage extends BasePage {
         }
 
         setInfoBoxButtonEnabled(this.#revealSolutionButton, true);
+        this.#renderNextPuzzleButtonAsSkipPuzzle();
         this.#displayVoteButtons(false);
 
         // update rating
@@ -292,7 +304,8 @@ class PuzzlesPage extends BasePage {
     #renderPlayerMated(submittedMove, nextOpponentMove) {
         this.#renderNextOpponentMove(submittedMove, nextOpponentMove);
         this.#moveTreeWidget.renderSubmittedMovesAsErroneous();
-        this.#showFeedbackBox(FeedbackBoxes.MATED_BY_PUZZLE);
+        this.#showPuzzleStateBox(PuzzleStateBoxes.MATED_BY_PUZZLE);
+        this.#renderNextPuzzleButtonAsNextPuzzle();
         this.#displayVoteButtons(true);
         this.#hideDebugHighlight();
     }
@@ -304,7 +317,8 @@ class PuzzlesPage extends BasePage {
 
         // update UI feedback info
         this.#allocatedPliesFeedbackLabel.innerText = this.#puzzleState.allocatedNumberOfMoves.toString();
-        this.#showFeedbackBox(FeedbackBoxes.NO_SOLUTION);
+        this.#showPuzzleStateBox(PuzzleStateBoxes.NO_SOLUTION);
+        this.#renderNextPuzzleButtonAsNextPuzzle();
         this.#displayVoteButtons(true);
 
         // update UI controls
@@ -325,7 +339,8 @@ class PuzzlesPage extends BasePage {
 
             // update UI feedback info
             this.#victoryTypeFeedbackLabel.innerText = victoryType;
-            this.#showFeedbackBox(FeedbackBoxes.SOLVED);
+            this.#showPuzzleStateBox(PuzzleStateBoxes.SOLVED);
+            this.#renderNextPuzzleButtonAsNextPuzzle();
             this.#displayVoteButtons(true);
 
             // update UI controls
@@ -359,19 +374,90 @@ class PuzzlesPage extends BasePage {
             this.#moveTreeWidget.renderLastMovesAsSolution(this.#puzzleState.preRecordedSolutionMoves.length);
 
             // update feedback box
-            this.#showFeedbackBox(FeedbackBoxes.SOLUTION_REVEALED);
+            this.#showPuzzleStateBox(PuzzleStateBoxes.SOLUTION_REVEALED);
+            this.#renderNextPuzzleButtonAsNextPuzzle();
             this.#displayVoteButtons(true);
         } else {
             console.warn('solution already revealed or puzzle solved')
         }
     }
 
-    #showFeedbackBox(id) {
-        this.#feedbackBoxes.forEach(box => {
-            box.classList.remove('feedback-info-box-table-rendered');
+    #handleNextPuzzleButtonClicked() {
+        if (this.#puzzleState == null) {
+            return;
+        }
+        if (this.#puzzleState.hasOutcome() || !this.#skipConfirmationEnabled) {
+            this.#puzzlesController.skip();
+        } else {
+            this.#showRatingLossConfirmationModal(
+                'puzzle-skip-confirmation',
+                () => this.#skipConfirmationEnabled = false,
+                () => this.#puzzlesController.skip()
+            );
+        }
+    }
+
+    #handleRevealSolutionButtonClicked() {
+        if (this.#puzzleState == null) {
+            return;
+        }
+        if (this.#puzzleState.hasOutcome() || !this.#revealConfirmationEnabled) {
+            this.#revealSolution();
+        } else {
+            this.#showRatingLossConfirmationModal(
+                'puzzle-reveal-confirmation',
+                () => this.#revealConfirmationEnabled = false,
+                () => this.#revealSolution()
+            );
+        }
+    }
+
+    /**
+     * @param modalName {string} name of the modal to display
+     * @param disableConfirmationCb {function} called when the user ticked "Do not show again"
+     * @param confirmedCb {function}
+     */
+    #showRatingLossConfirmationModal(modalName, disableConfirmationCb, confirmedCb) {
+        UI.showModalByName(modalName, () => {
+            const checkbox = document.getElementById('puzzle-confirmation-do-not-show-again');
+
+            // "confirm" button listener
+            document
+                .getElementById('puzzle-confirmation-yes-button')
+                .addEventListener('click', () => {
+                    if (checkbox.checked) {
+                        disableConfirmationCb();
+                    }
+                    UI.hideModal(null);
+                    confirmedCb();
+                });
+
+            // "cancel" button listener
+            document
+                .getElementById('puzzle-confirmation-no-button')
+                .addEventListener('click', () => {
+                    UI.hideModal(null);
+                });
+        });
+    }
+
+    #renderNextPuzzleButtonAsSkipPuzzle() {
+        this.#nextPuzzleButtonLabel.innerText = 'Skip Puzzle';
+    }
+
+    /**
+     * When the puzzle is over, the button only moves to the next puzzle (no penalty)
+     */
+    #renderNextPuzzleButtonAsNextPuzzle() {
+        this.#nextPuzzleButtonLabel.innerText = 'Next Puzzle';
+    }
+
+    #showPuzzleStateBox(id) {
+        this.#stateBoxes.forEach(box => {
+            box.classList.remove('puzzle-state-info-box-table-rendered');
         });
 
-        document.getElementById(id).classList.add('feedback-info-box-table-rendered');
+        document.getElementById(id).classList.add('puzzle-state-info-box-table-rendered');
     }
 
     /**
