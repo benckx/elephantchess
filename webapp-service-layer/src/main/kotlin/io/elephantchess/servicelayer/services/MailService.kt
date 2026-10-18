@@ -9,7 +9,6 @@ import io.elephantchess.db.services.EmailVerificationDaoService
 import io.elephantchess.db.services.NewsletterDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.generateId
-import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.model.EmailVerifierService.EMAIL_LIST_VERIFY
@@ -20,6 +19,7 @@ import io.elephantchess.servicelayer.model.MatchingEmail
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.UserService.Companion.PASSWORD_RECOVERY_TIMEOUT_HOURS
 import io.elephantchess.servicelayer.services.resolvers.EmailConfirmationLinkTagResolver
+import io.elephantchess.servicelayer.services.resolvers.ContentFeedbackRowsTagResolver
 import io.elephantchess.servicelayer.services.resolvers.GameLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.RecoveryLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.UnsubscribeTagResolver
@@ -27,8 +27,6 @@ import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.html.td
-import kotlinx.html.tr
 import javax.activation.DataHandler
 import javax.activation.URLDataSource
 import javax.mail.*
@@ -217,24 +215,13 @@ class MailService(
     suspend fun sendContentSectionVoteNotificationDigest(contentFeedbackEntries: List<ContentFeedbackEntry>) {
         if (contentFeedbackEntries.isEmpty()) return
 
-        val rowsResolver = KtorHtmlBuilderTagResolver("rows") {
-            contentFeedbackEntries.forEach { entry ->
-                tr {
-                    td { +"${entry.pageId} / ${entry.sectionId}" }
-                    td { +entry.userId }
-                    td { +(if (entry.upVoted) "up" else "down") }
-                    td { +(entry.feedback ?: "-") }
-                }
-            }
-        }
-
         resolveAndSendAsync(
             recipient = adminEmail,
             subject = "new content feedback (${contentFeedbackEntries.size})",
             templateName = "new_content_feedback_digest",
             resolvers = listOf(
                 SimpleValueTagResolver("count", contentFeedbackEntries.size.toString()),
-                rowsResolver,
+                ContentFeedbackRowsTagResolver(contentFeedbackEntries),
             ),
             skipRecipientValidityCheck = true
         )
