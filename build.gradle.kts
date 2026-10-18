@@ -55,8 +55,8 @@ subprojects {
     dependencies {
         implementation(rootLibs.kotlin.stdlib)
 
-        // Align all transitive Netty modules via the Netty BOM. Vert.x 5 (pulled in by
-        // the fabric8 kubernetes-client) requires Netty >= 4.2.16 (HttpHeaderNames.ACCEPT_QUERY).
+        // Align all transitive Netty modules via the Netty BOM, so the Netty version used by
+        // ktor-server-netty is pinned consistently across modules.
         val nettyBom = enforcedPlatform(rootLibs.netty.bom)
         implementation(nettyBom)
         testImplementation(nettyBom)
@@ -283,7 +283,6 @@ project(":webapp-service-layer") {
         implementation(rootLibs.java.jwt)
         implementation(rootLibs.javax.mail)
         implementation(rootLibs.cache4k)
-        implementation(rootLibs.kubernetes.client)
         implementation(rootLibs.jooq)
         implementation(rootLibs.ktor.client.core)
         implementation(rootLibs.ktor.client.cio)

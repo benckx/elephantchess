@@ -10,7 +10,6 @@ import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
@@ -96,15 +95,6 @@ class BatchesScheduler(
             action = {
                 metricsLogger.logAllMetrics()
                 if (isDockerized) {
-                    // log pod names
-                    try {
-                        logger.info {
-                            runBlocking { "pods from db: ${podService.listPodNamesFromDb()}" }
-                        }
-                    } catch (e: Exception) {
-                        logger.error(e) { "error listing pods" }
-                    }
-
                     // log deploy time
                     try {
                         val lastRedeployTime = podService.getLastRedeployTime()
