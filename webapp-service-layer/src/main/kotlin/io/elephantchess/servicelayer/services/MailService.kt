@@ -11,6 +11,7 @@ import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.generateId
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
+import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.model.EmailVerifierService.EMAIL_LIST_VERIFY
 import io.elephantchess.servicelayer.clients.EmailListVerifyClient
 import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
@@ -545,7 +546,7 @@ class MailService(
 
     companion object {
 
-                // 18 months
+        // 18 months
         val emailValidityDuration = (18 * 30).days
 
         // 12 months
