@@ -161,6 +161,14 @@ table.feedback-info-box-table-rendered {
     #vote-up-down-container img:first-child {
         margin-right: 20px;
     }
+
+    #puzzle-details-info-box {
+        order: 1;
+    }
+
+    #user-rating-info-box {
+        order: 2;
+    }
 }
 
 .rating-loss-confirmation-checkbox {
