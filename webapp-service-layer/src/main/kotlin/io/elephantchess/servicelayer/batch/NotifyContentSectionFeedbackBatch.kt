@@ -23,7 +23,7 @@ class NotifyContentSectionFeedbackBatch(
 ) : SinglePodBatch {
 
     override suspend fun run() {
-        val votes = contentSectionVoteDaoService.listUnnotifiedVotes(BATCH_SIZE)
+        val votes = contentSectionVoteDaoService.listUnnotifiedVotes()
 
         if (votes.isEmpty()) {
             return

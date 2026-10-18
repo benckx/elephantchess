@@ -33,12 +33,11 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun listUnnotifiedVotes(limit: Int): List<ContentSectionVote> {
+    suspend fun listUnnotifiedVotes(): List<ContentSectionVote> {
         return dslContext
             .selectFrom(CONTENT_SECTION_VOTE)
             .where(CONTENT_SECTION_VOTE.NOTIFIED.isFalse)
             .orderBy(CONTENT_SECTION_VOTE.UPDATE_TIME.asc())
-            .limit(limit)
             .awaitMappedRecords()
     }
 
