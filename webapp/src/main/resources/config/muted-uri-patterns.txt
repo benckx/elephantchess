@@ -246,6 +246,26 @@ com_jce
 /media/system/js
 /media/jui
 
+# --- SaaS / Next.js auth, admin & billing path scans ---
+# Hit in bursts by scanners probing for a typical SaaS/Next.js app (note the
+# `x-middleware-subrequest` middleware-bypass header). This app ships none of
+# these pages, so every one of them is a 404 from a scanner.
+/onboarding
+/workspace
+/login
+/sign-in
+/reset-password
+/forgot-password
+/settings
+/internal
+/webhooks
+/manage
+/api-keys
+/dashboard/billing
+/studio
+/checkout
+/public/admin.json
+
 # --- Benign automatic client / OS probes ---
 apple-touch-icon
 /.well-known/assetlinks.json

@@ -70,6 +70,15 @@ internal fun isClientDisconnectException(t: Throwable): Boolean {
 internal fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, t: Throwable): Boolean =
     t is NullPointerException && call.response.status() == HttpStatusCode.SwitchingProtocols
 
+/**
+ * Ktor's static-content resolver throws `BadRequestException: Relative path should not contain path
+ * traversing characters: ...` when a request tries to escape the static root (e.g. a scanner probing
+ * `cache/original/../../.env`). These are vulnerability-scanner noise, so log them at DEBUG instead of
+ * ERROR and don't persist them.
+ */
+internal fun isPathTraversalProbe(t: Throwable): Boolean =
+    t.message?.contains("path traversing characters") == true
+
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}
     val exceptionService by koin<ExceptionService>()
@@ -177,6 +186,9 @@ fun Application.exceptionHandler() {
                 logger.error(e) { "JSON error: ${e.cause}" }
                 exceptionService.saveException(e, BadRequest.value)
                 call.respond(BadRequest, ValidationErrorsResponse("Bad Request: JSON error"))
+            } else if (isPathTraversalProbe(e)) {
+                logger.debug { "Ignoring path-traversal probe: ${call.request.uri}" }
+                call.respond(BadRequest, ValidationErrorsResponse("Bad Request"))
             } else {
                 logger.error(e) { e.toString() }
                 exceptionService.saveException(e, BadRequest.value)
