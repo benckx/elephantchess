@@ -4,6 +4,5 @@ data class OnlineUsersStatsByDayOfWeek(
     val dayOfWeek: Int, // 0 = Sunday, 1 = Monday, etc.
     val minTotal: Int,
     val maxTotal: Int,
-    val avgTotal: Int
+    val avgTotal: Int,
 )
-

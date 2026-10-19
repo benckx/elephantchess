@@ -30,7 +30,7 @@ class MoveHistoryTest {
             "d3e3", "e0d0", "e3d3", "d0e0", "a0f0", "a6a9", "e8d9", "a9a4", "d3e3", "e0d0", "f0f4", "a4a2", "e3d3",
             "d0e0", "d3e3", "e0d0", "g2e1", "d0d1", "e1g0", "a2g2", "e3e1", "d1d2", "g0i1", "g2g9", "e9e8", "g9d9",
             "e4i4", "d9d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8",
-            "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8"
+            "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8",
         )
 
         val board = Board(keepHistory = true)
@@ -49,5 +49,4 @@ class MoveHistoryTest {
         assertEquals(setOf(checkingPiece), sequenceOfChecks.attackers)
         assertTrue(sequenceOfChecks.exceeds(PerpetualCheckingRule(1, 6)))
     }
-
 }

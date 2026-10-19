@@ -4,6 +4,7 @@ import io.elephantchess.utils.TryEither
 import kotlinx.coroutines.reactive.awaitSingle
 import org.jooq.*
 import org.jooq.impl.DSL
+import org.jooq.impl.SQLDataType
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.reactivestreams.Publisher
 import reactor.core.publisher.Flux
@@ -13,68 +14,62 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-/**
- * Workaround for insert
- */
-fun <R : Record> Table<R>.fixed(): Table<Record> {
-    return DSL.table("public.${name.lowercase()}")
-}
-
-/**
- * Workaround for inserts and updates
- */
-fun <T : Any> Field<T>.fixed(): Field<Any> {
-    return DSL.field(DSL.quotedName(name.lowercase()))
-}
-
 fun Field<String>.eqIgnoreCaseTrimmed(value: String): Condition =
     DSL.trim(DSL.lower(this)).eq(value.trim().lowercase())
 
 // TODO: can be converted to LocalDate
-fun Field<Instant>.date(): Field<java.sql.Date> {
-    return DSL.field("date(${this.name})").cast(java.sql.Date::class.java)
-}
+fun Field<Instant>.date(): Field<java.sql.Date> =
+    DSL.field("date(${this.name})").cast(java.sql.Date::class.java)
 
 // TODO: can be converted to LocalDate
-fun Field<Instant>.dateQualified(prefix: String): Field<java.sql.Date> {
-    return DSL.field("date(${prefix}.${this.name})").cast(java.sql.Date::class.java)
-}
+fun Field<Instant>.dateQualified(prefix: String): Field<java.sql.Date> =
+    DSL.field("date($prefix.${this.name})").cast(java.sql.Date::class.java)
 
 fun Field<Instant>.isOlderThan(duration: Duration): Field<Boolean> {
     val limit = Clock.System.now() - duration
     return isBefore(limit)
 }
 
-fun Field<Instant>.isBeforeEpochMillis(timestampMillis: Long): Field<Boolean> {
-    return isBefore(Instant.fromEpochMilliseconds(timestampMillis))
-}
+fun Field<Instant>.isBeforeEpochMillis(timestampMillis: Long): Condition =
+    isBefore(Instant.fromEpochMilliseconds(timestampMillis))
 
-fun Field<Instant>.isWithin(duration: Duration): Field<Boolean> {
+fun Field<Instant>.isWithin(duration: Duration): Condition {
     val limit = Clock.System.now() - duration
     return isAfter(limit)
 }
 
-fun <T : Any> Field<T>.qualified(prefix: String): Field<Any> {
-    return DSL.field("${prefix}.${this.name}")
-}
+fun <T : Any> Field<T>.qualified(prefix: String): Field<Any> =
+    DSL.field("$prefix.${this.name}")
 
-fun Field<Instant>.hourOfDay(): Field<Int> {
-    return DSL.field("to_char(${this.name}, 'HH24')")
+fun Field<Instant>.hourOfDay(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'HH24')")
         .convertFrom { it.toString().toInt() }
         .`as`("hour")
-}
 
+/**
+ * The UTC calendar day of an instant, bucketed via `to_char(..., 'YYYY-MM-DD')` and cast to a genuine
+ * `date` SQL expression (so it can be grouped/selected and also inserted into a `date` column).
+ * When [alias] is non-null the field is aliased (defaulting to `day`).
+ */
 fun Field<Instant>.localDate(alias: String? = "day"): Field<LocalDate> {
-    val base = DSL
-        .field("to_char(${this.name}, 'YYYY-MM-DD')")
-        .convertFrom { LocalDate.parse(it.toString()) }
-
-    return if (alias != null) {
-        base.`as`(alias)
-    } else {
-        base
-    }
+    val base = DSL.field("cast(to_char({0}, 'YYYY-MM-DD') as date)", SQLDataType.LOCALDATE, this)
+    return if (alias != null) base.`as`(alias) else base
 }
+
+/**
+ * The current transaction timestamp rendered for [target], reusing that column's data type so the
+ * `timestamptz`/[Instant] forced-type converter is applied when assigning it on upsert conflicts.
+ */
+fun <T> currentTimestamp(target: Field<T>): Field<T> =
+    DSL.field("current_timestamp", target.dataType)
+
+/**
+ * On an `ON CONFLICT ... DO UPDATE` upsert, accumulate [field] by adding the value that would have been
+ * inserted (`excluded.field`) to the existing row's value, i.e. `set(field, field + excluded(field))`.
+ * Chainable across several columns.
+ */
+fun <R : Record, T : Number> InsertOnDuplicateSetStep<R>.accumulate(field: Field<T>): InsertOnDuplicateSetMoreStep<R> =
+    set(field, field.plus(DSL.excluded(field)))
 
 fun Field<Instant>.yearMonth(alias: String? = "month"): Field<YearMonth> {
     val base = DSL
@@ -88,47 +83,39 @@ fun Field<Instant>.yearMonth(alias: String? = "month"): Field<YearMonth> {
     }
 }
 
-fun Field<LocalDate>.yearMonthOfDay(): Field<YearMonth> {
-    return DSL.field("to_char(${this.name}, 'YYYY-MM')")
+fun Field<LocalDate>.yearMonthOfDay(): Field<YearMonth> =
+    DSL.field("to_char(${this.name}, 'YYYY-MM')")
         .convertFrom { YearMonth.parse(it.toString()) }
         .`as`("month")
-}
 
-fun Field<Instant>.year(): Field<Int> {
-    return DSL.field("to_char(${this.name}, 'YYYY')")
+fun Field<Instant>.year(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'YYYY')")
         .convertFrom { it.toString().toInt() }
         .`as`("year")
-}
 
-fun Field<LocalDate>.yearOfDay(): Field<Int> {
-    return DSL.field("to_char(${this.name}, 'YYYY')")
+fun Field<LocalDate>.yearOfDay(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'YYYY')")
         .convertFrom { it.toString().toInt() }
         .`as`("year")
-}
 
-fun Field<Instant>.century(): Field<Int> {
-    return DSL.field("to_char(${this.name}, 'CC')")
+fun Field<Instant>.century(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'CC')")
         .convertFrom { it.toString().toInt() }
         .`as`("century")
-}
 
-fun Field<LocalDate>.centuryOfDay(): Field<Int> {
-    return DSL.field("to_char(${this.name}, 'CC')")
+fun Field<LocalDate>.centuryOfDay(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'CC')")
         .convertFrom { it.toString().toInt() }
         .`as`("century")
-}
 
-fun diffInSeconds(f1: Field<Instant>, f2: Field<Instant>): Field<Int> {
-    return DSL.extract(f1, DatePart.EPOCH).minus(DSL.extract(f2, DatePart.EPOCH))
-}
+fun diffInSeconds(f1: Field<Instant>, f2: Field<Instant>): Field<Int> =
+    DSL.extract(f1, DatePart.EPOCH).minus(DSL.extract(f2, DatePart.EPOCH))
 
-private fun Field<Instant>.isAfter(timestamp: Instant): Field<Boolean> {
-    return greaterThan(timestamp)
-}
+fun Field<Instant>.isAfter(timestamp: Instant): Condition =
+    greaterThan(timestamp)
 
-private fun Field<Instant>.isBefore(timestamp: Instant): Field<Boolean> {
-    return lessThan(timestamp)
-}
+fun Field<Instant>.isBefore(timestamp: Instant): Condition =
+    lessThan(timestamp)
 
 suspend fun <T> DSLContext.transactionalContextTry(block: suspend (DSLContext) -> T): TryEither<T> {
     var t: TryEither<T>? = null
@@ -142,60 +129,53 @@ suspend fun <T> DSLContext.transactionalContextTry(block: suspend (DSLContext) -
     return t!!
 }
 
-suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleMappedRecord(): T? {
-    return Flux
-        .from<Record>(this)
-        .collectList()
-        .awaitSingle()
-        .firstOrNull()
-        ?.into<T>(T::class.java)
-}
-
-suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitMappedRecords(): List<T> {
-    return Flux
-        .from<Record>(this)
-        .collectList()
-        .awaitSingle()
-        .map<Record, T> { record -> record.into<T>(T::class.java) }
-}
-
-suspend fun <R : Record> ResultQuery<R>.awaitRecords(): List<R> {
-    return Flux
+suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleMappedRecord(): T? =
+    Flux
         .from(this)
         .collectList()
         .awaitSingle()
-}
-
-suspend fun ResultQuery<out Record>.awaitSingleRecord(): Record? {
-    return awaitRecords().firstOrNull()
-}
-
-suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleOrNull(): T? {
-    return awaitRecords()
         .firstOrNull()
         ?.into<T>(T::class.java)
-}
+
+suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitMappedRecords(): List<T> =
+    Flux
+        .from(this)
+        .collectList()
+        .awaitSingle()
+        .map<Record, T> { record -> record.into<T>(T::class.java) }
+
+suspend fun <R : Record> ResultQuery<R>.awaitRecords(): List<R> =
+    Flux
+        .from(this)
+        .collectList()
+        .awaitSingle()
+
+suspend fun ResultQuery<out Record>.awaitSingleRecord(): Record? =
+    awaitRecords().firstOrNull()
+
+suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleOrNull(): T? =
+    awaitRecords()
+        .firstOrNull()
+        ?.into<T>(T::class.java)
 
 @Suppress("UNCHECKED_CAST")
-suspend fun <T : Any> ResultQuery<out Record>.awaitSingleValue(): T? {
-    return Flux
+suspend fun <T : Any> ResultQuery<out Record>.awaitSingleValue(): T? =
+    Flux
         .from(this)
         .collectList()
         .awaitSingle()
         .firstOrNull()
         ?.get(0) as? T
-}
 
 /**
  * Reactively execute a jOOQ Query (INSERT, UPDATE, DELETE) in an R2DBC context.
  * Returns the number of affected rows.
  */
 @Suppress("UNCHECKED_CAST")
-suspend fun Query.awaitExecute(): Int {
-    return Flux
+suspend fun Query.awaitExecute(): Int =
+    Flux
         .from(this as Publisher<Int>)
         .awaitSingle() ?: 0
-}
 
 suspend fun <R : TableRecord<R>, P> DAO<R, P, *>.insertReactive(pojo: P): Int {
     val dslContext = DSL.using(configuration())

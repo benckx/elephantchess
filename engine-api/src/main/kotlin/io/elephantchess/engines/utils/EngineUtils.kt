@@ -10,5 +10,4 @@ object EngineUtils {
         delay(checkPeriod)
         return waitForCondition(maxDelay - checkPeriod, checkPeriod, condition)
     }
-
 }

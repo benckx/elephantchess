@@ -45,13 +45,19 @@ function getCookie(name) {
     for (let i = 0; i < ca.length; i++) {
         let c = ca[i];
         while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+        if (c.indexOf(nameEQ) === 0) {
+            const value = c.substring(nameEQ.length, c.length);
+            // Treat a present-but-blank cookie (e.g. "user.token=") as absent. Otherwise the
+            // identity layer would consider the user "identified" with an empty token, send an
+            // empty token to the server, and get stuck in an endless rejected-reconnect loop.
+            return value.trim().length === 0 ? null : value;
+        }
     }
     return null;
 }
 
 function eraseCookie(name) {
-    document.cookie = name + '=; Max-Age=-99999999;';
+    document.cookie = name + '=; Max-Age=-99999999; path=/';
 }
 
 /**

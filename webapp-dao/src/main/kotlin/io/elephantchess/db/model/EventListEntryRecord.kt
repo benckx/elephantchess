@@ -7,5 +7,5 @@ data class EventListEntryRecord(
     val name: String,
     val date: LocalDate?,
     val maxRound: Int?,
-    val gameCount: Int
+    val gameCount: Int,
 )

@@ -15,21 +15,20 @@ import kotlin.time.toKotlinInstant
  * pins the absolute instant, so no zone assumption is needed. We always write back at
  * [ZoneOffset.UTC] for consistency.
  *
- * Wired by `build.gradle`'s `dao-code-gen` task as a forced type for every `timestamptz` column.
+ * Wired by `build.gradle.kts`'s `dao-code-gen` task as a forced type for every `timestamptz` column.
  */
-class OffsetDateTimeInstantConverter : AbstractConverter<OffsetDateTime, Instant>(
-    OffsetDateTime::class.java,
-    Instant::class.java,
-) {
-    override fun from(databaseObject: OffsetDateTime?): Instant? {
-        return databaseObject
+class OffsetDateTimeInstantConverter :
+    AbstractConverter<OffsetDateTime, Instant>(
+        OffsetDateTime::class.java,
+        Instant::class.java,
+    ) {
+    override fun from(databaseObject: OffsetDateTime?): Instant? =
+        databaseObject
             ?.toInstant()
             ?.toKotlinInstant()
-    }
 
-    override fun to(userObject: Instant?): OffsetDateTime? {
-        return userObject
+    override fun to(userObject: Instant?): OffsetDateTime? =
+        userObject
             ?.toJavaInstant()
             ?.atOffset(ZoneOffset.UTC)
-    }
 }

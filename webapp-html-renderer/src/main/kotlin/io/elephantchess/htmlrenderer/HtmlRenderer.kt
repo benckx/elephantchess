@@ -102,12 +102,12 @@ class HtmlRenderer(
         val metas = head.getElementsByTag("meta").toList()
         val elementsToAdd = mutableListOf<Element>()
 
-        val pageTitle = head.getElementsByTag("title").firstOrNull()?.text()?.takeIf { it.isNotBlank() } ?: "Elephant Chess"
+        val pageTitle = head.getElementsByTag("title").firstOrNull()?.text()?.takeIf { it.isNotBlank() } ?: "elephantchess.io"
 
-        val ogTitle = if (pageTitle.contains("Elephant Chess", ignoreCase = true)) {
+        val ogTitle = if (pageTitle.contains("elephantchess.io", ignoreCase = true)) {
             pageTitle
         } else {
-            "$pageTitle – Elephant Chess"
+            "$pageTitle – elephantchess.io"
         }
 
         val ogDescription = metas
@@ -148,7 +148,7 @@ class HtmlRenderer(
             elementsToAdd.add(document.createPropertyMetaElement("og:type", "website"))
         }
         if (!metas.hasAttribute("property", "og:site_name")) {
-            elementsToAdd.add(document.createPropertyMetaElement("og:site_name", "Elephant Chess"))
+            elementsToAdd.add(document.createPropertyMetaElement("og:site_name", "elephantchess.io"))
         }
         if (!metas.hasAttribute("property", "og:title")) {
             elementsToAdd.add(document.createPropertyMetaElement("og:title", ogTitle))
@@ -220,7 +220,7 @@ class HtmlRenderer(
             folder = "js",
             tagName = "script",
             sourceAttr = "src",
-            canBeMinified = true
+            canBeMinified = true,
         )
 
     private fun updateCssAssetLocations(htmlContent: String) =
@@ -229,7 +229,7 @@ class HtmlRenderer(
             folder = "css",
             tagName = "link",
             sourceAttr = "href",
-            canBeMinified = true
+            canBeMinified = true,
         )
 
     private fun updateImageAssetLocations(htmlContent: String) =
@@ -238,7 +238,7 @@ class HtmlRenderer(
             folder = "images",
             tagName = "img",
             sourceAttr = "src",
-            canBeMinified = false
+            canBeMinified = false,
         )
 
     /**
@@ -249,17 +249,17 @@ class HtmlRenderer(
         folder: String,
         tagName: String,
         sourceAttr: String,
-        canBeMinified: Boolean
-    ): String {
-        return if ((canBeMinified && isMinificationEnabled) || cdnFolder != null) {
+        canBeMinified: Boolean,
+    ): String =
+        if ((canBeMinified && isMinificationEnabled) || cdnFolder != null) {
             val document = Jsoup.parse(htmlContent)
             val elements = document.getElementsByTag(tagName)
 
             elements.forEach { element ->
                 val filePath = element.attr(sourceAttr)
                 val mustUpdateAssetLocation = filePath.isNotEmpty() &&
-                        filePath.startsWith("/$folder") &&
-                        !filePath.contains("/libs/")
+                    filePath.startsWith("/$folder") &&
+                    !filePath.contains("/libs/")
 
                 if (mustUpdateAssetLocation) {
                     val ext = filePath.split(".").last()
@@ -281,22 +281,22 @@ class HtmlRenderer(
         } else {
             htmlContent
         }
-    }
 
     companion object {
 
         const val CDN_BASE = "https://cdn.elephantchess.io"
         const val SITE_BASE_URL = "https://elephantchess.io"
 
-        private fun String.ensureLeadingSlash(): String = if (startsWith("/")) this else "/$this"
+        private fun String.ensureLeadingSlash(): String =
+            if (startsWith("/")) this else "/$this"
 
-        private fun List<Element>.hasAttribute(attrName: String): Boolean {
-            return this.find { it.hasAttr(attrName) } != null
-        }
+        private fun List<Element>.hasAttribute(attrName: String): Boolean =
+            this.find { it.hasAttr(attrName) } != null
 
-        private fun List<Element>.hasAttribute(attrName: String, attrValue: String): Boolean {
-            return this.find { it.attr(attrName) == attrValue } != null
-        }
+        private fun List<Element>.hasAttribute(attrName: String, attrValue: String): Boolean =
+            this.find {
+                it.attr(attrName) == attrValue
+            } != null
 
         private fun Document.createNameMetaElement(name: String, content: String): Element {
             val meta = createElement("meta")
@@ -311,7 +311,5 @@ class HtmlRenderer(
             meta.attr("content", content)
             return meta
         }
-
     }
-
 }

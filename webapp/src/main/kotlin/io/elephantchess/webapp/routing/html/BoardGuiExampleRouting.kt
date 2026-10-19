@@ -12,7 +12,7 @@ fun Routing.boardGuiExample() {
         val useCdn = call.request.queryParameters["source"]?.lowercase() != "internal"
         val templateName = "about/developers/board-gui-example"
         call.respondHtml(
-            renderer.renderBoardGuiExample(useCdn, templateName)
+            renderer.renderBoardGuiExample(useCdn, templateName),
         )
     }
 }

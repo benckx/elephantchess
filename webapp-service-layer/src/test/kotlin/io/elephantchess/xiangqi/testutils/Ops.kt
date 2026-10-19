@@ -10,5 +10,4 @@ object Ops {
         board.registerMoves(uciMoves.map { parseMoveFromUci(it) })
         return board.isCheckmated()
     }
-
 }

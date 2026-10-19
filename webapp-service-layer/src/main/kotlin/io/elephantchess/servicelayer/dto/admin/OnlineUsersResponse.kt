@@ -9,5 +9,4 @@ data class OnlineUsersResponse(val entries: List<Entry>) {
         val username: String,
         val userType: UserType,
     )
-
 }

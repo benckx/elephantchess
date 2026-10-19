@@ -4,15 +4,17 @@ import io.elephantchess.db.services.PuzzleDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRateStartImmediately
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlin.time.Duration.Companion.hours
 
+@KoinSingleton(eager = true)
 class PuzzleCache(
     private val puzzleDaoService: PuzzleDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val logger: KLogger,
-    refresherScope: CoroutineScope
+    refresherScope: CoroutineScope,
 ) {
 
     private var entries = listOf<PuzzleCacheEntry>()
@@ -29,27 +31,41 @@ class PuzzleCache(
                     .map { puzzleRecord ->
                         val attempts = attemptsMap[puzzleRecord.id] ?: 0
                         val categories = categoriesMap[puzzleRecord.id] ?: emptyList()
-                        PuzzleCacheEntry(puzzleRecord.id, puzzleRecord.rating, attempts, categories)
+                        val enabled = puzzleRecord.disabledAt == null
+                        PuzzleCacheEntry(puzzleRecord.id, puzzleRecord.rating, attempts, categories, enabled)
                     }
 
             logger.info { "loaded ${entries.size} puzzles from DB into cache" }
-        }
+        },
     )
 
     fun cancel() {
         refreshJob.cancel()
     }
 
-    fun size() = entries.size
+    fun size() =
+        entries.size
 
-    fun countAllAttempts() = entries.sumOf { entry -> entry.attempts }
+    fun countAllAttempts() =
+        entries.sumOf { entry -> entry.attempts }
 
-    fun exists(puzzleId: String) = entries.any { entry -> entry.puzzleId == puzzleId }
+    fun exists(puzzleId: String) =
+        entries.any { entry -> entry.puzzleId == puzzleId }
 
     fun hasCategories(puzzleId: String, categories: List<PuzzleCategory>) =
         entries.find { entry -> entry.puzzleId == puzzleId }?.categories?.containsAll(categories) ?: false
 
-    fun getById(puzzleId: String) = entries.find { entry -> entry.puzzleId == puzzleId }
+    fun getById(puzzleId: String) =
+        entries.find { entry -> entry.puzzleId == puzzleId }
+
+    fun countAllEnabled(): Int =
+        entries.filter { entry -> entry.enabled }.size
+
+    fun countPuzzlePlayedAtLeastAmongEnabled(numberOfTimes: Int): Int =
+        entries.filter { entry -> entry.enabled }.count { entry -> entry.attempts >= numberOfTimes }
+
+    fun listCategories(puzzleId: String): List<PuzzleCategory> =
+        entries.find { entry -> entry.puzzleId == puzzleId }?.categories ?: emptyList()
 
     fun randomId(
         userRating: Int? = null,
@@ -57,7 +73,8 @@ class PuzzleCache(
         exclude: List<String> = emptyList(),
         categories: List<PuzzleCategory> = emptyList(),
     ): String {
-        var filtered = entries
+        val enabledEntries = entries.filter { entry -> entry.enabled }
+        var filtered = enabledEntries
 
         if (exclude.isNotEmpty()) {
             filtered = filtered.filter { entry -> !exclude.contains(entry.puzzleId) }
@@ -74,20 +91,10 @@ class PuzzleCache(
         logger.debug { "${filtered.size} puzzles for user with rating $userRating" }
 
         return if (filtered.isEmpty()) {
-            entries.random().puzzleId
+            enabledEntries.random().puzzleId
         } else {
             filtered.random().puzzleId
         }
-    }
-
-    fun countAll(): Int = entries.size
-
-    fun countPuzzlePlayedAtLeast(numberOfTimes: Int): Int {
-        return entries.count { entry -> entry.attempts >= numberOfTimes }
-    }
-
-    fun listCategories(puzzleId: String): List<PuzzleCategory> {
-        return entries.find { entry -> entry.puzzleId == puzzleId }?.categories ?: emptyList()
     }
 
     companion object {
@@ -97,8 +104,7 @@ class PuzzleCache(
             val rating: Int,
             val attempts: Int,
             val categories: List<PuzzleCategory>,
+            val enabled: Boolean,
         )
-
     }
-
 }
