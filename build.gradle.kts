@@ -39,6 +39,10 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
+repositories {
+    mavenCentral()
+}
+
 ktlint {
     version.set(rootLibs.versions.ktlint)
 }
