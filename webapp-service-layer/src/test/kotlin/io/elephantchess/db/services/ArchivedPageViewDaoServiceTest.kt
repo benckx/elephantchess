@@ -110,31 +110,27 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
             .awaitExecute()
     }
 
-    private suspend fun countPageViews(userId: String): Int =
-        dslContext
-            .selectCount()
-            .from(PAGE_VIEW_EVENT)
-            .where(PAGE_VIEW_EVENT.USER_ID.eq(userId))
-            .awaitSingleValue()!!
+    private suspend fun countPageViews(userId: String): Int = dslContext
+        .selectCount()
+        .from(PAGE_VIEW_EVENT)
+        .where(PAGE_VIEW_EVENT.USER_ID.eq(userId))
+        .awaitSingleValue()!!
 
-    private suspend fun archivedPageViews(day: LocalDate, url: String): Int =
-        dslContext
-            .select(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
-            .from(ARCHIVED_PAGE_VIEW_DAILY)
-            .where(
-                ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)
-                    .and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url))
-            )
-            .awaitSingleValue() ?: 0
+    private suspend fun archivedPageViews(day: LocalDate, url: String): Int = dslContext
+        .select(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
+        .from(ARCHIVED_PAGE_VIEW_DAILY)
+        .where(
+            ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)
+                .and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url)),
+        )
+        .awaitSingleValue() ?: 0
 
-    private suspend fun archivedBucket(day: LocalDate, url: String, field: org.jooq.TableField<*, Int>): Int =
-        dslContext
-            .select(field)
-            .from(ARCHIVED_PAGE_VIEW_DAILY)
-            .where(
-                ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)
-                    .and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url))
-            )
-            .awaitSingleValue() ?: 0
-
+    private suspend fun archivedBucket(day: LocalDate, url: String, field: org.jooq.TableField<*, Int>): Int = dslContext
+        .select(field)
+        .from(ARCHIVED_PAGE_VIEW_DAILY)
+        .where(
+            ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)
+                .and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url)),
+        )
+        .awaitSingleValue() ?: 0
 }

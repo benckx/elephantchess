@@ -3,13 +3,13 @@ package io.elephantchess.webapp.rendering
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.kofi.LatestSupporter
 import io.elephantchess.utils.stripHtml
+import kotlinx.html.meta
+import kotlinx.html.stream.createHTML
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter.ofPattern
 import java.util.Locale
-import kotlinx.html.meta
-import kotlinx.html.stream.createHTML
 import kotlin.math.floor
 
 private const val COST_IN_EUR_PER_DAY = 5
@@ -18,51 +18,41 @@ private val supportedCurrencies = setOf("USD", "EUR", "GBP")
 /**
  * HTML-escapes a string so it can be safely inlined as text content.
  */
-fun escapeHtml(s: String): String =
-    s.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
+fun escapeHtml(s: String): String = s.replace("&", "&amp;")
+    .replace("<", "&lt;")
+    .replace(">", "&gt;")
 
 /**
  * HTML-escapes a string so it can be safely used as an attribute value.
  */
-fun escapeHtmlAttr(s: String): String =
-    escapeHtml(s).replace("\"", "&quot;")
+fun escapeHtmlAttr(s: String): String = escapeHtml(s).replace("\"", "&quot;")
 
-fun String.toParagraphs(): List<String> {
-    return this
-        .split("\n\n")
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-}
+fun String.toParagraphs(): List<String> = this
+    .split("\n\n")
+    .map { it.trim() }
+    .filter { it.isNotEmpty() }
 
-fun descriptionMeta(description: String): String {
-    return createHTML().meta {
-        name = "description"
-        content = stripHtml(
-            description
-                .replace("\n", " ")
-                .replace("\r", "")
-        )
-    }
+fun descriptionMeta(description: String): String = createHTML().meta {
+    name = "description"
+    content = stripHtml(
+        description
+            .replace("\n", " ")
+            .replace("\r", ""),
+    )
 }
 
 fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
-    fun mapCurrencyToSymbol(currency: String): String {
-        return when (currency.uppercase()) {
-            "USD" -> "$"
-            "EUR" -> "€"
-            "GBP" -> "£"
-            else -> currency
-        }
+    fun mapCurrencyToSymbol(currency: String): String = when (currency.uppercase()) {
+        "USD" -> "$"
+        "EUR" -> "€"
+        "GBP" -> "£"
+        else -> currency
     }
 
-    fun formatUserName(dto: LatestSupporter): String {
-        return if (dto.userId != null) {
-            """<a href="/@/${dto.username}">${dto.username}</a>"""
-        } else {
-            dto.username
-        }
+    fun formatUserName(dto: LatestSupporter): String = if (dto.userId != null) {
+        """<a href="/@/${dto.username}">${dto.username}</a>"""
+    } else {
+        dto.username
     }
 
     fun formatAmount(dto: LatestSupporter): String {
@@ -106,19 +96,19 @@ fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
         val isCurrencySupported = dto.currency.uppercase() in supportedCurrencies
 
         return if (!isCurrencySupported) {
-            "Their $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform${recurringStr} for a little bit!"
+            "Their $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform$recurringStr for a little bit!"
         } else {
             // format amount
             val numberOfDays = floor(dto.amount / COST_IN_EUR_PER_DAY).toInt()
             if (numberOfDays < 1) {
-                "Their $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform for a few hours${recurringStr}!"
+                "Their $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform for a few hours$recurringStr!"
             } else if (dto.recurring && numberOfDays >= 30) {
                 // recurring pledges large enough to cover an entire month (or more):
                 // avoid the misleading "43 entire days every month" phrasing.
                 "Their incredibly generous $typeOfEventStr on $formattedDate $allowUsToTenseStr <b>the entire platform every month!</b>"
             } else {
                 val nbrOfDaysStr =
-                    if (numberOfDays == 1) "an entire day${recurringStr}!" else "$numberOfDays entire days${recurringStr}!"
+                    if (numberOfDays == 1) "an entire day$recurringStr!" else "$numberOfDays entire days$recurringStr!"
                 "Their generous $typeOfEventStr on $formattedDate $allowUsToTenseStr the platform for <b>$nbrOfDaysStr</b>"
             }
         }
@@ -130,7 +120,7 @@ fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
             val description = formatDescription(latestSupporter)
 
             """<p>Our latest donation was offered to us by <b>$username</b>. $description Many thanks to them!</p>""" +
-                    """<p>Do you want to see <b>your name</b> featured as our latest supporter? <b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> and with just 5€ finance the platform for an entire day!</p>"""
+                """<p>Do you want to see <b>your name</b> featured as our latest supporter? <b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> and with just 5€ finance the platform for an entire day!</p>"""
         } else {
             ""
         }

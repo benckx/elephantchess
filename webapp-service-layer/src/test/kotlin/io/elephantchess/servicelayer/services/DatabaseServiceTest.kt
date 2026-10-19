@@ -24,7 +24,7 @@ class DatabaseServiceTest : ServiceTest() {
         listOf(
             REFERENCE_GAME_SEARCH_QUERY,
             REFERENCE_GAME,
-            REFERENCE_PLAYER
+            REFERENCE_PLAYER,
         ).forEach { table ->
             dslContext
                 .deleteFrom(table)
@@ -60,7 +60,7 @@ class DatabaseServiceTest : ServiceTest() {
             .set(REFERENCE_GAME.OUTCOME, Outcome.DRAW)
             .set(
                 REFERENCE_GAME.FINAL_FEN,
-                "rheakaehr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RHEAKAEHR w - - 0 1"
+                "rheakaehr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RHEAKAEHR w - - 0 1",
             )
             .set(REFERENCE_GAME.IS_CHECKMATE, false)
             .set(REFERENCE_GAME.IS_STALEMATE, false)

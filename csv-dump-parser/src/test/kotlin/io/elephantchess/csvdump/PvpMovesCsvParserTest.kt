@@ -143,21 +143,18 @@ class PvpMovesCsvParserTest {
 
     companion object {
 
-        private fun csvPath(): String =
-            File(
-                PvpMovesCsvParserTest::class.java.getResource("/pvp_game_moves_xiangqi_059.csv")
-                    ?.toURI() ?: error("test CSV resource not found"),
-            ).path
+        private fun csvPath(): String = File(
+            PvpMovesCsvParserTest::class.java.getResource("/pvp_game_moves_xiangqi_059.csv")
+                ?.toURI() ?: error("test CSV resource not found"),
+        ).path
 
-        private fun zipPath(): String =
-            File(
-                PvpMovesCsvParserTest::class.java.getResource("/pvp_games_dump.zip")
-                    ?.toURI() ?: error("test ZIP resource not found"),
-            ).path
+        private fun zipPath(): String = File(
+            PvpMovesCsvParserTest::class.java.getResource("/pvp_games_dump.zip")
+                ?.toURI() ?: error("test ZIP resource not found"),
+        ).path
 
         // Parsed once and shared across the whole suite to avoid re-reading the CSV per test.
         private val rows = PvpMovesCsvParser.parseRows(csvPath())
         private val games = PvpMovesCsvParser.parseGames(csvPath())
     }
-
 }

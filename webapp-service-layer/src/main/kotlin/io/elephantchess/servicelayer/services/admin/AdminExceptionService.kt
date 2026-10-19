@@ -1,30 +1,24 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.servicelayer.dto.admin.ThrownExceptionsResponse
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
-class AdminExceptionService(
-    private val thrownExceptionDaoService: ThrownExceptionDaoService,
-) {
+class AdminExceptionService(private val thrownExceptionDaoService: ThrownExceptionDaoService) {
 
-    suspend fun listLatestExceptions(limit: Int, httpCodeFilter: String?): ThrownExceptionsResponse {
-        return thrownExceptionDaoService
-            .listLatestExceptions(limit, httpCodeFilter)
-            .map { record ->
-                ThrownExceptionsResponse.Entry(
-                    exceptionTime = record.exceptionTime.toEpochMilliseconds(),
-                    httpCode = record.httpCode,
-                    exceptionClass = record.exceptionClass,
-                    exceptionMessage = record.exceptionMessage,
-                    exceptionTrace = record.exceptionTrace,
-                )
-            }
-            .let { entries ->
-                ThrownExceptionsResponse(entries)
-            }
-    }
-
+    suspend fun listLatestExceptions(limit: Int, httpCodeFilter: String?): ThrownExceptionsResponse = thrownExceptionDaoService
+        .listLatestExceptions(limit, httpCodeFilter)
+        .map { record ->
+            ThrownExceptionsResponse.Entry(
+                exceptionTime = record.exceptionTime.toEpochMilliseconds(),
+                httpCode = record.httpCode,
+                exceptionClass = record.exceptionClass,
+                exceptionMessage = record.exceptionMessage,
+                exceptionTrace = record.exceptionTrace,
+            )
+        }
+        .let { entries ->
+            ThrownExceptionsResponse(entries)
+        }
 }

@@ -15,18 +15,15 @@ enum class GameEventType {
     STALEMATED,
     OTHER_VICTORY,
     FLAGGED,
-    PERPETUAL_CHECKING;
+    PERPETUAL_CHECKING,
+    ;
 
-    fun isInProgress(): Boolean {
-        return this in inProgressStatuses
-    }
+    fun isInProgress(): Boolean = this in inProgressStatuses
 
     /**
      * The game has started and has now ended, so doesn't include cancelled games
      */
-    fun hasEnded(): Boolean {
-        return this in gameEndedStatuses
-    }
+    fun hasEnded(): Boolean = this in gameEndedStatuses
 
     companion object {
 
@@ -34,7 +31,7 @@ enum class GameEventType {
             listOf(
                 JOINED,
                 DRAW_PROPOSED,
-                DRAW_DECLINED
+                DRAW_DECLINED,
             )
 
         val gameEndedStatuses =
@@ -46,9 +43,7 @@ enum class GameEventType {
                 RESIGNED,
                 AUTO_RESIGNED,
                 FLAGGED,
-                PERPETUAL_CHECKING
+                PERPETUAL_CHECKING,
             )
-
     }
-
 }

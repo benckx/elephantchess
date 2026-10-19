@@ -1,12 +1,11 @@
 package io.elephantchess.servicelayer.batch.definitions
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.metrics.MetricsLogger
 import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.services.PodService
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -81,9 +80,8 @@ class BatchesScheduler(
                                     }
                                 }
                             }
-                        }
+                        },
                     )
-
                 }
             }
 
@@ -103,11 +101,11 @@ class BatchesScheduler(
                         logger.error(e) { "error finding deploy time" }
                     }
                 }
-            })
+            },
+        )
     }
 
     fun cancel() {
         jobs.forEach { job -> job.cancel() }
     }
-
 }

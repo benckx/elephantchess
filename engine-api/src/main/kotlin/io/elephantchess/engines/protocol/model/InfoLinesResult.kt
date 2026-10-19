@@ -1,35 +1,24 @@
 package io.elephantchess.engines.protocol.model
 
-data class InfoLinesResult(
-    val infoLines: List<InfoLineResult>,
-    val checkmate: Boolean,
-    val bestMove: String?,
-    val ponder: String?,
-) {
+data class InfoLinesResult(val infoLines: List<InfoLineResult>, val checkmate: Boolean, val bestMove: String?, val ponder: String?) {
 
-    fun maxDepth(): Int? {
-        return infoLines.mapNotNull { infoLine -> infoLine.depth }.maxOrNull()
-    }
+    fun maxDepth(): Int? = infoLines.mapNotNull { infoLine -> infoLine.depth }.maxOrNull()
 
-    fun deepestResultCentiPawns(): Int? {
-        return infoLines
-            .filter { line -> line.cp != null }
-            .sortedBy { line -> line.depth }
-            .lastOrNull()?.cp
-    }
+    fun deepestResultCentiPawns(): Int? = infoLines
+        .filter { line -> line.cp != null }
+        .sortedBy { line -> line.depth }
+        .lastOrNull()?.cp
 
     /**
      * @return [InfoLineResult] with the greatest depth
      */
-    fun deepestResult(): InfoLineResult? {
-        return infoLines
-            .sortedBy { line -> line.depth }
-            .lastOrNull()
-    }
+    fun deepestResult(): InfoLineResult? = infoLines
+        .sortedBy { line -> line.depth }
+        .lastOrNull()
 
     override fun toString(): String {
         val elements = mutableListOf<String>()
-        elements += "checkmate=${checkmate}"
+        elements += "checkmate=$checkmate"
         if (bestMove != null) {
             elements += "bestMove=$bestMove"
         }
@@ -48,5 +37,4 @@ data class InfoLinesResult(
         }
         return "InfoResults [${elements.joinToString("; ")}]"
     }
-
 }

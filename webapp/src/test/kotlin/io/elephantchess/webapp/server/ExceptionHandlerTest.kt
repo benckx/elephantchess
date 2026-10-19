@@ -12,8 +12,8 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.params.ParameterizedTest
@@ -48,10 +48,12 @@ class ExceptionHandlerTest {
         logEvents.start()
         rootLogger.addAppender(logEvents)
         startKoin {
-            modules(module {
-                single { exceptionService }
-                single { simplePageRenderer }
-            })
+            modules(
+                module {
+                    single { exceptionService }
+                    single { simplePageRenderer }
+                },
+            )
         }
     }
 
@@ -61,18 +63,16 @@ class ExceptionHandlerTest {
         stopKoin()
     }
 
-    private fun testExceptionHandler(routes: Routing.() -> Unit = {}, block: suspend ApplicationTestBuilder.() -> Unit) =
-        testApplication {
-            application {
-                exceptionHandler()
-                install(ContentNegotiation) { jackson() }
-                routing(routes)
-            }
-            block()
+    private fun testExceptionHandler(routes: Routing.() -> Unit = {}, block: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
+        application {
+            exceptionHandler()
+            install(ContentNegotiation) { jackson() }
+            routing(routes)
         }
+        block()
+    }
 
-    private suspend fun ApplicationTestBuilder.getHtml(uri: String) =
-        client.get(uri) { accept(ContentType.Text.Html) }
+    private suspend fun ApplicationTestBuilder.getHtml(uri: String) = client.get(uri) { accept(ContentType.Text.Html) }
 
     // --- client disconnects ---
 
@@ -167,7 +167,7 @@ class ExceptionHandlerTest {
             "/dashboard/billing",
             "/public/admin.json",
             "/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200/",
-        ]
+        ],
     )
     fun `muted scanner probe returns a 404 without warning`(uri: String) = testExceptionHandler {
         val response = client.get(uri)
@@ -178,12 +178,11 @@ class ExceptionHandlerTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["/does-not-exist", "/database/player/LiLi/unknown", "/js/modules/unknown.min.js.map"])
-    fun `unmapped URI that doesn't look like a scanner probe is logged as a warning`(uri: String) =
-        testExceptionHandler {
-            val response = client.get(uri)
-            assertEquals(HttpStatusCode.NotFound, response.status)
-            assertEquals(1, warnLogs().count { it.formattedMessage.startsWith("UNMAPPED URI") })
-        }
+    fun `unmapped URI that doesn't look like a scanner probe is logged as a warning`(uri: String) = testExceptionHandler {
+        val response = client.get(uri)
+        assertEquals(HttpStatusCode.NotFound, response.status)
+        assertEquals(1, warnLogs().count { it.formattedMessage.startsWith("UNMAPPED URI") })
+    }
 
     @Test
     fun `WebSocket path called without Upgrade header returns 426`() = testExceptionHandler {

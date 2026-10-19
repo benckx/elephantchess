@@ -1,17 +1,16 @@
 package io.elephantchess.webapp.server
 
-import kotlin.time.Duration.Companion.seconds
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class DatabaseRateLimiterTest {
 
     private val chromeScraperUa =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
 
-    private fun limiter(max: Int = 3, windowSeconds: Int = 60) =
-        DatabaseRateLimiter(maxRequests = max, window = windowSeconds.seconds)
+    private fun limiter(max: Int = 3, windowSeconds: Int = 60) = DatabaseRateLimiter(maxRequests = max, window = windowSeconds.seconds)
 
     private fun DatabaseRateLimiter.hit(
         path: String = "/database/player/Wang_Tianyi",
@@ -33,8 +32,8 @@ class DatabaseRateLimiterTest {
         assertFalse(limiter.hit()) // 1
         assertFalse(limiter.hit()) // 2
         assertFalse(limiter.hit()) // 3
-        assertTrue(limiter.hit())  // 4 -> over the limit
-        assertTrue(limiter.hit())  // 5
+        assertTrue(limiter.hit()) // 4 -> over the limit
+        assertTrue(limiter.hit()) // 5
     }
 
     @Test

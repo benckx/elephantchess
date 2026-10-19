@@ -39,7 +39,7 @@ class ContentSectionFeedbackServiceTest : ServiceTest() {
         contentSectionFeedbackService.submitContentSectionVote(ContentSectionVoteRequest("faq", "why-sign-up", true), actor)
         contentSectionFeedbackService.submitContentSectionVote(
             ContentSectionVoteRequest("faq", "why-sign-up", false, "I could not find this quickly."),
-            actor
+            actor,
         )
 
         val upVoted = dslContext.fetchValueAsync(
@@ -103,11 +103,11 @@ class ContentSectionFeedbackServiceTest : ServiceTest() {
 
         contentSectionFeedbackService.submitContentSectionVote(
             ContentSectionVoteRequest("faq", "why-sign-up", true, "This answer is very useful."),
-            actor
+            actor,
         )
         contentSectionFeedbackService.submitContentSectionVote(
             ContentSectionVoteRequest("roadmap", "pre-move", false),
-            actor
+            actor,
         )
 
         val faqVotes = contentSectionFeedbackService.fetchContentSectionVotes("faq", actor)
@@ -126,5 +126,4 @@ class ContentSectionFeedbackServiceTest : ServiceTest() {
             contentSectionFeedbackService.fetchContentSectionVotes("about", actor)
         }
     }
-
 }

@@ -17,19 +17,16 @@ import kotlin.time.toKotlinInstant
  *
  * Wired by `build.gradle.kts`'s `dao-code-gen` task as a forced type for every `timestamptz` column.
  */
-class OffsetDateTimeInstantConverter : AbstractConverter<OffsetDateTime, Instant>(
-    OffsetDateTime::class.java,
-    Instant::class.java,
-) {
-    override fun from(databaseObject: OffsetDateTime?): Instant? {
-        return databaseObject
-            ?.toInstant()
-            ?.toKotlinInstant()
-    }
+class OffsetDateTimeInstantConverter :
+    AbstractConverter<OffsetDateTime, Instant>(
+        OffsetDateTime::class.java,
+        Instant::class.java,
+    ) {
+    override fun from(databaseObject: OffsetDateTime?): Instant? = databaseObject
+        ?.toInstant()
+        ?.toKotlinInstant()
 
-    override fun to(userObject: Instant?): OffsetDateTime? {
-        return userObject
-            ?.toJavaInstant()
-            ?.atOffset(ZoneOffset.UTC)
-    }
+    override fun to(userObject: Instant?): OffsetDateTime? = userObject
+        ?.toJavaInstant()
+        ?.atOffset(ZoneOffset.UTC)
 }

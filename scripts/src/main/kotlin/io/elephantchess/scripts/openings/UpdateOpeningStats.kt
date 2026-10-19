@@ -100,11 +100,9 @@ private fun countByOutcome(moves: List<String>): Map<Outcome, Int> {
     return mapOf(RED_WINS to redWins, BLACK_WINS to blackWins, DRAW to draws)
 }
 
-private fun listMatchingGameIds(moves: List<String>): List<String> {
-    return memoryCache
-        .filter { dto -> dto.moves.take(moves.size) == moves }
-        .map { dto -> dto.id }
-}
+private fun listMatchingGameIds(moves: List<String>): List<String> = memoryCache
+    .filter { dto -> dto.moves.take(moves.size) == moves }
+    .map { dto -> dto.id }
 
 private suspend fun refreshCache(moves: List<String>) {
     lastActivityTime.set(System.currentTimeMillis())
@@ -186,18 +184,14 @@ private fun isValidSequenceOfMoves(moves: List<String>): Boolean {
     }
 }
 
-private suspend fun findEntryId(moves: List<String>): Int? {
-    return findEntryId(writeContext, moves)
-}
+private suspend fun findEntryId(moves: List<String>): Int? = findEntryId(writeContext, moves)
 
-private suspend fun findEntryId(dslContext: DSLContext, moves: List<String>): Int? {
-    return dslContext
-        .select(OPENING_PRE_CALCULATION_CACHE.ID)
-        .from(OPENING_PRE_CALCULATION_CACHE)
-        .where(OPENING_PRE_CALCULATION_CACHE.NUMBER_OF_MOVES.eq(moves.size))
-        .and(OPENING_PRE_CALCULATION_CACHE.MOVES.eq(movesToKey(moves)))
-        .awaitSingleValue()
-}
+private suspend fun findEntryId(dslContext: DSLContext, moves: List<String>): Int? = dslContext
+    .select(OPENING_PRE_CALCULATION_CACHE.ID)
+    .from(OPENING_PRE_CALCULATION_CACHE)
+    .where(OPENING_PRE_CALCULATION_CACHE.NUMBER_OF_MOVES.eq(moves.size))
+    .and(OPENING_PRE_CALCULATION_CACHE.MOVES.eq(movesToKey(moves)))
+    .awaitSingleValue()
 
 private suspend fun updateCache(transaction: DSLContext, id: Int, record: OpeningPreCalculationCache) {
     transaction
@@ -230,7 +224,7 @@ private suspend fun refreshGameMapping(cacheEntryId: Int, gameIds: List<String>)
         var insert = writeContext.insertInto(
             OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME,
             OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME.OPENING_PRE_CALCULATION_CACHE_ID,
-            OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME.REFERENCE_GAME_ID
+            OPENING_PRE_CALCULATION_CACHE_REFERENCE_GAME.REFERENCE_GAME_ID,
         )
         chunk.forEach { gameId ->
             insert = insert.values(cacheEntryId, gameId)
@@ -239,7 +233,4 @@ private suspend fun refreshGameMapping(cacheEntryId: Int, gameIds: List<String>)
     }
 }
 
-private data class NextMoveOccurrenceCount(
-    val nextMove: String,
-    val occurrences: Int
-)
+private data class NextMoveOccurrenceCount(val nextMove: String, val occurrences: Int)

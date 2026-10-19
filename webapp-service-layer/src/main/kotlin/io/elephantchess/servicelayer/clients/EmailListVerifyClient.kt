@@ -1,10 +1,9 @@
 package io.elephantchess.servicelayer.clients
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.clients.dto.CreditResponse
 import io.elephantchess.servicelayer.clients.dto.EmailVerificationResult
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -19,10 +18,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 @KoinSingleton
-class EmailListVerifyClient(
-    appConfig: AppConfig,
-    private val logger: KLogger,
-) {
+class EmailListVerifyClient(appConfig: AppConfig, private val logger: KLogger) {
 
     private val apiKey by lazy { appConfig.emailListVerifyApiKey }
 
@@ -43,58 +39,54 @@ class EmailListVerifyClient(
         }
     }
 
-    fun verifyEmailDetailed(email: String): EmailVerificationResult? {
-        return runBlocking {
-            try {
-                val response = client.get("$API/verifyEmailDetailed") {
-                    tokenAndContentType()
-                    url {
-                        parameters.append("email", email)
-                    }
-                }
-
-                if (response.status.value == 200) {
-                    response.body<EmailVerificationResult>()
-                } else {
-                    response.bodyAsText().let { body ->
-                        logger.warn { "status ${response.status.value}, response: $body" }
-                    }
-                    null
-                }
-            } catch (e: Exception) {
-                logger.error(e) { "error verifying email: $email" }
-                null
-            }
-        }
-    }
-
-    suspend fun getCredits(): CreditResponse? {
-        return try {
-            val response = client.get("$API/credits") {
+    fun verifyEmailDetailed(email: String): EmailVerificationResult? = runBlocking {
+        try {
+            val response = client.get("$API/verifyEmailDetailed") {
                 tokenAndContentType()
+                url {
+                    parameters.append("email", email)
+                }
             }
 
             if (response.status.value == 200) {
-                // get raw response text first for debugging
-                val rawBody = response.bodyAsText()
-
-                // try to parse the response
-                try {
-                    json.decodeFromString<CreditResponse>(rawBody)
-                } catch (e: Exception) {
-                    logger.error(e) { "failed to deserialize credits response. Raw body was: $rawBody" }
-                    null
-                }
+                response.body<EmailVerificationResult>()
             } else {
-                response.bodyAsText().let { rawBody ->
-                    logger.warn { "status ${response.status.value}, response: $rawBody" }
+                response.bodyAsText().let { body ->
+                    logger.warn { "status ${response.status.value}, response: $body" }
                 }
                 null
             }
         } catch (e: Exception) {
-            logger.error(e) { "error getting credits" }
+            logger.error(e) { "error verifying email: $email" }
             null
         }
+    }
+
+    suspend fun getCredits(): CreditResponse? = try {
+        val response = client.get("$API/credits") {
+            tokenAndContentType()
+        }
+
+        if (response.status.value == 200) {
+            // get raw response text first for debugging
+            val rawBody = response.bodyAsText()
+
+            // try to parse the response
+            try {
+                json.decodeFromString<CreditResponse>(rawBody)
+            } catch (e: Exception) {
+                logger.error(e) { "failed to deserialize credits response. Raw body was: $rawBody" }
+                null
+            }
+        } else {
+            response.bodyAsText().let { rawBody ->
+                logger.warn { "status ${response.status.value}, response: $rawBody" }
+            }
+            null
+        }
+    } catch (e: Exception) {
+        logger.error(e) { "error getting credits" }
+        null
     }
 
     private fun HttpMessageBuilder.tokenAndContentType() {
@@ -108,7 +100,5 @@ class EmailListVerifyClient(
 
         const val API = "https://api.emaillistverify.com/api"
         const val TIMEOUT = 60_000L
-
     }
-
 }

@@ -1,23 +1,20 @@
 package io.elephantchess.webapp.rendering
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton(eager = true)
 class FaqPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
-    suspend fun renderFaqPage(): String =
-        simplePageRenderer.renderTemplate(FAQ_TEMPLATE_NAME, listOf(faqTocTagResolver()))
+    suspend fun renderFaqPage(): String = simplePageRenderer.renderTemplate(FAQ_TEMPLATE_NAME, listOf(faqTocTagResolver()))
 
-    private fun faqTocTagResolver(): TagResolver =
-        CallbackTagResolver("faq_toc") {
-            val html = resourceAsString(FAQ_TEMPLATE_PATH)
-                ?: throw IllegalStateException("FAQ template not found at $FAQ_TEMPLATE_PATH")
+    private fun faqTocTagResolver(): TagResolver = CallbackTagResolver("faq_toc") {
+        val html = resourceAsString(FAQ_TEMPLATE_PATH)
+            ?: throw IllegalStateException("FAQ template not found at $FAQ_TEMPLATE_PATH")
 
-            renderFaqToc(html)
-        }
+        renderFaqToc(html)
+    }
 
     private companion object {
 
@@ -52,7 +49,5 @@ class FaqPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
             }
             return """<nav id="page-toc"><ul>$items</ul></nav>"""
         }
-
     }
-
 }

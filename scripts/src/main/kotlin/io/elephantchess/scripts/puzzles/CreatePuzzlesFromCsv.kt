@@ -104,12 +104,14 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
                 revealedMovesRecords + solutionMovesRecords
 
             val categories = listOf(
-                PuzzleCategoryTag(puzzleId, PuzzleCategory.findMateInN(length))
+                PuzzleCategoryTag(puzzleId, PuzzleCategory.findMateInN(length)),
             )
 
             puzzleDaoService.save(puzzle, halfMoves, categories)
             created++
-            logger.info { "created $algorithm puzzle $puzzleId (MATE_IN_$length) from ${candidate.refGameSource}/${candidate.refGameSourceId}" }
+            logger.info {
+                "created $algorithm puzzle $puzzleId (MATE_IN_$length) from ${candidate.refGameSource}/${candidate.refGameSourceId}"
+            }
         }
 
         return created
@@ -138,5 +140,4 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
 
         logger.info { "created $created puzzles" }
     }
-
 }

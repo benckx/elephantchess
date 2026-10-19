@@ -24,9 +24,9 @@ fun main(args: Array<String>) {
         modules(
             serviceLayerModule(
                 argConfig = argsConfig,
-                eagerAllowed = true
+                eagerAllowed = true,
             ),
-            webAppKoinModule(eagerAllowed = true)
+            webAppKoinModule(eagerAllowed = true),
         )
     }
 

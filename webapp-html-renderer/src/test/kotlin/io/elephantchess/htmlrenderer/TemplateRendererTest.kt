@@ -6,15 +6,10 @@ import kotlin.test.assertEquals
 
 class TemplateRendererTest {
 
-    private class TestRenderer(
-        baseTagResolvers: List<TagResolver> = listOf(),
-        disabledTemplates: List<String> = listOf(),
-    ) : TemplateRenderer(baseTagResolvers, disabledTemplates)
+    private class TestRenderer(baseTagResolvers: List<TagResolver> = listOf(), disabledTemplates: List<String> = listOf()) :
+        TemplateRenderer(baseTagResolvers, disabledTemplates)
 
-    private class GameLinkTagResolver(
-        private val webHost: String,
-        private val gameId: String
-    ) : TagResolver {
+    private class GameLinkTagResolver(private val webHost: String, private val gameId: String) : TagResolver {
         override val tagName = "game_link"
         override suspend fun resolveContent(): List<String> {
             val url = "$webHost/game?id=$gameId"
@@ -27,7 +22,7 @@ class TemplateRendererTest {
         val renderer = TestRenderer()
         val result = renderer.render(
             "Hello {{name}}!",
-            specificTagResolvers = listOf(SimpleValueTagResolver("name", "Alice"))
+            specificTagResolvers = listOf(SimpleValueTagResolver("name", "Alice")),
         )
         assertEquals("Hello Alice!", result)
     }
@@ -40,7 +35,7 @@ class TemplateRendererTest {
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("opponent", "Albus"),
                 SimpleValueTagResolver("verb1", "declined"),
-            )
+            ),
         )
         assertEquals("Albus declined the draw while you were offline.", result)
     }
@@ -54,11 +49,11 @@ class TemplateRendererTest {
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("verb2", "Resume"),
                 GameLinkTagResolver("https://elephantchess.io", "42"),
-            )
+            ),
         )
         assertEquals(
             """Resume the game at <a href="https://elephantchess.io/game?id=42">https://elephantchess.io/game?id=42</a><br/>""",
-            result
+            result,
         )
     }
 
@@ -70,8 +65,9 @@ class TemplateRendererTest {
         }
         val updateMailSettingsResolver = object : TagResolver {
             override val tagName = "update_mail_settings"
-            override suspend fun resolveContent() =
-                listOf("""You can update your email notifications settings at <a href="https://elephantchess.io/user/settings">https://elephantchess.io/user/settings</a>""")
+            override suspend fun resolveContent() = listOf(
+                """You can update your email notifications settings at <a href="https://elephantchess.io/user/settings">https://elephantchess.io/user/settings</a>""",
+            )
         }
 
         val template = """
@@ -92,7 +88,7 @@ class TemplateRendererTest {
                 SimpleValueTagResolver("verb2", "Resume"),
                 GameLinkTagResolver("https://elephantchess.io", "42"),
                 updateMailSettingsResolver,
-            )
+            ),
         )
 
         val expected = """
@@ -115,7 +111,7 @@ class TemplateRendererTest {
                 SimpleValueTagResolver("a", "1"),
                 SimpleValueTagResolver("b", "2"),
                 SimpleValueTagResolver("c", "3"),
-            )
+            ),
         )
         assertEquals("1 2 3", result)
     }
@@ -129,7 +125,7 @@ class TemplateRendererTest {
         }
         val result = renderer.render(
             "    {{block}}",
-            specificTagResolvers = listOf(multiLineResolver)
+            specificTagResolvers = listOf(multiLineResolver),
         )
         val expected = """
             |    line1
@@ -148,7 +144,7 @@ class TemplateRendererTest {
         }
         val result = renderer.render(
             "    {{block}}[[keepIndentation:false]]",
-            specificTagResolvers = listOf(multiLineResolver)
+            specificTagResolvers = listOf(multiLineResolver),
         )
         val expected = """
             |line1
@@ -187,9 +183,8 @@ class TemplateRendererTest {
         val renderer = TestRenderer()
         val result = renderer.render(
             "before\n{{x}}\nafter",
-            listOf(SimpleValueTagResolver("x", ""))
+            listOf(SimpleValueTagResolver("x", "")),
         )
         assertEquals("before\nafter", result)
     }
-
 }

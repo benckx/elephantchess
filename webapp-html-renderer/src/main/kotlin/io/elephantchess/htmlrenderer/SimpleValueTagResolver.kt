@@ -4,5 +4,4 @@ class SimpleValueTagResolver(override val tagName: String, private val value: St
 
     override suspend fun resolveContent() = listOf(value)
     override fun toString() = "$tagName '$value'"
-
 }

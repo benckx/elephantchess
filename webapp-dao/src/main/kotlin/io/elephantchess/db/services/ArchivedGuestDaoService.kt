@@ -1,7 +1,5 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.ANALYSIS
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_GUEST_DAILY
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_PAGE_VIEW_DAILY
@@ -33,6 +31,7 @@ import io.elephantchess.db.utils.isBefore
 import io.elephantchess.db.utils.localDate
 import io.elephantchess.db.utils.yearMonthOfDay
 import io.elephantchess.model.UserType
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Select
@@ -54,10 +53,7 @@ import kotlin.time.Instant
  * their page views and database search queries are archived by the day they happened.
  */
 @KoinSingleton
-class ArchivedGuestDaoService(
-    private val dslContext: DSLContext,
-    private val archivedPageViewDaoService: ArchivedPageViewDaoService,
-) {
+class ArchivedGuestDaoService(private val dslContext: DSLContext, private val archivedPageViewDaoService: ArchivedPageViewDaoService) {
 
     /**
      * Selects up to [limit] guests that are older than [maxAge] and inactive for at least [maxAge] and
@@ -187,7 +183,7 @@ class ArchivedGuestDaoService(
                 ARCHIVED_PAGE_VIEW_DAILY.URL.eq(eventPath)
                     .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?medium=%"))
                     .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?gad_source=1%"))
-                    .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?fbclid=%"))
+                    .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?fbclid=%")),
             )
             .groupBy(month, ARCHIVED_PAGE_VIEW_DAILY.URL)
             .awaitRecords()
@@ -215,9 +211,7 @@ class ArchivedGuestDaoService(
     suspend fun fetchArchivedMonthlyOtherProfilePageViews(): List<MonthlyPageViewRecord> =
         fetchArchivedMonthlyProfilePageViews(ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS)
 
-    private suspend fun fetchArchivedMonthlyProfilePageViews(
-        column: org.jooq.TableField<*, Int>,
-    ): List<MonthlyPageViewRecord> {
+    private suspend fun fetchArchivedMonthlyProfilePageViews(column: org.jooq.TableField<*, Int>): List<MonthlyPageViewRecord> {
         val month = ARCHIVED_PAGE_VIEW_DAILY.DAY.yearMonthOfDay()
         val pageViews = DSL.sum(column).`as`("page_views")
 
@@ -240,8 +234,7 @@ class ArchivedGuestDaoService(
         val creationDay = USER.CREATION.localDate(null)
         val lifespan = diffInSeconds(USER.LAST_ONLINE, USER.CREATION)
 
-        fun bucket(condition: Condition) =
-            DSL.count().filterWhere(condition)
+        fun bucket(condition: Condition) = DSL.count().filterWhere(condition)
 
         val under1min = bucket(lifespan.lt(LIFESPAN_1_MIN))
         val under5min = bucket(lifespan.ge(LIFESPAN_1_MIN).and(lifespan.lt(LIFESPAN_5_MIN)))
@@ -267,11 +260,11 @@ class ArchivedGuestDaoService(
                         under5min,
                         under15min,
                         under30min,
-                        other
+                        other,
                     )
                     .from(USER)
                     .where(USER.ID.`in`(guestIds))
-                    .groupBy(creationDay)
+                    .groupBy(creationDay),
             )
             .onConflict(ARCHIVED_GUEST_DAILY.DAY)
             .doUpdate()
@@ -304,7 +297,7 @@ class ArchivedGuestDaoService(
                     .select(queryDay, searchCount)
                     .from(REFERENCE_GAME_SEARCH_QUERY)
                     .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.`in`(guestIds))
-                    .groupBy(queryDay)
+                    .groupBy(queryDay),
             )
             .onConflict(ARCHIVED_GUEST_DAILY.DAY)
             .doUpdate()
@@ -318,114 +311,99 @@ class ArchivedGuestDaoService(
      * referenced by any table other than the ones deleted together with it (page views, database search
      * queries and sessions).
      */
-    private fun archivableCondition(cutoff: Instant): Condition {
-        return USER.USER_TYPE.eq(UserType.GUEST)
-            .and(USER.LAST_ONLINE.isBefore(cutoff))
-            .andNotExists(gameExists())
-            .andNotExists(botGameExists())
-            .andNotExists(puzzleResultExists())
-            .andNotExists(analysisExists())
-            .andNotExists(gameStatusEventExists())
-            .andNotExists(gameChatMessageExists())
-            .andNotExists(discordGameNotificationExists())
-            // no seven kingdoms games exist yet; skip these anti-joins (and their indexes) until they do.
-            // .andNotExists(sevenKingdomsGameExists())
-            // .andNotExists(sevenKingdomsGameEventExists())
-            .andNotExists(referencePlayerProfileEditExists())
-            .andNotExists(referencePlayerProfileEditSourceExists())
-            .andNotExists(kofiEventExists())
-            .andNotExists(upcomingEventExists())
-    }
+    private fun archivableCondition(cutoff: Instant): Condition = USER.USER_TYPE.eq(UserType.GUEST)
+        .and(USER.LAST_ONLINE.isBefore(cutoff))
+        .andNotExists(gameExists())
+        .andNotExists(botGameExists())
+        .andNotExists(puzzleResultExists())
+        .andNotExists(analysisExists())
+        .andNotExists(gameStatusEventExists())
+        .andNotExists(gameChatMessageExists())
+        .andNotExists(discordGameNotificationExists())
+        // no seven kingdoms games exist yet; skip these anti-joins (and their indexes) until they do.
+        // .andNotExists(sevenKingdomsGameExists())
+        // .andNotExists(sevenKingdomsGameEventExists())
+        .andNotExists(referencePlayerProfileEditExists())
+        .andNotExists(referencePlayerProfileEditSourceExists())
+        .andNotExists(kofiEventExists())
+        .andNotExists(upcomingEventExists())
 
-    private fun gameExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(GAME)
-            .where(
-                GAME.INVITER.eq(USER.ID)
-                    .or(GAME.INVITEE.eq(USER.ID))
-                    .or(GAME.DRAW_PROPOSITION_USER.eq(USER.ID))
-            )
+    private fun gameExists(): Select<*> = DSL
+        .selectOne()
+        .from(GAME)
+        .where(
+            GAME.INVITER.eq(USER.ID)
+                .or(GAME.INVITEE.eq(USER.ID))
+                .or(GAME.DRAW_PROPOSITION_USER.eq(USER.ID)),
+        )
 
-    private fun botGameExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(BOT_GAME)
-            .where(BOT_GAME.USER_ID.eq(USER.ID))
+    private fun botGameExists(): Select<*> = DSL
+        .selectOne()
+        .from(BOT_GAME)
+        .where(BOT_GAME.USER_ID.eq(USER.ID))
 
-    private fun puzzleResultExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.USER_ID.eq(USER.ID))
+    private fun puzzleResultExists(): Select<*> = DSL
+        .selectOne()
+        .from(PUZZLE_RESULT)
+        .where(PUZZLE_RESULT.USER_ID.eq(USER.ID))
 
-    private fun analysisExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(ANALYSIS)
-            .where(ANALYSIS.OWNER_USER_ID.eq(USER.ID))
+    private fun analysisExists(): Select<*> = DSL
+        .selectOne()
+        .from(ANALYSIS)
+        .where(ANALYSIS.OWNER_USER_ID.eq(USER.ID))
 
-    private fun gameStatusEventExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(GAME_STATUS_EVENT)
-            .where(GAME_STATUS_EVENT.USER_ID.eq(USER.ID))
+    private fun gameStatusEventExists(): Select<*> = DSL
+        .selectOne()
+        .from(GAME_STATUS_EVENT)
+        .where(GAME_STATUS_EVENT.USER_ID.eq(USER.ID))
 
-    private fun gameChatMessageExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(GAME_CHAT_MESSAGE)
-            .where(GAME_CHAT_MESSAGE.AUTHOR.eq(USER.ID))
+    private fun gameChatMessageExists(): Select<*> = DSL
+        .selectOne()
+        .from(GAME_CHAT_MESSAGE)
+        .where(GAME_CHAT_MESSAGE.AUTHOR.eq(USER.ID))
 
-    private fun discordGameNotificationExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(DISCORD_GAME_NOTIFICATION)
-            .where(DISCORD_GAME_NOTIFICATION.USER_ID.eq(USER.ID))
+    private fun discordGameNotificationExists(): Select<*> = DSL
+        .selectOne()
+        .from(DISCORD_GAME_NOTIFICATION)
+        .where(DISCORD_GAME_NOTIFICATION.USER_ID.eq(USER.ID))
 
-    private fun sevenKingdomsGameExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(SEVEN_KINGDOMS_GAME)
-            .where(
-                SEVEN_KINGDOMS_GAME.PLAYER_WHITE.eq(USER.ID)
-                    .or(SEVEN_KINGDOMS_GAME.PLAYER_RED.eq(USER.ID))
-                    .or(SEVEN_KINGDOMS_GAME.PLAYER_ORANGE.eq(USER.ID))
-                    .or(SEVEN_KINGDOMS_GAME.PLAYER_BLUE.eq(USER.ID))
-                    .or(SEVEN_KINGDOMS_GAME.PLAYER_GREEN.eq(USER.ID))
-                    .or(SEVEN_KINGDOMS_GAME.PLAYER_PURPLE.eq(USER.ID))
-                    .or(SEVEN_KINGDOMS_GAME.PLAYER_BLACK.eq(USER.ID))
-            )
+    private fun sevenKingdomsGameExists(): Select<*> = DSL
+        .selectOne()
+        .from(SEVEN_KINGDOMS_GAME)
+        .where(
+            SEVEN_KINGDOMS_GAME.PLAYER_WHITE.eq(USER.ID)
+                .or(SEVEN_KINGDOMS_GAME.PLAYER_RED.eq(USER.ID))
+                .or(SEVEN_KINGDOMS_GAME.PLAYER_ORANGE.eq(USER.ID))
+                .or(SEVEN_KINGDOMS_GAME.PLAYER_BLUE.eq(USER.ID))
+                .or(SEVEN_KINGDOMS_GAME.PLAYER_GREEN.eq(USER.ID))
+                .or(SEVEN_KINGDOMS_GAME.PLAYER_PURPLE.eq(USER.ID))
+                .or(SEVEN_KINGDOMS_GAME.PLAYER_BLACK.eq(USER.ID)),
+        )
 
-    private fun sevenKingdomsGameEventExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(SEVEN_KINGDOMS_GAME_EVENT)
-            .where(SEVEN_KINGDOMS_GAME_EVENT.USER_ID.eq(USER.ID))
+    private fun sevenKingdomsGameEventExists(): Select<*> = DSL
+        .selectOne()
+        .from(SEVEN_KINGDOMS_GAME_EVENT)
+        .where(SEVEN_KINGDOMS_GAME_EVENT.USER_ID.eq(USER.ID))
 
-    private fun referencePlayerProfileEditExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(REFERENCE_PLAYER_PROFILE_EDIT)
-            .where(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID.eq(USER.ID))
+    private fun referencePlayerProfileEditExists(): Select<*> = DSL
+        .selectOne()
+        .from(REFERENCE_PLAYER_PROFILE_EDIT)
+        .where(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID.eq(USER.ID))
 
-    private fun referencePlayerProfileEditSourceExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
-            .where(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID.eq(USER.ID))
+    private fun referencePlayerProfileEditSourceExists(): Select<*> = DSL
+        .selectOne()
+        .from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
+        .where(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID.eq(USER.ID))
 
-    private fun kofiEventExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(KOFI_EVENT)
-            .where(KOFI_EVENT.MATCHED_USER_ID.eq(USER.ID))
+    private fun kofiEventExists(): Select<*> = DSL
+        .selectOne()
+        .from(KOFI_EVENT)
+        .where(KOFI_EVENT.MATCHED_USER_ID.eq(USER.ID))
 
-    private fun upcomingEventExists(): Select<*> =
-        DSL
-            .selectOne()
-            .from(UPCOMING_EVENT)
-            .where(UPCOMING_EVENT.CREATED_BY.eq(USER.ID))
+    private fun upcomingEventExists(): Select<*> = DSL
+        .selectOne()
+        .from(UPCOMING_EVENT)
+        .where(UPCOMING_EVENT.CREATED_BY.eq(USER.ID))
 
     private companion object {
         const val LIFESPAN_1_MIN = 60
@@ -433,5 +411,4 @@ class ArchivedGuestDaoService(
         const val LIFESPAN_15_MIN = 15 * 60
         const val LIFESPAN_30_MIN = 30 * 60
     }
-
 }

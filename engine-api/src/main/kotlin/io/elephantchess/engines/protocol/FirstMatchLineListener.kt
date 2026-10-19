@@ -11,5 +11,4 @@ class FirstMatchLineListener(private val linePredicate: (String) -> Boolean) : L
             matchingLine = line
         }
     }
-
 }

@@ -1,10 +1,9 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.OPENING_PRE_CALCULATION_CACHE
 import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCache
 import io.elephantchess.db.utils.awaitMappedRecords
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 
 @KoinSingleton
@@ -23,10 +22,6 @@ class OpeningRepositoryCacheDaoService(private val dslContext: DSLContext) {
 
     companion object {
 
-        fun movesToKey(moves: List<String>): String {
-            return moves.joinToString(separator = ",")
-        }
-
+        fun movesToKey(moves: List<String>): String = moves.joinToString(separator = ",")
     }
-
 }

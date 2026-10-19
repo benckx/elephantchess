@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.roles
 import io.elephantchess.model.UserType
@@ -9,6 +7,7 @@ import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.utils.CachedUser
 import io.elephantchess.servicelayer.utils.NullableCache
+import io.elephantchess.utils.di.KoinSingleton
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
@@ -19,41 +18,34 @@ import kotlin.time.Instant
 class UserCache(private val userDaoService: UserDaoService) :
     NullableCache<String, CachedUser>(
         expireAfterWrite = 30.minutes,
-        wontResolvePlaceHolder = playerHolder
+        wontResolvePlaceHolder = playerHolder,
     ) {
 
-    override suspend fun loader(key: String): CachedUser? {
-        return userDaoService
-            .fetchBasicInformation(key)
-            ?.let { userRecord ->
-                CachedUser(
-                    userId = userRecord.id,
-                    userType = userRecord.userType,
-                    username = when (userRecord.userType) {
-                        UserType.AUTHENTICATED -> userRecord.handle
-                        GUEST -> "guest #${userRecord.id}"
-                        else -> UNKNOWN_USERNAME
-                    },
-                    creationTime = userRecord.creation,
-                    roles = userRecord.roles
-                )
-            }
-    }
+    override suspend fun loader(key: String): CachedUser? = userDaoService
+        .fetchBasicInformation(key)
+        ?.let { userRecord ->
+            CachedUser(
+                userId = userRecord.id,
+                userType = userRecord.userType,
+                username = when (userRecord.userType) {
+                    UserType.AUTHENTICATED -> userRecord.handle
+                    GUEST -> "guest #${userRecord.id}"
+                    else -> UNKNOWN_USERNAME
+                },
+                creationTime = userRecord.creation,
+                roles = userRecord.roles,
+            )
+        }
 
-    suspend fun fetchUsernameOrDefault(userId: UserId) =
-        fetchUsernameOrDefault(userId.id)
+    suspend fun fetchUsernameOrDefault(userId: UserId) = fetchUsernameOrDefault(userId.id)
 
-    suspend fun fetchUsernameOrDefault(userId: String) =
-        fetchUsername(userId) ?: UNKNOWN_USERNAME
+    suspend fun fetchUsernameOrDefault(userId: String) = fetchUsername(userId) ?: UNKNOWN_USERNAME
 
-    suspend fun fetchUsername(userId: String): String? =
-        get(userId)?.username
+    suspend fun fetchUsername(userId: String): String? = get(userId)?.username
 
-    suspend fun fetchUserType(userId: String): UserType? =
-        get(userId)?.userType
+    suspend fun fetchUserType(userId: String): UserType? = get(userId)?.userType
 
-    suspend fun fetchCreationTime(userId: String): Instant? =
-        get(userId)?.creationTime
+    suspend fun fetchCreationTime(userId: String): Instant? = get(userId)?.creationTime
 
     private companion object {
 
@@ -64,9 +56,7 @@ class UserCache(private val userDaoService: UserDaoService) :
             userId = "??",
             username = "??",
             creationTime = Instant.DISTANT_PAST,
-            roles = emptyList()
+            roles = emptyList(),
         )
-
     }
-
 }

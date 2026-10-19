@@ -84,7 +84,7 @@ private suspend fun updatePlayerOpenings(memoryCache: List<ReferenceGameDto>) {
 private fun buildRepertoire(
     playerId: String,
     color: Color,
-    games: List<ReferenceGameDto>
+    games: List<ReferenceGameDto>,
 ): List<OpeningPreCalculationCacheReferencePlayer> {
     val aggregates = mutableMapOf<String, OpeningAggregate>()
 
@@ -116,11 +116,7 @@ private fun buildRepertoire(
         }
 }
 
-private suspend fun persistRepertoire(
-    playerId: String,
-    color: Color,
-    records: List<OpeningPreCalculationCacheReferencePlayer>
-) {
+private suspend fun persistRepertoire(playerId: String, color: Color, records: List<OpeningPreCalculationCacheReferencePlayer>) {
     writeContext.transactionCoroutine { cfg ->
         DSL.using(cfg)
             .deleteFrom(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER)

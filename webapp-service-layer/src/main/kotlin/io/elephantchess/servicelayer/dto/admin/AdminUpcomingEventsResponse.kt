@@ -10,28 +10,13 @@ data class AdminUpcomingEventEntry(
     val link: String,
     val isEnabled: Boolean,
     val createdAt: Long?,
-    val createdByUsername: String?
+    val createdByUsername: String?,
 )
 
-data class CreateUpcomingEventRequest(
-    val startDate: String,
-    val endDate: String,
-    val description: String,
-    val link: String
-)
+data class CreateUpcomingEventRequest(val startDate: String, val endDate: String, val description: String, val link: String)
 
 data class CreateUpcomingEventResponse(val id: Int)
 
-data class UpdateUpcomingEventRequest(
-    val id: Int,
-    val startDate: String,
-    val endDate: String,
-    val description: String,
-    val link: String
-)
+data class UpdateUpcomingEventRequest(val id: Int, val startDate: String, val endDate: String, val description: String, val link: String)
 
-data class ToggleUpcomingEventRequest(
-    val id: Int,
-    val enabled: Boolean
-)
-
+data class ToggleUpcomingEventRequest(val id: Int, val enabled: Boolean)

@@ -12,16 +12,12 @@ class GameMovesDtoCache {
 
         val cache by lazy { loadAll() }
 
-        fun loadAll(): List<GameMovesDto> {
-            return ResourcesUtils.getResourceAsText("/uci.txt")
-                .split("\n")
-                .filterNot { line -> line.isBlank() }
-                .map { line ->
-                    val (gameId, moves) = line.split(";")
-                    GameMovesDto(gameId, moves.split(","))
-                }
-        }
-
+        fun loadAll(): List<GameMovesDto> = ResourcesUtils.getResourceAsText("/uci.txt")
+            .split("\n")
+            .filterNot { line -> line.isBlank() }
+            .map { line ->
+                val (gameId, moves) = line.split(";")
+                GameMovesDto(gameId, moves.split(","))
+            }
     }
-
 }

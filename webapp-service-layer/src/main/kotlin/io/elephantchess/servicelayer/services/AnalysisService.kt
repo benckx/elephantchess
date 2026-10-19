@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.tables.pojos.*
 import io.elephantchess.db.services.AnalysisDaoService
 import io.elephantchess.db.services.UserDaoService
@@ -16,6 +14,7 @@ import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.ForbiddenException
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Board.Companion.validateFen
@@ -30,7 +29,7 @@ class AnalysisService(
     private val userDaoService: UserDaoService,
     private val gameDataService: GameDataService,
     private val engineService: EngineService,
-    private val logger: KLogger
+    private val logger: KLogger,
 ) {
 
     suspend fun listUserAnalysis(userId: String, beforeTs: Long?): ListUserAnalysisResponse {
@@ -69,7 +68,7 @@ class AnalysisService(
                 gameType = latestVersion.gameType(),
                 selectedNodeFen = latestVersion.selectedNodeFen(),
                 numberOfAnnotations = numberOfAnnotations,
-                numberOfVariations = numberOfVariations
+                numberOfVariations = numberOfVariations,
             )
         }
             .sortedByDescending { entry -> entry.lastUpdated }
@@ -145,7 +144,7 @@ class AnalysisService(
                     calculateFenForAnalysis(
                         startFen = request.startFen,
                         selectedNodeId = selectedNodeId,
-                        nodes = nodeRecords
+                        nodes = nodeRecords,
                     )
                 }
 
@@ -154,7 +153,7 @@ class AnalysisService(
                 analysisVersion = analysisVersionRecord,
                 nodes = nodeRecords,
                 childNodes = childNodeRecords,
-                annotationRecords = annotationRecords
+                annotationRecords = annotationRecords,
             )
             replaceEngineCacheData(analysisId)
             SaveAnalysisResponse(analysisId, version, created.toEpochMilliseconds())
@@ -171,7 +170,7 @@ class AnalysisService(
                 calculateFenForAnalysis(
                     startFen = request.startFen,
                     selectedNodeId = selectedNodeId,
-                    nodes = nodes
+                    nodes = nodes,
                 )
             }
 
@@ -185,7 +184,7 @@ class AnalysisService(
                 selectedNodeId = request.selectedNodeId,
                 selectedNodeFen = selectedNodeFen,
                 openBranchIds = request.openBranchIds,
-                startFen = request.startFen
+                startFen = request.startFen,
             )
 
             replaceEngineCacheData(request.analysisId)
@@ -194,11 +193,7 @@ class AnalysisService(
     }
 
     // visible for script to backfill selected nodes FENs
-    private fun calculateFenForAnalysis(
-        startFen: String?,
-        selectedNodeId: String,
-        nodes: List<AnalysisNode>
-    ): String? {
+    private fun calculateFenForAnalysis(startFen: String?, selectedNodeId: String, nodes: List<AnalysisNode>): String? {
         fun findChainOfMoves(nodes: List<AnalysisNode>, selectedNodeId: String): List<String> {
             val chain = mutableListOf<String>()
             var currentNode: AnalysisNode? = nodes.find { it.nodeId == selectedNodeId }
@@ -231,7 +226,7 @@ class AnalysisService(
 
     suspend fun findByIdAndVersion(analysisId: String, version: Int?): GetAnalysisResponse {
         val versionToRetrieve = version ?: analysisDaoService.getLastVersionNumberOf(analysisId)
-        ?: throw NotFoundException("Analysis not found")
+            ?: throw NotFoundException("Analysis not found")
 
         val analysis = analysisDaoService.fetchAnalysis(analysisId)
             ?: throw NotFoundException("Analysis not found")
@@ -267,7 +262,7 @@ class AnalysisService(
             gameId = analysis.gameId(),
             startFen = versionRecord.startFen,
             selectedNodeId = versionRecord.selectedNodeId,
-            openBranchIds = versionRecord.openBranchIds.split(",")
+            openBranchIds = versionRecord.openBranchIds.split(","),
         )
     }
 
@@ -322,7 +317,7 @@ class AnalysisService(
             selectedNodeFen = null,
             openBranchIds = emptyList(),
             startFen = request.startFen,
-            lastUpdated = lastUpdated
+            lastUpdated = lastUpdated,
         )
 
         return SaveAnalysisResponse(request.analysisId, version, lastUpdated.toEpochMilliseconds())
@@ -337,7 +332,7 @@ class AnalysisService(
         val infoLineResult = engineService.principalVariation(
             fen = engineRequest.fen,
             engine = engineRequest.engine,
-            depth = engineRequest.validatedDepth()
+            depth = engineRequest.validatedDepth(),
         )
 
         if (infoLineResult == null) {
@@ -348,7 +343,7 @@ class AnalysisService(
             val wasInserted =
                 analysisDaoService.replaceEngineEntryIfNecessary(
                     analysisId = analysisId,
-                    record = mapInfoLineResultDtoToRecord(analysisId, infoLineResult)
+                    record = mapInfoLineResultDtoToRecord(analysisId, infoLineResult),
                 )
 
             if (wasInserted) {
@@ -388,7 +383,7 @@ class AnalysisService(
             selectedNodeId = selectedNodeId,
             selectedNodeFen = selectedNodeFen,
             openBranchIds = openBranchIds.joinToString(","),
-            startFen = startFen
+            startFen = startFen,
         )
 
         if (version == null) {
@@ -412,76 +407,65 @@ class AnalysisService(
         const val ANNOTATION_MAX_LENGTH = 2000
 
         // for persisting
-        private fun mapChildNodeRecords(nodes: List<MoveTreeNode>): List<AnalysisChildNode> {
-            return nodes.flatMap { node ->
-                node.childNodes.map { childNodeId ->
-                    val childNode = AnalysisChildNode()
-                    childNode.childNodeId = childNodeId
-                    childNode.parentNodeId = node.id
-                    childNode
-                }
+        private fun mapChildNodeRecords(nodes: List<MoveTreeNode>): List<AnalysisChildNode> = nodes.flatMap { node ->
+            node.childNodes.map { childNodeId ->
+                val childNode = AnalysisChildNode()
+                childNode.childNodeId = childNodeId
+                childNode.parentNodeId = node.id
+                childNode
             }
         }
 
         // for persisting
-        private fun mapNodesToRecords(nodes: List<MoveTreeNode>): List<AnalysisNode> {
-            return nodes.map { node ->
-                val record = AnalysisNode()
+        private fun mapNodesToRecords(nodes: List<MoveTreeNode>): List<AnalysisNode> = nodes.map { node ->
+            val record = AnalysisNode()
+            record.nodeId = node.id
+            record.move = node.move
+            record.level = node.level
+            record.previous = node.previous
+            record.next = node.next
+            record
+        }
+
+        // for persisting
+        private fun mapNodesToAnnotationRecords(nodes: List<MoveTreeNode>): List<AnalysisNodeAnnotation> = nodes
+            .filter { node -> node.annotation != null }
+            .map { node ->
+                val record = AnalysisNodeAnnotation()
                 record.nodeId = node.id
-                record.move = node.move
-                record.level = node.level
-                record.previous = node.previous
-                record.next = node.next
+                record.annotationContent = node.annotation
                 record
             }
-        }
 
         // for persisting
-        private fun mapNodesToAnnotationRecords(nodes: List<MoveTreeNode>): List<AnalysisNodeAnnotation> {
-            return nodes
-                .filter { node -> node.annotation != null }
-                .map { node ->
-                    val record = AnalysisNodeAnnotation()
-                    record.nodeId = node.id
-                    record.annotationContent = node.annotation
-                    record
-                }
-        }
-
-        // for persisting
-        private fun mapEngineDataToRecord(pvCaches: List<PvCache>): List<AnalysisEngineDataCache> {
-            return pvCaches
-                .filter { dto -> dto.depth != null }
-                .filter { dto -> dto.pv.isNotEmpty() }
-                .map { dto ->
-                    val record = AnalysisEngineDataCache()
-                    record.fenKey = dto.fenKey
-                    record.rawLine = dto.line
-                    record.depth = dto.depth
-                    record.cp = dto.cp
-                    record.mateIn = dto.mate
-                    record.pv = dto.pv.joinToString(",")
-                    record.inCheckmate = dto.isCheckmate
-                    record
-                }
-        }
+        private fun mapEngineDataToRecord(pvCaches: List<PvCache>): List<AnalysisEngineDataCache> = pvCaches
+            .filter { dto -> dto.depth != null }
+            .filter { dto -> dto.pv.isNotEmpty() }
+            .map { dto ->
+                val record = AnalysisEngineDataCache()
+                record.fenKey = dto.fenKey
+                record.rawLine = dto.line
+                record.depth = dto.depth
+                record.cp = dto.cp
+                record.mateIn = dto.mate
+                record.pv = dto.pv.joinToString(",")
+                record.inCheckmate = dto.isCheckmate
+                record
+            }
 
         // for fetching
-        private fun mapRecordNodeToDto(node: AnalysisNode, annotation: AnalysisNodeAnnotation?): MoveTreeNode {
-            return MoveTreeNode(
-                node.nodeId,
-                node.move,
-                node.level,
-                node.previous,
-                node.next,
-                listOf(),
-                annotation?.annotationContent,
-            )
-        }
+        private fun mapRecordNodeToDto(node: AnalysisNode, annotation: AnalysisNodeAnnotation?): MoveTreeNode = MoveTreeNode(
+            node.nodeId,
+            node.move,
+            node.level,
+            node.previous,
+            node.next,
+            listOf(),
+            annotation?.annotationContent,
+        )
 
-
-        private fun mapRecordToInfoLineResultDto(record: AnalysisEngineDataCache): InfoLineResultDto {
-            return if (record.rawLine != null && record.rawLine.isNotBlank()) {
+        private fun mapRecordToInfoLineResultDto(record: AnalysisEngineDataCache): InfoLineResultDto =
+            if (record.rawLine != null && record.rawLine.isNotBlank()) {
                 mapToInfoLineResultDto(record.fenKey, record.rawLine)
             } else {
                 val pv = record.pv.split(",")
@@ -493,15 +477,11 @@ class AnalysisService(
                     mate = record.mateIn,
                     pv = pv,
                     bestMove = pv.firstOrNull(),
-                    isCheckmate = record.inCheckmate
+                    isCheckmate = record.inCheckmate,
                 )
             }
-        }
 
-        private fun mapInfoLineResultDtoToRecord(
-            analysisId: String,
-            infoLineResultDto: InfoLineResultDto,
-        ): AnalysisEngineDataCache {
+        private fun mapInfoLineResultDtoToRecord(analysisId: String, infoLineResultDto: InfoLineResultDto): AnalysisEngineDataCache {
             val record = AnalysisEngineDataCache()
             record.analysisId = analysisId
             record.fenKey = resetFullMoveCount(infoLineResultDto.fen)
@@ -512,21 +492,17 @@ class AnalysisService(
         }
 
         // TODO: this can be improved and move to Board
-        private fun isLegal(pvCache: PvCache): Boolean {
-            return try {
-                if (pvCache.pv.isNotEmpty()) {
-                    val board = Board(pvCache.fenKey)
-                    val nextMove = pvCache.pv.first()
-                    val nextHalfMove = HalfMove.parseMoveFromUci(nextMove)
-                    board.isLegalMove(nextHalfMove)
-                } else {
-                    pvCache.isCheckmate
-                }
-            } catch (_: Exception) {
-                false
+        private fun isLegal(pvCache: PvCache): Boolean = try {
+            if (pvCache.pv.isNotEmpty()) {
+                val board = Board(pvCache.fenKey)
+                val nextMove = pvCache.pv.first()
+                val nextHalfMove = HalfMove.parseMoveFromUci(nextMove)
+                board.isLegalMove(nextHalfMove)
+            } else {
+                pvCache.isCheckmate
             }
+        } catch (_: Exception) {
+            false
         }
-
     }
-
 }

@@ -130,7 +130,7 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
                 sessionA1,
                 sessionA2,
                 sessionB1,
-                sessionB2
+                sessionB2,
             ).forEach {
                 pvpGameService.closePlayerVsPlayerSession(it.sessionId)
             }
@@ -152,12 +152,12 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
                 pvpGameService.handlePlayerVsPlayerInput(
                     userId = userId2,
                     gameId = gameId,
-                    input = PlayerVsPlayerInput(isTyping = true)
+                    input = PlayerVsPlayerInput(isTyping = true),
                 )
                 pvpGameService.handlePlayerVsPlayerInput(
                     userId = userId2,
                     gameId = gameId,
-                    input = PlayerVsPlayerInput(message = "hello from user 2")
+                    input = PlayerVsPlayerInput(message = "hello from user 2"),
                 )
 
                 pvpGameService.refreshPlayerVsPlayerSessions()
@@ -204,11 +204,8 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         }
     }
 
-    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitUpdate(
-        expectedMove: String,
-        expectedIndex: Int
-    ): PlayerVsPlayerUpdate {
-        return withTimeout(4.seconds) {
+    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitUpdate(expectedMove: String, expectedIndex: Int): PlayerVsPlayerUpdate =
+        withTimeout(4.seconds) {
             var result: PlayerVsPlayerUpdate? = null
             while (result == null) {
                 val update = receive()
@@ -219,12 +216,9 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
             }
             result
         }
-    }
 
-    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitNextUpdate(): PlayerVsPlayerUpdate {
-        return withTimeout(4.seconds) {
-            receive()
-        }
+    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitNextUpdate(): PlayerVsPlayerUpdate = withTimeout(4.seconds) {
+        receive()
     }
 
     private fun assertMoveUpdate(update: PlayerVsPlayerUpdate, moves: GameMovesDto, expectedIndex: Int) {
@@ -233,9 +227,5 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
         assertEquals(expectedIndex, newMove.updatedIndex)
     }
 
-    private data class SessionHandle(
-        val sessionId: String,
-        val channel: Channel<PlayerVsPlayerUpdate>,
-    )
-
+    private data class SessionHandle(val sessionId: String, val channel: Channel<PlayerVsPlayerUpdate>)
 }

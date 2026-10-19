@@ -7,5 +7,4 @@ data class InvalidToken(private val exception: Exception) : TokenVerificationRes
         attributes += "exception" to exception.toString()
         return "InvalidToken{${attributes.joinToString(", ") { (k, v) -> "$k=$v" }}}"
     }
-
 }

@@ -1,11 +1,10 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.PuzzleDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRateStartImmediately
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlin.time.Duration.Companion.hours
@@ -15,7 +14,7 @@ class PuzzleCache(
     private val puzzleDaoService: PuzzleDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val logger: KLogger,
-    refresherScope: CoroutineScope
+    refresherScope: CoroutineScope,
 ) {
 
     private var entries = listOf<PuzzleCacheEntry>()
@@ -37,30 +36,25 @@ class PuzzleCache(
                     }
 
             logger.info { "loaded ${entries.size} puzzles from DB into cache" }
-        }
+        },
     )
 
     fun cancel() {
         refreshJob.cancel()
     }
 
-    fun size() =
-        entries.size
+    fun size() = entries.size
 
-    fun countAllAttempts() =
-        entries.sumOf { entry -> entry.attempts }
+    fun countAllAttempts() = entries.sumOf { entry -> entry.attempts }
 
-    fun exists(puzzleId: String) =
-        entries.any { entry -> entry.puzzleId == puzzleId }
+    fun exists(puzzleId: String) = entries.any { entry -> entry.puzzleId == puzzleId }
 
     fun hasCategories(puzzleId: String, categories: List<PuzzleCategory>) =
         entries.find { entry -> entry.puzzleId == puzzleId }?.categories?.containsAll(categories) ?: false
 
-    fun getById(puzzleId: String) =
-        entries.find { entry -> entry.puzzleId == puzzleId }
+    fun getById(puzzleId: String) = entries.find { entry -> entry.puzzleId == puzzleId }
 
-    fun countAllEnabled(): Int =
-        entries.filter { entry -> entry.enabled }.size
+    fun countAllEnabled(): Int = entries.filter { entry -> entry.enabled }.size
 
     fun countPuzzlePlayedAtLeastAmongEnabled(numberOfTimes: Int): Int =
         entries.filter { entry -> entry.enabled }.count { entry -> entry.attempts >= numberOfTimes }
@@ -107,7 +101,5 @@ class PuzzleCache(
             val categories: List<PuzzleCategory>,
             val enabled: Boolean,
         )
-
     }
-
 }

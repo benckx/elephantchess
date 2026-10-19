@@ -1,9 +1,8 @@
 package io.elephantchess.webapp.rendering
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton(eager = true)
 class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
@@ -11,13 +10,12 @@ class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) 
     suspend fun renderChangelogPage(): String =
         simplePageRenderer.renderTemplate(CHANGELOG_TEMPLATE_NAME, listOf(changelogTocTagResolver()))
 
-    private fun changelogTocTagResolver(): TagResolver =
-        CallbackTagResolver("changelog_toc") {
-            val html = resourceAsString(CHANGELOG_TEMPLATE_PATH)
-                ?: throw IllegalStateException("Changelog template not found at $CHANGELOG_TEMPLATE_PATH")
+    private fun changelogTocTagResolver(): TagResolver = CallbackTagResolver("changelog_toc") {
+        val html = resourceAsString(CHANGELOG_TEMPLATE_PATH)
+            ?: throw IllegalStateException("Changelog template not found at $CHANGELOG_TEMPLATE_PATH")
 
-            renderChangelogToc(html)
-        }
+        renderChangelogToc(html)
+    }
 
     companion object {
 
@@ -55,7 +53,5 @@ class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) 
             }
             return """<nav id="page-toc"><ul>$items</ul></nav>"""
         }
-
     }
-
 }

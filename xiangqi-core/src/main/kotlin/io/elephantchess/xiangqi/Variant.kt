@@ -14,7 +14,9 @@ enum class Variant {
      *
      * @see <a href="https://en.wikipedia.org/wiki/Manchu_chess">Wikipedia: Manchu chess</a>
      */
-    MANCHU;
+    MANCHU,
+
+    ;
 
     /**
      * The Chinese character commonly used to represent this variant.
@@ -31,5 +33,4 @@ enum class Variant {
         XIANGQI -> "xiangqi"
         MANCHU -> "manchu"
     }
-
 }

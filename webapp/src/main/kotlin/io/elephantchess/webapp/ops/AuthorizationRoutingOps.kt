@@ -30,9 +30,7 @@ private val userCache by koin<UserCache>()
 /**
  * Require an authenticated user (not a guest)
  */
-suspend fun RoutingContext.requireAuthentication(
-    handler: suspend (AuthenticatedToken) -> Any
-) {
+suspend fun RoutingContext.requireAuthentication(handler: suspend (AuthenticatedToken) -> Any) {
     val result = extractAndVerifyToken()
     if (result is AuthenticatedToken && verifyInDb(result)) {
         call.respond(handler(result))
@@ -45,9 +43,7 @@ suspend fun RoutingContext.requireAuthentication(
  * Require an authenticated user (not a guest)
  * Same as above but with a request body
  */
-suspend inline fun <reified T : Any> RoutingContext.requireAuthenticationWithBody(
-    handler: suspend (AuthenticatedToken, T) -> Any
-) {
+suspend inline fun <reified T : Any> RoutingContext.requireAuthenticationWithBody(handler: suspend (AuthenticatedToken, T) -> Any) {
     val result = extractAndVerifyToken()
     if (result is AuthenticatedToken && verifyInDb(result)) {
         call.respond(handler(result, call.receive<T>()))
@@ -59,9 +55,7 @@ suspend inline fun <reified T : Any> RoutingContext.requireAuthenticationWithBod
 /**
  * Require an authenticated user or a guest user
  */
-suspend fun RoutingContext.requireIdentification(
-    handler: suspend (VerifiedToken) -> Any
-) {
+suspend fun RoutingContext.requireIdentification(handler: suspend (VerifiedToken) -> Any) {
     val result = extractAndVerifyToken()
     if (result is VerifiedToken && verifyInDb(result)) {
         call.respond(handler(result))
@@ -74,9 +68,7 @@ suspend fun RoutingContext.requireIdentification(
  * Require an authenticated user or a guest user
  * Same as above but with a request body
  */
-suspend inline fun <reified T : Any> RoutingContext.requireIdentificationWithBody(
-    handler: (VerifiedToken, T) -> Any
-) {
+suspend inline fun <reified T : Any> RoutingContext.requireIdentificationWithBody(handler: (VerifiedToken, T) -> Any) {
     val result = extractAndVerifyToken()
     if (result is VerifiedToken && verifyInDb(result)) {
         call.respond(handler(result, call.receive<T>()))
@@ -85,16 +77,13 @@ suspend inline fun <reified T : Any> RoutingContext.requireIdentificationWithBod
     }
 }
 
-suspend fun RoutingContext.requireAdminRole(
-    customErrorPage: (suspend () -> String)? = null,
-    handler: suspend (AuthenticatedToken) -> Any
-) {
+suspend fun RoutingContext.requireAdminRole(customErrorPage: (suspend () -> String)? = null, handler: suspend (AuthenticatedToken) -> Any) {
     requireRole(ADMIN, handler, customErrorPage)
 }
 
 suspend fun RoutingContext.requireEditorRole(
     customErrorPage: (suspend () -> String)? = null,
-    handler: suspend (AuthenticatedToken) -> Any
+    handler: suspend (AuthenticatedToken) -> Any,
 ) {
     requireRole(EDITOR, handler, customErrorPage)
 }
@@ -114,11 +103,7 @@ private suspend fun RoutingContext.requireRole(
     }
 }
 
-suspend fun RoutingContext.handleInvalidToken(
-    result: TokenVerificationResult?,
-    permission: String,
-    statusCode: HttpStatusCode
-) {
+suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, permission: String, statusCode: HttpStatusCode) {
     val headersStr =
         call.request.headers
             .toMap()
@@ -133,7 +118,9 @@ suspend fun RoutingContext.handleInvalidToken(
             .map { cookie -> cookie.key + " = " + cookie.value }
             .joinToString(", ")
 
-    opsLogger.warn { "[requested:$permission] received $result for ${call.request.uri}, accept ${call.request.accept()}, $headersStr, $cookiesStr" }
+    opsLogger.warn {
+        "[requested:$permission] received $result for ${call.request.uri}, accept ${call.request.accept()}, $headersStr, $cookiesStr"
+    }
     redirectOrRespond(statusCode)
 }
 
@@ -147,21 +134,18 @@ private suspend fun RoutingContext.redirectOrRespond(statusCode: HttpStatusCode)
     }
 }
 
-suspend fun verifyInDb(token: TokenVerificationResult, requiredRole: UserRole? = null): Boolean {
-
-    return when (token) {
-        is AuthenticatedToken -> {
-            val user = userCache.get(token.userId)
-            user != null && user.userType == AUTHENTICATED &&
-                    (requiredRole == null || user.roles.contains(requiredRole))
-        }
-
-        is GuestToken -> {
-            val user = userCache.get(token.userId)
-            user != null && user.userType == GUEST &&
-                    (requiredRole == null || user.roles.contains(requiredRole))
-        }
-
-        else -> false
+suspend fun verifyInDb(token: TokenVerificationResult, requiredRole: UserRole? = null): Boolean = when (token) {
+    is AuthenticatedToken -> {
+        val user = userCache.get(token.userId)
+        user != null && user.userType == AUTHENTICATED &&
+            (requiredRole == null || user.roles.contains(requiredRole))
     }
+
+    is GuestToken -> {
+        val user = userCache.get(token.userId)
+        user != null && user.userType == GUEST &&
+            (requiredRole == null || user.roles.contains(requiredRole))
+    }
+
+    else -> false
 }

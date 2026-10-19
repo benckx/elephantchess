@@ -67,12 +67,12 @@ class TagResolversTest {
         val out = render(lastSupporter(amount = 12.0, currency = "EUR"))
         assertEquals(
             """<p>Our latest donation was offered to us by <b><a href="/@/alice">alice</a></b>. """ +
-                    """Their generous 12€ tip on $pastDateStr allowed us to finance the platform for """ +
-                    """<b>2 entire days!</b> Many thanks to them!</p>""" +
-                    """<p>Do you want to see <b>your name</b> featured as our latest supporter? """ +
-                    """<b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> """ +
-                    """and with just 5€ finance the platform for an entire day!</p>""",
-            out
+                """Their generous 12€ tip on $pastDateStr allowed us to finance the platform for """ +
+                """<b>2 entire days!</b> Many thanks to them!</p>""" +
+                """<p>Do you want to see <b>your name</b> featured as our latest supporter? """ +
+                """<b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> """ +
+                """and with just 5€ finance the platform for an entire day!</p>""",
+            out,
         )
     }
 
@@ -81,7 +81,7 @@ class TagResolversTest {
         val out = render(lastSupporter(amount = 5.0, currency = "EUR"))
         assertTrue(
             out.contains("Their generous 5€ tip on $pastDateStr allowed us to finance the platform for <b>an entire day!</b>"),
-            "Unexpected output: $out"
+            "Unexpected output: $out",
         )
     }
 
@@ -90,7 +90,7 @@ class TagResolversTest {
         val out = render(lastSupporter(amount = 2.0, currency = "EUR"))
         assertTrue(
             out.contains("Their 2€ tip on $pastDateStr allowed us to finance the platform for a few hours!"),
-            "Unexpected output: $out"
+            "Unexpected output: $out",
         )
     }
 
@@ -98,8 +98,10 @@ class TagResolversTest {
     fun `usd recurring pledge with several days uses every month`() = runTest {
         val out = render(lastSupporter(amount = 20.0, currency = "USD", recurring = true))
         assertTrue(
-            out.contains("Their generous 20\$ pledge on $pastDateStr allows us to finance the platform for <b>4 entire days every month!</b>"),
-            "Unexpected output: $out"
+            out.contains(
+                "Their generous 20\$ pledge on $pastDateStr allows us to finance the platform for <b>4 entire days every month!</b>",
+            ),
+            "Unexpected output: $out",
         )
     }
 
@@ -108,7 +110,7 @@ class TagResolversTest {
         val out = render(lastSupporter(amount = 2.0, currency = "GBP", recurring = true))
         assertTrue(
             out.contains("Their 2£ pledge on $pastDateStr allows us to finance the platform for a few hours every month!"),
-            "Unexpected output: $out"
+            "Unexpected output: $out",
         )
     }
 
@@ -116,12 +118,17 @@ class TagResolversTest {
     fun `recurring pledge covering 30 days or more uses entire-platform message`() = runTest {
         val out = render(lastSupporter(amount = 200.0, currency = "EUR", recurring = true))
         assertTrue(
-            out.contains("Their incredibly generous 200€ pledge on $pastDateStr allows us to finance <b>the entire platform every month!</b>"),
-            "Unexpected output: $out"
+            out.contains(
+                "Their incredibly generous 200€ pledge on $pastDateStr allows us to finance <b>the entire platform every month!</b>",
+            ),
+            "Unexpected output: $out",
         )
         // Must NOT contain the misleading raw day count phrasing.
         assertTrue(!out.contains("entire days every month"), "Should not include raw day count: $out")
-        assertTrue(!Regex("\\d+ entire days").containsMatchIn(out.substringBefore(" Many thanks")), "Should not include raw day count: $out")
+        assertTrue(
+            !Regex("\\d+ entire days").containsMatchIn(out.substringBefore(" Many thanks")),
+            "Should not include raw day count: $out",
+        )
     }
 
     @Test
@@ -129,7 +136,7 @@ class TagResolversTest {
         val out = render(lastSupporter(amount = 200.0, currency = "EUR", recurring = false))
         assertTrue(
             out.contains("Their generous 200€ tip on $pastDateStr allowed us to finance the platform for <b>40 entire days!</b>"),
-            "Unexpected output: $out"
+            "Unexpected output: $out",
         )
     }
 
@@ -138,8 +145,10 @@ class TagResolversTest {
         // 29 days * 5 EUR/day = 145 EUR -> still under 30-days threshold
         val out = render(lastSupporter(amount = 145.0, currency = "EUR", recurring = true))
         assertTrue(
-            out.contains("Their generous 145€ pledge on $pastDateStr allows us to finance the platform for <b>29 entire days every month!</b>"),
-            "Unexpected output: $out"
+            out.contains(
+                "Their generous 145€ pledge on $pastDateStr allows us to finance the platform for <b>29 entire days every month!</b>",
+            ),
+            "Unexpected output: $out",
         )
     }
 
@@ -150,7 +159,7 @@ class TagResolversTest {
         val firstParagraph = out.substringBefore("</p>") + "</p>"
         assertTrue(
             firstParagraph.contains("Their 1500JPY tip on $pastDateStr allowed us to finance the platform for a little bit!"),
-            "Unexpected first paragraph: $firstParagraph"
+            "Unexpected first paragraph: $firstParagraph",
         )
         assertTrue(!firstParagraph.contains("entire day"), "Should not include day estimate: $firstParagraph")
         assertTrue(!firstParagraph.contains("a few hours"), "Should not include hours estimate: $firstParagraph")
@@ -161,7 +170,7 @@ class TagResolversTest {
         val out = render(lastSupporter(amount = 500.0, currency = "INR", recurring = true))
         assertTrue(
             out.contains("Their 500INR pledge on $pastDateStr allows us to finance the platform every month for a little bit!"),
-            "Unexpected output: $out"
+            "Unexpected output: $out",
         )
     }
 
@@ -190,7 +199,7 @@ class TagResolversTest {
         val out = render(lastSupporter(amount = 8.0, currency = "eur"))
         assertTrue(
             out.contains("entire days") || out.contains("entire day"),
-            "Expected days-based message for lower-case eur: $out"
+            "Expected days-based message for lower-case eur: $out",
         )
     }
 

@@ -30,28 +30,24 @@ object PersistDatabaseGamesToJson : KoinScript {
     private val gameDaoService by inject<SevenKingdomsGameDaoService>()
     private val dslContext by inject<DSLContext>()
 
-    private suspend fun listGamesSortedBySize(): List<SevenKingdomsGame> {
-        return dslContext
-            .select(
-                SEVEN_KINGDOMS_GAME.ID,
-                SEVEN_KINGDOMS_GAME.CURRENT_INDEX
-            )
-            .from(SEVEN_KINGDOMS_GAME)
-            .where(SEVEN_KINGDOMS_GAME.GAME_STATUS.eq(OTHER_VICTORY))
-            .orderBy(SEVEN_KINGDOMS_GAME.CURRENT_INDEX)
-            .awaitMappedRecords()
-    }
-
-    private fun mapBoardToGameEntryDto(gameId: String, board: Board): GameEntryDto {
-        return GameEntryDto(
-            gameId = gameId,
-            winner = board.winner()!!,
-            victoryType = board.victoryType()!!,
-            capturedKingdoms = board.capturedKingdomsMap(),
-            colorsStillInGame = board.colorsStillInGame(),
-            moves = board.listHistoricalMoves().map { it.uci }
+    private suspend fun listGamesSortedBySize(): List<SevenKingdomsGame> = dslContext
+        .select(
+            SEVEN_KINGDOMS_GAME.ID,
+            SEVEN_KINGDOMS_GAME.CURRENT_INDEX,
         )
-    }
+        .from(SEVEN_KINGDOMS_GAME)
+        .where(SEVEN_KINGDOMS_GAME.GAME_STATUS.eq(OTHER_VICTORY))
+        .orderBy(SEVEN_KINGDOMS_GAME.CURRENT_INDEX)
+        .awaitMappedRecords()
+
+    private fun mapBoardToGameEntryDto(gameId: String, board: Board): GameEntryDto = GameEntryDto(
+        gameId = gameId,
+        winner = board.winner()!!,
+        victoryType = board.victoryType()!!,
+        capturedKingdoms = board.capturedKingdomsMap(),
+        colorsStillInGame = board.colorsStillInGame(),
+        moves = board.listHistoricalMoves().map { it.uci },
+    )
 
     private suspend fun loadBoard(gameId: String): Board {
         val board = Board()
@@ -84,8 +80,7 @@ object PersistDatabaseGamesToJson : KoinScript {
                 gamesByVictoryType[victoryType] = mutableListOf()
             }
 
-            fun isBelowLimit(victoryType: VictoryType): Boolean =
-                (gamesByVictoryType[victoryType]?.size ?: 0) < GAMES_TO_KEEP
+            fun isBelowLimit(victoryType: VictoryType): Boolean = (gamesByVictoryType[victoryType]?.size ?: 0) < GAMES_TO_KEEP
 
             var i = 0
             while (
@@ -94,8 +89,9 @@ object PersistDatabaseGamesToJson : KoinScript {
             ) {
                 val board = loadBoard(games[i++].id)
                 val victoryType = board.victoryType()!!
-                if (isBelowLimit(victoryType))
+                if (isBelowLimit(victoryType)) {
                     gamesByVictoryType[victoryType]!! += games[i].id
+                }
             }
 
             println("total games from DB: ${games.size}")

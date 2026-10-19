@@ -43,14 +43,8 @@ abstract class PostgresTest {
      * Useful in tests / one-off lookups where a single column value needs to be fetched
      * by a simple where condition.
      */
-    suspend inline fun <reified T : Any> DSLContext.fetchValueAsync(
-        field: TableField<*, T>,
-        condition: Condition,
-    ): T? {
-        return select(field)
-            .from(field.table)
-            .where(condition)
-            .awaitSingleValue()
-    }
-
+    suspend inline fun <reified T : Any> DSLContext.fetchValueAsync(field: TableField<*, T>, condition: Condition): T? = select(field)
+        .from(field.table)
+        .where(condition)
+        .awaitSingleValue()
 }

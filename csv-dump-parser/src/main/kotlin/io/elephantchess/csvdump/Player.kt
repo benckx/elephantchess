@@ -9,11 +9,7 @@ import kotlin.time.Instant
  * One side (red or black) of a PvP game, grouping the player's identity and the facts the CSV
  * records about the account itself: account age at game time and user type.
  */
-data class Player(
-    val name: String,
-    val accountAge: Duration?,
-    val userType: UserType,
-) {
+data class Player(val name: String, val accountAge: Duration?, val userType: UserType) {
 
     /**
      * Approximates when this account was created by subtracting its [accountAge] from the start of
@@ -21,8 +17,7 @@ data class Player(
      * result is only as precise as the source data, which itself rounds the age to whole days (or
      * hours for very young accounts).
      */
-    fun approximateAccountCreation(gameStart: Instant): Instant? =
-        accountAge?.let { age -> (gameStart - age).roundToNearestHour() }
+    fun approximateAccountCreation(gameStart: Instant): Instant? = accountAge?.let { age -> (gameStart - age).roundToNearestHour() }
 
     private fun Instant.roundToNearestHour(): Instant {
         val secondsPerHour = 60L * 60L
@@ -47,5 +42,4 @@ data class Player(
             }
         }
     }
-
 }

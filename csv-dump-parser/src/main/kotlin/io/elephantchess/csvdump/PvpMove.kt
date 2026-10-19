@@ -23,14 +23,13 @@ data class PvpMove(
 
     companion object {
 
-        fun fromCsvRow(row: CsvRow): PvpMove =
-            PvpMove(
-                timestamp = Instant.parse(row.value("timestamp").trim()),
-                moveIndex = row.value("move_index").trim().toInt(),
-                move = parseMoveFromUci(row.value("move").trim()),
-                moveAnalysis = row.infoLineOrNull("move_analysis"),
-                engineAnalysis = row.infoLineOrNull("engine_analysis"),
-                cpl = row.intOrNull("cpl"),
-            )
+        fun fromCsvRow(row: CsvRow): PvpMove = PvpMove(
+            timestamp = Instant.parse(row.value("timestamp").trim()),
+            moveIndex = row.value("move_index").trim().toInt(),
+            move = parseMoveFromUci(row.value("move").trim()),
+            moveAnalysis = row.infoLineOrNull("move_analysis"),
+            engineAnalysis = row.infoLineOrNull("engine_analysis"),
+            cpl = row.intOrNull("cpl"),
+        )
     }
 }

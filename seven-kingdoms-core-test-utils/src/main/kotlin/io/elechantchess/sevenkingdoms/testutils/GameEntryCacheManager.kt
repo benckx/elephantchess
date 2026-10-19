@@ -15,7 +15,7 @@ object GameEntryCacheManager {
     private val entries by lazy {
         mapper.readValue(
             object {}.javaClass.getResource("/games.json")?.readText(),
-            GameEntriesDto::class.java
+            GameEntriesDto::class.java,
         )?.entries ?: emptyList()
     }
 
@@ -24,5 +24,4 @@ object GameEntryCacheManager {
 
     fun getAllGames(): List<GameEntryDto> = entries
     fun randomGame(): GameEntryDto = entries.random()
-
 }

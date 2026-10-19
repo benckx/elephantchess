@@ -116,25 +116,19 @@ data class AppConfig(
         lines += "parseUserAgent -> $parseUserAgent"
         lines += "disabled batches -> ${disabledBatches.joinToString(", ")}"
         lines += "CDN enabled -> $cdnEnabled"
-        lines += "database rate limit -> $isDatabaseRateLimitEnabled ($databaseRateLimitMaxRequests req / ${databaseRateLimitWindowSeconds}s per IP)"
+        lines +=
+            "database rate limit -> $isDatabaseRateLimitEnabled ($databaseRateLimitMaxRequests req / ${databaseRateLimitWindowSeconds}s per IP)"
         lines += "puzzles debug mode -> $isPuzzlesDebugModeEnabled"
         return lines
     }
 
-    private fun loadString(key: String): String {
-        return properties.loadString(key)
-    }
+    private fun loadString(key: String): String = properties.loadString(key)
 
-    private fun loadListOfStrings(key: String): List<String> {
-        return properties.loadString(key).split(",").map { it.trim() }.filter { it.isNotBlank() }
-    }
+    private fun loadListOfStrings(key: String): List<String> = properties.loadString(key).split(",").map {
+        it.trim()
+    }.filter { it.isNotBlank() }
 
-    private fun loadBoolean(key: String, default: Boolean): Boolean {
-        return properties.loadBoolean(key, default)
-    }
+    private fun loadBoolean(key: String, default: Boolean): Boolean = properties.loadBoolean(key, default)
 
-    private fun loadIntOrDefault(key: String, default: Int): Int {
-        return properties.loadIntOrDefault(key, default)
-    }
-
+    private fun loadIntOrDefault(key: String, default: Int): Int = properties.loadIntOrDefault(key, default)
 }

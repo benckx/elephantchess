@@ -188,22 +188,20 @@ class HtmlRenderer(
         return reInsertHead(sortElements(head))
     }
 
-    private fun removeHtmlComments(htmlContent: String) =
-        if (isMinificationEnabled) {
-            htmlContent.replace("<!--.*?-->".toRegex(), "")
-        } else {
-            htmlContent
-        }
+    private fun removeHtmlComments(htmlContent: String) = if (isMinificationEnabled) {
+        htmlContent.replace("<!--.*?-->".toRegex(), "")
+    } else {
+        htmlContent
+    }
 
-    private fun removeBlankLines(htmlContent: String) =
-        if (isMinificationEnabled) {
-            htmlContent
-                .split("\n")
-                .filter { it.isNotBlank() }
-                .joinToString("\n")
-        } else {
-            htmlContent
-        }
+    private fun removeBlankLines(htmlContent: String) = if (isMinificationEnabled) {
+        htmlContent
+            .split("\n")
+            .filter { it.isNotBlank() }
+            .joinToString("\n")
+    } else {
+        htmlContent
+    }
 
     private fun ensureDoctype(htmlContent: String): String {
         val trimmed = htmlContent.trimStart()
@@ -214,32 +212,29 @@ class HtmlRenderer(
         }
     }
 
-    private fun updateJsAssetLocations(htmlContent: String) =
-        updateAssetLocations(
-            htmlContent = htmlContent,
-            folder = "js",
-            tagName = "script",
-            sourceAttr = "src",
-            canBeMinified = true
-        )
+    private fun updateJsAssetLocations(htmlContent: String) = updateAssetLocations(
+        htmlContent = htmlContent,
+        folder = "js",
+        tagName = "script",
+        sourceAttr = "src",
+        canBeMinified = true,
+    )
 
-    private fun updateCssAssetLocations(htmlContent: String) =
-        updateAssetLocations(
-            htmlContent = htmlContent,
-            folder = "css",
-            tagName = "link",
-            sourceAttr = "href",
-            canBeMinified = true
-        )
+    private fun updateCssAssetLocations(htmlContent: String) = updateAssetLocations(
+        htmlContent = htmlContent,
+        folder = "css",
+        tagName = "link",
+        sourceAttr = "href",
+        canBeMinified = true,
+    )
 
-    private fun updateImageAssetLocations(htmlContent: String) =
-        updateAssetLocations(
-            htmlContent = htmlContent,
-            folder = "images",
-            tagName = "img",
-            sourceAttr = "src",
-            canBeMinified = false
-        )
+    private fun updateImageAssetLocations(htmlContent: String) = updateAssetLocations(
+        htmlContent = htmlContent,
+        folder = "images",
+        tagName = "img",
+        sourceAttr = "src",
+        canBeMinified = false,
+    )
 
     /**
      * Replace by the minified version or the CDN location
@@ -249,38 +244,36 @@ class HtmlRenderer(
         folder: String,
         tagName: String,
         sourceAttr: String,
-        canBeMinified: Boolean
-    ): String {
-        return if ((canBeMinified && isMinificationEnabled) || cdnFolder != null) {
-            val document = Jsoup.parse(htmlContent)
-            val elements = document.getElementsByTag(tagName)
+        canBeMinified: Boolean,
+    ): String = if ((canBeMinified && isMinificationEnabled) || cdnFolder != null) {
+        val document = Jsoup.parse(htmlContent)
+        val elements = document.getElementsByTag(tagName)
 
-            elements.forEach { element ->
-                val filePath = element.attr(sourceAttr)
-                val mustUpdateAssetLocation = filePath.isNotEmpty() &&
-                        filePath.startsWith("/$folder") &&
-                        !filePath.contains("/libs/")
+        elements.forEach { element ->
+            val filePath = element.attr(sourceAttr)
+            val mustUpdateAssetLocation = filePath.isNotEmpty() &&
+                filePath.startsWith("/$folder") &&
+                !filePath.contains("/libs/")
 
-                if (mustUpdateAssetLocation) {
-                    val ext = filePath.split(".").last()
-                    val termination = if (canBeMinified) ".min.$ext" else ".$ext"
-                    val newFileName = filePath.split("/").last().split(".").first() + termination
-                    val filePathBeforeName = filePath.split("/").dropLast(1).joinToString("/")
-                    val sourceAttrValue =
-                        if (cdnFolder != null) {
-                            "$CDN_BASE/$cdnFolder$filePathBeforeName/$newFileName"
-                        } else {
-                            "$filePathBeforeName/$newFileName"
-                        }
+            if (mustUpdateAssetLocation) {
+                val ext = filePath.split(".").last()
+                val termination = if (canBeMinified) ".min.$ext" else ".$ext"
+                val newFileName = filePath.split("/").last().split(".").first() + termination
+                val filePathBeforeName = filePath.split("/").dropLast(1).joinToString("/")
+                val sourceAttrValue =
+                    if (cdnFolder != null) {
+                        "$CDN_BASE/$cdnFolder$filePathBeforeName/$newFileName"
+                    } else {
+                        "$filePathBeforeName/$newFileName"
+                    }
 
-                    element.attr(sourceAttr, sourceAttrValue)
-                }
+                element.attr(sourceAttr, sourceAttrValue)
             }
-
-            document.outerHtml()
-        } else {
-            htmlContent
         }
+
+        document.outerHtml()
+    } else {
+        htmlContent
     }
 
     companion object {
@@ -290,13 +283,11 @@ class HtmlRenderer(
 
         private fun String.ensureLeadingSlash(): String = if (startsWith("/")) this else "/$this"
 
-        private fun List<Element>.hasAttribute(attrName: String): Boolean {
-            return this.find { it.hasAttr(attrName) } != null
-        }
+        private fun List<Element>.hasAttribute(attrName: String): Boolean = this.find { it.hasAttr(attrName) } != null
 
-        private fun List<Element>.hasAttribute(attrName: String, attrValue: String): Boolean {
-            return this.find { it.attr(attrName) == attrValue } != null
-        }
+        private fun List<Element>.hasAttribute(attrName: String, attrValue: String): Boolean = this.find {
+            it.attr(attrName) == attrValue
+        } != null
 
         private fun Document.createNameMetaElement(name: String, content: String): Element {
             val meta = createElement("meta")
@@ -311,7 +302,5 @@ class HtmlRenderer(
             meta.attr("content", content)
             return meta
         }
-
     }
-
 }

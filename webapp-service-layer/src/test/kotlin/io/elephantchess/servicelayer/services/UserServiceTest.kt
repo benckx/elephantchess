@@ -41,7 +41,7 @@ class UserServiceTest : ServiceTest() {
             GAME_MOVE, GAME_STATUS_EVENT, GAME,
             BOT_GAME_MOVE, BOT_GAME_STATUS_EVENT, BOT_GAME,
             REFERENCE_GAME_SEARCH_QUERY, CONTENT_SECTION_VOTE,
-            USER_SESSION, PUZZLE_RESULT, USER, PUZZLE
+            USER_SESSION, PUZZLE_RESULT, USER, PUZZLE,
         )
             .forEach { table ->
                 dslContext
@@ -68,13 +68,13 @@ class UserServiceTest : ServiceTest() {
         // user cannot log in with wrong password
         assertFailsWith<UnauthorizedException> {
             userService.login(
-                UserLoginRequest(email, insecure().nextAlphanumeric(10))
+                UserLoginRequest(email, insecure().nextAlphanumeric(10)),
             )
         }
 
         assertFailsWith<UnauthorizedException> {
             userService.login(
-                UserLoginRequest(username, insecure().nextAlphanumeric(10))
+                UserLoginRequest(username, insecure().nextAlphanumeric(10)),
             )
         }
 
@@ -86,25 +86,25 @@ class UserServiceTest : ServiceTest() {
     @Test
     fun `signUp should reject email with whitespace`() = runTest {
         val invalidEmails = listOf(
-            "leeminh86@yahoo. com",    // space before TLD
-            "lee minh86@yahoo.com",    // space in local part
-            "leeminh86@ yahoo.com",    // space after @
-            " leeminh86@yahoo.com",    // leading space
-            "leeminh86@yahoo.com ",    // trailing space
-            "lee\tminh86@yahoo.com",   // tab character
+            "leeminh86@yahoo. com", // space before TLD
+            "lee minh86@yahoo.com", // space in local part
+            "leeminh86@ yahoo.com", // space after @
+            " leeminh86@yahoo.com", // leading space
+            "leeminh86@yahoo.com ", // trailing space
+            "lee\tminh86@yahoo.com", // tab character
         )
 
         for (email in invalidEmails) {
             val request = SignUpRequest(
                 username = "testuser${insecure().nextAlphanumeric(5)}",
                 email = email,
-                password = "validPassword123"
+                password = "validPassword123",
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Email '$email' should be rejected")
             assertTrue(
                 result.left().errors.contains("Invalid email format"),
-                "Should contain 'Invalid email format' error for '$email'"
+                "Should contain 'Invalid email format' error for '$email'",
             )
         }
     }
@@ -112,23 +112,23 @@ class UserServiceTest : ServiceTest() {
     @Test
     fun `signUp should reject invalid email formats`() = runTest {
         val invalidEmails = listOf(
-            "notanemail",              // no @ symbol
-            "@nodomain.com",           // no local part
-            "noat.com",                // missing @
-            "missing@tld",             // no TLD
+            "notanemail", // no @ symbol
+            "@nodomain.com", // no local part
+            "noat.com", // missing @
+            "missing@tld", // no TLD
         )
 
         for (email in invalidEmails) {
             val request = SignUpRequest(
                 username = "testuser${insecure().nextAlphanumeric(5)}",
                 email = email,
-                password = "validPassword123"
+                password = "validPassword123",
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Email '$email' should be rejected")
             assertTrue(
                 result.left().errors.contains("Invalid email format"),
-                "Should contain 'Invalid email format' error for '$email'"
+                "Should contain 'Invalid email format' error for '$email'",
             )
         }
     }
@@ -146,7 +146,7 @@ class UserServiceTest : ServiceTest() {
             val request = SignUpRequest(
                 username = "testuser${insecure().nextAlphanumeric(5)}",
                 email = email,
-                password = "validPassword123"
+                password = "validPassword123",
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Valid<Unit>>(result, "Email '$email' should be accepted")
@@ -156,55 +156,55 @@ class UserServiceTest : ServiceTest() {
     @Test
     fun `signUp should reject username that is too short`() = runTest {
         val request = SignUpRequest(
-            username = "abc",  // 3 chars, minimum is 4
+            username = "abc", // 3 chars, minimum is 4
             email = "valid${insecure().nextAlphanumeric(5)}@example.com",
-            password = "validPassword123"
+            password = "validPassword123",
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username 'abc' should be rejected (too short)")
         assertTrue(
             result.left().errors.contains("Username must be between 4 and 30 char."),
-            "Should contain username length error"
+            "Should contain username length error",
         )
     }
 
     @Test
     fun `signUp should reject username that is too long`() = runTest {
         val request = SignUpRequest(
-            username = "a".repeat(31),  // 31 chars, maximum is 30
+            username = "a".repeat(31), // 31 chars, maximum is 30
             email = "valid${insecure().nextAlphanumeric(5)}@example.com",
-            password = "validPassword123"
+            password = "validPassword123",
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username with 31 chars should be rejected (too long)")
         assertTrue(
             result.left().errors.contains("Username must be between 4 and 30 char."),
-            "Should contain username length error"
+            "Should contain username length error",
         )
     }
 
     @Test
     fun `signUp should reject username with invalid characters`() = runTest {
         val invalidUsernames = listOf(
-            "user name",       // space
-            "user@name",       // @ symbol
-            "user.name",       // dot
-            "user!name",       // exclamation mark
-            "用户名称",          // Chinese characters
-            "user🙂name",      // emoji
+            "user name", // space
+            "user@name", // @ symbol
+            "user.name", // dot
+            "user!name", // exclamation mark
+            "用户名称", // Chinese characters
+            "user🙂name", // emoji
         )
 
         for (username in invalidUsernames) {
             val request = SignUpRequest(
                 username = username,
                 email = "valid${insecure().nextAlphanumeric(5)}@example.com",
-                password = "validPassword123"
+                password = "validPassword123",
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Invalid<Unit>>(result, "Username '$username' should be rejected")
             assertTrue(
                 result.left().errors.contains("Username must contain only letters, numbers, _ or -"),
-                "Should contain invalid characters error for '$username'"
+                "Should contain invalid characters error for '$username'",
             )
         }
     }
@@ -212,22 +212,22 @@ class UserServiceTest : ServiceTest() {
     @Test
     fun `signUp should accept valid usernames`() = runTest {
         val validUsernames = listOf(
-            "user",            // minimum length
-            "username123",     // alphanumeric
-            "user_name",       // with underscore
-            "user-name",       // with dash
-            "User_Name-123",   // mixed case with underscore and dash
-            "nguyễn",          // vietnamese letters
-            "trần",            // vietnamese letters with diacritics
-            "Đặng_123",        // vietnamese letters with underscore and digits
-            "a".repeat(30),    // maximum length
+            "user", // minimum length
+            "username123", // alphanumeric
+            "user_name", // with underscore
+            "user-name", // with dash
+            "User_Name-123", // mixed case with underscore and dash
+            "nguyễn", // vietnamese letters
+            "trần", // vietnamese letters with diacritics
+            "Đặng_123", // vietnamese letters with underscore and digits
+            "a".repeat(30), // maximum length
         )
 
         for (username in validUsernames) {
             val request = SignUpRequest(
                 username = username,
                 email = "valid${insecure().nextAlphanumeric(5)}@example.com",
-                password = "validPassword123"
+                password = "validPassword123",
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Valid<Unit>>(result, "Username '$username' should be accepted")
@@ -239,13 +239,13 @@ class UserServiceTest : ServiceTest() {
         val request = SignUpRequest(
             username = "validuser${insecure().nextAlphanumeric(5)}",
             email = "valid${insecure().nextAlphanumeric(5)}@example.com",
-            password = "abc"  // 3 chars, minimum is 4
+            password = "abc", // 3 chars, minimum is 4
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Password 'abc' should be rejected (too short)")
         assertTrue(
             result.left().errors.contains("Password must be between 4 and 50 char."),
-            "Should contain password length error"
+            "Should contain password length error",
         )
     }
 
@@ -254,29 +254,29 @@ class UserServiceTest : ServiceTest() {
         val request = SignUpRequest(
             username = "validuser${insecure().nextAlphanumeric(5)}",
             email = "valid${insecure().nextAlphanumeric(5)}@example.com",
-            password = "a".repeat(51)  // 51 chars, maximum is 50
+            password = "a".repeat(51), // 51 chars, maximum is 50
         )
         val result = userService.validateSignUp(request)
         assertIs<ValidatedResponse.Invalid<Unit>>(result, "Password with 51 chars should be rejected (too long)")
         assertTrue(
             result.left().errors.contains("Password must be between 4 and 50 char."),
-            "Should contain password length error"
+            "Should contain password length error",
         )
     }
 
     @Test
     fun `signUp should accept valid passwords`() = runTest {
         val validPasswords = listOf(
-            "abcd",            // minimum length (4)
-            "a".repeat(50),    // maximum length (50)
-            "Password123!",    // typical password
+            "abcd", // minimum length (4)
+            "a".repeat(50), // maximum length (50)
+            "Password123!", // typical password
         )
 
         for (password in validPasswords) {
             val request = SignUpRequest(
                 username = "validuser${insecure().nextAlphanumeric(5)}",
                 email = "valid${insecure().nextAlphanumeric(5)}@example.com",
-                password = password
+                password = password,
             )
             val result = userService.validateSignUp(request)
             assertIs<ValidatedResponse.Valid<Unit>>(result, "Password '$password' should be accepted")
@@ -347,7 +347,7 @@ class UserServiceTest : ServiceTest() {
                 country = "none",
                 showPvpGamesOnProfile = true,
                 showPvbGamesOnProfile = false,
-            )
+            ),
         )
 
         val updated = userService.fetchProfileSettings(userId)
@@ -356,33 +356,32 @@ class UserServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `signUp should generate an email confirmation code and confirmEmail should mark the email as confirmed`() =
-        runTest {
-            val (_, userId) = signUpTestUser()
+    fun `signUp should generate an email confirmation code and confirmEmail should mark the email as confirmed`() = runTest {
+        val (_, userId) = signUpTestUser()
 
-            // a confirmation code is generated at signup and the email is not yet confirmed
-            val userAfterSignup = userDaoService.findById(userId)!!
-            assertNotNull(userAfterSignup.emailConfirmationCode, "Confirmation code should be generated at signup")
-            assertNull(userAfterSignup.emailConfirmedAt, "Email should not be confirmed yet")
+        // a confirmation code is generated at signup and the email is not yet confirmed
+        val userAfterSignup = userDaoService.findById(userId)!!
+        assertNotNull(userAfterSignup.emailConfirmationCode, "Confirmation code should be generated at signup")
+        assertNull(userAfterSignup.emailConfirmedAt, "Email should not be confirmed yet")
 
-            // confirming with an unknown code does nothing
-            assertFalse(userService.confirmEmail("unknown-code"))
-            assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+        // confirming with an unknown code does nothing
+        assertFalse(userService.confirmEmail("unknown-code"))
+        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
 
-            // confirming with a blank code does nothing
-            assertFalse(userService.confirmEmail(""))
-            assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
+        // confirming with a blank code does nothing
+        assertFalse(userService.confirmEmail(""))
+        assertNull(userDaoService.findById(userId)!!.emailConfirmedAt)
 
-            // confirming with the right code marks the email as confirmed
-            assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
-            val userAfterConfirmation = userDaoService.findById(userId)!!
-            assertNotNull(userAfterConfirmation.emailConfirmedAt, "Email should be confirmed")
+        // confirming with the right code marks the email as confirmed
+        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+        val userAfterConfirmation = userDaoService.findById(userId)!!
+        assertNotNull(userAfterConfirmation.emailConfirmedAt, "Email should be confirmed")
 
-            // confirming again is idempotent
-            val firstConfirmedAt = userAfterConfirmation.emailConfirmedAt
-            assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
-            assertEquals(firstConfirmedAt, userDaoService.findById(userId)!!.emailConfirmedAt)
-        }
+        // confirming again is idempotent
+        val firstConfirmedAt = userAfterConfirmation.emailConfirmedAt
+        assertTrue(userService.confirmEmail(userAfterSignup.emailConfirmationCode))
+        assertEquals(firstConfirmedAt, userDaoService.findById(userId)!!.emailConfirmedAt)
+    }
 
     @Test
     fun `confirmEmail should reject an expired confirmation code`() = runTest {
@@ -428,7 +427,7 @@ class UserServiceTest : ServiceTest() {
                     userAgent = "agent-$i",
                     operatingSystemName = "os-$i",
                     agentName = "browser-$i",
-                )
+                ),
             )
         }
 
@@ -450,7 +449,7 @@ class UserServiceTest : ServiceTest() {
                     userAgent = "del-agent-$i",
                     operatingSystemName = "del-os-$i",
                     agentName = "del-browser-$i",
-                )
+                ),
             )
         }
 
@@ -476,7 +475,7 @@ class UserServiceTest : ServiceTest() {
             timeControlMode = TimeControlMode.GAME_TIME,
             allowGuests = true,
             alwaysVisibleInLobby = false,
-            privateInvite = false
+            privateInvite = false,
         )
         val gameResponse = pvpGameService.createGame(guestId, createGameRequest)
         val gameId = gameResponse.gameId
@@ -555,7 +554,7 @@ class UserServiceTest : ServiceTest() {
             timeControlMode = TimeControlMode.GAME_TIME,
             allowGuests = true,
             alwaysVisibleInLobby = false,
-            privateInvite = false
+            privateInvite = false,
         )
         val gameResponse = pvpGameService.createGame(guestId, createGameRequest)
         val gameId = gameResponse.gameId
@@ -628,14 +627,14 @@ class UserServiceTest : ServiceTest() {
         // The puzzle result should now belong to the new user
         val userIdAfter = dslContext.fetchValueAsync(
             PUZZLE_RESULT.USER_ID,
-            PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId)
+            PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId),
         )
         assertEquals(newUserId, userIdAfter)
 
         // The original guest user ID should be recorded on the puzzle result row
         val guestUserIdAfter = dslContext.fetchValueAsync(
             PUZZLE_RESULT.GUEST_USER_ID,
-            PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId)
+            PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId),
         )
         assertEquals(guestId.id, guestUserIdAfter)
     }
@@ -674,5 +673,4 @@ class UserServiceTest : ServiceTest() {
         )
         assertEquals(guestId.id, guestUserIdAfter)
     }
-
 }

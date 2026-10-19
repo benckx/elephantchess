@@ -5,11 +5,7 @@ import io.elephantchess.engines.protocol.commands.LocalProcessLocator
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 
-class PikafishEngineProcess(
-    locator: EngineProcessLocator = LocalProcessLocator,
-    version: String?,
-    private val numberOfThreads: Int,
-) :
+class PikafishEngineProcess(locator: EngineProcessLocator = LocalProcessLocator, version: String?, private val numberOfThreads: Int) :
     EngineProcess(locator, PikafishEngineId, version) {
 
     override val logger = KotlinLogging.logger {}
@@ -23,5 +19,4 @@ class PikafishEngineProcess(
             logger.error { "Pikafish does not support variants, ignoring setVariant command" }
         }
     }
-
 }

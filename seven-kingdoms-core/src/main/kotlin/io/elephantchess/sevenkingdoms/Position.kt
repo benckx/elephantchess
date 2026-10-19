@@ -9,7 +9,7 @@ data class Position(val x: Int, val y: Int) {
         get() = x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE
 
     val uci: String
-        get() = "${('a' + x)}${y}"
+        get() = "${('a' + x)}$y"
 
     val algebraic: String
         get() = "${('a' + x)}${y + 1}"
@@ -26,29 +26,21 @@ data class Position(val x: Int, val y: Int) {
     val bottom: Position
         get() = allBottomFor(1)[0]
 
-    fun allTopFor(n: Int) =
-        (1..n).map { Position(x, y + it) }
+    fun allTopFor(n: Int) = (1..n).map { Position(x, y + it) }
 
-    fun allBottomFor(n: Int) =
-        (1..n).map { Position(x, y - it) }
+    fun allBottomFor(n: Int) = (1..n).map { Position(x, y - it) }
 
-    fun allLeftFor(n: Int) =
-        (1..n).map { Position(x - it, y) }
+    fun allLeftFor(n: Int) = (1..n).map { Position(x - it, y) }
 
-    fun allRightFor(n: Int) =
-        (1..n).map { Position(x + it, y) }
+    fun allRightFor(n: Int) = (1..n).map { Position(x + it, y) }
 
-    fun allTopLeftDiagonalsFor(n: Int) =
-        (1..n).map { Position(x - it, y + it) }
+    fun allTopLeftDiagonalsFor(n: Int) = (1..n).map { Position(x - it, y + it) }
 
-    fun allTopRightDiagonalsFor(n: Int) =
-        (1..n).map { Position(x + it, y + it) }
+    fun allTopRightDiagonalsFor(n: Int) = (1..n).map { Position(x + it, y + it) }
 
-    fun allBottomLeftDiagonalsFor(n: Int) =
-        (1..n).map { Position(x - it, y - it) }
+    fun allBottomLeftDiagonalsFor(n: Int) = (1..n).map { Position(x - it, y - it) }
 
-    fun allBottomRightDiagonalsFor(n: Int) =
-        (1..n).map { Position(x + it, y - it) }
+    fun allBottomRightDiagonalsFor(n: Int) = (1..n).map { Position(x + it, y - it) }
 
     override fun toString() = "($x, $y)"
 
@@ -68,5 +60,4 @@ data class Position(val x: Int, val y: Int) {
             return positions
         }
     }
-
 }

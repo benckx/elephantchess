@@ -45,7 +45,7 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
             BLUE to userIds[0],
             GREEN to userIds[1],
             PURPLE to userIds[1],
-            BLACK to userIds[1]
+            BLACK to userIds[1],
         )
     }
 
@@ -58,7 +58,7 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
             BLUE to userIds[1],
             GREEN to userIds[2],
             PURPLE to userIds[2],
-            BLACK to userIds[3]
+            BLACK to userIds[3],
         )
     }
 
@@ -71,17 +71,16 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
             BLUE to userIds[3],
             GREEN to userIds[4],
             PURPLE to userIds[5],
-            BLACK to userIds[6]
+            BLACK to userIds[6],
         )
     }
 
-    private fun colorToUserMap(numberOfPlayers: Int) =
-        when (numberOfPlayers) {
-            2 -> colorToUserMap2
-            4 -> colorToUserMap4
-            7 -> colorToUserMap7
-            else -> throw IllegalArgumentException("Unsupported number of players: $numberOfPlayers")
-        }
+    private fun colorToUserMap(numberOfPlayers: Int) = when (numberOfPlayers) {
+        2 -> colorToUserMap2
+        4 -> colorToUserMap4
+        7 -> colorToUserMap7
+        else -> throw IllegalArgumentException("Unsupported number of players: $numberOfPlayers")
+    }
 
     @BeforeTest
     fun before() = runTest {
@@ -94,7 +93,7 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
         listOf(
             SEVEN_KINGDOMS_GAME_EVENT,
             SEVEN_KINGDOMS_GAME_MOVE,
-            SEVEN_KINGDOMS_GAME
+            SEVEN_KINGDOMS_GAME,
         ).forEach { table ->
             dslContext
                 .deleteFrom(table)
@@ -440,7 +439,7 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
         // cancel join for some of the colors
         val cancelResponse = gameService.cancelJoinGame(
             UserId(AUTHENTICATED, userIds[0]),
-            CancelJoinGameRequest(gameId, listOf(RED, ORANGE))
+            CancelJoinGameRequest(gameId, listOf(RED, ORANGE)),
         )
         assertEquals(listOf(WHITE), cancelResponse.colors)
 
@@ -467,7 +466,7 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
         val e = assertFailsWith<BadRequestException> {
             gameService.cancelJoinGame(
                 UserId(AUTHENTICATED, userIds[1]),
-                CancelJoinGameRequest(gameId, listOf(RED))
+                CancelJoinGameRequest(gameId, listOf(RED)),
             )
         }
 
@@ -641,7 +640,7 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
 
         // e.g.: Invalid move l17o14: It's not Purple's turn time to play, it's Blue
         val expected =
-            "Invalid move ${moveForOtherColor.uci}: It's not ${incorrectColor}'s turn to play, it's $colorToPlay"
+            "Invalid move ${moveForOtherColor.uci}: It's not $incorrectColor's turn to play, it's $colorToPlay"
         assertEquals(expected, e.message!!)
     }
 
@@ -719,7 +718,7 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
         `resign of all players but one leads to victory by default (2 players)`(
             gameId,
             userIds[0],
-            userIds[1]
+            userIds[1],
         )
     }
 
@@ -731,14 +730,14 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
         `resign of all players but one leads to victory by default (2 players)`(
             gameId,
             userIds[1],
-            userIds[0]
+            userIds[0],
         )
     }
 
     private suspend fun `resign of all players but one leads to victory by default (2 players)`(
         gameId: String,
         loserUserId: String,
-        winnerUserId: String
+        winnerUserId: String,
     ) {
         gameService.resign(UserId(AUTHENTICATED, loserUserId), ResignRequest(gameId))
         assertEquals(OTHER_VICTORY, gameDaoService.fetchGame(gameId)!!.gameStatus)
@@ -783,16 +782,9 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
         assertEquals(userIds[3], gameRecord.winnerUserId)
     }
 
-    private data class PlaySomeMoveFixture(
-        val gameId: String,
-        val colorToPlay: Color,
-        val moves: List<String>
-    )
+    private data class PlaySomeMoveFixture(val gameId: String, val colorToPlay: Color, val moves: List<String>)
 
-    private suspend fun playSomeMovesFixture(
-        numberOfPlayers: Int = 7,
-        numberOfMovesToTake: Int = 10
-    ): PlaySomeMoveFixture {
+    private suspend fun playSomeMovesFixture(numberOfPlayers: Int = 7, numberOfMovesToTake: Int = 10): PlaySomeMoveFixture {
         // create and join the game
         val gameId = gameService.createGame(CreateGameRequest(numberOfPlayers)).gameId
         val colorToUserMap = colorToUserMap(numberOfPlayers)
@@ -816,22 +808,19 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
         return PlaySomeMoveFixture(gameId, colorToPlay!!, moves)
     }
 
-    private fun colorsOfUser(colorToUserMap: Map<Color, String>, userId: String): Array<Color> {
-        return colorToUserMap.entries.filter { it.value == userId }.map { it.key }.toTypedArray()
-    }
+    private fun colorsOfUser(colorToUserMap: Map<Color, String>, userId: String): Array<Color> = colorToUserMap.entries.filter {
+        it.value == userId
+    }.map { it.key }.toTypedArray()
 
-    private suspend fun joinGame(userId: String, gameId: String, vararg colors: Color): JoinGameResponse {
-        return gameService.joinGame(
-            UserId(AUTHENTICATED, userId),
-            JoinGameRequest(gameId, colors.toList())
-        )
-    }
+    private suspend fun joinGame(userId: String, gameId: String, vararg colors: Color): JoinGameResponse = gameService.joinGame(
+        UserId(AUTHENTICATED, userId),
+        JoinGameRequest(gameId, colors.toList()),
+    )
 
-    private suspend fun fetchAllEvents(gameId: String): List<SevenKingdomsGameEventRecord> =
-        dslContext
-            .selectFrom(SEVEN_KINGDOMS_GAME_EVENT)
-            .where(SEVEN_KINGDOMS_GAME_EVENT.GAME_ID.eq(gameId))
-            .awaitMappedRecords()
+    private suspend fun fetchAllEvents(gameId: String): List<SevenKingdomsGameEventRecord> = dslContext
+        .selectFrom(SEVEN_KINGDOMS_GAME_EVENT)
+        .where(SEVEN_KINGDOMS_GAME_EVENT.GAME_ID.eq(gameId))
+        .awaitMappedRecords()
 
     private fun verifyOngoingGame(response: PlayMoveResponse) {
         assertNotNull(response.colorToPlay)
@@ -859,5 +848,4 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
         assertEquals(gameDto.moves.size, gameRecord.currentIndex)
         assertEquals(gameDto.toBoard().outputFen(), gameRecord.currentFen)
     }
-
 }

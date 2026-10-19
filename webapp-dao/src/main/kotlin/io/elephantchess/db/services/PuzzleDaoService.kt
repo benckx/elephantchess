@@ -1,7 +1,5 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.PuzzleCategoryTagDao
 import io.elephantchess.db.dao.codegen.tables.daos.PuzzleDao
@@ -14,6 +12,7 @@ import io.elephantchess.db.model.PuzzleRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.model.PuzzleOutcome
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -30,56 +29,46 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchById(id: String): PuzzleRecord {
-        return PuzzleRecord(
-            puzzle = dslContext
-                .selectFrom(PUZZLE)
-                .where(PUZZLE.ID.eq(id))
-                .awaitSingleMappedRecord()!!,
-            moves = dslContext
-                .selectFrom(PUZZLE_HALF_MOVE)
-                .where(PUZZLE_HALF_MOVE.PUZZLE_ID.eq(id))
-                .orderBy(PUZZLE_HALF_MOVE.POSITION)
-                .awaitMappedRecords(),
-            categories = dslContext
-                .selectFrom(PUZZLE_CATEGORY_TAG)
-                .where(PUZZLE_CATEGORY_TAG.PUZZLE_ID.eq(id))
-                .awaitMappedRecords()
-        )
-    }
-
-    suspend fun fetchAll(): List<Puzzle> {
-        return dslContext
+    suspend fun fetchById(id: String): PuzzleRecord = PuzzleRecord(
+        puzzle = dslContext
             .selectFrom(PUZZLE)
-            .awaitMappedRecords()
-    }
-
-    suspend fun fetchAllCategories(): Map<String, List<PuzzleCategory>> {
-        return dslContext
+            .where(PUZZLE.ID.eq(id))
+            .awaitSingleMappedRecord()!!,
+        moves = dslContext
+            .selectFrom(PUZZLE_HALF_MOVE)
+            .where(PUZZLE_HALF_MOVE.PUZZLE_ID.eq(id))
+            .orderBy(PUZZLE_HALF_MOVE.POSITION)
+            .awaitMappedRecords(),
+        categories = dslContext
             .selectFrom(PUZZLE_CATEGORY_TAG)
-            .awaitMappedRecords<PuzzleCategoryTag>()
-            .groupBy { record -> record.puzzleId }
-            .map { (puzzleId, categories) ->
-                puzzleId to categories.map { it.category }
-            }
-            .toMap()
-    }
+            .where(PUZZLE_CATEGORY_TAG.PUZZLE_ID.eq(id))
+            .awaitMappedRecords(),
+    )
 
-    suspend fun findPuzzleRatingOfUser(userId: String): Int {
-        return dslContext
-            .select(USER.PUZZLE_RATING)
-            .from(USER)
-            .where(USER.ID.eq(userId))
-            .awaitSingleValue()!!
-    }
+    suspend fun fetchAll(): List<Puzzle> = dslContext
+        .selectFrom(PUZZLE)
+        .awaitMappedRecords()
 
-    suspend fun findCurrentlyAssignedTo(userId: String): String? {
-        return dslContext
-            .select(USER.LAST_PUZZLE_ASSIGNED)
-            .from(USER)
-            .where(USER.ID.eq((userId)))
-            .awaitSingleValue()
-    }
+    suspend fun fetchAllCategories(): Map<String, List<PuzzleCategory>> = dslContext
+        .selectFrom(PUZZLE_CATEGORY_TAG)
+        .awaitMappedRecords<PuzzleCategoryTag>()
+        .groupBy { record -> record.puzzleId }
+        .map { (puzzleId, categories) ->
+            puzzleId to categories.map { it.category }
+        }
+        .toMap()
+
+    suspend fun findPuzzleRatingOfUser(userId: String): Int = dslContext
+        .select(USER.PUZZLE_RATING)
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .awaitSingleValue()!!
+
+    suspend fun findCurrentlyAssignedTo(userId: String): String? = dslContext
+        .select(USER.LAST_PUZZLE_ASSIGNED)
+        .from(USER)
+        .where(USER.ID.eq((userId)))
+        .awaitSingleValue()
 
     // TODO: make async?
     suspend fun assign(userId: String, puzzleId: String) {
@@ -104,29 +93,23 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchRatingForUser(userId: String): Int? {
-        return dslContext
-            .select(USER.PUZZLE_RATING)
-            .from(USER)
-            .where(USER.ID.eq((userId)))
-            .awaitSingleValue()
-    }
+    suspend fun fetchRatingForUser(userId: String): Int? = dslContext
+        .select(USER.PUZZLE_RATING)
+        .from(USER)
+        .where(USER.ID.eq((userId)))
+        .awaitSingleValue()
 
-    suspend fun fetchMaxRatingForUser(userId: String): Int? {
-        return dslContext
-            .select(DSL.max(PUZZLE_RESULT.PLAYER_RATING_TO))
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.USER_ID.eq((userId)))
-            .awaitSingleValue()
-    }
+    suspend fun fetchMaxRatingForUser(userId: String): Int? = dslContext
+        .select(DSL.max(PUZZLE_RESULT.PLAYER_RATING_TO))
+        .from(PUZZLE_RESULT)
+        .where(PUZZLE_RESULT.USER_ID.eq((userId)))
+        .awaitSingleValue()
 
-    suspend fun countPlayedForUser(userId: String): Int? {
-        return dslContext
-            .select(DSL.countDistinct(PUZZLE_RESULT.PUZZLE_ID))
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.USER_ID.eq((userId)))
-            .awaitSingleValue()
-    }
+    suspend fun countPlayedForUser(userId: String): Int? = dslContext
+        .select(DSL.countDistinct(PUZZLE_RESULT.PUZZLE_ID))
+        .from(PUZZLE_RESULT)
+        .where(PUZZLE_RESULT.USER_ID.eq((userId)))
+        .awaitSingleValue()
 
     /**
      * To build the bar chart on user profile
@@ -137,7 +120,7 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
             dslContext
                 .select(
                     PUZZLE_RESULT.ENTRY_CREATION.date().`as`("day"),
-                    DSL.max(PUZZLE_RESULT.ID).`as`("max_id")
+                    DSL.max(PUZZLE_RESULT.ID).`as`("max_id"),
                 )
                 .from(PUZZLE_RESULT)
                 .where(PUZZLE_RESULT.USER_ID.eq(userId))
@@ -149,7 +132,7 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
         return dslContext
             .select(
                 PUZZLE_RESULT.ENTRY_CREATION.dateQualified("pr1").`as`("day"),
-                PUZZLE_RESULT.PLAYER_RATING_TO.qualified("pr1").`as`("last_rating")
+                PUZZLE_RESULT.PLAYER_RATING_TO.qualified("pr1").`as`("last_rating"),
             )
             .from(PUZZLE_RESULT.`as`("pr1"), pr2)
             .where(PUZZLE_RESULT.USER_ID.qualified("pr1").eq(userId))
@@ -158,7 +141,7 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
             .map { record2 ->
                 PuzzleDailyStatsEntry(
                     date = LocalDate.parse(record2.value1()!!.toString()),
-                    value = record2.value2()!!.toString().toInt()
+                    value = record2.value2()!!.toString().toInt(),
                 )
             }
             .toList()
@@ -167,45 +150,40 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
     /**
      * To build the bar chart on user profile
      */
-    suspend fun fetchPuzzleStatsMaxRating(userId: String): List<PuzzleDailyStatsEntry> {
-        return dslContext
-            .select(
-                PUZZLE_RESULT.ENTRY_CREATION.date().`as`("day"),
-                DSL.max(PUZZLE_RESULT.PLAYER_RATING_TO)
+    suspend fun fetchPuzzleStatsMaxRating(userId: String): List<PuzzleDailyStatsEntry> = dslContext
+        .select(
+            PUZZLE_RESULT.ENTRY_CREATION.date().`as`("day"),
+            DSL.max(PUZZLE_RESULT.PLAYER_RATING_TO),
+        )
+        .from(PUZZLE_RESULT)
+        .where(PUZZLE_RESULT.USER_ID.eq(userId))
+        .groupBy(DSL.field("day"))
+        .orderBy(DSL.field("day"))
+        .awaitRecords()
+        .map { record2 ->
+            PuzzleDailyStatsEntry(
+                date = LocalDate.parse(record2.value1()!!.toString()),
+                value = record2.value2()!!.toString().toInt(),
             )
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.USER_ID.eq(userId))
-            .groupBy(DSL.field("day"))
-            .orderBy(DSL.field("day"))
-            .awaitRecords()
-            .map { record2 ->
-                PuzzleDailyStatsEntry(
-                    date = LocalDate.parse(record2.value1()!!.toString()),
-                    value = record2.value2()!!.toString().toInt()
-                )
-            }
-            .toList()
-    }
+        }
+        .toList()
 
-    suspend fun fetchPuzzleStatsNumberPerOutcome(userId: String, outcome: PuzzleOutcome): List<PuzzleDailyStatsEntry> {
-        return dslContext
-            .select(
-                PUZZLE_RESULT.ENTRY_CREATION.date().`as`("day"),
-                DSL.count()
+    suspend fun fetchPuzzleStatsNumberPerOutcome(userId: String, outcome: PuzzleOutcome): List<PuzzleDailyStatsEntry> = dslContext
+        .select(
+            PUZZLE_RESULT.ENTRY_CREATION.date().`as`("day"),
+            DSL.count(),
+        )
+        .from(PUZZLE_RESULT)
+        .where(PUZZLE_RESULT.USER_ID.eq(userId))
+        .and(PUZZLE_RESULT.OUTCOME.eq(outcome))
+        .groupBy(DSL.field("day"))
+        .orderBy(DSL.field("day"))
+        .awaitRecords()
+        .map { record2 ->
+            PuzzleDailyStatsEntry(
+                date = LocalDate.parse(record2.value1()!!.toString()),
+                value = record2.value2()!!.toString().toInt(),
             )
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.USER_ID.eq(userId))
-            .and(PUZZLE_RESULT.OUTCOME.eq(outcome))
-            .groupBy(DSL.field("day"))
-            .orderBy(DSL.field("day"))
-            .awaitRecords()
-            .map { record2 ->
-                PuzzleDailyStatsEntry(
-                    date = LocalDate.parse(record2.value1()!!.toString()),
-                    value = record2.value2()!!.toString().toInt()
-                )
-            }
-            .toList()
-    }
-
+        }
+        .toList()
 }

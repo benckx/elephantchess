@@ -18,5 +18,4 @@ open class GenericEither<A, B>(private val a: A?, private val b: B?) {
     fun left(): A = a!!
 
     fun right(): B = b!!
-
 }

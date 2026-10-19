@@ -26,7 +26,7 @@ class MetricsLogger {
             "used ${toMegaBytes(total - free)}",
             "total ${toMegaBytes(total)}",
             "max ${toMegaBytes(max)}",
-            "usage ${percentFormatter.format(usage)}"
+            "usage ${percentFormatter.format(usage)}",
         )
         logger.info { "[heap] ${formattedMetrics.joinToString(", ")}" }
         logger.info { "[available processors] ${rt.availableProcessors()}" }
@@ -66,10 +66,6 @@ class MetricsLogger {
 
         const val MEGA_BYTES = 1024L * 1024L
 
-        fun toMegaBytes(bytes: Long): String {
-            return "${(bytes / MEGA_BYTES).toInt()} MB"
-        }
-
+        fun toMegaBytes(bytes: Long): String = "${(bytes / MEGA_BYTES).toInt()} MB"
     }
-
 }

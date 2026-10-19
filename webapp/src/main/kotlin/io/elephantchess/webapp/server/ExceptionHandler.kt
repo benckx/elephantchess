@@ -48,9 +48,9 @@ internal fun isClientDisconnectException(t: Throwable): Boolean {
         if (current is ClosedChannelException ||
             current is ClosedByteChannelException ||
             current is CancellationException ||
-            current is IOException && current.message?.contains("Broken pipe") == true ||
-            current is IOException && current.message?.contains("Connection reset") == true ||
-            current is UnsupportedOperationException && current.message?.contains("response was already completed") == true
+            (current is IOException && current.message?.contains("Broken pipe") == true) ||
+            (current is IOException && current.message?.contains("Connection reset") == true) ||
+            (current is UnsupportedOperationException && current.message?.contains("response was already completed") == true)
         ) {
             return true
         }
@@ -76,8 +76,7 @@ internal fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, t: 
  * `cache/original/../../.env`). These are vulnerability-scanner noise, so log them at DEBUG instead of
  * ERROR and don't persist them.
  */
-internal fun isPathTraversalProbe(t: Throwable): Boolean =
-    t.message?.contains("path traversing characters") == true
+internal fun isPathTraversalProbe(t: Throwable): Boolean = t.message?.contains("path traversing characters") == true
 
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}

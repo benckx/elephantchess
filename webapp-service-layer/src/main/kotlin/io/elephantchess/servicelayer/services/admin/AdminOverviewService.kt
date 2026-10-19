@@ -1,18 +1,17 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.db.services.UserDaoService
+import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESPAN_SECONDS
-import io.elephantchess.model.UserType
+import io.elephantchess.utils.di.KoinSingleton
 import kotlin.time.Duration.Companion.minutes
 
 @KoinSingleton
@@ -51,7 +50,7 @@ class AdminOverviewService(
         val guestCount = userDaoService.countActiveRecently(
             duration = duration,
             userTypes = listOf(UserType.GUEST),
-            minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
+            minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS,
         )
 
         return RecentlyOnlineUsersResponse(authenticatedUsers, guestCount)
@@ -61,7 +60,7 @@ class AdminOverviewService(
         val latestPvpActivity =
             listOfNotNull(
                 pvpGameDaoService.latestGameActivity(),
-                pvpGameDaoService.latestMoveTime()
+                pvpGameDaoService.latestMoveTime(),
             )
                 .maxOrNull()
                 ?.toEpochMilliseconds()
@@ -69,7 +68,7 @@ class AdminOverviewService(
         val latestPvp3Activity =
             listOfNotNull(
                 pvpGameDaoService.latestGameActivity(MIN_MOVE_INDEX),
-                pvpGameDaoService.latestMoveTime(MIN_MOVE_INDEX)
+                pvpGameDaoService.latestMoveTime(MIN_MOVE_INDEX),
             )
                 .maxOrNull()
                 ?.toEpochMilliseconds()
@@ -84,7 +83,7 @@ class AdminOverviewService(
         val latestPvbActivity =
             listOfNotNull(
                 pvbGameDaoService.latestGameActivity(),
-                pvbGameDaoService.latestMoveTime()
+                pvbGameDaoService.latestMoveTime(),
             )
                 .maxOrNull()
                 ?.toEpochMilliseconds()
@@ -92,7 +91,7 @@ class AdminOverviewService(
         val latestPvb3Activity =
             listOfNotNull(
                 pvbGameDaoService.latestGameActivity(MIN_MOVE_INDEX),
-                pvbGameDaoService.latestMoveTime(MIN_MOVE_INDEX)
+                pvbGameDaoService.latestMoveTime(MIN_MOVE_INDEX),
             )
                 .maxOrNull()
                 ?.toEpochMilliseconds()
@@ -103,48 +102,36 @@ class AdminOverviewService(
         )
     }
 
-    suspend fun fetchLivePvpGames(): LivePvpGamesResponse {
-        return LivePvpGamesResponse(
-            pvpGameDaoService.countLiveGames(
-                lastUpdated = liveGameDuration,
-                userIds = userService.onlineUserIds()
-            ),
-        )
-    }
+    suspend fun fetchLivePvpGames(): LivePvpGamesResponse = LivePvpGamesResponse(
+        pvpGameDaoService.countLiveGames(
+            lastUpdated = liveGameDuration,
+            userIds = userService.onlineUserIds(),
+        ),
+    )
 
-    suspend fun fetchLivePvbGames(): LivePvbGamesResponse {
-        return LivePvbGamesResponse(
-            pvbGameDaoService.countLiveGames(
-                lastUpdated = liveGameDuration,
-                userIds = userService.onlineUserIds()
-            ),
-        )
-    }
+    suspend fun fetchLivePvbGames(): LivePvbGamesResponse = LivePvbGamesResponse(
+        pvbGameDaoService.countLiveGames(
+            lastUpdated = liveGameDuration,
+            userIds = userService.onlineUserIds(),
+        ),
+    )
 
-    suspend fun fetchLatestPuzzleActivity(): LatestPuzzleActivityResponse {
-        return LatestPuzzleActivityResponse(
-            latestPlayedPuzzle = puzzleResultDaoService.latestPlayedPuzzle()?.toEpochMilliseconds(),
-            latestPuzzleVote = puzzleResultDaoService.latestPuzzleVote()?.toEpochMilliseconds(),
-        )
-    }
+    suspend fun fetchLatestPuzzleActivity(): LatestPuzzleActivityResponse = LatestPuzzleActivityResponse(
+        latestPlayedPuzzle = puzzleResultDaoService.latestPlayedPuzzle()?.toEpochMilliseconds(),
+        latestPuzzleVote = puzzleResultDaoService.latestPuzzleVote()?.toEpochMilliseconds(),
+    )
 
-    suspend fun fetchLatestAnalysisActivity(): LatestAnalysisActivityResponse {
-        return LatestAnalysisActivityResponse(
-            latestMoveAnalysis = gameDataService.latestMoveAnalysisUpdate()?.toEpochMilliseconds(),
-        )
-    }
+    suspend fun fetchLatestAnalysisActivity(): LatestAnalysisActivityResponse = LatestAnalysisActivityResponse(
+        latestMoveAnalysis = gameDataService.latestMoveAnalysisUpdate()?.toEpochMilliseconds(),
+    )
 
-    suspend fun fetchLatestNewUsers(): LatestNewUsersResponse {
-        return LatestNewUsersResponse(
-            latestNewGuest = userDaoService.latestNewGuestUser()?.toEpochMilliseconds(),
-            latestNewAuthenticatedUser = userDaoService.latestNewAuthenticatedUser()?.toEpochMilliseconds(),
-        )
-    }
+    suspend fun fetchLatestNewUsers(): LatestNewUsersResponse = LatestNewUsersResponse(
+        latestNewGuest = userDaoService.latestNewGuestUser()?.toEpochMilliseconds(),
+        latestNewAuthenticatedUser = userDaoService.latestNewAuthenticatedUser()?.toEpochMilliseconds(),
+    )
 
     private companion object {
 
         private val liveGameDuration = 3.minutes
-
     }
-
 }

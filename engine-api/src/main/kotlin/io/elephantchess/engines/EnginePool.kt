@@ -49,11 +49,9 @@ class EnginePool(
         engineId: EngineId,
         depth: Int,
         timeout: Long = 20_000,
-        variant: Variant = Variant.XIANGQI
-    ): InfoLinesResult? {
-        return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
-            lockableEngineProcess.queryForBestMove(fen, depth, variant)
-        }
+        variant: Variant = Variant.XIANGQI,
+    ): InfoLinesResult? = acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
+        lockableEngineProcess.queryForBestMove(fen, depth, variant)
     }
 
     suspend fun queryForNodes(
@@ -61,18 +59,12 @@ class EnginePool(
         engineId: EngineId,
         nodes: Long,
         timeout: Long = 20_000,
-        variant: Variant = Variant.XIANGQI
-    ): InfoLinesResult? {
-return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
-    lockableEngineProcess.queryForNodes(fen, nodes, variant, maxDelay = timeout)
-}
+        variant: Variant = Variant.XIANGQI,
+    ): InfoLinesResult? = acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
+        lockableEngineProcess.queryForNodes(fen, nodes, variant, maxDelay = timeout)
     }
 
-    private suspend fun <T> acquireAndExecute(
-        engineId: EngineId,
-        timeout: Long,
-        block: suspend (LockableEngineProcess) -> T?,
-    ): T? {
+    private suspend fun <T> acquireAndExecute(engineId: EngineId, timeout: Long, block: suspend (LockableEngineProcess) -> T?): T? {
         suspend fun acquireEngineProcess(engineId: EngineId, timeout: Long): LockableEngineProcess? {
             acquisitionMutex.withLock {
                 var acquiredProcess: LockableEngineProcess? = null
@@ -92,10 +84,7 @@ return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
             }
         }
 
-        suspend fun <T> executeOnEngine(
-            lockableEngineProcess: LockableEngineProcess,
-            block: suspend (LockableEngineProcess) -> T?,
-        ): T? {
+        suspend fun <T> executeOnEngine(lockableEngineProcess: LockableEngineProcess, block: suspend (LockableEngineProcess) -> T?): T? {
             try {
                 return block(lockableEngineProcess)
             } catch (e: Exception) {
@@ -144,14 +133,11 @@ return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
             engineProcess.quit()
         }
 
-        suspend fun queryForBestMove(fen: String, depth: Int, variant: Variant): InfoLinesResult {
-            return engineProcess.queryForBestMove(fen, depth, variant)
-        }
+        suspend fun queryForBestMove(fen: String, depth: Int, variant: Variant): InfoLinesResult =
+            engineProcess.queryForBestMove(fen, depth, variant)
 
-suspend fun queryForNodes(fen: String, nodes: Long, variant: Variant, maxDelay: Long): InfoLinesResult {
-    return engineProcess.queryForNodes(fen, nodes, variant, maxDelay = maxDelay)
-}
-
+        suspend fun queryForNodes(fen: String, nodes: Long, variant: Variant, maxDelay: Long): InfoLinesResult =
+            engineProcess.queryForNodes(fen, nodes, variant, maxDelay = maxDelay)
     }
 
     private class SimpleLockableEngineProcess(engineProcess: EngineProcess) : LockableEngineProcess(engineProcess) {
@@ -167,7 +153,5 @@ suspend fun queryForNodes(fen: String, nodes: Long, variant: Variant, maxDelay: 
         override fun unlock() {
             isFree = true
         }
-
     }
-
 }

@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.KofiEvent
 import io.elephantchess.db.services.KofiEventDaoService
@@ -12,6 +10,7 @@ import io.elephantchess.servicelayer.dto.kofi.KofiEventDto
 import io.elephantchess.servicelayer.dto.kofi.LatestSupporter
 import io.elephantchess.servicelayer.dto.lobby.GetSupportersResponse
 import io.elephantchess.servicelayer.exceptions.ForbiddenException
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -26,7 +25,7 @@ class KofiService(
     private val userDaoService: UserDaoService,
     private val userCache: UserCache,
     appConfig: AppConfig,
-    private val logger: KLogger
+    private val logger: KLogger,
 ) {
 
     private val verificationToken by lazy { appConfig.kofiVerificationToken }
@@ -72,20 +71,16 @@ class KofiService(
         logger.info { "successfully stored Ko-fi event with transactionId ${kofiEvent.kofiTransactionId}" }
     }
 
-    suspend fun listLatestTippers(): GetSupportersResponse {
-        return kofiEventDaoService
-            .listLatestTippers(20)
-            .map { record -> mapRecordToLatestSupporterDto(record) }
-            .let { entries -> GetSupportersResponse(entries) }
-    }
+    suspend fun listLatestTippers(): GetSupportersResponse = kofiEventDaoService
+        .listLatestTippers(20)
+        .map { record -> mapRecordToLatestSupporterDto(record) }
+        .let { entries -> GetSupportersResponse(entries) }
 
-    suspend fun listLatestRecurrentSupporters(): GetSupportersResponse {
-        return kofiEventDaoService
-            .listLatestRecurrentSupporters(20)
-            .map { record -> mapRecordToLatestSupporterDto(record) }
-            .let { entries -> entries + hardcodedMonthlySupportToLatestSupporterDto() }
-            .let { entries -> GetSupportersResponse(entries) }
-    }
+    suspend fun listLatestRecurrentSupporters(): GetSupportersResponse = kofiEventDaoService
+        .listLatestRecurrentSupporters(20)
+        .map { record -> mapRecordToLatestSupporterDto(record) }
+        .let { entries -> entries + hardcodedMonthlySupportToLatestSupporterDto() }
+        .let { entries -> GetSupportersResponse(entries) }
 
     suspend fun fetchLatestSupporter(): LatestSupporter? {
         val latestTipRecord = kofiEventDaoService.fetchLatestEvent()
@@ -95,12 +90,10 @@ class KofiService(
     }
 
     private suspend fun mapRecordToLatestSupporterDto(record: KofiEvent): LatestSupporter {
-        suspend fun displayNameForRecord(latestTipRecord: KofiEvent): String {
-            return if (latestTipRecord.matchedUserId != null) {
-                userCache.fetchUsernameOrDefault(latestTipRecord.matchedUserId!!)
-            } else {
-                latestTipRecord.fromName
-            }
+        suspend fun displayNameForRecord(latestTipRecord: KofiEvent): String = if (latestTipRecord.matchedUserId != null) {
+            userCache.fetchUsernameOrDefault(latestTipRecord.matchedUserId!!)
+        } else {
+            latestTipRecord.fromName
         }
 
         return LatestSupporter(
@@ -109,21 +102,19 @@ class KofiService(
             timestamp = record.timestamp.toEpochMilliseconds(),
             amount = record.amount.toDouble(),
             currency = record.currency,
-            recurring = (record.transactionType == "Subscription")
+            recurring = (record.transactionType == "Subscription"),
         )
     }
 
-    private suspend fun hardcodedMonthlySupportToLatestSupporterDto(): List<LatestSupporter> {
-        return hardcodedMonthlySupporters.map { userId ->
-            LatestSupporter(
-                userId = userId,
-                username = userCache.fetchUsernameOrDefault(userId),
-                timestamp = hardcodedSubscriptionTime.toEpochMilliseconds(),
-                amount = 100.0,
-                currency = "EUR",
-                recurring = true
-            )
-        }
+    private suspend fun hardcodedMonthlySupportToLatestSupporterDto(): List<LatestSupporter> = hardcodedMonthlySupporters.map { userId ->
+        LatestSupporter(
+            userId = userId,
+            username = userCache.fetchUsernameOrDefault(userId),
+            timestamp = hardcodedSubscriptionTime.toEpochMilliseconds(),
+            amount = 100.0,
+            currency = "EUR",
+            recurring = true,
+        )
     }
 
     private companion object {
@@ -152,7 +143,5 @@ class KofiService(
             record.discordUserid = dto.discordUserid
             return record
         }
-
     }
-
 }

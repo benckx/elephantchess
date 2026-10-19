@@ -16,14 +16,9 @@ object FairyStockfishEngineId : EngineId() {
         return "fairy/$requiredVersion/fairy-stockfish"
     }
 
-    override fun makeProcess(
-        config: EngineConfig,
-        engineProcessLocator: EngineProcessLocator,
-    ): EngineProcess =
-        FairyStockfishEngineProcess(
-            locator = engineProcessLocator,
-            version = config.version,
-            numberOfThreads = config.numberOfThreads
-        )
-
+    override fun makeProcess(config: EngineConfig, engineProcessLocator: EngineProcessLocator): EngineProcess = FairyStockfishEngineProcess(
+        locator = engineProcessLocator,
+        version = config.version,
+        numberOfThreads = config.numberOfThreads,
+    )
 }

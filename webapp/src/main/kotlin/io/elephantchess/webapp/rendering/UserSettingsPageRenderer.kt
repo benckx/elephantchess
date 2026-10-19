@@ -1,7 +1,5 @@
 package io.elephantchess.webapp.rendering
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
@@ -9,6 +7,7 @@ import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.NotificationsSettingsDto
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.services.analytics.ARCHIVE_PAGE_VIEW_AFTER_DAYS
+import io.elephantchess.utils.di.KoinSingleton
 import kotlinx.html.checkBoxInput
 import kotlinx.html.div
 import kotlinx.html.id
@@ -19,10 +18,7 @@ import kotlinx.html.td
 import kotlinx.html.tr
 
 @KoinSingleton(eager = true)
-class UserSettingsPageRenderer(
-    private val htmlRenderer: HtmlRenderer,
-    private val userService: UserService,
-) {
+class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private val userService: UserService) {
 
     suspend fun renderUserSettingsPage(userId: String): String {
         val profile = userService.fetchProfileSettings(userId)
@@ -37,7 +33,7 @@ class UserSettingsPageRenderer(
                 SimpleValueTagResolver("show_pvb_games_checked", if (profile.showPvbGamesOnProfile) "checked" else ""),
                 SimpleValueTagResolver("page_views_retention_days", ARCHIVE_PAGE_VIEW_AFTER_DAYS.toString()),
                 notificationsTableTagResolver(notifications),
-            )
+            ),
         )
     }
 
@@ -47,28 +43,28 @@ class UserSettingsPageRenderer(
             NotificationRow(
                 "opponent-joined-game",
                 "Somebody joined a game you created - but you're offline.",
-                dto.opponentJoinedGame
+                dto.opponentJoinedGame,
             ),
             NotificationRow(
                 "opponent-played-move",
                 "Your opponent played a move - but you're offline.",
-                dto.opponentPlayedMove
+                dto.opponentPlayedMove,
             ),
             NotificationRow("opponent-resigned", "Your opponent resigned - but you're offline.", dto.opponentResigned),
             NotificationRow(
                 "opponent-proposed-draw",
                 "Your opponent proposed a draw - but you're offline.",
-                dto.opponentProposedDraw
+                dto.opponentProposedDraw,
             ),
             NotificationRow(
                 "opponent-accepted-draw",
                 "Your opponent accepted a draw - but you're offline.",
-                dto.opponentAcceptedDraw
+                dto.opponentAcceptedDraw,
             ),
             NotificationRow(
                 "opponent-declined-draw",
                 "Your opponent declined a draw - but you're offline.",
-                dto.opponentDeclinedDraw
+                dto.opponentDeclinedDraw,
             ),
         )
 
@@ -99,10 +95,5 @@ class UserSettingsPageRenderer(
         }
     }
 
-    private data class NotificationRow(
-        val id: String,
-        val label: String,
-        val checked: Boolean
-    )
-
+    private data class NotificationRow(val id: String, val label: String, val checked: Boolean)
 }

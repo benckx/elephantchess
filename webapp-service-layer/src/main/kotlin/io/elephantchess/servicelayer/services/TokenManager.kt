@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.elephantchess.config.AppConfig
@@ -16,6 +14,7 @@ import io.elephantchess.servicelayer.model.AuthenticatedToken.Companion.USERNAME
 import io.elephantchess.servicelayer.model.GuestToken
 import io.elephantchess.servicelayer.model.InvalidToken
 import io.elephantchess.servicelayer.model.TokenVerificationResult
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.runBlocking
@@ -24,11 +23,7 @@ import java.time.temporal.ChronoUnit
 import kotlin.time.Duration.Companion.minutes
 
 @KoinSingleton(eager = true)
-class TokenManager(
-    private val appConfig: AppConfig,
-    private val userDaoService: UserDaoService,
-    private val logger: KLogger,
-) {
+class TokenManager(private val appConfig: AppConfig, private val userDaoService: UserDaoService, private val logger: KLogger) {
 
     private val isUserAllowedCache =
         Cache
@@ -73,32 +68,30 @@ class TokenManager(
         return tokenBuilder.sign(algorithm)
     }
 
-    fun verifyToken(token: String): TokenVerificationResult {
-        return try {
-            val decodedJWT = verifier.verify(token)
-            val tokenType = decodedJWT.getClaim(TOKEN_TYPE_CLAIM)
-                ?.`as`(String::class.java)
-                ?.let { UserType.valueOf(it) }
+    fun verifyToken(token: String): TokenVerificationResult = try {
+        val decodedJWT = verifier.verify(token)
+        val tokenType = decodedJWT.getClaim(TOKEN_TYPE_CLAIM)
+            ?.`as`(String::class.java)
+            ?.let { UserType.valueOf(it) }
 
-            val userId = decodedJWT.audience.first()
-            val allowed = runBlocking {
-                isUserAllowedCache.get(userId) {
-                    userDaoService.existsById(userId)
-                }
+        val userId = decodedJWT.audience.first()
+        val allowed = runBlocking {
+            isUserAllowedCache.get(userId) {
+                userDaoService.existsById(userId)
             }
-
-            if (!allowed) {
-                logger.warn { "user $userId is not allowed or not found" }
-                InvalidToken(UnauthorizedException("user $userId is not allowed or not found"))
-            } else {
-                when (tokenType) {
-                    UserType.AUTHENTICATED, null -> AuthenticatedToken(userId, decodedJWT)
-                    UserType.GUEST -> GuestToken(userId, decodedJWT)
-                }
-            }
-        } catch (e: Exception) {
-            InvalidToken(e)
         }
+
+        if (!allowed) {
+            logger.warn { "user $userId is not allowed or not found" }
+            InvalidToken(UnauthorizedException("user $userId is not allowed or not found"))
+        } else {
+            when (tokenType) {
+                UserType.AUTHENTICATED, null -> AuthenticatedToken(userId, decodedJWT)
+                UserType.GUEST -> GuestToken(userId, decodedJWT)
+            }
+        }
+    } catch (e: Exception) {
+        InvalidToken(e)
     }
 
     companion object {
@@ -109,7 +102,5 @@ class TokenManager(
         const val RENEW_SESSION_INTERVAL = 300L
 
         const val TOKEN_TYPE_CLAIM = "TOKEN_TYPE"
-
     }
-
 }

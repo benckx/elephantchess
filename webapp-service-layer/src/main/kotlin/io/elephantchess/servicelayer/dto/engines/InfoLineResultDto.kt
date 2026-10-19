@@ -20,18 +20,15 @@ data class InfoLineResultDto(
             return mapToInfoLineResultDto(fen, infoLineResult)
         }
 
-        fun mapToInfoLineResultDto(fen: String, infoLineResult: InfoLineResult): InfoLineResultDto {
-            return InfoLineResultDto(
-                line = infoLineResult.line,
-                fen = fen,
-                depth = infoLineResult.depth,
-                cp = infoLineResult.cp,
-                mate = infoLineResult.mate,
-                pv = infoLineResult.pv,
-                bestMove = infoLineResult.pv.firstOrNull(),
-                isCheckmate = infoLineResult.mate != null && infoLineResult.mate == 0
-            )
-        }
+        fun mapToInfoLineResultDto(fen: String, infoLineResult: InfoLineResult): InfoLineResultDto = InfoLineResultDto(
+            line = infoLineResult.line,
+            fen = fen,
+            depth = infoLineResult.depth,
+            cp = infoLineResult.cp,
+            mate = infoLineResult.mate,
+            pv = infoLineResult.pv,
+            bestMove = infoLineResult.pv.firstOrNull(),
+            isCheckmate = infoLineResult.mate != null && infoLineResult.mate == 0,
+        )
     }
-
 }

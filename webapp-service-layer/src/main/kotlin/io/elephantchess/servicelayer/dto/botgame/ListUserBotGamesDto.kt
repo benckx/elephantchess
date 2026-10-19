@@ -22,5 +22,4 @@ data class ListUserBotGamesDto(val entries: List<Entry>) {
         val lastUpdated: Long,
         val variant: Variant,
     )
-
 }

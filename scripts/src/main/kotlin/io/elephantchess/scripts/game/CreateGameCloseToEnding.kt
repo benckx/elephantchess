@@ -29,18 +29,14 @@ object CreateGameCloseToEnding : KoinScriptInit() {
     private val userDaoService by inject<UserDaoService>()
     private val referenceGameDaoService by inject<ReferenceGameDaoService>()
 
-    private suspend fun listAllReferenceGameIds(): List<String> {
-        return dslContext
-            .select(REFERENCE_GAME.ID)
-            .from(REFERENCE_GAME)
-            .awaitMappedRecords()
-    }
+    private suspend fun listAllReferenceGameIds(): List<String> = dslContext
+        .select(REFERENCE_GAME.ID)
+        .from(REFERENCE_GAME)
+        .awaitMappedRecords()
 
-    private suspend fun fetchMoves(referenceGameId: String): List<HalfMove> {
-        return referenceGameDaoService
-            .listMoves(referenceGameId)
-            .map { uci -> HalfMove.parseMoveFromUci(uci) }
-    }
+    private suspend fun fetchMoves(referenceGameId: String): List<HalfMove> = referenceGameDaoService
+        .listMoves(referenceGameId)
+        .map { uci -> HalfMove.parseMoveFromUci(uci) }
 
     private suspend fun endsInCheckmate(gameId: String): Boolean {
         val board = Board()
@@ -96,11 +92,10 @@ object CreateGameCloseToEnding : KoinScriptInit() {
             println(
                 "last $movesToRemove move(s): ${
                     moves.takeLast(movesToRemove).joinToString(", ") { it.toAlgebraic() }
-                }"
+                }",
             )
 
             exitProcess(0)
         }
     }
-
 }

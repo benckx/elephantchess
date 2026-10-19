@@ -20,11 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Manages the system calls to the actual engine process
  * (sends commands and listen for responses on the output channel).
  */
-abstract class EngineProcess(
-    private val locator: EngineProcessLocator,
-    val engineId: EngineId,
-    val version: String?,
-) : Runnable {
+abstract class EngineProcess(private val locator: EngineProcessLocator, val engineId: EngineId, val version: String?) : Runnable {
 
     abstract val logger: KLogger
 
@@ -83,17 +79,17 @@ abstract class EngineProcess(
         setVariant(variant)
         inputCommand("position fen $fen")
         inputCommand("go nodes $maxNodes")
-val gotResult = waitForCondition(maxDelay, checkPeriod) {
-    infoListener.hasResult()
-}
-if (!gotResult) {
-    inputCommand("stop")
-    val gotResultAfterStop = waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }
-    if (!gotResultAfterStop) {
-        throw Exception("Engine did not return a result for 'go nodes $maxNodes' within ${maxDelay}ms.")
-    }
-}
-return infoListener.getResult()
+        val gotResult = waitForCondition(maxDelay, checkPeriod) {
+            infoListener.hasResult()
+        }
+        if (!gotResult) {
+            inputCommand("stop")
+            val gotResultAfterStop = waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }
+            if (!gotResultAfterStop) {
+                throw Exception("Engine did not return a result for 'go nodes $maxNodes' within ${maxDelay}ms.")
+            }
+        }
+        return infoListener.getResult()
     }
 
     /**
@@ -195,7 +191,5 @@ return infoListener.getResult()
 
         const val DEFAULT_MAX_DELAY = 5_000L
         const val DEFAULT_CHECK_PERIOD = 100L
-
     }
-
 }

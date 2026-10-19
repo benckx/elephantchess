@@ -1,13 +1,12 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.tables.pojos.NewsletterEmail
 import io.elephantchess.db.services.NewsletterDaoService
 import io.elephantchess.db.utils.isBefore
 import io.elephantchess.db.utils.plusSeconds
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.services.MailService
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import java.util.*
 import kotlin.time.Clock
@@ -60,12 +59,12 @@ class SendOutNewslettersBatch(
                                     templateName = newsletter.templateName,
                                     subject = newsletter.subject,
                                     unsubscribeFromNewsletterCode = entry.unsubscribeFromNewsletterCode,
-                                    unsubscribeFromAllCode = entry.unsubscribeFromAllCode
+                                    unsubscribeFromAllCode = entry.unsubscribeFromAllCode,
                                 )
 
                                 newsletterDaoService.markAsSent(
                                     newsletterId = entry.newsletterId,
-                                    emailAddress = entry.emailAddress
+                                    emailAddress = entry.emailAddress,
                                 )
                             }
                     } catch (e: Exception) {
@@ -98,5 +97,4 @@ class SendOutNewslettersBatch(
                 newsletterDaoService.insertAll(entries)
             }
     }
-
 }

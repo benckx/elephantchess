@@ -91,13 +91,13 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             val response = pvpGameService.createGame(
                 userId = userId1,
                 request = alwaysVisibleInLobbyRapidPublicGameRequest()
-                    .copy(privateInvite = true)
+                    .copy(privateInvite = true),
             )
 
             assertEquals(CREATED, response.eventType, "game is created")
             assertFalse(
                 fetchAlwaysVisibleInLobby(response.gameId),
-                "'always visible in lobby' should be forced disabled"
+                "'always visible in lobby' should be forced disabled",
             )
         }
 
@@ -159,7 +159,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     alwaysVisibleInLobbyRapidPublicGameRequest().copy(
                         timeControlMode = TimeControlMode.MOVE_TIME,
                         timeControlBase = 1.days.inWholeSeconds.toInt(),
-                    )
+                    ),
                 )
             }
 
@@ -182,12 +182,11 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             assertFalse(fetchAlwaysVisibleInLobby(response.gameId))
         }
 
-        private suspend fun fetchAlwaysVisibleInLobby(gameId: String): Boolean =
-            dslContext
-                .select(GAME.ALWAYS_VISIBLE_IN_LOBBY)
-                .from(GAME)
-                .where(GAME.ID.eq(gameId))
-                .awaitSingleValue()!!
+        private suspend fun fetchAlwaysVisibleInLobby(gameId: String): Boolean = dslContext
+            .select(GAME.ALWAYS_VISIBLE_IN_LOBBY)
+            .from(GAME)
+            .where(GAME.ID.eq(gameId))
+            .awaitSingleValue()!!
 
         private suspend fun makeAlwaysVisibleInLobbyAllowed(userId: String) {
             confirmEmail(userId)
@@ -199,42 +198,38 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             assertTrue(userService.confirmEmail(confirmationCode))
         }
 
-        private suspend fun setOpponentJoinedGameNotification(userId: String, enabled: Boolean) =
-            userService.updateNotificationsSettings(
-                userId = userId,
-                request = NotificationsSettingsDto(
-                    newsletter = false,
-                    opponentJoinedGame = enabled,
-                    opponentPlayedMove = false,
-                    opponentResigned = false,
-                    opponentProposedDraw = false,
-                    opponentAcceptedDraw = false,
-                    opponentDeclinedDraw = false,
-                )
-            )
+        private suspend fun setOpponentJoinedGameNotification(userId: String, enabled: Boolean) = userService.updateNotificationsSettings(
+            userId = userId,
+            request = NotificationsSettingsDto(
+                newsletter = false,
+                opponentJoinedGame = enabled,
+                opponentPlayedMove = false,
+                opponentResigned = false,
+                opponentProposedDraw = false,
+                opponentAcceptedDraw = false,
+                opponentDeclinedDraw = false,
+            ),
+        )
 
-        private fun alwaysVisibleInLobbyRapidPublicGameRequest() =
-            CreateGameRequest(
-                inviterColor = RED,
-                isRated = true,
-                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-                timeControlIncrement = null,
-                timeControlMode = TimeControlMode.GAME_TIME,
-                allowGuests = true,
-                alwaysVisibleInLobby = true,
-                privateInvite = false,
-            )
+        private fun alwaysVisibleInLobbyRapidPublicGameRequest() = CreateGameRequest(
+            inviterColor = RED,
+            isRated = true,
+            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+            timeControlIncrement = null,
+            timeControlMode = TimeControlMode.GAME_TIME,
+            allowGuests = true,
+            alwaysVisibleInLobby = true,
+            privateInvite = false,
+        )
 
         private suspend fun isOptionAlwaysVisibleInLobbyAllowed(userId: String): Boolean =
             pvpGameService.isOptionAlwaysVisibleInLobbyAllowed(userId)
 
-        private suspend fun fetchEmailOf(userId: String): String =
-            dslContext
-                .select(USER.EMAIL)
-                .from(USER)
-                .where(USER.ID.eq(userId))
-                .awaitSingleValue()!!
-
+        private suspend fun fetchEmailOf(userId: String): String = dslContext
+            .select(USER.EMAIL)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()!!
     }
 
     /**
@@ -255,7 +250,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
-                privateInvite = false
+                privateInvite = false,
             )
 
             val request2 = request1.copy(inviterColor = BLACK)
@@ -283,7 +278,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
-                privateInvite = false
+                privateInvite = false,
             )
 
             val request2 = request1.copy()
@@ -315,7 +310,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
-                privateInvite = false
+                privateInvite = false,
             )
 
             val request2 = request1.copy(isRated = false)
@@ -343,7 +338,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
-                privateInvite = false
+                privateInvite = false,
             )
 
             val request2 = request1.copy(timeControlBase = 10.minutes.inWholeSeconds.toInt())
@@ -371,7 +366,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = false,
                 alwaysVisibleInLobby = false,
-                privateInvite = false
+                privateInvite = false,
             )
 
             val request2 = request1.copy(inviterColor = null, allowGuests = true)
@@ -404,7 +399,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = false,
                 alwaysVisibleInLobby = false,
-                privateInvite = false
+                privateInvite = false,
             )
 
             val request2 = request1.copy(inviterColor = null)
@@ -432,7 +427,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
-                privateInvite = true
+                privateInvite = true,
             )
 
             val request2 = request1.copy(inviterColor = BLACK, privateInvite = false)
@@ -461,7 +456,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
                 privateInvite = false,
-                variant = Variant.MANCHU
+                variant = Variant.MANCHU,
             )
 
             val xiangqiRequest = manchuRequest.copy(inviterColor = BLACK, variant = Variant.XIANGQI)
@@ -493,7 +488,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
                 privateInvite = false,
-                variant = Variant.MANCHU
+                variant = Variant.MANCHU,
             )
 
             val request2 = request1.copy(inviterColor = BLACK)
@@ -521,7 +516,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = false,
                 alwaysVisibleInLobby = false,
-                privateInvite = false
+                privateInvite = false,
             )
 
             val response1 = pvpGameService.createGame(userId1, request1)
@@ -558,7 +553,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
-                privateInvite = false
+                privateInvite = false,
             )
 
             val response1 = pvpGameService.createGame(userId1, request1)
@@ -607,7 +602,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
-                privateInvite = false
+                privateInvite = false,
             )
 
             val response1 = pvpGameService.createGame(userId1, request1)
@@ -633,19 +628,17 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             assertEquals(0, countGameByStatus(AUTO_CANCELED))
         }
 
-        private suspend fun setUserOffline(userId: String) =
-            dslContext
-                .update(USER)
-                .set(USER.LAST_ONLINE, Clock.System.now().minus(1.hours))
-                .where(USER.ID.eq(userId))
-                .awaitExecute()
+        private suspend fun setUserOffline(userId: String) = dslContext
+            .update(USER)
+            .set(USER.LAST_ONLINE, Clock.System.now().minus(1.hours))
+            .where(USER.ID.eq(userId))
+            .awaitExecute()
 
-        private suspend fun setUserOnline(userId: String) =
-            dslContext
-                .update(USER)
-                .set(USER.LAST_ONLINE, Clock.System.now())
-                .where(USER.ID.eq(userId))
-                .awaitExecute()
+        private suspend fun setUserOnline(userId: String) = dslContext
+            .update(USER)
+            .set(USER.LAST_ONLINE, Clock.System.now())
+            .where(USER.ID.eq(userId))
+            .awaitExecute()
     }
 
     @Nested
@@ -664,7 +657,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 .forEachIndexed { i, move ->
                     val playMoveResult = pvpGameService.playMove(
                         userId = userIdToPlay(gameId),
-                        request = PlayMoveRequest(gameId, move)
+                        request = PlayMoveRequest(gameId, move),
                     )
 
                     assertEquals(playMoveResult.updatedIndex, i + 1)
@@ -681,7 +674,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             // last move
             val lastMoveResult = pvpGameService.playMove(
                 userId = userIdToPlay(gameId),
-                request = PlayMoveRequest(gameId, gameMoves.uciMoves.last())
+                request = PlayMoveRequest(gameId, gameMoves.uciMoves.last()),
             )
 
             assertEquals(lastMoveResult.gameEventType, CHECKMATED)
@@ -703,11 +696,11 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
             val inviterWins =
                 (gameData.outcome == RED_WINS && inviterColor == RED) ||
-                        (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
+                    (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
 
             val inviteeWins =
                 (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
-                        (gameData.outcome == BLACK_WINS && inviterColor == RED)
+                    (gameData.outcome == BLACK_WINS && inviterColor == RED)
 
             when {
                 inviterWins -> {
@@ -761,7 +754,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             manchuMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
                 val result = pvpGameService.playMove(
                     userId = userIdToPlay(gameId),
-                    request = PlayMoveRequest(gameId, move)
+                    request = PlayMoveRequest(gameId, move),
                 )
                 assertEquals(i + 1, result.updatedIndex)
                 assertNull(result.gameEventType)
@@ -770,7 +763,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
             val lastMoveResult = pvpGameService.playMove(
                 userId = userIdToPlay(gameId),
-                request = PlayMoveRequest(gameId, manchuMoves.uciMoves.last())
+                request = PlayMoveRequest(gameId, manchuMoves.uciMoves.last()),
             )
 
             assertNotNull(lastMoveResult.gameEventType)
@@ -789,11 +782,11 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
             val inviterWins =
                 (gameData.outcome == RED_WINS && inviterColor == RED) ||
-                        (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
+                    (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
 
             val inviteeWins =
                 (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
-                        (gameData.outcome == BLACK_WINS && inviterColor == RED)
+                    (gameData.outcome == BLACK_WINS && inviterColor == RED)
 
             when {
                 inviterWins -> {
@@ -847,7 +840,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             gameMoves.uciMoves.dropLast(10).forEach { move ->
                 pvpGameService.playMove(
                     userId = userIdToPlay(gameId),
-                    request = PlayMoveRequest(gameId, move)
+                    request = PlayMoveRequest(gameId, move),
                 )
             }
 
@@ -858,7 +851,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
                 pvpGameService.playMove(
                     userId = wrongUserId,
-                    request = PlayMoveRequest(gameId, move)
+                    request = PlayMoveRequest(gameId, move),
                 )
             }
 
@@ -871,8 +864,8 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     userId = userIdToPlay(gameId),
                     request = PlayMoveRequest(
                         gameId = gameId,
-                        move = "not a valid move"
-                    )
+                        move = "not a valid move",
+                    ),
                 )
             }
 
@@ -885,8 +878,8 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     userId = userIdToPlay(gameId),
                     request = PlayMoveRequest(
                         gameId = gameId,
-                        move = "a1b3"
-                    )
+                        move = "a1b3",
+                    ),
                 )
             }
 
@@ -908,14 +901,14 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             moves.forEach { move ->
                 pvpGameService.playMove(
                     userId = userIdToPlay(gameId),
-                    request = PlayMoveRequest(gameId, move)
+                    request = PlayMoveRequest(gameId, move),
                 )
             }
 
             val e = assertFailsWith<BadRequestException> {
                 pvpGameService.playMove(
                     userId = userIdToPlay(gameId),
-                    request = PlayMoveRequest(gameId, "g4e4")
+                    request = PlayMoveRequest(gameId, "g4e4"),
                 )
             }
 
@@ -940,20 +933,20 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 "d3e3", "e0d0", "e3d3", "d0e0", "a0f0", "a6a9", "e8d9", "a9a4", "d3e3", "e0d0", "f0f4", "a4a2", "e3d3",
                 "d0e0", "d3e3", "e0d0", "g2e1", "d0d1", "e1g0", "a2g2", "e3e1", "d1d2", "g0i1", "g2g9", "e9e8", "g9d9",
                 "e4i4", "d9d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8",
-                "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8"
+                "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8",
             )
 
             val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
             moves.take(102).forEachIndexed { _, move ->
                 pvpGameService.playMove(
                     userId = userIdToPlay(gameId),
-                    request = PlayMoveRequest(gameId, move)
+                    request = PlayMoveRequest(gameId, move),
                 )
             }
 
             val response = pvpGameService.playMove(
                 userId = userIdToPlay(gameId),
-                request = PlayMoveRequest(gameId, moves[102])
+                request = PlayMoveRequest(gameId, moves[102]),
             )
 
             assertEquals(PERPETUAL_CHECKING, response.gameEventType)
@@ -962,26 +955,26 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         private suspend fun userIdToPlay(gameId: String): String {
             val gameDataResponse = pvpGameService.fetchGame(gameId)
             val colorToPlay = colorToPlay(gameDataResponse.moveIndex)
-            return if (gameDataResponse.inviterColor == colorToPlay)
-                gameDataResponse.inviterId else gameDataResponse.inviteeId!!
+            return if (gameDataResponse.inviterColor == colorToPlay) {
+                gameDataResponse.inviterId
+            } else {
+                gameDataResponse.inviteeId!!
+            }
         }
 
-        private fun colorToPlay(currentHalfMoveIndex: Int) =
-            if (currentHalfMoveIndex % 2 == 0) RED else BLACK
+        private fun colorToPlay(currentHalfMoveIndex: Int) = if (currentHalfMoveIndex % 2 == 0) RED else BLACK
 
-        private suspend fun fetchXiangqiRapidRating(userId: String): Int =
-            dslContext
-                .select(USER.GAME_RATING_RAPID)
-                .from(USER)
-                .where(USER.ID.eq(userId))
-                .awaitSingleValue()!!
+        private suspend fun fetchXiangqiRapidRating(userId: String): Int = dslContext
+            .select(USER.GAME_RATING_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()!!
 
-        private suspend fun fetchManchuRapidRating(userId: String): Int =
-            dslContext
-                .select(USER.GAME_RATING_MANCHU_RAPID)
-                .from(USER)
-                .where(USER.ID.eq(userId))
-                .awaitSingleValue()!!
+        private suspend fun fetchManchuRapidRating(userId: String): Int = dslContext
+            .select(USER.GAME_RATING_MANCHU_RAPID)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()!!
     }
 
     @Nested
@@ -1001,7 +994,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = false,
                 alwaysVisibleInLobby = false,
-                privateInvite = true
+                privateInvite = true,
             )
 
             pvpGameService.createGame(userId1, request)
@@ -1031,7 +1024,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 timeControlMode = TimeControlMode.GAME_TIME,
                 allowGuests = false,
                 alwaysVisibleInLobby = false,
-                privateInvite = true
+                privateInvite = true,
             )
 
             pvpGameService.createGame(userId1, request)
@@ -1050,11 +1043,9 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         }
     }
 
-    private suspend fun countGameByStatus(status: GameEventType): Int =
-        dslContext
-            .selectCount()
-            .from(GAME)
-            .where(GAME.GAME_STATUS.eq(status))
-            .awaitSingleValue()!!
-
+    private suspend fun countGameByStatus(status: GameEventType): Int = dslContext
+        .selectCount()
+        .from(GAME)
+        .where(GAME.GAME_STATUS.eq(status))
+        .awaitSingleValue()!!
 }

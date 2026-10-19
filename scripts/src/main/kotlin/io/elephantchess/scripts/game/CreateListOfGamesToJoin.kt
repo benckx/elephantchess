@@ -21,8 +21,8 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-private const val testUsers = 10
-private const val weirdTimeControlsCount = 20
+private const val TEST_USERS = 10
+private const val WEIRD_TIME_CONTROLS_COUNT = 20
 
 private val standardTimeControls: List<Pair<Duration, Duration?>> =
     listOf(
@@ -51,14 +51,13 @@ private val standardTimeControls: List<Pair<Duration, Duration?>> =
         7.days to null,
     )
 
-private fun Random.generateWeirdTimeControls(): List<Pair<Duration, Duration?>> =
-    List(weirdTimeControlsCount) {
-        if (nextBoolean()) {
-            randomWeirdLiveTimeControl()
-        } else {
-            randomWeirdCorrespondenceTimeControl()
-        }
+private fun Random.generateWeirdTimeControls(): List<Pair<Duration, Duration?>> = List(WEIRD_TIME_CONTROLS_COUNT) {
+    if (nextBoolean()) {
+        randomWeirdLiveTimeControl()
+    } else {
+        randomWeirdCorrespondenceTimeControl()
     }
+}
 
 private fun Random.randomWeirdLiveTimeControl(): Pair<Duration, Duration?> {
     val base =
@@ -95,7 +94,7 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
     @JvmStatic
     fun main(args: Array<String>): Unit = runBlocking {
         // set up users
-        (1..testUsers).forEach { i -> createTestUserIfNotExists(i) }
+        (1..TEST_USERS).forEach { i -> createTestUserIfNotExists(i) }
 
         // create games
         val rnd = Random.Default
@@ -103,7 +102,7 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
         val timeControls = standardTimeControls + weirdTimeControls
 
         repeat(50) {
-            val i = rnd.nextInt(testUsers) + 1
+            val i = rnd.nextInt(TEST_USERS) + 1
             val user = userDaoService.findByEmail("test$i@protonmail.com")!!
             val hasColor = rnd.nextBoolean()
             val color = if (hasColor) null else Color.random()
@@ -126,7 +125,7 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
                     allowGuests = true,
                     alwaysVisibleInLobby = true,
                     privateInvite = false,
-                    variant = variant
+                    variant = variant,
                 )
 
             try {
@@ -135,9 +134,13 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
                 println("created game $gameId by ${user.handle}")
             } catch (e: BadRequestException) {
                 if (e.message == "You already have 3 pending games with the same settings") {
-                    println("skipped creating game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"} because of too many pending games with the same settings")
+                    println(
+                        "skipped creating game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"} because of too many pending games with the same settings",
+                    )
                 } else {
-                    println("failed to create game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"}: ${e.message}")
+                    println(
+                        "failed to create game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"}: ${e.message}",
+                    )
                 }
             }
         }

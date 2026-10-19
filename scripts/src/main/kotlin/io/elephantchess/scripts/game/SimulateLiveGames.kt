@@ -38,18 +38,14 @@ object SimulateLiveGames : KoinScriptInit() {
     private const val NUMBER_OF_GAMES = 6
     private const val NUMBER_OF_USERS = 50
 
-    private suspend fun listAllReferenceGameIds(): List<String> {
-        return dslContext
-            .select(REFERENCE_GAME.ID)
-            .from(REFERENCE_GAME)
-            .awaitMappedRecords()
-    }
+    private suspend fun listAllReferenceGameIds(): List<String> = dslContext
+        .select(REFERENCE_GAME.ID)
+        .from(REFERENCE_GAME)
+        .awaitMappedRecords()
 
-    private suspend fun fetchMoves(referenceGameId: String): List<HalfMove> {
-        return referenceGameDaoService
-            .listMoves(referenceGameId)
-            .map { uci -> HalfMove.parseMoveFromUci(uci) }
-    }
+    private suspend fun fetchMoves(referenceGameId: String): List<HalfMove> = referenceGameDaoService
+        .listMoves(referenceGameId)
+        .map { uci -> HalfMove.parseMoveFromUci(uci) }
 
     @JvmStatic
     fun main(args: Array<String>): Unit = runBlocking {
@@ -69,7 +65,9 @@ object SimulateLiveGames : KoinScriptInit() {
 
                 val referenceGameId = gameIds.random()
                 val moves = fetchMoves(referenceGameId)
-                println("[game #$index] using reference game $referenceGameId with ${moves.size} moves between ${user1.handle} and ${user2.handle}")
+                println(
+                    "[game #$index] using reference game $referenceGameId with ${moves.size} moves between ${user1.handle} and ${user2.handle}",
+                )
 
                 val request =
                     CreateGameRequest(
@@ -102,5 +100,4 @@ object SimulateLiveGames : KoinScriptInit() {
         jobs.awaitAll()
         exitProcess(0)
     }
-
 }

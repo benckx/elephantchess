@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.callback.BotMove
 import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult
@@ -35,6 +33,7 @@ import io.elephantchess.servicelayer.utils.modelToProcess
 import io.elephantchess.servicelayer.utils.ops.isNonStandardFen
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.selectByProbability
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
@@ -114,12 +113,12 @@ class PlayerVsBotGameService(
                                         newMoves = moveRecords.map { record -> record.uci },
                                         status = status,
                                         outcome = outcome,
-                                    )
+                                    ),
                                 )
                             }
                     }
             }
-        }
+        },
     )
 
     fun cancel() {
@@ -226,29 +225,27 @@ class PlayerVsBotGameService(
         return CreateBotGameResponse(gameId)
     }
 
-    suspend fun listUserGames(userId: String, beforeTs: Long?): ListUserBotGamesDto {
-        return pvbGameDaoService
-            .listGamesByUserId(userId, 30, beforeTs)
-            .map { record ->
-                ListUserBotGamesDto.Entry(
-                    gameId = record.id,
-                    color = record.userColor,
-                    engine = record.engine,
-                    depth = record.depth,
-                    customStartFen = record.startFen != null,
-                    currentFen = record.currentFen ?: DEFAULT_START_FEN,
-                    status = record.gameStatus,
-                    outcome = record.outcome,
-                    moveIndex = record.currentHalfMoveIndex,
-                    created = record.created.toEpochMilliseconds(),
-                    lastUpdated = record.lastUpdated.toEpochMilliseconds(),
-                    variant = record.variant ?: Variant.XIANGQI,
-                )
-            }
-            .let { entries ->
-                ListUserBotGamesDto(entries)
-            }
-    }
+    suspend fun listUserGames(userId: String, beforeTs: Long?): ListUserBotGamesDto = pvbGameDaoService
+        .listGamesByUserId(userId, 30, beforeTs)
+        .map { record ->
+            ListUserBotGamesDto.Entry(
+                gameId = record.id,
+                color = record.userColor,
+                engine = record.engine,
+                depth = record.depth,
+                customStartFen = record.startFen != null,
+                currentFen = record.currentFen ?: DEFAULT_START_FEN,
+                status = record.gameStatus,
+                outcome = record.outcome,
+                moveIndex = record.currentHalfMoveIndex,
+                created = record.created.toEpochMilliseconds(),
+                lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+                variant = record.variant ?: Variant.XIANGQI,
+            )
+        }
+        .let { entries ->
+            ListUserBotGamesDto(entries)
+        }
 
     suspend fun fetchGameData(gameId: String): GetBotGameDataResponse {
         val game = pvbGameDaoService.fetchById(gameId)
@@ -381,15 +378,13 @@ class PlayerVsBotGameService(
         openingMode: OpeningMode,
         variant: Variant = Variant.XIANGQI,
     ): BotMove? {
-        suspend fun playWithEngine(): BotMove? {
-            return playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
-        }
+        suspend fun playWithEngine(): BotMove? = playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
 
         val useOpeningRepository =
             usesDefaultStartFen &&
-                    position <= REPO_MAX_POSITION_INDEX &&
-                    variant == Variant.XIANGQI &&
-                    openingMode != OpeningMode.ENGINE_ONLY
+                position <= REPO_MAX_POSITION_INDEX &&
+                variant == Variant.XIANGQI &&
+                openingMode != OpeningMode.ENGINE_ONLY
 
         return if (useOpeningRepository) {
             playFromOpeningRepository(gameId, userMove, openingMode) ?: playWithEngine()
@@ -398,11 +393,7 @@ class PlayerVsBotGameService(
         }
     }
 
-    private suspend fun playFromOpeningRepository(
-        gameId: String,
-        userMove: String?,
-        openingMode: OpeningMode
-    ): BotMove? {
+    private suspend fun playFromOpeningRepository(gameId: String, userMove: String?, openingMode: OpeningMode): BotMove? {
         val moves = pvbGameDaoService.listMoves(gameId) + listOfNotNull(userMove)
         val openingEntries = openingRepositoryDaoService.fetchNextMovesData(moves)
 
@@ -433,14 +424,13 @@ class PlayerVsBotGameService(
         depth: Int,
         variant: Variant,
     ): BotMove? {
-        suspend fun queryEngine(fenToEngine: String): InfoLinesResult? =
-            enginesPool.safeQueryForDepth(
-                fen = fenToEngine,
-                engineId = modelToProcess(engine),
-                depth = depth,
-                timeout = 15_000,
-                variant = variant
-            )
+        suspend fun queryEngine(fenToEngine: String): InfoLinesResult? = enginesPool.safeQueryForDepth(
+            fen = fenToEngine,
+            engineId = modelToProcess(engine),
+            depth = depth,
+            timeout = 15_000,
+            variant = variant,
+        )
 
         suspend fun findAlternativeMove(bestMove: String): String? {
             val cpMultiplier = if (botColor == RED) 1 else -1
@@ -548,11 +538,7 @@ class PlayerVsBotGameService(
         pvbGameDaoService.fetchGameStatus(gameId) ?: throw NotFoundException("Game $gameId not found")
     }
 
-    fun startSpectatorSession(
-        gameId: String,
-        moveIndex: Int,
-        sendCb: (BotGameSpectatorUpdate) -> ChannelResult<Unit>,
-    ): String {
+    fun startSpectatorSession(gameId: String, moveIndex: Int, sendCb: (BotGameSpectatorUpdate) -> ChannelResult<Unit>): String {
         val session = PvbWebSocketSession(sendCb, gameId, moveIndex)
         wsSessions.add(session)
         logger.debug { "created $session" }
@@ -573,7 +559,5 @@ class PlayerVsBotGameService(
         const val MIN_MOVE_INDEX_CHECK_REPETITION = 6 // after move 3
         const val POSITIONS_TO_CONSIDER_TO_AVOID_REPETITIONS = 10
         const val LEGAL_MOVES_TO_EVAL_FOR_ALTERNATIVE = 12
-
     }
-
 }

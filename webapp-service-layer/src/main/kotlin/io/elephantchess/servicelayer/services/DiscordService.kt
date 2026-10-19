@@ -1,13 +1,12 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.services.DiscordGameNotificationDaoService
 import io.elephantchess.model.DiscordNotificationEventType.GAME_CREATED
 import io.elephantchess.servicelayer.clients.DiscordClient
 import io.elephantchess.servicelayer.clients.dto.DiscordMessage
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
@@ -40,14 +39,13 @@ class DiscordService(
     }
 
     fun gameCreated(userId: String, game: Game) = doAsync {
-        fun gameLink(channelId: String, game: Game) =
-            "${webHost}/game?id=${game.id}&channelId=$channelId"
+        fun gameLink(channelId: String, game: Game) = "$webHost/game?id=${game.id}&channelId=$channelId"
 
         val username = userCache.fetchUsername(userId)
 
         newGameNotificationChannels.forEach { channelId ->
             val content = "$username (${game.inviterRatingFrom}) created a game ${formatGameSettings(game)} " +
-                    "that you can join at ${gameLink(channelId, game)} $suffix"
+                "that you can join at ${gameLink(channelId, game)} $suffix"
 
             logExceptionIfAny {
                 val response = discordClient.sendMessage(channelId, DiscordMessage(content))
@@ -56,7 +54,7 @@ class DiscordService(
                     gameId = game.id,
                     channelId = channelId,
                     messageId = response.id,
-                    sent = parseTimestamp(response.timestamp)
+                    sent = parseTimestamp(response.timestamp),
                 )
             }
         }
@@ -92,10 +90,12 @@ class DiscordService(
             discordClient.addReaction(
                 channelId = channelId,
                 messageId = gameCreatedNotification.messageId,
-                emoji = emoji
+                emoji = emoji,
             )
         } else {
-            logger.error { "original $GAME_CREATED notification event not found for (channel $channelId, game $gameId); can not add reaction" }
+            logger.error {
+                "original $GAME_CREATED notification event not found for (channel $channelId, game $gameId); can not add reaction"
+            }
         }
     }
 
@@ -126,19 +126,16 @@ class DiscordService(
         const val ELEPHANT_CHESS_NEW_GAME_CHANNEL_ID = "1320703368473215019"
         val newGameNotificationChannels = listOf(ELEPHANT_CHESS_NEW_GAME_CHANNEL_ID)
 
-        fun parseTimestamp(timestamp: String): Instant =
-            java.time.Instant.parse(timestamp).toKotlinInstant()
+        fun parseTimestamp(timestamp: String): Instant = java.time.Instant.parse(timestamp).toKotlinInstant()
 
         fun formatGameSettings(game: Game): String {
-            fun formatRated(game: Game) =
-                if (game.isRated) "rated" else "casual"
+            fun formatRated(game: Game) = if (game.isRated) "rated" else "casual"
 
-            fun formatColor(game: Game) =
-                when (game.inviterColor) {
-                    Color.RED -> "red"
-                    Color.BLACK -> "black"
-                    else -> "any color"
-                }
+            fun formatColor(game: Game) = when (game.inviterColor) {
+                Color.RED -> "red"
+                Color.BLACK -> "black"
+                else -> "any color"
+            }
 
             fun formatTimeControl(game: Game): String {
                 val base = when {
@@ -159,7 +156,5 @@ class DiscordService(
 
             return "(${formatTimeControl(game)}, playing ${formatColor(game)}, ${formatRated(game)})"
         }
-
     }
-
 }

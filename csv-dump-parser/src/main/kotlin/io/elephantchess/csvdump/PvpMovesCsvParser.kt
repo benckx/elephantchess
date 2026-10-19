@@ -12,8 +12,7 @@ import java.util.zip.ZipFile
  */
 object PvpMovesCsvParser {
 
-    fun parseRows(file: File): List<CsvRow> =
-        file.bufferedReader().use { reader -> parseRows(reader) }
+    fun parseRows(file: File): List<CsvRow> = file.bufferedReader().use { reader -> parseRows(reader) }
 
     fun parseRows(fileName: String): List<CsvRow> = parseRows(File(fileName))
 

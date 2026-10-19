@@ -2,15 +2,18 @@ package io.elephantchess.utils
 
 object SequenceUtils {
 
-    fun <T> allCombinationsOfMax(pieces: Collection<T>, maxSize: Int): Set<Set<T>> {
-        return allCombinations(pieces.toSet()).filter { it.size <= maxSize }.toSet()
-    }
+    fun <T> allCombinationsOfMax(pieces: Collection<T>, maxSize: Int): Set<Set<T>> = allCombinations(pieces.toSet()).filter {
+        it.size <= maxSize
+    }.toSet()
 
     fun <T> allCombinations(elements: Set<T>): Set<Set<T>> {
         when (elements.size) {
             0 -> return setOf()
+
             1 -> return elements.map { setOf(it) }.toSet()
+
             2 -> return elements.flatMap { e1 -> elements.map { e2 -> setOf(e1, e2) } }.toSet()
+
             else -> {
                 val first = elements.first()
                 val rest = elements - first
@@ -44,5 +47,4 @@ object SequenceUtils {
 
         return maxSeq.toList()
     }
-
 }

@@ -5,8 +5,7 @@ import io.elephantchess.model.UserType
 
 data class GuestToken(override val userId: String, val decoded: DecodedJWT) : VerifiedToken(decoded) {
 
-    override fun userId(): UserId =
-        UserId(UserType.GUEST, userId)
+    override fun userId(): UserId = UserId(UserType.GUEST, userId)
 
     override fun toString(): String {
         val attributes = mutableListOf<Pair<String, String>>()
@@ -18,5 +17,4 @@ data class GuestToken(override val userId: String, val decoded: DecodedJWT) : Ve
 
         return "GuestToken{${attributes.joinToString(", ") { (k, v) -> "$k=$v" }}}"
     }
-
 }

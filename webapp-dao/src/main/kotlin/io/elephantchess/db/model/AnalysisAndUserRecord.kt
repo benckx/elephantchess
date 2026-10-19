@@ -12,5 +12,4 @@ data class AnalysisAndUserRecord(private val record: Record7<String, Instant, In
     fun versionNumber(): Int = record.value5()
     fun userId(): String = record.value6()
     fun username(): String = record.value7()
-
 }

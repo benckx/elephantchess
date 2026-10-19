@@ -1,12 +1,11 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER
 import io.elephantchess.db.dao.codegen.tables.pojos.OpeningPreCalculationCacheReferencePlayer
 import io.elephantchess.db.services.OpeningRepositoryCacheDaoService.Companion.movesToKey
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
 import org.jooq.DSLContext
 
@@ -46,13 +45,10 @@ class OpeningRepositoryReferencePlayerCacheDaoService(private val dslContext: DS
     /**
      * @return `true` if [referencePlayerId] has any pre-calculated opening data.
      */
-    suspend fun hasOpeningData(referencePlayerId: String): Boolean {
-        return dslContext
-            .select(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.ID)
-            .from(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER)
-            .where(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.REFERENCE_PLAYER_ID.eq(referencePlayerId))
-            .limit(1)
-            .awaitSingleValue<Int>() != null
-    }
-
+    suspend fun hasOpeningData(referencePlayerId: String): Boolean = dslContext
+        .select(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.ID)
+        .from(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER)
+        .where(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.REFERENCE_PLAYER_ID.eq(referencePlayerId))
+        .limit(1)
+        .awaitSingleValue<Int>() != null
 }

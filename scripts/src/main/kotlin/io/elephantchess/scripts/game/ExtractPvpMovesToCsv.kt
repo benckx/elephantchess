@@ -8,8 +8,8 @@ import io.elephantchess.model.GameJoinSource
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
-import io.elephantchess.servicelayer.utils.calculateCpl
 import io.elephantchess.servicelayer.services.GameDataService
+import io.elephantchess.servicelayer.utils.calculateCpl
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color
@@ -103,7 +103,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 inviteeUser.ID,
                 inviteeUser.HANDLE,
                 inviteeUser.CREATION,
-                inviteeUser.USER_TYPE
+                inviteeUser.USER_TYPE,
             )
             .from(GAME)
             .join(GAME_MOVE).on(GAME_MOVE.GAME_ID.eq(GAME.ID))
@@ -165,7 +165,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 .flatMap { row ->
                     listOf(
                         row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID)),
-                        row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
+                        row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID)),
                     )
                 }
                 .distinct()
@@ -247,9 +247,11 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
                             GameJoinSource.LOBBY,
                             GameJoinSource.MATCHED,
-                            GameJoinSource.DYNAMIC_MATCHED -> "LOBBY"
+                            GameJoinSource.DYNAMIC_MATCHED,
+                            -> "LOBBY"
 
                             GameJoinSource.DISCORD_NOTIFICATION -> "DISCORD"
+
                             else -> ""
                         }
 
@@ -282,7 +284,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 redUserType?.name ?: "",
                                 blackAccountAge,
                                 blackUserType?.name ?: "",
-                            )
+                            ),
                         )
                     }
                 }
@@ -312,7 +314,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         val month = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
         val dotIndex = name.lastIndexOf('.')
         val baseName = if (dotIndex >= 0) name.substring(0, dotIndex) else name
-        val newName = "${baseName}_${variant.name.lowercase()}_${month}.zip"
+        val newName = "${baseName}_${variant.name.lowercase()}_$month.zip"
         return file.parentFile?.let { File(it, newName).path } ?: newName
     }
 
@@ -338,16 +340,13 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         return if (days >= 1) "${days}d" else "${totalSeconds / 3600}h"
     }
 
-    private fun timeControlToString(mode: TimeControlMode?, base: Int?, increment: Int?): String =
-        when (mode) {
-            TimeControlMode.GAME_TIME -> "${base ?: 0}+${increment ?: 0}"
-            TimeControlMode.MOVE_TIME -> "${base ?: 0}/move"
-            null -> ""
-        }
+    private fun timeControlToString(mode: TimeControlMode?, base: Int?, increment: Int?): String = when (mode) {
+        TimeControlMode.GAME_TIME -> "${base ?: 0}+${increment ?: 0}"
+        TimeControlMode.MOVE_TIME -> "${base ?: 0}/move"
+        null -> ""
+    }
 
     private data class PlayerRating(val before: Int?, val after: Int?)
 
-    private fun randomId(): String =
-        insecure().nextAlphanumeric(12)
-
+    private fun randomId(): String = insecure().nextAlphanumeric(12)
 }

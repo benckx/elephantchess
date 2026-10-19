@@ -17,11 +17,7 @@ data class PlayerVsPlayerUpdate(
     val typingUsers: List<TypingUser> = emptyList(),
 )
 
-data class TypingUser(
-    val userId: String,
-    val username: String,
-    val typedAt: Long,
-)
+data class TypingUser(val userId: String, val username: String, val typedAt: Long)
 
 data class HasJoined(
     val inviteeId: String,
@@ -31,11 +27,7 @@ data class HasJoined(
     val inviterColor: Color?,
 )
 
-data class NewMove(
-    val move: String,
-    val updatedIndex: Int,
-    val updatedFen: String,
-)
+data class NewMove(val move: String, val updatedIndex: Int, val updatedFen: String)
 
 data class RatingUpdate(
     val isRated: Boolean,

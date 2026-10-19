@@ -3,12 +3,7 @@ package io.elephantchess.servicelayer.dto.database
 import io.elephantchess.model.Outcome
 import java.time.LocalDate
 
-data class Event(
-    val id: String,
-    val name: String,
-    val scores: Map<String, Int>,
-    val games: List<Game>
-) {
+data class Event(val id: String, val name: String, val scores: Map<String, Int>, val games: List<Game>) {
 
     /**
      * Maps playerId to (display name, slug) pair
@@ -41,7 +36,6 @@ data class Event(
         val outcome: Outcome,
         val round: Int?,
         val date: LocalDate?,
-        val finalFen: String
+        val finalFen: String,
     )
-
 }

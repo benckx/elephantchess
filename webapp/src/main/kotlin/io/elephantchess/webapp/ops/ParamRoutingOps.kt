@@ -6,10 +6,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-suspend fun RoutingContext.requireParam(
-    paramName: String,
-    handler: suspend (String) -> Any,
-) {
+suspend fun RoutingContext.requireParam(paramName: String, handler: suspend (String) -> Any) {
     val paramValue = call.parameters[paramName]
     if (paramValue == null) {
         call.response.status(BadRequest)
@@ -26,9 +23,7 @@ suspend fun RoutingContext.requireUserId(handler: suspend (String) -> Any) {
     requireParam("userId", handler)
 }
 
-suspend fun RoutingContext.requireGlobalGameId(
-    handler: suspend (GameId) -> Any,
-) {
+suspend fun RoutingContext.requireGlobalGameId(handler: suspend (GameId) -> Any) {
     val gameIdParam = call.parameters["gameId"]
     val gameTypeParam = call.parameters["gameType"]
     val gameTypeValues = GameType.entries.map { it.name }

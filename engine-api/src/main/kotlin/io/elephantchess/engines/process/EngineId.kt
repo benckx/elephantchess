@@ -26,5 +26,4 @@ abstract class EngineId {
     override fun equals(other: Any?) = (other is EngineId) && (other.id == id)
 
     override fun hashCode() = id.hashCode()
-
 }

@@ -1,7 +1,5 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.UserDao
 import io.elephantchess.db.dao.codegen.tables.pojos.User
@@ -14,9 +12,10 @@ import io.elephantchess.db.utils.*
 import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
 import io.elephantchess.model.UserType.AUTHENTICATED
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.safeRandomAlphaNumericString
-import io.github.oshai.kotlinlogging.KLogger
 import io.elephantchess.xiangqi.Variant
+import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
 import org.jooq.TableField
 import org.jooq.impl.DSL
@@ -44,13 +43,12 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
     }
 
     suspend fun createGuestUser(): String {
-        suspend fun countCollision(transactional: DSLContext, id: String): Int =
-            transactional
-                .selectCount()
-                .from(USER)
-                .where(USER.ID.eq(id))
-                .and(USER.USER_TYPE.eq(UserType.GUEST))
-                .awaitSingleValue()!!
+        suspend fun countCollision(transactional: DSLContext, id: String): Int = transactional
+            .selectCount()
+            .from(USER)
+            .where(USER.ID.eq(id))
+            .and(USER.USER_TYPE.eq(UserType.GUEST))
+            .awaitSingleValue()!!
 
         var id: String? = null
 
@@ -82,18 +80,16 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         return id!!
     }
 
-    suspend fun fetchProfileSettings(userId: String): User? {
-        return dslContext
-            .select(
-                USER.DESCRIPTION,
-                USER.COUNTRY,
-                USER.SHOW_PVP_GAMES_ON_PROFILE,
-                USER.SHOW_PVB_GAMES_ON_PROFILE
-            )
-            .from(USER)
-            .where(USER.ID.eq(userId))
-            .awaitSingleMappedRecord<User>()
-    }
+    suspend fun fetchProfileSettings(userId: String): User? = dslContext
+        .select(
+            USER.DESCRIPTION,
+            USER.COUNTRY,
+            USER.SHOW_PVP_GAMES_ON_PROFILE,
+            USER.SHOW_PVB_GAMES_ON_PROFILE,
+        )
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .awaitSingleMappedRecord<User>()
 
     suspend fun updateProfileSettings(
         userId: String,
@@ -116,32 +112,30 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         }
     }
 
-    suspend fun fetchNotificationSettings(userId: String): NotificationsSettingsRecord? {
-        return dslContext
-            .select(
-                USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER,
-                USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME,
-                USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE,
-                USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED,
-                USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW,
-                USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW,
-                USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW
+    suspend fun fetchNotificationSettings(userId: String): NotificationsSettingsRecord? = dslContext
+        .select(
+            USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER,
+            USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME,
+            USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE,
+            USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED,
+            USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW,
+            USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW,
+            USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW,
+        )
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .awaitSingleMappedRecord<User>()
+        ?.let { userRecord ->
+            NotificationsSettingsRecord(
+                newsletter = userRecord.emailNotificationEnabledNewsletter,
+                opponentJoinedGame = userRecord.emailNotificationEnabledUserJoinedGame,
+                opponentPlayedMove = userRecord.emailNotificationEnabledOpponentPlayedMove,
+                opponentResigned = userRecord.emailNotificationEnabledOpponentResigned,
+                opponentProposedDraw = userRecord.emailNotificationEnabledOpponentProposedDraw,
+                opponentAcceptedDraw = userRecord.emailNotificationEnabledOpponentAcceptedDraw,
+                opponentDeclinedDraw = userRecord.emailNotificationEnabledOpponentDeclinedDraw,
             )
-            .from(USER)
-            .where(USER.ID.eq(userId))
-            .awaitSingleMappedRecord<User>()
-            ?.let { userRecord ->
-                NotificationsSettingsRecord(
-                    newsletter = userRecord.emailNotificationEnabledNewsletter,
-                    opponentJoinedGame = userRecord.emailNotificationEnabledUserJoinedGame,
-                    opponentPlayedMove = userRecord.emailNotificationEnabledOpponentPlayedMove,
-                    opponentResigned = userRecord.emailNotificationEnabledOpponentResigned,
-                    opponentProposedDraw = userRecord.emailNotificationEnabledOpponentProposedDraw,
-                    opponentAcceptedDraw = userRecord.emailNotificationEnabledOpponentAcceptedDraw,
-                    opponentDeclinedDraw = userRecord.emailNotificationEnabledOpponentDeclinedDraw,
-                )
-            }
-    }
+        }
 
     suspend fun updateNotificationSettings(
         userId: String,
@@ -197,23 +191,19 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         }
     }
 
-    suspend fun fetchEmail(userId: String): String? {
-        return dslContext
-            .select(USER.EMAIL)
-            .from(USER)
-            .where(USER.ID.eq(userId))
-            .and(USER.USER_TYPE.eq(AUTHENTICATED))
-            .awaitSingleValue()
-    }
+    suspend fun fetchEmail(userId: String): String? = dslContext
+        .select(USER.EMAIL)
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .and(USER.USER_TYPE.eq(AUTHENTICATED))
+        .awaitSingleValue()
 
-    suspend fun listNewsletterEmailAddresses(): List<String> {
-        return dslContext
-            .select(USER.EMAIL)
-            .from(USER)
-            .where(USER.EMAIL.isNotNull)
-            .and(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER.isTrue)
-            .awaitMappedRecords()
-    }
+    suspend fun listNewsletterEmailAddresses(): List<String> = dslContext
+        .select(USER.EMAIL)
+        .from(USER)
+        .where(USER.EMAIL.isNotNull)
+        .and(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER.isTrue)
+        .awaitMappedRecords()
 
     suspend fun updatePassword(userId: String, password: ByteArray) {
         dslContext.transactionCoroutine { cfg ->
@@ -229,92 +219,74 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
     /**
      * Case-insensitive email, case sensitive username
      */
-    suspend fun findByLogin(login: String): User? {
-        return dslContext
-            .select()
-            .from(USER)
-            .where(USER.HANDLE.eq(login))
-            .or(DSL.lower(USER.EMAIL).eq(login.lowercase()))
-            .awaitSingleMappedRecord()
-    }
+    suspend fun findByLogin(login: String): User? = dslContext
+        .select()
+        .from(USER)
+        .where(USER.HANDLE.eq(login))
+        .or(DSL.lower(USER.EMAIL).eq(login.lowercase()))
+        .awaitSingleMappedRecord()
 
-    suspend fun findByUserName(username: String): User? {
-        return dslContext
-            .select()
-            .from(USER)
-            .where(USER.HANDLE.eq(username))
-            .awaitSingleMappedRecord()
-    }
+    suspend fun findByUserName(username: String): User? = dslContext
+        .select()
+        .from(USER)
+        .where(USER.HANDLE.eq(username))
+        .awaitSingleMappedRecord()
 
     /**
      * Case-insensitive and trim-insensitive
      */
-    suspend fun findByEmail(email: String): User? {
-        return dslContext
-            .select()
-            .from(USER)
-            .where(USER.EMAIL.eqIgnoreCaseTrimmed(email))
-            .awaitSingleMappedRecord()
-    }
+    suspend fun findByEmail(email: String): User? = dslContext
+        .select()
+        .from(USER)
+        .where(USER.EMAIL.eqIgnoreCaseTrimmed(email))
+        .awaitSingleMappedRecord()
 
-    suspend fun findUserNameById(userId: String): String? {
-        return dslContext
-            .select(USER.HANDLE)
-            .from(USER)
-            .where(USER.ID.eq(userId))
-            .awaitSingleValue()
-    }
+    suspend fun findUserNameById(userId: String): String? = dslContext
+        .select(USER.HANDLE)
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .awaitSingleValue()
 
-    suspend fun searchForUsernames(usernames: List<String>): List<String> {
-        return dslContext
-            .select(USER.ID)
-            .from(USER)
-            .where(
-                DSL.lower(DSL.trim(USER.HANDLE))
-                    .`in`(usernames.map { it.trim().lowercase() })
-            )
-            .awaitMappedRecords()
-    }
+    suspend fun searchForUsernames(usernames: List<String>): List<String> = dslContext
+        .select(USER.ID)
+        .from(USER)
+        .where(
+            DSL.lower(DSL.trim(USER.HANDLE))
+                .`in`(usernames.map { it.trim().lowercase() }),
+        )
+        .awaitMappedRecords()
 
-    suspend fun fetchBasicInformation(userId: String): User? {
-        return dslContext
-            .select(
-                USER.ID,
-                USER.HANDLE,
-                USER.USER_TYPE,
-                USER.CREATION,
-                USER.HAS_ROLE_ADMIN,
-                USER.HAS_ROLE_EDITOR,
-            )
-            .from(USER)
-            .where(USER.ID.eq(userId))
-            .awaitSingleOrNull()
-    }
+    suspend fun fetchBasicInformation(userId: String): User? = dslContext
+        .select(
+            USER.ID,
+            USER.HANDLE,
+            USER.USER_TYPE,
+            USER.CREATION,
+            USER.HAS_ROLE_ADMIN,
+            USER.HAS_ROLE_EDITOR,
+        )
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .awaitSingleOrNull()
 
-    suspend fun findById(userId: String): User? {
-        return dslContext
-            .select()
-            .from(USER)
-            .where(USER.ID.eq(userId))
-            .awaitSingleMappedRecord()
-    }
+    suspend fun findById(userId: String): User? = dslContext
+        .select()
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .awaitSingleMappedRecord()
 
-    suspend fun listManuallyConfirmedEmailAddresses(): List<String> {
-        return dslContext
-            .select(USER.EMAIL)
-            .from(USER)
-            .where(USER.EMAIL.isNotNull)
-            .and(USER.EMAIL_CONFIRMED_AT.isNotNull)
-            .awaitMappedRecords()
-    }
+    suspend fun listManuallyConfirmedEmailAddresses(): List<String> = dslContext
+        .select(USER.EMAIL)
+        .from(USER)
+        .where(USER.EMAIL.isNotNull)
+        .and(USER.EMAIL_CONFIRMED_AT.isNotNull)
+        .awaitMappedRecords()
 
-    suspend fun findByEmailConfirmationCode(code: String): User? {
-        return dslContext
-            .select()
-            .from(USER)
-            .where(USER.EMAIL_CONFIRMATION_CODE.eq(code))
-            .awaitSingleMappedRecord()
-    }
+    suspend fun findByEmailConfirmationCode(code: String): User? = dslContext
+        .select()
+        .from(USER)
+        .where(USER.EMAIL_CONFIRMATION_CODE.eq(code))
+        .awaitSingleMappedRecord()
 
     suspend fun markEmailConfirmed(userId: String, confirmedAt: Instant) {
         dslContext.transactionCoroutine { cfg ->
@@ -339,32 +311,26 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         }
     }
 
-    suspend fun existsById(userId: String): Boolean {
-        return dslContext
-            .selectCount()
-            .from(USER)
-            .where(USER.ID.eq(userId))
-            .awaitSingleValue<Int>()!! > 0
-    }
+    suspend fun existsById(userId: String): Boolean = dslContext
+        .selectCount()
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .awaitSingleValue<Int>()!! > 0
 
     /**
      * Case-insensitive and trim-insensitive
      */
-    suspend fun existsForEmail(email: String): Boolean {
-        return dslContext
-            .selectCount()
-            .from(USER)
-            .where(USER.EMAIL.eqIgnoreCaseTrimmed(email))
-            .awaitSingleValue<Int>()!! > 0
-    }
+    suspend fun existsForEmail(email: String): Boolean = dslContext
+        .selectCount()
+        .from(USER)
+        .where(USER.EMAIL.eqIgnoreCaseTrimmed(email))
+        .awaitSingleValue<Int>()!! > 0
 
-    suspend fun existsForUsername(username: String): Boolean {
-        return dslContext
-            .selectCount()
-            .from(USER)
-            .where(USER.HANDLE.eq(username))
-            .awaitSingleValue<Int>()!! > 0
-    }
+    suspend fun existsForUsername(username: String): Boolean = dslContext
+        .selectCount()
+        .from(USER)
+        .where(USER.HANDLE.eq(username))
+        .awaitSingleValue<Int>()!! > 0
 
     suspend fun updateLastOnline(userId: String) {
         dslContext.transactionCoroutine { cfg ->
@@ -417,11 +383,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         }
     }
 
-    suspend fun updateSessionExpirationInfo(
-        userId: String,
-        oldExpirationTime: Instant,
-        newExpirationTime: Instant,
-    ) {
+    suspend fun updateSessionExpirationInfo(userId: String, oldExpirationTime: Instant, newExpirationTime: Instant) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
@@ -434,57 +396,52 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         }
     }
 
-    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int): List<PuzzleLeaderboardRecord> {
-        return fetchPuzzleLeaderboard(maxNumberOfEntries, Instant.fromEpochSeconds(0L))
-    }
+    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int): List<PuzzleLeaderboardRecord> =
+        fetchPuzzleLeaderboard(maxNumberOfEntries, Instant.fromEpochSeconds(0L))
 
     suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int, days: Long): List<PuzzleLeaderboardRecord> {
         val since = Clock.System.now().minusDays(days)
         return fetchPuzzleLeaderboard(maxNumberOfEntries, since)
     }
 
-    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int, since: Instant): List<PuzzleLeaderboardRecord> {
-        return dslContext
-            .select(
-                USER.ID,
-                USER.HANDLE,
-                USER.COUNTRY,
-                USER.PUZZLE_RATING,
-                DSL.max(PUZZLE_RESULT.PLAYER_RATING_TO).`as`("max_rating"),
-                DSL.count().`as`("total_played"),
-                DSL.max(PUZZLE_RESULT.ENTRY_CREATION).`as`("last_played")
+    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int, since: Instant): List<PuzzleLeaderboardRecord> = dslContext
+        .select(
+            USER.ID,
+            USER.HANDLE,
+            USER.COUNTRY,
+            USER.PUZZLE_RATING,
+            DSL.max(PUZZLE_RESULT.PLAYER_RATING_TO).`as`("max_rating"),
+            DSL.count().`as`("total_played"),
+            DSL.max(PUZZLE_RESULT.ENTRY_CREATION).`as`("last_played"),
+        )
+        .from(USER, PUZZLE_RESULT)
+        .where(USER.ID.eq(PUZZLE_RESULT.USER_ID))
+        .and(USER.USER_TYPE.eq(AUTHENTICATED))
+        .and(PUZZLE_RESULT.ENTRY_CREATION.ge(since))
+        .groupBy(USER.ID, USER.HANDLE, USER.PUZZLE_RATING)
+        .orderBy(USER.PUZZLE_RATING.desc())
+        .limit(maxNumberOfEntries)
+        .awaitRecords()
+        .map { record ->
+            PuzzleLeaderboardRecord(
+                userId = record.get(USER.ID),
+                username = record.get(USER.HANDLE, String::class.java),
+                countryCode = record.get(USER.COUNTRY),
+                currentRating = record.get(USER.PUZZLE_RATING),
+                maxRating = record.get("max_rating", Int::class.java),
+                totalPlayed = record.get("total_played", Int::class.java),
+                lastPlayed = record.get("last_played", Instant::class.java),
             )
-            .from(USER, PUZZLE_RESULT)
-            .where(USER.ID.eq(PUZZLE_RESULT.USER_ID))
-            .and(USER.USER_TYPE.eq(AUTHENTICATED))
-            .and(PUZZLE_RESULT.ENTRY_CREATION.ge(since))
-            .groupBy(USER.ID, USER.HANDLE, USER.PUZZLE_RATING)
-            .orderBy(USER.PUZZLE_RATING.desc())
-            .limit(maxNumberOfEntries)
-            .awaitRecords()
-            .map { record ->
-                PuzzleLeaderboardRecord(
-                    userId = record.get(USER.ID),
-                    username = record.get(USER.HANDLE, String::class.java),
-                    countryCode = record.get(USER.COUNTRY),
-                    currentRating = record.get(USER.PUZZLE_RATING),
-                    maxRating = record.get("max_rating", Int::class.java),
-                    totalPlayed = record.get("total_played", Int::class.java),
-                    lastPlayed = record.get("last_played", Instant::class.java)
-                )
-            }
-    }
+        }
 
-    suspend fun fetchAllRatings(userId: String): User? {
-        return dslContext
-            .select(listRatingFields())
-            .from(USER)
-            .where(USER.ID.eq(userId))
-            .awaitSingleMappedRecord()
-    }
+    suspend fun fetchAllRatings(userId: String): User? = dslContext
+        .select(listRatingFields())
+        .from(USER)
+        .where(USER.ID.eq(userId))
+        .awaitSingleMappedRecord()
 
-    suspend fun fetchNumberOfGamesAndLastPlayed(userIds: List<String>): List<PlayerVsPlayerNumberOfGamesAndLastPlayedRecord> {
-        return TimeControlCategory
+    suspend fun fetchNumberOfGamesAndLastPlayed(userIds: List<String>): List<PlayerVsPlayerNumberOfGamesAndLastPlayedRecord> =
+        TimeControlCategory
             .entries
             .filterNot { it == TimeControlCategory.SEVERAL_DAYS }
             .flatMap { timeControlCategory ->
@@ -493,7 +450,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                         USER.ID,
                         GAME.TIME_CONTROL_CATEGORY,
                         DSL.max(GAME.LAST_UPDATED).`as`("last_played"),
-                        DSL.count(GAME.ID).`as`("total_played")
+                        DSL.count(GAME.ID).`as`("total_played"),
                     )
                     .from(USER, GAME)
                     .where(USER.USER_TYPE.eq(AUTHENTICATED))
@@ -507,14 +464,13 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                             userId = record4.get(USER.ID),
                             category = record4.get(GAME.TIME_CONTROL_CATEGORY),
                             totalPlayed = record4.get("total_played", Int::class.java),
-                            lastPlayed = record4.get("last_played", Instant::class.java)
+                            lastPlayed = record4.get("last_played", Instant::class.java),
                         )
                     }
             }
-    }
 
-    suspend fun fetchUsersWithHighestRating(numberOfUsers: Int): Map<TimeControlCategory, List<User>> {
-        return listXiangqiRatingFields().mapNotNull { field ->
+    suspend fun fetchUsersWithHighestRating(numberOfUsers: Int): Map<TimeControlCategory, List<User>> =
+        listXiangqiRatingFields().mapNotNull { field ->
             mapXiangqiRatingFieldToTimeControlCategory(field)?.let { category ->
                 val users = dslContext
                     .select()
@@ -529,7 +485,6 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             }
         }
             .toMap()
-    }
 
     suspend fun fetchRatingSummary(
         timeControlCategory: TimeControlCategory,
@@ -542,7 +497,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             dslContext
                 .select(
                     DSL.count().`as`("user_count"),
-                    DSL.avg(ratingField).`as`("avg_rating")
+                    DSL.avg(ratingField).`as`("avg_rating"),
                 )
                 .from(USER)
                 .where(userTypeCondition)
@@ -564,7 +519,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             return UserRatingExtremum(
                 userId = record.get(USER.ID),
                 username = record.get(USER.HANDLE),
-                rating = record.get("rating", Int::class.java)
+                rating = record.get("rating", Int::class.java),
             )
         }
 
@@ -585,32 +540,26 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         )
     }
 
-    suspend fun countAuthenticated(): Int {
-        return dslContext
-            .selectCount()
-            .from(USER)
-            .where(USER.USER_TYPE.eq(AUTHENTICATED))
-            .awaitSingleValue()!!
-    }
+    suspend fun countAuthenticated(): Int = dslContext
+        .selectCount()
+        .from(USER)
+        .where(USER.USER_TYPE.eq(AUTHENTICATED))
+        .awaitSingleValue()!!
 
-    suspend fun countGuestsWithSessionAtLeast(sessionDuration: Duration): Int {
-        return dslContext
-            .selectCount()
-            .from(USER)
-            .where(USER.USER_TYPE.eq(UserType.GUEST))
-            .and(diffInSeconds(USER.LAST_ONLINE, USER.CREATION).gt(sessionDuration.inWholeSeconds.toInt()))
-            .awaitSingleValue()!!
-    }
+    suspend fun countGuestsWithSessionAtLeast(sessionDuration: Duration): Int = dslContext
+        .selectCount()
+        .from(USER)
+        .where(USER.USER_TYPE.eq(UserType.GUEST))
+        .and(diffInSeconds(USER.LAST_ONLINE, USER.CREATION).gt(sessionDuration.inWholeSeconds.toInt()))
+        .awaitSingleValue()!!
 
-    suspend fun countGuestsWithSessionAtLeastAndActiveWithin(sessionDuration: Duration, activeWithin: Duration): Int {
-        return dslContext
-            .selectCount()
-            .from(USER)
-            .where(USER.USER_TYPE.eq(UserType.GUEST))
-            .and(diffInSeconds(USER.LAST_ONLINE, USER.CREATION).gt(sessionDuration.inWholeSeconds.toInt()))
-            .and(USER.LAST_ONLINE.isWithin(activeWithin))
-            .awaitSingleValue()!!
-    }
+    suspend fun countGuestsWithSessionAtLeastAndActiveWithin(sessionDuration: Duration, activeWithin: Duration): Int = dslContext
+        .selectCount()
+        .from(USER)
+        .where(USER.USER_TYPE.eq(UserType.GUEST))
+        .and(diffInSeconds(USER.LAST_ONLINE, USER.CREATION).gt(sessionDuration.inWholeSeconds.toInt()))
+        .and(USER.LAST_ONLINE.isWithin(activeWithin))
+        .awaitSingleValue()!!
 
     suspend fun countActiveRecently(
         duration: Duration,
@@ -653,7 +602,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .select(
                     USER.ID,
                     USER.HANDLE,
-                    USER.USER_TYPE
+                    USER.USER_TYPE,
                 )
                 .from(USER)
                 .where(USER.LAST_ONLINE.isWithin(duration))
@@ -665,39 +614,33 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         return select.awaitMappedRecords<User>()
     }
 
-    suspend fun latestNewGuestUser(): Instant? {
-        return dslContext
-            .select(USER.CREATION)
-            .from(USER)
-            .where(USER.USER_TYPE.eq(UserType.GUEST))
-            .orderBy(USER.CREATION.desc())
-            .limit(1)
-            .awaitSingleValue()
-    }
+    suspend fun latestNewGuestUser(): Instant? = dslContext
+        .select(USER.CREATION)
+        .from(USER)
+        .where(USER.USER_TYPE.eq(UserType.GUEST))
+        .orderBy(USER.CREATION.desc())
+        .limit(1)
+        .awaitSingleValue()
 
-    suspend fun latestNewAuthenticatedUser(): Instant? {
-        return dslContext
-            .select(USER.CREATION)
-            .from(USER)
-            .where(USER.USER_TYPE.eq(AUTHENTICATED))
-            .orderBy(USER.CREATION.desc())
-            .limit(1)
-            .awaitSingleValue()
-    }
+    suspend fun latestNewAuthenticatedUser(): Instant? = dslContext
+        .select(USER.CREATION)
+        .from(USER)
+        .where(USER.USER_TYPE.eq(AUTHENTICATED))
+        .orderBy(USER.CREATION.desc())
+        .limit(1)
+        .awaitSingleValue()
 
-    suspend fun listUsersWithDescriptionForSiteMap(): List<Pair<String, Instant>> {
-        return dslContext
-            .select(USER.HANDLE, USER.LAST_PROFILE_UPDATE)
-            .from(USER)
-            .where(USER.DESCRIPTION.isNotNull)
-            .and(USER.DESCRIPTION.ne(""))
-            .and(USER.LAST_PROFILE_UPDATE.isNotNull)
-            .orderBy(USER.HANDLE.asc())
-            .awaitRecords()
-            .map { record ->
-                record.get(USER.HANDLE) to record.get(USER.LAST_PROFILE_UPDATE)
-            }
-    }
+    suspend fun listUsersWithDescriptionForSiteMap(): List<Pair<String, Instant>> = dslContext
+        .select(USER.HANDLE, USER.LAST_PROFILE_UPDATE)
+        .from(USER)
+        .where(USER.DESCRIPTION.isNotNull)
+        .and(USER.DESCRIPTION.ne(""))
+        .and(USER.LAST_PROFILE_UPDATE.isNotNull)
+        .orderBy(USER.HANDLE.asc())
+        .awaitRecords()
+        .map { record ->
+            record.get(USER.HANDLE) to record.get(USER.LAST_PROFILE_UPDATE)
+        }
 
     private companion object {
 
@@ -710,102 +653,85 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             val field: TableField<UserRecord, Int>,
         )
 
-        data class UserRatingExtremum(
-            val userId: String,
-            val username: String?,
-            val rating: Int,
+        data class UserRatingExtremum(val userId: String, val username: String?, val rating: Int)
+
+        fun listRatingFieldDefinitions(): List<RatingFieldDefinition> = listOf(
+            RatingFieldDefinition(
+                TimeControlCategory.BULLET,
+                Variant.XIANGQI,
+                USER.GAME_RATING_BULLET,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.BLITZ,
+                Variant.XIANGQI,
+                USER.GAME_RATING_BLITZ,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.RAPID,
+                Variant.XIANGQI,
+                USER.GAME_RATING_RAPID,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.CLASSICAL,
+                Variant.XIANGQI,
+                USER.GAME_RATING_CLASSICAL,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.SEVERAL_DAYS,
+                Variant.XIANGQI,
+                USER.GAME_RATING_SEVERAL_DAYS,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.CORRESPONDENCE,
+                Variant.XIANGQI,
+                USER.GAME_RATING_CORRESPONDENCE,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.BULLET,
+                Variant.MANCHU,
+                USER.GAME_RATING_MANCHU_BULLET,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.BLITZ,
+                Variant.MANCHU,
+                USER.GAME_RATING_MANCHU_BLITZ,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.RAPID,
+                Variant.MANCHU,
+                USER.GAME_RATING_MANCHU_RAPID,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.CLASSICAL,
+                Variant.MANCHU,
+                USER.GAME_RATING_MANCHU_CLASSICAL,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.SEVERAL_DAYS,
+                Variant.MANCHU,
+                USER.GAME_RATING_MANCHU_SEVERAL_DAYS,
+            ),
+            RatingFieldDefinition(
+                TimeControlCategory.CORRESPONDENCE,
+                Variant.MANCHU,
+                USER.GAME_RATING_MANCHU_CORRESPONDENCE,
+            ),
         )
 
-        fun listRatingFieldDefinitions(): List<RatingFieldDefinition> {
-            return listOf(
-                RatingFieldDefinition(
-                    TimeControlCategory.BULLET,
-                    Variant.XIANGQI,
-                    USER.GAME_RATING_BULLET
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.BLITZ,
-                    Variant.XIANGQI,
-                    USER.GAME_RATING_BLITZ
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.RAPID,
-                    Variant.XIANGQI,
-                    USER.GAME_RATING_RAPID
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.CLASSICAL,
-                    Variant.XIANGQI,
-                    USER.GAME_RATING_CLASSICAL
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.SEVERAL_DAYS,
-                    Variant.XIANGQI,
-                    USER.GAME_RATING_SEVERAL_DAYS
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.CORRESPONDENCE,
-                    Variant.XIANGQI,
-                    USER.GAME_RATING_CORRESPONDENCE
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.BULLET,
-                    Variant.MANCHU,
-                    USER.GAME_RATING_MANCHU_BULLET
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.BLITZ,
-                    Variant.MANCHU,
-                    USER.GAME_RATING_MANCHU_BLITZ
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.RAPID,
-                    Variant.MANCHU,
-                    USER.GAME_RATING_MANCHU_RAPID
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.CLASSICAL,
-                    Variant.MANCHU,
-                    USER.GAME_RATING_MANCHU_CLASSICAL
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.SEVERAL_DAYS,
-                    Variant.MANCHU,
-                    USER.GAME_RATING_MANCHU_SEVERAL_DAYS
-                ),
-                RatingFieldDefinition(
-                    TimeControlCategory.CORRESPONDENCE,
-                    Variant.MANCHU,
-                    USER.GAME_RATING_MANCHU_CORRESPONDENCE
-                ),
-            )
-        }
+        fun listRatingFields(): List<TableField<UserRecord, Int>> = listRatingFieldDefinitions().map { it.field }
 
-        fun listRatingFields(): List<TableField<UserRecord, Int>> {
-            return listRatingFieldDefinitions().map { it.field }
-        }
+        fun listXiangqiRatingFields(): List<TableField<UserRecord, Int>> = listRatingFieldDefinitions()
+            .filter { it.variant == Variant.XIANGQI }
+            .map { it.field }
 
-        fun listXiangqiRatingFields(): List<TableField<UserRecord, Int>> {
-            return listRatingFieldDefinitions()
-                .filter { it.variant == Variant.XIANGQI }
-                .map { it.field }
-        }
-
-        fun mapXiangqiRatingFieldToTimeControlCategory(field: TableField<UserRecord, Int>): TimeControlCategory? {
-            return listRatingFieldDefinitions()
+        fun mapXiangqiRatingFieldToTimeControlCategory(field: TableField<UserRecord, Int>): TimeControlCategory? =
+            listRatingFieldDefinitions()
                 .firstOrNull { it.field == field && it.variant == Variant.XIANGQI }
                 ?.timeControlCategory
-        }
 
-        fun findRatingField(
-            timeControlCategory: TimeControlCategory,
-            variant: Variant,
-        ): TableField<UserRecord, Int> {
-            return listRatingFieldDefinitions()
+        fun findRatingField(timeControlCategory: TimeControlCategory, variant: Variant): TableField<UserRecord, Int> =
+            listRatingFieldDefinitions()
                 .first { it.timeControlCategory == timeControlCategory && it.variant == variant }
                 .field
-        }
-
     }
-
 }

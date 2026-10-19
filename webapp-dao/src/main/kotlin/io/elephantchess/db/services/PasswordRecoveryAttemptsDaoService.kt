@@ -1,13 +1,12 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.tables.PasswordRecoveryAttempt.PASSWORD_RECOVERY_ATTEMPT
 import io.elephantchess.db.dao.codegen.tables.daos.PasswordRecoveryAttemptDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PasswordRecoveryAttempt
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.insertReactive
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -22,17 +21,15 @@ class PasswordRecoveryAttemptsDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchBy(email: String, code: String): PasswordRecoveryAttempt? {
-        return dslContext
-            .select()
-            .from(PASSWORD_RECOVERY_ATTEMPT)
-            .where(PASSWORD_RECOVERY_ATTEMPT.EMAIL_PROVIDED.eq(email))
-            .and(PASSWORD_RECOVERY_ATTEMPT.RECOVERY_CODE.eq(code))
-            .and(PASSWORD_RECOVERY_ATTEMPT.MATCHING_USER_ID.isNotNull)
-            .and(PASSWORD_RECOVERY_ATTEMPT.HAS_BEEN_RECOVERED.eq(false))
-            .awaitMappedRecords<PasswordRecoveryAttempt>()
-            .firstOrNull()
-    }
+    suspend fun fetchBy(email: String, code: String): PasswordRecoveryAttempt? = dslContext
+        .select()
+        .from(PASSWORD_RECOVERY_ATTEMPT)
+        .where(PASSWORD_RECOVERY_ATTEMPT.EMAIL_PROVIDED.eq(email))
+        .and(PASSWORD_RECOVERY_ATTEMPT.RECOVERY_CODE.eq(code))
+        .and(PASSWORD_RECOVERY_ATTEMPT.MATCHING_USER_ID.isNotNull)
+        .and(PASSWORD_RECOVERY_ATTEMPT.HAS_BEEN_RECOVERED.eq(false))
+        .awaitMappedRecords<PasswordRecoveryAttempt>()
+        .firstOrNull()
 
     suspend fun updateRecoveryTime(id: Int) {
         dslContext.transactionCoroutine { cfg ->
@@ -46,13 +43,10 @@ class PasswordRecoveryAttemptsDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listLatestAttempts(limit: Int): List<PasswordRecoveryAttempt> {
-        return dslContext
-            .select()
-            .from(PASSWORD_RECOVERY_ATTEMPT)
-            .orderBy(PASSWORD_RECOVERY_ATTEMPT.ENTRY_CREATION.desc())
-            .limit(limit)
-            .awaitMappedRecords()
-    }
-
+    suspend fun listLatestAttempts(limit: Int): List<PasswordRecoveryAttempt> = dslContext
+        .select()
+        .from(PASSWORD_RECOVERY_ATTEMPT)
+        .orderBy(PASSWORD_RECOVERY_ATTEMPT.ENTRY_CREATION.desc())
+        .limit(limit)
+        .awaitMappedRecords()
 }

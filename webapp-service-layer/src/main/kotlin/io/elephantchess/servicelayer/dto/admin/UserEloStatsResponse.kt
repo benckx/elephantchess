@@ -3,10 +3,7 @@ package io.elephantchess.servicelayer.dto.admin
 import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.xiangqi.Variant
 
-data class UserEloStatsResponse(
-    val authenticatedEntries: List<Entry>,
-    val guestEntries: List<Entry>,
-) {
+data class UserEloStatsResponse(val authenticatedEntries: List<Entry>, val guestEntries: List<Entry>) {
 
     data class Entry(
         val variant: Variant,
@@ -20,5 +17,4 @@ data class UserEloStatsResponse(
         val maxUsername: String?,
         val maxRating: Int?,
     )
-
 }

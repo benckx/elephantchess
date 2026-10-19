@@ -53,8 +53,8 @@ object FindMatePuzzleCandidates : KoinScript {
                 PikafishEngineId to EngineConfig(
                     version = "2023-03-05",
                     poolSize = 1,
-                    numberOfThreads = ENGINE_THREADS
-                )
+                    numberOfThreads = ENGINE_THREADS,
+                ),
             ),
             executor = Executors.newVirtualThreadPerTaskExecutor(),
             engineProcessLocator = LocalProcessLocator,
@@ -62,27 +62,26 @@ object FindMatePuzzleCandidates : KoinScript {
 
         initKoin(
             appProfile = PROFILE,
-            enginesPool = enginePool
+            enginesPool = enginePool,
         )
     }
 
-    private suspend fun fetchReferenceGamesWithoutPuzzle(): List<ReferenceGame> =
-        dslContext
-            .selectFrom(REFERENCE_GAME)
-            .where(REFERENCE_GAME.FINAL_FEN.isNotNull)
-            .and(REFERENCE_GAME.SOURCE.isNotNull)
-            .and(REFERENCE_GAME.SOURCE_ID.isNotNull)
-            // the final position must still be playable (the game ended before mate, e.g. on resignation)
-            .and(REFERENCE_GAME.IS_CHECKMATE.ne(true).or(REFERENCE_GAME.IS_CHECKMATE.isNull))
-            .and(REFERENCE_GAME.IS_STALEMATE.ne(true).or(REFERENCE_GAME.IS_STALEMATE.isNull))
-            .and(
-                REFERENCE_GAME.SOURCE_ID.notIn(
-                    dslContext
-                        .select(PUZZLE.REF_GAME_SOURCE_ID)
-                        .from(PUZZLE)
-                )
-            )
-            .awaitMappedRecords<ReferenceGame>()
+    private suspend fun fetchReferenceGamesWithoutPuzzle(): List<ReferenceGame> = dslContext
+        .selectFrom(REFERENCE_GAME)
+        .where(REFERENCE_GAME.FINAL_FEN.isNotNull)
+        .and(REFERENCE_GAME.SOURCE.isNotNull)
+        .and(REFERENCE_GAME.SOURCE_ID.isNotNull)
+        // the final position must still be playable (the game ended before mate, e.g. on resignation)
+        .and(REFERENCE_GAME.IS_CHECKMATE.ne(true).or(REFERENCE_GAME.IS_CHECKMATE.isNull))
+        .and(REFERENCE_GAME.IS_STALEMATE.ne(true).or(REFERENCE_GAME.IS_STALEMATE.isNull))
+        .and(
+            REFERENCE_GAME.SOURCE_ID.notIn(
+                dslContext
+                    .select(PUZZLE.REF_GAME_SOURCE_ID)
+                    .from(PUZZLE),
+            ),
+        )
+        .awaitMappedRecords<ReferenceGame>()
 
     private suspend fun evaluate(game: ReferenceGame, finalFen: String): MatePuzzleCandidate? {
         logger.info { "evaluating ${game.id} (fen=$finalFen)" }
@@ -99,7 +98,7 @@ object FindMatePuzzleCandidates : KoinScript {
             fen = finalFen,
             engineId = PikafishEngineId,
             depth = DEPTH,
-            timeout = TIME_OUT
+            timeout = TIME_OUT,
         )
         if (result == null) {
             logger.info { "${game.id}: engine returned no result (timeout or acquisition failure), skipping" }
@@ -157,7 +156,7 @@ object FindMatePuzzleCandidates : KoinScript {
             mate = mate,
             depth = mateLine.depth ?: DEPTH,
             startFen = finalFen,
-            solutionMoves = solutionMoves
+            solutionMoves = solutionMoves,
         )
     }
 
@@ -237,5 +236,4 @@ object FindMatePuzzleCandidates : KoinScript {
         val hours = remainingMs / 1000 / 60 / 60
         return "%02d:%02d:%02d".format(hours, minutes, seconds)
     }
-
 }

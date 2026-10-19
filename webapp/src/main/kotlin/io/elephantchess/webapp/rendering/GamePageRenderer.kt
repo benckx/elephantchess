@@ -1,13 +1,12 @@
 package io.elephantchess.webapp.rendering
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.model.Engine
 import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
 
 @KoinSingleton(eager = true)
@@ -15,7 +14,7 @@ class GamePageRenderer(
     private val htmlRenderer: HtmlRenderer,
     private val kofiService: KofiService,
     private val pvpGameService: PlayerVsPlayerGameService,
-    private val pvbGameService: PlayerVsBotGameService
+    private val pvbGameService: PlayerVsBotGameService,
 ) {
 
     suspend fun renderPvpGamePage(gameId: String): String {
@@ -24,9 +23,9 @@ class GamePageRenderer(
         return htmlRenderer.renderHtml(
             templatePath = "/templates/player_vs_player_game.html",
             specificTagResolvers = listOf(
-                SimpleValueTagResolver("page_title", title)
+                SimpleValueTagResolver("page_title", title),
             ),
-            canonicalPath = "/game?id=$gameId"
+            canonicalPath = "/game?id=$gameId",
         )
     }
 
@@ -38,9 +37,9 @@ class GamePageRenderer(
             templatePath = "/templates/player_vs_bot.html",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("page_title", title),
-                latestSupporterTagResolver(latestSupporter)
+                latestSupporterTagResolver(latestSupporter),
             ),
-            canonicalPath = "/playbot?id=$gameId"
+            canonicalPath = "/playbot?id=$gameId",
         )
     }
 
@@ -71,11 +70,7 @@ class GamePageRenderer(
         internal const val DEFAULT_PVP_TITLE = "Game"
         internal const val DEFAULT_PVB_TITLE = "Play vs. Bot"
 
-        internal fun formatPvpPageTitle(
-            inviterUsername: String,
-            inviteeUsername: String?,
-            inviterColor: Color?
-        ): String {
+        internal fun formatPvpPageTitle(inviterUsername: String, inviteeUsername: String?, inviterColor: Color?): String {
             if (inviterColor == null) {
                 return "new game by $inviterUsername"
             }
@@ -97,12 +92,9 @@ class GamePageRenderer(
             }
         }
 
-        private fun formatEngineName(engine: Engine): String {
-            return when (engine) {
-                Engine.PIKAFISH -> "Pikafish"
-                Engine.FAIRYSTOCKFISH -> "Fairy Stockfish"
-            }
+        private fun formatEngineName(engine: Engine): String = when (engine) {
+            Engine.PIKAFISH -> "Pikafish"
+            Engine.FAIRYSTOCKFISH -> "Fairy Stockfish"
         }
     }
-
 }

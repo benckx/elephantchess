@@ -26,11 +26,7 @@ object GenerateManchuGames {
         TOO_LONG,
     }
 
-    private data class GeneratedGame(
-        val id: String,
-        val moves: List<String>,
-        val result: GameResult,
-    )
+    private data class GeneratedGame(val id: String, val moves: List<String>, val result: GameResult)
 
     private fun movesKey(game: GeneratedGame): String = game.moves.joinToString(",")
 
@@ -117,9 +113,8 @@ object GenerateManchuGames {
 
         val outputPath = "xiangqi-core-test-utils/src/main/resources/manchu.txt"
         File(outputPath).writeText(
-            finalGames.joinToString("\n") { game -> "${game.id};${game.moves.joinToString(",")}" }
+            finalGames.joinToString("\n") { game -> "${game.id};${game.moves.joinToString(",")}" },
         )
         println("Written to $outputPath")
     }
-
 }

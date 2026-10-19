@@ -21,9 +21,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-fun eventsTableTagResolver(
-    eventsListResponse: EventsListResponse
-) = KtorHtmlBuilderTagResolver("events_table") {
+fun eventsTableTagResolver(eventsListResponse: EventsListResponse) = KtorHtmlBuilderTagResolver("events_table") {
     val dateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)
     fun formatDate(dateString: String?): String {
         if (dateString == null) return "-"
@@ -56,9 +54,7 @@ fun eventsTableTagResolver(
     }
 }
 
-fun playersTableTagResolver(
-    playerStandings: PlayersListResponse
-) = KtorHtmlBuilderTagResolver("players_table") {
+fun playersTableTagResolver(playerStandings: PlayersListResponse) = KtorHtmlBuilderTagResolver("players_table") {
     table(classes = "database-table standings-table nice-table nice-table-striped") {
         thead {
             tr {
@@ -83,9 +79,7 @@ fun playersTableTagResolver(
     }
 }
 
-fun eventGamesListTagResolver(
-    event: Event
-) = KtorHtmlBuilderTagResolver("event_games_list") {
+fun eventGamesListTagResolver(event: Event) = KtorHtmlBuilderTagResolver("event_games_list") {
     val eventId = event.id
     val games = event.games
     val scores = event.scores

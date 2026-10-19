@@ -65,7 +65,7 @@ private fun htmlRendering() = module {
             HtmlRenderer(
                 isMinificationEnabled = appConfig.isMinificationEnabled,
                 cdnFolder = cdnFolder,
-                webTemplateRenderer = webTemplateRenderer
+                webTemplateRenderer = webTemplateRenderer,
             )
         }
     }
@@ -104,13 +104,9 @@ private fun listFragmentTags(): List<String> {
     }
 }
 
-private suspend fun mostRecentVersionFolder(
-    client: DigitalOceanSpacesClient
-): String? {
-    return try {
-        client.getMostRecentVersionFolder()
-    } catch (e: Exception) {
-        webAppLogger.error { "error getting most recent CDN version folder from Space: $e" }
-        null
-    }
+private suspend fun mostRecentVersionFolder(client: DigitalOceanSpacesClient): String? = try {
+    client.getMostRecentVersionFolder()
+} catch (e: Exception) {
+    webAppLogger.error { "error getting most recent CDN version folder from Space: $e" }
+    null
 }

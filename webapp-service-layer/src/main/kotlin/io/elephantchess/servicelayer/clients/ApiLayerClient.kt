@@ -1,12 +1,11 @@
 package io.elephantchess.servicelayer.clients
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.clients.ApiLayerClient.Companion.Service.IP_TO_LOCATION
 import io.elephantchess.servicelayer.clients.ApiLayerClient.Companion.Service.USER_AGENT
 import io.elephantchess.servicelayer.clients.dto.LocationResponse
 import io.elephantchess.servicelayer.clients.dto.UserAgentResponse
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.client.*
@@ -26,21 +25,20 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.toJavaDuration
 
 @KoinSingleton
-class ApiLayerClient(
-    appConfig: AppConfig,
-    private val logger: KLogger = logger {},
-) {
+class ApiLayerClient(appConfig: AppConfig, private val logger: KLogger = logger {}) {
 
     private val apiKey by lazy { appConfig.apiLayerApiKey }
     private val client by lazy {
         HttpClient(CIO) {
             install(HttpTimeout)
             install(ContentNegotiation) {
-                json(Json {
-                    prettyPrint = true
-                    isLenient = true
-                    ignoreUnknownKeys = true
-                })
+                json(
+                    Json {
+                        prettyPrint = true
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    },
+                )
             }
         }
     }
@@ -70,7 +68,6 @@ class ApiLayerClient(
             }
             return null
         }
-
     }
 
     private suspend inline fun <reified T> makeAndHandleGetRequest(url: String, service: Service): T? {
@@ -123,14 +120,11 @@ class ApiLayerClient(
         val ERROR_WINDOW = 12.hours
         const val MAX_ERRORS = 3
 
-        fun encodeParam(param: String): String {
-            return URLEncoder.encode(param, StandardCharsets.UTF_8)
-        }
+        fun encodeParam(param: String): String = URLEncoder.encode(param, StandardCharsets.UTF_8)
 
         enum class Service {
-            USER_AGENT, IP_TO_LOCATION
+            USER_AGENT,
+            IP_TO_LOCATION,
         }
-
     }
-
 }

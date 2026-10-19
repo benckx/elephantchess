@@ -1,17 +1,14 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.ContentSectionVoteDaoService
 import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
 import io.elephantchess.servicelayer.dto.ContentSectionVotesResponse
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.model.UserId
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
-class ContentSectionFeedbackService(
-    private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
-) {
+class ContentSectionFeedbackService(private val contentSectionVoteDaoService: ContentSectionVoteDaoService) {
 
     suspend fun submitContentSectionVote(request: ContentSectionVoteRequest, userId: UserId) {
         if (!isContentPageIdValid(request.pageId)) {
@@ -28,7 +25,7 @@ class ContentSectionFeedbackService(
             pageId = request.pageId,
             sectionId = request.sectionId,
             upVoted = request.upVoted,
-            feedback = feedback
+            feedback = feedback,
         )
     }
 
@@ -43,7 +40,7 @@ class ContentSectionFeedbackService(
                 ContentSectionVotesResponse.Entry(
                     sectionId = record.sectionId,
                     upVoted = record.upVoted,
-                    feedback = record.feedback
+                    feedback = record.feedback,
                 )
             }
 
@@ -55,12 +52,9 @@ class ContentSectionFeedbackService(
         private val DASH_SEPARATED_ID_REGEX = Regex("^[a-z0-9]+(?:-[a-z0-9]+)*$")
         private val ALLOWED_CONTENT_PAGE_IDS = setOf("faq", "roadmap")
 
-        private fun isContentPageIdValid(pageId: String): Boolean =
-            pageId in ALLOWED_CONTENT_PAGE_IDS
+        private fun isContentPageIdValid(pageId: String): Boolean = pageId in ALLOWED_CONTENT_PAGE_IDS
 
         private fun isContentSectionIdValid(sectionId: String): Boolean =
             sectionId.length <= 80 && DASH_SEPARATED_ID_REGEX.matches(sectionId)
-
     }
-
 }

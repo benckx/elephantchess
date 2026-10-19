@@ -16,7 +16,7 @@ data class PlayMoveBotGameCallbackResult(
     val outcome: Outcome? = null,
     val botVictory: Boolean = false,
     val userVictory: Boolean = false,
-    val errors: List<ErrorType> = emptyList()
+    val errors: List<ErrorType> = emptyList(),
 ) {
 
     enum class ErrorType {
@@ -24,46 +24,32 @@ data class PlayMoveBotGameCallbackResult(
         ILLEGAL_PLAYER_MOVE,
     }
 
-    private fun updateWinningColor(color: Color): PlayMoveBotGameCallbackResult {
-        return if (color == Color.RED) {
-            copy(outcome = RED_WINS)
-        } else {
-            copy(outcome = BLACK_WINS)
-        }
+    private fun updateWinningColor(color: Color): PlayMoveBotGameCallbackResult = if (color == Color.RED) {
+        copy(outcome = RED_WINS)
+    } else {
+        copy(outcome = BLACK_WINS)
     }
 
-    private fun updateForMate(checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult {
-        return if (checkmated) {
-            copy(gameEventType = CHECKMATED)
-        } else if (stalemated) {
-            copy(gameEventType = STALEMATED)
-        } else {
-            this
-        }
+    private fun updateForMate(checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult = if (checkmated) {
+        copy(gameEventType = CHECKMATED)
+    } else if (stalemated) {
+        copy(gameEventType = STALEMATED)
+    } else {
+        this
     }
 
-    private fun updateWinner(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult {
-        return updateWinningColor(color).updateForMate(checkmated, stalemated)
-    }
+    private fun updateWinner(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult =
+        updateWinningColor(color).updateForMate(checkmated, stalemated)
 
-    fun updateForBotVictory(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult {
-        return updateWinner(color, checkmated, stalemated).copy(botVictory = true)
-    }
+    fun updateForBotVictory(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult =
+        updateWinner(color, checkmated, stalemated).copy(botVictory = true)
 
-    fun updateForUserVictory(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult {
-        return updateWinner(color, checkmated, stalemated).copy(userVictory = true)
-    }
+    fun updateForUserVictory(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult =
+        updateWinner(color, checkmated, stalemated).copy(userVictory = true)
 
-    fun addError(errorType: ErrorType): PlayMoveBotGameCallbackResult {
-        return copy(errors = errors + errorType)
-    }
+    fun addError(errorType: ErrorType): PlayMoveBotGameCallbackResult = copy(errors = errors + errorType)
 
-    fun hasErrors(): Boolean {
-        return errors.isNotEmpty()
-    }
+    fun hasErrors(): Boolean = errors.isNotEmpty()
 
-    fun hasError(errorType: ErrorType): Boolean {
-        return errors.contains(errorType)
-    }
-
+    fun hasError(errorType: ErrorType): Boolean = errors.contains(errorType)
 }

@@ -30,28 +30,26 @@ fun launchAtFixedRate(
     period: Duration,
     initialDelay: Duration = Duration.ZERO,
     onError: suspend (Throwable) -> Unit = logError,
-    action: suspend () -> Unit
-): Job {
-    return scope.launch {
-        delay(initialDelay)
+    action: suspend () -> Unit,
+): Job = scope.launch {
+    delay(initialDelay)
 
-        while (isActive) {
+    while (isActive) {
+        try {
+            action()
+        } catch (e: CancellationException) {
+            throw e // Re-throw to properly cancel the coroutine
+        } catch (e: Exception) {
             try {
-                action()
-            } catch (e: CancellationException) {
-                throw e // Re-throw to properly cancel the coroutine
-            } catch (e: Exception) {
-                try {
-                    onError(e)
-                } catch (ce: CancellationException) {
-                    throw ce
-                } catch (handlerError: Exception) {
-                    logger.error(handlerError) { "error in periodic coroutine onError handler" }
-                }
+                onError(e)
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (handlerError: Exception) {
+                logger.error(handlerError) { "error in periodic coroutine onError handler" }
             }
-
-            delay(period)
         }
+
+        delay(period)
     }
 }
 
@@ -69,5 +67,5 @@ fun launchAtFixedRateStartImmediately(
     scope: CoroutineScope,
     period: Duration,
     onError: suspend (Throwable) -> Unit = logError,
-    action: suspend () -> Unit
+    action: suspend () -> Unit,
 ): Job = launchAtFixedRate(scope, period, Duration.ZERO, onError, action)

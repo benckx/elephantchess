@@ -93,7 +93,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             color = RED,
             depth = 15,
             engine = Engine.PIKAFISH,
-            startFen = null
+            startFen = null,
         )
 
         val exception = assertFailsWith<BadRequestException> {
@@ -120,5 +120,4 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
 
         assertEquals("You must be authenticated in to play with depth greater than 6", exception.message)
     }
-
 }

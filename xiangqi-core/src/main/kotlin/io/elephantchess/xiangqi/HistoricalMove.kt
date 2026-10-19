@@ -19,17 +19,13 @@ data class HistoricalMove(
         require(attackMap.values.flatten().all { pieceAtPosition -> pieceAtPosition.color() == opponentColor })
     }
 
-    fun fullMove(): Int {
-        return halfMoveIndexToFullMove(index)
-    }
+    fun fullMove(): Int = halfMoveIndexToFullMove(index)
 
-    fun isAttackingGeneral(piece: PhysicalPiece): Boolean {
-        return attackMap
-            .filter { (attackingPiece, _) -> attackingPiece.physicalPiece == piece }
-            .any { (_, attackedPieces) ->
-                attackedPieces.any { it.abstractPieceType() == GENERAL }
-            }
-    }
+    fun isAttackingGeneral(piece: PhysicalPiece): Boolean = attackMap
+        .filter { (attackingPiece, _) -> attackingPiece.physicalPiece == piece }
+        .any { (_, attackedPieces) ->
+            attackedPieces.any { it.abstractPieceType() == GENERAL }
+        }
 
     override fun toString(): String {
         val fullMove = "[" + fullMove() + "] "
@@ -47,5 +43,4 @@ data class HistoricalMove(
 
         return "$fullMove${physicalPiece.pieceType}{$move}$isCheckingStr$captureStr$attackMapStr"
     }
-
 }

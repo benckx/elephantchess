@@ -26,13 +26,10 @@ class PlayerVsPlayerWebSocketSession(
 
     fun currentStatus(): GameEventType = status
 
-    fun isWaitingToBeJoined() =
-        status == GameEventType.CREATED
+    fun isWaitingToBeJoined() = status == GameEventType.CREATED
 
-    fun mustSyncTime(now: Instant): Boolean {
-        return timeRemainingLastSync == null ||
-                now > (timeRemainingLastSync!! + TIME_REMAINING_SYNC_INTERVAL)
-    }
+    fun mustSyncTime(now: Instant): Boolean = timeRemainingLastSync == null ||
+        now > (timeRemainingLastSync!! + TIME_REMAINING_SYNC_INTERVAL)
 
     override fun update(update: PlayerVsPlayerUpdate) {
         var mustUpdate = false
@@ -70,7 +67,7 @@ class PlayerVsPlayerWebSocketSession(
             mustUpdate = true
         }
 
-        // push update  
+        // push update
         if (mustUpdate) {
             val result = sendCb(update)
             if (result.isClosed) {
@@ -81,13 +78,10 @@ class PlayerVsPlayerWebSocketSession(
         }
     }
 
-    override fun toString() =
-        "${javaClass.simpleName}{sessionId=$sessionId, gameId=$gameId}"
+    override fun toString() = "${javaClass.simpleName}{sessionId=$sessionId, gameId=$gameId}"
 
     private companion object {
 
         val TIME_REMAINING_SYNC_INTERVAL = 20.seconds
-
     }
-
 }

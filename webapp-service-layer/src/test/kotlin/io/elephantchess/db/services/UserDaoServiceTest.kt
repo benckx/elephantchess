@@ -7,8 +7,8 @@ import io.elephantchess.db.utils.awaitSingleMappedRecord
 import io.elephantchess.model.TimeControlCategory.BULLET
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
-import io.elephantchess.xiangqi.Variant.XIANGQI
 import io.elephantchess.servicelayer.services.ServiceTest
+import io.elephantchess.xiangqi.Variant.XIANGQI
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
 import org.koin.core.component.inject
@@ -112,5 +112,4 @@ class UserDaoServiceTest : ServiceTest() {
         assertTrue(user.emailNotificationEnabledOpponentAcceptedDraw)
         assertTrue(user.emailNotificationEnabledOpponentDeclinedDraw)
     }
-
 }

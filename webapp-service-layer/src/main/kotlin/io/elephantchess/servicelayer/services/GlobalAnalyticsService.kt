@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
 import io.elephantchess.db.services.ArchivedGuestDaoService
@@ -15,6 +13,7 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.servicelayer.dto.global.*
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService.Companion.CacheKey.*
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +37,7 @@ class GlobalAnalyticsService(
     private val podService: PodService,
     appConfig: AppConfig,
     refresherScope: CoroutineScope,
-    private val logger: KLogger
+    private val logger: KLogger,
 ) {
 
     private val isDockerized = appConfig.isDockerized
@@ -61,7 +60,7 @@ class GlobalAnalyticsService(
     private val refreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = 30.seconds,
-        period = longRefresh / 2
+        period = longRefresh / 2,
     ) {
         logger.info { "refreshing global analytics caches..." }
 
@@ -80,60 +79,57 @@ class GlobalAnalyticsService(
         refreshJob.cancel()
     }
 
-    suspend fun fetchPlayerVsPlayerLeaderboard(): GlobalPlayerVsPlayerLeaderboardResponse =
-        shortCache.typedGet(PVP_LEADERBOARD) {
-            val highestUserPerCategory =
-                userDaoService
-                    .fetchUsersWithHighestRating(numberOfUsers = 5)
-                    .filterNot { (timeControlCategory, _) ->
-                        timeControlCategory == TimeControlCategory.SEVERAL_DAYS
+    suspend fun fetchPlayerVsPlayerLeaderboard(): GlobalPlayerVsPlayerLeaderboardResponse = shortCache.typedGet(PVP_LEADERBOARD) {
+        val highestUserPerCategory =
+            userDaoService
+                .fetchUsersWithHighestRating(numberOfUsers = 5)
+                .filterNot { (timeControlCategory, _) ->
+                    timeControlCategory == TimeControlCategory.SEVERAL_DAYS
+                }
+
+        val allUserIds = highestUserPerCategory.flatMap { (_, users) -> users.map { it.id } }.distinct()
+        val numberOfGamesAndLastPlayed = userDaoService.fetchNumberOfGamesAndLastPlayed(allUserIds)
+
+        highestUserPerCategory
+            .flatMap { (timeControlCategory, users) ->
+                users
+                    .sortedByDescending { user ->
+                        user.rating(timeControlCategory)
                     }
+                    .map { user ->
+                        val aggregatedInfo =
+                            numberOfGamesAndLastPlayed.find { record ->
+                                record.userId == user.id && record.category == timeControlCategory
+                            }
 
-            val allUserIds = highestUserPerCategory.flatMap { (_, users) -> users.map { it.id } }.distinct()
-            val numberOfGamesAndLastPlayed = userDaoService.fetchNumberOfGamesAndLastPlayed(allUserIds)
+                        GlobalPlayerVsPlayerLeaderboardResponse.Entry(
+                            category = timeControlCategory,
+                            userId = user.id,
+                            username = user.handle,
+                            countryCode = user.country,
+                            rating = user.rating(timeControlCategory),
+                            totalPlayed = aggregatedInfo?.totalPlayed ?: 0,
+                            lastPlayed = aggregatedInfo?.lastPlayed?.toEpochMilliseconds() ?: 0L,
+                        )
+                    }
+            }
+            .let { entries ->
+                GlobalPlayerVsPlayerLeaderboardResponse(entries)
+            }
+    }
 
-            highestUserPerCategory
-                .flatMap { (timeControlCategory, users) ->
-                    users
-                        .sortedByDescending { user ->
-                            user.rating(timeControlCategory)
-                        }
-                        .map { user ->
-                            val aggregatedInfo =
-                                numberOfGamesAndLastPlayed.find { record ->
-                                    record.userId == user.id && record.category == timeControlCategory
-                                }
-
-                            GlobalPlayerVsPlayerLeaderboardResponse.Entry(
-                                category = timeControlCategory,
-                                userId = user.id,
-                                username = user.handle,
-                                countryCode = user.country,
-                                rating = user.rating(timeControlCategory),
-                                totalPlayed = aggregatedInfo?.totalPlayed ?: 0,
-                                lastPlayed = aggregatedInfo?.lastPlayed?.toEpochMilliseconds() ?: 0L
-                            )
-                        }
-                }
-                .let { entries ->
-                    GlobalPlayerVsPlayerLeaderboardResponse(entries)
-                }
-        }
-
-    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int): PuzzleStatsLeaderboardResponse =
-        shortCache.typedGet(PUZZLE_LEADERBOARD) {
-            mapPuzzleLeaderboardRecords(userDaoService.fetchPuzzleLeaderboard(maxNumberOfEntries))
-        }
+    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int): PuzzleStatsLeaderboardResponse = shortCache.typedGet(PUZZLE_LEADERBOARD) {
+        mapPuzzleLeaderboardRecords(userDaoService.fetchPuzzleLeaderboard(maxNumberOfEntries))
+    }
 
     suspend fun fetchPuzzleLeaderboardLast12Months(maxNumberOfEntries: Int): PuzzleStatsLeaderboardResponse =
         shortCache.typedGet(PUZZLE_LEADERBOARD_LAST_12_MONTHS) {
             mapPuzzleLeaderboardRecords(userDaoService.fetchPuzzleLeaderboard(maxNumberOfEntries, days = 365))
         }
 
-    suspend fun fetchGlobalPuzzleStats(): GlobalPuzzleStatsResponse =
-        longCache.typedGet(GLOBAL_PUZZLE_STATS) {
-            computeGlobalPuzzleStats()
-        }
+    suspend fun fetchGlobalPuzzleStats(): GlobalPuzzleStatsResponse = longCache.typedGet(GLOBAL_PUZZLE_STATS) {
+        computeGlobalPuzzleStats()
+    }
 
     private fun computeGlobalPuzzleStats(): GlobalPuzzleStatsResponse {
         val totalPuzzles = puzzleCache.countAllEnabled()
@@ -154,10 +150,9 @@ class GlobalAnalyticsService(
         )
     }
 
-    suspend fun fetchGlobalGameStats(): GlobalGameStatsResponse =
-        longCache.typedGet(GLOBAL_GAME_STATS) {
-            computeGlobalGameStats()
-        }
+    suspend fun fetchGlobalGameStats(): GlobalGameStatsResponse = longCache.typedGet(GLOBAL_GAME_STATS) {
+        computeGlobalGameStats()
+    }
 
     private suspend fun computeGlobalGameStats(): GlobalGameStatsResponse {
         val totalGames = gameDataService.countTotalGames()
@@ -172,7 +167,7 @@ class GlobalAnalyticsService(
             totalInAppGames = totalInAppGames,
             totalMoves = totalMoves,
             totalInAppMoves = totalInAppMovesMap,
-            totalManchuGames = gameDataService.countTotalManchuGames()
+            totalManchuGames = gameDataService.countTotalManchuGames(),
         )
     }
 
@@ -192,27 +187,26 @@ class GlobalAnalyticsService(
 
         val totalUsers =
             userDaoService.countAuthenticated() +
-                    userDaoService.countGuestsWithSessionAtLeast(minGuestDuration) +
-                    archivedGuestDaoService.countArchivedGuestsWithSessionAtLeast30Min()
+                userDaoService.countGuestsWithSessionAtLeast(minGuestDuration) +
+                archivedGuestDaoService.countArchivedGuestsWithSessionAtLeast30Min()
 
         val totalRecentlyActive =
             userDaoService.countActiveRecently(recentlyDuration, listOf(AUTHENTICATED)) +
-                    userDaoService.countGuestsWithSessionAtLeastAndActiveWithin(
-                        minGuestDuration,
-                        recentlyDuration
-                    )
+                userDaoService.countGuestsWithSessionAtLeastAndActiveWithin(
+                    minGuestDuration,
+                    recentlyDuration,
+                )
 
         return GlobalUserStatsResponse(
             totalUsers = totalUsers,
             recentlyActiveUsers = totalRecentlyActive,
-            onlineUsers = 0
+            onlineUsers = 0,
         )
     }
 
-    suspend fun fetchGlobalAppData(): GlobalAppDataResponse =
-        longCache.typedGet(GLOBAL_APP_DATA) {
-            computeGlobalAppData()
-        }
+    suspend fun fetchGlobalAppData(): GlobalAppDataResponse = longCache.typedGet(GLOBAL_APP_DATA) {
+        computeGlobalAppData()
+    }
 
     private fun computeGlobalAppData(): GlobalAppDataResponse {
         val lastDeploy =
@@ -223,7 +217,7 @@ class GlobalAnalyticsService(
             }
 
         return GlobalAppDataResponse(
-            lastDeploy = lastDeploy.toEpochMilliseconds()
+            lastDeploy = lastDeploy.toEpochMilliseconds(),
         )
     }
 
@@ -252,7 +246,7 @@ class GlobalAnalyticsService(
                     total = record.totalPlayed,
                     lastPlayed = record.lastPlayed.toEpochMilliseconds(),
                     solvedRate = solvedRate,
-                    failedRate = failedRate
+                    failedRate = failedRate,
                 )
             }
             .let { entries ->
@@ -261,12 +255,8 @@ class GlobalAnalyticsService(
     }
 
     // to avoid casting
-    private suspend inline fun <reified T> Cache<CacheKey, Any>.typedGet(
-        key: CacheKey,
-        noinline loader: suspend () -> Any
-    ): T {
-        return get(key) { loader() } as T
-    }
+    private suspend inline fun <reified T> Cache<CacheKey, Any>.typedGet(key: CacheKey, noinline loader: suspend () -> Any): T =
+        get(key) { loader() } as T
 
     private companion object {
 
@@ -277,9 +267,7 @@ class GlobalAnalyticsService(
             GLOBAL_PUZZLE_STATS,
             GLOBAL_GAME_STATS,
             USER_ANALYTICS,
-            GLOBAL_APP_DATA
+            GLOBAL_APP_DATA,
         }
-
     }
-
 }

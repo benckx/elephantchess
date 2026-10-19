@@ -17,5 +17,4 @@ class PositionTest {
         assertFailsWith<IllegalArgumentException> { parsePositionFromUci("h88") }
         assertFailsWith<IllegalArgumentException> { parsePositionFromUci("x5") }
     }
-
 }

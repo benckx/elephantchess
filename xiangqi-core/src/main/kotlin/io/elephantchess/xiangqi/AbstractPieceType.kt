@@ -3,12 +3,7 @@ package io.elephantchess.xiangqi
 /**
  * Piece type independent of color.
  */
-enum class AbstractPieceType(
-    val uci: Char,
-    val redLabel: Char,
-    val blackLabel: Char,
-    val maxLegal: Int = 2
-) {
+enum class AbstractPieceType(val uci: Char, val redLabel: Char, val blackLabel: Char, val maxLegal: Int = 2) {
 
     GENERAL('k', '帅', '将', 1),
     ADVISOR('a', '仕', '士'),
@@ -22,6 +17,5 @@ enum class AbstractPieceType(
      * The super-chariot (Banner) in Manchu chess: combines the powers of the chariot, horse, and cannon.
      * Represented by 'm'/'M' in the FEN. Only used as Red's piece in the Manchu variant.
      */
-    SUPER_CHARIOT('m', '俥', '車', 1);
-
+    SUPER_CHARIOT('m', '俥', '車', 1),
 }

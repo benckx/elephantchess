@@ -37,34 +37,23 @@ fun Instant.minusMonths(months: Long): Instant =
 fun Instant.plusMonths(months: Long): Instant =
     this.toJavaInstant().atOffset(ZoneOffset.UTC).plusMonths(months).toInstant().toKotlinInstant()
 
-fun Instant.minusYears(years: Long): Instant =
-    this.toJavaInstant().atOffset(ZoneOffset.UTC).minusYears(years).toInstant().toKotlinInstant()
+fun Instant.minusYears(years: Long): Instant = this.toJavaInstant().atOffset(ZoneOffset.UTC).minusYears(years).toInstant().toKotlinInstant()
 
-fun Instant.plusYears(years: Long): Instant =
-    this.toJavaInstant().atOffset(ZoneOffset.UTC).plusYears(years).toInstant().toKotlinInstant()
+fun Instant.plusYears(years: Long): Instant = this.toJavaInstant().atOffset(ZoneOffset.UTC).plusYears(years).toInstant().toKotlinInstant()
 
 // java.time.LocalDateTime / LocalDate ergonomics, anchored at UTC.
 
 /** Convert a [LocalDateTime] (treated as UTC wall-clock) to a [kotlin.time.Instant]. */
-fun LocalDateTime.toUtcInstant(): Instant =
-    this.toInstant(ZoneOffset.UTC).toKotlinInstant()
+fun LocalDateTime.toUtcInstant(): Instant = this.toInstant(ZoneOffset.UTC).toKotlinInstant()
 
 /** Convert a [kotlin.time.Instant] to a [LocalDateTime] in UTC. */
-fun Instant.toUtcLocalDateTime(): LocalDateTime =
-    this.toJavaInstant().atOffset(ZoneOffset.UTC).toLocalDateTime()
+fun Instant.toUtcLocalDateTime(): LocalDateTime = this.toJavaInstant().atOffset(ZoneOffset.UTC).toLocalDateTime()
 
-fun Instant.toUtcLocalDate(): LocalDate =
-    this.toJavaInstant().atOffset(ZoneOffset.UTC).toLocalDate()
+fun Instant.toUtcLocalDate(): LocalDate = this.toJavaInstant().atOffset(ZoneOffset.UTC).toLocalDate()
 
 /** Build a UTC [Instant] from wall-clock components. */
-fun instantOfUtc(
-    year: Int,
-    month: Int,
-    dayOfMonth: Int,
-    hour: Int = 0,
-    minute: Int = 0,
-    second: Int = 0,
-): Instant = LocalDateTime.of(year, month, dayOfMonth, hour, minute, second).toUtcInstant()
+fun instantOfUtc(year: Int, month: Int, dayOfMonth: Int, hour: Int = 0, minute: Int = 0, second: Int = 0): Instant =
+    LocalDateTime.of(year, month, dayOfMonth, hour, minute, second).toUtcInstant()
 
 /** Compatibility shim: `instant.isBefore(other)` mirrors [LocalDateTime.isBefore]. */
 fun Instant.isBefore(other: Instant): Boolean = this < other

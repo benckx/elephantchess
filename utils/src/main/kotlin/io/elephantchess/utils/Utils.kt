@@ -4,11 +4,10 @@ import io.elephantchess.utils.ResourceUtils.resourceAsLines
 import java.time.LocalDate
 import java.time.YearMonth
 
-private fun loadWords(resourcePath: String) =
-    resourceAsLines(resourcePath)
-        .map { it.trim() }
-        .filterNot { it.isBlank() }
-        .filterNot { it.startsWith("#") }
+private fun loadWords(resourcePath: String) = resourceAsLines(resourcePath)
+    .map { it.trim() }
+    .filterNot { it.isBlank() }
+    .filterNot { it.startsWith("#") }
 
 private val badWords by lazy {
     loadWords("/bad-words.txt")
@@ -74,7 +73,6 @@ fun safeRandomAlphaNumericString(min: Int, max: Int): String {
     return result
 }
 
-
 fun cropToFirstNWords(text: String, maxWords: Int): String {
     val words = text.split(Regex("\\s+"))
     if (words.size <= maxWords) {
@@ -97,11 +95,9 @@ fun cropToFirstNWords(text: String, maxWords: Int): String {
     }
 }
 
-fun stripHtml(text: String): String {
-    return text
-        .replace(Regex("<[^>]*>"), "")
-        .replace("\"", "'")
-}
+fun stripHtml(text: String): String = text
+    .replace(Regex("<[^>]*>"), "")
+    .replace("\"", "'")
 
 /**
  * Returns a list of [LocalDate] between firstDay and lastDay inclusive
@@ -129,26 +125,18 @@ fun rangeOfYearMonths(firstMonth: YearMonth, lastMonth: YearMonth): List<YearMon
     return result.toList()
 }
 
-fun isChineseText(s: String): Boolean {
-    return s.matches(Regex("^[\\u4E00-\\u9FFF]+$"))
+fun isChineseText(s: String): Boolean = s.matches(Regex("^[\\u4E00-\\u9FFF]+$"))
+
+fun formatWithChineseName(name: String, chineseName: String?): String = if (chineseName.isNullOrBlank()) {
+    name
+} else {
+    "$name ($chineseName)"
 }
 
-fun formatWithChineseName(name: String, chineseName: String?): String {
-    return if (chineseName.isNullOrBlank()) {
-        name
-    } else {
-        "$name ($chineseName)"
-    }
-}
-
-fun generateNameVariations(vararg names: String): List<String> {
-    return names.flatMap { name -> generateNameVariations(name) }.distinct()
-}
+fun generateNameVariations(vararg names: String): List<String> = names.flatMap { name -> generateNameVariations(name) }.distinct()
 
 fun generateNameVariations(name: String): List<String> {
-    fun splitCamelCase(name: String): String {
-        return name.replace(Regex("([A-Z])"), " $1").trim()
-    }
+    fun splitCamelCase(name: String): String = name.replace(Regex("([A-Z])"), " $1").trim()
 
     fun <T> List<T>.permutations(): List<List<T>> {
         if (size <= 1) return listOf(this)
@@ -164,7 +152,6 @@ fun generateNameVariations(name: String): List<String> {
         return result
     }
 
-
     val toSplit = if (name.trim().contains(" ")) {
         name.trim()
     } else {
@@ -175,7 +162,7 @@ fun generateNameVariations(name: String): List<String> {
         .flatMap { permutation ->
             listOf(
                 permutation.joinToString(""),
-                permutation.joinToString(" ")
+                permutation.joinToString(" "),
             )
         }
         .map { it.lowercase() }

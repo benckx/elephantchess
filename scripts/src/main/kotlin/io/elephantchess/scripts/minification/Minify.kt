@@ -151,17 +151,11 @@ private fun minifyWithNode(file: File, outputFile: File, type: String) {
     outputFile.writeText(output)
 }
 
-private fun sizeUnminified(files: List<File>): Long {
-    return files.sumOf { file -> file.length() }
-}
+private fun sizeUnminified(files: List<File>): Long = files.sumOf { file -> file.length() }
 
-private fun sizeMinified(files: List<File>): Long {
-    return files.sumOf { file -> minifiedFile(file).length() }
-}
+private fun sizeMinified(files: List<File>): Long = files.sumOf { file -> minifiedFile(file).length() }
 
-private fun formatBytes(bytes: Long): String {
-    return "${bytes / 1024} kB"
-}
+private fun formatBytes(bytes: Long): String = "${bytes / 1024} kB"
 
 /**
  * Minifies all the given files, overwriting any existing minified counterparts.

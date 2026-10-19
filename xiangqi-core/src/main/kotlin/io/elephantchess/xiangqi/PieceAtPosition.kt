@@ -1,9 +1,6 @@
 package io.elephantchess.xiangqi
 
-data class PieceAtPosition(
-    val physicalPiece: PhysicalPiece,
-    val position: Position,
-) {
+data class PieceAtPosition(val physicalPiece: PhysicalPiece, val position: Position) {
 
     fun color() = physicalPiece.color()
 
@@ -14,5 +11,4 @@ data class PieceAtPosition(
         val algebraic = position.toAlgebraic()
         return "$letter{$algebraic}"
     }
-
 }
