@@ -21,15 +21,16 @@ class PasswordRecoveryAttemptsDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchBy(email: String, code: String): PasswordRecoveryAttempt? = dslContext
-        .select()
-        .from(PASSWORD_RECOVERY_ATTEMPT)
-        .where(PASSWORD_RECOVERY_ATTEMPT.EMAIL_PROVIDED.eq(email))
-        .and(PASSWORD_RECOVERY_ATTEMPT.RECOVERY_CODE.eq(code))
-        .and(PASSWORD_RECOVERY_ATTEMPT.MATCHING_USER_ID.isNotNull)
-        .and(PASSWORD_RECOVERY_ATTEMPT.HAS_BEEN_RECOVERED.eq(false))
-        .awaitMappedRecords<PasswordRecoveryAttempt>()
-        .firstOrNull()
+    suspend fun fetchBy(email: String, code: String): PasswordRecoveryAttempt? =
+        dslContext
+            .select()
+            .from(PASSWORD_RECOVERY_ATTEMPT)
+            .where(PASSWORD_RECOVERY_ATTEMPT.EMAIL_PROVIDED.eq(email))
+            .and(PASSWORD_RECOVERY_ATTEMPT.RECOVERY_CODE.eq(code))
+            .and(PASSWORD_RECOVERY_ATTEMPT.MATCHING_USER_ID.isNotNull)
+            .and(PASSWORD_RECOVERY_ATTEMPT.HAS_BEEN_RECOVERED.eq(false))
+            .awaitMappedRecords<PasswordRecoveryAttempt>()
+            .firstOrNull()
 
     suspend fun updateRecoveryTime(id: Int) {
         dslContext.transactionCoroutine { cfg ->
@@ -43,10 +44,11 @@ class PasswordRecoveryAttemptsDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listLatestAttempts(limit: Int): List<PasswordRecoveryAttempt> = dslContext
-        .select()
-        .from(PASSWORD_RECOVERY_ATTEMPT)
-        .orderBy(PASSWORD_RECOVERY_ATTEMPT.ENTRY_CREATION.desc())
-        .limit(limit)
-        .awaitMappedRecords()
+    suspend fun listLatestAttempts(limit: Int): List<PasswordRecoveryAttempt> =
+        dslContext
+            .select()
+            .from(PASSWORD_RECOVERY_ATTEMPT)
+            .orderBy(PASSWORD_RECOVERY_ATTEMPT.ENTRY_CREATION.desc())
+            .limit(limit)
+            .awaitMappedRecords()
 }

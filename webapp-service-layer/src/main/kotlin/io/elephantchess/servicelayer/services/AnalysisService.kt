@@ -407,62 +407,67 @@ class AnalysisService(
         const val ANNOTATION_MAX_LENGTH = 2000
 
         // for persisting
-        private fun mapChildNodeRecords(nodes: List<MoveTreeNode>): List<AnalysisChildNode> = nodes.flatMap { node ->
-            node.childNodes.map { childNodeId ->
-                val childNode = AnalysisChildNode()
-                childNode.childNodeId = childNodeId
-                childNode.parentNodeId = node.id
-                childNode
+        private fun mapChildNodeRecords(nodes: List<MoveTreeNode>): List<AnalysisChildNode> =
+            nodes.flatMap { node ->
+                node.childNodes.map { childNodeId ->
+                    val childNode = AnalysisChildNode()
+                    childNode.childNodeId = childNodeId
+                    childNode.parentNodeId = node.id
+                    childNode
+                }
             }
-        }
 
         // for persisting
-        private fun mapNodesToRecords(nodes: List<MoveTreeNode>): List<AnalysisNode> = nodes.map { node ->
-            val record = AnalysisNode()
-            record.nodeId = node.id
-            record.move = node.move
-            record.level = node.level
-            record.previous = node.previous
-            record.next = node.next
-            record
-        }
-
-        // for persisting
-        private fun mapNodesToAnnotationRecords(nodes: List<MoveTreeNode>): List<AnalysisNodeAnnotation> = nodes
-            .filter { node -> node.annotation != null }
-            .map { node ->
-                val record = AnalysisNodeAnnotation()
+        private fun mapNodesToRecords(nodes: List<MoveTreeNode>): List<AnalysisNode> =
+            nodes.map { node ->
+                val record = AnalysisNode()
                 record.nodeId = node.id
-                record.annotationContent = node.annotation
+                record.move = node.move
+                record.level = node.level
+                record.previous = node.previous
+                record.next = node.next
                 record
             }
 
         // for persisting
-        private fun mapEngineDataToRecord(pvCaches: List<PvCache>): List<AnalysisEngineDataCache> = pvCaches
-            .filter { dto -> dto.depth != null }
-            .filter { dto -> dto.pv.isNotEmpty() }
-            .map { dto ->
-                val record = AnalysisEngineDataCache()
-                record.fenKey = dto.fenKey
-                record.rawLine = dto.line
-                record.depth = dto.depth
-                record.cp = dto.cp
-                record.mateIn = dto.mate
-                record.pv = dto.pv.joinToString(",")
-                record.inCheckmate = dto.isCheckmate
-                record
-            }
+        private fun mapNodesToAnnotationRecords(nodes: List<MoveTreeNode>): List<AnalysisNodeAnnotation> =
+            nodes
+                .filter { node -> node.annotation != null }
+                .map { node ->
+                    val record = AnalysisNodeAnnotation()
+                    record.nodeId = node.id
+                    record.annotationContent = node.annotation
+                    record
+                }
+
+        // for persisting
+        private fun mapEngineDataToRecord(pvCaches: List<PvCache>): List<AnalysisEngineDataCache> =
+            pvCaches
+                .filter { dto -> dto.depth != null }
+                .filter { dto -> dto.pv.isNotEmpty() }
+                .map { dto ->
+                    val record = AnalysisEngineDataCache()
+                    record.fenKey = dto.fenKey
+                    record.rawLine = dto.line
+                    record.depth = dto.depth
+                    record.cp = dto.cp
+                    record.mateIn = dto.mate
+                    record.pv = dto.pv.joinToString(",")
+                    record.inCheckmate = dto.isCheckmate
+                    record
+                }
 
         // for fetching
-        private fun mapRecordNodeToDto(node: AnalysisNode, annotation: AnalysisNodeAnnotation?): MoveTreeNode = MoveTreeNode(
-            node.nodeId,
-            node.move,
-            node.level,
-            node.previous,
-            node.next,
-            listOf(),
-            annotation?.annotationContent,
-        )
+        private fun mapRecordNodeToDto(node: AnalysisNode, annotation: AnalysisNodeAnnotation?): MoveTreeNode =
+            MoveTreeNode(
+                node.nodeId,
+                node.move,
+                node.level,
+                node.previous,
+                node.next,
+                listOf(),
+                annotation?.annotationContent,
+            )
 
         private fun mapRecordToInfoLineResultDto(record: AnalysisEngineDataCache): InfoLineResultDto =
             if (record.rawLine != null && record.rawLine.isNotBlank()) {
@@ -492,17 +497,18 @@ class AnalysisService(
         }
 
         // TODO: this can be improved and move to Board
-        private fun isLegal(pvCache: PvCache): Boolean = try {
-            if (pvCache.pv.isNotEmpty()) {
-                val board = Board(pvCache.fenKey)
-                val nextMove = pvCache.pv.first()
-                val nextHalfMove = HalfMove.parseMoveFromUci(nextMove)
-                board.isLegalMove(nextHalfMove)
-            } else {
-                pvCache.isCheckmate
+        private fun isLegal(pvCache: PvCache): Boolean =
+            try {
+                if (pvCache.pv.isNotEmpty()) {
+                    val board = Board(pvCache.fenKey)
+                    val nextMove = pvCache.pv.first()
+                    val nextHalfMove = HalfMove.parseMoveFromUci(nextMove)
+                    board.isLegalMove(nextHalfMove)
+                } else {
+                    pvCache.isCheckmate
+                }
+            } catch (_: Exception) {
+                false
             }
-        } catch (_: Exception) {
-            false
-        }
     }
 }

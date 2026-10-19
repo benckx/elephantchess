@@ -9,12 +9,13 @@ class FaqPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
     suspend fun renderFaqPage(): String = simplePageRenderer.renderTemplate(FAQ_TEMPLATE_NAME, listOf(faqTocTagResolver()))
 
-    private fun faqTocTagResolver(): TagResolver = CallbackTagResolver("faq_toc") {
-        val html = resourceAsString(FAQ_TEMPLATE_PATH)
-            ?: throw IllegalStateException("FAQ template not found at $FAQ_TEMPLATE_PATH")
+    private fun faqTocTagResolver(): TagResolver =
+        CallbackTagResolver("faq_toc") {
+            val html = resourceAsString(FAQ_TEMPLATE_PATH)
+                ?: throw IllegalStateException("FAQ template not found at $FAQ_TEMPLATE_PATH")
 
-        renderFaqToc(html)
-    }
+            renderFaqToc(html)
+        }
 
     private companion object {
 

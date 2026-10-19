@@ -22,35 +22,40 @@ import kotlin.time.Clock
 @KoinSingleton
 class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
 
-    suspend fun save(gameRecord: SevenKingdomsGame) = dslContext.transactionCoroutine { cfg ->
-        SevenKingdomsGameDao(cfg).insertReactive(gameRecord)
-    }
+    suspend fun save(gameRecord: SevenKingdomsGame) =
+        dslContext.transactionCoroutine { cfg ->
+            SevenKingdomsGameDao(cfg).insertReactive(gameRecord)
+        }
 
-    suspend fun fetchGame(gameId: String): SevenKingdomsGame? = dslContext
-        .selectFrom(SEVEN_KINGDOMS_GAME)
-        .where(SEVEN_KINGDOMS_GAME.ID.eq(gameId))
-        .awaitSingleMappedRecord()
+    suspend fun fetchGame(gameId: String): SevenKingdomsGame? =
+        dslContext
+            .selectFrom(SEVEN_KINGDOMS_GAME)
+            .where(SEVEN_KINGDOMS_GAME.ID.eq(gameId))
+            .awaitSingleMappedRecord()
 
-    suspend fun countGamesWithStatusCreated(minPlayers: Int): Int = dslContext
-        .selectCount()
-        .from(SEVEN_KINGDOMS_GAME)
-        .where(SEVEN_KINGDOMS_GAME.MIN_PLAYERS.eq(minPlayers))
-        .and(SEVEN_KINGDOMS_GAME.GAME_STATUS.eq(CREATED))
-        .awaitSingleValue() ?: 0
+    suspend fun countGamesWithStatusCreated(minPlayers: Int): Int =
+        dslContext
+            .selectCount()
+            .from(SEVEN_KINGDOMS_GAME)
+            .where(SEVEN_KINGDOMS_GAME.MIN_PLAYERS.eq(minPlayers))
+            .and(SEVEN_KINGDOMS_GAME.GAME_STATUS.eq(CREATED))
+            .awaitSingleValue() ?: 0
 
-    suspend fun fetchMovesUci(gameId: String): List<String> = dslContext
-        .select(SEVEN_KINGDOMS_GAME_MOVE.UCI)
-        .from(SEVEN_KINGDOMS_GAME_MOVE)
-        .where(SEVEN_KINGDOMS_GAME_MOVE.GAME_ID.eq(gameId))
-        .orderBy(SEVEN_KINGDOMS_GAME_MOVE.POSITION)
-        .awaitMappedRecords()
+    suspend fun fetchMovesUci(gameId: String): List<String> =
+        dslContext
+            .select(SEVEN_KINGDOMS_GAME_MOVE.UCI)
+            .from(SEVEN_KINGDOMS_GAME_MOVE)
+            .where(SEVEN_KINGDOMS_GAME_MOVE.GAME_ID.eq(gameId))
+            .orderBy(SEVEN_KINGDOMS_GAME_MOVE.POSITION)
+            .awaitMappedRecords()
 
-    suspend fun fetchEliminationEvents(gameId: String): List<SevenKingdomsGameEvent> = dslContext
-        .select(SEVEN_KINGDOMS_GAME_EVENT.INDEX, SEVEN_KINGDOMS_GAME_EVENT.COLORS)
-        .from(SEVEN_KINGDOMS_GAME_EVENT)
-        .where(SEVEN_KINGDOMS_GAME_EVENT.GAME_ID.eq(gameId))
-        .and(SEVEN_KINGDOMS_GAME_EVENT.EVENT_TYPE.`in`(listOf(RESIGNED, FLAGGED)))
-        .awaitMappedRecords()
+    suspend fun fetchEliminationEvents(gameId: String): List<SevenKingdomsGameEvent> =
+        dslContext
+            .select(SEVEN_KINGDOMS_GAME_EVENT.INDEX, SEVEN_KINGDOMS_GAME_EVENT.COLORS)
+            .from(SEVEN_KINGDOMS_GAME_EVENT)
+            .where(SEVEN_KINGDOMS_GAME_EVENT.GAME_ID.eq(gameId))
+            .and(SEVEN_KINGDOMS_GAME_EVENT.EVENT_TYPE.`in`(listOf(RESIGNED, FLAGGED)))
+            .awaitMappedRecords()
 
     suspend fun updateJoinStatus(userId: String, gameId: String, newColorsOfUser: List<Color>, newStatus: GameEventType) {
         dslContext.transactionCoroutine { cfg ->
@@ -193,14 +198,15 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
 
     companion object {
 
-        fun mapColorToField(color: Color): TableField<SevenKingdomsGameRecord, String> = when (color) {
-            Color.WHITE -> SEVEN_KINGDOMS_GAME.PLAYER_WHITE
-            Color.RED -> SEVEN_KINGDOMS_GAME.PLAYER_RED
-            Color.ORANGE -> SEVEN_KINGDOMS_GAME.PLAYER_ORANGE
-            Color.BLUE -> SEVEN_KINGDOMS_GAME.PLAYER_BLUE
-            Color.GREEN -> SEVEN_KINGDOMS_GAME.PLAYER_GREEN
-            Color.PURPLE -> SEVEN_KINGDOMS_GAME.PLAYER_PURPLE
-            Color.BLACK -> SEVEN_KINGDOMS_GAME.PLAYER_BLACK
-        }
+        fun mapColorToField(color: Color): TableField<SevenKingdomsGameRecord, String> =
+            when (color) {
+                Color.WHITE -> SEVEN_KINGDOMS_GAME.PLAYER_WHITE
+                Color.RED -> SEVEN_KINGDOMS_GAME.PLAYER_RED
+                Color.ORANGE -> SEVEN_KINGDOMS_GAME.PLAYER_ORANGE
+                Color.BLUE -> SEVEN_KINGDOMS_GAME.PLAYER_BLUE
+                Color.GREEN -> SEVEN_KINGDOMS_GAME.PLAYER_GREEN
+                Color.PURPLE -> SEVEN_KINGDOMS_GAME.PLAYER_PURPLE
+                Color.BLACK -> SEVEN_KINGDOMS_GAME.PLAYER_BLACK
+            }
     }
 }

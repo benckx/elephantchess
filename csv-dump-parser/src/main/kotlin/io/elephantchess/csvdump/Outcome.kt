@@ -12,12 +12,13 @@ enum class Outcome {
 
     companion object {
 
-        fun fromCsvOrNull(value: String): Outcome? = when (val trimmed = value.trim().uppercase()) {
-            "" -> null
-            "RED_WINS" -> RED_WINS
-            "BLACK_WINS" -> BLACK_WINS
-            "DRAW" -> DRAW
-            else -> throw IllegalArgumentException("unknown outcome: '$trimmed'")
-        }
+        fun fromCsvOrNull(value: String): Outcome? =
+            when (val trimmed = value.trim().uppercase()) {
+                "" -> null
+                "RED_WINS" -> RED_WINS
+                "BLACK_WINS" -> BLACK_WINS
+                "DRAW" -> DRAW
+                else -> throw IllegalArgumentException("unknown outcome: '$trimmed'")
+            }
     }
 }

@@ -12,9 +12,10 @@ internal data class ReferenceGameDto(
     val blackPlayer: String?,
     val moves: List<String>,
 ) {
-    fun playerColor(playerId: String): Color? = when (playerId) {
-        redPlayer -> RED
-        blackPlayer -> BLACK
-        else -> null
-    }
+    fun playerColor(playerId: String): Color? =
+        when (playerId) {
+            redPlayer -> RED
+            blackPlayer -> BLACK
+            else -> null
+        }
 }

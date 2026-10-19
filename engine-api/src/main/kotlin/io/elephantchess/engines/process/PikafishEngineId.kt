@@ -28,9 +28,10 @@ object PikafishEngineId : EngineId() {
         return "pikafish/$requiredVersion/$executableName"
     }
 
-    override fun makeProcess(config: EngineConfig, engineProcessLocator: EngineProcessLocator): EngineProcess = PikafishEngineProcess(
-        locator = engineProcessLocator,
-        version = config.version,
-        numberOfThreads = config.numberOfThreads,
-    )
+    override fun makeProcess(config: EngineConfig, engineProcessLocator: EngineProcessLocator): EngineProcess =
+        PikafishEngineProcess(
+            locator = engineProcessLocator,
+            version = config.version,
+            numberOfThreads = config.numberOfThreads,
+        )
 }

@@ -15,18 +15,20 @@ import java.time.LocalDate
 @KoinSingleton
 class ReferenceEventDaoService(private val dslContext: DSLContext) {
 
-    suspend fun fetchEventById(eventId: String): ReferenceGameEvent? = dslContext
-        .select()
-        .from(REFERENCE_GAME_EVENT)
-        .where(REFERENCE_GAME_EVENT.ID.eq(eventId))
-        .awaitSingleMappedRecord()
+    suspend fun fetchEventById(eventId: String): ReferenceGameEvent? =
+        dslContext
+            .select()
+            .from(REFERENCE_GAME_EVENT)
+            .where(REFERENCE_GAME_EVENT.ID.eq(eventId))
+            .awaitSingleMappedRecord()
 
-    suspend fun findEventName(id: String): String? = dslContext
-        .select(REFERENCE_GAME_EVENT.NAME)
-        .from(REFERENCE_GAME_EVENT)
-        .where(REFERENCE_GAME_EVENT.ID.eq(id))
-        .and(REFERENCE_GAME_EVENT.IS_VISIBLE.eq(true))
-        .awaitSingleValue()
+    suspend fun findEventName(id: String): String? =
+        dslContext
+            .select(REFERENCE_GAME_EVENT.NAME)
+            .from(REFERENCE_GAME_EVENT)
+            .where(REFERENCE_GAME_EVENT.ID.eq(id))
+            .and(REFERENCE_GAME_EVENT.IS_VISIBLE.eq(true))
+            .awaitSingleValue()
 
     suspend fun listAllEventsWithStats(limit: Int? = null, offset: Int? = null): List<EventListEntryRecord> {
         val baseQuery = dslContext

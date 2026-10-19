@@ -134,18 +134,19 @@ private suspend fun RoutingContext.redirectOrRespond(statusCode: HttpStatusCode)
     }
 }
 
-suspend fun verifyInDb(token: TokenVerificationResult, requiredRole: UserRole? = null): Boolean = when (token) {
-    is AuthenticatedToken -> {
-        val user = userCache.get(token.userId)
-        user != null && user.userType == AUTHENTICATED &&
-            (requiredRole == null || user.roles.contains(requiredRole))
-    }
+suspend fun verifyInDb(token: TokenVerificationResult, requiredRole: UserRole? = null): Boolean =
+    when (token) {
+        is AuthenticatedToken -> {
+            val user = userCache.get(token.userId)
+            user != null && user.userType == AUTHENTICATED &&
+                (requiredRole == null || user.roles.contains(requiredRole))
+        }
 
-    is GuestToken -> {
-        val user = userCache.get(token.userId)
-        user != null && user.userType == GUEST &&
-            (requiredRole == null || user.roles.contains(requiredRole))
-    }
+        is GuestToken -> {
+            val user = userCache.get(token.userId)
+            user != null && user.userType == GUEST &&
+                (requiredRole == null || user.roles.contains(requiredRole))
+        }
 
-    else -> false
-}
+        else -> false
+    }

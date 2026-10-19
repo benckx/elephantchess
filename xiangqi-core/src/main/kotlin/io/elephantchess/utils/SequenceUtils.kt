@@ -2,9 +2,10 @@ package io.elephantchess.utils
 
 object SequenceUtils {
 
-    fun <T> allCombinationsOfMax(pieces: Collection<T>, maxSize: Int): Set<Set<T>> = allCombinations(pieces.toSet()).filter {
-        it.size <= maxSize
-    }.toSet()
+    fun <T> allCombinationsOfMax(pieces: Collection<T>, maxSize: Int): Set<Set<T>> =
+        allCombinations(pieces.toSet()).filter {
+            it.size <= maxSize
+        }.toSet()
 
     fun <T> allCombinations(elements: Set<T>): Set<Set<T>> {
         when (elements.size) {

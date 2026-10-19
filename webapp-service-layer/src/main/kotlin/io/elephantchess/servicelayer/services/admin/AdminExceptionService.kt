@@ -7,18 +7,19 @@ import io.elephantchess.utils.di.KoinSingleton
 @KoinSingleton
 class AdminExceptionService(private val thrownExceptionDaoService: ThrownExceptionDaoService) {
 
-    suspend fun listLatestExceptions(limit: Int, httpCodeFilter: String?): ThrownExceptionsResponse = thrownExceptionDaoService
-        .listLatestExceptions(limit, httpCodeFilter)
-        .map { record ->
-            ThrownExceptionsResponse.Entry(
-                exceptionTime = record.exceptionTime.toEpochMilliseconds(),
-                httpCode = record.httpCode,
-                exceptionClass = record.exceptionClass,
-                exceptionMessage = record.exceptionMessage,
-                exceptionTrace = record.exceptionTrace,
-            )
-        }
-        .let { entries ->
-            ThrownExceptionsResponse(entries)
-        }
+    suspend fun listLatestExceptions(limit: Int, httpCodeFilter: String?): ThrownExceptionsResponse =
+        thrownExceptionDaoService
+            .listLatestExceptions(limit, httpCodeFilter)
+            .map { record ->
+                ThrownExceptionsResponse.Entry(
+                    exceptionTime = record.exceptionTime.toEpochMilliseconds(),
+                    httpCode = record.httpCode,
+                    exceptionClass = record.exceptionClass,
+                    exceptionMessage = record.exceptionMessage,
+                    exceptionTrace = record.exceptionTrace,
+                )
+            }
+            .let { entries ->
+                ThrownExceptionsResponse(entries)
+            }
 }

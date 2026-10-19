@@ -17,14 +17,16 @@ enum class AbstractPieceType(val chineseName: String, val uci: String) {
     KNIGHT("騎", "N"),
     ;
 
-    override fun toString(): String = name
-        .lowercase()
-        .replaceFirstChar { it.uppercase() }
-        .replace("_", " ")
+    override fun toString(): String =
+        name
+            .lowercase()
+            .replaceFirstChar { it.uppercase() }
+            .replace("_", " ")
 
     companion object {
 
-        fun getPieceTypeByUci(uci: Char): AbstractPieceType = entries.find { it.uci == uci.toString().uppercase() }
-            ?: throw IllegalArgumentException("Not found piece type for UCI $uci")
+        fun getPieceTypeByUci(uci: Char): AbstractPieceType =
+            entries.find { it.uci == uci.toString().uppercase() }
+                ?: throw IllegalArgumentException("Not found piece type for UCI $uci")
     }
 }

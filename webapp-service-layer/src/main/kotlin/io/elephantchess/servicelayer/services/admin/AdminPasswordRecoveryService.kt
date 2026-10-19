@@ -11,21 +11,22 @@ class AdminPasswordRecoveryService(
     private val userCache: UserCache,
 ) {
 
-    suspend fun listLatestPasswordRecoveryAttempts(): PasswordRecoveryAttemptsResponse = passwordRecoveryAttemptsDaoService
-        .listLatestAttempts(100)
-        .map { record ->
-            val matchingUserId = record.matchingUserId
+    suspend fun listLatestPasswordRecoveryAttempts(): PasswordRecoveryAttemptsResponse =
+        passwordRecoveryAttemptsDaoService
+            .listLatestAttempts(100)
+            .map { record ->
+                val matchingUserId = record.matchingUserId
 
-            PasswordRecoveryAttemptsResponse.Entry(
-                creationTime = record.entryCreation.toEpochMilliseconds(),
-                email = record.emailProvided,
-                userId = matchingUserId,
-                username = matchingUserId?.let { userCache.fetchUsernameOrDefault(it) },
-                recoveryTime = record.dateRecovered?.toEpochMilliseconds(),
-                userCreation = matchingUserId?.let { userCache.fetchCreationTime(it) }?.toEpochMilliseconds(),
-            )
-        }
-        .let { entries ->
-            PasswordRecoveryAttemptsResponse(entries)
-        }
+                PasswordRecoveryAttemptsResponse.Entry(
+                    creationTime = record.entryCreation.toEpochMilliseconds(),
+                    email = record.emailProvided,
+                    userId = matchingUserId,
+                    username = matchingUserId?.let { userCache.fetchUsernameOrDefault(it) },
+                    recoveryTime = record.dateRecovered?.toEpochMilliseconds(),
+                    userCreation = matchingUserId?.let { userCache.fetchCreationTime(it) }?.toEpochMilliseconds(),
+                )
+            }
+            .let { entries ->
+                PasswordRecoveryAttemptsResponse(entries)
+            }
 }

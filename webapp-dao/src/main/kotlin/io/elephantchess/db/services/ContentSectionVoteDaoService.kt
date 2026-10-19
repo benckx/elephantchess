@@ -32,11 +32,12 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun listUnnotifiedVotes(): List<ContentSectionVote> = dslContext
-        .selectFrom(CONTENT_SECTION_VOTE)
-        .where(CONTENT_SECTION_VOTE.NOTIFIED.isFalse)
-        .orderBy(CONTENT_SECTION_VOTE.UPDATE_TIME.asc())
-        .awaitMappedRecords()
+    suspend fun listUnnotifiedVotes(): List<ContentSectionVote> =
+        dslContext
+            .selectFrom(CONTENT_SECTION_VOTE)
+            .where(CONTENT_SECTION_VOTE.NOTIFIED.isFalse)
+            .orderBy(CONTENT_SECTION_VOTE.UPDATE_TIME.asc())
+            .awaitMappedRecords()
 
     suspend fun markAsNotified(pageId: String, sectionId: String, userId: String) {
         dslContext
@@ -48,15 +49,17 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun listVotesByUserAndPage(userId: String, pageId: String): List<ContentSectionVote> = dslContext
-        .selectFrom(CONTENT_SECTION_VOTE)
-        .where(CONTENT_SECTION_VOTE.USER_ID.eq(userId))
-        .and(CONTENT_SECTION_VOTE.PAGE_ID.eq(pageId))
-        .awaitMappedRecords()
+    suspend fun listVotesByUserAndPage(userId: String, pageId: String): List<ContentSectionVote> =
+        dslContext
+            .selectFrom(CONTENT_SECTION_VOTE)
+            .where(CONTENT_SECTION_VOTE.USER_ID.eq(userId))
+            .and(CONTENT_SECTION_VOTE.PAGE_ID.eq(pageId))
+            .awaitMappedRecords()
 
-    suspend fun listLatestFeedback(limit: Int): List<ContentSectionVote> = dslContext
-        .selectFrom(CONTENT_SECTION_VOTE)
-        .orderBy(CONTENT_SECTION_VOTE.UPDATE_TIME.desc())
-        .limit(limit)
-        .awaitMappedRecords<ContentSectionVote>()
+    suspend fun listLatestFeedback(limit: Int): List<ContentSectionVote> =
+        dslContext
+            .selectFrom(CONTENT_SECTION_VOTE)
+            .orderBy(CONTENT_SECTION_VOTE.UPDATE_TIME.desc())
+            .limit(limit)
+            .awaitMappedRecords<ContentSectionVote>()
 }

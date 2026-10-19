@@ -66,22 +66,23 @@ object FindMatePuzzleCandidates : KoinScript {
         )
     }
 
-    private suspend fun fetchReferenceGamesWithoutPuzzle(): List<ReferenceGame> = dslContext
-        .selectFrom(REFERENCE_GAME)
-        .where(REFERENCE_GAME.FINAL_FEN.isNotNull)
-        .and(REFERENCE_GAME.SOURCE.isNotNull)
-        .and(REFERENCE_GAME.SOURCE_ID.isNotNull)
-        // the final position must still be playable (the game ended before mate, e.g. on resignation)
-        .and(REFERENCE_GAME.IS_CHECKMATE.ne(true).or(REFERENCE_GAME.IS_CHECKMATE.isNull))
-        .and(REFERENCE_GAME.IS_STALEMATE.ne(true).or(REFERENCE_GAME.IS_STALEMATE.isNull))
-        .and(
-            REFERENCE_GAME.SOURCE_ID.notIn(
-                dslContext
-                    .select(PUZZLE.REF_GAME_SOURCE_ID)
-                    .from(PUZZLE),
-            ),
-        )
-        .awaitMappedRecords<ReferenceGame>()
+    private suspend fun fetchReferenceGamesWithoutPuzzle(): List<ReferenceGame> =
+        dslContext
+            .selectFrom(REFERENCE_GAME)
+            .where(REFERENCE_GAME.FINAL_FEN.isNotNull)
+            .and(REFERENCE_GAME.SOURCE.isNotNull)
+            .and(REFERENCE_GAME.SOURCE_ID.isNotNull)
+            // the final position must still be playable (the game ended before mate, e.g. on resignation)
+            .and(REFERENCE_GAME.IS_CHECKMATE.ne(true).or(REFERENCE_GAME.IS_CHECKMATE.isNull))
+            .and(REFERENCE_GAME.IS_STALEMATE.ne(true).or(REFERENCE_GAME.IS_STALEMATE.isNull))
+            .and(
+                REFERENCE_GAME.SOURCE_ID.notIn(
+                    dslContext
+                        .select(PUZZLE.REF_GAME_SOURCE_ID)
+                        .from(PUZZLE),
+                ),
+            )
+            .awaitMappedRecords<ReferenceGame>()
 
     private suspend fun evaluate(game: ReferenceGame, finalFen: String): MatePuzzleCandidate? {
         logger.info { "evaluating ${game.id} (fen=$finalFen)" }
@@ -161,51 +162,52 @@ object FindMatePuzzleCandidates : KoinScript {
     }
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
-        // sort by reference game id so the run is deterministic and resumable
-        val games = fetchReferenceGamesWithoutPuzzle().sortedBy { game -> game.id }
-        logger.info { "checking ${games.size} reference games without puzzles" }
+    fun main(args: Array<String>) =
+        runBlocking {
+            // sort by reference game id so the run is deterministic and resumable
+            val games = fetchReferenceGamesWithoutPuzzle().sortedBy { game -> game.id }
+            logger.info { "checking ${games.size} reference games without puzzles" }
 
-        val outputFile = File(OUTPUT_FILE_NAME)
-        val resumeIndex = resumeIndex(outputFile, games)
-        if (resumeIndex > 0) {
-            logger.info { "resuming from index $resumeIndex (${games.size - resumeIndex} games left to check)" }
-        }
-
-        var found = 0
-        val total = games.size
-        val startedAt = System.currentTimeMillis()
-        // append when resuming an existing file, otherwise start fresh with a header
-        val isResuming = resumeIndex > 0 && outputFile.exists()
-        PrintWriter(FileWriter(outputFile, isResuming)).use { writer ->
-            if (!isResuming) {
-                writer.println(MatePuzzleCandidate.CSV_HEADER)
-                writer.flush()
+            val outputFile = File(OUTPUT_FILE_NAME)
+            val resumeIndex = resumeIndex(outputFile, games)
+            if (resumeIndex > 0) {
+                logger.info { "resuming from index $resumeIndex (${games.size - resumeIndex} games left to check)" }
             }
 
-            games.drop(resumeIndex).forEachIndexed { offset, game ->
-                val index = resumeIndex + offset
-                val finalFen = game.finalFen ?: return@forEachIndexed
-                val done = index + 1
-                val percent = done * 100.0 / total
-                val eta = formatEta(startedAt, offset + 1, total - resumeIndex)
-                logger.info { "[$done/$total] (${"%.1f".format(percent)}%, ETA $eta) evaluating ${game.id}" }
-                try {
-                    val candidate = evaluate(game, finalFen)
-                    if (candidate != null) {
-                        writer.println(candidate.toCsvLine())
-                        writer.flush()
-                        found++
-                        logger.info { "[$done/$total] ${game.id}: mate in ${candidate.mate} -> candidate (total found: $found)" }
+            var found = 0
+            val total = games.size
+            val startedAt = System.currentTimeMillis()
+            // append when resuming an existing file, otherwise start fresh with a header
+            val isResuming = resumeIndex > 0 && outputFile.exists()
+            PrintWriter(FileWriter(outputFile, isResuming)).use { writer ->
+                if (!isResuming) {
+                    writer.println(MatePuzzleCandidate.CSV_HEADER)
+                    writer.flush()
+                }
+
+                games.drop(resumeIndex).forEachIndexed { offset, game ->
+                    val index = resumeIndex + offset
+                    val finalFen = game.finalFen ?: return@forEachIndexed
+                    val done = index + 1
+                    val percent = done * 100.0 / total
+                    val eta = formatEta(startedAt, offset + 1, total - resumeIndex)
+                    logger.info { "[$done/$total] (${"%.1f".format(percent)}%, ETA $eta) evaluating ${game.id}" }
+                    try {
+                        val candidate = evaluate(game, finalFen)
+                        if (candidate != null) {
+                            writer.println(candidate.toCsvLine())
+                            writer.flush()
+                            found++
+                            logger.info { "[$done/$total] ${game.id}: mate in ${candidate.mate} -> candidate (total found: $found)" }
+                        }
+                    } catch (e: Exception) {
+                        logger.warn { "could not evaluate ${game.id} due to ${e::class.simpleName}: ${e.message}" }
                     }
-                } catch (e: Exception) {
-                    logger.warn { "could not evaluate ${game.id} due to ${e::class.simpleName}: ${e.message}" }
                 }
             }
-        }
 
-        logger.info { "found $found mate puzzle candidates, written to $OUTPUT_FILE_NAME" }
-    }
+            logger.info { "found $found mate puzzle candidates, written to $OUTPUT_FILE_NAME" }
+        }
 
     /**
      * Returns the index in the (id-sorted) [games] list from which to resume, based on the last

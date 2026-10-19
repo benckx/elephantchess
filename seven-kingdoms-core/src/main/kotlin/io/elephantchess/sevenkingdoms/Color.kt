@@ -19,13 +19,15 @@ enum class Color(val fenColorChar: Char, val armyName: String, val armyChineseNa
 
     companion object {
 
-        fun getColorFromFenColorChar(char: Char): Color = entries.find { it.fenColorChar == char.lowercaseChar() }
-            ?: throw IllegalArgumentException("Not found color $char")
+        fun getColorFromFenColorChar(char: Char): Color =
+            entries.find { it.fenColorChar == char.lowercaseChar() }
+                ?: throw IllegalArgumentException("Not found color $char")
 
-        fun areContiguous(colors: List<Color>): Boolean = when (colors.size) {
-            0 -> false
-            1 -> false
-            else -> colors.dropLast(1).all { it.next() == colors[colors.indexOf(it) + 1] }
-        }
+        fun areContiguous(colors: List<Color>): Boolean =
+            when (colors.size) {
+                0 -> false
+                1 -> false
+                else -> colors.dropLast(1).all { it.next() == colors[colors.indexOf(it) + 1] }
+            }
     }
 }

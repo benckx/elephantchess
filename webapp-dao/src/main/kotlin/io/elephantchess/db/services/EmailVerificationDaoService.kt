@@ -44,20 +44,22 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
         }
     }
 
-    suspend fun listBouncedEmails(): List<String> = dslContext
-        .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
-        .from(EMAIL_VERIFICATION_BOUNCE)
-        .orderBy(EMAIL_VERIFICATION_BOUNCE.BOUNCED_TIME)
-        .awaitMappedRecords()
+    suspend fun listBouncedEmails(): List<String> =
+        dslContext
+            .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
+            .from(EMAIL_VERIFICATION_BOUNCE)
+            .orderBy(EMAIL_VERIFICATION_BOUNCE.BOUNCED_TIME)
+            .awaitMappedRecords()
 
     /**
      * Case-insensitive and trim-insensitive
      */
-    suspend fun hasEmailBounced(email: String): Boolean = dslContext
-        .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
-        .from(EMAIL_VERIFICATION_BOUNCE)
-        .where(EMAIL_VERIFICATION_BOUNCE.EMAIL.eqIgnoreCaseTrimmed(email))
-        .awaitSingleValue<String>() != null
+    suspend fun hasEmailBounced(email: String): Boolean =
+        dslContext
+            .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
+            .from(EMAIL_VERIFICATION_BOUNCE)
+            .where(EMAIL_VERIFICATION_BOUNCE.EMAIL.eqIgnoreCaseTrimmed(email))
+            .awaitSingleValue<String>() != null
 
     suspend fun listEmailsToVerify(limit: Duration): List<String> {
         val verifiedRecently = dslContext
@@ -101,27 +103,29 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
     /**
      * Case-insensitive and trim-insensitive
      */
-    suspend fun findAutomatedVerifications(email: String, timeLimit: Duration): List<EmailVerification> = dslContext
-        .select()
-        .from(EMAIL_VERIFICATION)
-        .where(EMAIL_VERIFICATION.EMAIL.eqIgnoreCaseTrimmed(email))
-        .and(EMAIL_VERIFICATION.VERIFICATION_TIME.isWithin(timeLimit))
-        .orderBy(EMAIL_VERIFICATION.VERIFICATION_TIME)
-        .awaitMappedRecords()
+    suspend fun findAutomatedVerifications(email: String, timeLimit: Duration): List<EmailVerification> =
+        dslContext
+            .select()
+            .from(EMAIL_VERIFICATION)
+            .where(EMAIL_VERIFICATION.EMAIL.eqIgnoreCaseTrimmed(email))
+            .and(EMAIL_VERIFICATION.VERIFICATION_TIME.isWithin(timeLimit))
+            .orderBy(EMAIL_VERIFICATION.VERIFICATION_TIME)
+            .awaitMappedRecords()
 
     /**
      * Emails for which the more recent verification is "ok" or "ok_for_all"
      */
-    suspend fun listAllAutomaticallyValidatedEmails(timeLimit: Duration): List<String> = dslContext
-        .select()
-        .from(EMAIL_VERIFICATION)
-        .where(EMAIL_VERIFICATION.VERIFICATION_TIME.isWithin(timeLimit))
-        .awaitMappedRecords<EmailVerification>()
-        .groupBy { record -> record.email }
-        .map { (email, records) ->
-            email to records.maxBy { record -> record.verificationTime }
-        }
-        .filter { (_, record) -> record.result == "ok" || record.result == "ok_for_all" }
-        .map { (email, _) -> email }
-        .toList()
+    suspend fun listAllAutomaticallyValidatedEmails(timeLimit: Duration): List<String> =
+        dslContext
+            .select()
+            .from(EMAIL_VERIFICATION)
+            .where(EMAIL_VERIFICATION.VERIFICATION_TIME.isWithin(timeLimit))
+            .awaitMappedRecords<EmailVerification>()
+            .groupBy { record -> record.email }
+            .map { (email, records) ->
+                email to records.maxBy { record -> record.verificationTime }
+            }
+            .filter { (_, record) -> record.result == "ok" || record.result == "ok_for_all" }
+            .map { (email, _) -> email }
+            .toList()
 }

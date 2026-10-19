@@ -22,11 +22,13 @@ class OffsetDateTimeInstantConverter :
         OffsetDateTime::class.java,
         Instant::class.java,
     ) {
-    override fun from(databaseObject: OffsetDateTime?): Instant? = databaseObject
-        ?.toInstant()
-        ?.toKotlinInstant()
+    override fun from(databaseObject: OffsetDateTime?): Instant? =
+        databaseObject
+            ?.toInstant()
+            ?.toKotlinInstant()
 
-    override fun to(userObject: Instant?): OffsetDateTime? = userObject
-        ?.toJavaInstant()
-        ?.atOffset(ZoneOffset.UTC)
+    override fun to(userObject: Instant?): OffsetDateTime? =
+        userObject
+            ?.toJavaInstant()
+            ?.atOffset(ZoneOffset.UTC)
 }

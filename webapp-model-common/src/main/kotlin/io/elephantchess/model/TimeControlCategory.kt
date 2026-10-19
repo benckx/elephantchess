@@ -16,17 +16,18 @@ enum class TimeControlCategory {
 
     companion object {
 
-        fun fromSeconds(seconds: Int): TimeControlCategory = when {
-            seconds < 3.minutes.inWholeSeconds -> BULLET
+        fun fromSeconds(seconds: Int): TimeControlCategory =
+            when {
+                seconds < 3.minutes.inWholeSeconds -> BULLET
 
-            seconds <= 5.minutes.inWholeSeconds -> BLITZ
+                seconds <= 5.minutes.inWholeSeconds -> BLITZ
 
-            seconds < 1.hours.inWholeSeconds -> RAPID
+                seconds < 1.hours.inWholeSeconds -> RAPID
 
-            seconds < 1.days.inWholeSeconds -> CLASSICAL
+                seconds < 1.days.inWholeSeconds -> CLASSICAL
 
-            //                seconds <= 7.days.inWholeSeconds -> SEVERAL_DAYS
-            else -> CORRESPONDENCE
-        }
+                //                seconds <= 7.days.inWholeSeconds -> SEVERAL_DAYS
+                else -> CORRESPONDENCE
+            }
     }
 }

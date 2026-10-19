@@ -25,99 +25,109 @@ import kotlin.time.Instant
 @KoinSingleton
 class ReferenceGameDaoService(private val dslContext: DSLContext) {
 
-    suspend fun listPreAnalyzedGamesByYear(): List<Record3<Int, AnalysisStatus, Int>> = dslContext
-        .select(REFERENCE_GAME.YEAR, REFERENCE_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
-        .from(REFERENCE_GAME)
-        .where(REFERENCE_GAME.YEAR.isNotNull)
-        .groupBy(REFERENCE_GAME.YEAR, REFERENCE_GAME.ANALYSIS_STATUS)
-        .orderBy(REFERENCE_GAME.YEAR.desc(), REFERENCE_GAME.ANALYSIS_STATUS.asc())
-        .awaitRecords()
-
-    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> = dslContext
-        .select(REFERENCE_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
-        .from(REFERENCE_GAME)
-        .where(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.ge(minMoveIndex))
-        .groupBy(REFERENCE_GAME.ANALYSIS_STATUS)
-        .orderBy(REFERENCE_GAME.ANALYSIS_STATUS.asc())
-        .awaitRecords()
-
-    suspend fun findByEventId(eventId: String): List<ReferenceGameRecord> = dslContext
-        .select()
-        .from(REFERENCE_GAME)
-        .where(REFERENCE_GAME.EVENT.eq(eventId))
-        .awaitMappedRecords()
-
-    suspend fun findById(gameId: String): ReferenceGame? = dslContext
-        .select()
-        .from(REFERENCE_GAME)
-        .where(REFERENCE_GAME.ID.eq(gameId))
-        .awaitSingleMappedRecord()
-
-    suspend fun countAllGames(): Int = dslContext
-        .select(DSL.count())
-        .from(REFERENCE_GAME)
-        .awaitSingleValue()!!
-
-    suspend fun listMoves(gameId: String): List<String> = dslContext
-        .select(REFERENCE_GAME_HALF_MOVE.UCI)
-        .from(REFERENCE_GAME_HALF_MOVE)
-        .where(REFERENCE_GAME_HALF_MOVE.REFERENCE_GAME_ID.eq(gameId))
-        .orderBy(REFERENCE_GAME_HALF_MOVE.POSITION)
-        .awaitMappedRecords()
-
-    suspend fun countTotalMoves(): Int = dslContext
-        .selectCount()
-        .from(REFERENCE_GAME_HALF_MOVE)
-        .awaitSingleValue()!!
-
-    suspend fun countTotalMoves(gameId: String): Int? = dslContext
-        .select(REFERENCE_GAME.NUMBER_OF_HALF_MOVES)
-        .from(REFERENCE_GAME)
-        .where(REFERENCE_GAME.ID.eq(gameId))
-        .awaitSingleValue()
-
-    suspend fun listEvents(contains: String, limit: Int): List<EntityIdAndNameRecord> = dslContext
-        .selectDistinct(REFERENCE_GAME_EVENT.ID, REFERENCE_GAME_EVENT.NAME)
-        .from(REFERENCE_GAME_EVENT)
-        .where(lower(REFERENCE_GAME_EVENT.NAME).contains(contains.lowercase()))
-        .and(REFERENCE_GAME_EVENT.IS_VISIBLE.eq(true))
-        .orderBy(REFERENCE_GAME_EVENT.NAME)
-        .limit(limit)
-        .awaitRecords()
-        .map { record2 -> EntityIdAndNameRecord(record2.value1(), record2.value2()) }
-        .toList()
-
-    suspend fun findByPuzzleIds(puzzleIds: List<String>): List<Record> = if (puzzleIds.isEmpty()) {
-        emptyList()
-    } else {
+    suspend fun listPreAnalyzedGamesByYear(): List<Record3<Int, AnalysisStatus, Int>> =
         dslContext
-            .select(
-                PUZZLE.ID,
-                PUZZLE.RATING,
-                REFERENCE_GAME.ID,
-                REFERENCE_GAME.FINAL_FEN,
-                REFERENCE_GAME.ANALYSIS_STATUS,
-                REFERENCE_GAME.RED_PLAYER,
-                REFERENCE_GAME.BLACK_PLAYER,
-                REFERENCE_PLAYER.ID,
-                REFERENCE_PLAYER.CANONICAL_NAME,
-                REFERENCE_GAME.OUTCOME,
-                REFERENCE_GAME.DATE,
-            )
-            .from(
-                PUZZLE,
-                REFERENCE_GAME,
-                REFERENCE_PLAYER,
-            )
-            .where(PUZZLE.ID.`in`(puzzleIds))
-            .and(PUZZLE.REF_GAME_SOURCE_ID.eq(REFERENCE_GAME.SOURCE_ID))
-            .and(
-                REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.RED_PLAYER)
-                    .or(REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.BLACK_PLAYER)),
-            )
-            .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
+            .select(REFERENCE_GAME.YEAR, REFERENCE_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.YEAR.isNotNull)
+            .groupBy(REFERENCE_GAME.YEAR, REFERENCE_GAME.ANALYSIS_STATUS)
+            .orderBy(REFERENCE_GAME.YEAR.desc(), REFERENCE_GAME.ANALYSIS_STATUS.asc())
             .awaitRecords()
-    }
+
+    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> =
+        dslContext
+            .select(REFERENCE_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.ge(minMoveIndex))
+            .groupBy(REFERENCE_GAME.ANALYSIS_STATUS)
+            .orderBy(REFERENCE_GAME.ANALYSIS_STATUS.asc())
+            .awaitRecords()
+
+    suspend fun findByEventId(eventId: String): List<ReferenceGameRecord> =
+        dslContext
+            .select()
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.EVENT.eq(eventId))
+            .awaitMappedRecords()
+
+    suspend fun findById(gameId: String): ReferenceGame? =
+        dslContext
+            .select()
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ID.eq(gameId))
+            .awaitSingleMappedRecord()
+
+    suspend fun countAllGames(): Int =
+        dslContext
+            .select(DSL.count())
+            .from(REFERENCE_GAME)
+            .awaitSingleValue()!!
+
+    suspend fun listMoves(gameId: String): List<String> =
+        dslContext
+            .select(REFERENCE_GAME_HALF_MOVE.UCI)
+            .from(REFERENCE_GAME_HALF_MOVE)
+            .where(REFERENCE_GAME_HALF_MOVE.REFERENCE_GAME_ID.eq(gameId))
+            .orderBy(REFERENCE_GAME_HALF_MOVE.POSITION)
+            .awaitMappedRecords()
+
+    suspend fun countTotalMoves(): Int =
+        dslContext
+            .selectCount()
+            .from(REFERENCE_GAME_HALF_MOVE)
+            .awaitSingleValue()!!
+
+    suspend fun countTotalMoves(gameId: String): Int? =
+        dslContext
+            .select(REFERENCE_GAME.NUMBER_OF_HALF_MOVES)
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ID.eq(gameId))
+            .awaitSingleValue()
+
+    suspend fun listEvents(contains: String, limit: Int): List<EntityIdAndNameRecord> =
+        dslContext
+            .selectDistinct(REFERENCE_GAME_EVENT.ID, REFERENCE_GAME_EVENT.NAME)
+            .from(REFERENCE_GAME_EVENT)
+            .where(lower(REFERENCE_GAME_EVENT.NAME).contains(contains.lowercase()))
+            .and(REFERENCE_GAME_EVENT.IS_VISIBLE.eq(true))
+            .orderBy(REFERENCE_GAME_EVENT.NAME)
+            .limit(limit)
+            .awaitRecords()
+            .map { record2 -> EntityIdAndNameRecord(record2.value1(), record2.value2()) }
+            .toList()
+
+    suspend fun findByPuzzleIds(puzzleIds: List<String>): List<Record> =
+        if (puzzleIds.isEmpty()) {
+            emptyList()
+        } else {
+            dslContext
+                .select(
+                    PUZZLE.ID,
+                    PUZZLE.RATING,
+                    REFERENCE_GAME.ID,
+                    REFERENCE_GAME.FINAL_FEN,
+                    REFERENCE_GAME.ANALYSIS_STATUS,
+                    REFERENCE_GAME.RED_PLAYER,
+                    REFERENCE_GAME.BLACK_PLAYER,
+                    REFERENCE_PLAYER.ID,
+                    REFERENCE_PLAYER.CANONICAL_NAME,
+                    REFERENCE_GAME.OUTCOME,
+                    REFERENCE_GAME.DATE,
+                )
+                .from(
+                    PUZZLE,
+                    REFERENCE_GAME,
+                    REFERENCE_PLAYER,
+                )
+                .where(PUZZLE.ID.`in`(puzzleIds))
+                .and(PUZZLE.REF_GAME_SOURCE_ID.eq(REFERENCE_GAME.SOURCE_ID))
+                .and(
+                    REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.RED_PLAYER)
+                        .or(REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.BLACK_PLAYER)),
+                )
+                .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
+                .awaitRecords()
+        }
 
     // TODO: decide if we want to keep this or not
     //   we currently have a MR to index the games per opening in db,
@@ -422,27 +432,29 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun listLatestDatabaseSearches(limit: Int): List<ReferenceGameSearchQuery> = dslContext
-        .selectFrom(REFERENCE_GAME_SEARCH_QUERY)
-        .orderBy(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME.desc())
-        .limit(limit)
-        .awaitMappedRecords()
+    suspend fun listLatestDatabaseSearches(limit: Int): List<ReferenceGameSearchQuery> =
+        dslContext
+            .selectFrom(REFERENCE_GAME_SEARCH_QUERY)
+            .orderBy(REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME.desc())
+            .limit(limit)
+            .awaitMappedRecords()
 
-    suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<String, Instant>> = dslContext
-        .select(
-            REFERENCE_GAME.ID,
-            REFERENCE_GAME.ANALYSIS_START_TIME,
-        )
-        .from(REFERENCE_GAME)
-        .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(STARTED, CANCELLED))
-        .and(REFERENCE_GAME.ANALYSIS_START_TIME.isOlderThan(limit))
-        .awaitRecords()
-        .map { record2 ->
-            Pair(
-                record2.get(REFERENCE_GAME.ID),
-                record2.get(REFERENCE_GAME.ANALYSIS_START_TIME),
+    suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<String, Instant>> =
+        dslContext
+            .select(
+                REFERENCE_GAME.ID,
+                REFERENCE_GAME.ANALYSIS_START_TIME,
             )
-        }
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(STARTED, CANCELLED))
+            .and(REFERENCE_GAME.ANALYSIS_START_TIME.isOlderThan(limit))
+            .awaitRecords()
+            .map { record2 ->
+                Pair(
+                    record2.get(REFERENCE_GAME.ID),
+                    record2.get(REFERENCE_GAME.ANALYSIS_START_TIME),
+                )
+            }
 
     suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
         dslContext
@@ -453,22 +465,24 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun pickRandomGameForAnalysis(): String? = dslContext
-        .select(REFERENCE_GAME.ID)
-        .from(REFERENCE_GAME)
-        .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
-        .and(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.greaterThan(10))
-        .orderBy(DSL.rand())
-        .limit(1)
-        .awaitSingleValue()
+    suspend fun pickRandomGameForAnalysis(): String? =
+        dslContext
+            .select(REFERENCE_GAME.ID)
+            .from(REFERENCE_GAME)
+            .where(REFERENCE_GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
+            .and(REFERENCE_GAME.NUMBER_OF_HALF_MOVES.greaterThan(10))
+            .orderBy(DSL.rand())
+            .limit(1)
+            .awaitSingleValue()
 
     companion object {
         private val PARENTHETICAL_REGEX = Regex("""\s*\([^)]*\)\s*""")
         private val WHITESPACE_REGEX = Regex("""\s+""")
 
-        fun sanitizePlayerName(playerName: String?): String? = playerName
-            ?.replace(PARENTHETICAL_REGEX, "")
-            ?.replace(WHITESPACE_REGEX, " ")?.trim()
-            ?.takeIf { it.isNotEmpty() }
+        fun sanitizePlayerName(playerName: String?): String? =
+            playerName
+                ?.replace(PARENTHETICAL_REGEX, "")
+                ?.replace(WHITESPACE_REGEX, " ")?.trim()
+                ?.takeIf { it.isNotEmpty() }
     }
 }

@@ -9,9 +9,10 @@ import kotlinx.html.stream.appendHTML
 class KtorHtmlBuilderTagResolver(override val tagName: String, private val htmlBuilder: TagConsumer<StringBuilder>.() -> Unit) :
     TagResolver {
 
-    override suspend fun resolveContent() = listOf(
-        buildString {
-            appendHTML().run(htmlBuilder)
-        },
-    )
+    override suspend fun resolveContent() =
+        listOf(
+            buildString {
+                appendHTML().run(htmlBuilder)
+            },
+        )
 }

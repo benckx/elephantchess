@@ -12,11 +12,12 @@ data class AuthenticatedToken(override val userId: String, val decoded: DecodedJ
 
     override fun userId(): UserId = UserId(UserType.AUTHENTICATED, userId)
 
-    private fun roles(): List<UserRole> = decoded
-        .getClaim(ROLES_CLAIM)
-        ?.asList(String::class.java)
-        ?.map { role -> UserRole.valueOf(role) }
-        .orEmpty()
+    private fun roles(): List<UserRole> =
+        decoded
+            .getClaim(ROLES_CLAIM)
+            ?.asList(String::class.java)
+            ?.map { role -> UserRole.valueOf(role) }
+            .orEmpty()
 
     override fun toString(): String {
         val attributes = mutableListOf<Pair<String, String>>()

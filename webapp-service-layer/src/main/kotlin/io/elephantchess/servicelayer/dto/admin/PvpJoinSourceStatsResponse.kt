@@ -10,12 +10,13 @@ data class PvpJoinSourceStatsResponse(
 
     companion object {
 
-        fun allEmpty(): PvpJoinSourceStatsResponse = PvpJoinSourceStatsResponse(
-            periods = emptyList(),
-            percentageOver3 = emptyList(),
-            percentageOver3LobbyJoinModes = emptyList(),
-            percentageOver3LinkJoinSource = emptyList(),
-            joinSourceBreakdown = emptyList(),
-        )
+        fun allEmpty(): PvpJoinSourceStatsResponse =
+            PvpJoinSourceStatsResponse(
+                periods = emptyList(),
+                percentageOver3 = emptyList(),
+                percentageOver3LobbyJoinModes = emptyList(),
+                percentageOver3LinkJoinSource = emptyList(),
+                joinSourceBreakdown = emptyList(),
+            )
     }
 }

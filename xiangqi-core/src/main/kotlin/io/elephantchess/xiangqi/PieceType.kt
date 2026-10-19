@@ -8,17 +8,19 @@ import io.elephantchess.xiangqi.Color.Companion.UPPERCASE_COLOR
  */
 data class PieceType(val abstractPieceType: AbstractPieceType, val color: Color) {
 
-    fun letterNotation(): String = if (color == UPPERCASE_COLOR) {
-        abstractPieceType.uci.uppercase()
-    } else {
-        abstractPieceType.uci.toString()
-    }
+    fun letterNotation(): String =
+        if (color == UPPERCASE_COLOR) {
+            abstractPieceType.uci.uppercase()
+        } else {
+            abstractPieceType.uci.toString()
+        }
 
-    fun chineseCharacter(): Char = if (color == Color.RED) {
-        abstractPieceType.redLabel
-    } else {
-        abstractPieceType.blackLabel
-    }
+    fun chineseCharacter(): Char =
+        if (color == Color.RED) {
+            abstractPieceType.redLabel
+        } else {
+            abstractPieceType.blackLabel
+        }
 
     fun prettyName(): String = "${color.name.capitalize()} ${abstractPieceType.name.capitalize()} (${chineseCharacter()})"
 

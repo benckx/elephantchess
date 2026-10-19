@@ -12,12 +12,13 @@ enum class GameJoinSource {
 
     companion object {
 
-        fun fromCsvOrNull(value: String): GameJoinSource? = when (val trimmed = value.trim().uppercase()) {
-            "" -> null
-            "LINK" -> LINK
-            "LOBBY" -> LOBBY
-            "DISCORD" -> DISCORD
-            else -> throw IllegalArgumentException("unknown game join source: '$trimmed'")
-        }
+        fun fromCsvOrNull(value: String): GameJoinSource? =
+            when (val trimmed = value.trim().uppercase()) {
+                "" -> null
+                "LINK" -> LINK
+                "LOBBY" -> LOBBY
+                "DISCORD" -> DISCORD
+                else -> throw IllegalArgumentException("unknown game join source: '$trimmed'")
+            }
     }
 }

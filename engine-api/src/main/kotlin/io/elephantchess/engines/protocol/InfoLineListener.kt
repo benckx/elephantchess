@@ -43,10 +43,11 @@ class InfoLineListener : LineListener {
 
     fun hasResult(): Boolean = bestMove != null || checkmate
 
-    fun getResult(): InfoLinesResult = InfoLinesResult(
-        infoLines = infoLines,
-        checkmate = checkmate,
-        bestMove = bestMove,
-        ponder = ponder,
-    )
+    fun getResult(): InfoLinesResult =
+        InfoLinesResult(
+            infoLines = infoLines,
+            checkmate = checkmate,
+            bestMove = bestMove,
+            ponder = ponder,
+        )
 }

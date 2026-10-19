@@ -79,57 +79,60 @@ class GlobalAnalyticsService(
         refreshJob.cancel()
     }
 
-    suspend fun fetchPlayerVsPlayerLeaderboard(): GlobalPlayerVsPlayerLeaderboardResponse = shortCache.typedGet(PVP_LEADERBOARD) {
-        val highestUserPerCategory =
-            userDaoService
-                .fetchUsersWithHighestRating(numberOfUsers = 5)
-                .filterNot { (timeControlCategory, _) ->
-                    timeControlCategory == TimeControlCategory.SEVERAL_DAYS
+    suspend fun fetchPlayerVsPlayerLeaderboard(): GlobalPlayerVsPlayerLeaderboardResponse =
+        shortCache.typedGet(PVP_LEADERBOARD) {
+            val highestUserPerCategory =
+                userDaoService
+                    .fetchUsersWithHighestRating(numberOfUsers = 5)
+                    .filterNot { (timeControlCategory, _) ->
+                        timeControlCategory == TimeControlCategory.SEVERAL_DAYS
+                    }
+
+            val allUserIds = highestUserPerCategory.flatMap { (_, users) -> users.map { it.id } }.distinct()
+            val numberOfGamesAndLastPlayed = userDaoService.fetchNumberOfGamesAndLastPlayed(allUserIds)
+
+            highestUserPerCategory
+                .flatMap { (timeControlCategory, users) ->
+                    users
+                        .sortedByDescending { user ->
+                            user.rating(timeControlCategory)
+                        }
+                        .map { user ->
+                            val aggregatedInfo =
+                                numberOfGamesAndLastPlayed.find { record ->
+                                    record.userId == user.id && record.category == timeControlCategory
+                                }
+
+                            GlobalPlayerVsPlayerLeaderboardResponse.Entry(
+                                category = timeControlCategory,
+                                userId = user.id,
+                                username = user.handle,
+                                countryCode = user.country,
+                                rating = user.rating(timeControlCategory),
+                                totalPlayed = aggregatedInfo?.totalPlayed ?: 0,
+                                lastPlayed = aggregatedInfo?.lastPlayed?.toEpochMilliseconds() ?: 0L,
+                            )
+                        }
                 }
+                .let { entries ->
+                    GlobalPlayerVsPlayerLeaderboardResponse(entries)
+                }
+        }
 
-        val allUserIds = highestUserPerCategory.flatMap { (_, users) -> users.map { it.id } }.distinct()
-        val numberOfGamesAndLastPlayed = userDaoService.fetchNumberOfGamesAndLastPlayed(allUserIds)
-
-        highestUserPerCategory
-            .flatMap { (timeControlCategory, users) ->
-                users
-                    .sortedByDescending { user ->
-                        user.rating(timeControlCategory)
-                    }
-                    .map { user ->
-                        val aggregatedInfo =
-                            numberOfGamesAndLastPlayed.find { record ->
-                                record.userId == user.id && record.category == timeControlCategory
-                            }
-
-                        GlobalPlayerVsPlayerLeaderboardResponse.Entry(
-                            category = timeControlCategory,
-                            userId = user.id,
-                            username = user.handle,
-                            countryCode = user.country,
-                            rating = user.rating(timeControlCategory),
-                            totalPlayed = aggregatedInfo?.totalPlayed ?: 0,
-                            lastPlayed = aggregatedInfo?.lastPlayed?.toEpochMilliseconds() ?: 0L,
-                        )
-                    }
-            }
-            .let { entries ->
-                GlobalPlayerVsPlayerLeaderboardResponse(entries)
-            }
-    }
-
-    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int): PuzzleStatsLeaderboardResponse = shortCache.typedGet(PUZZLE_LEADERBOARD) {
-        mapPuzzleLeaderboardRecords(userDaoService.fetchPuzzleLeaderboard(maxNumberOfEntries))
-    }
+    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int): PuzzleStatsLeaderboardResponse =
+        shortCache.typedGet(PUZZLE_LEADERBOARD) {
+            mapPuzzleLeaderboardRecords(userDaoService.fetchPuzzleLeaderboard(maxNumberOfEntries))
+        }
 
     suspend fun fetchPuzzleLeaderboardLast12Months(maxNumberOfEntries: Int): PuzzleStatsLeaderboardResponse =
         shortCache.typedGet(PUZZLE_LEADERBOARD_LAST_12_MONTHS) {
             mapPuzzleLeaderboardRecords(userDaoService.fetchPuzzleLeaderboard(maxNumberOfEntries, days = 365))
         }
 
-    suspend fun fetchGlobalPuzzleStats(): GlobalPuzzleStatsResponse = longCache.typedGet(GLOBAL_PUZZLE_STATS) {
-        computeGlobalPuzzleStats()
-    }
+    suspend fun fetchGlobalPuzzleStats(): GlobalPuzzleStatsResponse =
+        longCache.typedGet(GLOBAL_PUZZLE_STATS) {
+            computeGlobalPuzzleStats()
+        }
 
     private fun computeGlobalPuzzleStats(): GlobalPuzzleStatsResponse {
         val totalPuzzles = puzzleCache.countAllEnabled()
@@ -150,9 +153,10 @@ class GlobalAnalyticsService(
         )
     }
 
-    suspend fun fetchGlobalGameStats(): GlobalGameStatsResponse = longCache.typedGet(GLOBAL_GAME_STATS) {
-        computeGlobalGameStats()
-    }
+    suspend fun fetchGlobalGameStats(): GlobalGameStatsResponse =
+        longCache.typedGet(GLOBAL_GAME_STATS) {
+            computeGlobalGameStats()
+        }
 
     private suspend fun computeGlobalGameStats(): GlobalGameStatsResponse {
         val totalGames = gameDataService.countTotalGames()
@@ -204,9 +208,10 @@ class GlobalAnalyticsService(
         )
     }
 
-    suspend fun fetchGlobalAppData(): GlobalAppDataResponse = longCache.typedGet(GLOBAL_APP_DATA) {
-        computeGlobalAppData()
-    }
+    suspend fun fetchGlobalAppData(): GlobalAppDataResponse =
+        longCache.typedGet(GLOBAL_APP_DATA) {
+            computeGlobalAppData()
+        }
 
     private fun computeGlobalAppData(): GlobalAppDataResponse {
         val lastDeploy =

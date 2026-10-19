@@ -92,9 +92,10 @@ class GamePageRenderer(
             }
         }
 
-        private fun formatEngineName(engine: Engine): String = when (engine) {
-            Engine.PIKAFISH -> "Pikafish"
-            Engine.FAIRYSTOCKFISH -> "Fairy Stockfish"
-        }
+        private fun formatEngineName(engine: Engine): String =
+            when (engine) {
+                Engine.PIKAFISH -> "Pikafish"
+                Engine.FAIRYSTOCKFISH -> "Fairy Stockfish"
+            }
     }
 }

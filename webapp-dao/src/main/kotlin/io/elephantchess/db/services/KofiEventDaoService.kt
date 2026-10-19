@@ -97,19 +97,20 @@ class KofiEventDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun fetchLatestEvent(): KofiEvent? = dslContext
-        .select(relevantFields)
-        .from(KOFI_EVENT)
-        .where(KOFI_EVENT.EMAIL.notEqual(EXAMPLE_EMAIL))
-        .and(
-            KOFI_EVENT.TRANSACTION_TYPE.`in`("Donation", "Tip").or(
-                KOFI_EVENT.TRANSACTION_TYPE.`in`("Subscription")
-                    .and(KOFI_EVENT.IS_FIRST_SUBSCRIPTION_PAYMENT.eq(true)),
-            ),
-        )
-        .orderBy(KOFI_EVENT.TIMESTAMP.desc())
-        .limit(1)
-        .awaitSingleMappedRecord()
+    suspend fun fetchLatestEvent(): KofiEvent? =
+        dslContext
+            .select(relevantFields)
+            .from(KOFI_EVENT)
+            .where(KOFI_EVENT.EMAIL.notEqual(EXAMPLE_EMAIL))
+            .and(
+                KOFI_EVENT.TRANSACTION_TYPE.`in`("Donation", "Tip").or(
+                    KOFI_EVENT.TRANSACTION_TYPE.`in`("Subscription")
+                        .and(KOFI_EVENT.IS_FIRST_SUBSCRIPTION_PAYMENT.eq(true)),
+                ),
+            )
+            .orderBy(KOFI_EVENT.TIMESTAMP.desc())
+            .limit(1)
+            .awaitSingleMappedRecord()
 
     companion object {
 

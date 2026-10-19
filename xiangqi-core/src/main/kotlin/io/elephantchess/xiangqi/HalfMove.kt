@@ -18,16 +18,17 @@ data class HalfMove(val from: Position, val to: Position) {
 
         fun halfMoveIndexToFullMove(i: Int): Int = ceil(((i + 1).toDouble() / 2)).toInt()
 
-        fun parseMovesFromDigitsString(digitsString: String): List<HalfMove> = digitsString
-            .trim()
-            .chunked(4)
-            .map { chunk ->
-                val x1 = chunk[0].digitToInt()
-                val y1 = chunk[1].digitToInt()
-                val x2 = chunk[2].digitToInt()
-                val y2 = chunk[3].digitToInt()
-                HalfMove(Position(x1, y1), Position(x2, y2))
-            }
+        fun parseMovesFromDigitsString(digitsString: String): List<HalfMove> =
+            digitsString
+                .trim()
+                .chunked(4)
+                .map { chunk ->
+                    val x1 = chunk[0].digitToInt()
+                    val y1 = chunk[1].digitToInt()
+                    val x2 = chunk[2].digitToInt()
+                    val y2 = chunk[3].digitToInt()
+                    HalfMove(Position(x1, y1), Position(x2, y2))
+                }
 
         fun parseMoveFromUci(move: String): HalfMove {
             val from = parsePositionFromUci(move.substring(0, 2))

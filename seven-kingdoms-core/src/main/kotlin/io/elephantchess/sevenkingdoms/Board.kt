@@ -145,11 +145,12 @@ class Board(initFen: String = DEFAULT_START_FEN) {
         return ranks.joinToString("/")
     }
 
-    fun listAllPieces(): List<PieceAtPosition> = Position.listAll().mapNotNull { position ->
-        pieceAt(position)?.let { piece ->
-            PieceAtPosition(piece, position)
+    fun listAllPieces(): List<PieceAtPosition> =
+        Position.listAll().mapNotNull { position ->
+            pieceAt(position)?.let { piece ->
+                PieceAtPosition(piece, position)
+            }
         }
-    }
 
     fun listPiecesByColor(color: Color): List<PieceAtPosition> = listAllPieces().filter { it.color == color }
 
@@ -322,15 +323,17 @@ class Board(initFen: String = DEFAULT_START_FEN) {
     /**
      * List current legal moves (for the [Color] that has to play now)
      */
-    fun listCurrentLegalMoves(): List<Move> = if (isGameOver) {
-        emptyList()
-    } else {
-        listLegalMovesFor(colorToPlay)
-    }
+    fun listCurrentLegalMoves(): List<Move> =
+        if (isGameOver) {
+            emptyList()
+        } else {
+            listLegalMovesFor(colorToPlay)
+        }
 
-    fun listLegalMovesFor(color: Color): List<Move> = listAllPieces()
-        .filter { pieceAtPosition -> pieceAtPosition.color == color }
-        .flatMap { pieceAtPosition -> listAllLegalMovesFrom(pieceAtPosition.position) }
+    fun listLegalMovesFor(color: Color): List<Move> =
+        listAllPieces()
+            .filter { pieceAtPosition -> pieceAtPosition.color == color }
+            .flatMap { pieceAtPosition -> listAllLegalMovesFrom(pieceAtPosition.position) }
 
     /**
      * Not only the ones that can currently be played given colorToPlay,

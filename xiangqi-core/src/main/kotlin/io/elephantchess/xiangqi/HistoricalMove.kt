@@ -21,11 +21,12 @@ data class HistoricalMove(
 
     fun fullMove(): Int = halfMoveIndexToFullMove(index)
 
-    fun isAttackingGeneral(piece: PhysicalPiece): Boolean = attackMap
-        .filter { (attackingPiece, _) -> attackingPiece.physicalPiece == piece }
-        .any { (_, attackedPieces) ->
-            attackedPieces.any { it.abstractPieceType() == GENERAL }
-        }
+    fun isAttackingGeneral(piece: PhysicalPiece): Boolean =
+        attackMap
+            .filter { (attackingPiece, _) -> attackingPiece.physicalPiece == piece }
+            .any { (_, attackedPieces) ->
+                attackedPieces.any { it.abstractPieceType() == GENERAL }
+            }
 
     override fun toString(): String {
         val fullMove = "[" + fullMove() + "] "

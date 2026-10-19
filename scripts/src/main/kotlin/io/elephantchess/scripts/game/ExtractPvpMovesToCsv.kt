@@ -340,11 +340,12 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         return if (days >= 1) "${days}d" else "${totalSeconds / 3600}h"
     }
 
-    private fun timeControlToString(mode: TimeControlMode?, base: Int?, increment: Int?): String = when (mode) {
-        TimeControlMode.GAME_TIME -> "${base ?: 0}+${increment ?: 0}"
-        TimeControlMode.MOVE_TIME -> "${base ?: 0}/move"
-        null -> ""
-    }
+    private fun timeControlToString(mode: TimeControlMode?, base: Int?, increment: Int?): String =
+        when (mode) {
+            TimeControlMode.GAME_TIME -> "${base ?: 0}+${increment ?: 0}"
+            TimeControlMode.MOVE_TIME -> "${base ?: 0}/move"
+            null -> ""
+        }
 
     private data class PlayerRating(val before: Int?, val after: Int?)
 

@@ -30,24 +30,26 @@ object PersistDatabaseGamesToJson : KoinScript {
     private val gameDaoService by inject<SevenKingdomsGameDaoService>()
     private val dslContext by inject<DSLContext>()
 
-    private suspend fun listGamesSortedBySize(): List<SevenKingdomsGame> = dslContext
-        .select(
-            SEVEN_KINGDOMS_GAME.ID,
-            SEVEN_KINGDOMS_GAME.CURRENT_INDEX,
-        )
-        .from(SEVEN_KINGDOMS_GAME)
-        .where(SEVEN_KINGDOMS_GAME.GAME_STATUS.eq(OTHER_VICTORY))
-        .orderBy(SEVEN_KINGDOMS_GAME.CURRENT_INDEX)
-        .awaitMappedRecords()
+    private suspend fun listGamesSortedBySize(): List<SevenKingdomsGame> =
+        dslContext
+            .select(
+                SEVEN_KINGDOMS_GAME.ID,
+                SEVEN_KINGDOMS_GAME.CURRENT_INDEX,
+            )
+            .from(SEVEN_KINGDOMS_GAME)
+            .where(SEVEN_KINGDOMS_GAME.GAME_STATUS.eq(OTHER_VICTORY))
+            .orderBy(SEVEN_KINGDOMS_GAME.CURRENT_INDEX)
+            .awaitMappedRecords()
 
-    private fun mapBoardToGameEntryDto(gameId: String, board: Board): GameEntryDto = GameEntryDto(
-        gameId = gameId,
-        winner = board.winner()!!,
-        victoryType = board.victoryType()!!,
-        capturedKingdoms = board.capturedKingdomsMap(),
-        colorsStillInGame = board.colorsStillInGame(),
-        moves = board.listHistoricalMoves().map { it.uci },
-    )
+    private fun mapBoardToGameEntryDto(gameId: String, board: Board): GameEntryDto =
+        GameEntryDto(
+            gameId = gameId,
+            winner = board.winner()!!,
+            victoryType = board.victoryType()!!,
+            capturedKingdoms = board.capturedKingdomsMap(),
+            colorsStillInGame = board.colorsStillInGame(),
+            moves = board.listHistoricalMoves().map { it.uci },
+        )
 
     private suspend fun loadBoard(gameId: String): Board {
         val board = Board()

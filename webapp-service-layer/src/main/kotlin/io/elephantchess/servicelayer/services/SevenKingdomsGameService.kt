@@ -53,15 +53,17 @@ class SevenKingdomsGameService(private val gameDaoService: SevenKingdomsGameDaoS
         val gameRecord = gameDaoService.fetchGame(gameId)
             ?: throw NotFoundException("Game $gameId not found")
 
-        suspend fun mapToPlayer(color: Color): GetGameDataResponse.Player? = gameRecord.userIdOfColor(color)?.let { userId ->
-            val userName = userCache.fetchUsernameOrDefault(userId)
-            GetGameDataResponse.Player(userId, userName)
-        }
+        suspend fun mapToPlayer(color: Color): GetGameDataResponse.Player? =
+            gameRecord.userIdOfColor(color)?.let { userId ->
+                val userName = userCache.fetchUsernameOrDefault(userId)
+                GetGameDataResponse.Player(userId, userName)
+            }
 
-        suspend fun mapWinnerToPlayer(): GetGameDataResponse.Player? = gameRecord.winnerUserId?.let { userId ->
-            val userName = userCache.fetchUsernameOrDefault(userId)
-            GetGameDataResponse.Player(userId, userName)
-        }
+        suspend fun mapWinnerToPlayer(): GetGameDataResponse.Player? =
+            gameRecord.winnerUserId?.let { userId ->
+                val userName = userCache.fetchUsernameOrDefault(userId)
+                GetGameDataResponse.Player(userId, userName)
+            }
 
         return GetGameDataResponse(
             whitePlayer = mapToPlayer(WHITE),

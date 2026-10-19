@@ -118,26 +118,27 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
     }
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
-        val inputFile = File(INPUT_FILE_NAME)
-        if (!inputFile.exists()) {
-            logger.error { "$INPUT_FILE_NAME not found, run FindMatePuzzleCandidates first" }
-            return@runBlocking
+    fun main(args: Array<String>) =
+        runBlocking {
+            val inputFile = File(INPUT_FILE_NAME)
+            if (!inputFile.exists()) {
+                logger.error { "$INPUT_FILE_NAME not found, run FindMatePuzzleCandidates first" }
+                return@runBlocking
+            }
+
+            val candidates = inputFile
+                .readLines()
+                .drop(1)
+                .filter { line -> line.isNotBlank() }
+                .map { line -> MatePuzzleCandidate.fromCsvLine(line) }
+
+            logger.info { "read ${candidates.size} candidates from $INPUT_FILE_NAME" }
+
+            var created = 0
+            candidates.forEach { candidate ->
+                created += createPuzzles(candidate)
+            }
+
+            logger.info { "created $created puzzles" }
         }
-
-        val candidates = inputFile
-            .readLines()
-            .drop(1)
-            .filter { line -> line.isNotBlank() }
-            .map { line -> MatePuzzleCandidate.fromCsvLine(line) }
-
-        logger.info { "read ${candidates.size} candidates from $INPUT_FILE_NAME" }
-
-        var created = 0
-        candidates.forEach { candidate ->
-            created += createPuzzles(candidate)
-        }
-
-        logger.info { "created $created puzzles" }
-    }
 }

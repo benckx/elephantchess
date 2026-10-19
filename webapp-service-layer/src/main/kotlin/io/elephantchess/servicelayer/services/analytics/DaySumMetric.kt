@@ -20,38 +20,42 @@ class DaySumMetric<N : Number>(
     private val condition: Condition? = null,
 ) : Metric(name) {
 
-    override suspend fun countByDay(dslContext: DSLContext, days: Int): List<DailyValueRecord> = countByTime(
-        timeField = dateTimeField,
-        measureField = measureField,
-        dslContext = dslContext,
-        table = table,
-        condition = condition,
-        limit = dateTimeField.ge(LocalDate.now().minusDays(days.toLong())).isTrue,
-    ).map { record -> DailyValueRecord.ofBigDecimal(record) }
+    override suspend fun countByDay(dslContext: DSLContext, days: Int): List<DailyValueRecord> =
+        countByTime(
+            timeField = dateTimeField,
+            measureField = measureField,
+            dslContext = dslContext,
+            table = table,
+            condition = condition,
+            limit = dateTimeField.ge(LocalDate.now().minusDays(days.toLong())).isTrue,
+        ).map { record -> DailyValueRecord.ofBigDecimal(record) }
 
-    override suspend fun countByYearMonth(dslContext: DSLContext): List<MonthlyValueRecord> = countByTime(
-        timeField = dateTimeField.yearMonthOfDay(),
-        measureField = measureField,
-        dslContext = dslContext,
-        table = table,
-        condition = condition,
-    ).map { record -> MonthlyValueRecord.ofBigDecimal(record) }
+    override suspend fun countByYearMonth(dslContext: DSLContext): List<MonthlyValueRecord> =
+        countByTime(
+            timeField = dateTimeField.yearMonthOfDay(),
+            measureField = measureField,
+            dslContext = dslContext,
+            table = table,
+            condition = condition,
+        ).map { record -> MonthlyValueRecord.ofBigDecimal(record) }
 
-    override suspend fun countByYear(dslContext: DSLContext): List<IntDimensionValueRecord> = countByTime(
-        timeField = dateTimeField.yearOfDay(),
-        measureField = measureField,
-        dslContext = dslContext,
-        table = table,
-        condition = condition,
-    ).map { record -> IntDimensionValueRecord.ofBigDecimal(record) }
+    override suspend fun countByYear(dslContext: DSLContext): List<IntDimensionValueRecord> =
+        countByTime(
+            timeField = dateTimeField.yearOfDay(),
+            measureField = measureField,
+            dslContext = dslContext,
+            table = table,
+            condition = condition,
+        ).map { record -> IntDimensionValueRecord.ofBigDecimal(record) }
 
-    override suspend fun countByCentury(dslContext: DSLContext): List<IntDimensionValueRecord> = countByTime(
-        timeField = dateTimeField.centuryOfDay(),
-        measureField = measureField,
-        dslContext = dslContext,
-        table = table,
-        condition = condition,
-    ).map { record -> IntDimensionValueRecord.ofBigDecimal(record) }
+    override suspend fun countByCentury(dslContext: DSLContext): List<IntDimensionValueRecord> =
+        countByTime(
+            timeField = dateTimeField.centuryOfDay(),
+            measureField = measureField,
+            dslContext = dslContext,
+            table = table,
+            condition = condition,
+        ).map { record -> IntDimensionValueRecord.ofBigDecimal(record) }
 
     private suspend fun <R : Record, T> countByTime(
         timeField: Field<T>,

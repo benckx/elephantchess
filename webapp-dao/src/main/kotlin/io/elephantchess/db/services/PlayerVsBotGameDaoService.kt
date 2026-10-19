@@ -37,14 +37,15 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
 
-    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> = dslContext
-        .select(BOT_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
-        .from(BOT_GAME)
-        .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
-        .and(BOT_GAME.VARIANT.eq(Variant.XIANGQI))
-        .groupBy(BOT_GAME.ANALYSIS_STATUS)
-        .orderBy(BOT_GAME.ANALYSIS_STATUS.asc())
-        .awaitRecords()
+    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> =
+        dslContext
+            .select(BOT_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
+            .from(BOT_GAME)
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(BOT_GAME.VARIANT.eq(Variant.XIANGQI))
+            .groupBy(BOT_GAME.ANALYSIS_STATUS)
+            .orderBy(BOT_GAME.ANALYSIS_STATUS.asc())
+            .awaitRecords()
 
     suspend fun insertGame(gameRecord: BotGame, statusRecord: BotGameStatusEvent) {
         dslContext.transactionCoroutine { configuration ->
@@ -73,13 +74,14 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun listIdleGames(duration: Duration): List<String> = dslContext
-        .select(BOT_GAME.ID)
-        .from(BOT_GAME)
-        .where(BOT_GAME.LAST_UPDATED.isOlderThan(duration))
-        .and(BOT_GAME.OUTCOME.isNull)
-        .and(BOT_GAME.GAME_STATUS.eq(CREATED))
-        .awaitMappedRecords()
+    suspend fun listIdleGames(duration: Duration): List<String> =
+        dslContext
+            .select(BOT_GAME.ID)
+            .from(BOT_GAME)
+            .where(BOT_GAME.LAST_UPDATED.isOlderThan(duration))
+            .and(BOT_GAME.OUTCOME.isNull)
+            .and(BOT_GAME.GAME_STATUS.eq(CREATED))
+            .awaitMappedRecords()
 
     suspend fun listLatestGamesByIdentifiedUsers(
         limit: Int,
@@ -117,102 +119,111 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<String, Instant>> = dslContext
-        .select(BOT_GAME.ID, BOT_GAME.ANALYSIS_START_TIME)
-        .from(BOT_GAME)
-        .where(BOT_GAME.ANALYSIS_STATUS.`in`(STARTED, CANCELLED))
-        .and(BOT_GAME.ANALYSIS_START_TIME.isOlderThan(limit))
-        .awaitRecords()
-        .map { record2 ->
-            Pair(
-                record2.get(BOT_GAME.ID),
-                record2.get(BOT_GAME.ANALYSIS_START_TIME),
-            )
-        }
+    suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<String, Instant>> =
+        dslContext
+            .select(BOT_GAME.ID, BOT_GAME.ANALYSIS_START_TIME)
+            .from(BOT_GAME)
+            .where(BOT_GAME.ANALYSIS_STATUS.`in`(STARTED, CANCELLED))
+            .and(BOT_GAME.ANALYSIS_START_TIME.isOlderThan(limit))
+            .awaitRecords()
+            .map { record2 ->
+                Pair(
+                    record2.get(BOT_GAME.ID),
+                    record2.get(BOT_GAME.ANALYSIS_START_TIME),
+                )
+            }
 
-    suspend fun latestGameActivity(minMoveIndex: Int = 0): Instant? = dslContext
-        .select(DSL.max(BOT_GAME.LAST_UPDATED))
-        .from(BOT_GAME)
-        .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
-        .and(BOT_GAME.GAME_STATUS.notIn(listOf(FLAGGED, AUTO_CANCELED)))
-        .awaitSingleValue()
+    suspend fun latestGameActivity(minMoveIndex: Int = 0): Instant? =
+        dslContext
+            .select(DSL.max(BOT_GAME.LAST_UPDATED))
+            .from(BOT_GAME)
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(BOT_GAME.GAME_STATUS.notIn(listOf(FLAGGED, AUTO_CANCELED)))
+            .awaitSingleValue()
 
-    suspend fun latestMoveTime(minMoveIndex: Int = 0): Instant? = dslContext
-        .select(DSL.max(BOT_GAME.LAST_UPDATED))
-        .from(BOT_GAME)
-        .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
-        .awaitSingleValue()
+    suspend fun latestMoveTime(minMoveIndex: Int = 0): Instant? =
+        dslContext
+            .select(DSL.max(BOT_GAME.LAST_UPDATED))
+            .from(BOT_GAME)
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .awaitSingleValue()
 
-    suspend fun countLiveGames(lastUpdated: Duration, userIds: Set<String>): Int = dslContext
-        .selectCount()
-        .from(BOT_GAME)
-        .where(BOT_GAME.GAME_STATUS.`in`(CREATED))
-        .and(BOT_GAME.LAST_UPDATED.isWithin(lastUpdated))
-        .and(BOT_GAME.USER_ID.`in`(userIds))
-        .awaitSingleValue()!!
+    suspend fun countLiveGames(lastUpdated: Duration, userIds: Set<String>): Int =
+        dslContext
+            .selectCount()
+            .from(BOT_GAME)
+            .where(BOT_GAME.GAME_STATUS.`in`(CREATED))
+            .and(BOT_GAME.LAST_UPDATED.isWithin(lastUpdated))
+            .and(BOT_GAME.USER_ID.`in`(userIds))
+            .awaitSingleValue()!!
 
-    suspend fun fetchById(gameId: String): BotGame? = dslContext
-        .select()
-        .from(BOT_GAME)
-        .where(BOT_GAME.ID.eq(gameId))
-        .awaitSingleMappedRecord()
+    suspend fun fetchById(gameId: String): BotGame? =
+        dslContext
+            .select()
+            .from(BOT_GAME)
+            .where(BOT_GAME.ID.eq(gameId))
+            .awaitSingleMappedRecord()
 
-    suspend fun fetchStartFen(gameId: String): String? = dslContext
-        .select(BOT_GAME.START_FEN)
-        .from(BOT_GAME)
-        .where(BOT_GAME.ID.eq(gameId))
-        .awaitSingleValue()
+    suspend fun fetchStartFen(gameId: String): String? =
+        dslContext
+            .select(BOT_GAME.START_FEN)
+            .from(BOT_GAME)
+            .where(BOT_GAME.ID.eq(gameId))
+            .awaitSingleValue()
 
-    suspend fun fetchGameStatus(gameId: String): BotGameStatusRecord? = dslContext
-        .select(
-            BOT_GAME.USER_ID,
-            BOT_GAME.USER_COLOR,
-            BOT_GAME.GAME_STATUS,
-            BOT_GAME.CURRENT_HALF_MOVE_INDEX,
-        )
-        .from(BOT_GAME)
-        .where(BOT_GAME.ID.eq(gameId))
-        .awaitMappedRecords<BotGame>()
-        .firstOrNull()
-        ?.let { record ->
-            BotGameStatusRecord(
-                record.userId,
-                record.userColor,
-                record.gameStatus,
-                record.currentHalfMoveIndex,
-            )
-        }
-
-    suspend fun fetchCurrentStatusOfGames(gameIds: List<String>): Map<String, Pair<GameEventType, Outcome?>> = if (gameIds.isEmpty()) {
-        emptyMap()
-    } else {
+    suspend fun fetchGameStatus(gameId: String): BotGameStatusRecord? =
         dslContext
             .select(
-                BOT_GAME.ID,
+                BOT_GAME.USER_ID,
+                BOT_GAME.USER_COLOR,
                 BOT_GAME.GAME_STATUS,
-                BOT_GAME.OUTCOME,
+                BOT_GAME.CURRENT_HALF_MOVE_INDEX,
             )
             .from(BOT_GAME)
-            .where(BOT_GAME.ID.`in`(gameIds))
+            .where(BOT_GAME.ID.eq(gameId))
             .awaitMappedRecords<BotGame>()
-            .associate { record -> record.id to (record.gameStatus to record.outcome) }
-            .toMap()
-    }
+            .firstOrNull()
+            ?.let { record ->
+                BotGameStatusRecord(
+                    record.userId,
+                    record.userColor,
+                    record.gameStatus,
+                    record.currentHalfMoveIndex,
+                )
+            }
 
-    suspend fun fetchCurrentStatusAndFen(gameIds: List<String>): List<BotGame> = if (gameIds.isEmpty()) {
-        emptyList()
-    } else {
-        dslContext
-            .select(
-                BOT_GAME.ID,
-                BOT_GAME.GAME_STATUS,
-                BOT_GAME.CURRENT_FEN,
-                BOT_GAME.LAST_UPDATED,
-            )
-            .from(BOT_GAME)
-            .where(BOT_GAME.ID.`in`(gameIds))
-            .awaitMappedRecords<BotGame>()
-    }
+    suspend fun fetchCurrentStatusOfGames(gameIds: List<String>): Map<String, Pair<GameEventType, Outcome?>> =
+        if (gameIds.isEmpty()) {
+            emptyMap()
+        } else {
+            dslContext
+                .select(
+                    BOT_GAME.ID,
+                    BOT_GAME.GAME_STATUS,
+                    BOT_GAME.OUTCOME,
+                )
+                .from(BOT_GAME)
+                .where(BOT_GAME.ID.`in`(gameIds))
+                .awaitMappedRecords<BotGame>()
+                .associate { record -> record.id to (record.gameStatus to record.outcome) }
+                .toMap()
+        }
+
+    suspend fun fetchCurrentStatusAndFen(gameIds: List<String>): List<BotGame> =
+        if (gameIds.isEmpty()) {
+            emptyList()
+        } else {
+            dslContext
+                .select(
+                    BOT_GAME.ID,
+                    BOT_GAME.GAME_STATUS,
+                    BOT_GAME.CURRENT_FEN,
+                    BOT_GAME.LAST_UPDATED,
+                )
+                .from(BOT_GAME)
+                .where(BOT_GAME.ID.`in`(gameIds))
+                .awaitMappedRecords<BotGame>()
+        }
 
     /**
      * @param tuples list of gameId and half move index to request from
@@ -242,18 +253,20 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun listMoves(gameId: String): List<String> = dslContext
-        .select(BOT_GAME_MOVE.UCI)
-        .from(BOT_GAME_MOVE)
-        .where(BOT_GAME_MOVE.BOT_GAME_ID.eq(gameId))
-        .orderBy(BOT_GAME_MOVE.POSITION)
-        .awaitMappedRecords()
+    suspend fun listMoves(gameId: String): List<String> =
+        dslContext
+            .select(BOT_GAME_MOVE.UCI)
+            .from(BOT_GAME_MOVE)
+            .where(BOT_GAME_MOVE.BOT_GAME_ID.eq(gameId))
+            .orderBy(BOT_GAME_MOVE.POSITION)
+            .awaitMappedRecords()
 
-    suspend fun countTotalGames(minIndex: Int): Int = dslContext
-        .selectCount()
-        .from(BOT_GAME)
-        .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex).or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
-        .awaitSingleValue()!!
+    suspend fun countTotalGames(minIndex: Int): Int =
+        dslContext
+            .selectCount()
+            .from(BOT_GAME)
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex).or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
+            .awaitSingleValue()!!
 
     suspend fun countManchuGames(minIndex: Int): Int {
         val countCondition =
@@ -267,16 +280,18 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()!!
     }
 
-    suspend fun countTotalMoves(): Int = dslContext
-        .selectCount()
-        .from(BOT_GAME_MOVE)
-        .awaitSingleValue()!!
+    suspend fun countTotalMoves(): Int =
+        dslContext
+            .selectCount()
+            .from(BOT_GAME_MOVE)
+            .awaitSingleValue()!!
 
-    suspend fun countTotalMoves(gameId: String): Int = dslContext
-        .selectCount()
-        .from(BOT_GAME_MOVE)
-        .where(BOT_GAME_MOVE.BOT_GAME_ID.eq(gameId))
-        .awaitSingleValue()!!
+    suspend fun countTotalMoves(gameId: String): Int =
+        dslContext
+            .selectCount()
+            .from(BOT_GAME_MOVE)
+            .where(BOT_GAME_MOVE.BOT_GAME_ID.eq(gameId))
+            .awaitSingleValue()!!
 
     suspend fun saveFirstBotMove(gameId: String, botMove: BotMove, newFen: String) {
         dslContext.transactionCoroutine { cfg ->

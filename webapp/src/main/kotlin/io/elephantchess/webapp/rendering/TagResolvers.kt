@@ -18,42 +18,47 @@ private val supportedCurrencies = setOf("USD", "EUR", "GBP")
 /**
  * HTML-escapes a string so it can be safely inlined as text content.
  */
-fun escapeHtml(s: String): String = s.replace("&", "&amp;")
-    .replace("<", "&lt;")
-    .replace(">", "&gt;")
+fun escapeHtml(s: String): String =
+    s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
 
 /**
  * HTML-escapes a string so it can be safely used as an attribute value.
  */
 fun escapeHtmlAttr(s: String): String = escapeHtml(s).replace("\"", "&quot;")
 
-fun String.toParagraphs(): List<String> = this
-    .split("\n\n")
-    .map { it.trim() }
-    .filter { it.isNotEmpty() }
+fun String.toParagraphs(): List<String> =
+    this
+        .split("\n\n")
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
 
-fun descriptionMeta(description: String): String = createHTML().meta {
-    name = "description"
-    content = stripHtml(
-        description
-            .replace("\n", " ")
-            .replace("\r", ""),
-    )
-}
+fun descriptionMeta(description: String): String =
+    createHTML().meta {
+        name = "description"
+        content = stripHtml(
+            description
+                .replace("\n", " ")
+                .replace("\r", ""),
+        )
+    }
 
 fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
-    fun mapCurrencyToSymbol(currency: String): String = when (currency.uppercase()) {
-        "USD" -> "$"
-        "EUR" -> "€"
-        "GBP" -> "£"
-        else -> currency
-    }
+    fun mapCurrencyToSymbol(currency: String): String =
+        when (currency.uppercase()) {
+            "USD" -> "$"
+            "EUR" -> "€"
+            "GBP" -> "£"
+            else -> currency
+        }
 
-    fun formatUserName(dto: LatestSupporter): String = if (dto.userId != null) {
-        """<a href="/@/${dto.username}">${dto.username}</a>"""
-    } else {
-        dto.username
-    }
+    fun formatUserName(dto: LatestSupporter): String =
+        if (dto.userId != null) {
+            """<a href="/@/${dto.username}">${dto.username}</a>"""
+        } else {
+            dto.username
+        }
 
     fun formatAmount(dto: LatestSupporter): String {
         // format amount

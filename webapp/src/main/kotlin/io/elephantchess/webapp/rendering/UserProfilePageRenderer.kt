@@ -49,34 +49,37 @@ class UserProfilePageRenderer(
         )
     }
 
-    private fun noIndexMeta(description: String?): TagResolver = CallbackTagResolver("meta_no_index_conditional") {
-        if (description.isNullOrBlank()) {
-            WebFragmentResolver("meta_no_index").resolveContent().firstOrNull() ?: ""
-        } else {
-            ""
-        }
-    }
-
-    fun descriptionMeta(username: String, description: String?): TagResolver = CallbackTagResolver("description_meta") {
-        var content = "$username on elephantchess.io"
-        if (!description.isNullOrBlank()) {
-            content += " - ${cropToFirstNWords(description, 100)}"
+    private fun noIndexMeta(description: String?): TagResolver =
+        CallbackTagResolver("meta_no_index_conditional") {
+            if (description.isNullOrBlank()) {
+                WebFragmentResolver("meta_no_index").resolveContent().firstOrNull() ?: ""
+            } else {
+                ""
+            }
         }
 
-        descriptionMeta(content)
-    }
+    fun descriptionMeta(username: String, description: String?): TagResolver =
+        CallbackTagResolver("description_meta") {
+            var content = "$username on elephantchess.io"
+            if (!description.isNullOrBlank()) {
+                content += " - ${cropToFirstNWords(description, 100)}"
+            }
 
-    private fun flagPanelTagResolver(countryCode: String?): TagResolver = KtorHtmlBuilderTagResolver("flag_header_panel") {
-        if (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)) {
-            div("profile-header-panel") {
-                id = "flag-header-panel"
-                attributes["data-country-code"] = countryCode
-                img(alt = countryCode, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
-                    id = "profile-flag"
+            descriptionMeta(content)
+        }
+
+    private fun flagPanelTagResolver(countryCode: String?): TagResolver =
+        KtorHtmlBuilderTagResolver("flag_header_panel") {
+            if (!countryCode.isNullOrBlank() && !countryCode.equals("none", ignoreCase = true)) {
+                div("profile-header-panel") {
+                    id = "flag-header-panel"
+                    attributes["data-country-code"] = countryCode
+                    img(alt = countryCode, src = "/images/flags/$countryCode.svg", classes = "flag-icons") {
+                        id = "profile-flag"
+                    }
                 }
             }
         }
-    }
 
     private fun descriptionDivTagResolver(username: String, description: String?): TagResolver =
         KtorHtmlBuilderTagResolver("user_profile_description") {
@@ -151,15 +154,17 @@ class UserProfilePageRenderer(
         }
     }
 
-    suspend fun renderUserBrowsePvpGames(username: String): String = htmlRenderer.renderHtml(
-        "/templates/user_browse_pvp_games.html",
-        specificTagResolvers = listOf(SimpleValueTagResolver("username", username)),
-    )
+    suspend fun renderUserBrowsePvpGames(username: String): String =
+        htmlRenderer.renderHtml(
+            "/templates/user_browse_pvp_games.html",
+            specificTagResolvers = listOf(SimpleValueTagResolver("username", username)),
+        )
 
-    suspend fun renderUserBrowsePvbGames(username: String): String = htmlRenderer.renderHtml(
-        "/templates/user_browse_pvb_games.html",
-        specificTagResolvers = listOf(SimpleValueTagResolver("username", username)),
-    )
+    suspend fun renderUserBrowsePvbGames(username: String): String =
+        htmlRenderer.renderHtml(
+            "/templates/user_browse_pvb_games.html",
+            specificTagResolvers = listOf(SimpleValueTagResolver("username", username)),
+        )
 
     private companion object {
 
@@ -174,57 +179,58 @@ class UserProfilePageRenderer(
             val losses: Int,
         )
 
-        fun gameStatsToCategories(gameStats: GameStatsResponse): List<TimeCategoryStats> = listOf(
-            TimeCategoryStats(
-                key = "bullet",
-                label = "Bullet",
-                iconPath = "/images/icons/shuttle.png",
-                iconAlt = "bullet",
-                rating = gameStats.ratings.bullet,
-                wins = gameStats.pvp.bullet.wins,
-                draws = gameStats.pvp.bullet.draws,
-                losses = gameStats.pvp.bullet.losses,
-            ),
-            TimeCategoryStats(
-                key = "blitz",
-                label = "Blitz",
-                iconPath = "/images/icons/flash-squared.png",
-                iconAlt = "blitz",
-                rating = gameStats.ratings.blitz,
-                wins = gameStats.pvp.blitz.wins,
-                draws = gameStats.pvp.blitz.draws,
-                losses = gameStats.pvp.blitz.losses,
-            ),
-            TimeCategoryStats(
-                key = "rapid",
-                label = "Rapid",
-                iconPath = "/images/icons/run.png",
-                iconAlt = "rapid",
-                rating = gameStats.ratings.rapid,
-                wins = gameStats.pvp.rapid.wins,
-                draws = gameStats.pvp.rapid.draws,
-                losses = gameStats.pvp.rapid.losses,
-            ),
-            TimeCategoryStats(
-                key = "classical",
-                label = "Classical",
-                iconPath = "/images/icons/museum.png",
-                iconAlt = "classical",
-                rating = gameStats.ratings.classical,
-                wins = gameStats.pvp.classical.wins,
-                draws = gameStats.pvp.classical.draws,
-                losses = gameStats.pvp.classical.losses,
-            ),
-            TimeCategoryStats(
-                key = "correspondence",
-                label = "Correspondence",
-                iconPath = "/images/icons/email.png",
-                iconAlt = "correspondence",
-                rating = gameStats.ratings.correspondence,
-                wins = gameStats.pvp.correspondence.wins,
-                draws = gameStats.pvp.correspondence.draws,
-                losses = gameStats.pvp.correspondence.losses,
-            ),
-        )
+        fun gameStatsToCategories(gameStats: GameStatsResponse): List<TimeCategoryStats> =
+            listOf(
+                TimeCategoryStats(
+                    key = "bullet",
+                    label = "Bullet",
+                    iconPath = "/images/icons/shuttle.png",
+                    iconAlt = "bullet",
+                    rating = gameStats.ratings.bullet,
+                    wins = gameStats.pvp.bullet.wins,
+                    draws = gameStats.pvp.bullet.draws,
+                    losses = gameStats.pvp.bullet.losses,
+                ),
+                TimeCategoryStats(
+                    key = "blitz",
+                    label = "Blitz",
+                    iconPath = "/images/icons/flash-squared.png",
+                    iconAlt = "blitz",
+                    rating = gameStats.ratings.blitz,
+                    wins = gameStats.pvp.blitz.wins,
+                    draws = gameStats.pvp.blitz.draws,
+                    losses = gameStats.pvp.blitz.losses,
+                ),
+                TimeCategoryStats(
+                    key = "rapid",
+                    label = "Rapid",
+                    iconPath = "/images/icons/run.png",
+                    iconAlt = "rapid",
+                    rating = gameStats.ratings.rapid,
+                    wins = gameStats.pvp.rapid.wins,
+                    draws = gameStats.pvp.rapid.draws,
+                    losses = gameStats.pvp.rapid.losses,
+                ),
+                TimeCategoryStats(
+                    key = "classical",
+                    label = "Classical",
+                    iconPath = "/images/icons/museum.png",
+                    iconAlt = "classical",
+                    rating = gameStats.ratings.classical,
+                    wins = gameStats.pvp.classical.wins,
+                    draws = gameStats.pvp.classical.draws,
+                    losses = gameStats.pvp.classical.losses,
+                ),
+                TimeCategoryStats(
+                    key = "correspondence",
+                    label = "Correspondence",
+                    iconPath = "/images/icons/email.png",
+                    iconAlt = "correspondence",
+                    rating = gameStats.ratings.correspondence,
+                    wins = gameStats.pvp.correspondence.wins,
+                    draws = gameStats.pvp.correspondence.draws,
+                    losses = gameStats.pvp.correspondence.losses,
+                ),
+            )
     }
 }

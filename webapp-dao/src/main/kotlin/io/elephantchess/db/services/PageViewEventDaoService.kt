@@ -35,24 +35,26 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
     suspend fun fetchMonthlyPageViewsByPattern(pattern: String, excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
         val yearMonth = PAGE_VIEW_EVENT.EVENT_TIME.yearMonth("year_month")
 
-        suspend fun fetchRecords(condition: Condition): List<Record2<YearMonth, Int>> = dslContext
-            .select(
-                yearMonth,
-                uniqueDailyPageViewsField(),
-            )
-            .from(PAGE_VIEW_EVENT)
-            .where(condition)
-            .and(PAGE_VIEW_EVENT.EVENT_TIME.greaterOrEqual(startDate))
-            .and(excludedUsersCondition(excludedUserIds))
-            .groupBy(yearMonth)
-            .orderBy(yearMonth.desc())
-            .awaitRecords()
+        suspend fun fetchRecords(condition: Condition): List<Record2<YearMonth, Int>> =
+            dslContext
+                .select(
+                    yearMonth,
+                    uniqueDailyPageViewsField(),
+                )
+                .from(PAGE_VIEW_EVENT)
+                .where(condition)
+                .and(PAGE_VIEW_EVENT.EVENT_TIME.greaterOrEqual(startDate))
+                .and(excludedUsersCondition(excludedUserIds))
+                .groupBy(yearMonth)
+                .orderBy(yearMonth.desc())
+                .awaitRecords()
 
-        fun mapRecord(record2: Record2<YearMonth, Int>, eventPath: String): MonthlyPageViewRecord = MonthlyPageViewRecord(
-            yearMonth = record2.getValue(yearMonth),
-            label = eventPath,
-            uniquePageViews = record2.getValue("unique_page_views", Int::class.java),
-        )
+        fun mapRecord(record2: Record2<YearMonth, Int>, eventPath: String): MonthlyPageViewRecord =
+            MonthlyPageViewRecord(
+                yearMonth = record2.getValue(yearMonth),
+                label = eventPath,
+                uniquePageViews = record2.getValue("unique_page_views", Int::class.java),
+            )
 
         val condition1 = PAGE_VIEW_EVENT.EVENT_PATH.like(pattern)
         val condition2 = PAGE_VIEW_EVENT.EVENT_PATH.notLike(pattern)
@@ -302,11 +304,12 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
         val startDate: Instant =
             instantOfUtc(2025, 11, 1, 0, 0, 0)
 
-        fun excludedUsersCondition(excludedUserIds: List<String>): Condition = if (excludedUserIds.isEmpty()) {
-            DSL.noCondition()
-        } else {
-            PAGE_VIEW_EVENT.USER_ID.notIn(excludedUserIds)
-        }
+        fun excludedUsersCondition(excludedUserIds: List<String>): Condition =
+            if (excludedUserIds.isEmpty()) {
+                DSL.noCondition()
+            } else {
+                PAGE_VIEW_EVENT.USER_ID.notIn(excludedUserIds)
+            }
 
         fun uniqueHourlyPageViewFields(hourExpression: String): Field<Int> {
             // create a composite field for counting unique user-hour combinations

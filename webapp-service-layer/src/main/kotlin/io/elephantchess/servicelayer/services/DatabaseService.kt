@@ -78,9 +78,10 @@ class DatabaseService(
         return mapToAutocompleteResponse(entries = fetchSuggestions())
     }
 
-    suspend fun listEventsSuggestions(contains: String): AutocompleteResponse = mapToAutocompleteResponse(
-        entries = referenceGameDaoService.listEvents(contains, SUGGESTIONS_LIMIT),
-    )
+    suspend fun listEventsSuggestions(contains: String): AutocompleteResponse =
+        mapToAutocompleteResponse(
+            entries = referenceGameDaoService.listEvents(contains, SUGGESTIONS_LIMIT),
+        )
 
     suspend fun resolvePlayerByName(playerName: String): DatabasePlayer? {
         // try to find by current name first,
@@ -262,37 +263,39 @@ class DatabaseService(
 
     suspend fun countAllGames(): CountAllGamesResponse = CountAllGamesResponse(referenceGameDaoService.countAllGames())
 
-    suspend fun listAllEventsWithStats(limit: Int? = null, offset: Int? = null): EventsListResponse = referenceEventDaoService
-        .listAllEventsWithStats(limit = limit, offset = offset)
-        .map { record ->
-            EventsListResponse.Entry(
-                id = record.id,
-                name = record.name,
-                date = record.date?.toString(),
-                maxRound = record.maxRound,
-                gameCount = record.gameCount,
-            )
-        }
-        .let { entries ->
-            EventsListResponse(entries)
-        }
+    suspend fun listAllEventsWithStats(limit: Int? = null, offset: Int? = null): EventsListResponse =
+        referenceEventDaoService
+            .listAllEventsWithStats(limit = limit, offset = offset)
+            .map { record ->
+                EventsListResponse.Entry(
+                    id = record.id,
+                    name = record.name,
+                    date = record.date?.toString(),
+                    maxRound = record.maxRound,
+                    gameCount = record.gameCount,
+                )
+            }
+            .let { entries ->
+                EventsListResponse(entries)
+            }
 
-    suspend fun listAllPlayersWithStats(limit: Int? = null, offset: Int? = null): PlayersListResponse = referencePlayerDaoService
-        .listPlayersByWins(limit = limit, offset = offset)
-        .map { record ->
-            PlayersListResponse.Entry(
-                playerId = record.playerId,
-                name = formatWithChineseName(record.canonicalName, record.chineseName),
-                slug = record.slug,
-                wins = record.wins,
-                draws = record.draws,
-                losses = record.losses,
-                totalGames = record.totalGames,
-            )
-        }
-        .let { entries ->
-            PlayersListResponse(entries)
-        }
+    suspend fun listAllPlayersWithStats(limit: Int? = null, offset: Int? = null): PlayersListResponse =
+        referencePlayerDaoService
+            .listPlayersByWins(limit = limit, offset = offset)
+            .map { record ->
+                PlayersListResponse.Entry(
+                    playerId = record.playerId,
+                    name = formatWithChineseName(record.canonicalName, record.chineseName),
+                    slug = record.slug,
+                    wins = record.wins,
+                    draws = record.draws,
+                    losses = record.losses,
+                    totalGames = record.totalGames,
+                )
+            }
+            .let { entries ->
+                PlayersListResponse(entries)
+            }
 
     suspend fun listPlayersForSiteMap(limit: Int): List<Pair<String, LocalDate>> {
         val records = mutableSetOf<EntityIdAndNameRecord>()
@@ -356,28 +359,30 @@ class DatabaseService(
             }
     }
 
-    suspend fun listAllEditorsUsername(playerId: String): List<String> = referencePlayerDaoService
-        .listAllEditorsUserId(playerId)
-        .map { editorId -> userCache.fetchUsernameOrDefault(editorId) }
+    suspend fun listAllEditorsUsername(playerId: String): List<String> =
+        referencePlayerDaoService
+            .listAllEditorsUserId(playerId)
+            .map { editorId -> userCache.fetchUsernameOrDefault(editorId) }
 
-    suspend fun fetchPlayerEditHistory(playerId: String): DatabasePlayerVersionHistory = referencePlayerDaoService
-        .fetchEditHistory(playerId)
-        .map { versionRecord ->
-            val editorUsername = userCache.fetchUsernameOrDefault(versionRecord.editorId)
-            DatabasePlayerProfileVersionHistoryEntry(
-                versionIndex = versionRecord.version,
-                editorUserId = versionRecord.editorId,
-                editorUsername = editorUsername,
-                versionTime = versionRecord.versionTime.toEpochMilliseconds(),
-                comment = versionRecord.comment,
-                canonicalName = versionRecord.canonicalName,
-                chineseName = versionRecord.chineseName,
-                gender = versionRecord.gender,
-                enabled = versionRecord.enabled,
-            )
-        }.let { entries ->
-            DatabasePlayerVersionHistory(entries)
-        }
+    suspend fun fetchPlayerEditHistory(playerId: String): DatabasePlayerVersionHistory =
+        referencePlayerDaoService
+            .fetchEditHistory(playerId)
+            .map { versionRecord ->
+                val editorUsername = userCache.fetchUsernameOrDefault(versionRecord.editorId)
+                DatabasePlayerProfileVersionHistoryEntry(
+                    versionIndex = versionRecord.version,
+                    editorUserId = versionRecord.editorId,
+                    editorUsername = editorUsername,
+                    versionTime = versionRecord.versionTime.toEpochMilliseconds(),
+                    comment = versionRecord.comment,
+                    canonicalName = versionRecord.canonicalName,
+                    chineseName = versionRecord.chineseName,
+                    gender = versionRecord.gender,
+                    enabled = versionRecord.enabled,
+                )
+            }.let { entries ->
+                DatabasePlayerVersionHistory(entries)
+            }
 
     /**
      * If version is specified, fetch that version even if it's disabled
@@ -419,16 +424,17 @@ class DatabaseService(
         }
     }
 
-    suspend fun findPossibleDuplicatedPlayers(playerId: String): ListPlayersResponse = findPossibleDuplicates(playerId)
-        .map { player ->
-            ListPlayersResponse.Entry(
-                slug = player.canonicalName.replace(" ", "_"),
-                displayName = formatWithChineseName(player.canonicalName, player.chineseName),
-            )
-        }
-        .let { entries ->
-            ListPlayersResponse(entries)
-        }
+    suspend fun findPossibleDuplicatedPlayers(playerId: String): ListPlayersResponse =
+        findPossibleDuplicates(playerId)
+            .map { player ->
+                ListPlayersResponse.Entry(
+                    slug = player.canonicalName.replace(" ", "_"),
+                    displayName = formatWithChineseName(player.canonicalName, player.chineseName),
+                )
+            }
+            .let { entries ->
+                ListPlayersResponse(entries)
+            }
 
     /**
      * @return `true` if the player has pre-calculated opening repertoire data.
@@ -675,24 +681,25 @@ class DatabaseService(
             .let { mapped -> MyDbSearchesResponse(mapped) }
     }
 
-    suspend fun findEditedPlayersLatestVersions(userId: String): ListUserEdits = referencePlayerDaoService
-        .findEditedPlayersByEditorId(userId)
-        .map { entry ->
-            ListUserEdits.Entry(
-                playerId = entry.playerId,
-                playerCanonicalName = entry.canonicalName,
-                playerChineseName = entry.chineseName,
-                version = entry.version,
-                latestEditorId = entry.editorId,
-                latestEditorUsername = userCache.fetchUsernameOrDefault(entry.editorId),
-                latestComment = entry.comment,
-                latestEditTimestamp = entry.versionTime.toEpochMilliseconds(),
-                enabled = entry.enabled,
-            )
-        }
-        .let { entries ->
-            ListUserEdits(entries)
-        }
+    suspend fun findEditedPlayersLatestVersions(userId: String): ListUserEdits =
+        referencePlayerDaoService
+            .findEditedPlayersByEditorId(userId)
+            .map { entry ->
+                ListUserEdits.Entry(
+                    playerId = entry.playerId,
+                    playerCanonicalName = entry.canonicalName,
+                    playerChineseName = entry.chineseName,
+                    version = entry.version,
+                    latestEditorId = entry.editorId,
+                    latestEditorUsername = userCache.fetchUsernameOrDefault(entry.editorId),
+                    latestComment = entry.comment,
+                    latestEditTimestamp = entry.versionTime.toEpochMilliseconds(),
+                    enabled = entry.enabled,
+                )
+            }
+            .let { entries ->
+                ListUserEdits(entries)
+            }
 
     private suspend fun fetchPlayerProfileSources(playerId: String, version: Int?): List<DatabasePlayerProfileSource> {
         val sources = if (version == null) {
@@ -716,14 +723,15 @@ class DatabaseService(
         const val SEARCH_RESULT_LIMIT = 20
         const val MAX_OFFSET = 500
 
-        fun mapToAutocompleteResponse(entries: List<EntityIdAndNameRecord>): AutocompleteResponse = AutocompleteResponse(
-            entries.map { entry ->
-                AutocompleteResponse.Entry(
-                    id = entry.id,
-                    name = entry.name,
-                )
-            },
-        )
+        fun mapToAutocompleteResponse(entries: List<EntityIdAndNameRecord>): AutocompleteResponse =
+            AutocompleteResponse(
+                entries.map { entry ->
+                    AutocompleteResponse.Entry(
+                        id = entry.id,
+                        name = entry.name,
+                    )
+                },
+            )
 
         fun validateFenParameter(fen: String?) {
             try {

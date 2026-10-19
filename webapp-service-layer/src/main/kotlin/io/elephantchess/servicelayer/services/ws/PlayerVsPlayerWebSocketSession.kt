@@ -28,8 +28,9 @@ class PlayerVsPlayerWebSocketSession(
 
     fun isWaitingToBeJoined() = status == GameEventType.CREATED
 
-    fun mustSyncTime(now: Instant): Boolean = timeRemainingLastSync == null ||
-        now > (timeRemainingLastSync!! + TIME_REMAINING_SYNC_INTERVAL)
+    fun mustSyncTime(now: Instant): Boolean =
+        timeRemainingLastSync == null ||
+            now > (timeRemainingLastSync!! + TIME_REMAINING_SYNC_INTERVAL)
 
     override fun update(update: PlayerVsPlayerUpdate) {
         var mustUpdate = false

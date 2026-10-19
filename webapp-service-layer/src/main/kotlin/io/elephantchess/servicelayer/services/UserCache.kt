@@ -21,21 +21,22 @@ class UserCache(private val userDaoService: UserDaoService) :
         wontResolvePlaceHolder = playerHolder,
     ) {
 
-    override suspend fun loader(key: String): CachedUser? = userDaoService
-        .fetchBasicInformation(key)
-        ?.let { userRecord ->
-            CachedUser(
-                userId = userRecord.id,
-                userType = userRecord.userType,
-                username = when (userRecord.userType) {
-                    UserType.AUTHENTICATED -> userRecord.handle
-                    GUEST -> "guest #${userRecord.id}"
-                    else -> UNKNOWN_USERNAME
-                },
-                creationTime = userRecord.creation,
-                roles = userRecord.roles,
-            )
-        }
+    override suspend fun loader(key: String): CachedUser? =
+        userDaoService
+            .fetchBasicInformation(key)
+            ?.let { userRecord ->
+                CachedUser(
+                    userId = userRecord.id,
+                    userType = userRecord.userType,
+                    username = when (userRecord.userType) {
+                        UserType.AUTHENTICATED -> userRecord.handle
+                        GUEST -> "guest #${userRecord.id}"
+                        else -> UNKNOWN_USERNAME
+                    },
+                    creationTime = userRecord.creation,
+                    roles = userRecord.roles,
+                )
+            }
 
     suspend fun fetchUsernameOrDefault(userId: UserId) = fetchUsernameOrDefault(userId.id)
 

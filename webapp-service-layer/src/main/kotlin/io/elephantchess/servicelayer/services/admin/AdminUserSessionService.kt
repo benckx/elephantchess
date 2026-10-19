@@ -18,18 +18,19 @@ class AdminUserSessionService(private val userSessionDaoService: UserSessionDaoS
         return UserSessionsResponse(entries)
     }
 
-    private suspend fun mapUserSessionToDto(userSession: UserSessionRecord): UserSessionsResponse.Entry = UserSessionsResponse.Entry(
-        userId = userSession.userId,
-        username = userSession.userId?.let { userCache.fetchUsernameOrDefault(it) },
-        os = userSession.operatingSystemName,
-        agentName = userSession.agentName,
-        agentClass = userSession.agentClass,
-        countryCode = userSession.countryCode,
-        countryName = userSession.countryName,
-        region = userSession.region,
-        city = userSession.city,
-        remoteAddress = userSession.remoteAddress,
-        created = userSession.created!!.toEpochMilliseconds(),
-        updated = userSession.lastUpdated!!.toEpochMilliseconds(),
-    )
+    private suspend fun mapUserSessionToDto(userSession: UserSessionRecord): UserSessionsResponse.Entry =
+        UserSessionsResponse.Entry(
+            userId = userSession.userId,
+            username = userSession.userId?.let { userCache.fetchUsernameOrDefault(it) },
+            os = userSession.operatingSystemName,
+            agentName = userSession.agentName,
+            agentClass = userSession.agentClass,
+            countryCode = userSession.countryCode,
+            countryName = userSession.countryName,
+            region = userSession.region,
+            city = userSession.city,
+            remoteAddress = userSession.remoteAddress,
+            created = userSession.created!!.toEpochMilliseconds(),
+            updated = userSession.lastUpdated!!.toEpochMilliseconds(),
+        )
 }

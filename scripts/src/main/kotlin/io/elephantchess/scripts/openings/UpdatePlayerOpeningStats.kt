@@ -37,16 +37,17 @@ private val readContext = getScriptDslContext(readAppConfig, maximumPoolSize = 8
 private val writeContext = getScriptDslContext(writeAppConfig, maximumPoolSize = 2)
 private val referenceGameDaoService = ReferenceGameDaoService(readContext)
 
-fun main(): Unit = runBlocking {
-    val start = System.currentTimeMillis()
-    val memoryCache = loadGamesWithMoves(readContext, referenceGameDaoService) { i ->
-        logger.info { "loaded $i games into memory cache" }
+fun main(): Unit =
+    runBlocking {
+        val start = System.currentTimeMillis()
+        val memoryCache = loadGamesWithMoves(readContext, referenceGameDaoService) { i ->
+            logger.info { "loaded $i games into memory cache" }
+        }
+
+        updatePlayerOpenings(memoryCache)
+
+        logger.info { "done in ${(System.currentTimeMillis() - start) / 60_000} minutes" }
     }
-
-    updatePlayerOpenings(memoryCache)
-
-    logger.info { "done in ${(System.currentTimeMillis() - start) / 60_000} minutes" }
-}
 
 /**
  * (Re)build the per-reference-player opening repertoires, split by the color the player played,

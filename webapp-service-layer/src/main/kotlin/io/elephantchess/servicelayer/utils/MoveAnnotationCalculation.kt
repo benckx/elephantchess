@@ -102,22 +102,23 @@ fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?)
  * Small deltas inside the neutral band return `null`; negative deltas represent missed chances and
  * positive deltas represent stronger-than-expected moves.
  */
-fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? = if (abs(cpl) < 50) {
-    null
-} else if (cpl < 0) {
-    val deltaLoss = abs(cpl)
-    when {
-        deltaLoss >= 300 -> MoveAnnotationCategory.BLUNDER
-        deltaLoss >= 100 -> MoveAnnotationCategory.MISTAKE
-        else -> MoveAnnotationCategory.INACCURACY
+fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? =
+    if (abs(cpl) < 50) {
+        null
+    } else if (cpl < 0) {
+        val deltaLoss = abs(cpl)
+        when {
+            deltaLoss >= 300 -> MoveAnnotationCategory.BLUNDER
+            deltaLoss >= 100 -> MoveAnnotationCategory.MISTAKE
+            else -> MoveAnnotationCategory.INACCURACY
+        }
+    } else {
+        when {
+            cpl >= 300 -> MoveAnnotationCategory.BRILLIANT
+            cpl >= 100 -> MoveAnnotationCategory.GOOD
+            else -> MoveAnnotationCategory.INTERESTING
+        }
     }
-} else {
-    when {
-        cpl >= 300 -> MoveAnnotationCategory.BRILLIANT
-        cpl >= 100 -> MoveAnnotationCategory.GOOD
-        else -> MoveAnnotationCategory.INTERESTING
-    }
-}
 
 /**
  * Looks up the analysis line that corresponds to the engine's best move from [previousNodeData].

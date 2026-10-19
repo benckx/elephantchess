@@ -198,15 +198,17 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         }
     }
 
-    internal fun formatPercentages(count: Int, annotatedMoves: Int, totalMoves: Int) = AnnotationPercentages(
-        annotated = formatPercentage(count, annotatedMoves),
-        global = formatPercentage(count, totalMoves),
-    )
+    internal fun formatPercentages(count: Int, annotatedMoves: Int, totalMoves: Int) =
+        AnnotationPercentages(
+            annotated = formatPercentage(count, annotatedMoves),
+            global = formatPercentage(count, totalMoves),
+        )
 
-    private fun formatPercentage(count: Int, denominator: Int): String = denominator
-        .takeIf { it > 0 }
-        ?.let { String.format(Locale.US, "%.1f%%", count.toDouble() * 100.0 / it) }
-        ?: "-"
+    private fun formatPercentage(count: Int, denominator: Int): String =
+        denominator
+            .takeIf { it > 0 }
+            ?.let { String.format(Locale.US, "%.1f%%", count.toDouble() * 100.0 / it) }
+            ?: "-"
 
     private fun summarizeMoveAnnotations(
         moves: List<String>,
@@ -308,14 +310,15 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         annotatedMoves: List<AnnotatedMoveDetail>,
         sampleSize: Int = RANDOM_SAMPLE_SIZE_PER_CATEGORY,
         random: Random = Random.Default,
-    ): Map<MoveAnnotationCategory, List<AnnotatedMoveDetail>> = MoveAnnotationCategory
-        .entries
-        .associateWith { category ->
-            annotatedMoves
-                .filter { it.category == category }
-                .shuffled(random)
-                .take(sampleSize)
-        }
+    ): Map<MoveAnnotationCategory, List<AnnotatedMoveDetail>> =
+        MoveAnnotationCategory
+            .entries
+            .associateWith { category ->
+                annotatedMoves
+                    .filter { it.category == category }
+                    .shuffled(random)
+                    .take(sampleSize)
+            }
 
     internal fun buildAnnotatedMoveLines(title: String, annotatedMoves: List<AnnotatedMoveDetail>): List<String> {
         if (annotatedMoves.isEmpty()) {
@@ -373,24 +376,25 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         buildBrilliantMoveLines(brilliantMoves).forEach(::println)
     }
 
-    private fun formatInfoLine(infoLine: InfoLineResultDto): String = infoLine.line ?: buildString {
-        append("depth=")
-        append(infoLine.depth ?: "-")
-        append(" cp=")
-        append(infoLine.cp ?: "-")
-        append(" mate=")
-        append(infoLine.mate ?: "-")
-        append(" bestMove=")
-        append(infoLine.bestMove ?: "-")
-        append(" pv=")
-        append(
-            if (infoLine.pv.isEmpty()) {
-                "-"
-            } else {
-                infoLine.pv.joinToString(" ")
-            },
-        )
-    }
+    private fun formatInfoLine(infoLine: InfoLineResultDto): String =
+        infoLine.line ?: buildString {
+            append("depth=")
+            append(infoLine.depth ?: "-")
+            append(" cp=")
+            append(infoLine.cp ?: "-")
+            append(" mate=")
+            append(infoLine.mate ?: "-")
+            append(" bestMove=")
+            append(infoLine.bestMove ?: "-")
+            append(" pv=")
+            append(
+                if (infoLine.pv.isEmpty()) {
+                    "-"
+                } else {
+                    infoLine.pv.joinToString(" ")
+                },
+            )
+        }
 
     private data class GameSummaries(
         val allMoves: MoveAnnotationSummary,

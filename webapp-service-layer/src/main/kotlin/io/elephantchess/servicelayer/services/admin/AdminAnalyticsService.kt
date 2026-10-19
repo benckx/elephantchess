@@ -213,74 +213,79 @@ class AdminAnalyticsService(
         return AnalysisPerUserResponse(entries)
     }
 
-    suspend fun fetchOnlineUsersStatsByHour(): OnlineUsersStatsByHourResponse = userStatsDaoService
-        .fetchOnlineUsersStatsByHour()
-        .map { record ->
-            OnlineUsersStatsByHourResponse.Entry(
-                hourOfDay = record.hourOfDay,
-                minTotal = record.minTotal,
-                maxTotal = record.maxTotal,
-                avgTotal = record.avgTotal,
-            )
-        }
-        .let { entries ->
-            OnlineUsersStatsByHourResponse(entries)
-        }
+    suspend fun fetchOnlineUsersStatsByHour(): OnlineUsersStatsByHourResponse =
+        userStatsDaoService
+            .fetchOnlineUsersStatsByHour()
+            .map { record ->
+                OnlineUsersStatsByHourResponse.Entry(
+                    hourOfDay = record.hourOfDay,
+                    minTotal = record.minTotal,
+                    maxTotal = record.maxTotal,
+                    avgTotal = record.avgTotal,
+                )
+            }
+            .let { entries ->
+                OnlineUsersStatsByHourResponse(entries)
+            }
 
-    suspend fun fetchOnlineUsersStatsByDay(): OnlineUsersStatsByDayResponse = userStatsDaoService
-        .fetchOnlineUsersStatsByDay()
-        .map { record ->
-            OnlineUsersStatsByDayResponse.Entry(
-                day = record.day.toString(),
-                minTotal = record.minTotal,
-                maxTotal = record.maxTotal,
-                avgTotal = record.avgTotal,
-            )
-        }
-        .let { entries ->
-            OnlineUsersStatsByDayResponse(entries)
-        }
+    suspend fun fetchOnlineUsersStatsByDay(): OnlineUsersStatsByDayResponse =
+        userStatsDaoService
+            .fetchOnlineUsersStatsByDay()
+            .map { record ->
+                OnlineUsersStatsByDayResponse.Entry(
+                    day = record.day.toString(),
+                    minTotal = record.minTotal,
+                    maxTotal = record.maxTotal,
+                    avgTotal = record.avgTotal,
+                )
+            }
+            .let { entries ->
+                OnlineUsersStatsByDayResponse(entries)
+            }
 
-    suspend fun fetchOnlineUsersStatsByDayOfWeek(): OnlineUsersStatsByDayOfWeekResponse = userStatsDaoService
-        .fetchOnlineUsersStatsByDayOfWeek()
-        .map { record ->
-            OnlineUsersStatsByDayOfWeekResponse.Entry(
-                dayOfWeek = record.dayOfWeek,
-                minTotal = record.minTotal,
-                maxTotal = record.maxTotal,
-                avgTotal = record.avgTotal,
-            )
-        }
-        .let { entries ->
-            OnlineUsersStatsByDayOfWeekResponse(entries)
-        }
+    suspend fun fetchOnlineUsersStatsByDayOfWeek(): OnlineUsersStatsByDayOfWeekResponse =
+        userStatsDaoService
+            .fetchOnlineUsersStatsByDayOfWeek()
+            .map { record ->
+                OnlineUsersStatsByDayOfWeekResponse.Entry(
+                    dayOfWeek = record.dayOfWeek,
+                    minTotal = record.minTotal,
+                    maxTotal = record.maxTotal,
+                    avgTotal = record.avgTotal,
+                )
+            }
+            .let { entries ->
+                OnlineUsersStatsByDayOfWeekResponse(entries)
+            }
 
-    suspend fun fetchOnlineUsersStatsByMonth(months: Int): OnlineUsersStatsByMonthResponse = userStatsDaoService
-        .fetchOnlineUsersStatsByMonth(months)
-        .map { record ->
-            OnlineUsersStatsByMonthResponse.Entry(
-                month = record.month.toString(),
-                minTotal = record.minTotal,
-                maxTotal = record.maxTotal,
-                avgTotal = record.avgTotal,
-            )
-        }
-        .let { entries ->
-            OnlineUsersStatsByMonthResponse(entries)
-        }
+    suspend fun fetchOnlineUsersStatsByMonth(months: Int): OnlineUsersStatsByMonthResponse =
+        userStatsDaoService
+            .fetchOnlineUsersStatsByMonth(months)
+            .map { record ->
+                OnlineUsersStatsByMonthResponse.Entry(
+                    month = record.month.toString(),
+                    minTotal = record.minTotal,
+                    maxTotal = record.maxTotal,
+                    avgTotal = record.avgTotal,
+                )
+            }
+            .let { entries ->
+                OnlineUsersStatsByMonthResponse(entries)
+            }
 
-    suspend fun fetchThrownExceptionStatsByMonth(months: Int): ThrownExceptionStatsByMonthResponse = thrownExceptionDaoService
-        .fetchExceptionCountsByMonth(months)
-        .map { record ->
-            ThrownExceptionStatsByMonthResponse.Entry(
-                month = record.month.toString(),
-                clientErrors = record.clientErrors,
-                serverErrors = record.serverErrors,
-            )
-        }
-        .let { entries ->
-            ThrownExceptionStatsByMonthResponse(entries)
-        }
+    suspend fun fetchThrownExceptionStatsByMonth(months: Int): ThrownExceptionStatsByMonthResponse =
+        thrownExceptionDaoService
+            .fetchExceptionCountsByMonth(months)
+            .map { record ->
+                ThrownExceptionStatsByMonthResponse.Entry(
+                    month = record.month.toString(),
+                    clientErrors = record.clientErrors,
+                    serverErrors = record.serverErrors,
+                )
+            }
+            .let { entries ->
+                ThrownExceptionStatsByMonthResponse(entries)
+            }
 
     suspend fun fetchPageViewStatsByGad(): MultipleTimeSeriesResponse {
         val pattern = "%?gad_source=1%"
@@ -524,34 +529,36 @@ class AdminAnalyticsService(
             }
 
         // Normalize paths: if path contains "gad_source=1" or "fbclid", crop everything after it
-        fun normalizeRecords(records: List<MonthlyPageViewRecord>): List<MonthlyPageViewRecord> = records.map { record ->
-            val normalizedPath = when {
-                record.label.contains("gad_source=1") -> {
-                    val index = record.label.indexOf("gad_source=1")
-                    record.label.substring(0, index + "gad_source=1".length)
-                }
+        fun normalizeRecords(records: List<MonthlyPageViewRecord>): List<MonthlyPageViewRecord> =
+            records.map { record ->
+                val normalizedPath = when {
+                    record.label.contains("gad_source=1") -> {
+                        val index = record.label.indexOf("gad_source=1")
+                        record.label.substring(0, index + "gad_source=1".length)
+                    }
 
-                record.label.contains("fbclid") -> {
-                    val index = record.label.indexOf("fbclid")
-                    record.label.substring(0, index + "fbclid".length)
-                }
+                    record.label.contains("fbclid") -> {
+                        val index = record.label.indexOf("fbclid")
+                        record.label.substring(0, index + "fbclid".length)
+                    }
 
-                else -> record.label
+                    else -> record.label
+                }
+                record.copy(label = normalizedPath)
             }
-            record.copy(label = normalizedPath)
-        }
 
         // Group by normalized eventPath and sum page views for same month+path
-        fun groupByEventPath(normalizedRecords: List<MonthlyPageViewRecord>): Map<String, List<MonthlyPageViewRecord>> = normalizedRecords
-            .groupBy { it.label }
-            .mapValues { (_, pathRecords) ->
-                pathRecords
-                    .groupBy { YearMonth.from(it.yearMonth) }
-                    .map { (_, monthRecords) ->
-                        monthRecords.first().copy(
-                            uniquePageViews = monthRecords.sumOf { it.uniquePageViews },
-                        )
-                    }
-            }
+        fun groupByEventPath(normalizedRecords: List<MonthlyPageViewRecord>): Map<String, List<MonthlyPageViewRecord>> =
+            normalizedRecords
+                .groupBy { it.label }
+                .mapValues { (_, pathRecords) ->
+                    pathRecords
+                        .groupBy { YearMonth.from(it.yearMonth) }
+                        .map { (_, monthRecords) ->
+                            monthRecords.first().copy(
+                                uniquePageViews = monthRecords.sumOf { it.uniquePageViews },
+                            )
+                        }
+                }
     }
 }

@@ -4,10 +4,11 @@ import io.elephantchess.engines.process.FairyStockfishEngineId
 import io.elephantchess.engines.process.PikafishEngineId
 import io.elephantchess.model.Engine
 
-fun modelToProcess(engine: Engine) = when (engine) {
-    Engine.PIKAFISH -> PikafishEngineId
-    Engine.FAIRYSTOCKFISH -> FairyStockfishEngineId
-}
+fun modelToProcess(engine: Engine) =
+    when (engine) {
+        Engine.PIKAFISH -> PikafishEngineId
+        Engine.FAIRYSTOCKFISH -> FairyStockfishEngineId
+    }
 
 fun obfuscateEmail(email: String): String {
     val parts = email.split("@")

@@ -23,22 +23,23 @@ internal suspend fun loadGamesWithMoves(
     return memoryCache
 }
 
-private suspend fun listAllGames(readContext: DSLContext): List<ReferenceGameDto> = readContext
-    .select(
-        REFERENCE_GAME.ID,
-        REFERENCE_GAME.OUTCOME,
-        REFERENCE_GAME.RED_PLAYER,
-        REFERENCE_GAME.BLACK_PLAYER,
-    )
-    .from(REFERENCE_GAME)
-    .awaitRecords()
-    .map { record ->
-        ReferenceGameDto(
-            id = record.get(REFERENCE_GAME.ID),
-            outcome = record.get(REFERENCE_GAME.OUTCOME),
-            redPlayer = record.get(REFERENCE_GAME.RED_PLAYER),
-            blackPlayer = record.get(REFERENCE_GAME.BLACK_PLAYER),
-            moves = emptyList(),
+private suspend fun listAllGames(readContext: DSLContext): List<ReferenceGameDto> =
+    readContext
+        .select(
+            REFERENCE_GAME.ID,
+            REFERENCE_GAME.OUTCOME,
+            REFERENCE_GAME.RED_PLAYER,
+            REFERENCE_GAME.BLACK_PLAYER,
         )
-    }
-    .toList()
+        .from(REFERENCE_GAME)
+        .awaitRecords()
+        .map { record ->
+            ReferenceGameDto(
+                id = record.get(REFERENCE_GAME.ID),
+                outcome = record.get(REFERENCE_GAME.OUTCOME),
+                redPlayer = record.get(REFERENCE_GAME.RED_PLAYER),
+                blackPlayer = record.get(REFERENCE_GAME.BLACK_PLAYER),
+                moves = emptyList(),
+            )
+        }
+        .toList()

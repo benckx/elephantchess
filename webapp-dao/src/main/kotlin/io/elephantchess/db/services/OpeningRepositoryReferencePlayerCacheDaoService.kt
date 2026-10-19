@@ -45,10 +45,11 @@ class OpeningRepositoryReferencePlayerCacheDaoService(private val dslContext: DS
     /**
      * @return `true` if [referencePlayerId] has any pre-calculated opening data.
      */
-    suspend fun hasOpeningData(referencePlayerId: String): Boolean = dslContext
-        .select(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.ID)
-        .from(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER)
-        .where(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.REFERENCE_PLAYER_ID.eq(referencePlayerId))
-        .limit(1)
-        .awaitSingleValue<Int>() != null
+    suspend fun hasOpeningData(referencePlayerId: String): Boolean =
+        dslContext
+            .select(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.ID)
+            .from(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER)
+            .where(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER.REFERENCE_PLAYER_ID.eq(referencePlayerId))
+            .limit(1)
+            .awaitSingleValue<Int>() != null
 }

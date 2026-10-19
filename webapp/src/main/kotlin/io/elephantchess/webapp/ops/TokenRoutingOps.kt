@@ -14,14 +14,15 @@ fun RoutingContext.extractAndVerifyToken(): TokenVerificationResult? = call.toke
  * Extract token from header or cookies
  */
 private fun ApplicationCall.token(): String? {
-    fun findFromHeaders(): String? = request.headers["Authorization"]?.let { header ->
-        val split = header.split(' ')
-        if (split.size != 2 || split.first() != "Bearer") {
-            null
-        } else {
-            split.last()
+    fun findFromHeaders(): String? =
+        request.headers["Authorization"]?.let { header ->
+            val split = header.split(' ')
+            if (split.size != 2 || split.first() != "Bearer") {
+                null
+            } else {
+                split.last()
+            }
         }
-    }
 
     fun findFromCookie(name: String): String? = request.cookies[name]?.let { token -> token.ifBlank { null } }
 

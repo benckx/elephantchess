@@ -71,16 +71,18 @@ class KofiService(
         logger.info { "successfully stored Ko-fi event with transactionId ${kofiEvent.kofiTransactionId}" }
     }
 
-    suspend fun listLatestTippers(): GetSupportersResponse = kofiEventDaoService
-        .listLatestTippers(20)
-        .map { record -> mapRecordToLatestSupporterDto(record) }
-        .let { entries -> GetSupportersResponse(entries) }
+    suspend fun listLatestTippers(): GetSupportersResponse =
+        kofiEventDaoService
+            .listLatestTippers(20)
+            .map { record -> mapRecordToLatestSupporterDto(record) }
+            .let { entries -> GetSupportersResponse(entries) }
 
-    suspend fun listLatestRecurrentSupporters(): GetSupportersResponse = kofiEventDaoService
-        .listLatestRecurrentSupporters(20)
-        .map { record -> mapRecordToLatestSupporterDto(record) }
-        .let { entries -> entries + hardcodedMonthlySupportToLatestSupporterDto() }
-        .let { entries -> GetSupportersResponse(entries) }
+    suspend fun listLatestRecurrentSupporters(): GetSupportersResponse =
+        kofiEventDaoService
+            .listLatestRecurrentSupporters(20)
+            .map { record -> mapRecordToLatestSupporterDto(record) }
+            .let { entries -> entries + hardcodedMonthlySupportToLatestSupporterDto() }
+            .let { entries -> GetSupportersResponse(entries) }
 
     suspend fun fetchLatestSupporter(): LatestSupporter? {
         val latestTipRecord = kofiEventDaoService.fetchLatestEvent()
@@ -90,11 +92,12 @@ class KofiService(
     }
 
     private suspend fun mapRecordToLatestSupporterDto(record: KofiEvent): LatestSupporter {
-        suspend fun displayNameForRecord(latestTipRecord: KofiEvent): String = if (latestTipRecord.matchedUserId != null) {
-            userCache.fetchUsernameOrDefault(latestTipRecord.matchedUserId!!)
-        } else {
-            latestTipRecord.fromName
-        }
+        suspend fun displayNameForRecord(latestTipRecord: KofiEvent): String =
+            if (latestTipRecord.matchedUserId != null) {
+                userCache.fetchUsernameOrDefault(latestTipRecord.matchedUserId!!)
+            } else {
+                latestTipRecord.fromName
+            }
 
         return LatestSupporter(
             userId = record.matchedUserId,
@@ -106,16 +109,17 @@ class KofiService(
         )
     }
 
-    private suspend fun hardcodedMonthlySupportToLatestSupporterDto(): List<LatestSupporter> = hardcodedMonthlySupporters.map { userId ->
-        LatestSupporter(
-            userId = userId,
-            username = userCache.fetchUsernameOrDefault(userId),
-            timestamp = hardcodedSubscriptionTime.toEpochMilliseconds(),
-            amount = 100.0,
-            currency = "EUR",
-            recurring = true,
-        )
-    }
+    private suspend fun hardcodedMonthlySupportToLatestSupporterDto(): List<LatestSupporter> =
+        hardcodedMonthlySupporters.map { userId ->
+            LatestSupporter(
+                userId = userId,
+                username = userCache.fetchUsernameOrDefault(userId),
+                timestamp = hardcodedSubscriptionTime.toEpochMilliseconds(),
+                amount = 100.0,
+                currency = "EUR",
+                recurring = true,
+            )
+        }
 
     private companion object {
 

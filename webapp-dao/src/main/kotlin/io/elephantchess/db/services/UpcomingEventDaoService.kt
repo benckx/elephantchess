@@ -25,11 +25,12 @@ class UpcomingEventDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun listAllUpcomingEvents(): List<UpcomingEvent> = dslContext
-        .select()
-        .from(UPCOMING_EVENT)
-        .orderBy(UPCOMING_EVENT.EVENT_START.desc())
-        .awaitMappedRecords()
+    suspend fun listAllUpcomingEvents(): List<UpcomingEvent> =
+        dslContext
+            .select()
+            .from(UPCOMING_EVENT)
+            .orderBy(UPCOMING_EVENT.EVENT_START.desc())
+            .awaitMappedRecords()
 
     suspend fun save(event: UpcomingEvent): Int {
         var newId = 0
@@ -69,9 +70,10 @@ class UpcomingEventDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun findById(eventId: Int): UpcomingEvent? = dslContext
-        .select()
-        .from(UPCOMING_EVENT)
-        .where(UPCOMING_EVENT.ID.eq(eventId))
-        .awaitSingleMappedRecord()
+    suspend fun findById(eventId: Int): UpcomingEvent? =
+        dslContext
+            .select()
+            .from(UPCOMING_EVENT)
+            .where(UPCOMING_EVENT.ID.eq(eventId))
+            .awaitSingleMappedRecord()
 }

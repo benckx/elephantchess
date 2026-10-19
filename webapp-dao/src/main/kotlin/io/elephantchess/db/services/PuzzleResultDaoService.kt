@@ -22,12 +22,13 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
 
-    suspend fun listPlayedRecently(userId: String, nbrOfDays: Int): List<String> = dslContext
-        .selectDistinct(PUZZLE_RESULT.PUZZLE_ID)
-        .from(PUZZLE_RESULT)
-        .where(PUZZLE_RESULT.USER_ID.eq(userId))
-        .and(PUZZLE_RESULT.ENTRY_CREATION.isWithin(nbrOfDays.days))
-        .awaitMappedRecords()
+    suspend fun listPlayedRecently(userId: String, nbrOfDays: Int): List<String> =
+        dslContext
+            .selectDistinct(PUZZLE_RESULT.PUZZLE_ID)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.USER_ID.eq(userId))
+            .and(PUZZLE_RESULT.ENTRY_CREATION.isWithin(nbrOfDays.days))
+            .awaitMappedRecords()
 
     suspend fun listPlayedPuzzles(userId: String, limit: Int, beforeMillis: Long?): List<PlayedPuzzleRecord> {
         var sql = dslContext
@@ -69,12 +70,13 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    suspend fun latestPlayedPuzzle(): Instant? = dslContext
-        .select(PUZZLE_RESULT.ENTRY_CREATION)
-        .from(PUZZLE_RESULT)
-        .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
-        .limit(1)
-        .awaitSingleValue()
+    suspend fun latestPlayedPuzzle(): Instant? =
+        dslContext
+            .select(PUZZLE_RESULT.ENTRY_CREATION)
+            .from(PUZZLE_RESULT)
+            .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
+            .limit(1)
+            .awaitSingleValue()
 
     suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCountsRecord> {
         if (userIds.isEmpty()) return emptyList()
@@ -99,13 +101,14 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    suspend fun latestPuzzleVote(): Instant? = dslContext
-        .select(PUZZLE_RESULT.ENTRY_CREATION)
-        .from(PUZZLE_RESULT)
-        .where(PUZZLE_RESULT.UP_VOTED.isNotNull)
-        .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
-        .limit(1)
-        .awaitSingleValue()
+    suspend fun latestPuzzleVote(): Instant? =
+        dslContext
+            .select(PUZZLE_RESULT.ENTRY_CREATION)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.UP_VOTED.isNotNull)
+            .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
+            .limit(1)
+            .awaitSingleValue()
 
     suspend fun persistOutcome(
         userId: String,
@@ -195,17 +198,19 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             id
         }
 
-    private suspend fun fetchPuzzleRating(puzzleId: String, context: DSLContext): Int? = context
-        .select(PUZZLE.RATING)
-        .from(PUZZLE)
-        .where(PUZZLE.ID.eq(puzzleId))
-        .awaitSingleValue()
+    private suspend fun fetchPuzzleRating(puzzleId: String, context: DSLContext): Int? =
+        context
+            .select(PUZZLE.RATING)
+            .from(PUZZLE)
+            .where(PUZZLE.ID.eq(puzzleId))
+            .awaitSingleValue()
 
-    private suspend fun fetchUserPuzzleRating(userId: String, context: DSLContext): Int? = context
-        .select(USER.PUZZLE_RATING)
-        .from(USER)
-        .where(USER.ID.eq(userId))
-        .awaitSingleValue()
+    private suspend fun fetchUserPuzzleRating(userId: String, context: DSLContext): Int? =
+        context
+            .select(USER.PUZZLE_RATING)
+            .from(USER)
+            .where(USER.ID.eq(userId))
+            .awaitSingleValue()
 
     private suspend fun updatePuzzleRating(puzzleId: String, rating: Int, context: DSLContext) {
         context
@@ -223,15 +228,16 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    private suspend fun fetchLastPlayed(userId: String, puzzleId: String, duration: Duration, context: DSLContext): Instant? = context
-        .select(PUZZLE_RESULT.ENTRY_CREATION)
-        .from(PUZZLE_RESULT)
-        .where(PUZZLE_RESULT.USER_ID.eq(userId))
-        .and(PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId))
-        .and(PUZZLE_RESULT.ENTRY_CREATION.isWithin(duration))
-        .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
-        .limit(1)
-        .awaitSingleValue()
+    private suspend fun fetchLastPlayed(userId: String, puzzleId: String, duration: Duration, context: DSLContext): Instant? =
+        context
+            .select(PUZZLE_RESULT.ENTRY_CREATION)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.USER_ID.eq(userId))
+            .and(PUZZLE_RESULT.PUZZLE_ID.eq(puzzleId))
+            .and(PUZZLE_RESULT.ENTRY_CREATION.isWithin(duration))
+            .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
+            .limit(1)
+            .awaitSingleValue()
 
     /**
      * Always includes SKIPPED result.
@@ -258,27 +264,29 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record5<String, PuzzleOutcome, String, Instant, Boolean>> = dslContext
-        .select(
-            PUZZLE_RESULT.PUZZLE_ID,
-            PUZZLE_RESULT.OUTCOME,
-            USER.ID,
-            PUZZLE_RESULT.ENTRY_CREATION,
-            PUZZLE_RESULT.UP_VOTED,
-        )
-        .from(PUZZLE_RESULT, USER)
-        .where(PUZZLE_RESULT.USER_ID.eq(USER.ID))
-        .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
-        .limit(n)
-        .awaitRecords()
+    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record5<String, PuzzleOutcome, String, Instant, Boolean>> =
+        dslContext
+            .select(
+                PUZZLE_RESULT.PUZZLE_ID,
+                PUZZLE_RESULT.OUTCOME,
+                USER.ID,
+                PUZZLE_RESULT.ENTRY_CREATION,
+                PUZZLE_RESULT.UP_VOTED,
+            )
+            .from(PUZZLE_RESULT, USER)
+            .where(PUZZLE_RESULT.USER_ID.eq(USER.ID))
+            .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
+            .limit(n)
+            .awaitRecords()
 
     private companion object {
 
-        fun renderDelta(value: Int): String = if (value > 0) {
-            "+$value"
-        } else {
-            value.toString()
-        }
+        fun renderDelta(value: Int): String =
+            if (value > 0) {
+                "+$value"
+            } else {
+                value.toString()
+            }
     }
 
     suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {

@@ -320,19 +320,21 @@ class PlayerVsPlayerGameService(
         }
     }
 
-    private suspend fun fetchAllGamesOpenToJoin(onlineUserIds: Set<String>) = pvpGameDaoService
-        .listGamesOpenToJoin()
-        .filter { gameRecord ->
-            gameRecord.alwaysVisibleInLobby ||
-                onlineUserIds.contains(gameRecord.inviter)
-        }
+    private suspend fun fetchAllGamesOpenToJoin(onlineUserIds: Set<String>) =
+        pvpGameDaoService
+            .listGamesOpenToJoin()
+            .filter { gameRecord ->
+                gameRecord.alwaysVisibleInLobby ||
+                    onlineUserIds.contains(gameRecord.inviter)
+            }
 
-    private suspend fun fetchAllActiveGames(onlineUserIds: Set<String>) = pvpGameDaoService
-        .listAllActiveGames()
-        .filter { gameRecord ->
-            onlineUserIds.contains(gameRecord.inviter) ||
-                onlineUserIds.contains(gameRecord.invitee)
-        }
+    private suspend fun fetchAllActiveGames(onlineUserIds: Set<String>) =
+        pvpGameDaoService
+            .listAllActiveGames()
+            .filter { gameRecord ->
+                onlineUserIds.contains(gameRecord.inviter) ||
+                    onlineUserIds.contains(gameRecord.invitee)
+            }
 
     suspend fun createGame(userId: UserId, request: CreateGameRequest): CreateGameResponse {
         // validation
@@ -1155,15 +1157,16 @@ class PlayerVsPlayerGameService(
         }
 
     private suspend fun fetchRatingUpdateIfNecessaryWs(gameId: String, gameEventType: GameEventType): RatingUpdateWs? {
-        fun mapToWsRatingUpdate(gameRatingUpdate: RatingUpdate?): RatingUpdateWs? = gameRatingUpdate?.let {
-            RatingUpdateWs(
-                isRated = it.isRated,
-                inviterRatingFrom = it.inviterRatingFrom,
-                inviterRatingTo = it.inviterRatingTo,
-                inviteeRatingFrom = it.inviteeRatingFrom,
-                inviteeRatingTo = it.inviteeRatingTo,
-            )
-        }
+        fun mapToWsRatingUpdate(gameRatingUpdate: RatingUpdate?): RatingUpdateWs? =
+            gameRatingUpdate?.let {
+                RatingUpdateWs(
+                    isRated = it.isRated,
+                    inviterRatingFrom = it.inviterRatingFrom,
+                    inviterRatingTo = it.inviterRatingTo,
+                    inviteeRatingFrom = it.inviteeRatingFrom,
+                    inviteeRatingTo = it.inviteeRatingTo,
+                )
+            }
 
         return if (gameEndedStatuses.contains(gameEventType)) {
             mapToWsRatingUpdate(fetchRatingUpdate(gameId))
@@ -1227,33 +1230,35 @@ class PlayerVsPlayerGameService(
             }
         }
 
-    private suspend fun mapToGameToPlayDto(game: Game, userId: String, onlineUserIds: Set<String>): GameToPlay = GameToPlay(
-        gameId = game.id,
-        isRated = game.isRated,
-        opponentUserId = userId,
-        opponentUserType = userCache.fetchUserType(userId),
-        opponentUsername = userCache.fetchUsernameOrDefault(userId),
-        opponentColor = game.userColor(userId),
-        opponentRating = game.inviterRatingFrom,
-        isOpponentOnline = onlineUserIds.contains(userId),
-        timeControlCategory = game.timeControlCategory,
-        timeControlBase = game.timeControlBase,
-        timeControlIncrement = game.timeControlIncrement,
-        allowGuests = game.allowGuestsToJoin,
-        lastUpdated = game.lastUpdated.toEpochMilliseconds(),
-        variant = game.variant,
-    )
+    private suspend fun mapToGameToPlayDto(game: Game, userId: String, onlineUserIds: Set<String>): GameToPlay =
+        GameToPlay(
+            gameId = game.id,
+            isRated = game.isRated,
+            opponentUserId = userId,
+            opponentUserType = userCache.fetchUserType(userId),
+            opponentUsername = userCache.fetchUsernameOrDefault(userId),
+            opponentColor = game.userColor(userId),
+            opponentRating = game.inviterRatingFrom,
+            isOpponentOnline = onlineUserIds.contains(userId),
+            timeControlCategory = game.timeControlCategory,
+            timeControlBase = game.timeControlBase,
+            timeControlIncrement = game.timeControlIncrement,
+            allowGuests = game.allowGuestsToJoin,
+            lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+            variant = game.variant,
+        )
 
-    private suspend fun mapRecordToDto(message: GameChatMessage): ChatMessage = ChatMessage(
-        index = message.index,
-        author = ChatMessage.Author(
-            userId = message.author,
-            username = userCache.fetchUsernameOrDefault(message.author),
-            userType = userCache.fetchUserType(message.author)!!,
-        ),
-        messageTime = message.messageTime.toEpochMilliseconds(),
-        content = message.content,
-    )
+    private suspend fun mapRecordToDto(message: GameChatMessage): ChatMessage =
+        ChatMessage(
+            index = message.index,
+            author = ChatMessage.Author(
+                userId = message.author,
+                username = userCache.fetchUsernameOrDefault(message.author),
+                userType = userCache.fetchUserType(message.author)!!,
+            ),
+            messageTime = message.messageTime.toEpochMilliseconds(),
+            content = message.content,
+        )
 
     private data class CachedValue<T>(val value: T)
 

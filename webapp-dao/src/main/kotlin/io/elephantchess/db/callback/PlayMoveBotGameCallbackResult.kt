@@ -24,19 +24,21 @@ data class PlayMoveBotGameCallbackResult(
         ILLEGAL_PLAYER_MOVE,
     }
 
-    private fun updateWinningColor(color: Color): PlayMoveBotGameCallbackResult = if (color == Color.RED) {
-        copy(outcome = RED_WINS)
-    } else {
-        copy(outcome = BLACK_WINS)
-    }
+    private fun updateWinningColor(color: Color): PlayMoveBotGameCallbackResult =
+        if (color == Color.RED) {
+            copy(outcome = RED_WINS)
+        } else {
+            copy(outcome = BLACK_WINS)
+        }
 
-    private fun updateForMate(checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult = if (checkmated) {
-        copy(gameEventType = CHECKMATED)
-    } else if (stalemated) {
-        copy(gameEventType = STALEMATED)
-    } else {
-        this
-    }
+    private fun updateForMate(checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult =
+        if (checkmated) {
+            copy(gameEventType = CHECKMATED)
+        } else if (stalemated) {
+            copy(gameEventType = STALEMATED)
+        } else {
+            this
+        }
 
     private fun updateWinner(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult =
         updateWinningColor(color).updateForMate(checkmated, stalemated)

@@ -76,28 +76,31 @@ class TotalPuzzleMetric : HourlyAvailableMetric("puzzles") {
             .sortedByDescending { it.month }
     }
 
-    override suspend fun countByYear(dslContext: DSLContext): List<IntDimensionValueRecord> = countByIntPeriod(
-        dslContext,
-        PUZZLE_RESULT.ENTRY_CREATION.year(),
-        PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.year(),
-    )
+    override suspend fun countByYear(dslContext: DSLContext): List<IntDimensionValueRecord> =
+        countByIntPeriod(
+            dslContext,
+            PUZZLE_RESULT.ENTRY_CREATION.year(),
+            PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.year(),
+        )
 
-    override suspend fun countByCentury(dslContext: DSLContext): List<IntDimensionValueRecord> = countByIntPeriod(
-        dslContext,
-        PUZZLE_RESULT.ENTRY_CREATION.century(),
-        PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.century(),
-    )
+    override suspend fun countByCentury(dslContext: DSLContext): List<IntDimensionValueRecord> =
+        countByIntPeriod(
+            dslContext,
+            PUZZLE_RESULT.ENTRY_CREATION.century(),
+            PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.century(),
+        )
 
     private suspend fun <T> countByIntPeriod(
         dslContext: DSLContext,
         timeField1: Field<T>,
         timeField2: Field<T>,
-    ): List<IntDimensionValueRecord> = countByTimeFields(timeField1, timeField2, dslContext)
-        .groupBy { it.get(0).toString().toInt() }
-        .map { (period, records) ->
-            IntDimensionValueRecord(period, records.sumOf { it.get(1).toString().toInt() })
-        }
-        .sortedByDescending { it.period }
+    ): List<IntDimensionValueRecord> =
+        countByTimeFields(timeField1, timeField2, dslContext)
+            .groupBy { it.get(0).toString().toInt() }
+            .map { (period, records) ->
+                IntDimensionValueRecord(period, records.sumOf { it.get(1).toString().toInt() })
+            }
+            .sortedByDescending { it.period }
 
     private suspend fun <T> countByTimeFields(
         timeField1: Field<T>,

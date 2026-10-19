@@ -28,19 +28,21 @@ import kotlin.time.Instant
 @KoinSingleton
 class ReferencePlayerDaoService(private val dslContext: DSLContext) {
 
-    suspend fun findPlayer(id: String): ReferencePlayer? = dslContext
-        .select(REFERENCE_PLAYER)
-        .from(REFERENCE_PLAYER)
-        .where(REFERENCE_PLAYER.ID.eq(id))
-        .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
-        .awaitSingleMappedRecord()
+    suspend fun findPlayer(id: String): ReferencePlayer? =
+        dslContext
+            .select(REFERENCE_PLAYER)
+            .from(REFERENCE_PLAYER)
+            .where(REFERENCE_PLAYER.ID.eq(id))
+            .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
+            .awaitSingleMappedRecord()
 
-    suspend fun findPlayerByCanonicalName(canonicalPlayerName: String): ReferencePlayer? = dslContext
-        .select(REFERENCE_PLAYER)
-        .from(REFERENCE_PLAYER)
-        .where(REFERENCE_PLAYER.CANONICAL_NAME.eq(canonicalPlayerName))
-        .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
-        .awaitSingleMappedRecord()
+    suspend fun findPlayerByCanonicalName(canonicalPlayerName: String): ReferencePlayer? =
+        dslContext
+            .select(REFERENCE_PLAYER)
+            .from(REFERENCE_PLAYER)
+            .where(REFERENCE_PLAYER.CANONICAL_NAME.eq(canonicalPlayerName))
+            .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
+            .awaitSingleMappedRecord()
 
     suspend fun existsByCanonicalName(canonicalName: String, excludedPlayerId: String): Boolean {
         val count: Int = dslContext
@@ -274,30 +276,32 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
     /**
      * Doesn't include profile text
      */
-    suspend fun fetchEditHistory(playerId: String): List<ReferencePlayerProfileEdit> = dslContext
-        .select(
-            REFERENCE_PLAYER_PROFILE_EDIT.VERSION,
-            REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID,
-            REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME,
-            REFERENCE_PLAYER_PROFILE_EDIT.COMMENT,
-            REFERENCE_PLAYER_PROFILE_EDIT.CANONICAL_NAME,
-            REFERENCE_PLAYER_PROFILE_EDIT.CHINESE_NAME,
-            REFERENCE_PLAYER_PROFILE_EDIT.GENDER,
-            REFERENCE_PLAYER_PROFILE_EDIT.ENABLED,
-        )
-        .from(REFERENCE_PLAYER_PROFILE_EDIT)
-        .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
-        .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
-        .awaitMappedRecords()
+    suspend fun fetchEditHistory(playerId: String): List<ReferencePlayerProfileEdit> =
+        dslContext
+            .select(
+                REFERENCE_PLAYER_PROFILE_EDIT.VERSION,
+                REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID,
+                REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME,
+                REFERENCE_PLAYER_PROFILE_EDIT.COMMENT,
+                REFERENCE_PLAYER_PROFILE_EDIT.CANONICAL_NAME,
+                REFERENCE_PLAYER_PROFILE_EDIT.CHINESE_NAME,
+                REFERENCE_PLAYER_PROFILE_EDIT.GENDER,
+                REFERENCE_PLAYER_PROFILE_EDIT.ENABLED,
+            )
+            .from(REFERENCE_PLAYER_PROFILE_EDIT)
+            .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
+            .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
+            .awaitMappedRecords()
 
-    suspend fun findLatestEnabledProfileEdit(playerId: String): ReferencePlayerProfileEdit? = dslContext
-        .select(REFERENCE_PLAYER_PROFILE_EDIT)
-        .from(REFERENCE_PLAYER, REFERENCE_PLAYER_PROFILE_EDIT)
-        .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
-        .and(REFERENCE_PLAYER_PROFILE_EDIT.ENABLED.eq(true))
-        .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
-        .limit(1)
-        .awaitSingleMappedRecord()
+    suspend fun findLatestEnabledProfileEdit(playerId: String): ReferencePlayerProfileEdit? =
+        dslContext
+            .select(REFERENCE_PLAYER_PROFILE_EDIT)
+            .from(REFERENCE_PLAYER, REFERENCE_PLAYER_PROFILE_EDIT)
+            .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
+            .and(REFERENCE_PLAYER_PROFILE_EDIT.ENABLED.eq(true))
+            .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
+            .limit(1)
+            .awaitSingleMappedRecord()
 
     suspend fun findLatestEditTimes(playerIds: List<String>): Map<String, Instant> {
         if (playerIds.isEmpty()) return emptyMap()
@@ -323,51 +327,55 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
             .toMap()
     }
 
-    suspend fun findProfileEdit(playerId: String, version: Int): ReferencePlayerProfileEdit? = dslContext
-        .select(REFERENCE_PLAYER_PROFILE_EDIT)
-        .from(REFERENCE_PLAYER, REFERENCE_PLAYER_PROFILE_EDIT)
-        .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
-        .and(REFERENCE_PLAYER_PROFILE_EDIT.VERSION.eq(version))
-        .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
-        .limit(1)
-        .awaitSingleMappedRecord()
+    suspend fun findProfileEdit(playerId: String, version: Int): ReferencePlayerProfileEdit? =
+        dslContext
+            .select(REFERENCE_PLAYER_PROFILE_EDIT)
+            .from(REFERENCE_PLAYER, REFERENCE_PLAYER_PROFILE_EDIT)
+            .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
+            .and(REFERENCE_PLAYER_PROFILE_EDIT.VERSION.eq(version))
+            .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
+            .limit(1)
+            .awaitSingleMappedRecord()
 
-    suspend fun findLatestEnabledProfileSources(playerId: String): List<ReferencePlayerProfileEditSource> = dslContext
-        .select(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
-        .from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
-        .where(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.PLAYER_ID.eq(playerId))
-        .and(
-            REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.VERSION.eq(
-                dslContext
-                    .select(REFERENCE_PLAYER_PROFILE_EDIT.VERSION)
-                    .from(REFERENCE_PLAYER_PROFILE_EDIT)
-                    .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
-                    .and(REFERENCE_PLAYER_PROFILE_EDIT.ENABLED.eq(true))
-                    .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
-                    .limit(1),
-            ),
-        )
-        .orderBy(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.SOURCE_INDEX.asc())
-        .awaitMappedRecords()
+    suspend fun findLatestEnabledProfileSources(playerId: String): List<ReferencePlayerProfileEditSource> =
+        dslContext
+            .select(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
+            .from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
+            .where(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.PLAYER_ID.eq(playerId))
+            .and(
+                REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.VERSION.eq(
+                    dslContext
+                        .select(REFERENCE_PLAYER_PROFILE_EDIT.VERSION)
+                        .from(REFERENCE_PLAYER_PROFILE_EDIT)
+                        .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
+                        .and(REFERENCE_PLAYER_PROFILE_EDIT.ENABLED.eq(true))
+                        .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
+                        .limit(1),
+                ),
+            )
+            .orderBy(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.SOURCE_INDEX.asc())
+            .awaitMappedRecords()
 
-    suspend fun findProfileSourcesByVersion(playerId: String, versionIndex: Int): List<ReferencePlayerProfileEditSource> = dslContext
-        .select()
-        .from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
-        .where(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.PLAYER_ID.eq(playerId))
-        .and(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.VERSION.eq(versionIndex))
-        .orderBy(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.SOURCE_INDEX.asc())
-        .awaitMappedRecords()
+    suspend fun findProfileSourcesByVersion(playerId: String, versionIndex: Int): List<ReferencePlayerProfileEditSource> =
+        dslContext
+            .select()
+            .from(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE)
+            .where(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.PLAYER_ID.eq(playerId))
+            .and(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.VERSION.eq(versionIndex))
+            .orderBy(REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.SOURCE_INDEX.asc())
+            .awaitMappedRecords()
 
     /**
      * Only from enabled edits
      */
-    suspend fun listAllEditorsUserId(playerId: String): List<String> = dslContext
-        .selectDistinct(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID)
-        .from(REFERENCE_PLAYER_PROFILE_EDIT)
-        .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
-        .and(REFERENCE_PLAYER_PROFILE_EDIT.ENABLED.eq(true))
-        .awaitRecords()
-        .map { record -> record.get(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID) }
+    suspend fun listAllEditorsUserId(playerId: String): List<String> =
+        dslContext
+            .selectDistinct(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID)
+            .from(REFERENCE_PLAYER_PROFILE_EDIT)
+            .where(REFERENCE_PLAYER_PROFILE_EDIT.PLAYER_ID.eq(playerId))
+            .and(REFERENCE_PLAYER_PROFILE_EDIT.ENABLED.eq(true))
+            .awaitRecords()
+            .map { record -> record.get(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID) }
 
     suspend fun fetchGameStats(playerId: String): PlayerGameStatsRecord = fetchGameStats(listOf(playerId))
 
@@ -415,71 +423,75 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
         )
     }
 
-    suspend fun listPlayersStartingWith(startsWith: String, limit: Int): List<EntityIdAndNameRecord> = dslContext
-        .select(
-            REFERENCE_PLAYER.ID,
-            REFERENCE_PLAYER.CANONICAL_NAME,
-            REFERENCE_PLAYER.CHINESE_NAME,
-        )
-        .from(REFERENCE_PLAYER)
-        .where(
-            lower(REFERENCE_PLAYER.CANONICAL_NAME).startsWith(startsWith.lowercase())
-                .or(REFERENCE_PLAYER.CHINESE_NAME.startsWith(startsWith)),
-        )
-        .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
-        .orderBy(REFERENCE_PLAYER.CANONICAL_NAME)
-        .limit(limit)
-        .awaitRecords()
-        .map { record -> mapToEntityIdAndNameRecord(record) }
-        .toList()
+    suspend fun listPlayersStartingWith(startsWith: String, limit: Int): List<EntityIdAndNameRecord> =
+        dslContext
+            .select(
+                REFERENCE_PLAYER.ID,
+                REFERENCE_PLAYER.CANONICAL_NAME,
+                REFERENCE_PLAYER.CHINESE_NAME,
+            )
+            .from(REFERENCE_PLAYER)
+            .where(
+                lower(REFERENCE_PLAYER.CANONICAL_NAME).startsWith(startsWith.lowercase())
+                    .or(REFERENCE_PLAYER.CHINESE_NAME.startsWith(startsWith)),
+            )
+            .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
+            .orderBy(REFERENCE_PLAYER.CANONICAL_NAME)
+            .limit(limit)
+            .awaitRecords()
+            .map { record -> mapToEntityIdAndNameRecord(record) }
+            .toList()
 
-    suspend fun listPlayersContaining(contains: String, limit: Int): List<EntityIdAndNameRecord> = dslContext
-        .select(
-            REFERENCE_PLAYER.ID,
-            REFERENCE_PLAYER.CANONICAL_NAME,
-            REFERENCE_PLAYER.CHINESE_NAME,
-        )
-        .from(REFERENCE_PLAYER)
-        .where(
-            lower(REFERENCE_PLAYER.CANONICAL_NAME).contains(contains.lowercase())
-                .or(REFERENCE_PLAYER.CHINESE_NAME.contains(contains)),
-        )
-        .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
-        .orderBy(REFERENCE_PLAYER.CANONICAL_NAME)
-        .limit(limit)
-        .awaitRecords()
-        .map { record -> mapToEntityIdAndNameRecord(record) }
-        .toList()
+    suspend fun listPlayersContaining(contains: String, limit: Int): List<EntityIdAndNameRecord> =
+        dslContext
+            .select(
+                REFERENCE_PLAYER.ID,
+                REFERENCE_PLAYER.CANONICAL_NAME,
+                REFERENCE_PLAYER.CHINESE_NAME,
+            )
+            .from(REFERENCE_PLAYER)
+            .where(
+                lower(REFERENCE_PLAYER.CANONICAL_NAME).contains(contains.lowercase())
+                    .or(REFERENCE_PLAYER.CHINESE_NAME.contains(contains)),
+            )
+            .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
+            .orderBy(REFERENCE_PLAYER.CANONICAL_NAME)
+            .limit(limit)
+            .awaitRecords()
+            .map { record -> mapToEntityIdAndNameRecord(record) }
+            .toList()
 
-    suspend fun findLatestProfileVersions(limit: Int): List<ReferencePlayerProfileEdit> = dslContext
-        .select(REFERENCE_PLAYER_PROFILE_EDIT)
-        .from(REFERENCE_PLAYER_PROFILE_EDIT)
-        .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
-        .limit(limit)
-        .awaitMappedRecords()
+    suspend fun findLatestProfileVersions(limit: Int): List<ReferencePlayerProfileEdit> =
+        dslContext
+            .select(REFERENCE_PLAYER_PROFILE_EDIT)
+            .from(REFERENCE_PLAYER_PROFILE_EDIT)
+            .orderBy(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME.desc())
+            .limit(limit)
+            .awaitMappedRecords()
 
-    suspend fun findMostEditedPlayers(limit: Int): List<EntityIdAndNameRecord> = dslContext
-        .selectDistinct(
-            REFERENCE_PLAYER_PROFILE_EDIT.CANONICAL_NAME,
-            REFERENCE_PLAYER_PROFILE_EDIT.CHINESE_NAME,
-            DSL.count(),
-            DSL.max(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME),
-        )
-        .from(REFERENCE_PLAYER_PROFILE_EDIT)
-        .where(REFERENCE_PLAYER_PROFILE_EDIT.ENABLED.eq(true))
-        .groupBy(
-            REFERENCE_PLAYER_PROFILE_EDIT.CANONICAL_NAME,
-            REFERENCE_PLAYER_PROFILE_EDIT.CHINESE_NAME,
-        )
-        .orderBy(
-            DSL.count(),
-            DSL.max(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME).desc(),
-        )
-        .limit(limit)
-        .awaitRecords()
-        .map { record ->
-            mapToEntityIdAndNameRecord(record, REFERENCE_PLAYER_PROFILE_EDIT.CANONICAL_NAME)
-        }
+    suspend fun findMostEditedPlayers(limit: Int): List<EntityIdAndNameRecord> =
+        dslContext
+            .selectDistinct(
+                REFERENCE_PLAYER_PROFILE_EDIT.CANONICAL_NAME,
+                REFERENCE_PLAYER_PROFILE_EDIT.CHINESE_NAME,
+                DSL.count(),
+                DSL.max(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME),
+            )
+            .from(REFERENCE_PLAYER_PROFILE_EDIT)
+            .where(REFERENCE_PLAYER_PROFILE_EDIT.ENABLED.eq(true))
+            .groupBy(
+                REFERENCE_PLAYER_PROFILE_EDIT.CANONICAL_NAME,
+                REFERENCE_PLAYER_PROFILE_EDIT.CHINESE_NAME,
+            )
+            .orderBy(
+                DSL.count(),
+                DSL.max(REFERENCE_PLAYER_PROFILE_EDIT.VERSION_TIME).desc(),
+            )
+            .limit(limit)
+            .awaitRecords()
+            .map { record ->
+                mapToEntityIdAndNameRecord(record, REFERENCE_PLAYER_PROFILE_EDIT.CANONICAL_NAME)
+            }
 
     suspend fun createNewProfileVersion(
         playerId: String,

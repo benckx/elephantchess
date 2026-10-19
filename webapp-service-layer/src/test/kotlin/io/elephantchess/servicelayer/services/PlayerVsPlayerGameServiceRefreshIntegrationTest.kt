@@ -36,106 +36,109 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
     private lateinit var userId4: UserId
 
     @BeforeTest
-    fun before() = runBlocking {
-        userId1 = UserId(AUTHENTICATED, signUpTestUser(11).second)
-        userId2 = UserId(AUTHENTICATED, signUpTestUser(12).second)
-        userId3 = UserId(AUTHENTICATED, signUpTestUser(13).second)
-        userId4 = UserId(AUTHENTICATED, signUpTestUser(14).second)
+    fun before() =
+        runBlocking {
+            userId1 = UserId(AUTHENTICATED, signUpTestUser(11).second)
+            userId2 = UserId(AUTHENTICATED, signUpTestUser(12).second)
+            userId3 = UserId(AUTHENTICATED, signUpTestUser(13).second)
+            userId4 = UserId(AUTHENTICATED, signUpTestUser(14).second)
 
-        userService.refreshIsOnlineCache()
-    }
+            userService.refreshIsOnlineCache()
+        }
 
     @AfterTest
-    fun afterTest() = runBlocking {
-        listOf(GAME_CHAT_TYPING_STATUS, GAME_CHAT_MESSAGE, GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
-            .forEach { table ->
-                dslContext
-                    .deleteFrom(table)
-                    .awaitExecute()
-            }
-    }
+    fun afterTest() =
+        runBlocking {
+            listOf(GAME_CHAT_TYPING_STATUS, GAME_CHAT_MESSAGE, GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
+                .forEach { table ->
+                    dslContext
+                        .deleteFrom(table)
+                        .awaitExecute()
+                }
+        }
 
     @Test
-    fun `multiple simultaneous games refresh their websocket sessions independently`() = runBlocking {
-        val gameA = createAndJoinGame(userId1, userId2)
-        val gameB = createAndJoinGame(userId3, userId4)
+    fun `multiple simultaneous games refresh their websocket sessions independently`() =
+        runBlocking {
+            val gameA = createAndJoinGame(userId1, userId2)
+            val gameB = createAndJoinGame(userId3, userId4)
 
-        val movesA = gameMovesCache.randomGame()
-        val movesB = gameMovesCache.randomGame()
+            val movesA = gameMovesCache.randomGame()
+            val movesB = gameMovesCache.randomGame()
 
-        val sessionA1 = startSession(gameA, userId1)
-        val sessionA2 = startSession(gameA, userId2)
-        val sessionB1 = startSession(gameB, userId3)
-        val sessionB2 = startSession(gameB, userId4)
+            val sessionA1 = startSession(gameA, userId1)
+            val sessionA2 = startSession(gameA, userId2)
+            val sessionB1 = startSession(gameB, userId3)
+            val sessionB2 = startSession(gameB, userId4)
 
-        try {
-            pvpGameService.refreshPlayerVsPlayerSessions()
-            listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { it.channel.drain() }
+            try {
+                pvpGameService.refreshPlayerVsPlayerSessions()
+                listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { it.channel.drain() }
 
-            // First synchronized refresh: both games receive their first moves.
-            playMove(gameA, userId1, movesA.uciMoves[0])
-            playMove(gameB, userId3, movesB.uciMoves[0])
+                // First synchronized refresh: both games receive their first moves.
+                playMove(gameA, userId1, movesA.uciMoves[0])
+                playMove(gameB, userId3, movesB.uciMoves[0])
 
-            val updateA1 = sessionA1.channel.awaitUpdate(movesA.uciMoves[0], 1)
-            val updateA2 = sessionA2.channel.awaitUpdate(movesA.uciMoves[0], 1)
-            val updateB1 = sessionB1.channel.awaitUpdate(movesB.uciMoves[0], 1)
-            val updateB2 = sessionB2.channel.awaitUpdate(movesB.uciMoves[0], 1)
+                val updateA1 = sessionA1.channel.awaitUpdate(movesA.uciMoves[0], 1)
+                val updateA2 = sessionA2.channel.awaitUpdate(movesA.uciMoves[0], 1)
+                val updateB1 = sessionB1.channel.awaitUpdate(movesB.uciMoves[0], 1)
+                val updateB2 = sessionB2.channel.awaitUpdate(movesB.uciMoves[0], 1)
 
-            assertMoveUpdate(updateA1, movesA, 1)
-            assertMoveUpdate(updateA2, movesA, 1)
-            assertMoveUpdate(updateB1, movesB, 1)
-            assertMoveUpdate(updateB2, movesB, 1)
+                assertMoveUpdate(updateA1, movesA, 1)
+                assertMoveUpdate(updateA2, movesA, 1)
+                assertMoveUpdate(updateB1, movesB, 1)
+                assertMoveUpdate(updateB2, movesB, 1)
 
-            assertEquals(1, pvpGameService.fetchGame(gameA).moveIndex)
-            assertEquals(1, pvpGameService.fetchGame(gameB).moveIndex)
+                assertEquals(1, pvpGameService.fetchGame(gameA).moveIndex)
+                assertEquals(1, pvpGameService.fetchGame(gameB).moveIndex)
 
-            // Second synchronized refresh: both games advance again.
-            pvpGameService.refreshPlayerVsPlayerSessions()
-            listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { it.channel.drain() }
+                // Second synchronized refresh: both games advance again.
+                pvpGameService.refreshPlayerVsPlayerSessions()
+                listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { it.channel.drain() }
 
-            playMove(gameA, userId2, movesA.uciMoves[1])
-            playMove(gameB, userId4, movesB.uciMoves[1])
+                playMove(gameA, userId2, movesA.uciMoves[1])
+                playMove(gameB, userId4, movesB.uciMoves[1])
 
-            val updateA1Second = sessionA1.channel.awaitUpdate(movesA.uciMoves[1], 2)
-            val updateA2Second = sessionA2.channel.awaitUpdate(movesA.uciMoves[1], 2)
-            val updateB1Second = sessionB1.channel.awaitUpdate(movesB.uciMoves[1], 2)
-            val updateB2Second = sessionB2.channel.awaitUpdate(movesB.uciMoves[1], 2)
+                val updateA1Second = sessionA1.channel.awaitUpdate(movesA.uciMoves[1], 2)
+                val updateA2Second = sessionA2.channel.awaitUpdate(movesA.uciMoves[1], 2)
+                val updateB1Second = sessionB1.channel.awaitUpdate(movesB.uciMoves[1], 2)
+                val updateB2Second = sessionB2.channel.awaitUpdate(movesB.uciMoves[1], 2)
 
-            assertMoveUpdate(updateA1Second, movesA, 2)
-            assertMoveUpdate(updateA2Second, movesA, 2)
-            assertMoveUpdate(updateB1Second, movesB, 2)
-            assertMoveUpdate(updateB2Second, movesB, 2)
+                assertMoveUpdate(updateA1Second, movesA, 2)
+                assertMoveUpdate(updateA2Second, movesA, 2)
+                assertMoveUpdate(updateB1Second, movesB, 2)
+                assertMoveUpdate(updateB2Second, movesB, 2)
 
-            assertEquals(2, pvpGameService.fetchGame(gameA).moveIndex)
-            assertEquals(2, pvpGameService.fetchGame(gameB).moveIndex)
+                assertEquals(2, pvpGameService.fetchGame(gameA).moveIndex)
+                assertEquals(2, pvpGameService.fetchGame(gameB).moveIndex)
 
-            // Third refresh: only game A advances; game B stays untouched.
-            pvpGameService.refreshPlayerVsPlayerSessions()
-            listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { it.channel.drain() }
+                // Third refresh: only game A advances; game B stays untouched.
+                pvpGameService.refreshPlayerVsPlayerSessions()
+                listOf(sessionA1, sessionA2, sessionB1, sessionB2).forEach { it.channel.drain() }
 
-            playMove(gameA, userId1, movesA.uciMoves[2])
+                playMove(gameA, userId1, movesA.uciMoves[2])
 
-            val updateA1Third = sessionA1.channel.awaitUpdate(movesA.uciMoves[2], 3)
-            val updateA2Third = sessionA2.channel.awaitUpdate(movesA.uciMoves[2], 3)
+                val updateA1Third = sessionA1.channel.awaitUpdate(movesA.uciMoves[2], 3)
+                val updateA2Third = sessionA2.channel.awaitUpdate(movesA.uciMoves[2], 3)
 
-            assertMoveUpdate(updateA1Third, movesA, 3)
-            assertMoveUpdate(updateA2Third, movesA, 3)
-            assertTrue(sessionB1.channel.tryReceive().isFailure, "game B session should not receive a game A update")
-            assertTrue(sessionB2.channel.tryReceive().isFailure, "game B session should not receive a game A update")
+                assertMoveUpdate(updateA1Third, movesA, 3)
+                assertMoveUpdate(updateA2Third, movesA, 3)
+                assertTrue(sessionB1.channel.tryReceive().isFailure, "game B session should not receive a game A update")
+                assertTrue(sessionB2.channel.tryReceive().isFailure, "game B session should not receive a game A update")
 
-            assertEquals(3, pvpGameService.fetchGame(gameA).moveIndex)
-            assertEquals(2, pvpGameService.fetchGame(gameB).moveIndex)
-        } finally {
-            listOf(
-                sessionA1,
-                sessionA2,
-                sessionB1,
-                sessionB2,
-            ).forEach {
-                pvpGameService.closePlayerVsPlayerSession(it.sessionId)
+                assertEquals(3, pvpGameService.fetchGame(gameA).moveIndex)
+                assertEquals(2, pvpGameService.fetchGame(gameB).moveIndex)
+            } finally {
+                listOf(
+                    sessionA1,
+                    sessionA2,
+                    sessionB1,
+                    sessionB2,
+                ).forEach {
+                    pvpGameService.closePlayerVsPlayerSession(it.sessionId)
+                }
             }
         }
-    }
 
     @Test
     fun `chat and typing refresh to websocket sessions`() {
@@ -217,9 +220,10 @@ class PlayerVsPlayerGameServiceRefreshIntegrationTest : ServiceTest() {
             result
         }
 
-    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitNextUpdate(): PlayerVsPlayerUpdate = withTimeout(4.seconds) {
-        receive()
-    }
+    private suspend fun Channel<PlayerVsPlayerUpdate>.awaitNextUpdate(): PlayerVsPlayerUpdate =
+        withTimeout(4.seconds) {
+            receive()
+        }
 
     private fun assertMoveUpdate(update: PlayerVsPlayerUpdate, moves: GameMovesDto, expectedIndex: Int) {
         val newMove = requireNotNull(update.newMove)

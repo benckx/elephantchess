@@ -26,30 +26,34 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listCachedAnalyzedMoves(gameId: GameId): List<String> = dslContext
-        .select(MOVE_ANALYSIS.FEN_KEY)
-        .from(MOVE_ANALYSIS)
-        .where(moveAnalysisTableIdCondition(gameId))
-        .and(MOVE_ANALYSIS.ALREADY_IN_CACHE.isTrue)
-        .awaitMappedRecords()
+    suspend fun listCachedAnalyzedMoves(gameId: GameId): List<String> =
+        dslContext
+            .select(MOVE_ANALYSIS.FEN_KEY)
+            .from(MOVE_ANALYSIS)
+            .where(moveAnalysisTableIdCondition(gameId))
+            .and(MOVE_ANALYSIS.ALREADY_IN_CACHE.isTrue)
+            .awaitMappedRecords()
 
-    suspend fun listNonCachedAnalyzedMoves(gameId: GameId): List<MoveAnalysis> = dslContext
-        .selectFrom(MOVE_ANALYSIS)
-        .where(moveAnalysisTableIdCondition(gameId))
-        .and(MOVE_ANALYSIS.ALREADY_IN_CACHE.isFalse)
-        .awaitMappedRecords()
+    suspend fun listNonCachedAnalyzedMoves(gameId: GameId): List<MoveAnalysis> =
+        dslContext
+            .selectFrom(MOVE_ANALYSIS)
+            .where(moveAnalysisTableIdCondition(gameId))
+            .and(MOVE_ANALYSIS.ALREADY_IN_CACHE.isFalse)
+            .awaitMappedRecords()
 
-    suspend fun countAnalyzedMoves(gameId: GameId): Int = dslContext
-        .selectCount()
-        .from(MOVE_ANALYSIS)
-        .where(moveAnalysisTableIdCondition(gameId))
-        .awaitSingleValue()!!
+    suspend fun countAnalyzedMoves(gameId: GameId): Int =
+        dslContext
+            .selectCount()
+            .from(MOVE_ANALYSIS)
+            .where(moveAnalysisTableIdCondition(gameId))
+            .awaitSingleValue()!!
 
-    suspend fun fetchAnalysisStatus(gameId: GameId): AnalysisStatus? = dslContext
-        .select(gameTableAnalysisStatusField(gameId))
-        .from(gameTable(gameId))
-        .where(gameTableIdCondition(gameId))
-        .awaitSingleValue()
+    suspend fun fetchAnalysisStatus(gameId: GameId): AnalysisStatus? =
+        dslContext
+            .select(gameTableAnalysisStatusField(gameId))
+            .from(gameTable(gameId))
+            .where(gameTableIdCondition(gameId))
+            .awaitSingleValue()
 
     suspend fun deleteAnalysisData(gameId: GameId) {
         dslContext.transactionCoroutine { cfg ->
@@ -218,10 +222,11 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    suspend fun fetchLatestMoveAnalysis(): Instant? = dslContext
-        .select(DSL.max(MOVE_ANALYSIS.ENTRY_CREATION))
-        .from(MOVE_ANALYSIS)
-        .awaitSingleValue()
+    suspend fun fetchLatestMoveAnalysis(): Instant? =
+        dslContext
+            .select(DSL.max(MOVE_ANALYSIS.ENTRY_CREATION))
+            .from(MOVE_ANALYSIS)
+            .awaitSingleValue()
 
     suspend fun isAnyGameCurrentlyBeingAnalyzed(): Boolean {
         val refGameCount = dslContext
@@ -260,52 +265,58 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
 
         fun moveAnalysisTableIdCondition(gameId: GameId): Condition = moveAnalysisTableIdField(gameId.type).eq(gameId.id)
 
-        fun moveAnalysisTableIdField(gameType: GameType): Field<String> = when (gameType) {
-            DB -> MOVE_ANALYSIS.REF_GAME_ID
-            PVP -> MOVE_ANALYSIS.GAME_ID
-            PVB -> MOVE_ANALYSIS.BOT_GAME_ID
-        }
+        fun moveAnalysisTableIdField(gameType: GameType): Field<String> =
+            when (gameType) {
+                DB -> MOVE_ANALYSIS.REF_GAME_ID
+                PVP -> MOVE_ANALYSIS.GAME_ID
+                PVB -> MOVE_ANALYSIS.BOT_GAME_ID
+            }
 
         fun gameTableIdCondition(gameId: GameId): Condition = gameTableIdField(gameId.type).eq(gameId.id)
 
-        fun gameTableIdField(gameType: GameType): Field<String> = when (gameType) {
-            DB -> REFERENCE_GAME.ID
-            PVP -> GAME.ID
-            PVB -> BOT_GAME.ID
-        }
+        fun gameTableIdField(gameType: GameType): Field<String> =
+            when (gameType) {
+                DB -> REFERENCE_GAME.ID
+                PVP -> GAME.ID
+                PVB -> BOT_GAME.ID
+            }
 
         fun gameTableAnalysisStatusField(gameId: GameId) = gameTableAnalysisStatusField(gameId.type)
 
-        fun gameTableAnalysisStatusField(gameType: GameType): Field<AnalysisStatus> = when (gameType) {
-            DB -> REFERENCE_GAME.ANALYSIS_STATUS
-            PVP -> GAME.ANALYSIS_STATUS
-            PVB -> BOT_GAME.ANALYSIS_STATUS
-        }
+        fun gameTableAnalysisStatusField(gameType: GameType): Field<AnalysisStatus> =
+            when (gameType) {
+                DB -> REFERENCE_GAME.ANALYSIS_STATUS
+                PVP -> GAME.ANALYSIS_STATUS
+                PVB -> BOT_GAME.ANALYSIS_STATUS
+            }
 
         fun startTimeField(gameId: GameId) = startTimeField(gameId.type)
 
-        fun startTimeField(gameType: GameType): Field<Instant> = when (gameType) {
-            DB -> REFERENCE_GAME.ANALYSIS_START_TIME
-            PVP -> GAME.ANALYSIS_START_TIME
-            PVB -> BOT_GAME.ANALYSIS_START_TIME
-        }
+        fun startTimeField(gameType: GameType): Field<Instant> =
+            when (gameType) {
+                DB -> REFERENCE_GAME.ANALYSIS_START_TIME
+                PVP -> GAME.ANALYSIS_START_TIME
+                PVB -> BOT_GAME.ANALYSIS_START_TIME
+            }
 
         fun endTimeField(gameId: GameId) = endTimeField(gameId.type)
 
-        fun endTimeField(gameType: GameType): Field<Instant> = when (gameType) {
-            DB -> REFERENCE_GAME.ANALYSIS_END_TIME
-            PVP -> GAME.ANALYSIS_END_TIME
-            PVB -> BOT_GAME.ANALYSIS_END_TIME
-        }
+        fun endTimeField(gameType: GameType): Field<Instant> =
+            when (gameType) {
+                DB -> REFERENCE_GAME.ANALYSIS_END_TIME
+                PVP -> GAME.ANALYSIS_END_TIME
+                PVB -> BOT_GAME.ANALYSIS_END_TIME
+            }
 
         fun gameTableUpdate(gameId: GameId) = gameTable(gameId)
 
         fun gameTable(gameId: GameId) = gameTable(gameId.type)
 
-        fun gameTable(gameType: GameType): Table<Record> = when (gameType) {
-            DB -> DSL.table(REFERENCE_GAME.name, false)
-            PVP -> DSL.table(GAME.name, false)
-            PVB -> DSL.table(BOT_GAME.name, false)
-        }
+        fun gameTable(gameType: GameType): Table<Record> =
+            when (gameType) {
+                DB -> DSL.table(REFERENCE_GAME.name, false)
+                PVP -> DSL.table(GAME.name, false)
+                PVB -> DSL.table(BOT_GAME.name, false)
+            }
     }
 }

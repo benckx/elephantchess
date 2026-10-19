@@ -51,9 +51,10 @@ class UserService(
 
     private val excludedFromAnalyticsUserIds = appConfig.excludedFromAnalytics
 
-    private fun normalizeCountry(country: String?): String? = country
-        ?.trim()
-        ?.takeUnless { it.isBlank() || it.equals("none", ignoreCase = true) }
+    private fun normalizeCountry(country: String?): String? =
+        country
+            ?.trim()
+            ?.takeUnless { it.isBlank() || it.equals("none", ignoreCase = true) }
 
     @Volatile
     private var onlineUserIds: Set<String> = emptySet()
@@ -562,11 +563,12 @@ class UserService(
         return secretKeyFactory.generateSecret(spec).encoded!!
     }
 
-    suspend fun listUsersForSiteMap(): List<Pair<String, LocalDate>> = userDaoService
-        .listUsersWithDescriptionForSiteMap()
-        .map { (username, lastProfileUpdate) ->
-            username to lastProfileUpdate.toUtcLocalDate()
-        }
+    suspend fun listUsersForSiteMap(): List<Pair<String, LocalDate>> =
+        userDaoService
+            .listUsersWithDescriptionForSiteMap()
+            .map { (username, lastProfileUpdate) ->
+                username to lastProfileUpdate.toUtcLocalDate()
+            }
 
     companion object {
 
@@ -586,11 +588,12 @@ class UserService(
 
         private val EMAIL_REGEX = "^[A-Za-z0-9][^\\s]*@[^\\s]+\\.[^\\s]+$".toRegex()
 
-        private fun validatePassword(password: String): String? = if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
-            "Password must be between $PASSWORD_MIN_LENGTH and $PASSWORD_MAX_LENGTH char."
-        } else {
-            null
-        }
+        private fun validatePassword(password: String): String? =
+            if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
+                "Password must be between $PASSWORD_MIN_LENGTH and $PASSWORD_MAX_LENGTH char."
+            } else {
+                null
+            }
 
         /**
          * Allowed characters: latin letters (including combining marks), numbers, underscore and dashes

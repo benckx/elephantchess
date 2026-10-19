@@ -31,27 +31,28 @@ fun launchAtFixedRate(
     initialDelay: Duration = Duration.ZERO,
     onError: suspend (Throwable) -> Unit = logError,
     action: suspend () -> Unit,
-): Job = scope.launch {
-    delay(initialDelay)
+): Job =
+    scope.launch {
+        delay(initialDelay)
 
-    while (isActive) {
-        try {
-            action()
-        } catch (e: CancellationException) {
-            throw e // Re-throw to properly cancel the coroutine
-        } catch (e: Exception) {
+        while (isActive) {
             try {
-                onError(e)
-            } catch (ce: CancellationException) {
-                throw ce
-            } catch (handlerError: Exception) {
-                logger.error(handlerError) { "error in periodic coroutine onError handler" }
+                action()
+            } catch (e: CancellationException) {
+                throw e // Re-throw to properly cancel the coroutine
+            } catch (e: Exception) {
+                try {
+                    onError(e)
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (handlerError: Exception) {
+                    logger.error(handlerError) { "error in periodic coroutine onError handler" }
+                }
             }
-        }
 
-        delay(period)
+            delay(period)
+        }
     }
-}
 
 /**
  * Launches a coroutine that runs a suspend action at a fixed rate, starting immediately.

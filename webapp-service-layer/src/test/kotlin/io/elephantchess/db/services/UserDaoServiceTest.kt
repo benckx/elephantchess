@@ -23,67 +23,72 @@ class UserDaoServiceTest : ServiceTest() {
     private val userDaoService by inject<UserDaoService>()
 
     @Test
-    fun `subscribed to all by default`() = runTest {
-        val result = signUpTestUser()
-        assertSubscribedToAll(result.first.email)
-    }
+    fun `subscribed to all by default`() =
+        runTest {
+            val result = signUpTestUser()
+            assertSubscribedToAll(result.first.email)
+        }
 
     @Test
-    fun `unsubscribeFromAllEmailNotifications with equals email address`() = runTest {
-        val result = signUpTestUser()
-        val email = result.first.email
-        userDaoService.unsubscribeFromAllEmailNotifications(email)
-        assertUnsubscribedToAll(email)
-    }
+    fun `unsubscribeFromAllEmailNotifications with equals email address`() =
+        runTest {
+            val result = signUpTestUser()
+            val email = result.first.email
+            userDaoService.unsubscribeFromAllEmailNotifications(email)
+            assertUnsubscribedToAll(email)
+        }
 
     @Test
-    fun `unsubscribeFromAllEmailNotifications with equals ignore case`() = runTest {
-        val result = signUpTestUser()
-        val email = result.first.email
-        userDaoService.unsubscribeFromAllEmailNotifications(email.uppercase())
-        assertUnsubscribedToAll(email)
-    }
+    fun `unsubscribeFromAllEmailNotifications with equals ignore case`() =
+        runTest {
+            val result = signUpTestUser()
+            val email = result.first.email
+            userDaoService.unsubscribeFromAllEmailNotifications(email.uppercase())
+            assertUnsubscribedToAll(email)
+        }
 
     @Test
-    fun `unsubscribeFromAllEmailNotifications with equals with additional with spaces`() = runTest {
-        val result = signUpTestUser()
-        val email = result.first.email
-        userDaoService.unsubscribeFromAllEmailNotifications("  ${email.uppercase()} ")
-        assertUnsubscribedToAll(email)
-    }
+    fun `unsubscribeFromAllEmailNotifications with equals with additional with spaces`() =
+        runTest {
+            val result = signUpTestUser()
+            val email = result.first.email
+            userDaoService.unsubscribeFromAllEmailNotifications("  ${email.uppercase()} ")
+            assertUnsubscribedToAll(email)
+        }
 
     @Test
-    fun `fetchRatingSummary supports guest and authenticated filters`() = runTest {
-        val baseline = userDaoService.fetchRatingSummary(BULLET, XIANGQI)
-        val (_, authenticatedUserId) = signUpTestUser(2_001)
-        val guestUserId = userDaoService.createGuestUser()
+    fun `fetchRatingSummary supports guest and authenticated filters`() =
+        runTest {
+            val baseline = userDaoService.fetchRatingSummary(BULLET, XIANGQI)
+            val (_, authenticatedUserId) = signUpTestUser(2_001)
+            val guestUserId = userDaoService.createGuestUser()
 
-        dslContext
-            .update(USER)
-            .set(USER.GAME_RATING_BULLET, 5_000)
-            .where(USER.ID.eq(authenticatedUserId))
-            .awaitExecute()
+            dslContext
+                .update(USER)
+                .set(USER.GAME_RATING_BULLET, 5_000)
+                .where(USER.ID.eq(authenticatedUserId))
+                .awaitExecute()
 
-        dslContext
-            .update(USER)
-            .set(USER.GAME_RATING_BULLET, 900)
-            .where(USER.ID.eq(guestUserId))
-            .awaitExecute()
+            dslContext
+                .update(USER)
+                .set(USER.GAME_RATING_BULLET, 900)
+                .where(USER.ID.eq(guestUserId))
+                .awaitExecute()
 
-        val result = userDaoService.fetchRatingSummary(BULLET, XIANGQI)
-        val authenticatedResult = userDaoService.fetchRatingSummary(BULLET, XIANGQI, AUTHENTICATED)
-        val guestResult = userDaoService.fetchRatingSummary(BULLET, XIANGQI, GUEST)
+            val result = userDaoService.fetchRatingSummary(BULLET, XIANGQI)
+            val authenticatedResult = userDaoService.fetchRatingSummary(BULLET, XIANGQI, AUTHENTICATED)
+            val guestResult = userDaoService.fetchRatingSummary(BULLET, XIANGQI, GUEST)
 
-        assertEquals(baseline.userCount + 2, result.userCount)
-        assertEquals(900, result.minRating)
-        assertEquals(guestUserId, result.minUserId)
-        assertEquals(5_000, result.maxRating)
-        assertEquals(authenticatedUserId, result.maxUserId)
-        assertEquals(5_000, authenticatedResult.maxRating)
-        assertEquals(authenticatedUserId, authenticatedResult.maxUserId)
-        assertEquals(900, guestResult.minRating)
-        assertEquals(guestUserId, guestResult.minUserId)
-    }
+            assertEquals(baseline.userCount + 2, result.userCount)
+            assertEquals(900, result.minRating)
+            assertEquals(guestUserId, result.minUserId)
+            assertEquals(5_000, result.maxRating)
+            assertEquals(authenticatedUserId, result.maxUserId)
+            assertEquals(5_000, authenticatedResult.maxRating)
+            assertEquals(authenticatedUserId, authenticatedResult.maxUserId)
+            assertEquals(900, guestResult.minRating)
+            assertEquals(guestUserId, guestResult.minUserId)
+        }
 
     private suspend fun assertUnsubscribedToAll(email: String) {
         val user = dslContext.selectFrom(USER)

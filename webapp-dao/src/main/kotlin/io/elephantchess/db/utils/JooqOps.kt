@@ -37,9 +37,10 @@ fun Field<Instant>.isWithin(duration: Duration): Condition {
 
 fun <T : Any> Field<T>.qualified(prefix: String): Field<Any> = DSL.field("$prefix.${this.name}")
 
-fun Field<Instant>.hourOfDay(): Field<Int> = DSL.field("to_char(${this.name}, 'HH24')")
-    .convertFrom { it.toString().toInt() }
-    .`as`("hour")
+fun Field<Instant>.hourOfDay(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'HH24')")
+        .convertFrom { it.toString().toInt() }
+        .`as`("hour")
 
 /**
  * The UTC calendar day of an instant, bucketed via `to_char(..., 'YYYY-MM-DD')` and cast to a genuine
@@ -77,25 +78,30 @@ fun Field<Instant>.yearMonth(alias: String? = "month"): Field<YearMonth> {
     }
 }
 
-fun Field<LocalDate>.yearMonthOfDay(): Field<YearMonth> = DSL.field("to_char(${this.name}, 'YYYY-MM')")
-    .convertFrom { YearMonth.parse(it.toString()) }
-    .`as`("month")
+fun Field<LocalDate>.yearMonthOfDay(): Field<YearMonth> =
+    DSL.field("to_char(${this.name}, 'YYYY-MM')")
+        .convertFrom { YearMonth.parse(it.toString()) }
+        .`as`("month")
 
-fun Field<Instant>.year(): Field<Int> = DSL.field("to_char(${this.name}, 'YYYY')")
-    .convertFrom { it.toString().toInt() }
-    .`as`("year")
+fun Field<Instant>.year(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'YYYY')")
+        .convertFrom { it.toString().toInt() }
+        .`as`("year")
 
-fun Field<LocalDate>.yearOfDay(): Field<Int> = DSL.field("to_char(${this.name}, 'YYYY')")
-    .convertFrom { it.toString().toInt() }
-    .`as`("year")
+fun Field<LocalDate>.yearOfDay(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'YYYY')")
+        .convertFrom { it.toString().toInt() }
+        .`as`("year")
 
-fun Field<Instant>.century(): Field<Int> = DSL.field("to_char(${this.name}, 'CC')")
-    .convertFrom { it.toString().toInt() }
-    .`as`("century")
+fun Field<Instant>.century(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'CC')")
+        .convertFrom { it.toString().toInt() }
+        .`as`("century")
 
-fun Field<LocalDate>.centuryOfDay(): Field<Int> = DSL.field("to_char(${this.name}, 'CC')")
-    .convertFrom { it.toString().toInt() }
-    .`as`("century")
+fun Field<LocalDate>.centuryOfDay(): Field<Int> =
+    DSL.field("to_char(${this.name}, 'CC')")
+        .convertFrom { it.toString().toInt() }
+        .`as`("century")
 
 fun diffInSeconds(f1: Field<Instant>, f2: Field<Instant>): Field<Int> =
     DSL.extract(f1, DatePart.EPOCH).minus(DSL.extract(f2, DatePart.EPOCH))
@@ -116,46 +122,52 @@ suspend fun <T> DSLContext.transactionalContextTry(block: suspend (DSLContext) -
     return t!!
 }
 
-suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleMappedRecord(): T? = Flux
-    .from(this)
-    .collectList()
-    .awaitSingle()
-    .firstOrNull()
-    ?.into<T>(T::class.java)
+suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleMappedRecord(): T? =
+    Flux
+        .from(this)
+        .collectList()
+        .awaitSingle()
+        .firstOrNull()
+        ?.into<T>(T::class.java)
 
-suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitMappedRecords(): List<T> = Flux
-    .from(this)
-    .collectList()
-    .awaitSingle()
-    .map<Record, T> { record -> record.into<T>(T::class.java) }
+suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitMappedRecords(): List<T> =
+    Flux
+        .from(this)
+        .collectList()
+        .awaitSingle()
+        .map<Record, T> { record -> record.into<T>(T::class.java) }
 
-suspend fun <R : Record> ResultQuery<R>.awaitRecords(): List<R> = Flux
-    .from(this)
-    .collectList()
-    .awaitSingle()
+suspend fun <R : Record> ResultQuery<R>.awaitRecords(): List<R> =
+    Flux
+        .from(this)
+        .collectList()
+        .awaitSingle()
 
 suspend fun ResultQuery<out Record>.awaitSingleRecord(): Record? = awaitRecords().firstOrNull()
 
-suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleOrNull(): T? = awaitRecords()
-    .firstOrNull()
-    ?.into<T>(T::class.java)
+suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleOrNull(): T? =
+    awaitRecords()
+        .firstOrNull()
+        ?.into<T>(T::class.java)
 
 @Suppress("UNCHECKED_CAST")
-suspend fun <T : Any> ResultQuery<out Record>.awaitSingleValue(): T? = Flux
-    .from(this)
-    .collectList()
-    .awaitSingle()
-    .firstOrNull()
-    ?.get(0) as? T
+suspend fun <T : Any> ResultQuery<out Record>.awaitSingleValue(): T? =
+    Flux
+        .from(this)
+        .collectList()
+        .awaitSingle()
+        .firstOrNull()
+        ?.get(0) as? T
 
 /**
  * Reactively execute a jOOQ Query (INSERT, UPDATE, DELETE) in an R2DBC context.
  * Returns the number of affected rows.
  */
 @Suppress("UNCHECKED_CAST")
-suspend fun Query.awaitExecute(): Int = Flux
-    .from(this as Publisher<Int>)
-    .awaitSingle() ?: 0
+suspend fun Query.awaitExecute(): Int =
+    Flux
+        .from(this as Publisher<Int>)
+        .awaitSingle() ?: 0
 
 suspend fun <R : TableRecord<R>, P> DAO<R, P, *>.insertReactive(pojo: P): Int {
     val dslContext = DSL.using(configuration())

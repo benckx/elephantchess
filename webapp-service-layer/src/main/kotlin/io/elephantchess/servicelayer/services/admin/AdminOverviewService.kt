@@ -102,33 +102,38 @@ class AdminOverviewService(
         )
     }
 
-    suspend fun fetchLivePvpGames(): LivePvpGamesResponse = LivePvpGamesResponse(
-        pvpGameDaoService.countLiveGames(
-            lastUpdated = liveGameDuration,
-            userIds = userService.onlineUserIds(),
-        ),
-    )
+    suspend fun fetchLivePvpGames(): LivePvpGamesResponse =
+        LivePvpGamesResponse(
+            pvpGameDaoService.countLiveGames(
+                lastUpdated = liveGameDuration,
+                userIds = userService.onlineUserIds(),
+            ),
+        )
 
-    suspend fun fetchLivePvbGames(): LivePvbGamesResponse = LivePvbGamesResponse(
-        pvbGameDaoService.countLiveGames(
-            lastUpdated = liveGameDuration,
-            userIds = userService.onlineUserIds(),
-        ),
-    )
+    suspend fun fetchLivePvbGames(): LivePvbGamesResponse =
+        LivePvbGamesResponse(
+            pvbGameDaoService.countLiveGames(
+                lastUpdated = liveGameDuration,
+                userIds = userService.onlineUserIds(),
+            ),
+        )
 
-    suspend fun fetchLatestPuzzleActivity(): LatestPuzzleActivityResponse = LatestPuzzleActivityResponse(
-        latestPlayedPuzzle = puzzleResultDaoService.latestPlayedPuzzle()?.toEpochMilliseconds(),
-        latestPuzzleVote = puzzleResultDaoService.latestPuzzleVote()?.toEpochMilliseconds(),
-    )
+    suspend fun fetchLatestPuzzleActivity(): LatestPuzzleActivityResponse =
+        LatestPuzzleActivityResponse(
+            latestPlayedPuzzle = puzzleResultDaoService.latestPlayedPuzzle()?.toEpochMilliseconds(),
+            latestPuzzleVote = puzzleResultDaoService.latestPuzzleVote()?.toEpochMilliseconds(),
+        )
 
-    suspend fun fetchLatestAnalysisActivity(): LatestAnalysisActivityResponse = LatestAnalysisActivityResponse(
-        latestMoveAnalysis = gameDataService.latestMoveAnalysisUpdate()?.toEpochMilliseconds(),
-    )
+    suspend fun fetchLatestAnalysisActivity(): LatestAnalysisActivityResponse =
+        LatestAnalysisActivityResponse(
+            latestMoveAnalysis = gameDataService.latestMoveAnalysisUpdate()?.toEpochMilliseconds(),
+        )
 
-    suspend fun fetchLatestNewUsers(): LatestNewUsersResponse = LatestNewUsersResponse(
-        latestNewGuest = userDaoService.latestNewGuestUser()?.toEpochMilliseconds(),
-        latestNewAuthenticatedUser = userDaoService.latestNewAuthenticatedUser()?.toEpochMilliseconds(),
-    )
+    suspend fun fetchLatestNewUsers(): LatestNewUsersResponse =
+        LatestNewUsersResponse(
+            latestNewGuest = userDaoService.latestNewGuestUser()?.toEpochMilliseconds(),
+            latestNewAuthenticatedUser = userDaoService.latestNewAuthenticatedUser()?.toEpochMilliseconds(),
+        )
 
     private companion object {
 

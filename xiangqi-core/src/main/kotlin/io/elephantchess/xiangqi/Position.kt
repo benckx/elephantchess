@@ -27,29 +27,33 @@ data class Position(val x: Int, val y: Int) {
 
     fun getBottomRight() = Position(x + 1, y - 1)
 
-    fun getTopLine(): List<Position> = if (y == HEIGHT || !existsOnBoard()) {
-        listOf()
-    } else {
-        (y + 1 until HEIGHT).map { Position(x, it) }
-    }
+    fun getTopLine(): List<Position> =
+        if (y == HEIGHT || !existsOnBoard()) {
+            listOf()
+        } else {
+            (y + 1 until HEIGHT).map { Position(x, it) }
+        }
 
-    fun getBottomLine(): List<Position> = if (y == 0 || !existsOnBoard()) {
-        listOf()
-    } else {
-        (y - 1 downTo 0).map { Position(x, it) }
-    }
+    fun getBottomLine(): List<Position> =
+        if (y == 0 || !existsOnBoard()) {
+            listOf()
+        } else {
+            (y - 1 downTo 0).map { Position(x, it) }
+        }
 
-    fun getLeftLine(): List<Position> = if (x == 0 || !existsOnBoard()) {
-        listOf()
-    } else {
-        (x - 1 downTo 0).map { Position(it, y) }
-    }
+    fun getLeftLine(): List<Position> =
+        if (x == 0 || !existsOnBoard()) {
+            listOf()
+        } else {
+            (x - 1 downTo 0).map { Position(it, y) }
+        }
 
-    fun getRightLine(): List<Position> = if (x == WIDTH || !existsOnBoard()) {
-        listOf()
-    } else {
-        (x + 1 until WIDTH).map { Position(it, y) }
-    }
+    fun getRightLine(): List<Position> =
+        if (x == WIDTH || !existsOnBoard()) {
+            listOf()
+        } else {
+            (x + 1 until WIDTH).map { Position(it, y) }
+        }
 
     fun getOrthogonalLines() = listOf(getTopLine(), getBottomLine(), getLeftLine(), getRightLine())
 
@@ -81,9 +85,10 @@ data class Position(val x: Int, val y: Int) {
 
         private fun fileIndexToLetter(i: Int): Char = ('a'.code + i).toChar()
 
-        fun getAllPositions(): List<Position> = (0 until WIDTH)
-            .flatMap { x ->
-                (0 until HEIGHT).map { y -> Position(x, y) }
-            }
+        fun getAllPositions(): List<Position> =
+            (0 until WIDTH)
+                .flatMap { x ->
+                    (0 until HEIGHT).map { y -> Position(x, y) }
+                }
     }
 }

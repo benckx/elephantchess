@@ -12,11 +12,12 @@ data class GamePlayersStatus(val inviterId: String, val inviteeId: String?, val 
 
     fun hasInvitee() = inviteeId != null
 
-    fun getOpponentUserId(userId: String): String? = when {
-        isInviter(userId) -> inviteeId
-        isInvitee(userId) -> inviterId
-        else -> null
-    }
+    fun getOpponentUserId(userId: String): String? =
+        when {
+            isInviter(userId) -> inviteeId
+            isInvitee(userId) -> inviterId
+            else -> null
+        }
 
     fun isPlaying(userId: String): Boolean = allPlayers().contains(userId)
 

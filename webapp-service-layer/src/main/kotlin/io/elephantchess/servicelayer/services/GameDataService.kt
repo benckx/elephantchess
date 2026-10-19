@@ -66,24 +66,28 @@ class GameDataService(
         CoroutineScope(Dispatchers.IO.limitedParallelism(2))
     }
 
-    suspend fun countTotalGames(): Int = referenceGameDaoService.countAllGames() +
+    suspend fun countTotalGames(): Int =
+        referenceGameDaoService.countAllGames() +
+            pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
+            pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
+
+    suspend fun countTotalAppGames(): Int =
         pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
-        pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
+            pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
 
-    suspend fun countTotalAppGames(): Int = pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
-        pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
-
-    suspend fun countTotalManchuGames(): Int = pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
-        pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
+    suspend fun countTotalManchuGames(): Int =
+        pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
+            pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
 
     /**
      * Half moves or plies
      */
-    suspend fun countTotalMoves(): Map<GameType, Int> = mapOf(
-        PVP to pvpGameDaoService.countTotalMoves(),
-        PVB to pvbGameDaoService.countTotalMoves(),
-        DB to referenceGameDaoService.countTotalMoves(),
-    )
+    suspend fun countTotalMoves(): Map<GameType, Int> =
+        mapOf(
+            PVP to pvpGameDaoService.countTotalMoves(),
+            PVB to pvbGameDaoService.countTotalMoves(),
+            DB to referenceGameDaoService.countTotalMoves(),
+        )
 
     suspend fun latestMoveAnalysisUpdate(): Instant? = moveAnalysisDaoService.fetchLatestMoveAnalysis()
 
@@ -309,12 +313,13 @@ class GameDataService(
     }
 
     private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean) {
-        suspend fun queryEngine(fen: String): InfoLineResult? = enginesPool.safeQueryForDepth(
-            fen = fen,
-            engineId = PikafishEngineId,
-            depth = DEFAULT_ANALYSIS_DEPTH,
-            timeout = 20_000L,
-        )?.deepestResult()
+        suspend fun queryEngine(fen: String): InfoLineResult? =
+            enginesPool.safeQueryForDepth(
+                fen = fen,
+                engineId = PikafishEngineId,
+                depth = DEFAULT_ANALYSIS_DEPTH,
+                timeout = 20_000L,
+            )?.deepestResult()
 
         suspend fun processPosition(positionIndex: Int, fen: String, isEngineMoveAnalysis: Boolean): MoveAnalysis {
             val fenKey = resetFullMoveCount(fen)
@@ -420,23 +425,26 @@ class GameDataService(
         }
     }
 
-    private suspend fun countTotalMoves(gameId: GameId): Int = when (gameId.type) {
-        PVP -> pvpGameDaoService.countTotalMoves(gameId.id)
-        PVB -> pvbGameDaoService.countTotalMoves(gameId.id)
-        DB -> referenceGameDaoService.countTotalMoves(gameId.id) ?: 0
-    }
+    private suspend fun countTotalMoves(gameId: GameId): Int =
+        when (gameId.type) {
+            PVP -> pvpGameDaoService.countTotalMoves(gameId.id)
+            PVB -> pvbGameDaoService.countTotalMoves(gameId.id)
+            DB -> referenceGameDaoService.countTotalMoves(gameId.id) ?: 0
+        }
 
-    private suspend fun findMoves(gameId: GameId) = when (gameId.type) {
-        PVP -> pvpGameDaoService.listMoves(gameId.id)
-        PVB -> pvbGameDaoService.listMoves(gameId.id)
-        DB -> referenceGameDaoService.listMoves(gameId.id)
-    }
+    private suspend fun findMoves(gameId: GameId) =
+        when (gameId.type) {
+            PVP -> pvpGameDaoService.listMoves(gameId.id)
+            PVB -> pvbGameDaoService.listMoves(gameId.id)
+            DB -> referenceGameDaoService.listMoves(gameId.id)
+        }
 
-    private suspend fun findStartFen(gameId: GameId) = when (gameId.type) {
-        PVP -> DEFAULT_START_FEN
-        PVB -> pvbGameDaoService.fetchStartFen(gameId.id) ?: DEFAULT_START_FEN
-        DB -> DEFAULT_START_FEN
-    }
+    private suspend fun findStartFen(gameId: GameId) =
+        when (gameId.type) {
+            PVP -> DEFAULT_START_FEN
+            PVB -> pvbGameDaoService.fetchStartFen(gameId.id) ?: DEFAULT_START_FEN
+            DB -> DEFAULT_START_FEN
+        }
 
     private suspend fun fetchUserName(userId: String?): String? = userId?.let { userCache.fetchUsername(it) }
 
@@ -703,25 +711,27 @@ class GameDataService(
         )
     }
 
-    private suspend fun mapDatabaseGameToDto(game: ReferenceGame, paginationOffset: Int?): GameMetadataDto = GameMetadataDto(
-        gameId = GameId(DB, game.id),
-        redPlayerId = game.redPlayer,
-        redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
-        blackPlayerId = game.blackPlayer,
-        blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
-        finalFen = game.finalFen ?: DEFAULT_START_FEN,
-        outcome = game.outcome,
-        lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-        paginationOffset = paginationOffset,
-        variant = Variant.XIANGQI,
-    )
+    private suspend fun mapDatabaseGameToDto(game: ReferenceGame, paginationOffset: Int?): GameMetadataDto =
+        GameMetadataDto(
+            gameId = GameId(DB, game.id),
+            redPlayerId = game.redPlayer,
+            redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
+            blackPlayerId = game.blackPlayer,
+            blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
+            finalFen = game.finalFen ?: DEFAULT_START_FEN,
+            outcome = game.outcome,
+            lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
+            paginationOffset = paginationOffset,
+            variant = Variant.XIANGQI,
+        )
 
-    private suspend fun mapDatabaseGamesToDto(games: List<ReferenceGame>, offset: Int?): List<GameMetadataDto> = games.mapIndexed {
-            i,
-            game,
-        ->
-        mapDatabaseGameToDto(game, (offset ?: 0) + i)
-    }
+    private suspend fun mapDatabaseGamesToDto(games: List<ReferenceGame>, offset: Int?): List<GameMetadataDto> =
+        games.mapIndexed {
+                i,
+                game,
+            ->
+            mapDatabaseGameToDto(game, (offset ?: 0) + i)
+        }
 
     companion object {
 

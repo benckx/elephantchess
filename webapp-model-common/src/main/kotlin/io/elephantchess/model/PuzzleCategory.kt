@@ -16,31 +16,33 @@ enum class PuzzleCategory {
     DISCOVERED_ATTACK,
     ;
 
-    fun isMateIn(): Int? = when (this) {
-        MATE_IN_1 -> 1
-        MATE_IN_2 -> 2
-        MATE_IN_3 -> 3
-        MATE_IN_4 -> 4
-        MATE_IN_5 -> 5
-        MATE_IN_6 -> 6
-        MATE_IN_7 -> 7
-        MATE_IN_8 -> 8
-        else -> null
-    }
+    fun isMateIn(): Int? =
+        when (this) {
+            MATE_IN_1 -> 1
+            MATE_IN_2 -> 2
+            MATE_IN_3 -> 3
+            MATE_IN_4 -> 4
+            MATE_IN_5 -> 5
+            MATE_IN_6 -> 6
+            MATE_IN_7 -> 7
+            MATE_IN_8 -> 8
+            else -> null
+        }
 
     companion object {
 
-        fun findMateInN(n: Int): PuzzleCategory = when (n) {
-            1 -> MATE_IN_1
-            2 -> MATE_IN_2
-            3 -> MATE_IN_3
-            4 -> MATE_IN_4
-            5 -> MATE_IN_5
-            6 -> MATE_IN_6
-            7 -> MATE_IN_7
-            8 -> MATE_IN_8
-            else -> throw IllegalArgumentException()
-        }
+        fun findMateInN(n: Int): PuzzleCategory =
+            when (n) {
+                1 -> MATE_IN_1
+                2 -> MATE_IN_2
+                3 -> MATE_IN_3
+                4 -> MATE_IN_4
+                5 -> MATE_IN_5
+                6 -> MATE_IN_6
+                7 -> MATE_IN_7
+                8 -> MATE_IN_8
+                else -> throw IllegalArgumentException()
+            }
 
         fun parseList(list: List<String>): List<PuzzleCategory> = list.map { valueOf(it) }
     }

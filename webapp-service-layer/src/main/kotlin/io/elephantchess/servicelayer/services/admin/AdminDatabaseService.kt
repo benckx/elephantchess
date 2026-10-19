@@ -9,21 +9,22 @@ import io.elephantchess.utils.di.KoinSingleton
 @KoinSingleton
 class AdminDatabaseService(private val referencePlayerDaoService: ReferencePlayerDaoService, private val userCache: UserCache) {
 
-    suspend fun listLatestPlayerProfileVersions(limit: Int): DatabasePlayerVersionHistory = referencePlayerDaoService
-        .findLatestProfileVersions(limit)
-        .map { version ->
-            DatabasePlayerProfileVersionHistoryEntry(
-                versionIndex = version.version,
-                editorUserId = version.editorId,
-                editorUsername = userCache.fetchUsernameOrDefault(version.editorId),
-                versionTime = version.versionTime.toEpochMilliseconds(),
-                comment = version.comment,
-                canonicalName = version.canonicalName,
-                chineseName = version.chineseName,
-                gender = version.gender,
-                enabled = version.enabled,
-            )
-        }.let { entries ->
-            DatabasePlayerVersionHistory(entries)
-        }
+    suspend fun listLatestPlayerProfileVersions(limit: Int): DatabasePlayerVersionHistory =
+        referencePlayerDaoService
+            .findLatestProfileVersions(limit)
+            .map { version ->
+                DatabasePlayerProfileVersionHistoryEntry(
+                    versionIndex = version.version,
+                    editorUserId = version.editorId,
+                    editorUsername = userCache.fetchUsernameOrDefault(version.editorId),
+                    versionTime = version.versionTime.toEpochMilliseconds(),
+                    comment = version.comment,
+                    canonicalName = version.canonicalName,
+                    chineseName = version.chineseName,
+                    gender = version.gender,
+                    enabled = version.enabled,
+                )
+            }.let { entries ->
+                DatabasePlayerVersionHistory(entries)
+            }
 }

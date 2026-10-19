@@ -124,9 +124,10 @@ data class AppConfig(
 
     private fun loadString(key: String): String = properties.loadString(key)
 
-    private fun loadListOfStrings(key: String): List<String> = properties.loadString(key).split(",").map {
-        it.trim()
-    }.filter { it.isNotBlank() }
+    private fun loadListOfStrings(key: String): List<String> =
+        properties.loadString(key).split(",").map {
+            it.trim()
+        }.filter { it.isNotBlank() }
 
     private fun loadBoolean(key: String, default: Boolean): Boolean = properties.loadBoolean(key, default)
 

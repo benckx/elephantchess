@@ -15,12 +15,13 @@ class PropertiesFile(private val profileName: String, private val configurationL
 
     fun loadString(key: String) = getProperty(key)
 
-    fun loadBoolean(key: String): Boolean = try {
-        getProperty(key).toBoolean()
-    } catch (e: Exception) {
-        logger.error { "error loading boolean property $key: $e" }
-        false
-    }
+    fun loadBoolean(key: String): Boolean =
+        try {
+            getProperty(key).toBoolean()
+        } catch (e: Exception) {
+            logger.error { "error loading boolean property $key: $e" }
+            false
+        }
 
     fun loadBoolean(key: String, default: Boolean) = getPropertyOrNull(key)?.toBoolean() ?: default
 
@@ -28,12 +29,13 @@ class PropertiesFile(private val profileName: String, private val configurationL
 
     fun loadIntOrDefault(key: String, default: Int) = getPropertyOrNull(key)?.toIntOrNull() ?: default
 
-    fun loadList(key: String): List<String> = if (!properties.containsKey(key)) {
-        logger.warn { "list property not found $key" }
-        listOf()
-    } else {
-        getProperty(key).split(",")
-    }
+    fun loadList(key: String): List<String> =
+        if (!properties.containsKey(key)) {
+            logger.warn { "list property not found $key" }
+            listOf()
+        } else {
+            getProperty(key).split(",")
+        }
 
     private fun getProperty(key: String): String {
         val value = properties.getProperty(key)

@@ -136,58 +136,60 @@ class SiteMapService(
         ),
     )
 
-    suspend fun getSiteMapXml(): String = siteMapCache.get("sitemap") {
-        val entries = mutableListOf<SitemapEntry>()
-        val millis = measureTimeMillis {
-            val playerEntries =
-                databaseService
-                    .listPlayersForSiteMap(100)
-                    .map { (canonicalName, lastModDate) ->
-                        SitemapEntry(
-                            loc = "$webHostTrimmed/database/player/${canonicalName.replace(" ", "_")}",
-                            lastmod = lastModDate,
-                            changefreq = MONTHLY,
-                            priority = 0.7,
-                        )
-                    }
+    suspend fun getSiteMapXml(): String =
+        siteMapCache.get("sitemap") {
+            val entries = mutableListOf<SitemapEntry>()
+            val millis = measureTimeMillis {
+                val playerEntries =
+                    databaseService
+                        .listPlayersForSiteMap(100)
+                        .map { (canonicalName, lastModDate) ->
+                            SitemapEntry(
+                                loc = "$webHostTrimmed/database/player/${canonicalName.replace(" ", "_")}",
+                                lastmod = lastModDate,
+                                changefreq = MONTHLY,
+                                priority = 0.7,
+                            )
+                        }
 
-            val userEntries =
-                userService
-                    .listUsersForSiteMap()
-                    .map { (username, lastProfileUpdate) ->
-                        SitemapEntry(
-                            loc = "$webHostTrimmed/@/$username",
-                            lastmod = lastProfileUpdate,
-                            changefreq = MONTHLY,
-                            priority = 0.6,
-                        )
-                    }
+                val userEntries =
+                    userService
+                        .listUsersForSiteMap()
+                        .map { (username, lastProfileUpdate) ->
+                            SitemapEntry(
+                                loc = "$webHostTrimmed/@/$username",
+                                lastmod = lastProfileUpdate,
+                                changefreq = MONTHLY,
+                                priority = 0.6,
+                            )
+                        }
 
-            entries += staticEntries + playerEntries + userEntries
-            logger.info {
-                "static entries: ${staticEntries.size}, db players entries: ${playerEntries.size}, user entries: ${userEntries.size}"
+                entries += staticEntries + playerEntries + userEntries
+                logger.info {
+                    "static entries: ${staticEntries.size}, db players entries: ${playerEntries.size}, user entries: ${userEntries.size}"
+                }
             }
+            logger.info { "generated sitemap with ${entries.size} entries in $millis ms." }
+            generateXml(entries)
         }
-        logger.info { "generated sitemap with ${entries.size} entries in $millis ms." }
-        generateXml(entries)
-    }
 
     /**
      * Generates the complete sitemap XML as a string.
      */
-    private fun generateXml(entries: List<SitemapEntry>): String = buildString {
-        appendLine("""<?xml version="1.0" encoding="UTF-8"?>""")
-        appendLine("""<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">""")
+    private fun generateXml(entries: List<SitemapEntry>): String =
+        buildString {
+            appendLine("""<?xml version="1.0" encoding="UTF-8"?>""")
+            appendLine("""<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">""")
 
-        entries.forEach { entry ->
-            appendLine("""    <url>""")
-            appendLine("""        <loc>${entry.loc}</loc>""")
-            appendLine("""        <lastmod>${entry.lastmod}</lastmod>""")
-            appendLine("""        <changefreq>${entry.changefreq.value}</changefreq>""")
-            appendLine("""        <priority>${entry.priority}</priority>""")
-            appendLine("""    </url>""")
+            entries.forEach { entry ->
+                appendLine("""    <url>""")
+                appendLine("""        <loc>${entry.loc}</loc>""")
+                appendLine("""        <lastmod>${entry.lastmod}</lastmod>""")
+                appendLine("""        <changefreq>${entry.changefreq.value}</changefreq>""")
+                appendLine("""        <priority>${entry.priority}</priority>""")
+                appendLine("""    </url>""")
+            }
+
+            appendLine("""</urlset>""")
         }
-
-        appendLine("""</urlset>""")
-    }
 }

@@ -4,17 +4,19 @@ data class InfoLinesResult(val infoLines: List<InfoLineResult>, val checkmate: B
 
     fun maxDepth(): Int? = infoLines.mapNotNull { infoLine -> infoLine.depth }.maxOrNull()
 
-    fun deepestResultCentiPawns(): Int? = infoLines
-        .filter { line -> line.cp != null }
-        .sortedBy { line -> line.depth }
-        .lastOrNull()?.cp
+    fun deepestResultCentiPawns(): Int? =
+        infoLines
+            .filter { line -> line.cp != null }
+            .sortedBy { line -> line.depth }
+            .lastOrNull()?.cp
 
     /**
      * @return [InfoLineResult] with the greatest depth
      */
-    fun deepestResult(): InfoLineResult? = infoLines
-        .sortedBy { line -> line.depth }
-        .lastOrNull()
+    fun deepestResult(): InfoLineResult? =
+        infoLines
+            .sortedBy { line -> line.depth }
+            .lastOrNull()
 
     override fun toString(): String {
         val elements = mutableListOf<String>()

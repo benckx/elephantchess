@@ -68,31 +68,32 @@ class TokenManager(private val appConfig: AppConfig, private val userDaoService:
         return tokenBuilder.sign(algorithm)
     }
 
-    fun verifyToken(token: String): TokenVerificationResult = try {
-        val decodedJWT = verifier.verify(token)
-        val tokenType = decodedJWT.getClaim(TOKEN_TYPE_CLAIM)
-            ?.`as`(String::class.java)
-            ?.let { UserType.valueOf(it) }
+    fun verifyToken(token: String): TokenVerificationResult =
+        try {
+            val decodedJWT = verifier.verify(token)
+            val tokenType = decodedJWT.getClaim(TOKEN_TYPE_CLAIM)
+                ?.`as`(String::class.java)
+                ?.let { UserType.valueOf(it) }
 
-        val userId = decodedJWT.audience.first()
-        val allowed = runBlocking {
-            isUserAllowedCache.get(userId) {
-                userDaoService.existsById(userId)
+            val userId = decodedJWT.audience.first()
+            val allowed = runBlocking {
+                isUserAllowedCache.get(userId) {
+                    userDaoService.existsById(userId)
+                }
             }
-        }
 
-        if (!allowed) {
-            logger.warn { "user $userId is not allowed or not found" }
-            InvalidToken(UnauthorizedException("user $userId is not allowed or not found"))
-        } else {
-            when (tokenType) {
-                UserType.AUTHENTICATED, null -> AuthenticatedToken(userId, decodedJWT)
-                UserType.GUEST -> GuestToken(userId, decodedJWT)
+            if (!allowed) {
+                logger.warn { "user $userId is not allowed or not found" }
+                InvalidToken(UnauthorizedException("user $userId is not allowed or not found"))
+            } else {
+                when (tokenType) {
+                    UserType.AUTHENTICATED, null -> AuthenticatedToken(userId, decodedJWT)
+                    UserType.GUEST -> GuestToken(userId, decodedJWT)
+                }
             }
+        } catch (e: Exception) {
+            InvalidToken(e)
         }
-    } catch (e: Exception) {
-        InvalidToken(e)
-    }
 
     companion object {
 

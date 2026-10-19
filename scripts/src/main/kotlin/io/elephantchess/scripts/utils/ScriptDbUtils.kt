@@ -18,8 +18,9 @@ fun getScriptDslContext(appConfig: AppConfig, maximumPoolSize: Int = 2): DSLCont
  *     - file:///home/benoit/Projects/xiangqi/xiangqi-db/build/resources/main/liquibase-changelog.xml
  *     - jar:file:/home/benoit/Projects/xiangqi/xiangqi-webapp/build/libs/xiangqi-webapp-1.0.jar!/liquibase-changelog.xml
  */
-fun getScriptDslContext(dbConfig: DbConfig, maximumPoolSize: Int = 2): DSLContext = getDslContext(
-    dbConfig,
-    maximumPoolSize,
-    DirectoryResourceAccessor(File("webapp-dao-migration/src/main/resources")),
-)
+fun getScriptDslContext(dbConfig: DbConfig, maximumPoolSize: Int = 2): DSLContext =
+    getDslContext(
+        dbConfig,
+        maximumPoolSize,
+        DirectoryResourceAccessor(File("webapp-dao-migration/src/main/resources")),
+    )

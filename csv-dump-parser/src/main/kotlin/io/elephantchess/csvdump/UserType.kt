@@ -10,10 +10,11 @@ enum class UserType {
 
     companion object {
 
-        fun fromCsv(value: String): UserType = when (val trimmed = value.trim().uppercase()) {
-            "AUTHENTICATED" -> AUTHENTICATED
-            "GUEST" -> GUEST
-            else -> throw IllegalArgumentException("unknown user type: '$trimmed'")
-        }
+        fun fromCsv(value: String): UserType =
+            when (val trimmed = value.trim().uppercase()) {
+                "AUTHENTICATED" -> AUTHENTICATED
+                "GUEST" -> GUEST
+                else -> throw IllegalArgumentException("unknown user type: '$trimmed'")
+            }
     }
 }

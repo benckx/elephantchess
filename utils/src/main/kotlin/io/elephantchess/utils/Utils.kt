@@ -4,10 +4,11 @@ import io.elephantchess.utils.ResourceUtils.resourceAsLines
 import java.time.LocalDate
 import java.time.YearMonth
 
-private fun loadWords(resourcePath: String) = resourceAsLines(resourcePath)
-    .map { it.trim() }
-    .filterNot { it.isBlank() }
-    .filterNot { it.startsWith("#") }
+private fun loadWords(resourcePath: String) =
+    resourceAsLines(resourcePath)
+        .map { it.trim() }
+        .filterNot { it.isBlank() }
+        .filterNot { it.startsWith("#") }
 
 private val badWords by lazy {
     loadWords("/bad-words.txt")
@@ -95,9 +96,10 @@ fun cropToFirstNWords(text: String, maxWords: Int): String {
     }
 }
 
-fun stripHtml(text: String): String = text
-    .replace(Regex("<[^>]*>"), "")
-    .replace("\"", "'")
+fun stripHtml(text: String): String =
+    text
+        .replace(Regex("<[^>]*>"), "")
+        .replace("\"", "'")
 
 /**
  * Returns a list of [LocalDate] between firstDay and lastDay inclusive
@@ -127,11 +129,12 @@ fun rangeOfYearMonths(firstMonth: YearMonth, lastMonth: YearMonth): List<YearMon
 
 fun isChineseText(s: String): Boolean = s.matches(Regex("^[\\u4E00-\\u9FFF]+$"))
 
-fun formatWithChineseName(name: String, chineseName: String?): String = if (chineseName.isNullOrBlank()) {
-    name
-} else {
-    "$name ($chineseName)"
-}
+fun formatWithChineseName(name: String, chineseName: String?): String =
+    if (chineseName.isNullOrBlank()) {
+        name
+    } else {
+        "$name ($chineseName)"
+    }
 
 fun generateNameVariations(vararg names: String): List<String> = names.flatMap { name -> generateNameVariations(name) }.distinct()
 

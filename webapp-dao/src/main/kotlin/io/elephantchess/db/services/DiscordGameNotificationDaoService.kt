@@ -27,12 +27,13 @@ class DiscordGameNotificationDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun findGameCreatedNotification(channelId: String, gameId: String): DiscordGameNotification? = dslContext
-        .select()
-        .from(DISCORD_GAME_NOTIFICATION)
-        .where(DISCORD_GAME_NOTIFICATION.GAME_ID.eq(gameId))
-        .and(DISCORD_GAME_NOTIFICATION.CHANNEL_ID.eq(channelId))
-        .and(DISCORD_GAME_NOTIFICATION.EVENT_TYPE.eq(GAME_CREATED))
-        .awaitMappedRecords<DiscordGameNotification>()
-        .firstOrNull()
+    suspend fun findGameCreatedNotification(channelId: String, gameId: String): DiscordGameNotification? =
+        dslContext
+            .select()
+            .from(DISCORD_GAME_NOTIFICATION)
+            .where(DISCORD_GAME_NOTIFICATION.GAME_ID.eq(gameId))
+            .and(DISCORD_GAME_NOTIFICATION.CHANNEL_ID.eq(channelId))
+            .and(DISCORD_GAME_NOTIFICATION.EVENT_TYPE.eq(GAME_CREATED))
+            .awaitMappedRecords<DiscordGameNotification>()
+            .firstOrNull()
 }

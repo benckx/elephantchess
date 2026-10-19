@@ -92,25 +92,26 @@ class PuzzleService(
         }
     }
 
-    suspend fun listPlayedPuzzles(userId: String, beforeTs: Long?): PlayedPuzzlesResponse = puzzleResultDaoService
-        .listPlayedPuzzles(userId, 30, beforeTs)
-        .map { record ->
-            PlayedPuzzlesResponse.Entry(
-                puzzleId = record.puzzleId,
-                playerColor = record.color,
-                startFen = record.startFen,
-                categories = puzzleCache.listCategories(record.puzzleId),
-                outcome = record.outcome,
-                ratingFrom = record.ratingFrom,
-                ratingTo = record.ratingTo,
-                puzzleRatingFrom = record.puzzleRatingFrom,
-                puzzleRatingTo = record.puzzleRatingTo,
-                date = record.date.toEpochMilliseconds(),
-            )
-        }
-        .let { entries ->
-            PlayedPuzzlesResponse(entries)
-        }
+    suspend fun listPlayedPuzzles(userId: String, beforeTs: Long?): PlayedPuzzlesResponse =
+        puzzleResultDaoService
+            .listPlayedPuzzles(userId, 30, beforeTs)
+            .map { record ->
+                PlayedPuzzlesResponse.Entry(
+                    puzzleId = record.puzzleId,
+                    playerColor = record.color,
+                    startFen = record.startFen,
+                    categories = puzzleCache.listCategories(record.puzzleId),
+                    outcome = record.outcome,
+                    ratingFrom = record.ratingFrom,
+                    ratingTo = record.ratingTo,
+                    puzzleRatingFrom = record.puzzleRatingFrom,
+                    puzzleRatingTo = record.puzzleRatingTo,
+                    date = record.date.toEpochMilliseconds(),
+                )
+            }
+            .let { entries ->
+                PlayedPuzzlesResponse(entries)
+            }
 
     suspend fun fetchPuzzlesOriginalGameMetadata(request: PuzzlesOriginalGameMetadataRequest): PuzzlesOriginalGameMetadataResponse {
         val records = referenceGameDaoService.findByPuzzleIds(request.puzzleIds)

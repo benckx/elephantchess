@@ -12,33 +12,35 @@ import kotlinx.html.script
 @KoinSingleton(eager = true)
 class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
-    suspend fun renderBoardGuiExample(useCdn: Boolean, templateName: String): String = simplePageRenderer.renderTemplate(
-        templateName,
-        listOf(
-            boardGuiAssetsTagResolver(useCdn),
-            SimpleValueTagResolver(
-                "board_gui_assets_base_url_option",
-                if (useCdn) "${CDN_BASE}/static" else "",
+    suspend fun renderBoardGuiExample(useCdn: Boolean, templateName: String): String =
+        simplePageRenderer.renderTemplate(
+            templateName,
+            listOf(
+                boardGuiAssetsTagResolver(useCdn),
+                SimpleValueTagResolver(
+                    "board_gui_assets_base_url_option",
+                    if (useCdn) "${CDN_BASE}/static" else "",
+                ),
+                SimpleValueTagResolver("dist_version", DIST_VERSION),
+                snippetTagResolver("snippet_setup", "board-gui-setup.html"),
+                snippetTagResolver("snipped_config", "board-gui-config.js"),
+                snippetTagResolver("snippet_headless", "board-gui-headless.html"),
             ),
-            SimpleValueTagResolver("dist_version", DIST_VERSION),
-            snippetTagResolver("snippet_setup", "board-gui-setup.html"),
-            snippetTagResolver("snipped_config", "board-gui-config.js"),
-            snippetTagResolver("snippet_headless", "board-gui-headless.html"),
-        ),
-    )
+        )
 
     /**
      * Loads a raw HTML snippet file, and HTML-escapes the result so it can be safely inlined
      * as text inside a `<pre><code>` block.
      */
-    private fun snippetTagResolver(tagName: String, snippetName: String): TagResolver = CallbackTagResolver(tagName) {
-        val raw = resourceAsString("/templates/about/developers/snippets/$snippetName")
-            ?: return@CallbackTagResolver ""
+    private fun snippetTagResolver(tagName: String, snippetName: String): TagResolver =
+        CallbackTagResolver(tagName) {
+            val raw = resourceAsString("/templates/about/developers/snippets/$snippetName")
+                ?: return@CallbackTagResolver ""
 
-        raw
-            .trim('\n')
-            .let(::escapeHtml)
-    }
+            raw
+                .trim('\n')
+                .let(::escapeHtml)
+        }
 
     private fun boardGuiAssetsTagResolver(useCdn: Boolean): TagResolver {
         val distPath = if (useCdn) "${CDN_BASE}/dist/$DIST_VERSION" else "/dist/$DIST_VERSION"

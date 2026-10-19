@@ -152,11 +152,12 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         toVersion: Int,
         fetchEdit: suspend (Int) -> DatabasePlayerProfileEdit,
     ): String {
-        fun mapGender(gender: String?): String = when (gender) {
-            "M" -> "Male"
-            "F" -> "Female"
-            else -> ""
-        }
+        fun mapGender(gender: String?): String =
+            when (gender) {
+                "M" -> "Male"
+                "F" -> "Female"
+                else -> ""
+            }
 
         val editFrom = fetchEdit(fromVersion)
         val editTo = fetchEdit(toVersion)
@@ -237,50 +238,54 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         )
     }
 
-    suspend fun renderEventPage(event: Event): String = eventPagesCache.get(event.id) {
-        // get top 10 players by score
-        val topPlayerNames = event.scores
-            .entries
-            .sortedByDescending { entry -> entry.value }
-            .take(10)
-            .mapNotNull { entry -> event.playerLookup[entry.key]?.first }
+    suspend fun renderEventPage(event: Event): String =
+        eventPagesCache.get(event.id) {
+            // get top 10 players by score
+            val topPlayerNames = event.scores
+                .entries
+                .sortedByDescending { entry -> entry.value }
+                .take(10)
+                .mapNotNull { entry -> event.playerLookup[entry.key]?.first }
 
-        val description =
-            "${event.name} with ${topPlayerNames.joinToString(", ")} - games, results and statistics."
+            val description =
+                "${event.name} with ${topPlayerNames.joinToString(", ")} - games, results and statistics."
 
-        htmlRenderer.renderHtml(
-            templatePath = "/templates/database/database_event.html",
-            specificTagResolvers = listOf(
-                SimpleValueTagResolver("page_title", event.name),
-                SimpleValueTagResolver("description_meta", descriptionMeta(description)),
-                eventGamesListTagResolver(event),
-            ),
-            canonicalPath = "/database/event?id=${event.id}",
-        )
-    }
+            htmlRenderer.renderHtml(
+                templatePath = "/templates/database/database_event.html",
+                specificTagResolvers = listOf(
+                    SimpleValueTagResolver("page_title", event.name),
+                    SimpleValueTagResolver("description_meta", descriptionMeta(description)),
+                    eventGamesListTagResolver(event),
+                ),
+                canonicalPath = "/database/event?id=${event.id}",
+            )
+        }
 
-    suspend fun renderEventsListPage(eventsList: EventsListResponse): String = pageOfListCache.get("events") {
-        htmlRenderer.renderHtml(
-            templatePath = "/templates/database/database_events_list.html",
-            specificTagResolvers = listOf(eventsTableTagResolver(eventsList)),
-            canonicalPath = "/database/events",
-        )
-    }
+    suspend fun renderEventsListPage(eventsList: EventsListResponse): String =
+        pageOfListCache.get("events") {
+            htmlRenderer.renderHtml(
+                templatePath = "/templates/database/database_events_list.html",
+                specificTagResolvers = listOf(eventsTableTagResolver(eventsList)),
+                canonicalPath = "/database/events",
+            )
+        }
 
-    suspend fun renderPlayersListPage(playersList: PlayersListResponse): String = pageOfListCache.get("players") {
-        htmlRenderer.renderHtml(
-            templatePath = "/templates/database/database_players_list.html",
-            specificTagResolvers = listOf(playersTableTagResolver(playersList)),
-            canonicalPath = "/database/players",
-        )
-    }
+    suspend fun renderPlayersListPage(playersList: PlayersListResponse): String =
+        pageOfListCache.get("players") {
+            htmlRenderer.renderHtml(
+                templatePath = "/templates/database/database_players_list.html",
+                specificTagResolvers = listOf(playersTableTagResolver(playersList)),
+                canonicalPath = "/database/players",
+            )
+        }
 
     suspend fun renderGamePage(summary: DatabaseGameSummary, orientation: String? = null): String {
-        fun formatName(canonicalName: String?, chineseName: String?): String = if (!canonicalName.isNullOrBlank()) {
-            formatWithChineseName(canonicalName, chineseName)
-        } else {
-            "<unknown>"
-        }
+        fun formatName(canonicalName: String?, chineseName: String?): String =
+            if (!canonicalName.isNullOrBlank()) {
+                formatWithChineseName(canonicalName, chineseName)
+            } else {
+                "<unknown>"
+            }
 
         val redDisplay = formatName(summary.redPlayerCanonicalName, summary.redPlayerChineseName)
         val blackDisplay = formatName(summary.blackPlayerCanonicalName, summary.blackPlayerChineseName)
@@ -406,27 +411,30 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         fun dataAttr(name: String, value: String?): String = if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
 
-        fun descriptionMeta(edit: DatabasePlayerProfileEdit): TagResolver = CallbackTagResolver("description_meta") {
-            val profileText = edit.profileText
-            val metaContent = if (profileText.isNullOrBlank()) {
-                val name = formatWithChineseName(edit.canonicalName, edit.chineseName)
-                "Chinese chess player $name games, statistics and openings."
-            } else {
-                cropToFirstNWords(profileText, 100)
+        fun descriptionMeta(edit: DatabasePlayerProfileEdit): TagResolver =
+            CallbackTagResolver("description_meta") {
+                val profileText = edit.profileText
+                val metaContent = if (profileText.isNullOrBlank()) {
+                    val name = formatWithChineseName(edit.canonicalName, edit.chineseName)
+                    "Chinese chess player $name games, statistics and openings."
+                } else {
+                    cropToFirstNWords(profileText, 100)
+                }
+
+                descriptionMeta(metaContent)
             }
 
-            descriptionMeta(metaContent)
-        }
+        fun databasePlayerTitle(databasePlayer: DatabasePlayer, suffix: String = ""): TagResolver =
+            SimpleValueTagResolver(
+                "page_title",
+                formatWithChineseName(databasePlayer.canonicalName, databasePlayer.chineseName) + suffix,
+            )
 
-        fun databasePlayerTitle(databasePlayer: DatabasePlayer, suffix: String = ""): TagResolver = SimpleValueTagResolver(
-            "page_title",
-            formatWithChineseName(databasePlayer.canonicalName, databasePlayer.chineseName) + suffix,
-        )
-
-        fun formatSourcesToMarkdown(sources: List<DatabasePlayerProfileSource>): String = sources
-            .sortedBy { it.index }
-            .joinToString("\n") { source ->
-                "[${source.title}](${source.url})"
-            }
+        fun formatSourcesToMarkdown(sources: List<DatabasePlayerProfileSource>): String =
+            sources
+                .sortedBy { it.index }
+                .joinToString("\n") { source ->
+                    "[${source.title}](${source.url})"
+                }
     }
 }

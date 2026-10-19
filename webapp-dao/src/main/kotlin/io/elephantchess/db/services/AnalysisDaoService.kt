@@ -18,53 +18,56 @@ import kotlin.time.Instant
 @KoinSingleton
 class AnalysisDaoService(private val dslContext: DSLContext) {
 
-    suspend fun listAnalysisForAllUsers(limit: Int): List<AnalysisAndUserRecord> = dslContext
-        .select(
-            ANALYSIS.ID,
-            ANALYSIS.CREATED,
-            ANALYSIS.LAST_UPDATED,
-            ANALYSIS.ANALYSIS_NAME,
-            DSL.max(ANALYSIS_VERSION.VERSION_NUMBER),
-            USER.ID,
-            USER.HANDLE,
-        )
-        .from(ANALYSIS, ANALYSIS_VERSION, USER)
-        .where(ANALYSIS.ID.eq(ANALYSIS_VERSION.ANALYSIS_ID))
-        .and(ANALYSIS.OWNER_USER_ID.eq(USER.ID))
-        .groupBy(
-            ANALYSIS.ID,
-            ANALYSIS.CREATED,
-            ANALYSIS.LAST_UPDATED,
-            ANALYSIS.ANALYSIS_NAME,
-            USER.ID,
-            USER.HANDLE,
-        )
-        .orderBy(ANALYSIS.LAST_UPDATED.desc())
-        .limit(limit)
-        .awaitRecords()
-        .map { record7 ->
-            AnalysisAndUserRecord(record7)
-        }
+    suspend fun listAnalysisForAllUsers(limit: Int): List<AnalysisAndUserRecord> =
+        dslContext
+            .select(
+                ANALYSIS.ID,
+                ANALYSIS.CREATED,
+                ANALYSIS.LAST_UPDATED,
+                ANALYSIS.ANALYSIS_NAME,
+                DSL.max(ANALYSIS_VERSION.VERSION_NUMBER),
+                USER.ID,
+                USER.HANDLE,
+            )
+            .from(ANALYSIS, ANALYSIS_VERSION, USER)
+            .where(ANALYSIS.ID.eq(ANALYSIS_VERSION.ANALYSIS_ID))
+            .and(ANALYSIS.OWNER_USER_ID.eq(USER.ID))
+            .groupBy(
+                ANALYSIS.ID,
+                ANALYSIS.CREATED,
+                ANALYSIS.LAST_UPDATED,
+                ANALYSIS.ANALYSIS_NAME,
+                USER.ID,
+                USER.HANDLE,
+            )
+            .orderBy(ANALYSIS.LAST_UPDATED.desc())
+            .limit(limit)
+            .awaitRecords()
+            .map { record7 ->
+                AnalysisAndUserRecord(record7)
+            }
 
-    suspend fun countAnalysisPerUser(limit: Int): List<Record3<String, String, Int>> = dslContext
-        .select(
-            USER.ID,
-            USER.HANDLE,
-            DSL.countDistinct(ANALYSIS.ID),
-        )
-        .from(ANALYSIS, USER)
-        .where(ANALYSIS.OWNER_USER_ID.eq(USER.ID))
-        .groupBy(USER.ID, USER.HANDLE)
-        .orderBy(DSL.count(ANALYSIS.ID).desc())
-        .limit(limit)
-        .awaitRecords()
+    suspend fun countAnalysisPerUser(limit: Int): List<Record3<String, String, Int>> =
+        dslContext
+            .select(
+                USER.ID,
+                USER.HANDLE,
+                DSL.countDistinct(ANALYSIS.ID),
+            )
+            .from(ANALYSIS, USER)
+            .where(ANALYSIS.OWNER_USER_ID.eq(USER.ID))
+            .groupBy(USER.ID, USER.HANDLE)
+            .orderBy(DSL.count(ANALYSIS.ID).desc())
+            .limit(limit)
+            .awaitRecords()
 
-    suspend fun fetchLastUpdatePerUser(): List<Record2<String, Instant>> = dslContext
-        .select(ANALYSIS.OWNER_USER_ID, DSL.max(ANALYSIS.LAST_UPDATED))
-        .from(ANALYSIS)
-        .groupBy(ANALYSIS.OWNER_USER_ID)
-        .orderBy(DSL.max(ANALYSIS.LAST_UPDATED).desc())
-        .awaitRecords()
+    suspend fun fetchLastUpdatePerUser(): List<Record2<String, Instant>> =
+        dslContext
+            .select(ANALYSIS.OWNER_USER_ID, DSL.max(ANALYSIS.LAST_UPDATED))
+            .from(ANALYSIS)
+            .groupBy(ANALYSIS.OWNER_USER_ID)
+            .orderBy(DSL.max(ANALYSIS.LAST_UPDATED).desc())
+            .awaitRecords()
 
     suspend fun listAnalysisAndVersionForUser(userId: String, limit: Int, beforeTs: Long?): List<AnalysisAndVersionRecord> {
         var sql = dslContext
@@ -156,15 +159,16 @@ class AnalysisDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    suspend fun listAllVersions(analysisId: String): List<Int> = dslContext
-        .selectDistinct(
-            ANALYSIS_VERSION.VERSION_NUMBER,
-        )
-        .from(ANALYSIS_VERSION)
-        .where(ANALYSIS_VERSION.ANALYSIS_ID.eq(analysisId))
-        .orderBy(ANALYSIS_VERSION.VERSION_NUMBER.desc())
-        .awaitRecords()
-        .map { record1 -> record1.value1() }
+    suspend fun listAllVersions(analysisId: String): List<Int> =
+        dslContext
+            .selectDistinct(
+                ANALYSIS_VERSION.VERSION_NUMBER,
+            )
+            .from(ANALYSIS_VERSION)
+            .where(ANALYSIS_VERSION.ANALYSIS_ID.eq(analysisId))
+            .orderBy(ANALYSIS_VERSION.VERSION_NUMBER.desc())
+            .awaitRecords()
+            .map { record1 -> record1.value1() }
 
     suspend fun createAnalysis(
         analysis: Analysis,
@@ -295,79 +299,89 @@ class AnalysisDaoService(private val dslContext: DSLContext) {
             }
         }
 
-    suspend fun fetchEngineDataCache(analysisId: String): List<AnalysisEngineDataCache> = dslContext
-        .select()
-        .from(ANALYSIS_ENGINE_DATA_CACHE)
-        .where(ANALYSIS_ENGINE_DATA_CACHE.ANALYSIS_ID.eq(analysisId))
-        .awaitMappedRecords()
+    suspend fun fetchEngineDataCache(analysisId: String): List<AnalysisEngineDataCache> =
+        dslContext
+            .select()
+            .from(ANALYSIS_ENGINE_DATA_CACHE)
+            .where(ANALYSIS_ENGINE_DATA_CACHE.ANALYSIS_ID.eq(analysisId))
+            .awaitMappedRecords()
 
-    suspend fun isOwner(userId: String, analysisId: String): Boolean = dslContext
-        .select(DSL.count())
-        .from(ANALYSIS)
-        .where(ANALYSIS.ID.eq(analysisId))
-        .and(ANALYSIS.OWNER_USER_ID.eq(userId))
-        .awaitSingleValue<Int>()!! == 1
+    suspend fun isOwner(userId: String, analysisId: String): Boolean =
+        dslContext
+            .select(DSL.count())
+            .from(ANALYSIS)
+            .where(ANALYSIS.ID.eq(analysisId))
+            .and(ANALYSIS.OWNER_USER_ID.eq(userId))
+            .awaitSingleValue<Int>()!! == 1
 
-    suspend fun fetchAnalysis(analysisId: String): Analysis? = dslContext
-        .select()
-        .from(ANALYSIS)
-        .where(ANALYSIS.ID.eq(analysisId))
-        .awaitMappedRecords<Analysis>()
-        .firstOrNull()
+    suspend fun fetchAnalysis(analysisId: String): Analysis? =
+        dslContext
+            .select()
+            .from(ANALYSIS)
+            .where(ANALYSIS.ID.eq(analysisId))
+            .awaitMappedRecords<Analysis>()
+            .firstOrNull()
 
-    suspend fun fetchAnalysisName(analysisId: String): String? = dslContext
-        .select(ANALYSIS.ANALYSIS_NAME)
-        .from(ANALYSIS)
-        .where(ANALYSIS.ID.eq(analysisId))
-        .awaitSingleValue()
+    suspend fun fetchAnalysisName(analysisId: String): String? =
+        dslContext
+            .select(ANALYSIS.ANALYSIS_NAME)
+            .from(ANALYSIS)
+            .where(ANALYSIS.ID.eq(analysisId))
+            .awaitSingleValue()
 
-    suspend fun fetchVersion(analysisId: String, versionNumber: Int): AnalysisVersion? = dslContext
-        .select()
-        .from(ANALYSIS_VERSION)
-        .where(ANALYSIS_VERSION.ANALYSIS_ID.eq(analysisId))
-        .and(ANALYSIS_VERSION.VERSION_NUMBER.eq(versionNumber))
-        .awaitMappedRecords<AnalysisVersion>()
-        .firstOrNull()
+    suspend fun fetchVersion(analysisId: String, versionNumber: Int): AnalysisVersion? =
+        dslContext
+            .select()
+            .from(ANALYSIS_VERSION)
+            .where(ANALYSIS_VERSION.ANALYSIS_ID.eq(analysisId))
+            .and(ANALYSIS_VERSION.VERSION_NUMBER.eq(versionNumber))
+            .awaitMappedRecords<AnalysisVersion>()
+            .firstOrNull()
 
-    suspend fun fetchReferenceGameId(analysisId: String): GameId? = dslContext
-        .select(
-            ANALYSIS.GAME_ID,
-            ANALYSIS.BOT_GAME_ID,
-            ANALYSIS.REFERENCE_GAME_ID,
-        )
-        .from(ANALYSIS)
-        .where(ANALYSIS.ID.eq(analysisId))
-        .awaitMappedRecords<Analysis>()
-        .firstOrNull()
-        ?.gameId()
+    suspend fun fetchReferenceGameId(analysisId: String): GameId? =
+        dslContext
+            .select(
+                ANALYSIS.GAME_ID,
+                ANALYSIS.BOT_GAME_ID,
+                ANALYSIS.REFERENCE_GAME_ID,
+            )
+            .from(ANALYSIS)
+            .where(ANALYSIS.ID.eq(analysisId))
+            .awaitMappedRecords<Analysis>()
+            .firstOrNull()
+            ?.gameId()
 
-    suspend fun getLastVersionNumberOf(analysisId: String): Int? = dslContext
-        .select(DSL.max(ANALYSIS_VERSION.VERSION_NUMBER))
-        .from(ANALYSIS_VERSION)
-        .where(ANALYSIS_VERSION.ANALYSIS_ID.eq(analysisId))
-        .groupBy(ANALYSIS_VERSION.ANALYSIS_ID)
-        .awaitSingleValue()
+    suspend fun getLastVersionNumberOf(analysisId: String): Int? =
+        dslContext
+            .select(DSL.max(ANALYSIS_VERSION.VERSION_NUMBER))
+            .from(ANALYSIS_VERSION)
+            .where(ANALYSIS_VERSION.ANALYSIS_ID.eq(analysisId))
+            .groupBy(ANALYSIS_VERSION.ANALYSIS_ID)
+            .awaitSingleValue()
 
-    suspend fun getAllNodes(analysisId: String, versionNumber: Int): List<AnalysisNode> = dslContext
-        .select()
-        .from(ANALYSIS_NODE)
-        .where(ANALYSIS_NODE.ANALYSIS_ID.eq(analysisId))
-        .and(ANALYSIS_NODE.VERSION_NUMBER.eq(versionNumber))
-        .awaitMappedRecords()
+    suspend fun getAllNodes(analysisId: String, versionNumber: Int): List<AnalysisNode> =
+        dslContext
+            .select()
+            .from(ANALYSIS_NODE)
+            .where(ANALYSIS_NODE.ANALYSIS_ID.eq(analysisId))
+            .and(ANALYSIS_NODE.VERSION_NUMBER.eq(versionNumber))
+            .awaitMappedRecords()
 
-    suspend fun getAllChildNodes(analysisId: String, versionNumber: Int): List<AnalysisChildNode> = dslContext
-        .select()
-        .from(ANALYSIS_CHILD_NODE)
-        .where(ANALYSIS_CHILD_NODE.ANALYSIS_ID.eq(analysisId))
-        .and(ANALYSIS_CHILD_NODE.VERSION_NUMBER.eq(versionNumber))
-        .awaitMappedRecords()
+    suspend fun getAllChildNodes(analysisId: String, versionNumber: Int): List<AnalysisChildNode> =
+        dslContext
+            .select()
+            .from(ANALYSIS_CHILD_NODE)
+            .where(ANALYSIS_CHILD_NODE.ANALYSIS_ID.eq(analysisId))
+            .and(ANALYSIS_CHILD_NODE.VERSION_NUMBER.eq(versionNumber))
+            .awaitMappedRecords()
 
-    suspend fun getAllAnnotations(analysisId: String, versionNumber: Int): List<AnalysisNodeAnnotation> = dslContext
-        .select()
-        .from(ANALYSIS_NODE_ANNOTATION)
-        .where(ANALYSIS_NODE_ANNOTATION.ANALYSIS_ID.eq(analysisId))
-        .and(ANALYSIS_NODE_ANNOTATION.VERSION_NUMBER.eq(versionNumber))
-        .awaitMappedRecords()
+    suspend fun getAllAnnotations(analysisId: String, versionNumber: Int): List<AnalysisNodeAnnotation> =
+        dslContext
+            .select()
+            .from(ANALYSIS_NODE_ANNOTATION)
+            .where(ANALYSIS_NODE_ANNOTATION.ANALYSIS_ID.eq(analysisId))
+            .and(ANALYSIS_NODE_ANNOTATION.VERSION_NUMBER.eq(versionNumber))
+            .awaitMappedRecords()
 
     suspend fun renameAnalysis(analysisId: String, name: String, lastUpdated: Instant) {
         dslContext
@@ -472,10 +486,11 @@ class AnalysisDaoService(private val dslContext: DSLContext) {
             entries: List<AnalysisNodeAnnotation>,
             analysisId: String,
             version: Int,
-        ): List<AnalysisNodeAnnotation> = entries.map { pojo ->
-            pojo.analysisId = analysisId
-            pojo.versionNumber = version
-            pojo
-        }
+        ): List<AnalysisNodeAnnotation> =
+            entries.map { pojo ->
+                pojo.analysisId = analysisId
+                pojo.versionNumber = version
+                pojo
+            }
     }
 }

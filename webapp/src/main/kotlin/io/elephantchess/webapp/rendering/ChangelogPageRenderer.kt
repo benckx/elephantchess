@@ -10,12 +10,13 @@ class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) 
     suspend fun renderChangelogPage(): String =
         simplePageRenderer.renderTemplate(CHANGELOG_TEMPLATE_NAME, listOf(changelogTocTagResolver()))
 
-    private fun changelogTocTagResolver(): TagResolver = CallbackTagResolver("changelog_toc") {
-        val html = resourceAsString(CHANGELOG_TEMPLATE_PATH)
-            ?: throw IllegalStateException("Changelog template not found at $CHANGELOG_TEMPLATE_PATH")
+    private fun changelogTocTagResolver(): TagResolver =
+        CallbackTagResolver("changelog_toc") {
+            val html = resourceAsString(CHANGELOG_TEMPLATE_PATH)
+                ?: throw IllegalStateException("Changelog template not found at $CHANGELOG_TEMPLATE_PATH")
 
-        renderChangelogToc(html)
-    }
+            renderChangelogToc(html)
+        }
 
     companion object {
 

@@ -225,27 +225,28 @@ class PlayerVsBotGameService(
         return CreateBotGameResponse(gameId)
     }
 
-    suspend fun listUserGames(userId: String, beforeTs: Long?): ListUserBotGamesDto = pvbGameDaoService
-        .listGamesByUserId(userId, 30, beforeTs)
-        .map { record ->
-            ListUserBotGamesDto.Entry(
-                gameId = record.id,
-                color = record.userColor,
-                engine = record.engine,
-                depth = record.depth,
-                customStartFen = record.startFen != null,
-                currentFen = record.currentFen ?: DEFAULT_START_FEN,
-                status = record.gameStatus,
-                outcome = record.outcome,
-                moveIndex = record.currentHalfMoveIndex,
-                created = record.created.toEpochMilliseconds(),
-                lastUpdated = record.lastUpdated.toEpochMilliseconds(),
-                variant = record.variant ?: Variant.XIANGQI,
-            )
-        }
-        .let { entries ->
-            ListUserBotGamesDto(entries)
-        }
+    suspend fun listUserGames(userId: String, beforeTs: Long?): ListUserBotGamesDto =
+        pvbGameDaoService
+            .listGamesByUserId(userId, 30, beforeTs)
+            .map { record ->
+                ListUserBotGamesDto.Entry(
+                    gameId = record.id,
+                    color = record.userColor,
+                    engine = record.engine,
+                    depth = record.depth,
+                    customStartFen = record.startFen != null,
+                    currentFen = record.currentFen ?: DEFAULT_START_FEN,
+                    status = record.gameStatus,
+                    outcome = record.outcome,
+                    moveIndex = record.currentHalfMoveIndex,
+                    created = record.created.toEpochMilliseconds(),
+                    lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+                    variant = record.variant ?: Variant.XIANGQI,
+                )
+            }
+            .let { entries ->
+                ListUserBotGamesDto(entries)
+            }
 
     suspend fun fetchGameData(gameId: String): GetBotGameDataResponse {
         val game = pvbGameDaoService.fetchById(gameId)
@@ -424,13 +425,14 @@ class PlayerVsBotGameService(
         depth: Int,
         variant: Variant,
     ): BotMove? {
-        suspend fun queryEngine(fenToEngine: String): InfoLinesResult? = enginesPool.safeQueryForDepth(
-            fen = fenToEngine,
-            engineId = modelToProcess(engine),
-            depth = depth,
-            timeout = 15_000,
-            variant = variant,
-        )
+        suspend fun queryEngine(fenToEngine: String): InfoLinesResult? =
+            enginesPool.safeQueryForDepth(
+                fen = fenToEngine,
+                engineId = modelToProcess(engine),
+                depth = depth,
+                timeout = 15_000,
+                variant = variant,
+            )
 
         suspend fun findAlternativeMove(bestMove: String): String? {
             val cpMultiplier = if (botColor == RED) 1 else -1

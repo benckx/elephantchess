@@ -39,55 +39,57 @@ class EmailListVerifyClient(appConfig: AppConfig, private val logger: KLogger) {
         }
     }
 
-    fun verifyEmailDetailed(email: String): EmailVerificationResult? = runBlocking {
-        try {
-            val response = client.get("$API/verifyEmailDetailed") {
-                tokenAndContentType()
-                url {
-                    parameters.append("email", email)
+    fun verifyEmailDetailed(email: String): EmailVerificationResult? =
+        runBlocking {
+            try {
+                val response = client.get("$API/verifyEmailDetailed") {
+                    tokenAndContentType()
+                    url {
+                        parameters.append("email", email)
+                    }
                 }
+
+                if (response.status.value == 200) {
+                    response.body<EmailVerificationResult>()
+                } else {
+                    response.bodyAsText().let { body ->
+                        logger.warn { "status ${response.status.value}, response: $body" }
+                    }
+                    null
+                }
+            } catch (e: Exception) {
+                logger.error(e) { "error verifying email: $email" }
+                null
+            }
+        }
+
+    suspend fun getCredits(): CreditResponse? =
+        try {
+            val response = client.get("$API/credits") {
+                tokenAndContentType()
             }
 
             if (response.status.value == 200) {
-                response.body<EmailVerificationResult>()
+                // get raw response text first for debugging
+                val rawBody = response.bodyAsText()
+
+                // try to parse the response
+                try {
+                    json.decodeFromString<CreditResponse>(rawBody)
+                } catch (e: Exception) {
+                    logger.error(e) { "failed to deserialize credits response. Raw body was: $rawBody" }
+                    null
+                }
             } else {
-                response.bodyAsText().let { body ->
-                    logger.warn { "status ${response.status.value}, response: $body" }
+                response.bodyAsText().let { rawBody ->
+                    logger.warn { "status ${response.status.value}, response: $rawBody" }
                 }
                 null
             }
         } catch (e: Exception) {
-            logger.error(e) { "error verifying email: $email" }
+            logger.error(e) { "error getting credits" }
             null
         }
-    }
-
-    suspend fun getCredits(): CreditResponse? = try {
-        val response = client.get("$API/credits") {
-            tokenAndContentType()
-        }
-
-        if (response.status.value == 200) {
-            // get raw response text first for debugging
-            val rawBody = response.bodyAsText()
-
-            // try to parse the response
-            try {
-                json.decodeFromString<CreditResponse>(rawBody)
-            } catch (e: Exception) {
-                logger.error(e) { "failed to deserialize credits response. Raw body was: $rawBody" }
-                null
-            }
-        } else {
-            response.bodyAsText().let { rawBody ->
-                logger.warn { "status ${response.status.value}, response: $rawBody" }
-            }
-            null
-        }
-    } catch (e: Exception) {
-        logger.error(e) { "error getting credits" }
-        null
-    }
 
     private fun HttpMessageBuilder.tokenAndContentType() {
         headers {

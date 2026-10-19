@@ -69,24 +69,27 @@ class ChatMessageDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listMessagesAfterOrEqualToIndex(gameId: String, index: Int): List<GameChatMessage> = dslContext
-        .selectFrom(GAME_CHAT_MESSAGE)
-        .where(GAME_CHAT_MESSAGE.GAME_ID.eq(gameId))
-        .and(GAME_CHAT_MESSAGE.INDEX.ge(index))
-        .orderBy(GAME_CHAT_MESSAGE.INDEX.asc())
-        .awaitMappedRecords()
+    suspend fun listMessagesAfterOrEqualToIndex(gameId: String, index: Int): List<GameChatMessage> =
+        dslContext
+            .selectFrom(GAME_CHAT_MESSAGE)
+            .where(GAME_CHAT_MESSAGE.GAME_ID.eq(gameId))
+            .and(GAME_CHAT_MESSAGE.INDEX.ge(index))
+            .orderBy(GAME_CHAT_MESSAGE.INDEX.asc())
+            .awaitMappedRecords()
 
-    suspend fun listAllMessages(gameId: String): List<GameChatMessage> = dslContext
-        .selectFrom(GAME_CHAT_MESSAGE)
-        .where(GAME_CHAT_MESSAGE.GAME_ID.eq(gameId))
-        .orderBy(GAME_CHAT_MESSAGE.INDEX.asc())
-        .awaitMappedRecords()
+    suspend fun listAllMessages(gameId: String): List<GameChatMessage> =
+        dslContext
+            .selectFrom(GAME_CHAT_MESSAGE)
+            .where(GAME_CHAT_MESSAGE.GAME_ID.eq(gameId))
+            .orderBy(GAME_CHAT_MESSAGE.INDEX.asc())
+            .awaitMappedRecords()
 
-    suspend fun listLastMessages(limit: Int): List<GameChatMessage> = dslContext
-        .selectFrom(GAME_CHAT_MESSAGE)
-        .orderBy(GAME_CHAT_MESSAGE.MESSAGE_TIME.desc())
-        .limit(limit)
-        .awaitMappedRecords()
+    suspend fun listLastMessages(limit: Int): List<GameChatMessage> =
+        dslContext
+            .selectFrom(GAME_CHAT_MESSAGE)
+            .orderBy(GAME_CHAT_MESSAGE.MESSAGE_TIME.desc())
+            .limit(limit)
+            .awaitMappedRecords()
 
     suspend fun countMessages(gameIds: List<String>): Map<String, Int> {
         val conditions = gameIds.map { gameId ->

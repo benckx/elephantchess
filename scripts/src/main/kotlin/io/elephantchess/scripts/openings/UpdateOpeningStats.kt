@@ -54,30 +54,31 @@ private val countInserts = AtomicInteger(0)
 /**
  * Refresh data in opening_pre_calculation_cache and opening_pre_calculation_cache_reference_game.
  */
-fun main(): Unit = runBlocking {
-    val start = System.currentTimeMillis()
+fun main(): Unit =
+    runBlocking {
+        val start = System.currentTimeMillis()
 
-    memoryCache = loadGamesWithMoves(readContext, referenceGameDaoService) { i ->
-        logger.info { "loaded $i games into memory cache" }
-    }
-
-    scope.launch {
-        refreshCache(listOf())
-    }
-
-    // wait until no refreshCache activity for more than 1 minute before quitting
-    while (true) {
-        delay(10.seconds)
-        val timeSinceLastActivity = System.currentTimeMillis() - lastActivityTime.get()
-        if (timeSinceLastActivity > STOP_TIMEOUT) {
-            logger.info { "no activity for more than $STOP_TIMEOUT ms, shutting down" }
-            break
+        memoryCache = loadGamesWithMoves(readContext, referenceGameDaoService) { i ->
+            logger.info { "loaded $i games into memory cache" }
         }
-    }
 
-    logger.info { "done in ${(System.currentTimeMillis() - start) / 60_000} minutes" }
-    logger.info { "updates: ${countUpdates.get()}, insertions: ${countInserts.get()}" }
-}
+        scope.launch {
+            refreshCache(listOf())
+        }
+
+        // wait until no refreshCache activity for more than 1 minute before quitting
+        while (true) {
+            delay(10.seconds)
+            val timeSinceLastActivity = System.currentTimeMillis() - lastActivityTime.get()
+            if (timeSinceLastActivity > STOP_TIMEOUT) {
+                logger.info { "no activity for more than $STOP_TIMEOUT ms, shutting down" }
+                break
+            }
+        }
+
+        logger.info { "done in ${(System.currentTimeMillis() - start) / 60_000} minutes" }
+        logger.info { "updates: ${countUpdates.get()}, insertions: ${countInserts.get()}" }
+    }
 
 private fun listNextMovesAndCount(moves: List<String>): List<NextMoveOccurrenceCount> {
     val subset = if (moves.isEmpty()) {
@@ -100,9 +101,10 @@ private fun countByOutcome(moves: List<String>): Map<Outcome, Int> {
     return mapOf(RED_WINS to redWins, BLACK_WINS to blackWins, DRAW to draws)
 }
 
-private fun listMatchingGameIds(moves: List<String>): List<String> = memoryCache
-    .filter { dto -> dto.moves.take(moves.size) == moves }
-    .map { dto -> dto.id }
+private fun listMatchingGameIds(moves: List<String>): List<String> =
+    memoryCache
+        .filter { dto -> dto.moves.take(moves.size) == moves }
+        .map { dto -> dto.id }
 
 private suspend fun refreshCache(moves: List<String>) {
     lastActivityTime.set(System.currentTimeMillis())
@@ -186,12 +188,13 @@ private fun isValidSequenceOfMoves(moves: List<String>): Boolean {
 
 private suspend fun findEntryId(moves: List<String>): Int? = findEntryId(writeContext, moves)
 
-private suspend fun findEntryId(dslContext: DSLContext, moves: List<String>): Int? = dslContext
-    .select(OPENING_PRE_CALCULATION_CACHE.ID)
-    .from(OPENING_PRE_CALCULATION_CACHE)
-    .where(OPENING_PRE_CALCULATION_CACHE.NUMBER_OF_MOVES.eq(moves.size))
-    .and(OPENING_PRE_CALCULATION_CACHE.MOVES.eq(movesToKey(moves)))
-    .awaitSingleValue()
+private suspend fun findEntryId(dslContext: DSLContext, moves: List<String>): Int? =
+    dslContext
+        .select(OPENING_PRE_CALCULATION_CACHE.ID)
+        .from(OPENING_PRE_CALCULATION_CACHE)
+        .where(OPENING_PRE_CALCULATION_CACHE.NUMBER_OF_MOVES.eq(moves.size))
+        .and(OPENING_PRE_CALCULATION_CACHE.MOVES.eq(movesToKey(moves)))
+        .awaitSingleValue()
 
 private suspend fun updateCache(transaction: DSLContext, id: Int, record: OpeningPreCalculationCache) {
     transaction

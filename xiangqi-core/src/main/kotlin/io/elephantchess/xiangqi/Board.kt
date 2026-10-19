@@ -38,9 +38,10 @@ class Board(
 
     fun isStalemated(color: Color): Boolean = color == colorToPlay && !isInCheck(color) && allMovesAreIllegal(color)
 
-    private fun allMovesAreIllegal(color: Color): Boolean = listAllPieces(color)
-        .flatMap { piece -> listAllMoves(piece) }
-        .all { move -> isIllegal(move, color) }
+    private fun allMovesAreIllegal(color: Color): Boolean =
+        listAllPieces(color)
+            .flatMap { piece -> listAllMoves(piece) }
+            .all { move -> isIllegal(move, color) }
 
     fun isIllegal(move: HalfMove, color: Color): Boolean {
         val boardCopy = this.copy()
@@ -51,8 +52,9 @@ class Board(
     private fun areGeneralsFacing(): Boolean {
         val red = findGeneral(RED)
         val black = findGeneral(BLACK)
-        fun noPieceInBetweenGenerals() = (red!!.position.y + 1 until black!!.position.y)
-            .all { y -> !hasPieceAt(Position(red.position.x, y)) }
+        fun noPieceInBetweenGenerals() =
+            (red!!.position.y + 1 until black!!.position.y)
+                .all { y -> !hasPieceAt(Position(red.position.x, y)) }
 
         return red != null &&
             black != null &&
@@ -89,10 +91,11 @@ class Board(
 
     fun listAllPieces(color: Color): List<PieceAtPosition> = listAllPieces().filter { piece -> piece.color() == color }
 
-    fun listAllPieces(): List<PieceAtPosition> = getAllPositions()
-        .filter { position -> hasPieceAt(position) }
-        .map { position -> position to pieceAt(position) }
-        .map { (position, piece) -> PieceAtPosition(piece, position) }
+    fun listAllPieces(): List<PieceAtPosition> =
+        getAllPositions()
+            .filter { position -> hasPieceAt(position) }
+            .map { position -> position to pieceAt(position) }
+            .map { (position, piece) -> PieceAtPosition(piece, position) }
 
     fun isLegalMove(halfMove: HalfMove): Boolean = listLegalMoves(colorToPlay).contains(halfMove)
 
@@ -150,20 +153,23 @@ class Board(
             return result
         }
 
-        fun filterInItsPalace(positions: List<Position>): List<Position> = when (color) {
-            RED -> positions.filter { it.isInRedPalace() }
-            BLACK -> positions.filter { it.isInBlackPalace() }
-        }
+        fun filterInItsPalace(positions: List<Position>): List<Position> =
+            when (color) {
+                RED -> positions.filter { it.isInRedPalace() }
+                BLACK -> positions.filter { it.isInBlackPalace() }
+            }
 
-        fun hasCrossedTheRiver(): Boolean = when (color) {
-            RED -> piecePosition.y >= 5
-            BLACK -> piecePosition.y <= 4
-        }
+        fun hasCrossedTheRiver(): Boolean =
+            when (color) {
+                RED -> piecePosition.y >= 5
+                BLACK -> piecePosition.y <= 4
+            }
 
-        fun isAcrossTheRiver(position: Position): Boolean = when (color) {
-            RED -> position.y >= 5
-            BLACK -> position.y <= 4
-        }
+        fun isAcrossTheRiver(position: Position): Boolean =
+            when (color) {
+                RED -> position.y >= 5
+                BLACK -> position.y <= 4
+            }
 
         val basePositions: List<Position> =
             when (abstractPieceType) {
@@ -277,11 +283,12 @@ class Board(
     private fun containsOppositeColors(position1: Position, position2: Position): Boolean =
         hasPieceAt(position1) && hasPieceAt(position2) && pieceAt(position1).color() != pieceAt(position2).color()
 
-    fun registerMove(moveAsUci: String): PhysicalPiece? = if (Regex(UCI_MOVE_REGEX_PATTERN).matches(moveAsUci)) {
-        registerMove(parseMoveFromUci(moveAsUci))
-    } else {
-        throw IllegalArgumentException("Move '$moveAsUci' can not be parsed")
-    }
+    fun registerMove(moveAsUci: String): PhysicalPiece? =
+        if (Regex(UCI_MOVE_REGEX_PATTERN).matches(moveAsUci)) {
+            registerMove(parseMoveFromUci(moveAsUci))
+        } else {
+            throw IllegalArgumentException("Move '$moveAsUci' can not be parsed")
+        }
 
     fun registerMove(move: HalfMove): PhysicalPiece? {
         val piece = pieceAt(move.from)
@@ -398,11 +405,12 @@ class Board(
         return content[position.x][position.y] ?: throw IllegalArgumentException("No piece at $position")
     }
 
-    fun pieceAtOrNull(position: Position): PhysicalPiece? = if (position.existsOnBoard()) {
-        content[position.x][position.y]
-    } else {
-        null
-    }
+    fun pieceAtOrNull(position: Position): PhysicalPiece? =
+        if (position.existsOnBoard()) {
+            content[position.x][position.y]
+        } else {
+            null
+        }
 
     private fun movePiece(move: HalfMove, physicalPiece: PhysicalPiece): PhysicalPiece? {
         val capture = pieceAtOrNull(move.to)
@@ -437,11 +445,12 @@ class Board(
         this.history.clear()
     }
 
-    fun getHistory(): MovesHistory? = if (keepHistory) {
-        MovesHistory(history.toList())
-    } else {
-        null
-    }
+    fun getHistory(): MovesHistory? =
+        if (keepHistory) {
+            MovesHistory(history.toList())
+        } else {
+            null
+        }
 
     fun print(): String = printToLines().joinToString("\n")
 
@@ -452,15 +461,17 @@ class Board(
             return listOf(indexLines, emptyLine) + lines
         }
 
-        fun addRanksIndexes(lines: List<String>): List<String> = lines.mapIndexed { i, line ->
-            "${HEIGHT - 1 - i}${PRINT_SEPARATOR.repeat(2)}$line"
-        }
-
-        fun printBoardToLines(): List<String> = (HEIGHT - 1 downTo 0).map { y ->
-            (0 until WIDTH).joinToString(PRINT_SEPARATOR) { x ->
-                content[x][y]?.pieceType?.letterNotation() ?: "."
+        fun addRanksIndexes(lines: List<String>): List<String> =
+            lines.mapIndexed { i, line ->
+                "${HEIGHT - 1 - i}${PRINT_SEPARATOR.repeat(2)}$line"
             }
-        }
+
+        fun printBoardToLines(): List<String> =
+            (HEIGHT - 1 downTo 0).map { y ->
+                (0 until WIDTH).joinToString(PRINT_SEPARATOR) { x ->
+                    content[x][y]?.pieceType?.letterNotation() ?: "."
+                }
+            }
 
         return addFilesIndexes(addRanksIndexes(printBoardToLines()))
     }
@@ -481,10 +492,11 @@ class Board(
         const val PRINT_SEPARATOR = " "
         const val UCI_MOVE_REGEX_PATTERN = "[a-i][0-9][a-i][0-9]"
 
-        fun defaultStartFen(variant: Variant): String = when (variant) {
-            XIANGQI -> DEFAULT_START_FEN
-            MANCHU -> MANCHU_START_FEN
-        }
+        fun defaultStartFen(variant: Variant): String =
+            when (variant) {
+                XIANGQI -> DEFAULT_START_FEN
+                MANCHU -> MANCHU_START_FEN
+            }
 
         /**
          * Infers the chess variant from a FEN string: if the piece section contains 'M' (super-chariot),
@@ -505,12 +517,13 @@ class Board(
             return board.colorToPlay()
         }
 
-        fun isMoveLegal(currentFen: String, move: String): Boolean = try {
-            val board = Board(currentFen)
-            board.isLegalMove(parseMoveFromUci(move))
-        } catch (e: Exception) {
-            false
-        }
+        fun isMoveLegal(currentFen: String, move: String): Boolean =
+            try {
+                val board = Board(currentFen)
+                board.isLegalMove(parseMoveFromUci(move))
+            } catch (e: Exception) {
+                false
+            }
 
         fun calculateNewFen(oldFen: String, move: String): String {
             val board = Board(oldFen)

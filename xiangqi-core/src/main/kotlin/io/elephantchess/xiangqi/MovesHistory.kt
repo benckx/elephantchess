@@ -43,11 +43,12 @@ data class MovesHistory(val history: List<HistoricalMove>) {
         return filterOutSubSets(sequences)
     }
 
-    fun findAllCheckingPieces(color: Color): List<PhysicalPiece> = history
-        .flatMap { move -> move.attackMap.keys }
-        .map { pieceAtPosition -> pieceAtPosition.physicalPiece }
-        .filter { piece -> piece.color() == color }
-        .distinct()
+    fun findAllCheckingPieces(color: Color): List<PhysicalPiece> =
+        history
+            .flatMap { move -> move.attackMap.keys }
+            .map { pieceAtPosition -> pieceAtPosition.physicalPiece }
+            .filter { piece -> piece.color() == color }
+            .distinct()
 
     fun longestConsecutiveChecks(attackingPieces: Collection<PhysicalPiece>): List<HistoricalMove> {
         val checkingMoves = history

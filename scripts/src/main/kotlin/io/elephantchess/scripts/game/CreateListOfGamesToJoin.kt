@@ -51,13 +51,14 @@ private val standardTimeControls: List<Pair<Duration, Duration?>> =
         7.days to null,
     )
 
-private fun Random.generateWeirdTimeControls(): List<Pair<Duration, Duration?>> = List(WEIRD_TIME_CONTROLS_COUNT) {
-    if (nextBoolean()) {
-        randomWeirdLiveTimeControl()
-    } else {
-        randomWeirdCorrespondenceTimeControl()
+private fun Random.generateWeirdTimeControls(): List<Pair<Duration, Duration?>> =
+    List(WEIRD_TIME_CONTROLS_COUNT) {
+        if (nextBoolean()) {
+            randomWeirdLiveTimeControl()
+        } else {
+            randomWeirdCorrespondenceTimeControl()
+        }
     }
-}
 
 private fun Random.randomWeirdLiveTimeControl(): Pair<Duration, Duration?> {
     val base =
@@ -92,59 +93,60 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
     private val pvpGameService by inject<PlayerVsPlayerGameService>()
 
     @JvmStatic
-    fun main(args: Array<String>): Unit = runBlocking {
-        // set up users
-        (1..TEST_USERS).forEach { i -> createTestUserIfNotExists(i) }
+    fun main(args: Array<String>): Unit =
+        runBlocking {
+            // set up users
+            (1..TEST_USERS).forEach { i -> createTestUserIfNotExists(i) }
 
-        // create games
-        val rnd = Random.Default
-        val weirdTimeControls = rnd.generateWeirdTimeControls()
-        val timeControls = standardTimeControls + weirdTimeControls
+            // create games
+            val rnd = Random.Default
+            val weirdTimeControls = rnd.generateWeirdTimeControls()
+            val timeControls = standardTimeControls + weirdTimeControls
 
-        repeat(50) {
-            val i = rnd.nextInt(TEST_USERS) + 1
-            val user = userDaoService.findByEmail("test$i@protonmail.com")!!
-            val hasColor = rnd.nextBoolean()
-            val color = if (hasColor) null else Color.random()
-            val timeControl = timeControls.random(rnd)
-            val timeControlMode =
-                if (timeControl.first.inWholeSeconds < 1.days.inWholeSeconds) {
-                    TimeControlMode.GAME_TIME
-                } else {
-                    TimeControlMode.MOVE_TIME
-                }
-            val variant = if (rnd.nextInt(100) < 20) Variant.MANCHU else Variant.XIANGQI
+            repeat(50) {
+                val i = rnd.nextInt(TEST_USERS) + 1
+                val user = userDaoService.findByEmail("test$i@protonmail.com")!!
+                val hasColor = rnd.nextBoolean()
+                val color = if (hasColor) null else Color.random()
+                val timeControl = timeControls.random(rnd)
+                val timeControlMode =
+                    if (timeControl.first.inWholeSeconds < 1.days.inWholeSeconds) {
+                        TimeControlMode.GAME_TIME
+                    } else {
+                        TimeControlMode.MOVE_TIME
+                    }
+                val variant = if (rnd.nextInt(100) < 20) Variant.MANCHU else Variant.XIANGQI
 
-            val request =
-                CreateGameRequest(
-                    inviterColor = color,
-                    isRated = rnd.nextBoolean(),
-                    timeControlBase = timeControl.first.inWholeSeconds.toInt(),
-                    timeControlIncrement = timeControl.second?.inWholeSeconds?.toInt(),
-                    timeControlMode = timeControlMode,
-                    allowGuests = true,
-                    alwaysVisibleInLobby = true,
-                    privateInvite = false,
-                    variant = variant,
-                )
-
-            try {
-                val createGameResponse = pvpGameService.createGame(UserId(AUTHENTICATED, user.id), request)
-                val gameId = createGameResponse.gameId
-                println("created game $gameId by ${user.handle}")
-            } catch (e: BadRequestException) {
-                if (e.message == "You already have 3 pending games with the same settings") {
-                    println(
-                        "skipped creating game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"} because of too many pending games with the same settings",
+                val request =
+                    CreateGameRequest(
+                        inviterColor = color,
+                        isRated = rnd.nextBoolean(),
+                        timeControlBase = timeControl.first.inWholeSeconds.toInt(),
+                        timeControlIncrement = timeControl.second?.inWholeSeconds?.toInt(),
+                        timeControlMode = timeControlMode,
+                        allowGuests = true,
+                        alwaysVisibleInLobby = true,
+                        privateInvite = false,
+                        variant = variant,
                     )
-                } else {
-                    println(
-                        "failed to create game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"}: ${e.message}",
-                    )
+
+                try {
+                    val createGameResponse = pvpGameService.createGame(UserId(AUTHENTICATED, user.id), request)
+                    val gameId = createGameResponse.gameId
+                    println("created game $gameId by ${user.handle}")
+                } catch (e: BadRequestException) {
+                    if (e.message == "You already have 3 pending games with the same settings") {
+                        println(
+                            "skipped creating game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"} because of too many pending games with the same settings",
+                        )
+                    } else {
+                        println(
+                            "failed to create game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"}: ${e.message}",
+                        )
+                    }
                 }
             }
-        }
 
-        exitProcess(0)
-    }
+            exitProcess(0)
+        }
 }

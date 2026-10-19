@@ -6,8 +6,9 @@ enum class Engine {
     FAIRYSTOCKFISH,
     ;
 
-    override fun toString(): String = when (this) {
-        PIKAFISH -> "Pikafish"
-        FAIRYSTOCKFISH -> "Fairy"
-    }
+    override fun toString(): String =
+        when (this) {
+            PIKAFISH -> "Pikafish"
+            FAIRYSTOCKFISH -> "Fairy"
+        }
 }

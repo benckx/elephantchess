@@ -21,15 +21,16 @@ data class MatePuzzleCandidate(
     val solutionMoves: List<String>,
 ) {
 
-    fun toCsvLine(): String = listOf(
-        refGameSource,
-        refGameSourceId,
-        playerColor.name,
-        mate.toString(),
-        depth.toString(),
-        startFen,
-        solutionMoves.joinToString(","),
-    ).joinToString(SEPARATOR)
+    fun toCsvLine(): String =
+        listOf(
+            refGameSource,
+            refGameSourceId,
+            playerColor.name,
+            mate.toString(),
+            depth.toString(),
+            startFen,
+            solutionMoves.joinToString(","),
+        ).joinToString(SEPARATOR)
 
     companion object {
 

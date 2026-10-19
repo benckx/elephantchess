@@ -54,11 +54,12 @@ object GameDataServiceParallelism : KoinScriptInit() {
         }
     }
 
-    private suspend fun findAnalysisStatus(botGameIds: List<String>): List<AnalysisStatus> = dslContext
-        .select(BOT_GAME.ANALYSIS_STATUS)
-        .from(BOT_GAME)
-        .where(BOT_GAME.ID.`in`(botGameIds))
-        .awaitMappedRecords<AnalysisStatus>()
-        .toList()
-        .distinct()
+    private suspend fun findAnalysisStatus(botGameIds: List<String>): List<AnalysisStatus> =
+        dslContext
+            .select(BOT_GAME.ANALYSIS_STATUS)
+            .from(BOT_GAME)
+            .where(BOT_GAME.ID.`in`(botGameIds))
+            .awaitMappedRecords<AnalysisStatus>()
+            .toList()
+            .distinct()
 }

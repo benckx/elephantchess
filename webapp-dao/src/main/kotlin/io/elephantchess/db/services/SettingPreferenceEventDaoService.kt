@@ -33,38 +33,40 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun countAll(userType: String? = null): Long = dslContext
-        .selectCount()
-        .from(SETTING_PREFERENCE_EVENT)
-        .where(userTypeCondition(userType))
-        .awaitSingleValue<Int>()
-        ?.toLong()
-        ?: 0L
+    suspend fun countAll(userType: String? = null): Long =
+        dslContext
+            .selectCount()
+            .from(SETTING_PREFERENCE_EVENT)
+            .where(userTypeCondition(userType))
+            .awaitSingleValue<Int>()
+            ?.toLong()
+            ?: 0L
 
     /**
      * Null-vs-not-null counts and non-null value distribution for every (string) preference field,
      * optionally restricted to a single [userType] (e.g. AUTHENTICATED vs GUEST).
      */
-    suspend fun listStringFieldStats(userType: String? = null): List<SettingPreferenceStringFieldStatsRecord> = STRING_FIELDS.map { field ->
-        val countField = DSL.count()
-        val distribution = dslContext
-            .select(field, countField)
-            .from(SETTING_PREFERENCE_EVENT)
-            .where(userTypeCondition(userType))
-            .groupBy(field)
-            .orderBy(countField.desc())
-            .awaitRecords()
-            .map { record -> FieldValueCountRecord(record.get(field), record.get(countField).toLong()) }
+    suspend fun listStringFieldStats(userType: String? = null): List<SettingPreferenceStringFieldStatsRecord> =
+        STRING_FIELDS.map { field ->
+            val countField = DSL.count()
+            val distribution = dslContext
+                .select(field, countField)
+                .from(SETTING_PREFERENCE_EVENT)
+                .where(userTypeCondition(userType))
+                .groupBy(field)
+                .orderBy(countField.desc())
+                .awaitRecords()
+                .map { record -> FieldValueCountRecord(record.get(field), record.get(countField).toLong()) }
 
-        val nullCount = distribution.firstOrNull { it.value == null }?.count ?: 0L
+            val nullCount = distribution.firstOrNull { it.value == null }?.count ?: 0L
 
-        SettingPreferenceStringFieldStatsRecord(
-            fieldName = field.name.lowercase(),
-            nullCount = nullCount,
-            nonNullCount = distribution.filter { it.value != null }.sumOf { it.count },
-            values = distribution.filter { it.value != null },
-        )
-    }
+            SettingPreferenceStringFieldStatsRecord(
+                fieldName = field.name.lowercase(),
+                nullCount = nullCount,
+                nonNullCount = distribution.filter { it.value != null }.sumOf { it.count },
+                values = distribution.filter { it.value != null },
+            )
+        }
 
     /**
      * Monthly evolution of the non-null value distribution of every (string) preference field,
@@ -98,34 +100,35 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
      * Null-vs-not-null counts and a bucketed histogram for every numeric preference field
      * (stored as text, parsed as numeric for aggregation).
      */
-    suspend fun listNumberFieldStats(userType: String? = null): List<SettingPreferenceNumberFieldStatsRecord> = NUMBER_FIELDS.map { field ->
-        val numeric = field.cast(SQLDataType.NUMERIC)
-        val nullCountField = DSL.count().filterWhere(field.isNull)
-        val nonNullCountField = DSL.count().filterWhere(field.isNotNull)
-        val minField = DSL.min(numeric)
-        val maxField = DSL.max(numeric)
-        val avgField = DSL.avg(numeric)
+    suspend fun listNumberFieldStats(userType: String? = null): List<SettingPreferenceNumberFieldStatsRecord> =
+        NUMBER_FIELDS.map { field ->
+            val numeric = field.cast(SQLDataType.NUMERIC)
+            val nullCountField = DSL.count().filterWhere(field.isNull)
+            val nonNullCountField = DSL.count().filterWhere(field.isNotNull)
+            val minField = DSL.min(numeric)
+            val maxField = DSL.max(numeric)
+            val avgField = DSL.avg(numeric)
 
-        val stats = dslContext
-            .select(nullCountField, nonNullCountField, minField, maxField, avgField)
-            .from(SETTING_PREFERENCE_EVENT)
-            .where(userTypeCondition(userType))
-            .awaitSingleRecord()
+            val stats = dslContext
+                .select(nullCountField, nonNullCountField, minField, maxField, avgField)
+                .from(SETTING_PREFERENCE_EVENT)
+                .where(userTypeCondition(userType))
+                .awaitSingleRecord()
 
-        val nonNullCount = stats?.get(nonNullCountField)?.toLong() ?: 0L
-        val min = stats?.get(minField)?.toDouble()
-        val max = stats?.get(maxField)?.toDouble()
+            val nonNullCount = stats?.get(nonNullCountField)?.toLong() ?: 0L
+            val min = stats?.get(minField)?.toDouble()
+            val max = stats?.get(maxField)?.toDouble()
 
-        SettingPreferenceNumberFieldStatsRecord(
-            fieldName = field.name.lowercase(),
-            nullCount = stats?.get(nullCountField)?.toLong() ?: 0L,
-            nonNullCount = nonNullCount,
-            min = min,
-            max = max,
-            avg = stats?.get(avgField)?.toDouble(),
-            buckets = fetchBuckets(field, userType, nonNullCount, min, max),
-        )
-    }
+            SettingPreferenceNumberFieldStatsRecord(
+                fieldName = field.name.lowercase(),
+                nullCount = stats?.get(nullCountField)?.toLong() ?: 0L,
+                nonNullCount = nonNullCount,
+                min = min,
+                max = max,
+                avg = stats?.get(avgField)?.toDouble(),
+                buckets = fetchBuckets(field, userType, nonNullCount, min, max),
+            )
+        }
 
     private suspend fun fetchBuckets(
         field: TableField<SettingPreferenceEventRecord, String>,
@@ -165,11 +168,12 @@ class SettingPreferenceEventDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    private fun userTypeCondition(userType: String?): Condition = if (userType == null) {
-        DSL.noCondition()
-    } else {
-        SETTING_PREFERENCE_EVENT.USER_TYPE.eq(userType)
-    }
+    private fun userTypeCondition(userType: String?): Condition =
+        if (userType == null) {
+            DSL.noCondition()
+        } else {
+            SETTING_PREFERENCE_EVENT.USER_TYPE.eq(userType)
+        }
 
     private companion object {
 
