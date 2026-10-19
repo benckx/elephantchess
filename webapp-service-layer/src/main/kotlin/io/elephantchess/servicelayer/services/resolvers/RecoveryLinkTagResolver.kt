@@ -3,7 +3,11 @@ package io.elephantchess.servicelayer.services.resolvers
 import io.elephantchess.htmlrenderer.TagResolver
 import java.net.URLEncoder
 
-class RecoveryLinkTagResolver(private val webHost: String, private val address: String, private val code: String) : TagResolver {
+class RecoveryLinkTagResolver(
+    private val webHost: String,
+    private val address: String,
+    private val code: String,
+) : TagResolver {
 
     override val tagName = "recovery_link"
 

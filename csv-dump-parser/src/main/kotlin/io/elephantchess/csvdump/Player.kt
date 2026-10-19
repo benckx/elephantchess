@@ -9,7 +9,11 @@ import kotlin.time.Instant
  * One side (red or black) of a PvP game, grouping the player's identity and the facts the CSV
  * records about the account itself: account age at game time and user type.
  */
-data class Player(val name: String, val accountAge: Duration?, val userType: UserType) {
+data class Player(
+    val name: String,
+    val accountAge: Duration?,
+    val userType: UserType,
+) {
 
     /**
      * Approximates when this account was created by subtracting its [accountAge] from the start of

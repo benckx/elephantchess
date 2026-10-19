@@ -816,7 +816,11 @@ class SevenKingdomsGameServiceTest : ServiceTest() {
             assertEquals(userIds[3], gameRecord.winnerUserId)
         }
 
-    private data class PlaySomeMoveFixture(val gameId: String, val colorToPlay: Color, val moves: List<String>)
+    private data class PlaySomeMoveFixture(
+        val gameId: String,
+        val colorToPlay: Color,
+        val moves: List<String>,
+    )
 
     private suspend fun playSomeMovesFixture(numberOfPlayers: Int = 7, numberOfMovesToTake: Int = 10): PlaySomeMoveFixture {
         // create and join the game

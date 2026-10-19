@@ -37,7 +37,11 @@ private val chars by lazy { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy
  * An item is more likely to be selected the more occurrences it has
  */
 fun <T> selectByProbability(elements: List<T>, elementOccurrences: (T) -> Int): T {
-    data class SpaceInterval<T>(val start: Int, val end: Int, val entry: T)
+    data class SpaceInterval<T>(
+        val start: Int,
+        val end: Int,
+        val entry: T,
+    )
 
     if (elements.size > 1) {
         var i = 0

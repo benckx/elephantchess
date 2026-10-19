@@ -141,7 +141,11 @@ fun eventGamesListTagResolver(event: Event) =
 
         // Scores / standings section
         if (scores.isNotEmpty()) {
-            data class PlayerStats(var wins: Int = 0, var draws: Int = 0, var losses: Int = 0)
+            data class PlayerStats(
+                var wins: Int = 0,
+                var draws: Int = 0,
+                var losses: Int = 0,
+            )
 
             val playerStats = mutableMapOf<String, PlayerStats>()
             for (game in games) {

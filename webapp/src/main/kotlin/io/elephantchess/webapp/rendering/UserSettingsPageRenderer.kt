@@ -95,5 +95,9 @@ class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private v
         }
     }
 
-    private data class NotificationRow(val id: String, val label: String, val checked: Boolean)
+    private data class NotificationRow(
+        val id: String,
+        val label: String,
+        val checked: Boolean,
+    )
 }

@@ -1,6 +1,10 @@
 package io.elephantchess.xiangqi
 
-data class SequenceOfChecks(val color: Color, val attackers: Set<PhysicalPiece>, val moves: List<HistoricalMove>) {
+data class SequenceOfChecks(
+    val color: Color,
+    val attackers: Set<PhysicalPiece>,
+    val moves: List<HistoricalMove>,
+) {
 
     fun size() =
         moves.size

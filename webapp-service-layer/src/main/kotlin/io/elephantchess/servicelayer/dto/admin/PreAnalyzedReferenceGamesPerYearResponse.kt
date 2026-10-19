@@ -4,5 +4,9 @@ import io.elephantchess.model.AnalysisStatus
 
 data class PreAnalyzedReferenceGamesPerYearResponse(val entries: List<Entry>) {
 
-    data class Entry(val year: Int, val status: AnalysisStatus, val count: Int)
+    data class Entry(
+        val year: Int,
+        val status: AnalysisStatus,
+        val count: Int,
+    )
 }

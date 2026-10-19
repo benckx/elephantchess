@@ -2,7 +2,12 @@ package io.elephantchess.servicelayer.dto.analysis
 
 import io.elephantchess.model.MoveAnnotationCategory
 
-data class MoveAnnotationResult(val category: MoveAnnotationCategory, val cpl: Int, val engineCp: Int, val actualMoveCp: Int)
+data class MoveAnnotationResult(
+    val category: MoveAnnotationCategory,
+    val cpl: Int,
+    val engineCp: Int,
+    val actualMoveCp: Int,
+)
 
 data class MoveAnnotationDetails(
     val moveIndex: Int,
@@ -12,7 +17,12 @@ data class MoveAnnotationDetails(
     val actualMoveCp: Int,
 )
 
-data class AnnotationAggregate(val count: Int = 0, val totalCpl: Long = 0, val minCpl: Int? = null, val maxCpl: Int? = null) {
+data class AnnotationAggregate(
+    val count: Int = 0,
+    val totalCpl: Long = 0,
+    val minCpl: Int? = null,
+    val maxCpl: Int? = null,
+) {
     fun add(cpl: Int): AnnotationAggregate =
         copy(
             count = count + 1,

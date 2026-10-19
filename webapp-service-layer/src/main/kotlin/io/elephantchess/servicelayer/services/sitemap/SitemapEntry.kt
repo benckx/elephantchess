@@ -10,7 +10,12 @@ import java.time.LocalDate
  * @property changefreq How frequently the page is likely to change
  * @property priority The priority of this URL relative to other URLs on the site (0.0 to 1.0)
  */
-data class SitemapEntry(val loc: String, val lastmod: LocalDate, val changefreq: ChangeFrequency, val priority: Double) {
+data class SitemapEntry(
+    val loc: String,
+    val lastmod: LocalDate,
+    val changefreq: ChangeFrequency,
+    val priority: Double,
+) {
     init {
         require(priority in 0.0..1.0) { "Priority must be between 0.0 and 1.0" }
         require(loc.startsWith("http://") || loc.startsWith("https://")) {

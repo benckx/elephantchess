@@ -3,7 +3,12 @@ package io.elephantchess.xiangqi
 /**
  * Piece type independent of color.
  */
-enum class AbstractPieceType(val uci: Char, val redLabel: Char, val blackLabel: Char, val maxLegal: Int = 2) {
+enum class AbstractPieceType(
+    val uci: Char,
+    val redLabel: Char,
+    val blackLabel: Char,
+    val maxLegal: Int = 2,
+) {
 
     GENERAL('k', '帅', '将', 1),
     ADVISOR('a', '仕', '士'),

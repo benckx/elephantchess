@@ -12,7 +12,11 @@ import kotlin.time.Duration.Companion.seconds
  *  - per-move controls (written as `"<base>/move"`), used by correspondence games, where each move
  *    simply has [base] to be played and there is no increment ([increment] is `null`).
  */
-data class TimeControl(val base: Duration, val increment: Duration?, val isPerMove: Boolean) {
+data class TimeControl(
+    val base: Duration,
+    val increment: Duration?,
+    val isPerMove: Boolean,
+) {
 
     companion object {
 

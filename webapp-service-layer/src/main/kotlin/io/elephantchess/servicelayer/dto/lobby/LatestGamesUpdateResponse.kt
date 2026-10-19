@@ -5,5 +5,10 @@ import io.elephantchess.model.GameId
 
 data class LatestGamesUpdateResponse(val entries: List<Entry>) {
 
-    data class Entry(val gameId: GameId, val status: GameEventType, val fen: String, val lastUpdated: Long)
+    data class Entry(
+        val gameId: GameId,
+        val status: GameEventType,
+        val fen: String,
+        val lastUpdated: Long,
+    )
 }

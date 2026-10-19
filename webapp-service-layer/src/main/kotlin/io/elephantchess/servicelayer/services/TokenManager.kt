@@ -23,7 +23,11 @@ import java.time.temporal.ChronoUnit
 import kotlin.time.Duration.Companion.minutes
 
 @KoinSingleton(eager = true)
-class TokenManager(private val appConfig: AppConfig, private val userDaoService: UserDaoService, private val logger: KLogger) {
+class TokenManager(
+    private val appConfig: AppConfig,
+    private val userDaoService: UserDaoService,
+    private val logger: KLogger,
+) {
 
     private val isUserAllowedCache =
         Cache

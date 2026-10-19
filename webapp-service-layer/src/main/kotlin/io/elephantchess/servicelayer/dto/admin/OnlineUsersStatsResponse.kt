@@ -1,7 +1,12 @@
 package io.elephantchess.servicelayer.dto.admin
 
 data class OnlineUsersStatsByHourResponse(val entries: List<Entry>) {
-    data class Entry(val hourOfDay: Int, val minTotal: Int, val maxTotal: Int, val avgTotal: Int)
+    data class Entry(
+        val hourOfDay: Int,
+        val minTotal: Int,
+        val maxTotal: Int,
+        val avgTotal: Int,
+    )
 }
 
 data class OnlineUsersStatsByDayResponse(val entries: List<Entry>) {

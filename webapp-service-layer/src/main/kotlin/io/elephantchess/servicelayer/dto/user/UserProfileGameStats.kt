@@ -20,4 +20,8 @@ data class NumberOfGamesPerTimeCategory(
     val correspondence: NumberOfOutcomes,
 )
 
-data class NumberOfOutcomes(val wins: Int, val losses: Int, val draws: Int)
+data class NumberOfOutcomes(
+    val wins: Int,
+    val losses: Int,
+    val draws: Int,
+)

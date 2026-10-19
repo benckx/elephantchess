@@ -1,6 +1,11 @@
 package io.elephantchess.sevenkingdoms
 
-enum class Color(val fenColorChar: Char, val armyName: String, val armyChineseName: String, val colorCode: String) {
+enum class Color(
+    val fenColorChar: Char,
+    val armyName: String,
+    val armyChineseName: String,
+    val colorCode: String,
+) {
     // counter-clock wise order (order in which we play)
     WHITE('w', "Qin", "秦", "#FFFFFF"),
     RED('r', "Chu", "楚", "#ca0808"),

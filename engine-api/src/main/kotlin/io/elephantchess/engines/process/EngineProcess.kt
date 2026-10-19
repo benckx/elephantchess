@@ -20,7 +20,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Manages the system calls to the actual engine process
  * (sends commands and listen for responses on the output channel).
  */
-abstract class EngineProcess(private val locator: EngineProcessLocator, val engineId: EngineId, val version: String?) : Runnable {
+abstract class EngineProcess(
+    private val locator: EngineProcessLocator,
+    val engineId: EngineId,
+    val version: String?,
+) : Runnable {
 
     abstract val logger: KLogger
 

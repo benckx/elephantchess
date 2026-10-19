@@ -13,7 +13,11 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 @KoinSingleton(eager = true)
-class PodService(appConfig: AppConfig, refresherScope: CoroutineScope, private val logger: KLogger) {
+class PodService(
+    appConfig: AppConfig,
+    refresherScope: CoroutineScope,
+    private val logger: KLogger,
+) {
 
     private val isDockerized = appConfig.isDockerized
 

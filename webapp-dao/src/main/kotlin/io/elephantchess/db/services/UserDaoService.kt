@@ -678,7 +678,11 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             val field: TableField<UserRecord, Int>,
         )
 
-        data class UserRatingExtremum(val userId: String, val username: String?, val rating: Int)
+        data class UserRatingExtremum(
+            val userId: String,
+            val username: String?,
+            val rating: Int,
+        )
 
         fun listRatingFieldDefinitions(): List<RatingFieldDefinition> =
             listOf(

@@ -537,4 +537,10 @@ class MailService(
     }
 }
 
-data class ContentFeedbackEntry(val userId: String, val pageId: String, val sectionId: String, val upVoted: Boolean, val feedback: String?)
+data class ContentFeedbackEntry(
+    val userId: String,
+    val pageId: String,
+    val sectionId: String,
+    val upVoted: Boolean,
+    val feedback: String?,
+)

@@ -26,7 +26,11 @@ object GenerateManchuGames {
         TOO_LONG,
     }
 
-    private data class GeneratedGame(val id: String, val moves: List<String>, val result: GameResult)
+    private data class GeneratedGame(
+        val id: String,
+        val moves: List<String>,
+        val result: GameResult,
+    )
 
     private fun movesKey(game: GeneratedGame): String =
         game.moves.joinToString(",")

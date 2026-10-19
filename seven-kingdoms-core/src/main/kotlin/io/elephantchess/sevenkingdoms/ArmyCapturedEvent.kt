@@ -1,6 +1,10 @@
 package io.elephantchess.sevenkingdoms
 
-data class ArmyCapturedEvent(val capturingColor: Color, val capturedColor: Color, val generalCapture: Boolean) {
+data class ArmyCapturedEvent(
+    val capturingColor: Color,
+    val capturedColor: Color,
+    val generalCapture: Boolean,
+) {
 
     override fun toString(): String {
         val middle =

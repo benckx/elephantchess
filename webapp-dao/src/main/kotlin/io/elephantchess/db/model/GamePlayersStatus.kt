@@ -2,7 +2,12 @@ package io.elephantchess.db.model
 
 import io.elephantchess.model.GameEventType
 
-data class GamePlayersStatus(val inviterId: String, val inviteeId: String?, val status: GameEventType, val allowGuests: Boolean) {
+data class GamePlayersStatus(
+    val inviterId: String,
+    val inviteeId: String?,
+    val status: GameEventType,
+    val allowGuests: Boolean,
+) {
 
     private fun allPlayers(): List<String> =
         listOfNotNull(inviterId, inviteeId)

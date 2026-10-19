@@ -25,7 +25,11 @@ data class SettingPreferenceStatsResponse(val segments: List<Segment>) {
      * (e.g. "2026-01"); each series' shares (percentages) align with [months]. Shares are used
      * rather than raw counts because the sampling rate changes over time.
      */
-    data class Evolution(val months: List<String>, val sampleSizes: List<Long>, val series: List<ValueShareSeries>)
+    data class Evolution(
+        val months: List<String>,
+        val sampleSizes: List<Long>,
+        val series: List<ValueShareSeries>,
+    )
 
     data class ValueShareSeries(val value: String, val shares: List<Double>)
 
