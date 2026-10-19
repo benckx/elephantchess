@@ -946,7 +946,7 @@ class PlayGamePage extends BasePage {
     #renderAnalysisSummaryReportIfAvailable() {
         if (this.#gameController.isGameFinished()) {
             const gameId = new GameId(GameType.PVP, this.#gameController.gameId);
-            fetchDataAndrenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
+            fetchDataAndRenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
         }
     }
 

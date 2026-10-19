@@ -82,6 +82,7 @@
 @media (max-width: 1000px) {
     .my-game-item {
         width: 102%;
+        height: 106px;
     }
 
     .number-of-games-circle {

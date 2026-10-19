@@ -14,7 +14,7 @@ data class SitemapEntry(
     val loc: String,
     val lastmod: LocalDate,
     val changefreq: ChangeFrequency,
-    val priority: Double
+    val priority: Double,
 ) {
     init {
         require(priority in 0.0..1.0) { "Priority must be between 0.0 and 1.0" }
@@ -31,5 +31,5 @@ enum class ChangeFrequency(val value: String) {
     WEEKLY("weekly"),
     MONTHLY("monthly"),
     YEARLY("yearly"),
-    NEVER("never")
+    NEVER("never"),
 }

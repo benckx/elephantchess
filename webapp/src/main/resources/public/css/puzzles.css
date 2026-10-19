@@ -33,7 +33,15 @@ span#puzzle-id {
     font-size: 15px;
 }
 
-#puzzle-feedback-info-box {
+.puzzle-disabled-icon {
+    width: 14px;
+    height: 14px;
+    margin-left: 4px;
+    margin-bottom: 4px;
+    vertical-align: middle;
+}
+
+#puzzle-state-info-box {
     height: 100px;
 }
 
@@ -46,11 +54,11 @@ img.less-dark-icons {
     opacity: 80%;
 }
 
-table.feedback-info-box-table {
+table.puzzle-state-info-box-table {
     display: none;
 }
 
-table.feedback-info-box-table-rendered {
+table.puzzle-state-info-box-table-rendered {
     display: table;
 }
 
@@ -118,7 +126,7 @@ table.feedback-info-box-table-rendered {
 }
 
 @media (max-width: 1000px) {
-    #puzzle-feedback-info-box {
+    #puzzle-state-info-box {
         height: 196px;
     }
 
@@ -161,4 +169,30 @@ table.feedback-info-box-table-rendered {
     #vote-up-down-container img:first-child {
         margin-right: 20px;
     }
+
+    .puzzle-disabled-icon {
+        width: 28px;
+        height: 28px;
+        margin-bottom: 8px;
+    }
+
+    #puzzle-state-info-box {
+        order: 1;
+    }
+
+    #puzzle-actions-info-box {
+        order: 2;
+    }
+
+    #puzzle-details-info-box {
+        order: 3;
+    }
+
+    #user-rating-info-box {
+        order: 4;
+    }
+}
+
+.rating-loss-confirmation-checkbox {
+    justify-content: center;
 }

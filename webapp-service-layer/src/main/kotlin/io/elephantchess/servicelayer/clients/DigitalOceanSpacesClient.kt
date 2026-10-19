@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.clients
 
 import io.elephantchess.config.AppConfig
+import io.elephantchess.utils.di.KoinSingleton
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.logging.*
@@ -15,13 +16,12 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 @Suppress("SameParameterValue")
-class DigitalOceanSpacesClient(
-    appConfig: AppConfig
-) {
+@KoinSingleton
+class DigitalOceanSpacesClient(appConfig: AppConfig) {
 
-    private val accessKeyId by lazy { appConfig.loadString("digitalocean.spaces.key.id") }
-    private val secretAccessKey by lazy { appConfig.loadString("digitalocean.spaces.key.secret") }
-    private val bucketName by lazy { appConfig.loadString("digitalocean.spaces.bucket") }
+    private val accessKeyId by lazy { appConfig.doSpacesKeyId }
+    private val secretAccessKey by lazy { appConfig.doSpacesKeySecret }
+    private val bucketName by lazy { appConfig.doSpacesBucket }
     private val region = "ams3"
     private val endpoint = "$bucketName.$region.digitaloceanspaces.com"
 
@@ -40,12 +40,7 @@ class DigitalOceanSpacesClient(
      * @param acl Access control list, e.g., "public-read" or "private"
      * @return true if upload was successful, false otherwise
      */
-    suspend fun uploadFile(
-        file: File,
-        key: String,
-        contentType: String,
-        acl: String
-    ): Boolean {
+    suspend fun uploadFile(file: File, key: String, contentType: String, acl: String): Boolean {
         val fileBytes = file.readBytes()
         return uploadBytes(fileBytes, key, contentType, acl)
     }
@@ -58,12 +53,7 @@ class DigitalOceanSpacesClient(
      * @param acl Access control list, e.g., "public-read" or "private"
      * @return true if upload was successful, false otherwise
      */
-    suspend fun uploadBytes(
-        bytes: ByteArray,
-        key: String,
-        contentType: String,
-        acl: String
-    ): Boolean {
+    suspend fun uploadBytes(bytes: ByteArray, key: String, contentType: String, acl: String): Boolean {
         val url = "https://$endpoint/$key"
 
         val now = Date()
@@ -87,7 +77,7 @@ class DigitalOceanSpacesClient(
                 contentHash = contentHash,
                 amzDate = amzDate,
                 dateStamp = dateStamp,
-                acl = acl
+                acl = acl,
             )
             header("Authorization", authHeader)
 
@@ -111,7 +101,7 @@ class DigitalOceanSpacesClient(
 
         val queryParams = mapOf(
             "delimiter" to "/",
-            "prefix" to ""
+            "prefix" to "",
         )
 
         val response = client.get(url) {
@@ -127,7 +117,7 @@ class DigitalOceanSpacesClient(
                 amzDate = amzDate,
                 dateStamp = dateStamp,
                 acl = null,
-                queryParameters = queryParams
+                queryParameters = queryParams,
             )
             header("Authorization", authHeader)
 
@@ -149,7 +139,6 @@ class DigitalOceanSpacesClient(
             .map { it.groupValues[1] }
             .toList()
 
-
         // Return the most recent (lexicographically last since dates are ISO format)
         return folders.maxOrNull()
     }
@@ -162,7 +151,7 @@ class DigitalOceanSpacesClient(
         amzDate: String,
         dateStamp: String,
         acl: String?,
-        queryParameters: Map<String, String> = emptyMap()
+        queryParameters: Map<String, String> = emptyMap(),
     ): String {
         val service = "s3"
         val algorithm = "AWS4-HMAC-SHA256"
@@ -233,18 +222,16 @@ class DigitalOceanSpacesClient(
         return mac.doFinal(data)
     }
 
-    private fun hmacSha256Hex(data: ByteArray, key: ByteArray): String {
-        return hmacSha256(data, key).toHex()
-    }
+    private fun hmacSha256Hex(data: ByteArray, key: ByteArray): String =
+        hmacSha256(data, key).toHex()
 
     private fun sha256Hex(data: ByteArray): String {
         val digest = MessageDigest.getInstance("SHA-256")
         return digest.digest(data).toHex()
     }
 
-    private fun ByteArray.toHex(): String {
-        return joinToString("") { "%02x".format(it) }
-    }
+    private fun ByteArray.toHex(): String =
+        joinToString("") { "%02x".format(it) }
 
     private fun getAmzDate(date: Date): String {
         val df = SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'")
@@ -261,5 +248,4 @@ class DigitalOceanSpacesClient(
     fun close() {
         client.close()
     }
-
 }

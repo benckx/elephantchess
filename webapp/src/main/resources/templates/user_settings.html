@@ -8,6 +8,7 @@
     <script defer src="/js/modules/countries.js"></script>
     <script defer src="/js/user-settings/notification-settings-widget.js"></script>
     <script defer src="/js/user-settings/user-sessions-widget.js"></script>
+    <script defer src="/js/user-settings/user-page-views-widget.js"></script>
     <script defer src="/js/user-settings/user-settings.js"></script>
 </head>
 <body>
@@ -17,18 +18,50 @@
     <hr/>
     <h4 class="label">Description</h4>
     <label for="description"></label>
-    <textarea id="description" rows="8" cols="50"></textarea>
+    <textarea id="description" rows="8" cols="50">{{profile_description}}</textarea>
     <div id="description-character-counter" class="character-counter"></div>
     <h4 class="label">Country</h4>
     <label for="countries"></label>
-    <select name="countries" id="countries">
+    <select name="countries" id="countries" data-selected-country="{{profile_country}}">
         <option value="none">none</option>
     </select>
+    <br/>
+    <h4 class="label profile-games-visibility-label">Show my games</h4>
+    <table id="profile-games-visibility-table">
+        <tr>
+            <td class="checkbox-cell">
+                <div>
+                    <div><input id="show-pvp-games-on-profile" type="checkbox" {{show_pvp_games_checked}}/></div>
+                </div>
+            </td>
+            <td>
+                <label for="show-pvp-games-on-profile" class="settings-hit-box">
+                    <div><span>Show Player-vs-Player games</span></div>
+                </label>
+            </td>
+        </tr>
+        <tr>
+            <td class="checkbox-cell">
+                <div>
+                    <div><input id="show-pvb-games-on-profile" type="checkbox" {{show_pvb_games_checked}}/></div>
+                </div>
+            </td>
+            <td>
+                <label for="show-pvb-games-on-profile" class="settings-hit-box">
+                    <div><span>Show Player-vs-Bot games</span></div>
+                </label>
+            </td>
+        </tr>
+    </table>
     <br/>
     <input id="save-profile-button" type="button" class="app-buttons-bigger" value="save">
     <h1>Email Notifications Settings</h1>
     <hr/>
-    <table id="notifications-settings-table"></table>
+    <div id="notifications-select-shortcuts">
+        <span id="notifications-select-all" class="action-link">select all</span> /
+        <span id="notifications-unselect-all" class="action-link">unselect all</span>
+    </div>
+    {{notifications_settings_table}}
     <input id="save-notifications-button" type="button" class="app-buttons-bigger" value="save">
     <h1>Email Address</h1>
     <hr/>
@@ -106,6 +139,27 @@
     </div>
     <p id="user-sessions-empty-message" class="hidden">No sessions found.</p>
     <a id="all-sessions-link" class="hidden" href="/user/settings/sessions">See all sessions</a>
+    <h1>Latest Page Views</h1>
+    <hr/>
+    <p>Page views are automatically archived after {{page_views_retention_days}} days and are no longer associated with
+        your account.</p>
+    <div id="page-views-actions-container">
+        <input id="archive-page-views-button" type="button" class="app-buttons" value="archive my views now">
+    </div>
+    <div id="user-page-views-table-container">
+        <table id="user-page-views-table" class="nice-table nice-table-striped nice-table-hover">
+            <thead>
+            <tr>
+                <th class="label-cell">url</th>
+                <th class="label-cell">time</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <p id="user-page-views-empty-message" class="hidden">No page views found.</p>
+    <a id="all-page-views-link" class="hidden" href="/user/settings/views">See all page views</a>
 </div>
 </body>
 </html>

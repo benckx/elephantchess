@@ -8,5 +8,4 @@ data class AnalysisPerUserResponse(val entries: List<Entry>) {
         val count: Int,
         val lastUpdated: Long? = null,
     )
-
 }

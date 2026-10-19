@@ -89,7 +89,7 @@ fun Route.pvpGameWsRoutes() {
 
         handleWebSocketSession(
             { pvpGameService.startGamesToPlaySession(UserId(userType, userId)) { sendWs(it) } },
-            { pvpGameService.closeGamesToPlaySession(it) }
+            { pvpGameService.closeGamesToPlaySession(it) },
         )
     }
     webSocket("ws/pvp/game") {
@@ -100,6 +100,7 @@ fun Route.pvpGameWsRoutes() {
 
         val userId = when (val result = tokenManager.verifyToken(token)) {
             is VerifiedToken -> result.userId()
+
             else -> {
                 // An invalid/expired token on a WebSocket is normal client behaviour (e.g. a stale
                 // tab reconnecting after a key rotation or after the guest token TTL expired).
@@ -114,7 +115,7 @@ fun Route.pvpGameWsRoutes() {
         handleBidirectionalWebSocketSession<PlayerVsPlayerInput>(
             { pvpGameService.startPlayerVsPlayerSession(userId, gameId) { sendWs(it) } },
             { message -> pvpGameService.handlePlayerVsPlayerInput(userId, gameId, message) },
-            { pvpGameService.closePlayerVsPlayerSession(it) }
+            { pvpGameService.closePlayerVsPlayerSession(it) },
         )
     }
 }

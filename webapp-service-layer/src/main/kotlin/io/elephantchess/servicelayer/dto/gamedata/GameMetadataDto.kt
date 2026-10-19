@@ -28,5 +28,5 @@ data class GameMetadataDto(
     val depth: Int? = null,
     val lastUpdated: Long? = null,
     val paginationOffset: Int? = null,
-    val variant: Variant
+    val variant: Variant,
 )

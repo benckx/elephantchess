@@ -18,7 +18,6 @@ data class ReferenceGameSearchQueryResponse(val entries: List<Entry>) {
         val eventName: String?,
         val fen: String?,
         val offset: Int?,
-        val numberOfResults: Int
+        val numberOfResults: Int,
     )
-
 }

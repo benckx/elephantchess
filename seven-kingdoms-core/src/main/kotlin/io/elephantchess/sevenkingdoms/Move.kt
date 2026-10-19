@@ -1,9 +1,6 @@
 package io.elephantchess.sevenkingdoms
 
-data class Move(
-    val from: Position,
-    val to: Position
-) {
+data class Move(val from: Position, val to: Position) {
 
     val uci: String
         get() = "${from.uci}${to.uci}"
@@ -11,7 +8,8 @@ data class Move(
     val algebraic: String
         get() = "${from.algebraic}${to.algebraic}"
 
-    override fun toString() = uci
+    override fun toString() =
+        uci
 
     companion object {
 
@@ -33,12 +31,12 @@ data class Move(
 
             val from = Position(
                 x = firstLetter - 'a',
-                y = uci.substring(1, secondLetterIndex).toInt()
+                y = uci.substring(1, secondLetterIndex).toInt(),
             )
 
             val to = Position(
                 x = secondLetter - 'a',
-                y = uci.substring(secondLetterIndex + 1).toInt()
+                y = uci.substring(secondLetterIndex + 1).toInt(),
             )
 
             if (!from.isOnBoard || !to.isOnBoard) {
@@ -47,7 +45,5 @@ data class Move(
 
             return Move(from, to)
         }
-
     }
-
 }

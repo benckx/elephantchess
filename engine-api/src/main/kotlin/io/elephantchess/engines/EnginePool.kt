@@ -49,18 +49,24 @@ class EnginePool(
         engineId: EngineId,
         depth: Int,
         timeout: Long = 20_000,
-        variant: Variant = Variant.XIANGQI
-    ): InfoLinesResult? {
-        return acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
+        variant: Variant = Variant.XIANGQI,
+    ): InfoLinesResult? =
+        acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
             lockableEngineProcess.queryForBestMove(fen, depth, variant)
         }
-    }
 
-    private suspend fun <T> acquireAndExecute(
+    suspend fun queryForNodes(
+        fen: String,
         engineId: EngineId,
-        timeout: Long,
-        block: suspend (LockableEngineProcess) -> T?,
-    ): T? {
+        nodes: Long,
+        timeout: Long = 20_000,
+        variant: Variant = Variant.XIANGQI,
+    ): InfoLinesResult? =
+        acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
+            lockableEngineProcess.queryForNodes(fen, nodes, variant, maxDelay = timeout)
+        }
+
+    private suspend fun <T> acquireAndExecute(engineId: EngineId, timeout: Long, block: suspend (LockableEngineProcess) -> T?): T? {
         suspend fun acquireEngineProcess(engineId: EngineId, timeout: Long): LockableEngineProcess? {
             acquisitionMutex.withLock {
                 var acquiredProcess: LockableEngineProcess? = null
@@ -70,6 +76,7 @@ class EnginePool(
                     acquiredProcess != null
                 }
                 acquiredProcess?.lock()
+                acquiredProcess?.let { ensureAlive(it) }
 
                 if (acquiredProcess == null) {
                     logger.warn { "acquireEngineProcess timed out after $timeout ms." }
@@ -79,10 +86,7 @@ class EnginePool(
             }
         }
 
-        suspend fun <T> executeOnEngine(
-            lockableEngineProcess: LockableEngineProcess,
-            block: suspend (LockableEngineProcess) -> T?,
-        ): T? {
+        suspend fun <T> executeOnEngine(lockableEngineProcess: LockableEngineProcess, block: suspend (LockableEngineProcess) -> T?): T? {
             try {
                 return block(lockableEngineProcess)
             } catch (e: Exception) {
@@ -103,6 +107,21 @@ class EnginePool(
     }
 
     /**
+     * Relaunches the underlying engine process if it has died (e.g. after a crash). The pool otherwise
+     * keeps handing out a dead process that fails every query with "Stream closed".
+     */
+    private fun ensureAlive(lockableEngineProcess: LockableEngineProcess) {
+        val engineProcess = lockableEngineProcess.engineProcess
+        if (!engineProcess.isAlive()) {
+            logger.warn { "engine ${engineProcess.engineId} is not alive, relaunching it" }
+            engineProcess.prepareRelaunch()
+            executor.submit(engineProcess)
+            engineProcess.waitUntilReadyBlocking(10_000)
+            logger.info { "engine ${engineProcess.engineId} relaunched" }
+        }
+    }
+
+    /**
      * Engine processes are in theory stateless, except that we need one command to input the position and one input to query the best move.
      * So we lock the process for a given query (e.g. best move at depth 8 given a position) and unlock it after the query is done.
      */
@@ -116,17 +135,19 @@ class EnginePool(
             engineProcess.quit()
         }
 
-        suspend fun queryForBestMove(fen: String, depth: Int, variant: Variant): InfoLinesResult {
-            return engineProcess.queryForBestMove(fen, depth, variant)
-        }
+        suspend fun queryForBestMove(fen: String, depth: Int, variant: Variant): InfoLinesResult =
+            engineProcess.queryForBestMove(fen, depth, variant)
 
+        suspend fun queryForNodes(fen: String, nodes: Long, variant: Variant, maxDelay: Long): InfoLinesResult =
+            engineProcess.queryForNodes(fen, nodes, variant, maxDelay = maxDelay)
     }
 
     private class SimpleLockableEngineProcess(engineProcess: EngineProcess) : LockableEngineProcess(engineProcess) {
 
         private var isFree: Boolean = true
 
-        override fun isFree() = isFree
+        override fun isFree() =
+            isFree
 
         override fun lock() {
             isFree = false
@@ -135,7 +156,5 @@ class EnginePool(
         override fun unlock() {
             isFree = true
         }
-
     }
-
 }

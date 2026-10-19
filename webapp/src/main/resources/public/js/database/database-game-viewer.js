@@ -100,7 +100,7 @@ class DatabaseGameViewerPage extends BasePage {
         this.#gameDataClient.fetchMoves(moves => {
             this.#moveTreeWidget.setMoves(moves);
             this.#setAnalyzeButtonsEnabled(moves.length > 0);
-            fetchDataAndrenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
+            fetchDataAndRenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
         });
     }
 

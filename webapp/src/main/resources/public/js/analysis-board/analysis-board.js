@@ -104,6 +104,7 @@ class AnalysisBoardPage extends BasePage {
     #isSaveAnalysisButtonLocked = false;
     #analysisSummaryRenderTimeout = null;
     #moveTreeEvalRefreshTimeout = null;
+    #moveAnnotations = [];
 
     constructor() {
         super();
@@ -278,8 +279,10 @@ class AnalysisBoardPage extends BasePage {
             this.#gameDataClient.fetchMoves(moves => {
                 this.#moveTreeWidget.setMoves(moves);
 
-                this.#gameDataClient.fetchAnalysisData(entries => {
-                    this.#analysisCache.populateCache(entries);
+                this.#gameDataClient.fetchAnalysisData(response => {
+                    this.#analysisCache.populateCache(response.entries);
+                    this.#moveAnnotations = response.moveAnnotations;
+                    this.#moveTreeWidget.applyAnnotationSymbols(this.#moveAnnotations);
                     this.#renderAnalysisSummaryIfLongEnough();
                     this.#startUpWidgets();
                 });
@@ -534,8 +537,10 @@ class AnalysisBoardPage extends BasePage {
 
         // fetch updated data every 2 sec
         const fetchAnalysisDataInterval = setInterval(() => {
-            this.#gameDataClient.fetchAnalysisData(entries => {
-                this.#analysisCache.populateCache(entries)
+            this.#gameDataClient.fetchAnalysisData(response => {
+                this.#analysisCache.populateCache(response.entries);
+                this.#moveAnnotations = response.moveAnnotations;
+                this.#moveTreeWidget.applyAnnotationSymbols(this.#moveAnnotations);
             });
         }, 2_000);
 
@@ -564,8 +569,10 @@ class AnalysisBoardPage extends BasePage {
                         }, PROGRESS_BAR_DISAPPEAR_TIMEOUT);
 
                         // fetch the final analysis data
-                        this.#gameDataClient.fetchAnalysisData(entries => {
-                            this.#analysisCache.populateCache(entries);
+                        this.#gameDataClient.fetchAnalysisData(response => {
+                            this.#analysisCache.populateCache(response.entries);
+                            this.#moveAnnotations = response.moveAnnotations;
+                            this.#moveTreeWidget.applyAnnotationSymbols(this.#moveAnnotations);
                             this.#renderAnalysisSummaryIfLongEnough();
                         });
                         break;
@@ -706,7 +713,8 @@ class AnalysisBoardPage extends BasePage {
                 this.#gameMetadata?.redPlayerName,
                 this.#gameMetadata?.blackPlayerName,
                 this.#gameMetadata?.outcome,
-                this.#moveTreeWidget
+                this.#moveTreeWidget,
+                this.#moveAnnotations
             );
         }
     }

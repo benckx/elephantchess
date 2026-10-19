@@ -35,6 +35,11 @@ class AdminMonthlyMetricsPage extends BasePage {
     #pvpJoinSourceData = null;
 
     /**
+     * @type {Object|null}
+     */
+    #thrownExceptionsData = null;
+
+    /**
      * @type {string[]}
      */
     #metrics = ['PvP > 3', 'PvB > 3', 'puzzles', 'new users', 'new guests'];
@@ -62,13 +67,14 @@ class AdminMonthlyMetricsPage extends BasePage {
     }
 
     #fetchAllData() {
-        this.#pendingRequests = 3; // monthly stats, online users, pvp join source
+        this.#pendingRequests = 4; // monthly stats, online users, pvp join source, thrown exceptions
         this.#totalRequests = this.#pendingRequests;
         this.#updateLoadingDisplay();
 
         this.#fetchMonthlyData();
         this.#fetchOnlineUsersData();
         this.#fetchPvpJoinSourceData();
+        this.#fetchThrownExceptionsData();
     }
 
     #fetchMonthlyData() {
@@ -98,6 +104,15 @@ class AdminMonthlyMetricsPage extends BasePage {
         });
     }
 
+    #fetchThrownExceptionsData() {
+        getAndHandle(`${ADMIN_URL_PREFIX}/thrown-exception-stats-by-month?months=12`, json => {
+            this.#thrownExceptionsData = json;
+            this.#pendingRequests--;
+            this.#updateLoadingDisplay();
+            this.#renderChartsIfReady();
+        });
+    }
+
     #updateLoadingDisplay() {
         const completedDisplay = document.getElementById('completed-requests-display');
         const totalDisplay = document.getElementById('total-requests-display');
@@ -119,7 +134,7 @@ class AdminMonthlyMetricsPage extends BasePage {
     }
 
     #renderChartsIfReady() {
-        if (this.#monthlyData && this.#onlineUsersData && this.#pvpJoinSourceData) {
+        if (this.#monthlyData && this.#onlineUsersData && this.#pvpJoinSourceData && this.#thrownExceptionsData) {
             this.#renderAllCharts();
         }
     }
@@ -199,9 +214,12 @@ class AdminMonthlyMetricsPage extends BasePage {
         this.#renderOnlineUserChart(container, 'online users (avg)', 'chart-online-avg', this.#extractOnlineUsersData('avgTotal'));
         this.#renderOnlineUserChart(container, 'online users (max)', 'chart-online-max', this.#extractOnlineUsersData('maxTotal'));
         this.#renderCombinedPvPPvBChart(container);
-        this.#renderPvpPercentageChart(container);
-        this.#renderPvpJoinSourceChart(container);
         this.#metrics.forEach((metricName, index) => this.#renderMetricChart(container, metricName, index));
+        this.#renderPvpPercentageChart(container);
+        this.#renderPvpLobbyPercentageChart(container);
+        this.#renderPvpLinkPercentageChart(container);
+        this.#renderPvpJoinSourceChart(container);
+        this.#renderThrownExceptionsChart(container);
         this.#renderYearlyChart(container);
     }
 
@@ -314,6 +332,90 @@ class AdminMonthlyMetricsPage extends BasePage {
     }
 
     /**
+     * Render PvP > 3 percentage chart for lobby / matchmaking joins only
+     * @param container {HTMLElement}
+     */
+    #renderPvpLobbyPercentageChart(container) {
+        if (!this.#pvpJoinSourceData) return;
+
+        const chartWrapper = document.createElement('div');
+        chartWrapper.style.marginBottom = '40px';
+
+        const title = document.createElement('h2');
+        title.innerText = 'PvP > 3 (% of lobby/matchmaking PvP)';
+        chartWrapper.appendChild(title);
+
+        const hr = document.createElement('hr');
+        chartWrapper.appendChild(hr);
+
+        const chartDiv = document.createElement('div');
+        chartDiv.id = 'chart-pvp-lobby-percentage';
+        chartDiv.style.height = '300px';
+        chartWrapper.appendChild(chartDiv);
+
+        container.appendChild(chartWrapper);
+
+        const periods = this.#pvpJoinSourceData.periods;
+        const values = this.#pvpJoinSourceData.percentageOver3LobbyJoinModes || [];
+        const last12Index = Math.max(0, periods.length - 12);
+        const last12Periods = periods.slice(last12Index);
+        const last12Values = values.slice(last12Index);
+
+        const data = {
+            categories: last12Periods,
+            values: last12Values,
+            projectedIndex: -1
+        };
+
+        new SingleMetricBarChart('chart-pvp-lobby-percentage', 'PvP > 3 lobby %', data, {
+            yAxisFormatter: (val) => val.toFixed(1) + '%',
+            tooltipFormatter: (val) => val.toFixed(1) + '%'
+        }).render();
+    }
+
+    /**
+     * Render PvP > 3 percentage chart for LINK joins only
+     * @param container {HTMLElement}
+     */
+    #renderPvpLinkPercentageChart(container) {
+        if (!this.#pvpJoinSourceData) return;
+
+        const chartWrapper = document.createElement('div');
+        chartWrapper.style.marginBottom = '40px';
+
+        const title = document.createElement('h2');
+        title.innerText = 'PvP > 3 (% of LINK PvP)';
+        chartWrapper.appendChild(title);
+
+        const hr = document.createElement('hr');
+        chartWrapper.appendChild(hr);
+
+        const chartDiv = document.createElement('div');
+        chartDiv.id = 'chart-pvp-link-percentage';
+        chartDiv.style.height = '300px';
+        chartWrapper.appendChild(chartDiv);
+
+        container.appendChild(chartWrapper);
+
+        const periods = this.#pvpJoinSourceData.periods;
+        const values = this.#pvpJoinSourceData.percentageOver3LinkJoinSource || [];
+        const last12Index = Math.max(0, periods.length - 12);
+        const last12Periods = periods.slice(last12Index);
+        const last12Values = values.slice(last12Index);
+
+        const data = {
+            categories: last12Periods,
+            values: last12Values,
+            projectedIndex: -1
+        };
+
+        new SingleMetricBarChart('chart-pvp-link-percentage', 'PvP > 3 LINK %', data, {
+            yAxisFormatter: (val) => val.toFixed(1) + '%',
+            tooltipFormatter: (val) => val.toFixed(1) + '%'
+        }).render();
+    }
+
+    /**
      * Render PvP > 3 breakdown by join source (stacked bar chart)
      * @param container {HTMLElement}
      */
@@ -366,6 +468,46 @@ class AdminMonthlyMetricsPage extends BasePage {
         };
 
         new StackedMonthlyMetricsBarChart('chart-pvp-join-source', data).render();
+    }
+
+    /**
+     * Render thrown exceptions per month, split by HTTP 4xx and 5xx (stacked bar chart)
+     * @param container {HTMLElement}
+     */
+    #renderThrownExceptionsChart(container) {
+        if (!this.#thrownExceptionsData || !this.#thrownExceptionsData.entries) return;
+
+        const chartWrapper = document.createElement('div');
+        chartWrapper.style.marginBottom = '40px';
+
+        const title = document.createElement('h2');
+        title.innerText = 'thrown exceptions';
+        chartWrapper.appendChild(title);
+
+        const hr = document.createElement('hr');
+        chartWrapper.appendChild(hr);
+
+        const chartDiv = document.createElement('div');
+        chartDiv.id = 'chart-thrown-exceptions';
+        chartDiv.style.height = '300px';
+        chartWrapper.appendChild(chartDiv);
+
+        container.appendChild(chartWrapper);
+
+        // Get last 12 months of data
+        const entries = this.#thrownExceptionsData.entries.slice(-12);
+        const categories = entries.map(e => e.month);
+
+        const data = {
+            categories: categories,
+            series: [
+                {name: '4xx', data: entries.map(e => e.clientErrors), color: '#FEB019', projectedColor: '#FEB01980'},
+                {name: '5xx', data: entries.map(e => e.serverErrors), color: '#FF4560', projectedColor: '#FF456080'}
+            ],
+            projectedIndex: -1
+        };
+
+        new StackedMonthlyMetricsBarChart('chart-thrown-exceptions', data).render();
     }
 
     /**

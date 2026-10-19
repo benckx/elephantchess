@@ -2,8 +2,10 @@ package io.elephantchess.db.services
 
 import io.elephantchess.db.model.DatabaseTableSizeRecord
 import io.elephantchess.db.utils.awaitRecords
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 
+@KoinSingleton
 class DatabaseAdminDaoService(private val dslContext: DSLContext) {
 
     suspend fun fetchTableSizes(): List<DatabaseTableSizeRecord> {
@@ -27,7 +29,7 @@ class DatabaseAdminDaoService(private val dslContext: DSLContext) {
                                      LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
                             WHERE relkind = 'r' AND nspname = 'public') a) a
                 ORDER BY total_bytes DESC
-                """
+                """,
             )
             .awaitRecords()
 
@@ -44,9 +46,8 @@ class DatabaseAdminDaoService(private val dslContext: DSLContext) {
                 total = record.get("total", String::class.java) ?: "0 bytes",
                 index = record.get("index", String::class.java) ?: "0 bytes",
                 toast = record.get("toast", String::class.java) ?: "0 bytes",
-                table = record.get("table", String::class.java) ?: "0 bytes"
+                table = record.get("table", String::class.java) ?: "0 bytes",
             )
         }
     }
-
 }

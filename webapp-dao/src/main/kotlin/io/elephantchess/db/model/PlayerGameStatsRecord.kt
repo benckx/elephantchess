@@ -6,5 +6,5 @@ data class PlayerGameStatsRecord(
     val redDraws: Int,
     val blackWins: Int,
     val blackLosses: Int,
-    val blackDraws: Int
+    val blackDraws: Int,
 )

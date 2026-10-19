@@ -6,21 +6,15 @@ import io.elephantchess.db.dao.codegen.tables.pojos.DiscordGameNotification
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.insertReactive
 import io.elephantchess.model.DiscordNotificationEventType.GAME_CREATED
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Instant
 
-class DiscordGameNotificationDaoService(
-    private val dslContext: DSLContext
-) {
+@KoinSingleton
+class DiscordGameNotificationDaoService(private val dslContext: DSLContext) {
 
-    suspend fun insertGameCreated(
-        userId: String,
-        gameId: String,
-        channelId: String,
-        messageId: String,
-        sent: Instant,
-    ) {
+    suspend fun insertGameCreated(userId: String, gameId: String, channelId: String, messageId: String, sent: Instant) {
         dslContext.transactionCoroutine { cfg ->
             val record = DiscordGameNotification()
             record.eventType = GAME_CREATED
@@ -33,8 +27,8 @@ class DiscordGameNotificationDaoService(
         }
     }
 
-    suspend fun findGameCreatedNotification(channelId: String, gameId: String): DiscordGameNotification? {
-        return dslContext
+    suspend fun findGameCreatedNotification(channelId: String, gameId: String): DiscordGameNotification? =
+        dslContext
             .select()
             .from(DISCORD_GAME_NOTIFICATION)
             .where(DISCORD_GAME_NOTIFICATION.GAME_ID.eq(gameId))
@@ -42,6 +36,4 @@ class DiscordGameNotificationDaoService(
             .and(DISCORD_GAME_NOTIFICATION.EVENT_TYPE.eq(GAME_CREATED))
             .awaitMappedRecords<DiscordGameNotification>()
             .firstOrNull()
-    }
-
 }

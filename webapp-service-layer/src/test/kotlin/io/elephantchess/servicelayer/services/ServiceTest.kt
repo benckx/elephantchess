@@ -27,7 +27,9 @@ import org.koin.core.context.stopKoin
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomUtils
 import kotlin.time.Duration.Companion.minutes
 
-abstract class ServiceTest : PostgresTest(), KoinComponent {
+abstract class ServiceTest :
+    PostgresTest(),
+    KoinComponent {
 
     protected val logger = KotlinLogging.logger {}
     protected val gameMovesCache by lazy { GameMovesDtoCache() }
@@ -54,10 +56,10 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
 
                         getDslContext(
                             dbConfig = dbConfig,
-                            resourceAccessor = ClassLoaderResourceAccessor()
+                            resourceAccessor = ClassLoaderResourceAccessor(),
                         )
-                    }
-                )
+                    },
+                ),
             )
         }
     }
@@ -121,11 +123,10 @@ abstract class ServiceTest : PostgresTest(), KoinComponent {
                 alwaysVisibleInLobby = alwaysVisibleInLobby,
                 privateInvite = privateInvite,
                 variant = variant,
-            )
+            ),
         )
 
         pvpGameService.joinGame(invitee, JoinGameRequest(response.gameId))
         return response.gameId
     }
-
 }

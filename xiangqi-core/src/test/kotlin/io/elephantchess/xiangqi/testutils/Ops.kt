@@ -4,8 +4,6 @@ import io.elephantchess.xiangqi.HalfMove
 
 object Ops {
 
-    fun GameMovesDto.moves(): List<HalfMove> {
-        return uciMoves.map { HalfMove.parseMoveFromUci(it) }
-    }
-
+    fun GameMovesDto.moves(): List<HalfMove> =
+        uciMoves.map { HalfMove.parseMoveFromUci(it) }
 }

@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.services
 
 import io.elephantchess.config.AppConfig
+import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.dao.codegen.tables.pojos.MoveAnalysis
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGame
@@ -24,11 +25,13 @@ import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateRequest
 import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateResponse
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.servicelayer.exceptions.PreConditionFailedException
+import io.elephantchess.servicelayer.utils.collectMoveAnnotations
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
-import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
@@ -41,6 +44,7 @@ import kotlin.time.Instant
 /**
  * Generic service that handles game and analysis data for games of all [GameType]
  */
+@KoinSingleton
 class GameDataService(
     private val appConfig: AppConfig,
     private val enginesPool: EnginePool,
@@ -62,36 +66,31 @@ class GameDataService(
         CoroutineScope(Dispatchers.IO.limitedParallelism(2))
     }
 
-    suspend fun countTotalGames(): Int {
-        return referenceGameDaoService.countAllGames() +
-                pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
-                pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
-    }
+    suspend fun countTotalGames(): Int =
+        referenceGameDaoService.countAllGames() +
+            pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
+            pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
 
-    suspend fun countTotalAppGames(): Int {
-        return pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
-                pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
-    }
+    suspend fun countTotalAppGames(): Int =
+        pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
+            pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
 
-    suspend fun countTotalManchuGames(): Int {
-        return pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
-                pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
-    }
+    suspend fun countTotalManchuGames(): Int =
+        pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
+            pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
 
     /**
      * Half moves or plies
      */
-    suspend fun countTotalMoves(): Map<GameType, Int> {
-        return mapOf(
+    suspend fun countTotalMoves(): Map<GameType, Int> =
+        mapOf(
             PVP to pvpGameDaoService.countTotalMoves(),
             PVB to pvbGameDaoService.countTotalMoves(),
-            DB to referenceGameDaoService.countTotalMoves()
+            DB to referenceGameDaoService.countTotalMoves(),
         )
-    }
 
-    suspend fun latestMoveAnalysisUpdate(): Instant? {
-        return moveAnalysisDaoService.fetchLatestMoveAnalysis()
-    }
+    suspend fun latestMoveAnalysisUpdate(): Instant? =
+        moveAnalysisDaoService.fetchLatestMoveAnalysis()
 
     suspend fun fetchAnalysisStatusOfGame(gameId: GameId): AnalysisStatus =
         moveAnalysisDaoService.fetchAnalysisStatus(gameId) ?: throw NotFoundException("$gameId not found")
@@ -99,116 +98,43 @@ class GameDataService(
     suspend fun fetchGameMetadata(gameId: GameId): GameMetadataDto {
         val gameMetadataDto =
             when (gameId.type) {
-                PVP -> {
+                PVP ->
                     pvpGameDaoService
                         .fetchById(gameId.id)
                         ?.let { record ->
-                            val redPlayerId = if (record.inviterColor == RED) record.inviter else record.invitee
-                            val blackPlayerId = if (record.inviterColor == BLACK) record.inviter else record.invitee
-                            val redPlayerName = fetchUserName(redPlayerId) ?: "?"
-                            val blackPlayerName = fetchUserName(blackPlayerId) ?: "?"
-
-                            GameMetadataDto(
-                                gameId = gameId,
-                                lastUpdated = record.lastUpdated.toEpochMilliseconds(),
-                                redPlayerId = redPlayerId,
-                                redPlayerName = redPlayerName,
-                                blackPlayerId = blackPlayerId,
-                                blackPlayerName = blackPlayerName,
-                                finalFen = record.currentFen,
-                                outcome = record.outcome,
-                                analysisStatus = record.analysisStatus,
-                                variant = record.variant,
-                            )
+                            val userIds = listOfNotNull(record.inviter, record.invitee)
+                            val onlineUserIds = userService.areOnline(userIds).onlineUserIds
+                            mapPlayerVsPlayerGameToDto(record, onlineUserIds)
+                                .copy(analysisStatus = record.analysisStatus)
                         }
-                }
 
-                PVB -> {
+                PVB ->
                     pvbGameDaoService
                         .fetchById(gameId.id)
                         ?.let { record ->
-                            val userId = record.userId
-                            val userName = fetchUserName(userId)
-                            var blackPlayerId: String? = null
-                            var blackPlayerName: String? = null
-                            var redPlayerId: String? = null
-                            var redPlayerName: String? = null
-                            val engineName = record.prettyEngineName()
-
-                            when (record.userColor) {
-                                RED -> {
-                                    redPlayerId = userId
-                                    redPlayerName = userName
-                                    blackPlayerName = engineName
-                                }
-
-                                BLACK -> {
-                                    redPlayerName = engineName
-                                    blackPlayerId = userId
-                                    blackPlayerName = userName
-                                }
-
-                                else -> {
-                                    // should not happen, but in case of data inconsistency, we don't want to fail the whole request
-                                    logger.warn { "Game $gameId has invalid user color ${record.userColor}" }
-                                }
-                            }
-
-                            GameMetadataDto(
-                                gameId = gameId,
-                                lastUpdated = record.created.toEpochMilliseconds(),
-                                redPlayerId = redPlayerId,
-                                redPlayerName = redPlayerName,
-                                blackPlayerId = blackPlayerId,
-                                blackPlayerName = blackPlayerName,
-                                startFen = record.startFen,
-                                finalFen = record.currentFen,
-                                outcome = record.outcome,
-                                analysisStatus = record.analysisStatus,
-                                engine = record.engine,
-                                depth = record.depth,
-                                variant = record.variant
-                            )
+                            val onlineUserIds = userService.areOnline(listOfNotNull(record.userId)).onlineUserIds
+                            mapPlayerVsBotGameToDto(record, onlineUserIds)
+                                .copy(
+                                    startFen = record.startFen,
+                                    analysisStatus = record.analysisStatus,
+                                    engine = record.engine,
+                                    depth = record.depth,
+                                )
                         }
-                }
 
-                DB -> {
+                DB ->
                     referenceGameDaoService
                         .findById(gameId.id)
                         ?.let { record ->
-                            val redPlayerName =
-                                when (record.redPlayer) {
-                                    null -> null
-                                    else -> referencePlayerDaoService.findCanonicalPlayerName(record.redPlayer)
-                                }
-
-                            val blackPlayerName =
-                                when (record.blackPlayer) {
-                                    null -> null
-                                    else -> referencePlayerDaoService.findCanonicalPlayerName(record.blackPlayer)
-                                }
-
-                            val event =
-                                record.event?.let { eventId -> referenceEventDaoService.fetchEventById(eventId) }
-
-                            GameMetadataDto(
-                                gameId = gameId,
-                                lastUpdated = record.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-                                redPlayerId = record.redPlayer,
-                                redPlayerName = redPlayerName,
-                                blackPlayerId = record.blackPlayer,
-                                blackPlayerName = blackPlayerName,
-                                finalFen = record.finalFen,
-                                outcome = record.outcome,
-                                analysisStatus = record.analysisStatus,
-                                eventId = event?.id,
-                                eventName = event?.name,
-                                variant = Variant.XIANGQI
-                            )
+                            val event = record.event?.let { referenceEventDaoService.fetchEventById(it) }
+                            mapDatabaseGameToDto(record, paginationOffset = null)
+                                .copy(
+                                    analysisStatus = record.analysisStatus,
+                                    eventId = event?.id,
+                                    eventName = event?.name,
+                                )
                         }
-                }
             }
-
 
         return gameMetadataDto ?: throw NotFoundException("$gameId not found")
     }
@@ -224,7 +150,7 @@ class GameDataService(
         return GameMovesResponse(moves)
     }
 
-    suspend fun startGameAnalysis(gameId: GameId): StartGameAnalysisResponse {
+    suspend fun startGameAnalysis(gameId: GameId, isFromBatch: Boolean = false): StartGameAnalysisResponse {
         fun stillInProgressException(gameId: GameId, gameEventType: GameEventType) =
             BadRequestException("Game $gameId is in status $gameEventType and can not be analyzed yet")
 
@@ -278,7 +204,7 @@ class GameDataService(
 
         val (status, shouldStartAnalysis) = validateAnalysisShouldStart(gameId)
         if (shouldStartAnalysis) {
-            startAnalysisAsync(gameId)
+            startAnalysisAsync(gameId, isFromBatch)
         }
         return StartGameAnalysisResponse(status, shouldStartAnalysis)
     }
@@ -338,7 +264,34 @@ class GameDataService(
                     mapToInfoLineResultDto(fenKey, infoLineResult)
                 }
 
-        return GameAnalysisResponse(entries)
+        val analysisMap = entries.associateBy { it.fen }
+
+        try {
+            val moveAnnotationDetails = collectMoveAnnotations(
+                moves = findMoves(gameId),
+                analysisMap = analysisMap,
+                startFen = findStartFen(gameId),
+            )
+
+            val moveAnnotationDtos =
+                moveAnnotationDetails
+                    .map { annotation ->
+                        GameAnalysisResponse.MoveAnnotationDto(
+                            moveIndex = annotation.moveIndex,
+                            annotation = annotation.category,
+                            cpl = annotation.cpl,
+                            engineCp = annotation.engineCp,
+                            actualMoveCp = annotation.actualMoveCp,
+                        )
+                    }
+
+            return GameAnalysisResponse(
+                entries = entries,
+                moveAnnotations = moveAnnotationDtos,
+            )
+        } catch (e: Exception) {
+            throw PreConditionFailedException("Error while collecting move annotations for $gameId: ${e.message}")
+        }
     }
 
     suspend fun listPreAnalysisToDelete(limit: Duration): List<Pair<GameId, Instant>> {
@@ -364,15 +317,14 @@ class GameDataService(
         moveAnalysisDaoService.resetAnalysisStatus(gameId)
     }
 
-    private fun startAnalysisAsync(gameId: GameId) {
-        suspend fun queryEngine(fen: String): InfoLineResult? {
-            return enginesPool.safeQueryForDepth(
+    private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean) {
+        suspend fun queryEngine(fen: String): InfoLineResult? =
+            enginesPool.safeQueryForDepth(
                 fen = fen,
                 engineId = PikafishEngineId,
                 depth = DEFAULT_ANALYSIS_DEPTH,
-                timeout = 20_000L
+                timeout = 20_000L,
             )?.deepestResult()
-        }
 
         suspend fun processPosition(positionIndex: Int, fen: String, isEngineMoveAnalysis: Boolean): MoveAnalysis {
             val fenKey = resetFullMoveCount(fen)
@@ -401,10 +353,7 @@ class GameDataService(
             return moveAnalysis
         }
 
-        suspend fun processWhatTheEngineWouldHavePlayed(
-            startFen: String,
-            moves: List<String>
-        ) {
+        suspend fun processWhatTheEngineWouldHavePlayed(startFen: String, moves: List<String>) {
             val infoLineResultsDtos = fetchAnalysisData(gameId).entries
 
             val board = Board(startFen)
@@ -420,7 +369,7 @@ class GameDataService(
                     processPosition(
                         positionIndex = positionIndex,
                         fen = fenResultingFromEngineBestMove,
-                        isEngineMoveAnalysis = true
+                        isEngineMoveAnalysis = true,
                     )
                 }
 
@@ -432,7 +381,7 @@ class GameDataService(
             if (appConfig.isEnginePoolEnabled) {
                 when (val analysisStatus = fetchAnalysisStatusOfGame(gameId)) {
                     PARTIALLY_COMPLETED -> {
-                        moveAnalysisDaoService.startAnalysis(gameId)
+                        moveAnalysisDaoService.startAnalysis(gameId, isFromBatch)
                         logger.info { "$gameId completing analysis" }
 
                         try {
@@ -449,7 +398,7 @@ class GameDataService(
                     }
 
                     NOT_STARTED -> {
-                        moveAnalysisDaoService.startAnalysis(gameId)
+                        moveAnalysisDaoService.startAnalysis(gameId, isFromBatch)
                         logger.info { "$gameId starting analysis" }
 
                         try {
@@ -505,11 +454,7 @@ class GameDataService(
     private suspend fun fetchUserName(userId: String?): String? =
         userId?.let { userCache.fetchUsername(it) }
 
-    suspend fun listLastPvpGames(
-        requestedLimit: Int,
-        distinctByUsers: Boolean,
-        beforeTs: Long?
-    ): ListLastGamesResponse {
+    suspend fun listLastPvpGames(requestedLimit: Int, distinctByUsers: Boolean, beforeTs: Long?): ListLastGamesResponse {
         // ensure each user appears at most once in the list
         // maybe we could also make a distinct by user session or countries to avoid showing only sock-puppeteers
         fun distinctByUserId(games: List<Game>): List<Game> {
@@ -533,7 +478,7 @@ class GameDataService(
             .listLastGames(
                 limit = actualLimit,
                 minMoveIndex = MIN_MOVE_INDEX,
-                beforeTs = beforeTs
+                beforeTs = beforeTs,
             )
 
         val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
@@ -542,49 +487,213 @@ class GameDataService(
 
         return selectedGames
             .take(actualLimit)
-            .map { mapPvpGameToDto(it, onlineUserIds) }
+            .map { mapPlayerVsPlayerGameToDto(it, onlineUserIds) }
             .let { entries ->
                 ListLastGamesResponse(entries)
             }
     }
 
-    suspend fun listLastPvpGamesByUsername(
-        username: String,
-        requestedLimit: Int,
-        beforeTs: Long?
-    ): ListLastGamesResponse {
+    suspend fun listLastPvpGamesByUsername(username: String, requestedLimit: Int, beforeTs: Long?): ListLastGamesResponse {
         val user = userDaoService.findByUserName(username)
             ?: throw NotFoundException("User $username could not be found")
         return listLastPvpGamesByUserId(
             userId = user.id,
             requestedLimit = requestedLimit,
-            beforeTs = beforeTs
+            beforeTs = beforeTs,
         )
     }
 
-    suspend fun listLastPvpGamesByUserId(
-        userId: String,
-        requestedLimit: Int,
-        beforeTs: Long?
-    ): ListLastGamesResponse {
+    suspend fun listLastPvpGamesByUserId(userId: String, requestedLimit: Int, beforeTs: Long?): ListLastGamesResponse {
         val games = pvpGameDaoService.listLastGamesByUserId(
             userId = userId,
             limit = requestedLimit,
             minMoveIndex = MIN_MOVE_INDEX,
-            beforeTs = beforeTs
+            beforeTs = beforeTs,
         )
 
         val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
         val onlineUserIds = userService.areOnline(userIds).onlineUserIds
 
         return games
-            .map { mapPvpGameToDto(it, onlineUserIds) }
+            .map { mapPlayerVsPlayerGameToDto(it, onlineUserIds) }
             .let { entries ->
                 ListLastGamesResponse(entries)
             }
     }
 
-    private suspend fun mapPvpGameToDto(gameRecord: Game, onlineUserIds: Set<String>): GameMetadataDto {
+    suspend fun listLatestPvbGamesByUsername(username: String, requestedLimit: Int, beforeTs: Long?): ListLastGamesResponse {
+        val user = userDaoService.findByUserName(username)
+            ?: throw NotFoundException("User $username could not be found")
+        return listLatestPvbGamesByUserId(
+            userId = user.id,
+            requestedLimit = requestedLimit,
+            beforeTs = beforeTs,
+        )
+    }
+
+    suspend fun listLatestPvbGamesByUserId(userId: String, requestedLimit: Int, beforeTs: Long?): ListLastGamesResponse {
+        val gameRecords = pvbGameDaoService.listGamesByUserId(
+            userId = userId,
+            limit = requestedLimit,
+            beforeTs = beforeTs,
+            minMoveIndex = MIN_MOVE_INDEX,
+        )
+
+        val onlineUserIds = userService.areOnline(listOf(userId)).onlineUserIds
+
+        return gameRecords
+            .map { record -> mapPlayerVsBotGameToDto(record, onlineUserIds) }
+            .let { entries -> ListLastGamesResponse(entries) }
+    }
+
+    suspend fun listLatestPvbGames(
+        requestedLimit: Int,
+        distinctByUsers: Boolean = true,
+        beforeTs: Long? = null,
+        excludeAutoResigned: Boolean,
+    ): ListLastGamesResponse {
+        // ensure each user appears at most once in the list
+        fun distinctByUserId(games: List<BotGame>): List<BotGame> {
+            val gamesByUniqueUserId = mutableListOf<BotGame>()
+            val seenUserIds = mutableSetOf<String>()
+            var i = 0
+            while (gamesByUniqueUserId.size < requestedLimit && i < games.size) {
+                val game = games[i]
+                val userId = game.userId
+                if (userId != null && seenUserIds.add(userId)) {
+                    gamesByUniqueUserId.add(game)
+                }
+                i++
+            }
+
+            return gamesByUniqueUserId
+        }
+
+        val actualLimit = if (distinctByUsers) requestedLimit * 20 else requestedLimit
+        val gameRecords = pvbGameDaoService
+            .listLatestGamesByIdentifiedUsers(
+                limit = actualLimit,
+                minMoveIndex = MIN_MOVE_INDEX,
+                beforeTs = beforeTs,
+                excludeAutoResigned = excludeAutoResigned,
+                variantsToInclude = Variant.entries,
+            )
+
+        val selectedGames = if (distinctByUsers) distinctByUserId(gameRecords) else gameRecords
+
+        val userIds = selectedGames.map { game -> game.userId }.distinct().filterNotNull()
+        val onlineUserIds = userService.areOnline(userIds).onlineUserIds
+
+        return selectedGames
+            .take(requestedLimit)
+            .map { record -> mapPlayerVsBotGameToDto(record, onlineUserIds) }
+            .let { entries -> ListLastGamesResponse(entries) }
+    }
+
+    suspend fun listLastDbGamesByPlayerName(requestedLimit: Int, canonicalPlayerName: String, offset: Int?): ListLastGamesResponse {
+        val referencePlayer = referencePlayerDaoService.findPlayerByCanonicalName(canonicalPlayerName)
+            ?: throw NotFoundException("Player '$canonicalPlayerName' not found")
+
+        val games = referenceGameDaoService.search(
+            playerIds = listOf(referencePlayer.id),
+            limit = requestedLimit,
+            offset = offset,
+        )
+
+        return ListLastGamesResponse(mapDatabaseGamesToDto(games, offset))
+    }
+
+    suspend fun listLastDbGamesByEventId(requestedLimit: Int, eventId: String, round: Int?, offset: Int?): ListLastGamesResponse {
+        val games = referenceGameDaoService.search(
+            eventIds = listOf(eventId),
+            round = round,
+            limit = requestedLimit,
+            offset = offset,
+        )
+
+        return ListLastGamesResponse(mapDatabaseGamesToDto(games, offset))
+    }
+
+    suspend fun fetchLatestGamesUpdate(request: LatestGamesUpdateRequest): LatestGamesUpdateResponse {
+        val idsByType = request
+            .gameIds
+            .groupBy({ gameID -> gameID.type }, { gameId -> gameId.id })
+
+        val pvpGames = pvpGameDaoService.fetchCurrentStatusAndFen(idsByType[PVP].orEmpty())
+        val pvbGames = pvbGameDaoService.fetchCurrentStatusAndFen(idsByType[PVB].orEmpty())
+
+        val entries = pvpGames.map { game ->
+            LatestGamesUpdateResponse.Entry(
+                gameId = GameId(PVP, game.id),
+                status = game.gameStatus,
+                fen = game.currentFen,
+                lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+            )
+        } + pvbGames.map { game ->
+            LatestGamesUpdateResponse.Entry(
+                gameId = GameId(PVB, game.id),
+                status = game.gameStatus,
+                fen = game.currentFen,
+                lastUpdated = game.lastUpdated.toEpochMilliseconds(),
+            )
+        }
+
+        return LatestGamesUpdateResponse(entries)
+    }
+
+    private suspend fun mapPlayerVsBotGameToDto(record: BotGame, onlineUserIds: Set<String>): GameMetadataDto {
+        val redUserId: String?
+        val redPlayerName: String?
+        val redPlayerRating: Int?
+        val redUserType: UserType?
+        val blackUserId: String?
+        val blackPlayerName: String?
+        val blackPlayerRating: Int?
+        val blackUserType: UserType?
+        val isUserOnline = onlineUserIds.contains(record.userId)
+
+        if (record.userColor == RED) {
+            redUserId = record.userId
+            redPlayerName = fetchUserName(record.userId)
+            redPlayerRating = null
+            redUserType = userCache.fetchUserType(record.userId)
+            blackUserId = null
+            blackPlayerName = record.prettyEngineName()
+            blackPlayerRating = null
+            blackUserType = null
+        } else {
+            redUserId = null
+            redPlayerName = record.prettyEngineName()
+            redPlayerRating = null
+            redUserType = null
+            blackUserId = record.userId
+            blackPlayerName = fetchUserName(record.userId)
+            blackPlayerRating = null
+            blackUserType = userCache.fetchUserType(record.userId)
+        }
+
+        return GameMetadataDto(
+            gameId = GameId(PVB, record.id),
+            redPlayerId = redUserId,
+            redPlayerName = redPlayerName,
+            redPlayerRating = redPlayerRating,
+            redUserType = redUserType,
+            blackPlayerId = blackUserId,
+            blackPlayerName = blackPlayerName,
+            blackPlayerRating = blackPlayerRating,
+            blackUserType = blackUserType,
+            isRedOnline = isUserOnline,
+            isBlackOnline = isUserOnline,
+            userColor = record.userColor,
+            finalFen = record.currentFen,
+            status = record.gameStatus,
+            outcome = record.outcome,
+            lastUpdated = record.lastUpdated.toEpochMilliseconds(),
+            variant = record.variant,
+        )
+    }
+
+    private suspend fun mapPlayerVsPlayerGameToDto(gameRecord: Game, onlineUserIds: Set<String>): GameMetadataDto {
         val redUserId = gameRecord.redUserId()!!
         val blackUserId = gameRecord.blackUserId()!!
         return GameMetadataDto(
@@ -604,171 +713,35 @@ class GameDataService(
             status = gameRecord.gameStatus,
             outcome = gameRecord.outcome,
             lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
-            variant = gameRecord.variant
+            variant = gameRecord.variant,
         )
     }
 
-    suspend fun listLatestPvbGames(
-        requestedLimit: Int,
-        distinctByUsers: Boolean = true,
-        beforeTs: Long? = null,
-        excludeAutoResigned: Boolean
-    ): ListLastGamesResponse {
-        val gameRecords = pvbGameDaoService
-            .listLatestGamesByIdentifiedUsers(
-                limit = requestedLimit,
-                minMoveIndex = MIN_MOVE_INDEX,
-                beforeTs = beforeTs,
-                excludeAutoResigned = excludeAutoResigned,
-                distinctByUsers = distinctByUsers
-            )
-
-        val userIds = gameRecords.map { game -> game.userId }.distinct().filterNotNull()
-        val onlineUserIds = userService.areOnline(userIds).onlineUserIds
-
-        return gameRecords
-            .take(requestedLimit)
-            .map { record ->
-                val redUserId: String?
-                val redPlayerName: String?
-                val redPlayerRating: Int?
-                val redUserType: UserType?
-                val blackUserId: String?
-                val blackPlayerName: String?
-                val blackPlayerRating: Int?
-                val blackUserType: UserType?
-                val isUserOnline = onlineUserIds.contains(record.userId)
-
-                if (record.userColor == RED) {
-                    redUserId = record.userId
-                    redPlayerName = fetchUserName(record.userId)
-                    redPlayerRating = null
-                    redUserType = userCache.fetchUserType(record.userId)
-                    blackUserId = null
-                    blackPlayerName = record.prettyEngineName()
-                    blackPlayerRating = null
-                    blackUserType = null
-                } else {
-                    redUserId = null
-                    redPlayerName = record.prettyEngineName()
-                    redPlayerRating = null
-                    redUserType = null
-                    blackUserId = record.userId
-                    blackPlayerName = fetchUserName(record.userId)
-                    blackPlayerRating = null
-                    blackUserType = userCache.fetchUserType(record.userId)
-                }
-
-                GameMetadataDto(
-                    gameId = GameId(PVB, record.id),
-                    redPlayerId = redUserId,
-                    redPlayerName = redPlayerName,
-                    redPlayerRating = redPlayerRating,
-                    redUserType = redUserType,
-                    blackPlayerId = blackUserId,
-                    blackPlayerName = blackPlayerName,
-                    blackPlayerRating = blackPlayerRating,
-                    blackUserType = blackUserType,
-                    isRedOnline = isUserOnline,
-                    isBlackOnline = isUserOnline,
-                    userColor = record.userColor,
-                    finalFen = record.currentFen,
-                    status = record.gameStatus,
-                    outcome = record.outcome,
-                    lastUpdated = record.lastUpdated.toEpochMilliseconds(),
-                    variant = record.variant,
-                )
-            }
-            .let { entries ->
-                ListLastGamesResponse(entries)
-            }
-    }
-
-    suspend fun listLastDbGamesByPlayerName(
-        requestedLimit: Int,
-        canonicalPlayerName: String,
-        offset: Int?
-    ): ListLastGamesResponse {
-        val referencePlayer = referencePlayerDaoService.findPlayerByCanonicalName(canonicalPlayerName)
-            ?: throw NotFoundException("Player '$canonicalPlayerName' not found")
-
-        val games = referenceGameDaoService.search(
-            playerIds = listOf(referencePlayer.id),
-            limit = requestedLimit,
-            offset = offset
+    private suspend fun mapDatabaseGameToDto(game: ReferenceGame, paginationOffset: Int?): GameMetadataDto =
+        GameMetadataDto(
+            gameId = GameId(DB, game.id),
+            redPlayerId = game.redPlayer,
+            redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
+            blackPlayerId = game.blackPlayer,
+            blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
+            finalFen = game.finalFen ?: DEFAULT_START_FEN,
+            outcome = game.outcome,
+            lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
+            paginationOffset = paginationOffset,
+            variant = Variant.XIANGQI,
         )
 
-        return ListLastGamesResponse(mapReferenceGamesToMetadata(games, offset))
-    }
-
-    suspend fun listLastDbGamesByEventId(
-        requestedLimit: Int,
-        eventId: String,
-        round: Int?,
-        offset: Int?
-    ): ListLastGamesResponse {
-        val games = referenceGameDaoService.search(
-            eventIds = listOf(eventId),
-            round = round,
-            limit = requestedLimit,
-            offset = offset
-        )
-
-        return ListLastGamesResponse(mapReferenceGamesToMetadata(games, offset))
-    }
-
-    private suspend fun mapReferenceGamesToMetadata(
-        games: List<ReferenceGame>,
-        offset: Int?
-    ): List<GameMetadataDto> {
-        return games.mapIndexed { i, game ->
-            GameMetadataDto(
-                gameId = GameId(DB, game.id),
-                redPlayerId = game.redPlayer,
-                redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
-                blackPlayerId = game.blackPlayer,
-                blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
-                finalFen = game.finalFen ?: DEFAULT_START_FEN,
-                outcome = game.outcome,
-                lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-                paginationOffset = (offset ?: 0) + i,
-                variant = Variant.XIANGQI
-            )
+    private suspend fun mapDatabaseGamesToDto(games: List<ReferenceGame>, offset: Int?): List<GameMetadataDto> =
+        games.mapIndexed {
+                i,
+                game,
+            ->
+            mapDatabaseGameToDto(game, (offset ?: 0) + i)
         }
-    }
-
-    suspend fun fetchLatestGamesUpdate(request: LatestGamesUpdateRequest): LatestGamesUpdateResponse {
-        val idsByType = request
-            .gameIds
-            .groupBy({ gameID -> gameID.type }, { gameId -> gameId.id })
-
-        val pvpGames = pvpGameDaoService.fetchCurrentStatusAndFen(idsByType[PVP].orEmpty())
-        val pvbGames = pvbGameDaoService.fetchCurrentStatusAndFen(idsByType[PVB].orEmpty())
-
-        val entries = pvpGames.map { game ->
-            LatestGamesUpdateResponse.Entry(
-                gameId = GameId(PVP, game.id),
-                status = game.gameStatus,
-                fen = game.currentFen,
-                lastUpdated = game.lastUpdated.toEpochMilliseconds()
-            )
-        } + pvbGames.map { game ->
-            LatestGamesUpdateResponse.Entry(
-                gameId = GameId(PVB, game.id),
-                status = game.gameStatus,
-                fen = game.currentFen,
-                lastUpdated = game.lastUpdated.toEpochMilliseconds()
-            )
-        }
-
-        return LatestGamesUpdateResponse(entries)
-    }
 
     companion object {
 
         const val DEFAULT_ANALYSIS_DEPTH = 20
         const val MIN_MOVE_INDEX = 6
-
     }
-
 }
