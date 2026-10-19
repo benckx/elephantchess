@@ -35,11 +35,8 @@ fun Module.registerInjectables(eagerAllowed: Boolean, vararg packages: String) {
                 .getClassesWithAnnotation(KoinSingleton::class.java.name)
                 .forEach { classInfo ->
                     @Suppress("UNCHECKED_CAST")
-                    val klass = classInfo.loadClass().kotlin as KClass<Any>
-                    val eager = (classInfo
-                        .getAnnotationInfo(KoinSingleton::class.java.name)
-                        ?.parameterValues
-                        ?.getValue("eager") as? Boolean) ?: false
+                    val klass = Class.forName(classInfo.name).kotlin as KClass<Any>
+                    val eager = klass.java.getAnnotation(KoinSingleton::class.java)?.eager ?: false
                     kLogger.info { "registering injectable ${klass.simpleName} (eager=$eager)" }
                     registerInjectable(klass, createdAtStart = eager && eagerAllowed)
                 }
