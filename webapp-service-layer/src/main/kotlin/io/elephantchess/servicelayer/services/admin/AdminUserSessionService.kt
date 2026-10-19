@@ -4,11 +4,10 @@ import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.servicelayer.dto.admin.UserSessionsResponse
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.utils.di.KoinSingleton
 
-class AdminUserSessionService(
-    private val userSessionDaoService: UserSessionDaoService,
-    private val userCache: UserCache,
-) {
+@KoinSingleton
+class AdminUserSessionService(private val userSessionDaoService: UserSessionDaoService, private val userCache: UserCache) {
 
     suspend fun listAuthenticatedUserSessions(): UserSessionsResponse {
         val entries =
@@ -19,8 +18,8 @@ class AdminUserSessionService(
         return UserSessionsResponse(entries)
     }
 
-    private suspend fun mapUserSessionToDto(userSession: UserSessionRecord): UserSessionsResponse.Entry {
-        return UserSessionsResponse.Entry(
+    private suspend fun mapUserSessionToDto(userSession: UserSessionRecord): UserSessionsResponse.Entry =
+        UserSessionsResponse.Entry(
             userId = userSession.userId,
             username = userSession.userId?.let { userCache.fetchUsernameOrDefault(it) },
             os = userSession.operatingSystemName,
@@ -32,8 +31,6 @@ class AdminUserSessionService(
             city = userSession.city,
             remoteAddress = userSession.remoteAddress,
             created = userSession.created!!.toEpochMilliseconds(),
-            updated = userSession.lastUpdated!!.toEpochMilliseconds()
+            updated = userSession.lastUpdated!!.toEpochMilliseconds(),
         )
-    }
-
 }

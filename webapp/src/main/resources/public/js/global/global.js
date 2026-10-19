@@ -162,11 +162,13 @@ class GlobalStatsPage extends BasePage {
         getAndHandle(url, json => {
             const totalGames = document.getElementById('total-games');
             const totalInAppGames = document.getElementById('total-in-app-games');
+            const totalManchuGames = document.getElementById('total-manchu-games');
             const totalMoves = document.getElementById('total-moves');
             const totalInAppMoves = document.getElementById('total-in-app-moves');
 
             totalGames.innerText = formatNumberWithSuffix(json.totalGames);
             totalInAppGames.innerText = formatNumberWithSuffix(json.totalInAppGames);
+            totalManchuGames.innerText = formatNumberWithSuffix(json.totalManchuGames);
             totalMoves.innerText = formatNumberWithSuffix(Math.floor(json.totalMoves / 2));
             totalInAppMoves.innerText = formatNumberWithSuffix(Math.floor(json.totalInAppMoves / 2));
         });

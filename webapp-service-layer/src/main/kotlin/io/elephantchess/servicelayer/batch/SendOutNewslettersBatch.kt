@@ -6,6 +6,7 @@ import io.elephantchess.db.utils.isBefore
 import io.elephantchess.db.utils.plusSeconds
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.services.MailService
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import java.util.*
 import kotlin.time.Clock
@@ -21,13 +22,12 @@ import kotlin.time.Duration.Companion.minutes
  * - Daily 20
  * - 3 days 50
  */
+@KoinSingleton
 class SendOutNewslettersBatch(
     override val logger: KLogger,
     private val newsletterDaoService: NewsletterDaoService,
     private val mailService: MailService,
 ) : SinglePodBatch {
-
-    override val podNumber: Int = 0
 
     // max 192 emails/day
     private val minDurationBetweenBatch = 15.minutes
@@ -59,12 +59,12 @@ class SendOutNewslettersBatch(
                                     templateName = newsletter.templateName,
                                     subject = newsletter.subject,
                                     unsubscribeFromNewsletterCode = entry.unsubscribeFromNewsletterCode,
-                                    unsubscribeFromAllCode = entry.unsubscribeFromAllCode
+                                    unsubscribeFromAllCode = entry.unsubscribeFromAllCode,
                                 )
 
                                 newsletterDaoService.markAsSent(
                                     newsletterId = entry.newsletterId,
-                                    emailAddress = entry.emailAddress
+                                    emailAddress = entry.emailAddress,
                                 )
                             }
                     } catch (e: Exception) {
@@ -97,5 +97,4 @@ class SendOutNewslettersBatch(
                 newsletterDaoService.insertAll(entries)
             }
     }
-
 }

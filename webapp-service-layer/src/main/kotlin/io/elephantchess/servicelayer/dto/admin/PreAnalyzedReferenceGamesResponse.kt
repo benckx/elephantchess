@@ -12,5 +12,4 @@ data class PreAnalyzedReferenceGamesResponse(val entries: List<Entry>) {
         val start: Long,
         val end: Long?,
     )
-
 }

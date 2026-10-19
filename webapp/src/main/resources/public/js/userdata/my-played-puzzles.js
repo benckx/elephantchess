@@ -70,7 +70,7 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
          * @returns {HTMLDivElement}
          */
         function buildRatingDiv(entry) {
-            // rating
+            // user rating
             const ratingSpan = document.createElement('span');
             ratingSpan.className = 'rating-from';
             ratingSpan.innerText = entry.ratingFrom.toString();
@@ -87,8 +87,33 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
                 deltaSpan.innerHTML = HTML_WHITE_SPACE + 'n/a';
             }
 
+            const userRatingRow = document.createElement('div');
+            userRatingRow.className = 'user-rating-row';
+            userRatingRow.append(ratingSpan, deltaSpan);
+
+            // puzzle rating (smaller text, shown below the user rating)
+            const puzzleRatingSpan = document.createElement('span');
+            puzzleRatingSpan.className = 'puzzle-rating-from';
+            puzzleRatingSpan.innerText = entry.puzzleRatingFrom.toString();
+
+            const puzzleDeltaSpan = document.createElement('span');
+            puzzleDeltaSpan.classList.add('user-rating-delta-value-box', 'user-rating-delta-value-smaller');
+            if (entry.puzzleRatingDelta > 0) {
+                puzzleDeltaSpan.innerHTML = HTML_WHITE_SPACE + '+' + entry.puzzleRatingDelta;
+                puzzleDeltaSpan.classList.add('user-rating-delta-value-box-positive');
+            } else if (entry.puzzleRatingDelta < 0) {
+                puzzleDeltaSpan.innerHTML = HTML_WHITE_SPACE + entry.puzzleRatingDelta.toString();
+                puzzleDeltaSpan.classList.add('user-rating-delta-value-box-negative');
+            } else {
+                puzzleDeltaSpan.innerHTML = HTML_WHITE_SPACE + 'n/a';
+            }
+
+            const puzzleRatingRow = document.createElement('div');
+            puzzleRatingRow.className = 'puzzle-rating-row';
+            puzzleRatingRow.append(puzzleRatingSpan, puzzleDeltaSpan);
+
             const div = document.createElement('div');
-            div.append(ratingSpan, deltaSpan);
+            div.append(userRatingRow, puzzleRatingRow);
             return div;
         }
 
@@ -157,6 +182,11 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
             categoryDiv.className = 'puzzle-categories';
             categoryDiv.append(buildLink(entry.categoriesUrl, entry.formattedCategories.join(', ')));
 
+            // current puzzle rating, populated asynchronously next to the categories
+            const currentPuzzleRatingSpan = document.createElement('span');
+            currentPuzzleRatingSpan.classList.add('current-puzzle-rating', `current-puzzle-rating-${entry.puzzleId}`);
+            categoryDiv.append(currentPuzzleRatingSpan);
+
             middlePane.append(
                 puzzleMetadata,
                 wrapInDiv(buildColorSpan(entry.playerColor)),
@@ -186,11 +216,20 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
      */
     #updateOriginalGameMetadata(entries) {
         const puzzleIds = entries.map(entry => entry.puzzleId).filter(onlyUnique);
-        this.#fetchOriginalGamesMetadata(puzzleIds, puzzleIdsToGameMetadata => {
+        this.#fetchOriginalGamesMetadata(puzzleIds, puzzleIdsToMetadata => {
             for (const puzzleId of puzzleIds) {
+                const metadata = puzzleIdsToMetadata.get(puzzleId);
+
+                // current puzzle rating, shown next to the categories
+                getElementsByClassNameArray(`current-puzzle-rating-${puzzleId}`).forEach(ratingSpan => {
+                    if (metadata != null && metadata.puzzleRating != null) {
+                        ratingSpan.innerText = ` (${metadata.puzzleRating})`;
+                    }
+                });
+
                 getElementsByClassNameArray(`puzzle-metadata-${puzzleId}`).forEach(metadataDiv => {
-                    const gameMetadata = puzzleIdsToGameMetadata.get(puzzleId);
-                    if (gameMetadata != null) {
+                    if (metadata != null) {
+                        const gameMetadata = metadata.gameMetadata;
                         let color = null;
                         switch (gameMetadata.outcome) {
                             case Outcome.RED_WINS:
@@ -221,16 +260,22 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
 
     /**
      * @param puzzleIds {string[]}
-     * @param cb {function(Map<string, GameMetadataDto>)}
+     * @param cb {function(Map<string, {gameMetadata: GameMetadataDto, puzzleRating: number|null}>)}
      */
     #fetchOriginalGamesMetadata(puzzleIds, cb) {
         postAndHandle('/api/puzzle/original-games-metadata', {puzzleIds: puzzleIds}, json => {
-            const puzzleIdsToGameMetadata = new Map();
+            const puzzleIdsToMetadata = new Map();
             json.entries.forEach(entry => {
-                puzzleIdsToGameMetadata.set(entry.puzzleId, new GameMetadataDto(entry.gameMetadata));
+                puzzleIdsToMetadata.set(
+                    entry.puzzleId,
+                    {
+                        gameMetadata: new GameMetadataDto(entry.gameMetadata),
+                        puzzleRating: entry.puzzleRating,
+                    }
+                );
             });
 
-            cb(puzzleIdsToGameMetadata);
+            cb(puzzleIdsToMetadata);
         });
     }
 

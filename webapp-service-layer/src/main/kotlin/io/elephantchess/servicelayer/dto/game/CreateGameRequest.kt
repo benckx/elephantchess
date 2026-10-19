@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.dto.game
 
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 
 data class CreateGameRequest(
     val inviterColor: Color?,
@@ -12,4 +13,5 @@ data class CreateGameRequest(
     val allowGuests: Boolean,
     val alwaysVisibleInLobby: Boolean,
     val privateInvite: Boolean,
+    val variant: Variant = Variant.XIANGQI,
 )

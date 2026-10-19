@@ -11,7 +11,6 @@ data class ListUserEdits(val entries: List<Entry>) {
         val latestEditorUsername: String,
         val latestComment: String?,
         val latestEditTimestamp: Long,
-        val enabled: Boolean
+        val enabled: Boolean,
     )
-
 }

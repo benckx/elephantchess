@@ -7,12 +7,14 @@ import io.elephantchess.db.dao.codegen.tables.pojos.Newsletter
 import io.elephantchess.db.dao.codegen.tables.pojos.NewsletterEmail
 import io.elephantchess.db.model.NewsletterStatsRecord
 import io.elephantchess.db.utils.*
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+@KoinSingleton
 class NewsletterDaoService(private val dslContext: DSLContext) {
 
     /**
@@ -21,8 +23,8 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
      *
      * User who signed up after the newsletter has been fanned out will not receive the newsletter
      */
-    suspend fun listNewslettersToFanOut(): List<String> {
-        return dslContext
+    suspend fun listNewslettersToFanOut(): List<String> =
+        dslContext
             .selectDistinct(NEWSLETTER.ID)
             .from(NEWSLETTER)
             .where(
@@ -30,20 +32,18 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
                     dslContext
                         .selectDistinct(NEWSLETTER.ID)
                         .from(NEWSLETTER, NEWSLETTER_EMAIL)
-                        .where(NEWSLETTER.ID.eq(NEWSLETTER_EMAIL.NEWSLETTER_ID))
-                )
+                        .where(NEWSLETTER.ID.eq(NEWSLETTER_EMAIL.NEWSLETTER_ID)),
+                ),
             )
             .awaitMappedRecords()
-    }
 
-    suspend fun findNewsletterById(newsletterId: String): Newsletter? {
-        return dslContext
+    suspend fun findNewsletterById(newsletterId: String): Newsletter? =
+        dslContext
             .select()
             .from(NEWSLETTER)
             .where(NEWSLETTER.ID.eq(newsletterId))
             .awaitMappedRecords<Newsletter>()
             .firstOrNull()
-    }
 
     suspend fun insertAll(records: List<NewsletterEmail>) {
         dslContext.transactionCoroutine { cfg ->
@@ -51,54 +51,51 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun getBatchToSend(size: Int): List<NewsletterEmail> {
-        return dslContext
+    suspend fun getBatchToSend(size: Int): List<NewsletterEmail> =
+        dslContext
             .select()
             .from(NEWSLETTER_EMAIL)
             .where(NEWSLETTER_EMAIL.SENT_TIME.isNull)
             .orderBy(NEWSLETTER_EMAIL.CREATED_TIME)
             .limit(size)
             .awaitMappedRecords()
-    }
 
-    suspend fun getLastSentNewsLetterEmail(): Instant? {
-        return dslContext
+    suspend fun getLastSentNewsLetterEmail(): Instant? =
+        dslContext
             .select(NEWSLETTER_EMAIL.SENT_TIME)
             .from(NEWSLETTER_EMAIL)
             .where(NEWSLETTER_EMAIL.SENT_TIME.isNotNull)
             .orderBy(NEWSLETTER_EMAIL.SENT_TIME.desc())
             .limit(1)
             .awaitSingleValue()
-    }
 
     suspend fun markAsSent(newsletterId: String, emailAddress: String) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
                 .update(NEWSLETTER_EMAIL)
-                .set(NEWSLETTER_EMAIL.SENT_TIME.fixed(), Clock.System.now())
+                .set(NEWSLETTER_EMAIL.SENT_TIME, Clock.System.now())
                 .where(NEWSLETTER_EMAIL.NEWSLETTER_ID.eq(newsletterId))
                 .and(NEWSLETTER_EMAIL.EMAIL_ADDRESS.eq(emailAddress))
                 .awaitExecute()
         }
     }
 
-    suspend fun findByCode(code: String): NewsletterEmail? {
-        return dslContext
+    suspend fun findByCode(code: String): NewsletterEmail? =
+        dslContext
             .select()
             .from(NEWSLETTER_EMAIL)
             .where(NEWSLETTER_EMAIL.UNSUBSCRIBE_FROM_NEWSLETTER_CODE.eq(code))
             .or(NEWSLETTER_EMAIL.UNSUBSCRIBE_FROM_ALL_CODE.eq(code))
             .awaitMappedRecords<NewsletterEmail>()
             .firstOrNull()
-    }
 
     suspend fun markAsUnsubscribedFromNewsletter(code: String) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
                 .update(NEWSLETTER_EMAIL)
-                .set(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_NEWSLETTER.fixed(), Clock.System.now())
+                .set(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_NEWSLETTER, Clock.System.now())
                 .where(NEWSLETTER_EMAIL.UNSUBSCRIBE_FROM_NEWSLETTER_CODE.eq(code))
                 .awaitExecute()
         }
@@ -109,14 +106,14 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
             DSL
                 .using(cfg)
                 .update(NEWSLETTER_EMAIL)
-                .set(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_ALL.fixed(), Clock.System.now())
+                .set(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_ALL, Clock.System.now())
                 .where(NEWSLETTER_EMAIL.UNSUBSCRIBE_FROM_ALL_CODE.eq(code))
                 .awaitExecute()
         }
     }
 
-    suspend fun fetchNewsletterStats(): List<NewsletterStatsRecord> {
-        return dslContext
+    suspend fun fetchNewsletterStats(): List<NewsletterStatsRecord> =
+        dslContext
             .select(
                 NEWSLETTER.ID,
                 NEWSLETTER.TEMPLATE_NAME,
@@ -127,7 +124,7 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
                 DSL.count(NEWSLETTER_EMAIL.EMAIL_ADDRESS).`as`("total_emails"),
                 DSL.count(NEWSLETTER_EMAIL.SENT_TIME).`as`("sent_count"),
                 DSL.count(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_NEWSLETTER).`as`("unsubscribed_newsletter_count"),
-                DSL.count(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_ALL).`as`("unsubscribed_all_count")
+                DSL.count(NEWSLETTER_EMAIL.UNSUBSCRIBED_FROM_ALL).`as`("unsubscribed_all_count"),
             )
             .from(NEWSLETTER)
             .leftJoin(NEWSLETTER_EMAIL).on(NEWSLETTER.ID.eq(NEWSLETTER_EMAIL.NEWSLETTER_ID))
@@ -145,9 +142,7 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
                     totalEmails = record.get("total_emails", Int::class.java) ?: 0,
                     sentCount = record.get("sent_count", Int::class.java) ?: 0,
                     unsubscribedNewsletterCount = record.get("unsubscribed_newsletter_count", Int::class.java) ?: 0,
-                    unsubscribedAllCount = record.get("unsubscribed_all_count", Int::class.java) ?: 0
+                    unsubscribedAllCount = record.get("unsubscribed_all_count", Int::class.java) ?: 0,
                 )
             }
-    }
-
 }

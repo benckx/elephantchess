@@ -23,12 +23,14 @@ class ThrownExceptionDto {
     #httpCode;
     #exceptionClass;
     #exceptionMessage;
+    #exceptionTrace;
 
     constructor(json) {
         this.#exceptionTime = json.exceptionTime;
         this.#httpCode = json.httpCode;
         this.#exceptionClass = json.exceptionClass;
         this.#exceptionMessage = json.exceptionMessage;
+        this.#exceptionTrace = json.exceptionTrace;
     }
 
     /**
@@ -57,6 +59,13 @@ class ThrownExceptionDto {
      */
     get exceptionMessage() {
         return this.#exceptionMessage;
+    }
+
+    /**
+     * @returns {?string}
+     */
+    get exceptionTrace() {
+        return this.#exceptionTrace;
     }
 }
 

@@ -8,7 +8,7 @@ updates:
     labels:
       - "dependencies"
     ignore:
-      # Netty version is pinned to match io.ktor:ktor-server-netty in build.gradle.
+      # Netty version is pinned to match io.ktor:ktor-server-netty in build.gradle.kts.
       # Bump it manually when upgrading Ktor.
       - dependency-name: "io.netty:*"
     groups:

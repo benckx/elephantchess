@@ -7,7 +7,7 @@ enum class AbstractPieceType(
     val uci: Char,
     val redLabel: Char,
     val blackLabel: Char,
-    val maxLegal: Int = 2
+    val maxLegal: Int = 2,
 ) {
 
     GENERAL('k', '帅', '将', 1),
@@ -16,6 +16,11 @@ enum class AbstractPieceType(
     HORSE('n', '傌', '馬'),
     CHARIOT('r', '俥', '車'),
     CANNON('c', '炮', '砲'),
-    SOLDIER('p', '兵', '卒', 5);
+    SOLDIER('p', '兵', '卒', 5),
 
+    /**
+     * The super-chariot (Banner) in Manchu chess: combines the powers of the chariot, horse, and cannon.
+     * Represented by 'm'/'M' in the FEN. Only used as Red's piece in the Manchu variant.
+     */
+    SUPER_CHARIOT('m', '俥', '車', 1),
 }

@@ -1,0 +1,237 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>How to Play Chinese chess (xiangqi) - elephantchess.io</title>
+    <meta name="description"
+          content="How to play Chinese chess (xiangqi). Interactive board for each piece.">
+    <script defer src="/js/modules/engine.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <link rel="stylesheet" href="/css/how-to-play-xiangqi.css"/>
+    <script defer src="/js/how-to-play-xiangqi-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-smaller">
+    <h1>How to Play</h1>
+    <hr/>
+    <p>
+        This page lists all xiangqi pieces with interactive boards. You can click on the pieces or start to drag them to
+        visualize and play moves on each test position.
+    </p>
+    <p>
+        This page renders the boards with "romanized" (or "westernized") piece style by default (assuming people who
+        want to learn the game might not be familiar with the Chinese characters yet), but you can change the piece
+        style in the setting manager at any time:
+    </p>
+    <div class="center-content-div">
+        <div id="settings-info-box-container" class="center-content-div">
+            {{settings_info_box}}
+        </div>
+    </div>
+
+    <h1>Moves</h1>
+    <hr/>
+    <div class="piece-rules">
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="general-moves">General (帅 / 将)</h2>
+                <p>
+                    The General moves one step orthogonally and must stay in the palace.
+                </p>
+                <p>
+                    It is represented by the letter K in FEN.
+                </p>
+                <p>
+                    <span id="reset-general-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-general-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="advisor-moves">Advisor (仕 / 士)</h2>
+                <p>
+                    The Advisor moves one step diagonally and also stays in the palace.
+                </p>
+                <p>
+                    It is represented by the letter A in FEN.
+                </p>
+                <p>
+                    <span id="reset-advisor-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-advisor-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="elephant-moves">Elephant (相 / 象)</h2>
+                <p>
+                    The Elephant moves two points diagonally, cannot jump, and cannot cross the river.
+                </p>
+                <p>
+                    It is represented by the letter B in FEN.
+                </p>
+                <p>
+                    <span id="reset-elephant-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-elephant-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="horse-moves">Horse (傌 / 馬)</h2>
+                <p>
+                    The Horse moves one point orthogonally then one point diagonally outward. It can be blocked if the
+                    orthogonal square is already occupied.
+                </p>
+                <p>
+                    It is represented by the letter N in FEN.
+                </p>
+                <p>
+                    <span id="reset-horse-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-horse-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="chariot-moves">Chariot (俥 / 車)</h2>
+                <p>
+                    The Chariot moves any distance orthogonally (like a rook).
+                </p>
+                <p>
+                    It is represented by the letter R in FEN.
+                </p>
+                <p>
+                    <span id="reset-chariot-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-chariot-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="cannon-moves">Cannon (炮 / 砲)</h2>
+                <p>
+                    The Cannon moves like a Chariot, but captures only by jumping over exactly one piece.
+                </p>
+                <p>
+                    It is represented by the letter C in FEN.
+                </p>
+                <p>
+                    <span id="reset-cannon-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-cannon-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="soldier-moves">Soldier (兵 / 卒)</h2>
+                <p>
+                    Before crossing the river, a Soldier moves forward one point. After crossing, it can also move one
+                    point horizontally.
+                </p>
+                <p>
+                    It is represented by the letter P in FEN.
+                </p>
+                <p>
+                    <span id="reset-soldier-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-soldier-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+    </div>
+
+    <h1>Variants</h1>
+    <hr/>
+    <div class="piece-rules">
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="manchu-chariot-moves">Manchu Super Chariot (M)</h2>
+                <p>
+                    In the Manchu variant (also called Yitong), Red has a single super chariot that combines the powers
+                    of chariot, horse, and cannon.
+                </p>
+                <p>
+                    It is represented by the letter M in FEN.
+                </p>
+                <p>
+                    <span id="reset-manchu-chariot-board-button" class="action-link">reset test board</span> /
+                    <a href="/board?variant=manchu&medium=xiangqi_about">Manchu test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-manchu-chariot-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+    </div>
+
+    <h1>Setup</h1>
+    <hr/>
+    <div class="piece-rules">
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="complete-setup-board">Initial Position</h2>
+                <p>
+                    Red plays first.
+                </p>
+                <p>
+                    <span id="reset-complete-setup-board-button" class="action-link">reset setup board</span> /
+                    <a href="/board?medium=xiangqi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-complete-setup-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+    </div>
+
+    <h1>See also</h1>
+    <hr/>
+    <ul>
+        <li>
+            <a href="/board?medium=how-to-play">
+                Test Board
+            </a>
+        </li>
+        <li>
+            <a href="/board?variant=manchu&medium=how-to-play">
+                Test Board (Manchu variant)
+            </a>
+        </li>
+        <li>
+            <a href="https://en.wikipedia.org/wiki/Xiangqi" target="_blank">
+                https://en.wikipedia.org/wiki/Xiangqi
+            </a>
+        </li>
+        <li>
+            <a href="https://en.wikipedia.org/wiki/Manchu_chess" target="_blank">
+                https://en.wikipedia.org/wiki/Manchu_chess
+            </a>
+        </li>
+    </ul>
+</div>
+{{footer}}
+{{kofi_floating_widget}}
+</body>
+</html>

@@ -34,5 +34,4 @@ class RecordOpsTest {
         assertEquals(1, game.minColorPerPlayer())
         assertEquals(1, game.maxColorPerPlayer())
     }
-
 }

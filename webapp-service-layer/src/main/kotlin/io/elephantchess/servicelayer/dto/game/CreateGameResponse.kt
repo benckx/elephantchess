@@ -6,5 +6,5 @@ import io.elephantchess.xiangqi.Color
 data class CreateGameResponse(
     val gameId: String,
     val eventType: GameEventType,
-    val color: Color?
+    val color: Color?,
 )

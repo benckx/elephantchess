@@ -17,68 +17,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class TimeCategoryStatsDto {
-
-    #bullet;
-    #blitz;
-    #rapid;
-    #classical;
-    #severalDays;
-    #correspondence;
-
-    constructor(json) {
-        this.#bullet = json.bullet;
-        this.#blitz = json.blitz;
-        this.#rapid = json.rapid;
-        this.#classical = json.classical;
-        this.#severalDays = json.severalDays;
-        this.#correspondence = json.correspondence;
-    }
-
-    /**
-     * @returns {number}
-     */
-    get bullet() {
-        return this.#bullet;
-    }
-
-    /**
-     * @returns {number}
-     */
-    get blitz() {
-        return this.#blitz;
-    }
-
-    /**
-     * @returns {number}
-     */
-    get rapid() {
-        return this.#rapid;
-    }
-
-    /**
-     * @returns {number}
-     */
-    get classical() {
-        return this.#classical;
-    }
-
-    /**
-     * @returns {number}
-     */
-    get severalDays() {
-        return this.#severalDays;
-    }
-
-    /**
-     * @returns {number}
-     */
-    get correspondence() {
-        return this.#correspondence;
-    }
-
-}
-
 class PuzzleSummaryStatsDto {
 
     #rating;

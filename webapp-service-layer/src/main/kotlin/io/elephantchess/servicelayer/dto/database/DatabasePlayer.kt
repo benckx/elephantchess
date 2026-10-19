@@ -9,5 +9,4 @@ data class DatabasePlayer(
 
     val urlName: String
         get() = canonicalName.replace(" ", "_")
-
 }

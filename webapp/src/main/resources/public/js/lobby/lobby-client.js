@@ -58,7 +58,7 @@ class LobbyClient {
      * @param cb {function(Array<GameMetadataDto>)}
      */
     listLastPvbGames(limit, cb) {
-        getAndHandle('/api/game-data/list-latest-pvb-games?limit=' + limit, (json) => {
+        getAndHandle('/api/game-data/list-latest-pvb-games?limit=' + limit + '&excludeAutoResigned=true', (json) => {
             const items = [];
             for (let i = 0; i < json.entries.length; i++) {
                 items.push(new GameMetadataDto(json.entries[i]));

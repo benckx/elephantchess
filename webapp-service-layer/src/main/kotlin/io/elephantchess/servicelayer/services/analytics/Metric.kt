@@ -14,5 +14,4 @@ abstract class Metric(val name: String) {
     abstract suspend fun countByYear(dslContext: DSLContext): List<IntDimensionValueRecord>
 
     abstract suspend fun countByCentury(dslContext: DSLContext): List<IntDimensionValueRecord>
-
 }

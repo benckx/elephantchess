@@ -33,8 +33,13 @@ tr#outcome-row {
     color: #515151;
 }
 
+.pvp-variant-symbol {
+    font-size: 14px;
+    margin-right: 4px;
+    color: #343434;
+}
+
 #game-info-info-box {
-    height: 200px;
     display: flex;
 }
 
@@ -87,6 +92,39 @@ tr#outcome-row {
     border-top-width: 1px;
     border-top-style: dashed;
     border-top-color: #4d4d4d;
+}
+
+.mini-counter-box {
+    position: fixed;
+    bottom: 8px;
+    right: 8px;
+    z-index: 400;
+    width: 378px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0 4px 10px;
+    border-radius: 4px;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.mini-counter-box.mini-counter-box-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.mini-counter-box .mini-time-counter {
+    font-size: 46px;
+    padding-top: 4px;
+    padding-bottom: 2px;
+    box-sizing: border-box;
+}
+
+.mini-counter-box .red-counter {
+    background-color: rgb(255 168 168);
+}
+
+.mini-counter-box .black-counter {
+    background-color: rgb(171 171 171);
 }
 
 .move-tree-container-smaller {
@@ -142,12 +180,12 @@ tr#outcome-row {
         font-size: 46px;
     }
 
-    #analysis-button-container-right-side {
-        margin-top: 36px;
+    #counter-box {
+        max-width: 420px;
     }
 
-    #game-info-info-box {
-        height: 420px;
+    #analysis-button-container-right-side {
+        margin-top: 36px;
     }
 
     #perpetual-checking-tracker-info-box {

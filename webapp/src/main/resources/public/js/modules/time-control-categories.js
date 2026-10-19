@@ -359,6 +359,7 @@ timeControlCategories.push(
 timeControlCategories.push(
     new TimeControlCategory('Rapid', [
         new TimeControl(TimeControlDuration.ofMinutes(10)),
+        new TimeControl(TimeControlDuration.ofMinutes(15)),
         new TimeControl(TimeControlDuration.ofMinutes(15), TimeControlDuration.ofSeconds(10)),
         new TimeControl(TimeControlDuration.ofMinutes(30))
     ])
@@ -375,6 +376,7 @@ timeControlCategories.push(
 timeControlCategories.push(
     new TimeControlCategory('Several days', [
         new TimeControl(TimeControlDuration.ofDays(1)),
+        new TimeControl(TimeControlDuration.ofDays(2)),
         new TimeControl(TimeControlDuration.ofDays(3)),
         new TimeControl(TimeControlDuration.ofDays(7)),
     ])

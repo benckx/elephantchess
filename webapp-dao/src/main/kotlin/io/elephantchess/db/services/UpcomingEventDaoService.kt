@@ -4,11 +4,13 @@ import io.elephantchess.db.dao.codegen.Tables.UPCOMING_EVENT
 import io.elephantchess.db.dao.codegen.tables.daos.UpcomingEventDao
 import io.elephantchess.db.dao.codegen.tables.pojos.UpcomingEvent
 import io.elephantchess.db.utils.*
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDate
 
+@KoinSingleton
 class UpcomingEventDaoService(private val dslContext: DSLContext) {
 
     suspend fun listUpcomingEventsForLobby(): List<UpcomingEvent> {
@@ -23,13 +25,12 @@ class UpcomingEventDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun listAllUpcomingEvents(): List<UpcomingEvent> {
-        return dslContext
+    suspend fun listAllUpcomingEvents(): List<UpcomingEvent> =
+        dslContext
             .select()
             .from(UPCOMING_EVENT)
             .orderBy(UPCOMING_EVENT.EVENT_START.desc())
             .awaitMappedRecords()
-    }
 
     suspend fun save(event: UpcomingEvent): Int {
         var newId = 0
@@ -69,12 +70,10 @@ class UpcomingEventDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun findById(eventId: Int): UpcomingEvent? {
-        return dslContext
+    suspend fun findById(eventId: Int): UpcomingEvent? =
+        dslContext
             .select()
             .from(UPCOMING_EVENT)
             .where(UPCOMING_EVENT.ID.eq(eventId))
             .awaitSingleMappedRecord()
-    }
-
 }

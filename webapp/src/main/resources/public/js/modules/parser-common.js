@@ -328,6 +328,7 @@ function parseToMoves(input) {
             new PgnParser(input, false),
             new PgnParser(input, true),
             new UciMoveParser(input),
+            new IccsParser(input),
             new AlgebraicParser(input),
             new WxfParser(input)
         ];

@@ -7,38 +7,39 @@ import java.nio.file.Files
 import java.util.*
 import kotlin.io.path.Path
 
-class PropertiesFile(
-    private val profileName: String,
-    private val configurationLocation: String?
-) {
+class PropertiesFile(private val profileName: String, private val configurationLocation: String?) {
 
     private val logger = KotlinLogging.logger {}
 
     private val properties = loadProperties()
 
-    fun loadString(key: String) = getProperty(key)
+    fun loadString(key: String) =
+        getProperty(key)
 
-    fun loadBoolean(key: String): Boolean {
-        return try {
+    fun loadBoolean(key: String): Boolean =
+        try {
             getProperty(key).toBoolean()
         } catch (e: Exception) {
             logger.error { "error loading boolean property $key: $e" }
             false
         }
-    }
 
-    fun loadBoolean(key: String, default: Boolean) = getPropertyOrNull(key)?.toBoolean() ?: default
+    fun loadBoolean(key: String, default: Boolean) =
+        getPropertyOrNull(key)?.toBoolean() ?: default
 
-    fun loadInt(key: String) = getProperty(key).toInt()
+    fun loadInt(key: String) =
+        getProperty(key).toInt()
 
-    fun loadList(key: String): List<String> {
-        return if (!properties.containsKey(key)) {
+    fun loadIntOrDefault(key: String, default: Int) =
+        getPropertyOrNull(key)?.toIntOrNull() ?: default
+
+    fun loadList(key: String): List<String> =
+        if (!properties.containsKey(key)) {
             logger.warn { "list property not found $key" }
             listOf()
         } else {
             getProperty(key).split(",")
         }
-    }
 
     private fun getProperty(key: String): String {
         val value = properties.getProperty(key)
@@ -50,21 +51,20 @@ class PropertiesFile(
         }
     }
 
-    private fun getPropertyOrNull(key: String): String? {
-        return properties.getProperty(key)
-    }
+    private fun getPropertyOrNull(key: String): String? =
+        properties.getProperty(key)
 
     private fun loadProperties(): Properties {
         val properties = Properties()
         val baseContent = if (configurationLocation == null) {
-            val configFileName = "/app_${profileName}.properties"
+            val configFileName = "/app_$profileName.properties"
             logger.info { "loading properties from resource $configFileName" }
             resourceAsText(configFileName)
         } else {
             val filePath = if (configurationLocation.endsWith("/")) {
-                "${configurationLocation}app_${profileName}.properties"
+                "${configurationLocation}app_$profileName.properties"
             } else {
-                "$configurationLocation/app_${profileName}.properties"
+                "$configurationLocation/app_$profileName.properties"
             }
 
             logger.info { "loading properties from file $filePath" }
@@ -74,12 +74,9 @@ class PropertiesFile(
         return properties
     }
 
-    private fun resourceAsText(path: String): String {
-        return resourceURL(path)!!.readText()
-    }
+    private fun resourceAsText(path: String): String =
+        resourceURL(path)!!.readText()
 
-    private fun resourceURL(path: String): URL? {
-        return object {}.javaClass.getResource(path)
-    }
-
+    private fun resourceURL(path: String): URL? =
+        object {}.javaClass.getResource(path)
 }

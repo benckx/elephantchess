@@ -41,16 +41,46 @@ fun Route.gameDataRoutes() {
                 gameDataService.listLastPvpGames(
                     requestedLimit = limit,
                     distinctByUsers = distinctByUsers,
-                    beforeTs = continuation
+                    beforeTs = continuation,
+                )
+            }
+        }
+        get("/list-latest-pvp-games-by-user") {
+            // distinctByUsers is ignored here: filtering by username already scopes results to one user
+            paginationParams { limit, continuation, _ ->
+                val username = call.parameters["username"]
+                    ?: throw BadRequestException("username parameter is required")
+
+                gameDataService.listLastPvpGamesByUsername(
+                    username = username,
+                    requestedLimit = limit,
+                    beforeTs = continuation,
                 )
             }
         }
         get("/list-latest-pvb-games") {
             paginationParams { limit, continuation, distinctByUsers ->
-                gameDataService.listLastPvbGames(
+                // false by default
+                val excludeAutoResigned = (call.parameters["excludeAutoResigned"] ?: "false").toBoolean()
+
+                gameDataService.listLatestPvbGames(
                     requestedLimit = limit,
                     distinctByUsers = distinctByUsers,
-                    beforeTs = continuation
+                    beforeTs = continuation,
+                    excludeAutoResigned = excludeAutoResigned,
+                )
+            }
+        }
+        get("/list-latest-pvb-games-by-user") {
+            // distinctByUsers is ignored here: filtering by username already scopes results to one user
+            paginationParams { limit, continuation, _ ->
+                val username = call.parameters["username"]
+                    ?: throw BadRequestException("username parameter is required")
+
+                gameDataService.listLatestPvbGamesByUsername(
+                    username = username,
+                    requestedLimit = limit,
+                    beforeTs = continuation,
                 )
             }
         }
@@ -62,7 +92,7 @@ fun Route.gameDataRoutes() {
                 gameDataService.listLastDbGamesByPlayerName(
                     requestedLimit = limit,
                     canonicalPlayerName = playerName,
-                    offset = continuation?.toInt()
+                    offset = continuation?.toInt(),
                 )
             }
         }
@@ -76,16 +106,14 @@ fun Route.gameDataRoutes() {
                     requestedLimit = limit,
                     eventId = eventId,
                     round = round,
-                    offset = continuation?.toInt()
+                    offset = continuation?.toInt(),
                 )
             }
         }
     }
 }
 
-suspend fun RoutingContext.paginationParams(
-    handler: suspend (Int, Long?, Boolean) -> Any,
-) {
+suspend fun RoutingContext.paginationParams(handler: suspend (Int, Long?, Boolean) -> Any) {
     val limit = (call.parameters["limit"]?.toInt() ?: 18)
         .coerceAtLeast(1)
         .coerceAtMost(24)

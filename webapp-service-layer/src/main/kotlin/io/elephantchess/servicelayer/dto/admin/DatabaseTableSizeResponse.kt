@@ -13,7 +13,6 @@ data class DatabaseTableSizeResponse(val entries: List<Entry>) {
         val totalSize: String,
         val indexSize: String,
         val toastSize: String,
-        val tableSize: String
+        val tableSize: String,
     )
-
 }
