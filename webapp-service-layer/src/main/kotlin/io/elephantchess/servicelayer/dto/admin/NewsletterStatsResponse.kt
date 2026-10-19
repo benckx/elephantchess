@@ -1,9 +1,6 @@
 package io.elephantchess.servicelayer.dto.admin
 
-data class NewsletterStatsResponse(
-    val entries: List<Entry>,
-    val potentialRecipients: Int
-) {
+data class NewsletterStatsResponse(val entries: List<Entry>, val potentialRecipients: Int) {
 
     data class Entry(
         val templateName: String,
@@ -18,12 +15,8 @@ data class NewsletterStatsResponse(
         val unsubscribedNewsletterCount: Int,
         val unsubscribedAllCount: Int,
         val linkClicks: Int,
-        val linkClickDetails: List<LinkClickDetail>
+        val linkClickDetails: List<LinkClickDetail>,
     )
 
-    data class LinkClickDetail(
-        val link: String,
-        val clicks: Int
-    )
-
+    data class LinkClickDetail(val link: String, val clicks: Int)
 }

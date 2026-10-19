@@ -63,7 +63,7 @@ fun Route.botGameWsRoutes() {
 
         handleWebSocketSession(
             { pvbGameService.startSpectatorSession(gameId, moveIndex) { update -> sendWs(update) } },
-            { sessionId -> pvbGameService.closeSpectatorSession(sessionId) }
+            { sessionId -> pvbGameService.closeSpectatorSession(sessionId) },
         )
     }
 }

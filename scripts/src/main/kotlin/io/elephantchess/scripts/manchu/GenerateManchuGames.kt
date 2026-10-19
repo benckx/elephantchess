@@ -32,7 +32,8 @@ object GenerateManchuGames {
         val result: GameResult,
     )
 
-    private fun movesKey(game: GeneratedGame): String = game.moves.joinToString(",")
+    private fun movesKey(game: GeneratedGame): String =
+        game.moves.joinToString(",")
 
     private fun generateGame(): GeneratedGame {
         val board = Board(Board.MANCHU_START_FEN)
@@ -66,60 +67,61 @@ object GenerateManchuGames {
         return GeneratedGame(randomId(), moves.map { it.toUci() }, GameResult.TOO_LONG)
     }
 
-    private fun randomId(): String = UUID.randomUUID().toString().replace("-", "").take(8)
+    private fun randomId(): String =
+        UUID.randomUUID().toString().replace("-", "").take(8)
 
     @JvmStatic
-    fun main(args: Array<String>): Unit = runBlocking {
-        println("Generating $TOTAL_GAMES Manchu games in parallel...")
+    fun main(args: Array<String>): Unit =
+        runBlocking {
+            println("Generating $TOTAL_GAMES Manchu games in parallel...")
 
-        val startedAt = System.currentTimeMillis()
-        val completed = AtomicInteger(0)
+            val startedAt = System.currentTimeMillis()
+            val completed = AtomicInteger(0)
 
-        val allGames = (1..TOTAL_GAMES)
-            .map {
-                async(Dispatchers.Default) {
-                    val game = generateGame()
-                    val done = completed.incrementAndGet()
-                    if (done % 500 == 0 || done == TOTAL_GAMES) {
-                        val elapsedSeconds = (System.currentTimeMillis() - startedAt) / 1000
-                        println("Progress: $done/$TOTAL_GAMES (${done * 100 / TOTAL_GAMES}%) - ${elapsedSeconds}s elapsed")
+            val allGames = (1..TOTAL_GAMES)
+                .map {
+                    async(Dispatchers.Default) {
+                        val game = generateGame()
+                        val done = completed.incrementAndGet()
+                        if (done % 500 == 0 || done == TOTAL_GAMES) {
+                            val elapsedSeconds = (System.currentTimeMillis() - startedAt) / 1000
+                            println("Progress: $done/$TOTAL_GAMES (${done * 100 / TOTAL_GAMES}%) - ${elapsedSeconds}s elapsed")
+                        }
+                        game
                     }
-                    game
+                }
+                .awaitAll()
+
+            val uniqueGames = allGames.distinctBy { movesKey(it) }
+            println("Deduplicated ${allGames.size - uniqueGames.size} duplicate games")
+
+            val byResult = uniqueGames.groupBy { it.result }.mapValues { (_, games) -> games.sortedBy { it.moves.size } }
+            println("Generated: ${byResult.mapValues { it.value.size }}")
+
+            val completedGames = uniqueGames.filter { it.result != GameResult.TOO_LONG }
+
+            // Pick a minimum from each terminal result type for variety
+            val selectedByMoves = linkedMapOf<String, GeneratedGame>()
+            GameResult.entries.filter { it != GameResult.TOO_LONG }.forEach { resultType ->
+                (byResult[resultType] ?: emptyList())
+                    .take(MIN_PER_RESULT_TYPE)
+                    .forEach { game -> selectedByMoves.putIfAbsent(movesKey(game), game) }
+            }
+
+            // Fill remaining slots with the shortest completed games
+            completedGames.sortedBy { it.moves.size }.forEach { game ->
+                if (selectedByMoves.size < GAMES_TO_KEEP) {
+                    selectedByMoves.putIfAbsent(movesKey(game), game)
                 }
             }
-            .awaitAll()
 
-        val uniqueGames = allGames.distinctBy { movesKey(it) }
-        println("Deduplicated ${allGames.size - uniqueGames.size} duplicate games")
+            val finalGames = selectedByMoves.values.sortedBy { it.moves.size }.take(GAMES_TO_KEEP)
+            println("Keeping ${finalGames.size} games: ${finalGames.groupBy { it.result }.mapValues { it.value.size }}")
 
-        val byResult = uniqueGames.groupBy { it.result }.mapValues { (_, games) -> games.sortedBy { it.moves.size } }
-        println("Generated: ${byResult.mapValues { it.value.size }}")
-
-        val completedGames = uniqueGames.filter { it.result != GameResult.TOO_LONG }
-
-        // Pick a minimum from each terminal result type for variety
-        val selectedByMoves = linkedMapOf<String, GeneratedGame>()
-        GameResult.entries.filter { it != GameResult.TOO_LONG }.forEach { resultType ->
-            (byResult[resultType] ?: emptyList())
-                .take(MIN_PER_RESULT_TYPE)
-                .forEach { game -> selectedByMoves.putIfAbsent(movesKey(game), game) }
+            val outputPath = "xiangqi-core-test-utils/src/main/resources/manchu.txt"
+            File(outputPath).writeText(
+                finalGames.joinToString("\n") { game -> "${game.id};${game.moves.joinToString(",")}" },
+            )
+            println("Written to $outputPath")
         }
-
-        // Fill remaining slots with the shortest completed games
-        completedGames.sortedBy { it.moves.size }.forEach { game ->
-            if (selectedByMoves.size < GAMES_TO_KEEP) {
-                selectedByMoves.putIfAbsent(movesKey(game), game)
-            }
-        }
-
-        val finalGames = selectedByMoves.values.sortedBy { it.moves.size }.take(GAMES_TO_KEEP)
-        println("Keeping ${finalGames.size} games: ${finalGames.groupBy { it.result }.mapValues { it.value.size }}")
-
-        val outputPath = "xiangqi-core-test-utils/src/main/resources/manchu.txt"
-        File(outputPath).writeText(
-            finalGames.joinToString("\n") { game -> "${game.id};${game.moves.joinToString(",")}" }
-        )
-        println("Written to $outputPath")
-    }
-
 }

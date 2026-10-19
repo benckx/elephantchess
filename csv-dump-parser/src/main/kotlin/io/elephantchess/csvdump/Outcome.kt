@@ -7,7 +7,8 @@ package io.elephantchess.csvdump
 enum class Outcome {
     RED_WINS,
     BLACK_WINS,
-    DRAW;
+    DRAW,
+    ;
 
     companion object {
 

@@ -24,5 +24,4 @@ class ColorTest {
         assertFalse(areContiguous(listOf(RED)))
         assertFalse(areContiguous(emptyList()))
     }
-
 }

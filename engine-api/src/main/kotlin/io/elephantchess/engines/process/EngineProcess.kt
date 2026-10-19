@@ -83,17 +83,17 @@ abstract class EngineProcess(
         setVariant(variant)
         inputCommand("position fen $fen")
         inputCommand("go nodes $maxNodes")
-val gotResult = waitForCondition(maxDelay, checkPeriod) {
-    infoListener.hasResult()
-}
-if (!gotResult) {
-    inputCommand("stop")
-    val gotResultAfterStop = waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }
-    if (!gotResultAfterStop) {
-        throw Exception("Engine did not return a result for 'go nodes $maxNodes' within ${maxDelay}ms.")
-    }
-}
-return infoListener.getResult()
+        val gotResult = waitForCondition(maxDelay, checkPeriod) {
+            infoListener.hasResult()
+        }
+        if (!gotResult) {
+            inputCommand("stop")
+            val gotResultAfterStop = waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }
+            if (!gotResultAfterStop) {
+                throw Exception("Engine did not return a result for 'go nodes $maxNodes' within ${maxDelay}ms.")
+            }
+        }
+        return infoListener.getResult()
     }
 
     /**
@@ -118,6 +118,20 @@ return infoListener.getResult()
         }
         lineListener = null
         return matchListener.matchingLine!!
+    }
+
+    fun isAlive(): Boolean =
+        this::process.isInitialized && process.isAlive
+
+    /**
+     * Resets the internal state so this process can be re-submitted to the executor via [run] after it
+     * has unexpectedly terminated (e.g. an engine crash). The pool is responsible for the actual
+     * re-submission and for waiting until the new process is ready again.
+     */
+    fun prepareRelaunch() {
+        hasQuit = false
+        processedHasStarted.set(false)
+        lineListener = null
     }
 
     fun quit(timeoutMs: Long = 10_000): Boolean {
@@ -151,7 +165,16 @@ return infoListener.getResult()
         initEngine()
 
         while (!hasQuit) {
-            reader.readLine()?.let { receivedLine(it) }
+            val line = reader.readLine()
+            if (line == null) {
+                // end of stream: the engine process terminated. Break out instead of busy-spinning
+                // on readLine() (which keeps returning null once the stream is closed).
+                if (!hasQuit) {
+                    logger.warn { "$engineId process stream closed unexpectedly (process likely crashed)" }
+                }
+                break
+            }
+            receivedLine(line)
         }
     }
 
@@ -173,7 +196,5 @@ return infoListener.getResult()
 
         const val DEFAULT_MAX_DELAY = 5_000L
         const val DEFAULT_CHECK_PERIOD = 100L
-
     }
-
 }

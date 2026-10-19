@@ -56,11 +56,11 @@ data class PvpGame(
                         ),
                         redPlayerEloUpdate = PlayerEloUpdate.of(
                             first.intOrNull("red_elo_before"),
-                            first.intOrNull("red_elo_after")
+                            first.intOrNull("red_elo_after"),
                         ),
                         blackPlayerEloChange = PlayerEloUpdate.of(
                             first.intOrNull("black_elo_before"),
-                            first.intOrNull("black_elo_after")
+                            first.intOrNull("black_elo_after"),
                         ),
                         timeControl = TimeControl.fromCsv(first.value("time_control")),
                         timeControlCategory = TimeControlCategory.fromCsv(first.value("time_control_category")),
@@ -72,5 +72,4 @@ data class PvpGame(
                     )
                 }
     }
-
 }

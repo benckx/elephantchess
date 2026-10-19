@@ -10,7 +10,6 @@ data class UserAnalyticsDataResponse(val entries: List<Entry>) {
         val numberOfDaysSinceMember: Int,
         val numberOfDaysSinceLastOnline: Int?,
         val numberOfPlayedPuzzles: Int,
-        val numberOfDaysPlayedPuzzles: Int
+        val numberOfDaysPlayedPuzzles: Int,
     )
-
 }

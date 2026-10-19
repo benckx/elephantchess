@@ -27,5 +27,4 @@ class EloCalculatorTest {
         assertEquals(1410, newRatings.winnerNewRating)
         assertEquals(799, newRatings.loserNewRating)
     }
-
 }

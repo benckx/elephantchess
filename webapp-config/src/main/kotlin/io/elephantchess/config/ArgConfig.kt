@@ -4,10 +4,7 @@ import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
 
-data class ArgConfig(
-    val profile: String,
-    val configLocation: String?
-) {
+data class ArgConfig(val profile: String, val configLocation: String?) {
 
     companion object {
 
@@ -18,14 +15,14 @@ data class ArgConfig(
                         .longOpt("profile")
                         .hasArg()
                         .desc("Application profile (e.g., local, prod)")
-                        .get()
+                        .get(),
                 )
                 .addOption(
                     Option.builder("cl")
                         .longOpt("configLocation")
                         .hasArg()
                         .desc("Configuration files location")
-                        .get()
+                        .get(),
                 )
 
             val cmd = DefaultParser().parse(options, args)
@@ -35,10 +32,8 @@ data class ArgConfig(
 
             return ArgConfig(
                 profile = profile,
-                configLocation = if (configLocation.isNullOrBlank()) null else configLocation
+                configLocation = if (configLocation.isNullOrBlank()) null else configLocation,
             )
         }
-
     }
-
 }

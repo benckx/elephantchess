@@ -11,5 +11,5 @@ data class DatabaseTableSizeRecord(
     val total: String,
     val index: String,
     val toast: String,
-    val table: String
+    val table: String,
 )

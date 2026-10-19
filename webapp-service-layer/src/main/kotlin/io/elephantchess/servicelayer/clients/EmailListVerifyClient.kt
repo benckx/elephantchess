@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.clients
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.clients.dto.CreditResponse
 import io.elephantchess.servicelayer.clients.dto.EmailVerificationResult
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -16,10 +17,8 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
-class EmailListVerifyClient(
-    appConfig: AppConfig,
-    private val logger: KLogger,
-) {
+@KoinSingleton
+class EmailListVerifyClient(appConfig: AppConfig, private val logger: KLogger) {
 
     private val apiKey by lazy { appConfig.emailListVerifyApiKey }
 
@@ -40,8 +39,8 @@ class EmailListVerifyClient(
         }
     }
 
-    fun verifyEmailDetailed(email: String): EmailVerificationResult? {
-        return runBlocking {
+    fun verifyEmailDetailed(email: String): EmailVerificationResult? =
+        runBlocking {
             try {
                 val response = client.get("$API/verifyEmailDetailed") {
                     tokenAndContentType()
@@ -63,10 +62,9 @@ class EmailListVerifyClient(
                 null
             }
         }
-    }
 
-    suspend fun getCredits(): CreditResponse? {
-        return try {
+    suspend fun getCredits(): CreditResponse? =
+        try {
             val response = client.get("$API/credits") {
                 tokenAndContentType()
             }
@@ -92,7 +90,6 @@ class EmailListVerifyClient(
             logger.error(e) { "error getting credits" }
             null
         }
-    }
 
     private fun HttpMessageBuilder.tokenAndContentType() {
         headers {
@@ -105,7 +102,5 @@ class EmailListVerifyClient(
 
         const val API = "https://api.emaillistverify.com/api"
         const val TIMEOUT = 60_000L
-
     }
-
 }

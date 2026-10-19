@@ -16,5 +16,4 @@ class BoardTest {
             assert(board.getHistory() == null)
         }
     }
-
 }

@@ -10,5 +10,4 @@ data class PreAnalysisStatusByGameTypeResponse(val entries: List<Entry>) {
         val status: AnalysisStatus,
         val count: Int,
     )
-
 }

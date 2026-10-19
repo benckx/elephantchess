@@ -7,7 +7,8 @@ package io.elephantchess.csvdump
 enum class GameJoinSource {
     LINK,
     LOBBY,
-    DISCORD;
+    DISCORD,
+    ;
 
     companion object {
 
