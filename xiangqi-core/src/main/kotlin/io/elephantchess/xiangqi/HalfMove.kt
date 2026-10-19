@@ -8,15 +8,19 @@ import kotlin.math.ceil
  */
 data class HalfMove(val from: Position, val to: Position) {
 
-    fun toUci() = "${from.toUci()}${to.toUci()}"
+    fun toUci() =
+        "${from.toUci()}${to.toUci()}"
 
-    fun toAlgebraic() = "${from.toAlgebraic()}${to.toAlgebraic()}"
+    fun toAlgebraic() =
+        "${from.toAlgebraic()}${to.toAlgebraic()}"
 
-    override fun toString(): String = toAlgebraic()
+    override fun toString(): String =
+        toAlgebraic()
 
     companion object {
 
-        fun halfMoveIndexToFullMove(i: Int): Int = ceil(((i + 1).toDouble() / 2)).toInt()
+        fun halfMoveIndexToFullMove(i: Int): Int =
+            ceil(((i + 1).toDouble() / 2)).toInt()
 
         fun parseMovesFromDigitsString(digitsString: String): List<HalfMove> =
             digitsString

@@ -46,7 +46,8 @@ class GamesToPlayWebSocketSession(private val subscriber: UserId, private val se
         }
     }
 
-    override fun toString() = "${javaClass.simpleName}{sessionId=$sessionId, subscriber=$subscriber}"
+    override fun toString() =
+        "${javaClass.simpleName}{sessionId=$sessionId, subscriber=$subscriber}"
 
     companion object {
         private const val FORCE_REFRESH_INTERVAL_MS = 30_000L

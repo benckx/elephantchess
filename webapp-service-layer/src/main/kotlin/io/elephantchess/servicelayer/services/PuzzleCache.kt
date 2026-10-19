@@ -43,18 +43,23 @@ class PuzzleCache(
         refreshJob.cancel()
     }
 
-    fun size() = entries.size
+    fun size() =
+        entries.size
 
-    fun countAllAttempts() = entries.sumOf { entry -> entry.attempts }
+    fun countAllAttempts() =
+        entries.sumOf { entry -> entry.attempts }
 
-    fun exists(puzzleId: String) = entries.any { entry -> entry.puzzleId == puzzleId }
+    fun exists(puzzleId: String) =
+        entries.any { entry -> entry.puzzleId == puzzleId }
 
     fun hasCategories(puzzleId: String, categories: List<PuzzleCategory>) =
         entries.find { entry -> entry.puzzleId == puzzleId }?.categories?.containsAll(categories) ?: false
 
-    fun getById(puzzleId: String) = entries.find { entry -> entry.puzzleId == puzzleId }
+    fun getById(puzzleId: String) =
+        entries.find { entry -> entry.puzzleId == puzzleId }
 
-    fun countAllEnabled(): Int = entries.filter { entry -> entry.enabled }.size
+    fun countAllEnabled(): Int =
+        entries.filter { entry -> entry.enabled }.size
 
     fun countPuzzlePlayedAtLeastAmongEnabled(numberOfTimes: Int): Int =
         entries.filter { entry -> entry.enabled }.count { entry -> entry.attempts >= numberOfTimes }

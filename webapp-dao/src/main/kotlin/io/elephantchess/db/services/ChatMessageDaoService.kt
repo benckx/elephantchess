@@ -29,7 +29,8 @@ class ChatMessageDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun currentIndex(gameId: String): Int = currentIndex(gameId, dslContext)
+    suspend fun currentIndex(gameId: String): Int =
+        currentIndex(gameId, dslContext)
 
     private suspend fun currentIndex(gameId: String, context: DSLContext): Int {
         val max = context

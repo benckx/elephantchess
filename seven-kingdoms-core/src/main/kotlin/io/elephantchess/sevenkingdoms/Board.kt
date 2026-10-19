@@ -31,13 +31,19 @@ class Board(initFen: String = DEFAULT_START_FEN) {
     val currentIndex
         get() = historicalMoves.size
 
-    fun colorToPlay(): Color = colorToPlay // TODO: should be null on game over
-    fun captures(): Map<Color, List<PieceAtPosition>> = captures.toMap()
-    fun capturedKingdomsMap(): Map<Color, List<Color>> = capturedKingdomsMap.toMap()
-    fun capturedKingdoms(): List<Color> = capturedKingdomsMap.values.flatten().sorted()
-    fun winner() = winner
+    fun colorToPlay(): Color =
+        colorToPlay // TODO: should be null on game over
+    fun captures(): Map<Color, List<PieceAtPosition>> =
+        captures.toMap()
+    fun capturedKingdomsMap(): Map<Color, List<Color>> =
+        capturedKingdomsMap.toMap()
+    fun capturedKingdoms(): List<Color> =
+        capturedKingdomsMap.values.flatten().sorted()
+    fun winner() =
+        winner
 
-    fun capturesCount(): Map<Color, Int> = captures.mapValues { (_, pieces) -> pieces.size }
+    fun capturesCount(): Map<Color, Int> =
+        captures.mapValues { (_, pieces) -> pieces.size }
 
     fun losses(): Map<Color, List<PieceAtPosition>> {
         val allCaptures = captures.values.flatten()
@@ -48,7 +54,8 @@ class Board(initFen: String = DEFAULT_START_FEN) {
         return losses
     }
 
-    fun lossesCount(): Map<Color, Int> = losses().mapValues { (_, pieces) -> pieces.size }
+    fun lossesCount(): Map<Color, Int> =
+        losses().mapValues { (_, pieces) -> pieces.size }
 
     fun setExtraEliminationEvents(events: List<ExtraEliminationEvent>) {
         if (historicalMoves.isNotEmpty()) {
@@ -82,9 +89,11 @@ class Board(initFen: String = DEFAULT_START_FEN) {
         return Color.entries.filter { it !in eliminated }
     }
 
-    fun listHistoricalMoves() = historicalMoves.toList()
+    fun listHistoricalMoves() =
+        historicalMoves.toList()
 
-    fun listCaptureEvents(): List<ArmyCapturedEvent> = historicalMoves.mapNotNull { it.armyCapturedEvent }
+    fun listCaptureEvents(): List<ArmyCapturedEvent> =
+        historicalMoves.mapNotNull { it.armyCapturedEvent }
 
     fun victoryType(): VictoryType? {
         if (winner != null) {
@@ -152,7 +161,8 @@ class Board(initFen: String = DEFAULT_START_FEN) {
             }
         }
 
-    fun listPiecesByColor(color: Color): List<PieceAtPosition> = listAllPieces().filter { it.color == color }
+    fun listPiecesByColor(color: Color): List<PieceAtPosition> =
+        listAllPieces().filter { it.color == color }
 
     fun clear() {
         content = Array(BOARD_SIZE) { arrayOfNulls(BOARD_SIZE) }
@@ -167,15 +177,20 @@ class Board(initFen: String = DEFAULT_START_FEN) {
         content[pieceAtPosition.position.x][pieceAtPosition.position.y] = pieceAtPosition.piece
     }
 
-    fun pieceAt(position: Position): Piece? = content[position.x][position.y]
+    fun pieceAt(position: Position): Piece? =
+        content[position.x][position.y]
 
-    fun hasPieceAt(position: Position) = pieceAt(position) != null
+    fun hasPieceAt(position: Position) =
+        pieceAt(position) != null
 
-    fun isLegalMove(move: Move) = listAllLegalMovesFrom(move.from).any { it.to == move.to }
+    fun isLegalMove(move: Move) =
+        listAllLegalMovesFrom(move.from).any { it.to == move.to }
 
-    fun registerMoves(uciMoves: List<String>) = uciMoves.forEach { uci -> registerMove(uci) }
+    fun registerMoves(uciMoves: List<String>) =
+        uciMoves.forEach { uci -> registerMove(uci) }
 
-    fun registerMove(uciMove: String): Piece? = registerMove(parseMoveFromUci(uciMove))
+    fun registerMove(uciMove: String): Piece? =
+        registerMove(parseMoveFromUci(uciMove))
 
     fun registerMove(move: Move): Piece? {
         val piece = pieceAt(move.from)
@@ -339,7 +354,8 @@ class Board(initFen: String = DEFAULT_START_FEN) {
      * Not only the ones that can currently be played given colorToPlay,
      * but all legal moves (as if turn to play was not enforced)
      */
-    fun listAllLegalMoves() = listAllPieces().flatMap { pieceAtPosition -> listAllLegalMovesFrom(pieceAtPosition.position) }
+    fun listAllLegalMoves() =
+        listAllPieces().flatMap { pieceAtPosition -> listAllLegalMovesFrom(pieceAtPosition.position) }
 
     /**
      * Not only the ones that can currently be played given colorToPlay,
@@ -562,7 +578,8 @@ class Board(initFen: String = DEFAULT_START_FEN) {
         }
     }
 
-    private fun hasGoBetweenAt(position: Position) = pieceAt(position)?.let { piece -> piece.abstractPieceType == GO_BETWEEN } ?: false
+    private fun hasGoBetweenAt(position: Position) =
+        pieceAt(position)?.let { piece -> piece.abstractPieceType == GO_BETWEEN } ?: false
 
     fun copy(): Board {
         val boardCopy = Board()

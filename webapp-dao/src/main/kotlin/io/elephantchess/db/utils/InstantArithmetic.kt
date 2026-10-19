@@ -21,14 +21,22 @@ import kotlin.time.toKotlinInstant
  */
 
 // Pure duration arithmetic (delegates to kotlin.time.Duration).
-fun Instant.minusDays(days: Long): Instant = this - days.days
-fun Instant.minusHours(hours: Long): Instant = this - hours.hours
-fun Instant.minusMinutes(minutes: Long): Instant = this - minutes.minutes
-fun Instant.minusSeconds(seconds: Long): Instant = this - seconds.seconds
-fun Instant.plusDays(days: Long): Instant = this + days.days
-fun Instant.plusHours(hours: Long): Instant = this + hours.hours
-fun Instant.plusMinutes(minutes: Long): Instant = this + minutes.minutes
-fun Instant.plusSeconds(seconds: Long): Instant = this + seconds.seconds
+fun Instant.minusDays(days: Long): Instant =
+    this - days.days
+fun Instant.minusHours(hours: Long): Instant =
+    this - hours.hours
+fun Instant.minusMinutes(minutes: Long): Instant =
+    this - minutes.minutes
+fun Instant.minusSeconds(seconds: Long): Instant =
+    this - seconds.seconds
+fun Instant.plusDays(days: Long): Instant =
+    this + days.days
+fun Instant.plusHours(hours: Long): Instant =
+    this + hours.hours
+fun Instant.plusMinutes(minutes: Long): Instant =
+    this + minutes.minutes
+fun Instant.plusSeconds(seconds: Long): Instant =
+    this + seconds.seconds
 
 // Calendar-aware arithmetic; UTC anchor.
 fun Instant.minusMonths(months: Long): Instant =
@@ -37,26 +45,33 @@ fun Instant.minusMonths(months: Long): Instant =
 fun Instant.plusMonths(months: Long): Instant =
     this.toJavaInstant().atOffset(ZoneOffset.UTC).plusMonths(months).toInstant().toKotlinInstant()
 
-fun Instant.minusYears(years: Long): Instant = this.toJavaInstant().atOffset(ZoneOffset.UTC).minusYears(years).toInstant().toKotlinInstant()
+fun Instant.minusYears(years: Long): Instant =
+    this.toJavaInstant().atOffset(ZoneOffset.UTC).minusYears(years).toInstant().toKotlinInstant()
 
-fun Instant.plusYears(years: Long): Instant = this.toJavaInstant().atOffset(ZoneOffset.UTC).plusYears(years).toInstant().toKotlinInstant()
+fun Instant.plusYears(years: Long): Instant =
+    this.toJavaInstant().atOffset(ZoneOffset.UTC).plusYears(years).toInstant().toKotlinInstant()
 
 // java.time.LocalDateTime / LocalDate ergonomics, anchored at UTC.
 
 /** Convert a [LocalDateTime] (treated as UTC wall-clock) to a [kotlin.time.Instant]. */
-fun LocalDateTime.toUtcInstant(): Instant = this.toInstant(ZoneOffset.UTC).toKotlinInstant()
+fun LocalDateTime.toUtcInstant(): Instant =
+    this.toInstant(ZoneOffset.UTC).toKotlinInstant()
 
 /** Convert a [kotlin.time.Instant] to a [LocalDateTime] in UTC. */
-fun Instant.toUtcLocalDateTime(): LocalDateTime = this.toJavaInstant().atOffset(ZoneOffset.UTC).toLocalDateTime()
+fun Instant.toUtcLocalDateTime(): LocalDateTime =
+    this.toJavaInstant().atOffset(ZoneOffset.UTC).toLocalDateTime()
 
-fun Instant.toUtcLocalDate(): LocalDate = this.toJavaInstant().atOffset(ZoneOffset.UTC).toLocalDate()
+fun Instant.toUtcLocalDate(): LocalDate =
+    this.toJavaInstant().atOffset(ZoneOffset.UTC).toLocalDate()
 
 /** Build a UTC [Instant] from wall-clock components. */
 fun instantOfUtc(year: Int, month: Int, dayOfMonth: Int, hour: Int = 0, minute: Int = 0, second: Int = 0): Instant =
     LocalDateTime.of(year, month, dayOfMonth, hour, minute, second).toUtcInstant()
 
 /** Compatibility shim: `instant.isBefore(other)` mirrors [LocalDateTime.isBefore]. */
-fun Instant.isBefore(other: Instant): Boolean = this < other
+fun Instant.isBefore(other: Instant): Boolean =
+    this < other
 
 /** Compatibility shim: `instant.isAfter(other)` mirrors [LocalDateTime.isAfter]. */
-fun Instant.isAfter(other: Instant): Boolean = this > other
+fun Instant.isAfter(other: Instant): Boolean =
+    this > other

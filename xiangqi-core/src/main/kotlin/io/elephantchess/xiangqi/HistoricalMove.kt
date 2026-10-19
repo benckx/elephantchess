@@ -19,7 +19,8 @@ data class HistoricalMove(
         require(attackMap.values.flatten().all { pieceAtPosition -> pieceAtPosition.color() == opponentColor })
     }
 
-    fun fullMove(): Int = halfMoveIndexToFullMove(index)
+    fun fullMove(): Int =
+        halfMoveIndexToFullMove(index)
 
     fun isAttackingGeneral(piece: PhysicalPiece): Boolean =
         attackMap

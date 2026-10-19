@@ -22,9 +22,11 @@ data class PieceType(val abstractPieceType: AbstractPieceType, val color: Color)
             abstractPieceType.blackLabel
         }
 
-    fun prettyName(): String = "${color.name.capitalize()} ${abstractPieceType.name.capitalize()} (${chineseCharacter()})"
+    fun prettyName(): String =
+        "${color.name.capitalize()} ${abstractPieceType.name.capitalize()} (${chineseCharacter()})"
 
-    override fun toString(): String = letterNotation()
+    override fun toString(): String =
+        letterNotation()
 
     companion object {
 

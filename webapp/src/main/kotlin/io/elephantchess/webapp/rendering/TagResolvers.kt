@@ -26,7 +26,8 @@ fun escapeHtml(s: String): String =
 /**
  * HTML-escapes a string so it can be safely used as an attribute value.
  */
-fun escapeHtmlAttr(s: String): String = escapeHtml(s).replace("\"", "&quot;")
+fun escapeHtmlAttr(s: String): String =
+    escapeHtml(s).replace("\"", "&quot;")
 
 fun String.toParagraphs(): List<String> =
     this

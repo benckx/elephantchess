@@ -498,13 +498,17 @@ class UserService(
         return ArchiveUserPageViewsResponse(archivedCount)
     }
 
-    fun isOnline(userId: String): Boolean = onlineUserIds.contains(userId)
+    fun isOnline(userId: String): Boolean =
+        onlineUserIds.contains(userId)
 
-    fun areOnline(userIds: List<String>): AreUsersOnlineResponse = AreUsersOnlineResponse(userIds.toSet().intersect(onlineUserIds))
+    fun areOnline(userIds: List<String>): AreUsersOnlineResponse =
+        AreUsersOnlineResponse(userIds.toSet().intersect(onlineUserIds))
 
-    fun countOnline(): Int = onlineUserIds.size
+    fun countOnline(): Int =
+        onlineUserIds.size
 
-    fun onlineUserIds() = onlineUserIds.toSet()
+    fun onlineUserIds() =
+        onlineUserIds.toSet()
 
     suspend fun submitContact(request: ContactFormRequest, userId: UserId) {
         logger.info { "contact form submitted $request" }
@@ -598,8 +602,10 @@ class UserService(
         /**
          * Allowed characters: latin letters (including combining marks), numbers, underscore and dashes
          */
-        private fun isValidUsername(chars: String): Boolean = chars.matches("^[\\p{IsLatin}\\p{M}\\p{N}_-]*$".toRegex())
+        private fun isValidUsername(chars: String): Boolean =
+            chars.matches("^[\\p{IsLatin}\\p{M}\\p{N}_-]*$".toRegex())
 
-        private fun isEmailFormatValid(chars: String): Boolean = chars.matches(EMAIL_REGEX)
+        private fun isEmailFormatValid(chars: String): Boolean =
+            chars.matches(EMAIL_REGEX)
     }
 }

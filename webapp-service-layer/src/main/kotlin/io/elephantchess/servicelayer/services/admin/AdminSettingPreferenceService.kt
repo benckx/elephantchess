@@ -84,5 +84,6 @@ class AdminSettingPreferenceService(private val settingPreferenceEventDaoService
         )
     }
 
-    private fun formatYearMonth(year: Int, month: Int): String = "%04d-%02d".format(year, month)
+    private fun formatYearMonth(year: Int, month: Int): String =
+        "%04d-%02d".format(year, month)
 }

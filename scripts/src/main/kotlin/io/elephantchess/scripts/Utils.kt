@@ -2,9 +2,11 @@ package io.elephantchess.scripts
 
 import java.io.File
 
-fun listAllJsFiles() = listAllPublicAssetsByExtension("js")
+fun listAllJsFiles() =
+    listAllPublicAssetsByExtension("js")
 
-fun listAllCssFiles() = listAllPublicAssetsByExtension("css")
+fun listAllCssFiles() =
+    listAllPublicAssetsByExtension("css")
 
 fun listAllPublicAssetsByExtension(ext: String, includeMinify: Boolean = false): List<File> =
     File("webapp/src/main/resources/public/")

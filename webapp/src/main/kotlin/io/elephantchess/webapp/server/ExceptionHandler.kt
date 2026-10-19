@@ -76,7 +76,8 @@ internal fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, t: 
  * `cache/original/../../.env`). These are vulnerability-scanner noise, so log them at DEBUG instead of
  * ERROR and don't persist them.
  */
-internal fun isPathTraversalProbe(t: Throwable): Boolean = t.message?.contains("path traversing characters") == true
+internal fun isPathTraversalProbe(t: Throwable): Boolean =
+    t.message?.contains("path traversing characters") == true
 
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}

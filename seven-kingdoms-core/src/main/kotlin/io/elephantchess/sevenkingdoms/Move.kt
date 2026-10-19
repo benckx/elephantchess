@@ -8,7 +8,8 @@ data class Move(val from: Position, val to: Position) {
     val algebraic: String
         get() = "${from.algebraic}${to.algebraic}"
 
-    override fun toString() = uci
+    override fun toString() =
+        uci
 
     companion object {
 

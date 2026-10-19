@@ -38,15 +38,20 @@ class UserCache(private val userDaoService: UserDaoService) :
                 )
             }
 
-    suspend fun fetchUsernameOrDefault(userId: UserId) = fetchUsernameOrDefault(userId.id)
+    suspend fun fetchUsernameOrDefault(userId: UserId) =
+        fetchUsernameOrDefault(userId.id)
 
-    suspend fun fetchUsernameOrDefault(userId: String) = fetchUsername(userId) ?: UNKNOWN_USERNAME
+    suspend fun fetchUsernameOrDefault(userId: String) =
+        fetchUsername(userId) ?: UNKNOWN_USERNAME
 
-    suspend fun fetchUsername(userId: String): String? = get(userId)?.username
+    suspend fun fetchUsername(userId: String): String? =
+        get(userId)?.username
 
-    suspend fun fetchUserType(userId: String): UserType? = get(userId)?.userType
+    suspend fun fetchUserType(userId: String): UserType? =
+        get(userId)?.userType
 
-    suspend fun fetchCreationTime(userId: String): Instant? = get(userId)?.creationTime
+    suspend fun fetchCreationTime(userId: String): Instant? =
+        get(userId)?.creationTime
 
     private companion object {
 

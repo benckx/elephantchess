@@ -65,7 +65,8 @@ class TemplateRendererTest {
         runTest {
             val cssResolver = object : TagResolver {
                 override val tagName = "email_css"
-                override suspend fun resolveContent() = listOf("<style>body{}</style>")
+                override suspend fun resolveContent() =
+                    listOf("<style>body{}</style>")
             }
             val updateMailSettingsResolver = object : TagResolver {
                 override val tagName = "update_mail_settings"
@@ -128,7 +129,8 @@ class TemplateRendererTest {
             val renderer = TestRenderer()
             val multiLineResolver = object : TagResolver {
                 override val tagName = "block"
-                override suspend fun resolveContent() = listOf("line1", "line2", "line3")
+                override suspend fun resolveContent() =
+                    listOf("line1", "line2", "line3")
             }
             val result = renderer.render(
                 "    {{block}}",
@@ -148,7 +150,8 @@ class TemplateRendererTest {
             val renderer = TestRenderer()
             val multiLineResolver = object : TagResolver {
                 override val tagName = "block"
-                override suspend fun resolveContent() = listOf("line1", "line2", "line3")
+                override suspend fun resolveContent() =
+                    listOf("line1", "line2", "line3")
             }
             val result = renderer.render(
                 "    {{block}}[[keepIndentation:false]]",
@@ -168,7 +171,8 @@ class TemplateRendererTest {
             val renderer = TestRenderer()
             val resolver = object : TagResolver {
                 override val tagName = "item"
-                override suspend fun resolveContent() = listOf("<li>", "x", "</li>")
+                override suspend fun resolveContent() =
+                    listOf("<li>", "x", "</li>")
             }
             val legacy = renderer.render("{{item}}[[3x]]", listOf(resolver))
             val keyword = renderer.render("{{item}}[[iterations:3]]", listOf(resolver))
@@ -182,7 +186,8 @@ class TemplateRendererTest {
             val renderer = TestRenderer()
             val resolver = object : TagResolver {
                 override val tagName = "block"
-                override suspend fun resolveContent() = listOf("a", "", "b")
+                override suspend fun resolveContent() =
+                    listOf("a", "", "b")
             }
             val result = renderer.render("{{block}}[[keepIndentation:false]]", listOf(resolver))
             assertEquals("a\n\nb", result)

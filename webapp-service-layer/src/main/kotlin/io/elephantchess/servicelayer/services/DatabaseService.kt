@@ -261,7 +261,8 @@ class DatabaseService(
         return null
     }
 
-    suspend fun countAllGames(): CountAllGamesResponse = CountAllGamesResponse(referenceGameDaoService.countAllGames())
+    suspend fun countAllGames(): CountAllGamesResponse =
+        CountAllGamesResponse(referenceGameDaoService.countAllGames())
 
     suspend fun listAllEventsWithStats(limit: Int? = null, offset: Int? = null): EventsListResponse =
         referenceEventDaoService
@@ -439,7 +440,8 @@ class DatabaseService(
     /**
      * @return `true` if the player has pre-calculated opening repertoire data.
      */
-    suspend fun hasPlayerOpeningData(playerId: String): Boolean = openingRepositoryReferencePlayerCacheDaoService.hasOpeningData(playerId)
+    suspend fun hasPlayerOpeningData(playerId: String): Boolean =
+        openingRepositoryReferencePlayerCacheDaoService.hasOpeningData(playerId)
 
     suspend fun fetchPlayerGameStats(playerId: String): PlayerGameStatsResponse {
         // fetch stats for player alone
@@ -506,7 +508,8 @@ class DatabaseService(
         )
     }
 
-    suspend fun fetchEventName(eventId: String): String? = referenceEventDaoService.findEventName(eventId)
+    suspend fun fetchEventName(eventId: String): String? =
+        referenceEventDaoService.findEventName(eventId)
 
     suspend fun fetchEvent(eventId: String): Event {
         val event = referenceEventDaoService.fetchEventById(eventId)

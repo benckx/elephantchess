@@ -44,6 +44,7 @@ enum class PuzzleCategory {
                 else -> throw IllegalArgumentException()
             }
 
-        fun parseList(list: List<String>): List<PuzzleCategory> = list.map { valueOf(it) }
+        fun parseList(list: List<String>): List<PuzzleCategory> =
+            list.map { valueOf(it) }
     }
 }

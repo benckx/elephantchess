@@ -995,7 +995,8 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             }
         }
 
-        private fun colorToPlay(currentHalfMoveIndex: Int) = if (currentHalfMoveIndex % 2 == 0) RED else BLACK
+        private fun colorToPlay(currentHalfMoveIndex: Int) =
+            if (currentHalfMoveIndex % 2 == 0) RED else BLACK
 
         private suspend fun fetchXiangqiRapidRating(userId: String): Int =
             dslContext

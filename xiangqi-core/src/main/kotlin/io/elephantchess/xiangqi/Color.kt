@@ -36,8 +36,10 @@ enum class Color {
         /**
          * Color that has to play after the given half move position
          */
-        fun fromPosition(position: Int): Color = if (position % 2 == 0) BLACK else RED
+        fun fromPosition(position: Int): Color =
+            if (position % 2 == 0) BLACK else RED
 
-        fun random(): Color = if (Random().nextBoolean()) BLACK else RED
+        fun random(): Color =
+            if (Random().nextBoolean()) BLACK else RED
     }
 }

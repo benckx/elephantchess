@@ -40,8 +40,10 @@ class ExceptionHandlerTest {
     private val rootLogger = LoggerFactory.getLogger(ROOT_LOGGER_NAME) as Logger
     private val logEvents = ListAppender<ILoggingEvent>()
 
-    private fun errorLogs() = logEvents.list.filter { it.level == Level.ERROR }
-    private fun warnLogs() = logEvents.list.filter { it.level == Level.WARN }
+    private fun errorLogs() =
+        logEvents.list.filter { it.level == Level.ERROR }
+    private fun warnLogs() =
+        logEvents.list.filter { it.level == Level.WARN }
 
     @BeforeTest
     fun setUp() {
@@ -73,7 +75,8 @@ class ExceptionHandlerTest {
             block()
         }
 
-    private suspend fun ApplicationTestBuilder.getHtml(uri: String) = client.get(uri) { accept(ContentType.Text.Html) }
+    private suspend fun ApplicationTestBuilder.getHtml(uri: String) =
+        client.get(uri) { accept(ContentType.Text.Html) }
 
     // --- client disconnects ---
 

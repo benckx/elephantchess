@@ -377,7 +377,8 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
             .awaitRecords()
             .map { record -> record.get(REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID) }
 
-    suspend fun fetchGameStats(playerId: String): PlayerGameStatsRecord = fetchGameStats(listOf(playerId))
+    suspend fun fetchGameStats(playerId: String): PlayerGameStatsRecord =
+        fetchGameStats(listOf(playerId))
 
     suspend fun fetchGameStats(playerIds: List<String>): PlayerGameStatsRecord {
         fun createPlayerOutcomeSum(playerIds: List<String>, playerField: TableField<*, String>, outcome: Outcome) =

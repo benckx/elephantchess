@@ -49,9 +49,12 @@ data class PlayMoveBotGameCallbackResult(
     fun updateForUserVictory(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult =
         updateWinner(color, checkmated, stalemated).copy(userVictory = true)
 
-    fun addError(errorType: ErrorType): PlayMoveBotGameCallbackResult = copy(errors = errors + errorType)
+    fun addError(errorType: ErrorType): PlayMoveBotGameCallbackResult =
+        copy(errors = errors + errorType)
 
-    fun hasErrors(): Boolean = errors.isNotEmpty()
+    fun hasErrors(): Boolean =
+        errors.isNotEmpty()
 
-    fun hasError(errorType: ErrorType): Boolean = errors.contains(errorType)
+    fun hasError(errorType: ErrorType): Boolean =
+        errors.contains(errorType)
 }

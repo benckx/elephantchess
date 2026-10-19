@@ -7,5 +7,6 @@ class UnsubscribeTagResolver(appConfig: AppConfig, override val tagName: String,
 
     private val webHost = appConfig.webHost
 
-    override suspend fun resolveContent(): List<String> = listOf("$webHost/unsubscribe?code=$code")
+    override suspend fun resolveContent(): List<String> =
+        listOf("$webHost/unsubscribe?code=$code")
 }

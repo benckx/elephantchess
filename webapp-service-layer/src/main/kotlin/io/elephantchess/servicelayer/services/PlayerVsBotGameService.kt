@@ -379,7 +379,8 @@ class PlayerVsBotGameService(
         openingMode: OpeningMode,
         variant: Variant = Variant.XIANGQI,
     ): BotMove? {
-        suspend fun playWithEngine(): BotMove? = playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
+        suspend fun playWithEngine(): BotMove? =
+            playWithEngine(gameId, botColor, startFen, fen, position, engine, depth, variant)
 
         val useOpeningRepository =
             usesDefaultStartFen &&

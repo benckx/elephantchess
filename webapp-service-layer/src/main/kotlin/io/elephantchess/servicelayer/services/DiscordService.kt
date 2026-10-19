@@ -40,7 +40,8 @@ class DiscordService(
 
     fun gameCreated(userId: String, game: Game) =
         doAsync {
-            fun gameLink(channelId: String, game: Game) = "$webHost/game?id=${game.id}&channelId=$channelId"
+            fun gameLink(channelId: String, game: Game) =
+                "$webHost/game?id=${game.id}&channelId=$channelId"
 
             val username = userCache.fetchUsername(userId)
 
@@ -130,10 +131,12 @@ class DiscordService(
         const val ELEPHANT_CHESS_NEW_GAME_CHANNEL_ID = "1320703368473215019"
         val newGameNotificationChannels = listOf(ELEPHANT_CHESS_NEW_GAME_CHANNEL_ID)
 
-        fun parseTimestamp(timestamp: String): Instant = java.time.Instant.parse(timestamp).toKotlinInstant()
+        fun parseTimestamp(timestamp: String): Instant =
+            java.time.Instant.parse(timestamp).toKotlinInstant()
 
         fun formatGameSettings(game: Game): String {
-            fun formatRated(game: Game) = if (game.isRated) "rated" else "casual"
+            fun formatRated(game: Game) =
+                if (game.isRated) "rated" else "casual"
 
             fun formatColor(game: Game) =
                 when (game.inviterColor) {

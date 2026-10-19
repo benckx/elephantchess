@@ -18,12 +18,14 @@ enum class GameEventType {
     PERPETUAL_CHECKING,
     ;
 
-    fun isInProgress(): Boolean = this in inProgressStatuses
+    fun isInProgress(): Boolean =
+        this in inProgressStatuses
 
     /**
      * The game has started and has now ended, so doesn't include cancelled games
      */
-    fun hasEnded(): Boolean = this in gameEndedStatuses
+    fun hasEnded(): Boolean =
+        this in gameEndedStatuses
 
     companion object {
 

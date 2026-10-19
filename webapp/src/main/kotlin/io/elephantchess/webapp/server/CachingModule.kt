@@ -39,7 +39,8 @@ fun Application.cachingModule() {
     }
 }
 
-private fun cachingOptionsInHours(hours: Int) = cachingOptionsInMinutes(hours * 60)
+private fun cachingOptionsInHours(hours: Int) =
+    cachingOptionsInMinutes(hours * 60)
 
 private fun cachingOptionsInMinutes(minutes: Int) =
     CachingOptions(

@@ -19,9 +19,13 @@ object GameEntryCacheManager {
         )?.entries ?: emptyList()
     }
 
-    fun gameEntriesToJson(value: List<GameEntryDto>): String = gameEntriesToJson(GameEntriesDto(value))
-    fun gameEntriesToJson(value: GameEntriesDto): String = mapper.writeValueAsString(value)
+    fun gameEntriesToJson(value: List<GameEntryDto>): String =
+        gameEntriesToJson(GameEntriesDto(value))
+    fun gameEntriesToJson(value: GameEntriesDto): String =
+        mapper.writeValueAsString(value)
 
-    fun getAllGames(): List<GameEntryDto> = entries
-    fun randomGame(): GameEntryDto = entries.random()
+    fun getAllGames(): List<GameEntryDto> =
+        entries
+    fun randomGame(): GameEntryDto =
+        entries.random()
 }

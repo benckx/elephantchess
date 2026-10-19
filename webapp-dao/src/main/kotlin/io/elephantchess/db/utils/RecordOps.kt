@@ -17,9 +17,11 @@ import io.elephantchess.sevenkingdoms.Color as Color7k
 // When possible, add the record ops here
 // Otherwise they can go to the service-layer (if they depend on other modules)
 
-fun OpeningPreCalculationCache.nextMove(): String = moves.split(",").last()
+fun OpeningPreCalculationCache.nextMove(): String =
+    moves.split(",").last()
 
-fun OpeningPreCalculationCacheReferencePlayer.nextMove(): String = moves.split(",").last()
+fun OpeningPreCalculationCacheReferencePlayer.nextMove(): String =
+    moves.split(",").last()
 
 val User.roles: List<UserRole>
     get() {
@@ -73,11 +75,14 @@ fun MoveAnalysis.setGameId(gameId: GameId) {
     }
 }
 
-fun Color.asWinnerOutcome(): Outcome = if (this == Color.RED) Outcome.RED_WINS else Outcome.BLACK_WINS
+fun Color.asWinnerOutcome(): Outcome =
+    if (this == Color.RED) Outcome.RED_WINS else Outcome.BLACK_WINS
 
-fun Color.asLoserOutcome(): Outcome = this.reverse().asWinnerOutcome()
+fun Color.asLoserOutcome(): Outcome =
+    this.reverse().asWinnerOutcome()
 
-fun Game.includesUser(userId: String): Boolean = userIds().contains(userId)
+fun Game.includesUser(userId: String): Boolean =
+    userIds().contains(userId)
 
 fun Game.ratingUpdateRecord(): RatingUpdateRecord? =
     if (isRated && inviterRatingTo != null && inviteeRatingTo != null) {
@@ -101,9 +106,11 @@ fun Game.opponentOf(userId: String): String? =
         null
     }
 
-fun Game.opponentColorOf(userId: String): Color? = opponentOf(userId)?.let { opponentUserId -> userColor(opponentUserId) }
+fun Game.opponentColorOf(userId: String): Color? =
+    opponentOf(userId)?.let { opponentUserId -> userColor(opponentUserId) }
 
-fun Game.colorToPlay(): Color = if (this.currentHalfMoveIndex % 2 == 0) Color.RED else Color.BLACK
+fun Game.colorToPlay(): Color =
+    if (this.currentHalfMoveIndex % 2 == 0) Color.RED else Color.BLACK
 
 fun Game.userColor(userId: String): Color? {
     val isUserInviter = userId == this.inviter
@@ -153,7 +160,8 @@ fun Game.userOutcome(userId: String): UserOutcome? =
         else -> null
     }
 
-fun Game.winnerUserId(): String? = userIds().find { userId -> userOutcome(userId) == UserOutcome.WIN }
+fun Game.winnerUserId(): String? =
+    userIds().find { userId -> userOutcome(userId) == UserOutcome.WIN }
 
 fun Game.timeControl(): TimeControlRecord? =
     if (this.timeControlBase == null) {
@@ -166,13 +174,17 @@ fun Game.timeControl(): TimeControlRecord? =
         )
     }
 
-fun Game.isTurnToPlay(userId: String): Boolean = colorToPlay() == userColor(userId)
+fun Game.isTurnToPlay(userId: String): Boolean =
+    colorToPlay() == userColor(userId)
 
-private fun Game.userIds(): List<String> = listOfNotNull(inviter, invitee)
+private fun Game.userIds(): List<String> =
+    listOfNotNull(inviter, invitee)
 
-fun Game.redUserId() = userIdByColor(Color.RED)
+fun Game.redUserId() =
+    userIdByColor(Color.RED)
 
-fun Game.blackUserId() = userIdByColor(Color.BLACK)
+fun Game.blackUserId() =
+    userIdByColor(Color.BLACK)
 
 fun Game.redPlayerRating(): Int =
     if (redUserId() == inviter) {
@@ -201,7 +213,8 @@ private fun Game.userIdByColor(color: Color): String? =
         }
     }
 
-fun BotGame.prettyEngineName(): String = "$engine ($depth)"
+fun BotGame.prettyEngineName(): String =
+    "$engine ($depth)"
 
 fun SevenKingdomsGame.minColorPerPlayer(): Int =
     when (minPlayers) {

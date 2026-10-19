@@ -2,5 +2,6 @@ package io.elephantchess.sevenkingdoms
 
 data class Piece(val color: Color, val abstractPieceType: AbstractPieceType) {
 
-    override fun toString(): String = "Piece{$color $abstractPieceType}"
+    override fun toString(): String =
+        "Piece{$color $abstractPieceType}"
 }

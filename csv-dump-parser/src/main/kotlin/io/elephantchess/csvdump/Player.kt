@@ -17,7 +17,8 @@ data class Player(val name: String, val accountAge: Duration?, val userType: Use
      * result is only as precise as the source data, which itself rounds the age to whole days (or
      * hours for very young accounts).
      */
-    fun approximateAccountCreation(gameStart: Instant): Instant? = accountAge?.let { age -> (gameStart - age).roundToNearestHour() }
+    fun approximateAccountCreation(gameStart: Instant): Instant? =
+        accountAge?.let { age -> (gameStart - age).roundToNearestHour() }
 
     private fun Instant.roundToNearestHour(): Instant {
         val secondsPerHour = 60L * 60L

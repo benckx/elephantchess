@@ -2,7 +2,8 @@ package io.elephantchess.engines.protocol.model
 
 data class InfoLinesResult(val infoLines: List<InfoLineResult>, val checkmate: Boolean, val bestMove: String?, val ponder: String?) {
 
-    fun maxDepth(): Int? = infoLines.mapNotNull { infoLine -> infoLine.depth }.maxOrNull()
+    fun maxDepth(): Int? =
+        infoLines.mapNotNull { infoLine -> infoLine.depth }.maxOrNull()
 
     fun deepestResultCentiPawns(): Int? =
         infoLines

@@ -25,5 +25,6 @@ class PvbWebSocketSession(
         }
     }
 
-    override fun toString() = "${javaClass.simpleName}{sessionId=$sessionId, gameId=$gameId}"
+    override fun toString() =
+        "${javaClass.simpleName}{sessionId=$sessionId, gameId=$gameId}"
 }

@@ -7,7 +7,8 @@ import io.elephantchess.utils.di.KoinSingleton
 @KoinSingleton(eager = true)
 class FaqPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
-    suspend fun renderFaqPage(): String = simplePageRenderer.renderTemplate(FAQ_TEMPLATE_NAME, listOf(faqTocTagResolver()))
+    suspend fun renderFaqPage(): String =
+        simplePageRenderer.renderTemplate(FAQ_TEMPLATE_NAME, listOf(faqTocTagResolver()))
 
     private fun faqTocTagResolver(): TagResolver =
         CallbackTagResolver("faq_toc") {

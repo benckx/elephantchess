@@ -8,7 +8,8 @@ data class MonthlyValueRecord(val month: YearMonth, val value: Number) {
 
     companion object {
 
-        fun ofInt(record2: Record2<YearMonth, Int>): MonthlyValueRecord = MonthlyValueRecord(record2.value1(), record2.value2())
+        fun ofInt(record2: Record2<YearMonth, Int>): MonthlyValueRecord =
+            MonthlyValueRecord(record2.value1(), record2.value2())
 
         fun ofBigDecimal(record2: Record2<YearMonth, BigDecimal>): MonthlyValueRecord =
             MonthlyValueRecord(record2.value1(), record2.value2())

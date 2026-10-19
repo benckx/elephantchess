@@ -222,14 +222,16 @@ class DigitalOceanSpacesClient(appConfig: AppConfig) {
         return mac.doFinal(data)
     }
 
-    private fun hmacSha256Hex(data: ByteArray, key: ByteArray): String = hmacSha256(data, key).toHex()
+    private fun hmacSha256Hex(data: ByteArray, key: ByteArray): String =
+        hmacSha256(data, key).toHex()
 
     private fun sha256Hex(data: ByteArray): String {
         val digest = MessageDigest.getInstance("SHA-256")
         return digest.digest(data).toHex()
     }
 
-    private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
+    private fun ByteArray.toHex(): String =
+        joinToString("") { "%02x".format(it) }
 
     private fun getAmzDate(date: Date): String {
         val df = SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'")

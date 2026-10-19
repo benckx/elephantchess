@@ -281,6 +281,7 @@ class PuzzleService(
         const val MIN_DAYS_BETWEEN_PUZZLES = 60
         const val RE_PLAYABILITY_DAYS = 90
 
-        fun mapOutcomeToDto(outcome: Pair<Int?, Int?>): PuzzleOutcomeResponse = PuzzleOutcomeResponse(outcome.first, outcome.second)
+        fun mapOutcomeToDto(outcome: Pair<Int?, Int?>): PuzzleOutcomeResponse =
+            PuzzleOutcomeResponse(outcome.first, outcome.second)
     }
 }

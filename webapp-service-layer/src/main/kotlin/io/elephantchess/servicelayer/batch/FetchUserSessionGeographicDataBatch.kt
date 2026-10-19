@@ -15,9 +15,11 @@ class FetchUserSessionGeographicDataBatch(
     override val logger: KLogger,
 ) : ShardedBatch<UserSessionRecord>() {
 
-    override fun shardKey(element: UserSessionRecord) = element.remoteAddress
+    override fun shardKey(element: UserSessionRecord) =
+        element.remoteAddress
 
-    override suspend fun fetchAll() = userSessionDaoService.listAllWithoutGeographicData(30.minutes)
+    override suspend fun fetchAll() =
+        userSessionDaoService.listAllWithoutGeographicData(30.minutes)
 
     override suspend fun process(element: UserSessionRecord) {
         client

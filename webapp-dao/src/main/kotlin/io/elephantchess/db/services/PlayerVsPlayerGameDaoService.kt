@@ -314,7 +314,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .where(GAME.ID.eq(gameId))
             .awaitSingleMappedRecord()
 
-    suspend fun listMoves(gameId: String): List<String> = listMoves(dslContext, gameId)
+    suspend fun listMoves(gameId: String): List<String> =
+        listMoves(dslContext, gameId)
 
     suspend fun countTotalGames(minMoveIndex: Int): Int =
         dslContext
@@ -1045,7 +1046,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 }
             }
 
-        fun isPlaying(userId: String): Condition = GAME.INVITER.eq(userId).or(GAME.INVITEE.eq(userId))
+        fun isPlaying(userId: String): Condition =
+            GAME.INVITER.eq(userId).or(GAME.INVITEE.eq(userId))
     }
 
     /**

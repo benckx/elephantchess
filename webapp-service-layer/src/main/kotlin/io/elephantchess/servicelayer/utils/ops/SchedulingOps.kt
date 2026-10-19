@@ -69,4 +69,5 @@ fun launchAtFixedRateStartImmediately(
     period: Duration,
     onError: suspend (Throwable) -> Unit = logError,
     action: suspend () -> Unit,
-): Job = launchAtFixedRate(scope, period, Duration.ZERO, onError, action)
+): Job =
+    launchAtFixedRate(scope, period, Duration.ZERO, onError, action)

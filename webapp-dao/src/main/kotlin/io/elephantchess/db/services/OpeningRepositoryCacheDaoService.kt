@@ -22,6 +22,7 @@ class OpeningRepositoryCacheDaoService(private val dslContext: DSLContext) {
 
     companion object {
 
-        fun movesToKey(moves: List<String>): String = moves.joinToString(separator = ",")
+        fun movesToKey(moves: List<String>): String =
+            moves.joinToString(separator = ",")
     }
 }

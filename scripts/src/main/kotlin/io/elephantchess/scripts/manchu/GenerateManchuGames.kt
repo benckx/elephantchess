@@ -28,7 +28,8 @@ object GenerateManchuGames {
 
     private data class GeneratedGame(val id: String, val moves: List<String>, val result: GameResult)
 
-    private fun movesKey(game: GeneratedGame): String = game.moves.joinToString(",")
+    private fun movesKey(game: GeneratedGame): String =
+        game.moves.joinToString(",")
 
     private fun generateGame(): GeneratedGame {
         val board = Board(Board.MANCHU_START_FEN)
@@ -62,7 +63,8 @@ object GenerateManchuGames {
         return GeneratedGame(randomId(), moves.map { it.toUci() }, GameResult.TOO_LONG)
     }
 
-    private fun randomId(): String = UUID.randomUUID().toString().replace("-", "").take(8)
+    private fun randomId(): String =
+        UUID.randomUUID().toString().replace("-", "").take(8)
 
     @JvmStatic
     fun main(args: Array<String>): Unit =

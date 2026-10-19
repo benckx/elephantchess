@@ -14,9 +14,11 @@ class PreAnalysisCleanUpBatch(private val gameDataService: GameDataService, over
 
     private val limit = 4.hours
 
-    override fun shardKey(element: Pair<GameId, Instant>) = element.first.id
+    override fun shardKey(element: Pair<GameId, Instant>) =
+        element.first.id
 
-    override suspend fun fetchAll(): List<Pair<GameId, Instant>> = gameDataService.listPreAnalysisToDelete(limit)
+    override suspend fun fetchAll(): List<Pair<GameId, Instant>> =
+        gameDataService.listPreAnalysisToDelete(limit)
 
     override suspend fun process(element: Pair<GameId, Instant>) {
         logger.info { "deleting pre-analysis data for ${element.first} started at ${element.second} " }

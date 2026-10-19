@@ -11,11 +11,15 @@ open class GenericEither<A, B>(private val a: A?, private val b: B?) {
         }
     }
 
-    fun isLeft() = a != null
+    fun isLeft() =
+        a != null
 
-    fun isRight() = b != null
+    fun isRight() =
+        b != null
 
-    fun left(): A = a!!
+    fun left(): A =
+        a!!
 
-    fun right(): B = b!!
+    fun right(): B =
+        b!!
 }

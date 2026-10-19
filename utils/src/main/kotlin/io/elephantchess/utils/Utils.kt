@@ -64,7 +64,8 @@ fun <T> selectByProbability(elements: List<T>, elementOccurrences: (T) -> Int): 
 fun safeRandomAlphaNumericString(min: Int, max: Int): String {
     val length = (min until max).random()
 
-    fun generate() = (1..length).map { chars.random() }.joinToString("")
+    fun generate() =
+        (1..length).map { chars.random() }.joinToString("")
 
     var result = generate()
     while (mayBeOffensive(result)) {
@@ -127,7 +128,8 @@ fun rangeOfYearMonths(firstMonth: YearMonth, lastMonth: YearMonth): List<YearMon
     return result.toList()
 }
 
-fun isChineseText(s: String): Boolean = s.matches(Regex("^[\\u4E00-\\u9FFF]+$"))
+fun isChineseText(s: String): Boolean =
+    s.matches(Regex("^[\\u4E00-\\u9FFF]+$"))
 
 fun formatWithChineseName(name: String, chineseName: String?): String =
     if (chineseName.isNullOrBlank()) {
@@ -136,10 +138,12 @@ fun formatWithChineseName(name: String, chineseName: String?): String =
         "$name ($chineseName)"
     }
 
-fun generateNameVariations(vararg names: String): List<String> = names.flatMap { name -> generateNameVariations(name) }.distinct()
+fun generateNameVariations(vararg names: String): List<String> =
+    names.flatMap { name -> generateNameVariations(name) }.distinct()
 
 fun generateNameVariations(name: String): List<String> {
-    fun splitCamelCase(name: String): String = name.replace(Regex("([A-Z])"), " $1").trim()
+    fun splitCamelCase(name: String): String =
+        name.replace(Regex("([A-Z])"), " $1").trim()
 
     fun <T> List<T>.permutations(): List<List<T>> {
         if (size <= 1) return listOf(this)

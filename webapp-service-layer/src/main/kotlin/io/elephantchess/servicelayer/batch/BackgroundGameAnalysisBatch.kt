@@ -22,7 +22,8 @@ class BackgroundGameAnalysisBatch(
     override val logger: KLogger,
 ) : ShardedBatch<GameId>() {
 
-    override fun shardKey(element: GameId): String = element.id
+    override fun shardKey(element: GameId): String =
+        element.id
 
     override suspend fun fetchAll(): List<GameId> {
         // Check if there are MAX_CONNECTED_USERS or fewer connected users

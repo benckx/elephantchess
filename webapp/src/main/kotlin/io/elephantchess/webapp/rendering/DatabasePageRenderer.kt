@@ -409,7 +409,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
     private companion object {
 
-        fun dataAttr(name: String, value: String?): String = if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
+        fun dataAttr(name: String, value: String?): String =
+            if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
 
         fun descriptionMeta(edit: DatabasePlayerProfileEdit): TagResolver =
             CallbackTagResolver("description_meta") {

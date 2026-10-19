@@ -6,7 +6,8 @@ package io.elephantchess.xiangqi
  */
 data class PhysicalPiece(val pieceType: PieceType, val initPosition: Position) {
 
-    fun color(): Color = pieceType.color
+    fun color(): Color =
+        pieceType.color
 
     override fun toString(): String {
         val letter = pieceType.letterNotation()

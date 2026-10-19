@@ -37,5 +37,6 @@ data class AnnotationAggregate(val count: Int = 0, val totalCpl: Long = 0, val m
             },
         )
 
-    fun averageCpl(): Double? = if (count == 0) null else totalCpl.toDouble() / count.toDouble()
+    fun averageCpl(): Double? =
+        if (count == 0) null else totalCpl.toDouble() / count.toDouble()
 }

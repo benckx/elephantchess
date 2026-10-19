@@ -146,7 +146,8 @@ class EnginePool(
 
         private var isFree: Boolean = true
 
-        override fun isFree() = isFree
+        override fun isFree() =
+            isFree
 
         override fun lock() {
             isFree = false

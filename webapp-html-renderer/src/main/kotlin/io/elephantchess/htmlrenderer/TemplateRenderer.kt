@@ -65,7 +65,8 @@ abstract class TemplateRenderer(private val baseTagResolvers: List<TagResolver>,
 
     // Recursively resolves nested tags
     private suspend fun renderTag(parsedTag: ParsedTag, resolvers: List<TagResolver>): List<String> {
-        fun isTagEnabled(tagName: String) = !disabledTemplates.contains(tagName)
+        fun isTagEnabled(tagName: String) =
+            !disabledTemplates.contains(tagName)
 
         fun clearUnusedSubstitutionTags(line: String): String {
             val start = line.indexOf("\${")
@@ -88,7 +89,8 @@ abstract class TemplateRenderer(private val baseTagResolvers: List<TagResolver>,
             return clearUnusedSubstitutionTags(result)
         }
 
-        fun containsTag(line: String): Boolean = line.contains(TAG_OPEN) && line.contains(TAG_CLOSE)
+        fun containsTag(line: String): Boolean =
+            line.contains(TAG_OPEN) && line.contains(TAG_CLOSE)
 
         if (isTagEnabled(parsedTag.tagName)) {
             val resolver = resolvers.find { resolver -> resolver.tagName == parsedTag.tagName }

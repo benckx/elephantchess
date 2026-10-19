@@ -186,7 +186,8 @@ private fun isValidSequenceOfMoves(moves: List<String>): Boolean {
     }
 }
 
-private suspend fun findEntryId(moves: List<String>): Int? = findEntryId(writeContext, moves)
+private suspend fun findEntryId(moves: List<String>): Int? =
+    findEntryId(writeContext, moves)
 
 private suspend fun findEntryId(dslContext: DSLContext, moves: List<String>): Int? =
     dslContext

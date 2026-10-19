@@ -5,5 +5,6 @@ package io.elephantchess.model
  */
 data class GameId(val type: GameType, val id: String) {
 
-    override fun toString(): String = "Game[$type-$id]"
+    override fun toString(): String =
+        "Game[$type-$id]"
 }

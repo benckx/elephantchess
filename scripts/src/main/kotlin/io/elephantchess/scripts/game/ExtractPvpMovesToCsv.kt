@@ -331,7 +331,8 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         return file.parentFile?.let { File(it, newName).path } ?: newName
     }
 
-    private fun guestName(userId: String): String = "guest #$userId"
+    private fun guestName(userId: String): String =
+        "guest #$userId"
 
     private fun accountAge(creation: Instant?, firstMoveTime: Instant?): String {
         if (creation == null || firstMoveTime == null) return ""
@@ -349,5 +350,6 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
 
     private data class PlayerRating(val before: Int?, val after: Int?)
 
-    private fun randomId(): String = insecure().nextAlphanumeric(12)
+    private fun randomId(): String =
+        insecure().nextAlphanumeric(12)
 }

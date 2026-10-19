@@ -81,7 +81,8 @@ class SevenKingdomsGameService(private val gameDaoService: SevenKingdomsGameDaoS
         )
     }
 
-    suspend fun fetchMoves(gameId: String): GetMovesResponse = GetMovesResponse(gameDaoService.fetchMovesUci(gameId))
+    suspend fun fetchMoves(gameId: String): GetMovesResponse =
+        GetMovesResponse(gameDaoService.fetchMovesUci(gameId))
 
     suspend fun joinGame(userId: UserId, request: JoinGameRequest): JoinGameResponse {
         // TODO: check user isn't guest and email is validated

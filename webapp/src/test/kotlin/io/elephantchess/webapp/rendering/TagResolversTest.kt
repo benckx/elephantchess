@@ -48,14 +48,15 @@ class TagResolversTest {
         userId: String? = "user-id",
         username: String = "alice",
         timestamp: Long = pastTimestamp,
-    ) = LatestSupporter(
-        userId = userId,
-        username = username,
-        timestamp = timestamp,
-        amount = amount,
-        currency = currency,
-        recurring = recurring,
-    )
+    ) =
+        LatestSupporter(
+            userId = userId,
+            username = username,
+            timestamp = timestamp,
+            amount = amount,
+            currency = currency,
+            recurring = recurring,
+        )
 
     @Test
     fun `null supporter returns empty string`() =

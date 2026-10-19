@@ -16,11 +16,13 @@ abstract class BatchSchedule<T : Batch>(val batch: T, val period: Duration, val 
 class SinglePodBatchSchedule<T : SinglePodBatch>(batch: T, period: Duration, delay: Duration = 5.minutes, val podNumber: Int) :
     BatchSchedule<T>(batch, period, delay) {
 
-    override fun toString() = "SinglePodBatchSchedule($batchName, period=$period, delay=$delay, podNumber=$podNumber)"
+    override fun toString() =
+        "SinglePodBatchSchedule($batchName, period=$period, delay=$delay, podNumber=$podNumber)"
 }
 
 class ShardedBatchSchedule<B : ShardedBatch<*>>(batch: B, period: Duration, delay: Duration = 5.minutes) :
     BatchSchedule<B>(batch, period, delay) {
 
-    override fun toString(): String = "ShardedBatchSchedule($batchName, period=$period, delay=$delay)"
+    override fun toString(): String =
+        "ShardedBatchSchedule($batchName, period=$period, delay=$delay)"
 }

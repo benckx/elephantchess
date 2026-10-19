@@ -737,7 +737,8 @@ class PlayerVsPlayerGameService(
         joinTime: Instant?,
         endTime: Instant?,
     ): TimeRemaining {
-        fun timeElapsed(since: Instant): Long = (endTime ?: Clock.System.now()).toEpochMilliseconds() - since.toEpochMilliseconds()
+        fun timeElapsed(since: Instant): Long =
+            (endTime ?: Clock.System.now()).toEpochMilliseconds() - since.toEpochMilliseconds()
 
         val baseMs = timeControl.base * 1_000L
         val incrementMs = timeControl.increment * 1_000L
@@ -1175,11 +1176,14 @@ class PlayerVsPlayerGameService(
         }
     }
 
-    private suspend fun fetchRatingUpdate(gameId: String) = pvpGameDaoService.fetchRatingUpdate(gameId)?.ratingUpdate()
+    private suspend fun fetchRatingUpdate(gameId: String) =
+        pvpGameDaoService.fetchRatingUpdate(gameId)?.ratingUpdate()
 
-    private fun isOnline(userId: String?) = userId?.let { userService.isOnline(it) } ?: false
+    private fun isOnline(userId: String?) =
+        userId?.let { userService.isOnline(it) } ?: false
 
-    private suspend fun validateUserType(userId: UserId) = validateUserType(userId.id, userId.userType)
+    private suspend fun validateUserType(userId: UserId) =
+        validateUserType(userId.id, userId.userType)
 
     // guaranteed by token but safer for unit testing
     // maybe add a flag so it's only checked in unit tests?
@@ -1287,6 +1291,7 @@ class PlayerVsPlayerGameService(
             return String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millisRemainder)
         }
 
-        fun TimeRemaining.pretty(): String = "red " + formatMillis(this.red) + " vs. black " + formatMillis(this.black)
+        fun TimeRemaining.pretty(): String =
+            "red " + formatMillis(this.red) + " vs. black " + formatMillis(this.black)
     }
 }

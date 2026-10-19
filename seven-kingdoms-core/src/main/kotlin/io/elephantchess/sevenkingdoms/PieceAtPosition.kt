@@ -8,7 +8,9 @@ data class PieceAtPosition(val piece: Piece, val position: Position) {
     val abstractPieceType
         get() = piece.abstractPieceType
 
-    fun copyWithColor(color: Color) = PieceAtPosition(piece.copy(color = color), position.copy())
+    fun copyWithColor(color: Color) =
+        PieceAtPosition(piece.copy(color = color), position.copy())
 
-    override fun toString(): String = "$piece at $position"
+    override fun toString(): String =
+        "$piece at $position"
 }

@@ -5,5 +5,6 @@ import org.apache.commons.lang3.StringUtils.capitalize
 
 data class UserId(val userType: UserType, val id: String) {
 
-    override fun toString() = "${capitalize(userType.name.lowercase())}($id)"
+    override fun toString() =
+        "${capitalize(userType.name.lowercase())}($id)"
 }

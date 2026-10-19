@@ -82,7 +82,8 @@ object PersistDatabaseGamesToJson : KoinScript {
                 gamesByVictoryType[victoryType] = mutableListOf()
             }
 
-            fun isBelowLimit(victoryType: VictoryType): Boolean = (gamesByVictoryType[victoryType]?.size ?: 0) < GAMES_TO_KEEP
+            fun isBelowLimit(victoryType: VictoryType): Boolean =
+                (gamesByVictoryType[victoryType]?.size ?: 0) < GAMES_TO_KEEP
 
             var i = 0
             while (

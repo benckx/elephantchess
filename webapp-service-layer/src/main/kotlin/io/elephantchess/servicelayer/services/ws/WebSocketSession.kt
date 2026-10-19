@@ -25,5 +25,6 @@ abstract class WebSocketSession<U>(val sessionId: String = generateId()) {
         return true
     }
 
-    override fun hashCode(): Int = sessionId.hashCode()
+    override fun hashCode(): Int =
+        sessionId.hashCode()
 }

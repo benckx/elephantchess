@@ -116,7 +116,8 @@ abstract class EngineProcess(private val locator: EngineProcessLocator, val engi
         return matchListener.matchingLine!!
     }
 
-    fun isAlive(): Boolean = this::process.isInitialized && process.isAlive
+    fun isAlive(): Boolean =
+        this::process.isInitialized && process.isAlive
 
     /**
      * Resets the internal state so this process can be re-submitted to the executor via [run] after it

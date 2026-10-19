@@ -10,7 +10,8 @@ class DatabaseRateLimiterTest {
     private val chromeScraperUa =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
 
-    private fun limiter(max: Int = 3, windowSeconds: Int = 60) = DatabaseRateLimiter(maxRequests = max, window = windowSeconds.seconds)
+    private fun limiter(max: Int = 3, windowSeconds: Int = 60) =
+        DatabaseRateLimiter(maxRequests = max, window = windowSeconds.seconds)
 
     private fun DatabaseRateLimiter.hit(
         path: String = "/database/player/Wang_Tianyi",
@@ -18,13 +19,14 @@ class DatabaseRateLimiterTest {
         ip: String = "203.0.113.7",
         method: String = "GET",
         forwardedFor: String? = null,
-    ) = isRateLimited(
-        httpMethod = method,
-        path = path,
-        userAgent = ua,
-        remoteAddress = ip,
-        forwardedFor = forwardedFor,
-    )
+    ) =
+        isRateLimited(
+            httpMethod = method,
+            path = path,
+            userAgent = ua,
+            remoteAddress = ip,
+            forwardedFor = forwardedFor,
+        )
 
     @Test
     fun `allows requests up to the limit then blocks`() {

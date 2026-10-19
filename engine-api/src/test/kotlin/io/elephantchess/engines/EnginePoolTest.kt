@@ -103,7 +103,8 @@ private suspend fun runExperiment(fens: List<String>, poolSize: Int, depth: Int)
 }
 
 private fun listRandomFens(n: Int): List<String> {
-    fun getResourceAsText(path: String): String = object {}.javaClass.getResource(path)?.readText()!!
+    fun getResourceAsText(path: String): String =
+        object {}.javaClass.getResource(path)?.readText()!!
 
     return getResourceAsText("/data/fens.txt").split("\n").shuffled().take(n)
 }
@@ -117,11 +118,14 @@ private data class ExperimentResult(
     val timeMs: Long,
 ) {
 
-    fun isCorrect(): Boolean = totalBestMoves == legalBestMoves && totalBestMoves == batchSize
+    fun isCorrect(): Boolean =
+        totalBestMoves == legalBestMoves && totalBestMoves == batchSize
 
-    fun missingResults(): Int = batchSize - totalBestMoves
+    fun missingResults(): Int =
+        batchSize - totalBestMoves
 
-    fun illegalResults(): Int = totalBestMoves - legalBestMoves
+    fun illegalResults(): Int =
+        totalBestMoves - legalBestMoves
 
     override fun toString(): String {
         val correctStr = if (isCorrect()) "CORRECT" else "INCORRECT"

@@ -14,6 +14,7 @@ data class PlayerEloUpdate(val before: Int, val after: Int) {
         /**
          * Builds a [PlayerEloUpdate] when both [before] and [after] are present, otherwise `null`.
          */
-        fun of(before: Int?, after: Int?): PlayerEloUpdate? = if (before != null && after != null) PlayerEloUpdate(before, after) else null
+        fun of(before: Int?, after: Int?): PlayerEloUpdate? =
+            if (before != null && after != null) PlayerEloUpdate(before, after) else null
     }
 }

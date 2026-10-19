@@ -89,7 +89,8 @@ fun eventGamesListTagResolver(event: Event) =
         val playerLookup = event.playerLookup
 
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.ENGLISH)
-        fun formatDate(date: LocalDate) = date.format(dateFormatter)
+        fun formatDate(date: LocalDate) =
+            date.format(dateFormatter)
 
         fun FlowContent.playerNameCell(playerName: String?, playerSlug: String?) {
             if (playerName != null && playerSlug != null) {

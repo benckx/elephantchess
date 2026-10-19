@@ -37,22 +37,23 @@ fun serviceLayerModule(
     eagerAllowed: Boolean = false,
     dslBuilder: (DbConfig) -> DSLContext = { getDslContext(it) },
     enginesPool: EnginePool? = null,
-) = module {
-    val appConfig = loadAppConfig(argConfig)
-    single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
-    single { appConfig }
-    single { appConfig.dbConfig }
-    single { dslBuilder(get()) }
-    single { enginesPool ?: buildDefaultEnginePool(get()) }
+) =
+    module {
+        val appConfig = loadAppConfig(argConfig)
+        single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+        single { appConfig }
+        single { appConfig.dbConfig }
+        single { dslBuilder(get()) }
+        single { enginesPool ?: buildDefaultEnginePool(get()) }
 
-    // all services, DAOs, clients and batches annotated with @KoinSingleton
-    registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
+        // all services, DAOs, clients and batches annotated with @KoinSingleton
+        registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
 
-    includes(
-        mailTemplateRenderModule(),
-        batchSchedulesModule(),
-    )
-}
+        includes(
+            mailTemplateRenderModule(),
+            batchSchedulesModule(),
+        )
+    }
 
 // emails: custom wiring that can't be auto-resolved from the constructor alone
 private fun mailTemplateRenderModule() =

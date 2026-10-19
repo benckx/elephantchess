@@ -89,7 +89,8 @@ class GameDataService(
             DB to referenceGameDaoService.countTotalMoves(),
         )
 
-    suspend fun latestMoveAnalysisUpdate(): Instant? = moveAnalysisDaoService.fetchLatestMoveAnalysis()
+    suspend fun latestMoveAnalysisUpdate(): Instant? =
+        moveAnalysisDaoService.fetchLatestMoveAnalysis()
 
     suspend fun fetchAnalysisStatusOfGame(gameId: GameId): AnalysisStatus =
         moveAnalysisDaoService.fetchAnalysisStatus(gameId) ?: throw NotFoundException("$gameId not found")
@@ -446,7 +447,8 @@ class GameDataService(
             DB -> DEFAULT_START_FEN
         }
 
-    private suspend fun fetchUserName(userId: String?): String? = userId?.let { userCache.fetchUsername(it) }
+    private suspend fun fetchUserName(userId: String?): String? =
+        userId?.let { userCache.fetchUsername(it) }
 
     suspend fun listLastPvpGames(requestedLimit: Int, distinctByUsers: Boolean, beforeTs: Long?): ListLastGamesResponse {
         // ensure each user appears at most once in the list

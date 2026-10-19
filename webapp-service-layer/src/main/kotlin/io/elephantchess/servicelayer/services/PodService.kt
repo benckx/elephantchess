@@ -59,7 +59,8 @@ class PodService(appConfig: AppConfig, refresherScope: CoroutineScope, private v
     }
 
     // StatefulSet pod names are stable ordinals, e.g. "elephantchess-webapp-0" -> index 0
-    private fun podOrdinalFromEnv(): Int? = podNameEnv?.substringAfterLast('-')?.toIntOrNull()
+    private fun podOrdinalFromEnv(): Int? =
+        podNameEnv?.substringAfterLast('-')?.toIntOrNull()
 
     fun cancel() {
         jobs.forEach { job -> job.cancel() }

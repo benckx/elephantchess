@@ -120,7 +120,8 @@ class ApiLayerClient(appConfig: AppConfig, private val logger: KLogger = logger 
         val ERROR_WINDOW = 12.hours
         const val MAX_ERRORS = 3
 
-        fun encodeParam(param: String): String = URLEncoder.encode(param, StandardCharsets.UTF_8)
+        fun encodeParam(param: String): String =
+            URLEncoder.encode(param, StandardCharsets.UTF_8)
 
         enum class Service {
             USER_AGENT,

@@ -13,7 +13,8 @@ class PropertiesFile(private val profileName: String, private val configurationL
 
     private val properties = loadProperties()
 
-    fun loadString(key: String) = getProperty(key)
+    fun loadString(key: String) =
+        getProperty(key)
 
     fun loadBoolean(key: String): Boolean =
         try {
@@ -23,11 +24,14 @@ class PropertiesFile(private val profileName: String, private val configurationL
             false
         }
 
-    fun loadBoolean(key: String, default: Boolean) = getPropertyOrNull(key)?.toBoolean() ?: default
+    fun loadBoolean(key: String, default: Boolean) =
+        getPropertyOrNull(key)?.toBoolean() ?: default
 
-    fun loadInt(key: String) = getProperty(key).toInt()
+    fun loadInt(key: String) =
+        getProperty(key).toInt()
 
-    fun loadIntOrDefault(key: String, default: Int) = getPropertyOrNull(key)?.toIntOrNull() ?: default
+    fun loadIntOrDefault(key: String, default: Int) =
+        getPropertyOrNull(key)?.toIntOrNull() ?: default
 
     fun loadList(key: String): List<String> =
         if (!properties.containsKey(key)) {
@@ -47,7 +51,8 @@ class PropertiesFile(private val profileName: String, private val configurationL
         }
     }
 
-    private fun getPropertyOrNull(key: String): String? = properties.getProperty(key)
+    private fun getPropertyOrNull(key: String): String? =
+        properties.getProperty(key)
 
     private fun loadProperties(): Properties {
         val properties = Properties()
@@ -69,7 +74,9 @@ class PropertiesFile(private val profileName: String, private val configurationL
         return properties
     }
 
-    private fun resourceAsText(path: String): String = resourceURL(path)!!.readText()
+    private fun resourceAsText(path: String): String =
+        resourceURL(path)!!.readText()
 
-    private fun resourceURL(path: String): URL? = object {}.javaClass.getResource(path)
+    private fun resourceURL(path: String): URL? =
+        object {}.javaClass.getResource(path)
 }

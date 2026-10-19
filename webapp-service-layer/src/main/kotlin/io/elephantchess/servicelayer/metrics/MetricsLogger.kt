@@ -66,6 +66,7 @@ class MetricsLogger {
 
         const val MEGA_BYTES = 1024L * 1024L
 
-        fun toMegaBytes(bytes: Long): String = "${(bytes / MEGA_BYTES).toInt()} MB"
+        fun toMegaBytes(bytes: Long): String =
+            "${(bytes / MEGA_BYTES).toInt()} MB"
     }
 }

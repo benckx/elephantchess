@@ -4,6 +4,7 @@ data class PuzzleStatsNumbersResponse(val history: List<Entry>) {
 
     data class Entry(val date: String, val solved: Int, val skipped: Int, val failed: Int) {
 
-        fun isOnlyZeros(): Boolean = solved == 0 && skipped == 0 && failed == 0
+        fun isOnlyZeros(): Boolean =
+            solved == 0 && skipped == 0 && failed == 0
     }
 }

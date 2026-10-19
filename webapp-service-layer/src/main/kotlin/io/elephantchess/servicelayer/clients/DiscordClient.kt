@@ -61,7 +61,8 @@ class DiscordClient(appConfig: AppConfig) {
         }
     }
 
-    private fun messageApi(channelId: String): String = "$BASE_URL/channels/$channelId/messages"
+    private fun messageApi(channelId: String): String =
+        "$BASE_URL/channels/$channelId/messages"
 
     private companion object {
 

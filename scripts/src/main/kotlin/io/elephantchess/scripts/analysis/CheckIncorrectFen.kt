@@ -26,4 +26,5 @@ fun main() {
     enginePool.close()
 }
 
-private fun toAlgebraic(pv: List<String>): List<String> = pv.map { HalfMove.parseMoveFromUci(it).toAlgebraic() }
+private fun toAlgebraic(pv: List<String>): List<String> =
+    pv.map { HalfMove.parseMoveFromUci(it).toAlgebraic() }

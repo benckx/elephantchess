@@ -107,9 +107,11 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun completeAnalysis(gameId: GameId) = updateAnalysisStatus(gameId, COMPLETED, endTimeField(gameId))
+    suspend fun completeAnalysis(gameId: GameId) =
+        updateAnalysisStatus(gameId, COMPLETED, endTimeField(gameId))
 
-    suspend fun cancelAnalysis(gameId: GameId) = updateAnalysisStatus(gameId, CANCELLED, endTimeField(gameId))
+    suspend fun cancelAnalysis(gameId: GameId) =
+        updateAnalysisStatus(gameId, CANCELLED, endTimeField(gameId))
 
     private suspend fun updateAnalysisStatus(gameId: GameId, status: AnalysisStatus, timeField: Field<Instant>?) {
         dslContext.transactionCoroutine { cfg ->
@@ -263,7 +265,8 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         const val MAX_DATE = "max_date"
         const val TOTAL_MOVES = "total_moves"
 
-        fun moveAnalysisTableIdCondition(gameId: GameId): Condition = moveAnalysisTableIdField(gameId.type).eq(gameId.id)
+        fun moveAnalysisTableIdCondition(gameId: GameId): Condition =
+            moveAnalysisTableIdField(gameId.type).eq(gameId.id)
 
         fun moveAnalysisTableIdField(gameType: GameType): Field<String> =
             when (gameType) {
@@ -272,7 +275,8 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                 PVB -> MOVE_ANALYSIS.BOT_GAME_ID
             }
 
-        fun gameTableIdCondition(gameId: GameId): Condition = gameTableIdField(gameId.type).eq(gameId.id)
+        fun gameTableIdCondition(gameId: GameId): Condition =
+            gameTableIdField(gameId.type).eq(gameId.id)
 
         fun gameTableIdField(gameType: GameType): Field<String> =
             when (gameType) {
@@ -281,7 +285,8 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                 PVB -> BOT_GAME.ID
             }
 
-        fun gameTableAnalysisStatusField(gameId: GameId) = gameTableAnalysisStatusField(gameId.type)
+        fun gameTableAnalysisStatusField(gameId: GameId) =
+            gameTableAnalysisStatusField(gameId.type)
 
         fun gameTableAnalysisStatusField(gameType: GameType): Field<AnalysisStatus> =
             when (gameType) {
@@ -290,7 +295,8 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                 PVB -> BOT_GAME.ANALYSIS_STATUS
             }
 
-        fun startTimeField(gameId: GameId) = startTimeField(gameId.type)
+        fun startTimeField(gameId: GameId) =
+            startTimeField(gameId.type)
 
         fun startTimeField(gameType: GameType): Field<Instant> =
             when (gameType) {
@@ -299,7 +305,8 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                 PVB -> BOT_GAME.ANALYSIS_START_TIME
             }
 
-        fun endTimeField(gameId: GameId) = endTimeField(gameId.type)
+        fun endTimeField(gameId: GameId) =
+            endTimeField(gameId.type)
 
         fun endTimeField(gameType: GameType): Field<Instant> =
             when (gameType) {
@@ -308,9 +315,11 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                 PVB -> BOT_GAME.ANALYSIS_END_TIME
             }
 
-        fun gameTableUpdate(gameId: GameId) = gameTable(gameId)
+        fun gameTableUpdate(gameId: GameId) =
+            gameTable(gameId)
 
-        fun gameTable(gameId: GameId) = gameTable(gameId.type)
+        fun gameTable(gameId: GameId) =
+            gameTable(gameId.type)
 
         fun gameTable(gameType: GameType): Table<Record> =
             when (gameType) {

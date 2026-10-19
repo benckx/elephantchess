@@ -744,7 +744,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 ),
             )
 
-        fun listRatingFields(): List<TableField<UserRecord, Int>> = listRatingFieldDefinitions().map { it.field }
+        fun listRatingFields(): List<TableField<UserRecord, Int>> =
+            listRatingFieldDefinitions().map { it.field }
 
         fun listXiangqiRatingFields(): List<TableField<UserRecord, Int>> =
             listRatingFieldDefinitions()

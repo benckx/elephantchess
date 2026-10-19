@@ -19,7 +19,8 @@ class EngineService(private val enginesPool: EnginePool, private val engineCache
      * First try from cache, then query engine
      */
     suspend fun principalVariation(fen: String, engine: Engine, depth: Int): InfoLineResultDto? {
-        suspend fun queryEngine(): InfoLineResult? = queryEngine(fen, engine, depth).deepestResult()
+        suspend fun queryEngine(): InfoLineResult? =
+            queryEngine(fen, engine, depth).deepestResult()
 
         val infoLineResult = when (engine) {
             PIKAFISH -> {

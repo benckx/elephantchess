@@ -287,9 +287,11 @@ class HtmlRenderer(
         const val CDN_BASE = "https://cdn.elephantchess.io"
         const val SITE_BASE_URL = "https://elephantchess.io"
 
-        private fun String.ensureLeadingSlash(): String = if (startsWith("/")) this else "/$this"
+        private fun String.ensureLeadingSlash(): String =
+            if (startsWith("/")) this else "/$this"
 
-        private fun List<Element>.hasAttribute(attrName: String): Boolean = this.find { it.hasAttr(attrName) } != null
+        private fun List<Element>.hasAttribute(attrName: String): Boolean =
+            this.find { it.hasAttr(attrName) } != null
 
         private fun List<Element>.hasAttribute(attrName: String, attrValue: String): Boolean =
             this.find {

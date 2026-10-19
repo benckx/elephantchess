@@ -10,7 +10,8 @@ abstract class VerifiedToken(private val decodedJWT: DecodedJWT) : TokenVerifica
     abstract val userId: String
     abstract fun userId(): UserId
 
-    fun expiresAtInstant(): Instant? = decodedJWT.expiresAt?.toInstant()?.toKotlinInstant()
+    fun expiresAtInstant(): Instant? =
+        decodedJWT.expiresAt?.toInstant()?.toKotlinInstant()
 
     fun expiresAtInDays(): Long? {
         val expiresAt = expiresAtInstant() ?: return null

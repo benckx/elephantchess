@@ -16,7 +16,8 @@ import kotlin.coroutines.cancellation.CancellationException
 val wsOpsLogger by lazy { logger {} }
 val wsJsonMapper by koin<JsonMapper>("wsJsonMapper")
 
-fun DefaultWebSocketServerSession.sendWs(o: Any): ChannelResult<Unit> = outgoing.trySend(Frame.Text(wsJsonMapper.writeValueAsString(o)))
+fun DefaultWebSocketServerSession.sendWs(o: Any): ChannelResult<Unit> =
+    outgoing.trySend(Frame.Text(wsJsonMapper.writeValueAsString(o)))
 
 suspend fun DefaultWebSocketServerSession.handleWebSocketSession(
     startSession: suspend () -> String,

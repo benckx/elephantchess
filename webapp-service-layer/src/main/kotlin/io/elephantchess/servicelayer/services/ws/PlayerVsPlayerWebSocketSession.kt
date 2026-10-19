@@ -20,13 +20,17 @@ class PlayerVsPlayerWebSocketSession(
     private var timeRemainingLastSync: Instant? = null
     private var drawPropositionUser: String? = null
 
-    fun currentIndex(): Int = moveIndex
+    fun currentIndex(): Int =
+        moveIndex
 
-    fun currentChatIndex(): Int = chatIndex
+    fun currentChatIndex(): Int =
+        chatIndex
 
-    fun currentStatus(): GameEventType = status
+    fun currentStatus(): GameEventType =
+        status
 
-    fun isWaitingToBeJoined() = status == GameEventType.CREATED
+    fun isWaitingToBeJoined() =
+        status == GameEventType.CREATED
 
     fun mustSyncTime(now: Instant): Boolean =
         timeRemainingLastSync == null ||
@@ -79,7 +83,8 @@ class PlayerVsPlayerWebSocketSession(
         }
     }
 
-    override fun toString() = "${javaClass.simpleName}{sessionId=$sessionId, gameId=$gameId}"
+    override fun toString() =
+        "${javaClass.simpleName}{sessionId=$sessionId, gameId=$gameId}"
 
     private companion object {
 

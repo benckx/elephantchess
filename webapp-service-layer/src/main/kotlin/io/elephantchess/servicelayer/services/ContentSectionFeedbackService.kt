@@ -52,7 +52,8 @@ class ContentSectionFeedbackService(private val contentSectionVoteDaoService: Co
         private val DASH_SEPARATED_ID_REGEX = Regex("^[a-z0-9]+(?:-[a-z0-9]+)*$")
         private val ALLOWED_CONTENT_PAGE_IDS = setOf("faq", "roadmap")
 
-        private fun isContentPageIdValid(pageId: String): Boolean = pageId in ALLOWED_CONTENT_PAGE_IDS
+        private fun isContentPageIdValid(pageId: String): Boolean =
+            pageId in ALLOWED_CONTENT_PAGE_IDS
 
         private fun isContentSectionIdValid(sectionId: String): Boolean =
             sectionId.length <= 80 && DASH_SEPARATED_ID_REGEX.matches(sectionId)

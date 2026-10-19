@@ -54,7 +54,8 @@ class MailService(
 
     private val mailScope by lazy { CoroutineScope(Dispatchers.IO) }
 
-    suspend fun isEmailAddressValid(email: String): Boolean = getEmailValidityDetails(email).isValid
+    suspend fun isEmailAddressValid(email: String): Boolean =
+        getEmailValidityDetails(email).isValid
 
     /**
      * Returns the full [EmailValidityStatus] for the given email.

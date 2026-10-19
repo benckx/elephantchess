@@ -14,10 +14,12 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-fun Field<String>.eqIgnoreCaseTrimmed(value: String): Condition = DSL.trim(DSL.lower(this)).eq(value.trim().lowercase())
+fun Field<String>.eqIgnoreCaseTrimmed(value: String): Condition =
+    DSL.trim(DSL.lower(this)).eq(value.trim().lowercase())
 
 // TODO: can be converted to LocalDate
-fun Field<Instant>.date(): Field<java.sql.Date> = DSL.field("date(${this.name})").cast(java.sql.Date::class.java)
+fun Field<Instant>.date(): Field<java.sql.Date> =
+    DSL.field("date(${this.name})").cast(java.sql.Date::class.java)
 
 // TODO: can be converted to LocalDate
 fun Field<Instant>.dateQualified(prefix: String): Field<java.sql.Date> =
@@ -28,14 +30,16 @@ fun Field<Instant>.isOlderThan(duration: Duration): Field<Boolean> {
     return isBefore(limit)
 }
 
-fun Field<Instant>.isBeforeEpochMillis(timestampMillis: Long): Condition = isBefore(Instant.fromEpochMilliseconds(timestampMillis))
+fun Field<Instant>.isBeforeEpochMillis(timestampMillis: Long): Condition =
+    isBefore(Instant.fromEpochMilliseconds(timestampMillis))
 
 fun Field<Instant>.isWithin(duration: Duration): Condition {
     val limit = Clock.System.now() - duration
     return isAfter(limit)
 }
 
-fun <T : Any> Field<T>.qualified(prefix: String): Field<Any> = DSL.field("$prefix.${this.name}")
+fun <T : Any> Field<T>.qualified(prefix: String): Field<Any> =
+    DSL.field("$prefix.${this.name}")
 
 fun Field<Instant>.hourOfDay(): Field<Int> =
     DSL.field("to_char(${this.name}, 'HH24')")
@@ -56,7 +60,8 @@ fun Field<Instant>.localDate(alias: String? = "day"): Field<LocalDate> {
  * The current transaction timestamp rendered for [target], reusing that column's data type so the
  * `timestamptz`/[Instant] forced-type converter is applied when assigning it on upsert conflicts.
  */
-fun <T> currentTimestamp(target: Field<T>): Field<T> = DSL.field("current_timestamp", target.dataType)
+fun <T> currentTimestamp(target: Field<T>): Field<T> =
+    DSL.field("current_timestamp", target.dataType)
 
 /**
  * On an `ON CONFLICT ... DO UPDATE` upsert, accumulate [field] by adding the value that would have been
@@ -106,9 +111,11 @@ fun Field<LocalDate>.centuryOfDay(): Field<Int> =
 fun diffInSeconds(f1: Field<Instant>, f2: Field<Instant>): Field<Int> =
     DSL.extract(f1, DatePart.EPOCH).minus(DSL.extract(f2, DatePart.EPOCH))
 
-fun Field<Instant>.isAfter(timestamp: Instant): Condition = greaterThan(timestamp)
+fun Field<Instant>.isAfter(timestamp: Instant): Condition =
+    greaterThan(timestamp)
 
-fun Field<Instant>.isBefore(timestamp: Instant): Condition = lessThan(timestamp)
+fun Field<Instant>.isBefore(timestamp: Instant): Condition =
+    lessThan(timestamp)
 
 suspend fun <T> DSLContext.transactionalContextTry(block: suspend (DSLContext) -> T): TryEither<T> {
     var t: TryEither<T>? = null
@@ -143,7 +150,8 @@ suspend fun <R : Record> ResultQuery<R>.awaitRecords(): List<R> =
         .collectList()
         .awaitSingle()
 
-suspend fun ResultQuery<out Record>.awaitSingleRecord(): Record? = awaitRecords().firstOrNull()
+suspend fun ResultQuery<out Record>.awaitSingleRecord(): Record? =
+    awaitRecords().firstOrNull()
 
 suspend inline fun <reified T : Any> ResultQuery<out Record>.awaitSingleOrNull(): T? =
     awaitRecords()

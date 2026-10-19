@@ -15,9 +15,12 @@ class FlagGamesBatch(
     override val logger: KLogger,
 ) : ShardedBatch<Game>() {
 
-    override fun shardKey(element: Game): String = element.id
+    override fun shardKey(element: Game): String =
+        element.id
 
-    override suspend fun fetchAll() = pvpGameDaoService.listPotentiallyFlaggedGames()
+    override suspend fun fetchAll() =
+        pvpGameDaoService.listPotentiallyFlaggedGames()
 
-    override suspend fun process(element: Game) = pvpGameService.flagIfNeeded(element.id, element.timeControl()!!)
+    override suspend fun process(element: Game) =
+        pvpGameService.flagIfNeeded(element.id, element.timeControl()!!)
 }

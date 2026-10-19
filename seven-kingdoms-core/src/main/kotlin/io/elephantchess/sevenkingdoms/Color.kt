@@ -11,11 +11,14 @@ enum class Color(val fenColorChar: Char, val armyName: String, val armyChineseNa
     BLACK('d', "Yan", "燕", "#000000"),
     ;
 
-    fun next(): Color = entries[(ordinal + 1) % entries.size]
+    fun next(): Color =
+        entries[(ordinal + 1) % entries.size]
 
-    fun capitalizedName(): String = name.lowercase().replaceFirstChar { it.uppercase() }
+    fun capitalizedName(): String =
+        name.lowercase().replaceFirstChar { it.uppercase() }
 
-    override fun toString() = capitalizedName()
+    override fun toString() =
+        capitalizedName()
 
     companion object {
 
