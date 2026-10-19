@@ -18,61 +18,63 @@ class DatabasePageRendererTest {
     }
 
     @Test
-    fun `renderPlayerPage includes contributors and last edit date`() = runTest {
-        val output = pageRenderer().renderPlayerPage(
-            databasePlayer = DatabasePlayer("player-id", "John Doe", null, null),
-            requestedVersion = null,
-            edit = DatabasePlayerProfileEdit(
-                playerId = "player-id",
-                canonicalName = "John Doe",
-                chineseName = null,
-                gender = null,
-                profileText = "some text",
-                sources = emptyList(),
-                editComment = null,
-                enabled = true,
-                versionTime = 1704067200000
-            ),
-            fetchEditorsUsername = { listOf("Bob", "Alice", "Bob", "<script>") },
-            hasOpeningData = false
-        )
+    fun `renderPlayerPage includes contributors and last edit date`() =
+        runTest {
+            val output = pageRenderer().renderPlayerPage(
+                databasePlayer = DatabasePlayer("player-id", "John Doe", null, null),
+                requestedVersion = null,
+                edit = DatabasePlayerProfileEdit(
+                    playerId = "player-id",
+                    canonicalName = "John Doe",
+                    chineseName = null,
+                    gender = null,
+                    profileText = "some text",
+                    sources = emptyList(),
+                    editComment = null,
+                    enabled = true,
+                    versionTime = 1704067200000,
+                ),
+                fetchEditorsUsername = { listOf("Bob", "Alice", "Bob", "<script>") },
+                hasOpeningData = false,
+            )
 
-        assertTrue(output.contains("<b>Contributors:</b>"))
-        assertTrue(output.contains("&lt;script&gt;"))
-        assertTrue(output.contains("Alice"))
-        assertTrue(output.contains("Bob"))
-        assertTrue(output.contains("""href="/@/Alice""""))
-        assertTrue(output.contains("""href="/@/Bob""""))
-        assertTrue(output.contains("""href="/@/%3Cscript%3E""""))
-        assertTrue(output.contains("<b>Last edit:</b> 1 Jan 2024"))
-        assertTrue(output.contains("""<meta name="author""""))
-        val descriptionIndex = output.indexOf("""<div id="player-profile-description">""")
-        val profileMetaIndex = output.indexOf("""<div id="profile-meta-info">""")
-        assertTrue(profileMetaIndex > descriptionIndex)
-        assertFalse(output.contains("<script>"))
-    }
+            assertTrue(output.contains("<b>Contributors:</b>"))
+            assertTrue(output.contains("&lt;script&gt;"))
+            assertTrue(output.contains("Alice"))
+            assertTrue(output.contains("Bob"))
+            assertTrue(output.contains("""href="/@/Alice""""))
+            assertTrue(output.contains("""href="/@/Bob""""))
+            assertTrue(output.contains("""href="/@/%3Cscript%3E""""))
+            assertTrue(output.contains("<b>Last edit:</b> 1 Jan 2024"))
+            assertTrue(output.contains("""<meta name="author""""))
+            val descriptionIndex = output.indexOf("""<div id="player-profile-description">""")
+            val profileMetaIndex = output.indexOf("""<div id="profile-meta-info">""")
+            assertTrue(profileMetaIndex > descriptionIndex)
+            assertFalse(output.contains("<script>"))
+        }
 
     @Test
-    fun `renderPlayerPage omits profile metadata when unavailable`() = runTest {
-        val output = pageRenderer().renderPlayerPage(
-            databasePlayer = DatabasePlayer("player-id", "John Doe", null, null),
-            requestedVersion = null,
-            edit = DatabasePlayerProfileEdit(
-                playerId = "player-id",
-                canonicalName = "John Doe",
-                chineseName = null,
-                gender = null,
-                profileText = "some text",
-                sources = emptyList(),
-                editComment = null,
-                enabled = true,
-                versionTime = null
-            ),
-            fetchEditorsUsername = { emptyList() },
-            hasOpeningData = false
-        )
+    fun `renderPlayerPage omits profile metadata when unavailable`() =
+        runTest {
+            val output = pageRenderer().renderPlayerPage(
+                databasePlayer = DatabasePlayer("player-id", "John Doe", null, null),
+                requestedVersion = null,
+                edit = DatabasePlayerProfileEdit(
+                    playerId = "player-id",
+                    canonicalName = "John Doe",
+                    chineseName = null,
+                    gender = null,
+                    profileText = "some text",
+                    sources = emptyList(),
+                    editComment = null,
+                    enabled = true,
+                    versionTime = null,
+                ),
+                fetchEditorsUsername = { emptyList() },
+                hasOpeningData = false,
+            )
 
-        assertFalse(output.contains("<b>Contributors:</b>"))
-        assertFalse(output.contains("<b>Last edit:</b>"))
-    }
+            assertFalse(output.contains("<b>Contributors:</b>"))
+            assertFalse(output.contains("<b>Last edit:</b>"))
+        }
 }
