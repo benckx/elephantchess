@@ -28,6 +28,7 @@ class BotGameEntryDto {
     #status;
     #outcome;
     #moveIndex;
+    #variant;
 
     /**
      * @type {number}
@@ -51,6 +52,7 @@ class BotGameEntryDto {
         this.#moveIndex = json.moveIndex;
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
+        this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
     /**
@@ -100,6 +102,13 @@ class BotGameEntryDto {
      */
     get currentFen() {
         return this.#currentFen;
+    }
+
+    /**
+     * @return {string}
+     */
+    get status() {
+        return this.#status;
     }
 
     /**
@@ -155,6 +164,13 @@ class BotGameEntryDto {
 
     get lastUpdated() {
         return this.#lastUpdated;
+    }
+
+    /**
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
     }
 
 }

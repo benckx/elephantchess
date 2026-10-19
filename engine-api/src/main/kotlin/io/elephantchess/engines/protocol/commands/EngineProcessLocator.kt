@@ -6,5 +6,4 @@ package io.elephantchess.engines.protocol.commands
 interface EngineProcessLocator {
 
     fun launchCommand(binFileName: String): String
-
 }

@@ -24,7 +24,7 @@ fun Routing.integrationRoutes() {
         logger.info { "Ko-fi webhook health check accessed" }
         call.respond(
             OK,
-            mapOf("status" to "Ko-fi webhook endpoint is active", "timestamp" to System.currentTimeMillis())
+            mapOf("status" to "Ko-fi webhook endpoint is active", "timestamp" to System.currentTimeMillis()),
         )
     }
     post("/api/integration/kofi") {

@@ -1,0 +1,20 @@
+<div id="puzzle-reveal-confirmation-modal" class="modal-content" data-nosnippet>
+    <button class="modal-close-button" aria-label="Close">×</button>
+    <h2>Confirmation</h2>
+    <p>
+        Revealing the solution counts as a failed attempt, meaning you will lose Elo rating points.
+        Are you sure you want to reveal the solution?
+    </p>
+    <div class="standard-checkbox rating-loss-confirmation-checkbox">
+        <span>
+            <input type="checkbox" id="puzzle-confirmation-do-not-show-again"/>
+        </span>
+        <span class="label-span">
+            <label for="puzzle-confirmation-do-not-show-again">Do not show again</label>
+        </span>
+    </div>
+    <div class="modal-buttons-panel">
+        <input id="puzzle-confirmation-yes-button" type="button" class="app-buttons" value="reveal">
+        <input id="puzzle-confirmation-no-button" type="button" class="app-buttons-red" value="cancel">
+    </div>
+</div>

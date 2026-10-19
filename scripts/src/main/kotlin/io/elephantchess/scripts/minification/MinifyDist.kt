@@ -8,10 +8,10 @@ fun main() {
         listOf(
             "board.css",
             "xiangqi.js",
-            "board-gui.js"
+            "board-gui.js",
         )
             .map { prefix + it }
             .map { File(it) }
 
-    minifyIfNeeded(files)
+    minifyAll(files)
 }

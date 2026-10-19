@@ -17,7 +17,26 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+const STATUS_COLUMNS = [
+    AnalysisStatus.NOT_STARTED,
+    AnalysisStatus.PARTIALLY_COMPLETED,
+    AnalysisStatus.COMPLETED,
+    AnalysisStatus.CANCELLED,
+    AnalysisStatus.STARTED
+];
+
+const GAME_TYPE_ROWS = [
+    GameType.DB,
+    GameType.PVB,
+    GameType.PVP
+];
+
 class AdminPreAnalysisPage extends BasePage {
+
+    /**
+     * @type {HTMLTableElement}
+     */
+    #byTypeTable = document.getElementById('pre-analysis-by-type-table');
 
     /**
      * @type {HTMLTableElement}
@@ -32,6 +51,7 @@ class AdminPreAnalysisPage extends BasePage {
     constructor() {
         super();
         this.#fetchLatestMoveAnalysisByGame();
+        this.#fetchPreAnalysisStatusByGameType();
         this.#fetchPreAnalyzedReferenceGamesPerYear();
     }
 
@@ -39,15 +59,16 @@ class AdminPreAnalysisPage extends BasePage {
         getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-move-analysis-by-game`, json => {
             let entries = [];
             json.entries.map(jsonEntry => entries.push(new MoveAnalysisByGame(jsonEntry)));
-            this.#renderLatestMoveAnalysisByGame(entries);
+            this.#renderMoveAnalysisByGame(this.#latestAnalyzedGamesTable, entries);
         });
     }
 
     /**
+     * @param table {HTMLTableElement}
      * @param entries {MoveAnalysisByGame[]}
      */
-    #renderLatestMoveAnalysisByGame(entries) {
-        const tbody = emptyTable(this.#latestAnalyzedGamesTable);
+    #renderMoveAnalysisByGame(table, entries) {
+        const tbody = emptyTable(table);
         entries.forEach(entry => {
             const url = gameIdToPageLink(entry.gameId);
             const row = tbody.insertRow();
@@ -57,18 +78,11 @@ class AdminPreAnalysisPage extends BasePage {
             row.insertCell().innerText = entry.lastFormatted;
             row.insertCell().innerText = entry.totalAnalyzedMoves.toString();
             row.insertCell().innerText = entry.analysisStatus;
+            row.insertCell().innerText = entry.analyzedFromBatch ? '✓' : '';
         });
     }
 
     #fetchPreAnalyzedReferenceGamesPerYear() {
-        const statusColumns = [
-            AnalysisStatus.NOT_STARTED,
-            AnalysisStatus.PARTIALLY_COMPLETED,
-            AnalysisStatus.COMPLETED,
-            AnalysisStatus.CANCELLED,
-            AnalysisStatus.STARTED
-        ];
-
         getAndHandle(`${ADMIN_URL_PREFIX}/pre-analyzed-reference-games-per-year`, json => {
             const tbody = emptyTable(this.#perYearTable);
             const entries = StatusPerYearEntryDto.parse(json);
@@ -78,9 +92,9 @@ class AdminPreAnalysisPage extends BasePage {
                 let row = tbody.insertRow();
                 row.insertCell().innerText = year.toString();
                 let completed = 0;
-                for (let i = 0; i < statusColumns.length; i++) {
+                for (let i = 0; i < STATUS_COLUMNS.length; i++) {
                     const cell = row.insertCell();
-                    const status = statusColumns[i];
+                    const status = STATUS_COLUMNS[i];
                     const entry = entries.find(it => it.year === year && it.status === status);
                     if (entry != null) {
                         if (status === AnalysisStatus.COMPLETED) {
@@ -104,9 +118,9 @@ class AdminPreAnalysisPage extends BasePage {
             const totalRow = tbody.insertRow();
             totalRow.insertCell().innerText = 'total';
 
-            for (let i = 0; i < statusColumns.length; i++) {
+            for (let i = 0; i < STATUS_COLUMNS.length; i++) {
                 const cell = totalRow.insertCell();
-                const status = statusColumns[i];
+                const status = STATUS_COLUMNS[i];
 
                 const statusTotal = entries
                     .filter(it => it.status === status)
@@ -127,6 +141,55 @@ class AdminPreAnalysisPage extends BasePage {
 
             totalRow.insertCell().innerText = formatNumber(totalGames);
             totalRow.insertCell().innerText = displayPercentage(totalCompleted / totalGames);
+        });
+    }
+
+    #fetchPreAnalysisStatusByGameType() {
+        getAndHandle(`${ADMIN_URL_PREFIX}/pre-analysis-status-by-game-type`, json => {
+            const tbody = emptyTable(this.#byTypeTable);
+            const entries = StatusByGameTypeEntryDto.parse(json);
+
+            GAME_TYPE_ROWS.forEach(gameType => {
+                const row = tbody.insertRow();
+                row.insertCell().innerText = gameType;
+                let completed = 0;
+                let total = 0;
+
+                STATUS_COLUMNS.forEach(status => {
+                    const entry = entries.find(it => it.gameType === gameType && it.status === status);
+                    const count = entry?.count || 0;
+                    if (status === AnalysisStatus.COMPLETED) {
+                        completed = count;
+                    }
+                    total += count;
+                    row.insertCell().innerText = formatNumber(count);
+                });
+
+                row.insertCell().innerText = formatNumber(total);
+                row.insertCell().innerText = total > 0 ? displayPercentage(completed / total) : '--';
+            });
+
+            const totalRow = tbody.insertRow();
+            totalRow.insertCell().innerText = 'total';
+
+            let totalCompleted = 0;
+            let totalGames = 0;
+
+            STATUS_COLUMNS.forEach(status => {
+                const statusTotal = entries
+                    .filter(it => it.status === status)
+                    .map(it => it.count)
+                    .reduce((a, b) => a + b, 0);
+
+                if (status === AnalysisStatus.COMPLETED) {
+                    totalCompleted = statusTotal;
+                }
+                totalGames += statusTotal;
+                totalRow.insertCell().innerText = formatNumber(statusTotal);
+            });
+
+            totalRow.insertCell().innerText = formatNumber(totalGames);
+            totalRow.insertCell().innerText = totalGames > 0 ? displayPercentage(totalCompleted / totalGames) : '--';
         });
     }
 }

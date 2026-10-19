@@ -17,6 +17,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+const Variant = Object.freeze({
+    XIANGQI: 'XIANGQI',
+    MANCHU: 'MANCHU'
+});
+
 const GameEventType = Object.freeze({
     CREATED: 'CREATED',
     CANCELED: 'CANCELED',
@@ -69,6 +74,7 @@ const GameJoinSource = Object.freeze({
     DISCORD_NOTIFICATION: 'DISCORD_NOTIFICATION',
     LOBBY: 'LOBBY',
     MATCHED: 'MATCHED',
+    DYNAMIC_MATCHED: 'DYNAMIC_MATCHED',
     LINK: 'LINK'
 });
 

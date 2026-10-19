@@ -10,19 +10,17 @@ import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto.Companion.map
 import io.elephantchess.servicelayer.exceptions.InternalErrorException
 import io.elephantchess.servicelayer.utils.modelToProcess
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
+import io.elephantchess.utils.di.KoinSingleton
 
-class EngineService(
-    private val enginesPool: EnginePool,
-    private val engineCacheService: EngineCacheService,
-) {
+@KoinSingleton
+class EngineService(private val enginesPool: EnginePool, private val engineCacheService: EngineCacheService) {
 
     /**
      * First try from cache, then query engine
      */
     suspend fun principalVariation(fen: String, engine: Engine, depth: Int): InfoLineResultDto? {
-        suspend fun queryEngine(): InfoLineResult? {
-            return queryEngine(fen, engine, depth).deepestResult()
-        }
+        suspend fun queryEngine(): InfoLineResult? =
+            queryEngine(fen, engine, depth).deepestResult()
 
         val infoLineResult = when (engine) {
             PIKAFISH -> {
@@ -48,7 +46,7 @@ class EngineService(
                 fen = fen,
                 engineId = modelToProcess(engine),
                 depth = depth,
-                timeout = ENGINE_TIME_OUT
+                timeout = ENGINE_TIME_OUT,
             )
 
         if (result == null) {
@@ -61,7 +59,5 @@ class EngineService(
     private companion object {
 
         const val ENGINE_TIME_OUT = 15_000L
-
     }
-
 }

@@ -17,24 +17,40 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#notifications-settings-table {
+#notifications-settings-table,
+#profile-games-visibility-table {
     margin-bottom: 5px;
     margin-left: 8px;
     font-size: 17px;
     border-spacing: 0 4px;
 }
 
-#notifications-settings-table .checkbox-cell {
+#notifications-settings-table .checkbox-cell,
+#profile-games-visibility-table .checkbox-cell {
     width: 26px;
 }
 
-.notifications-hit-box {
+.settings-hit-box {
     cursor: pointer;
-    padding: 6px 16px;
+    padding: 5px 10px;
     width: 500px;
+    display: block;
 }
 
-.notifications-hit-box:hover {
+#profile-games-visibility-table .settings-hit-box {
+    width: 350px;
+}
+
+.profile-games-visibility-label {
+    margin-top: 25px;
+}
+
+#notifications-select-shortcuts {
+    margin-left: 8px;
+    margin-bottom: 6px;
+}
+
+.settings-hit-box:hover {
     background-color: #d7d3ce;
 }
 
@@ -48,6 +64,10 @@
     margin-left: 13px;
 }
 
+#resend-email-confirmation-container {
+    margin: 0 15px 15px 13px;
+}
+
 #email-address {
     font-size: 18px;
     height: 30px;
@@ -55,6 +75,51 @@
     min-width: 500px;
     padding-left: 3px;
     padding-right: 3px;
+}
+
+#sessions-actions-container {
+    margin: 10px 0 12px 12px;
+}
+
+#sessions-actions-container input[type="button"] {
+    margin-left: 12px;
+}
+
+#user-sessions-table-container {
+    overflow-x: auto;
+}
+
+#user-sessions-table {
+    margin-left: 8px;
+}
+
+#user-sessions-table th,
+#user-sessions-table td {
+    white-space: nowrap;
+}
+
+
+.session-country-cell,
+.session-os-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.session-os-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    text-align: center;
+}
+
+#user-sessions-table .select-cell {
+    width: 26px;
+}
+
+#user-sessions-empty-message,
+#all-sessions-link {
+    margin-left: 12px;
 }
 
 .hidden {
@@ -66,7 +131,7 @@
         font-size: 24px;
     }
 
-    .notifications-hit-box {
+    .settings-hit-box {
         width: 90%;
     }
 
@@ -75,7 +140,8 @@
         margin-left: 20px;
     }
 
-    #notifications-settings-table {
+    #notifications-settings-table,
+    #profile-games-visibility-table {
         margin-bottom: 5px;
         margin-left: 8px;
         font-size: 30px;
@@ -90,5 +156,21 @@
         width: 90%;
         padding-left: 6px;
         padding-right: 6px;
+    }
+
+    #sessions-actions-container {
+        font-size: 30px;
+        margin-left: 10px;
+    }
+
+
+    #sessions-actions-container input[type="button"] {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+
+    .session-os-icon {
+        width: 34px;
+        height: 34px;
     }
 }

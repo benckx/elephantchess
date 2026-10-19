@@ -5,5 +5,4 @@ import io.github.oshai.kotlinlogging.KLogger
 interface Batch {
 
     val logger: KLogger
-
 }
