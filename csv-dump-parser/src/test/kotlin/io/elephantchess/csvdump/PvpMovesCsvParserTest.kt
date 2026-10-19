@@ -159,5 +159,4 @@ class PvpMovesCsvParserTest {
         private val rows = PvpMovesCsvParser.parseRows(csvPath())
         private val games = PvpMovesCsvParser.parseGames(csvPath())
     }
-
 }

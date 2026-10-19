@@ -13,7 +13,8 @@ enum class Color(
     BLUE('b', "Qi", "齊", "rgb(6, 6, 211)"),
     GREEN('g', "Wei", "魏", "rgb(1, 83, 1)"),
     PURPLE('p', "Zhao", "趙", "rgb(98, 1, 98)"),
-    BLACK('d', "Yan", "燕", "#000000");
+    BLACK('d', "Yan", "燕", "#000000"),
+    ;
 
     fun next(): Color =
         entries[(ordinal + 1) % entries.size]
@@ -21,7 +22,8 @@ enum class Color(
     fun capitalizedName(): String =
         name.lowercase().replaceFirstChar { it.uppercase() }
 
-    override fun toString() = capitalizedName()
+    override fun toString() =
+        capitalizedName()
 
     companion object {
 
@@ -35,7 +37,5 @@ enum class Color(
                 1 -> false
                 else -> colors.dropLast(1).all { it.next() == colors[colors.indexOf(it) + 1] }
             }
-
     }
-
 }

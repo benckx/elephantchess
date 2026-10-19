@@ -7,10 +7,12 @@ import io.elephantchess.db.services.UserStatsDaoService
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESPAN_SECONDS
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton
 class FetchMinutesUsersMetricsBatch(
     private val userDaoService: UserDaoService,
     private val userStatsDaoService: UserStatsDaoService,
@@ -18,7 +20,6 @@ class FetchMinutesUsersMetricsBatch(
     override val logger: KLogger,
 ) : SinglePodBatch {
 
-    override val podNumber: Int = 0
     private val excludedIds = appConfig.excludedFromAnalytics
 
     override suspend fun run() {
@@ -28,21 +29,21 @@ class FetchMinutesUsersMetricsBatch(
             userDaoService.countActiveRecently(
                 duration = 5.minutes,
                 userTypes = listOf(UserType.AUTHENTICATED),
-                excludeIds = excludedIds
+                excludeIds = excludedIds,
             )
 
         record.authenticatedUsers_1h =
             userDaoService.countActiveRecently(
                 duration = 1.hours,
                 userTypes = listOf(UserType.AUTHENTICATED),
-                excludeIds = excludedIds
+                excludeIds = excludedIds,
             )
 
         record.authenticatedUsers_24h =
             userDaoService.countActiveRecently(
                 duration = 24.hours,
                 userTypes = listOf(UserType.AUTHENTICATED),
-                excludeIds = excludedIds
+                excludeIds = excludedIds,
             )
 
         record.guestsUsers_5min =
@@ -50,7 +51,7 @@ class FetchMinutesUsersMetricsBatch(
                 duration = 5.minutes,
                 userTypes = listOf(UserType.GUEST),
                 excludeIds = excludedIds,
-                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
+                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS,
             )
 
         record.guestsUsers_1h =
@@ -58,7 +59,7 @@ class FetchMinutesUsersMetricsBatch(
                 duration = 1.hours,
                 userTypes = listOf(UserType.GUEST),
                 excludeIds = excludedIds,
-                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
+                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS,
             )
 
         record.guestsUsers_24h =
@@ -66,10 +67,9 @@ class FetchMinutesUsersMetricsBatch(
                 duration = 24.hours,
                 userTypes = listOf(UserType.GUEST),
                 excludeIds = excludedIds,
-                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
+                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS,
             )
 
         userStatsDaoService.save(record)
     }
-
 }

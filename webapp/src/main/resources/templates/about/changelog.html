@@ -14,6 +14,122 @@
     <h1>Changelog</h1>
     <hr/>
     {{changelog_toc}}
+    <h1 id="2026-10">October 2026
+        <a class="anchor-copy-link" data-anchor-target="2026-10" title="Copy link to this section">
+            <img src="/images/icons/link.png" alt="Copy link">
+        </a>
+    </h1>
+    <hr/>
+    <h4>2026-10-18</h4>
+    <ul>
+        <li>
+            Technical changes (content feedback notifications)
+            (<a href="https://github.com/benckx/elephantchess/pull/888" target="_blank">PR #888</a>)
+        </li>
+        <li>
+            Puzzles: rename "Skip Puzzle" to "Next Puzzle" once the puzzle is over, and ask for confirmation before
+            skipping an unfinished puzzle or revealing its solution (as it costs rating points). Also focus mobile view
+            on puzzle state rather than on puzzle metadata.
+            (<a href="https://github.com/benckx/elephantchess/pull/887" target="_blank">PR #887</a>)
+        </li>
+        <li>
+            Disabled puzzles that don't offer at least 2 legal moves at each step (~1000 such puzzles), re-added algo to
+            create new ones (should create about 500 additional puzzles).
+            (<a href="https://github.com/benckx/elephantchess/issues/181" target="_blank">issue #181</a>)
+        </li>
+    </ul>
+    <h4>2026-10-17</h4>
+    <ul>
+        <li>
+            Technical changes (stop logging WebSocket upgrade errors caused by clients disconnecting, mute more
+            vulnerability scanner probes)
+            (<a href="https://github.com/benckx/elephantchess/pull/885" target="_blank">PR #885</a>)
+        </li>
+        <li>
+            Animate puzzle transition
+            (<a href="https://github.com/benckx/elephantchess/pull/886" target="_blank">PR #886</a>)
+        </li>
+    </ul>
+    <h4>2026-10-16</h4>
+    <ul>
+        <li>
+            Show the 404 page (with a 404 status) for unknown database games and events, instead of a bare 404
+            that was recorded as a server error
+            (<a href="https://github.com/benckx/elephantchess/pull/883" target="_blank">PR #883</a>)
+        </li>
+        <li>
+            Show an error page (or a generic JSON error) on unexpected server errors, instead of a plain-text error
+            message
+            (<a href="https://github.com/benckx/elephantchess/pull/883" target="_blank">PR #883</a>)
+        </li>
+    </ul>
+    <h4>2026-10-15</h4>
+    <ul>
+        <li>
+            Technical changes (a only allow search engines, AI assistants and link-preview bots in robots.txt (block SEO
+            crawlers like MJ12bot and DotBot)).
+            (<a href="https://github.com/benckx/elephantchess/pull/881" target="_blank">PR #881</a>)
+        </li>
+        <li>
+            Technical changes (mute WebSocket upgrade errors caused by clients disconnecting)
+            (<a href="https://github.com/benckx/elephantchess/pull/882" target="_blank">PR #882</a>)
+        </li>
+    </ul>
+    <h4>2026-10-10</h4>
+    <ul>
+        <li>
+            Archive views after 90 days (unlink with user ids), with option to trigger it manually in "user settings"
+            (<a href="https://github.com/benckx/elephantchess/pull/871" target="_blank">PR #871</a>)
+        </li>
+        <li>
+            Attempts to fix NPE and CME in WS session refresh
+            (<a href="https://github.com/benckx/elephantchess/pull/879" target="_blank">PR #879</a>)
+        </li>
+    </ul>
+    <h4>2026-10-06</h4>
+    <ul>
+        <li>
+            Technical changes (dashboard to see preferences data)
+            (<a href="https://github.com/benckx/elephantchess/pull/876" target="_blank">PR #876</a>)
+        </li>
+    </ul>
+    <h4>2026-10-05</h4>
+    <ul>
+        <li>
+            Add rate limiting for scrappers
+            (<a href="https://github.com/benckx/elephantchess/pull/867" target="_blank">PR #867</a>)
+        </li>
+        <li>
+            Technical changes (de-clutter logs from common vulnerability scanners)
+            (<a href="https://github.com/benckx/elephantchess/pull/869" target="_blank">PR #869</a>)
+        </li>
+        <li>
+            Technical changes (dependency injection)
+            (<a href="https://github.com/benckx/elephantchess/pull/874" target="_blank">PR #874</a>)
+        </li>
+        <li>
+            Technical changes (fix live games counter on admin overview)
+        </li>
+    </ul>
+    <h4>2026-10-04</h4>
+    <ul>
+        <li>
+            Collect more information about "inconsistent colors" errors when collecting move annotation information. It
+            happens quite a lot, but we can not pinpoint the games in question.
+        </li>
+        <li>
+            Archive old guests
+            (<a href="https://github.com/benckx/elephantchess/issues/858" target="_blank">issue #858</a>)
+        </li>
+    </ul>
+    <h4>2026-10-03</h4>
+    <ul>
+        <li>
+            Show both Player-vs-Player and Player-vs-Bot games on the user profile page, with user settings to toggle
+            each type, rework on the "user settings" page
+            (<a href="https://github.com/benckx/elephantchess/issues/800" target="_blank">issue #800</a>)
+        </li>
+    </ul>
     <h1 id="2026-09">September 2026
         <a class="anchor-copy-link" data-anchor-target="2026-09" title="Copy link to this section">
             <img src="/images/icons/link.png" alt="Copy link">

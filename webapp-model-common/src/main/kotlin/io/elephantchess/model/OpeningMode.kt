@@ -15,6 +15,5 @@ enum class OpeningMode {
     /**
      * Ignore the opening repertoire and let the engine play from the start.
      */
-    ENGINE_ONLY
-
+    ENGINE_ONLY,
 }

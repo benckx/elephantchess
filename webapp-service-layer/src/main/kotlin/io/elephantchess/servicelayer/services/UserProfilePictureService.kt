@@ -4,12 +4,14 @@ import io.elephantchess.config.AppConfig
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.servicelayer.clients.DigitalOceanSpacesClient
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
+import io.elephantchess.utils.di.KoinSingleton
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
+@KoinSingleton
 class UserProfilePictureService(
     appConfig: AppConfig,
     private val spacesClient: DigitalOceanSpacesClient,

@@ -16,8 +16,8 @@ import io.elephantchess.servicelayer.model.AuthenticatedToken
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.TokenManager.Companion.RENEW_SESSION_INTERVAL
-import io.elephantchess.servicelayer.services.UserService.Companion.EMAIL_CONFIRMATION_CODE_EXPIRY_HOURS
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRateStartImmediately
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.stripHtml
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
@@ -29,11 +29,13 @@ import javax.crypto.spec.PBEKeySpec
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
+@KoinSingleton(eager = true)
 class UserService(
     appConfig: AppConfig,
     private val passwordRecoveryRequestDaoService: PasswordRecoveryAttemptsDaoService,
     private val userDaoService: UserDaoService,
     private val userSessionDaoService: UserSessionDaoService,
+    private val archivedPageViewDaoService: ArchivedPageViewDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
     private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
@@ -66,7 +68,7 @@ class UserService(
     private val refreshJob = launchAtFixedRateStartImmediately(
         scope = refresherScope,
         period = 2.seconds,
-        action = { refreshIsOnlineCache() }
+        action = { refreshIsOnlineCache() },
     )
 
     fun cancel() {
@@ -135,8 +137,8 @@ class UserService(
                 SignUpResponse(
                     userId = user.id,
                     username = user.handle,
-                    token = tokenManager.buildTokenForAuthenticatedUser(user)
-                )
+                    token = tokenManager.buildTokenForAuthenticatedUser(user),
+                ),
             )
         } else {
             errors.forEach { error ->
@@ -208,7 +210,7 @@ class UserService(
         logger.debug { "created guest #$id" }
         return ObtainAnonymousTokenResponse(
             id = id,
-            token = tokenManager.buildTokenForGuestUser(id)
+            token = tokenManager.buildTokenForGuestUser(id),
         )
     }
 
@@ -222,7 +224,7 @@ class UserService(
                 userId = user.id,
                 username = user.handle,
                 token = tokenManager.buildTokenForAuthenticatedUser(user),
-                roles = user.roles
+                roles = user.roles,
             )
         } else {
             throw UnauthorizedException("Incorrect credentials")
@@ -338,18 +340,20 @@ class UserService(
         }
     }
 
-    suspend fun fetchProfile(username: String): UserProfile {
+    suspend fun fetchProfile(username: String): UserProfileDto {
         val record = userDaoService.fetchPublicProfile(username)
         return if (record == null) {
             throw NotFoundException("User $username could not be found")
         } else {
-            UserProfile(
+            UserProfileDto(
                 userId = record.id,
                 username = record.handle,
                 country = normalizeCountry(record.country),
                 profileDescription = record.description,
                 puzzleRating = record.puzzleRating,
-                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, record.id, record.profilePictureExtension)
+                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, record.id, record.profilePictureExtension),
+                showPvpGamesOnProfile = record.showPvpGamesOnProfile,
+                showPvbGamesOnProfile = record.showPvbGamesOnProfile,
             )
         }
     }
@@ -358,9 +362,11 @@ class UserService(
         val record = userDaoService.fetchProfileSettings(userId)
         if (record != null) {
             return ProfileSettingsDto(
-                description = record.value1().orEmpty(),
-                country = record.value2().orEmpty(),
-                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, userId, record.value3())
+                description = record.description.orEmpty(),
+                country = record.country.orEmpty(),
+                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, userId, record.profilePictureExtension),
+                showPvpGamesOnProfile = record.showPvpGamesOnProfile,
+                showPvbGamesOnProfile = record.showPvbGamesOnProfile,
             )
         } else {
             throw NotFoundException("User not found")
@@ -380,7 +386,13 @@ class UserService(
 
         val description = stripHtml(removeSuperfluousLineBreaks(request.description))
         val country = normalizeCountry(request.country)
-        userDaoService.updateProfileSettings(userId, description, country)
+        userDaoService.updateProfileSettings(
+            userId = userId,
+            description = description,
+            country = country,
+            showPvpGamesOnProfile = request.showPvpGamesOnProfile,
+            showPvbGamesOnProfile = request.showPvbGamesOnProfile,
+        )
     }
 
     suspend fun uploadProfilePicture(userId: String, originalFileName: String, bytes: ByteArray): ProfilePictureUploadResponse {
@@ -460,7 +472,7 @@ class UserService(
         val deletedCount =
             userSessionDaoService.deleteAuthenticatedSessionsForUser(
                 userId = userId,
-                sessionIds = request.sessionIds.toSet()
+                sessionIds = request.sessionIds.toSet(),
             )
 
         return DeleteUserSessionsResponse(deletedCount)
@@ -471,17 +483,37 @@ class UserService(
         return DeleteUserSessionsResponse(deletedCount)
     }
 
-    fun isOnline(userId: String): Boolean {
-        return onlineUserIds.contains(userId)
+    suspend fun fetchUserPageViews(userId: String, limit: Int, offset: Int = 0): UserPageViewsSettingsResponse {
+        val total = archivedPageViewDaoService.countPageViewsForUser(userId)
+        val entries =
+            archivedPageViewDaoService
+                .listPageViewsForUser(userId, limit, offset)
+                .map { record ->
+                    UserPageViewsSettingsResponse.Entry(
+                        url = record.url,
+                        time = record.eventTime.toEpochMilliseconds(),
+                    )
+                }
+
+        return UserPageViewsSettingsResponse(
+            entries = entries,
+            total = total,
+        )
     }
 
-    fun areOnline(userIds: List<String>): AreUsersOnlineResponse {
-        return AreUsersOnlineResponse(userIds.toSet().intersect(onlineUserIds))
+    suspend fun archiveUserPageViews(userId: String): ArchiveUserPageViewsResponse {
+        val archivedCount = archivedPageViewDaoService.archiveAndDeletePageViewsForUser(userId)
+        return ArchiveUserPageViewsResponse(archivedCount)
     }
 
-    fun countOnline(): Int {
-        return onlineUserIds.size
-    }
+    fun isOnline(userId: String): Boolean =
+        onlineUserIds.contains(userId)
+
+    fun areOnline(userIds: List<String>): AreUsersOnlineResponse =
+        AreUsersOnlineResponse(userIds.toSet().intersect(onlineUserIds))
+
+    fun countOnline(): Int =
+        onlineUserIds.size
 
     fun onlineUserIds() =
         onlineUserIds.toSet()
@@ -496,7 +528,7 @@ class UserService(
         mailService.sendContactForm(
             userId = userId,
             email = request.email,
-            message = request.message
+            message = request.message,
         )
     }
 
@@ -543,13 +575,12 @@ class UserService(
         return secretKeyFactory.generateSecret(spec).encoded!!
     }
 
-    suspend fun listUsersForSiteMap(): List<Pair<String, LocalDate>> {
-        return userDaoService
+    suspend fun listUsersForSiteMap(): List<Pair<String, LocalDate>> =
+        userDaoService
             .listUsersWithDescriptionForSiteMap()
             .map { (username, lastProfileUpdate) ->
                 username to lastProfileUpdate.toUtcLocalDate()
             }
-    }
 
     companion object {
 
@@ -569,13 +600,12 @@ class UserService(
 
         private val EMAIL_REGEX = "^[A-Za-z0-9][^\\s]*@[^\\s]+\\.[^\\s]+$".toRegex()
 
-        private fun validatePassword(password: String): String? {
-            return if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
+        private fun validatePassword(password: String): String? =
+            if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
                 "Password must be between $PASSWORD_MIN_LENGTH and $PASSWORD_MAX_LENGTH char."
             } else {
                 null
             }
-        }
 
         /**
          * Allowed characters: latin letters (including combining marks), numbers, underscore and dashes
@@ -585,7 +615,5 @@ class UserService(
 
         private fun isEmailFormatValid(chars: String): Boolean =
             chars.matches(EMAIL_REGEX)
-
     }
-
 }

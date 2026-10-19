@@ -3,10 +3,7 @@ package io.elephantchess.servicelayer.utils
 import io.github.reactivecircus.cache4k.Cache
 import kotlin.time.Duration
 
-abstract class NullableCache<K : Any, V : Any>(
-    expireAfterWrite: Duration,
-    open val wontResolvePlaceHolder: V,
-) {
+abstract class NullableCache<K : Any, V : Any>(expireAfterWrite: Duration, open val wontResolvePlaceHolder: V) {
 
     private val delegate =
         Cache
@@ -30,5 +27,4 @@ abstract class NullableCache<K : Any, V : Any>(
             fromCache
         }
     }
-
 }

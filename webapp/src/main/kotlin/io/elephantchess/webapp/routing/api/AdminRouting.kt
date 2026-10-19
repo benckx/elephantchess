@@ -26,6 +26,15 @@ fun Route.adminConsoleRoutes() {
         adminExceptionRoutes()
         adminNewsletterRoutes()
         adminUpcomingEventsRoutes()
+        adminSettingPreferenceRoutes()
+    }
+}
+
+private fun Route.adminSettingPreferenceRoutes() {
+    val adminSettingPreferenceService by koin<AdminSettingPreferenceService>()
+
+    get("/setting-preference-stats") {
+        requireAdminRole { adminSettingPreferenceService.fetchStats() }
     }
 }
 
@@ -130,6 +139,12 @@ private fun Route.adminAnalyticsRoutes() {
         requireAdminRole { _ ->
             val months = call.parameters["months"]?.toIntOrNull() ?: 12
             adminAnalyticsService.fetchOnlineUsersStatsByMonth(months)
+        }
+    }
+    get("/thrown-exception-stats-by-month") {
+        requireAdminRole { _ ->
+            val months = call.parameters["months"]?.toIntOrNull() ?: 12
+            adminAnalyticsService.fetchThrownExceptionStatsByMonth(months)
         }
     }
     get("/page-view-stats-by-event-path") {

@@ -11,7 +11,6 @@ data class LatestMoveAnalysisByGameResponse(val entries: List<Entry>) {
         val last: Long,
         val totalAnalyzedMoves: Int,
         val analysisStatus: AnalysisStatus,
-        val analyzedFromBatch: Boolean
+        val analyzedFromBatch: Boolean,
     )
-
 }

@@ -134,11 +134,6 @@ private fun Route.globalStatsRoutes() {
 
 private fun Route.userSettingsRoutes() {
     route("/api/user/settings") {
-        get("/profile") {
-            requireAuthentication { verifiedToken ->
-                userService.fetchProfileSettings(verifiedToken.userId)
-            }
-        }
         post("/profile") {
             requireAuthenticationWithBody<ProfileSettingsDto> { verifiedToken, request ->
                 userService.updateProfileSettings(verifiedToken.userId, request)
@@ -194,6 +189,27 @@ private fun Route.userSettingsRoutes() {
         post("/sessions/delete-all") {
             requireAuthentication { verifiedToken ->
                 userService.deleteAllUserSessions(verifiedToken.userId)
+            }
+        }
+        get("/views") {
+            requireAuthentication { verifiedToken ->
+                val limit =
+                    call.request.queryParameters["limit"]
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(1)
+                        ?: 10
+                val offset =
+                    call.request.queryParameters["offset"]
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(0)
+                        ?: 0
+
+                userService.fetchUserPageViews(verifiedToken.userId, limit, offset)
+            }
+        }
+        post("/views/archive-now") {
+            requireAuthentication { verifiedToken ->
+                userService.archiveUserPageViews(verifiedToken.userId)
             }
         }
     }

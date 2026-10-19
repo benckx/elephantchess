@@ -5,11 +5,10 @@ import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
 import io.elephantchess.servicelayer.dto.ContentSectionVotesResponse
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.model.UserId
+import io.elephantchess.utils.di.KoinSingleton
 
-class ContentSectionFeedbackService(
-    private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
-    private val mailService: MailService,
-) {
+@KoinSingleton
+class ContentSectionFeedbackService(private val contentSectionVoteDaoService: ContentSectionVoteDaoService) {
 
     suspend fun submitContentSectionVote(request: ContentSectionVoteRequest, userId: UserId) {
         if (!isContentPageIdValid(request.pageId)) {
@@ -23,14 +22,6 @@ class ContentSectionFeedbackService(
 
         contentSectionVoteDaoService.persistVote(
             userId = userId.id,
-            pageId = request.pageId,
-            sectionId = request.sectionId,
-            upVoted = request.upVoted,
-            feedback = feedback
-        )
-
-        mailService.sendContentSectionVoteNotification(
-            userId = userId,
             pageId = request.pageId,
             sectionId = request.sectionId,
             upVoted = request.upVoted,
@@ -49,7 +40,7 @@ class ContentSectionFeedbackService(
                 ContentSectionVotesResponse.Entry(
                     sectionId = record.sectionId,
                     upVoted = record.upVoted,
-                    feedback = record.feedback
+                    feedback = record.feedback,
                 )
             }
 
@@ -66,7 +57,5 @@ class ContentSectionFeedbackService(
 
         private fun isContentSectionIdValid(sectionId: String): Boolean =
             sectionId.length <= 80 && DASH_SEPARATED_ID_REGEX.matches(sectionId)
-
     }
-
 }

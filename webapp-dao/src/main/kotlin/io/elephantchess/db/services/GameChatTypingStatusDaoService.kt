@@ -5,11 +5,13 @@ import io.elephantchess.db.dao.codegen.tables.pojos.GameChatTypingStatus
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.isAfter
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+@KoinSingleton
 class GameChatTypingStatusDaoService(private val dslContext: DSLContext) {
 
     suspend fun upsertTypingStatus(gameId: String, userId: String) {
@@ -32,10 +34,7 @@ class GameChatTypingStatusDaoService(private val dslContext: DSLContext) {
      * for that game. Only entries newer than [cutOff] (i.e. typed after that
      * instant) are returned, so stale typing events never leak to callers.
      */
-    suspend fun fetchForGameIds(
-        gameIds: List<String>,
-        cutOff: Instant,
-    ): Map<String, List<GameChatTypingStatus>> {
+    suspend fun fetchForGameIds(gameIds: List<String>, cutOff: Instant): Map<String, List<GameChatTypingStatus>> {
         if (gameIds.isEmpty()) return emptyMap()
 
         return dslContext
@@ -45,5 +44,4 @@ class GameChatTypingStatusDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords<GameChatTypingStatus>()
             .groupBy { it.gameId!! }
     }
-
 }

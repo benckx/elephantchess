@@ -6,7 +6,7 @@ import io.elephantchess.servicelayer.dto.user.GameStatsResponse
 import io.elephantchess.servicelayer.dto.user.NumberOfGamesPerTimeCategory
 import io.elephantchess.servicelayer.dto.user.NumberOfOutcomes
 import io.elephantchess.servicelayer.dto.user.RatingsPerTimeCategory
-import io.elephantchess.servicelayer.dto.user.UserProfile
+import io.elephantchess.servicelayer.dto.user.UserProfileDto
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import kotlinx.coroutines.test.runTest
 import org.mockito.kotlin.mock
@@ -48,13 +48,15 @@ class UserProfilePageRendererTest {
         val renderer = UserProfilePageRenderer(htmlRenderer, userProfileAnalyticsService)
 
         val html = renderer.renderUserProfile(
-            UserProfile(
+            UserProfileDto(
                 userId = "user-1",
                 username = "alice",
                 country = "BE",
                 profileDescription = "hello",
                 puzzleRating = 1200,
                 profilePictureUrl = "https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png",
+                showPvpGamesOnProfile = true,
+                showPvbGamesOnProfile = true,
             )
         )
 
@@ -68,12 +70,14 @@ class UserProfilePageRendererTest {
         val renderer = UserProfilePageRenderer(htmlRenderer, userProfileAnalyticsService)
 
         val html = renderer.renderUserProfile(
-            UserProfile(
+            UserProfileDto(
                 userId = "user-1",
                 username = "alice",
                 country = null,
                 profileDescription = null,
                 puzzleRating = 1200,
+                showPvpGamesOnProfile = true,
+                showPvbGamesOnProfile = true,
             )
         )
 

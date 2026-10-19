@@ -15,12 +15,8 @@ data class GetGameDataResponse(
     val status: GameEventType,
     val currentIndex: Int,
     val currentFen: String,
-    val colorToPlay: Color?
+    val colorToPlay: Color?,
 ) {
 
-    data class Player(
-        val userId: String,
-        val userName: String
-    )
-
+    data class Player(val userId: String, val userName: String)
 }

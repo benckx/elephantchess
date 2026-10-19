@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.services
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
+import io.elephantchess.db.services.ArchivedGuestDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.minusHours
@@ -12,6 +13,7 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.servicelayer.dto.global.*
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService.Companion.CacheKey.*
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.CoroutineScope
@@ -24,16 +26,18 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Data shown on the "Global" page
  */
+@KoinSingleton(eager = true)
 class GlobalAnalyticsService(
     private val userService: UserService,
     private val userDaoService: UserDaoService,
+    private val archivedGuestDaoService: ArchivedGuestDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val puzzleCache: PuzzleCache,
     private val gameDataService: GameDataService,
     private val podService: PodService,
     appConfig: AppConfig,
     refresherScope: CoroutineScope,
-    private val logger: KLogger
+    private val logger: KLogger,
 ) {
 
     private val isDockerized = appConfig.isDockerized
@@ -56,7 +60,7 @@ class GlobalAnalyticsService(
     private val refreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = 30.seconds,
-        period = longRefresh / 2
+        period = longRefresh / 2,
     ) {
         logger.info { "refreshing global analytics caches..." }
 
@@ -106,7 +110,7 @@ class GlobalAnalyticsService(
                                 countryCode = user.country,
                                 rating = user.rating(timeControlCategory),
                                 totalPlayed = aggregatedInfo?.totalPlayed ?: 0,
-                                lastPlayed = aggregatedInfo?.lastPlayed?.toEpochMilliseconds() ?: 0L
+                                lastPlayed = aggregatedInfo?.lastPlayed?.toEpochMilliseconds() ?: 0L,
                             )
                         }
                 }
@@ -131,13 +135,13 @@ class GlobalAnalyticsService(
         }
 
     private fun computeGlobalPuzzleStats(): GlobalPuzzleStatsResponse {
-        val totalPuzzles = puzzleCache.countAll()
+        val totalPuzzles = puzzleCache.countAllEnabled()
         if (totalPuzzles == 0) {
             throw IllegalStateException("Cannot compute global puzzle stats while puzzle cache is empty")
         }
 
-        val puzzlesPlayedAtLeast10x = puzzleCache.countPuzzlePlayedAtLeast(10)
-        val puzzlesPlayedAtLeast20x = puzzleCache.countPuzzlePlayedAtLeast(20)
+        val puzzlesPlayedAtLeast10x = puzzleCache.countPuzzlePlayedAtLeastAmongEnabled(10)
+        val puzzlesPlayedAtLeast20x = puzzleCache.countPuzzlePlayedAtLeastAmongEnabled(20)
         val puzzlesPlayedRatio10x = puzzlesPlayedAtLeast10x.toFloat() / totalPuzzles.toFloat()
         val puzzlesPlayedRatio20x = puzzlesPlayedAtLeast20x.toFloat() / totalPuzzles.toFloat()
 
@@ -167,7 +171,7 @@ class GlobalAnalyticsService(
             totalInAppGames = totalInAppGames,
             totalMoves = totalMoves,
             totalInAppMoves = totalInAppMovesMap,
-            totalManchuGames = gameDataService.countTotalManchuGames()
+            totalManchuGames = gameDataService.countTotalManchuGames(),
         )
     }
 
@@ -187,19 +191,20 @@ class GlobalAnalyticsService(
 
         val totalUsers =
             userDaoService.countAuthenticated() +
-                    userDaoService.countGuestsWithSessionAtLeast(minGuestDuration)
+                userDaoService.countGuestsWithSessionAtLeast(minGuestDuration) +
+                archivedGuestDaoService.countArchivedGuestsWithSessionAtLeast30Min()
 
         val totalRecentlyActive =
             userDaoService.countActiveRecently(recentlyDuration, listOf(AUTHENTICATED)) +
-                    userDaoService.countGuestsWithSessionAtLeastAndActiveWithin(
-                        minGuestDuration,
-                        recentlyDuration
-                    )
+                userDaoService.countGuestsWithSessionAtLeastAndActiveWithin(
+                    minGuestDuration,
+                    recentlyDuration,
+                )
 
         return GlobalUserStatsResponse(
             totalUsers = totalUsers,
             recentlyActiveUsers = totalRecentlyActive,
-            onlineUsers = 0
+            onlineUsers = 0,
         )
     }
 
@@ -217,7 +222,7 @@ class GlobalAnalyticsService(
             }
 
         return GlobalAppDataResponse(
-            lastDeploy = lastDeploy.toEpochMilliseconds()
+            lastDeploy = lastDeploy.toEpochMilliseconds(),
         )
     }
 
@@ -246,7 +251,7 @@ class GlobalAnalyticsService(
                     total = record.totalPlayed,
                     lastPlayed = record.lastPlayed.toEpochMilliseconds(),
                     solvedRate = solvedRate,
-                    failedRate = failedRate
+                    failedRate = failedRate,
                 )
             }
             .let { entries ->
@@ -255,12 +260,8 @@ class GlobalAnalyticsService(
     }
 
     // to avoid casting
-    private suspend inline fun <reified T> Cache<CacheKey, Any>.typedGet(
-        key: CacheKey,
-        noinline loader: suspend () -> Any
-    ): T {
-        return get(key) { loader() } as T
-    }
+    private suspend inline fun <reified T> Cache<CacheKey, Any>.typedGet(key: CacheKey, noinline loader: suspend () -> Any): T =
+        get(key) { loader() } as T
 
     private companion object {
 
@@ -271,9 +272,7 @@ class GlobalAnalyticsService(
             GLOBAL_PUZZLE_STATS,
             GLOBAL_GAME_STATS,
             USER_ANALYTICS,
-            GLOBAL_APP_DATA
+            GLOBAL_APP_DATA,
         }
-
     }
-
 }

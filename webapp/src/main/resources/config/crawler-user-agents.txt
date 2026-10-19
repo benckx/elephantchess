@@ -1,0 +1,35 @@
+# Lower-cased substrings identifying well-known search engine and AI crawlers that must never be
+# rate limited on the reference-database pages (protects indexing / SEO). Matched case-insensitively
+# as a substring against the request User-Agent.
+#
+# One token per line. Blank lines and lines starting with '#' are ignored.
+googlebot
+apis-google
+adsbot-google
+mediapartners-google
+storebot-google
+google-inspectiontool
+bingbot
+bingpreview
+applebot
+duckduckbot
+baiduspider
+yandex
+sogou
+exabot
+facebookexternalhit
+meta-externalagent
+meta-webindexer
+facebot
+ia_archiver
+petalbot
+bytespider
+oai-searchbot
+chatgpt-user
+gptbot
+perplexitybot
+claudebot
+amazonbot
+ahrefsbot
+semrushbot
+slurp

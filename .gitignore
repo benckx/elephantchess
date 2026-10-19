@@ -14,3 +14,4 @@ formatter.json
 .kotlin
 rendered_email.html
 **/out/
+*.hprof

@@ -102,8 +102,8 @@ fun calculateCpl(engineBest: InfoLineResultDto?, actualMove: InfoLineResultDto?)
  * Small deltas inside the neutral band return `null`; negative deltas represent missed chances and
  * positive deltas represent stronger-than-expected moves.
  */
-fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
-    return if (abs(cpl) < 50) {
+fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? =
+    if (abs(cpl) < 50) {
         null
     } else if (cpl < 0) {
         val deltaLoss = abs(cpl)
@@ -119,7 +119,6 @@ fun moveAnnotationCategoryFromCpl(cpl: Int): MoveAnnotationCategory? {
             else -> MoveAnnotationCategory.INTERESTING
         }
     }
-}
 
 /**
  * Looks up the analysis line that corresponds to the engine's best move from [previousNodeData].
@@ -149,6 +148,7 @@ private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
     val mate = infoLineResult.mate
     return when {
         cp != null -> cp.coerceIn(-MAX_ABS_CP, MAX_ABS_CP)
+
         mate != null -> {
             val maxMate = 40
             val mateBonusInCp = (maxMate - abs(mate)).coerceAtLeast(0) * 8
@@ -165,16 +165,13 @@ private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
  * Both lines must have a depth, reach the minimum comparable depth, match each other's depth, and
  * expose a heuristic score after cp/mate normalization.
  */
-fun hasComparableAnalysisData(
-    engineBest: InfoLineResultDto,
-    actualMove: InfoLineResultDto,
-): Boolean {
+fun hasComparableAnalysisData(engineBest: InfoLineResultDto, actualMove: InfoLineResultDto): Boolean {
     val engineDepth = engineBest.depth ?: return false
     val actualDepth = actualMove.depth ?: return false
 
     return engineDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
-            actualDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
-            engineDepth == actualDepth &&
-            heuristicCp(engineBest) != null &&
-            heuristicCp(actualMove) != null
+        actualDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
+        engineDepth == actualDepth &&
+        heuristicCp(engineBest) != null &&
+        heuristicCp(actualMove) != null
 }

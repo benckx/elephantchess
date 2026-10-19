@@ -41,13 +41,18 @@ function renderExceptionRow(entry, row, options = {}) {
     // http code
     const httpCodeCell = row.insertCell();
     httpCodeCell.className = 'label-cell';
-    httpCodeCell.innerText = entry.httpCode.toString();
-    // Color code based on HTTP status
-    if (entry.httpCode >= 500) {
-        httpCodeCell.style.color = '#ff4444';
-        httpCodeCell.style.fontWeight = 'bold';
-    } else if (entry.httpCode >= 400) {
-        httpCodeCell.style.color = '#ff8800';
+    if (entry.httpCode === null || entry.httpCode === undefined) {
+        // exceptions thrown outside of an HTTP request (e.g. scheduled batches) have no status
+        httpCodeCell.innerText = '—';
+    } else {
+        httpCodeCell.innerText = entry.httpCode.toString();
+        // Color code based on HTTP status
+        if (entry.httpCode >= 500) {
+            httpCodeCell.style.color = '#ff4444';
+            httpCodeCell.style.fontWeight = 'bold';
+        } else if (entry.httpCode >= 400) {
+            httpCodeCell.style.color = '#ff8800';
+        }
     }
 
     // exception class

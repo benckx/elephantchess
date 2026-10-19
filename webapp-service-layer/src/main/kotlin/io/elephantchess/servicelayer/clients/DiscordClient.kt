@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.clients
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.clients.dto.DiscordMessage
 import io.elephantchess.servicelayer.clients.dto.DiscordMessageResponse
+import io.elephantchess.utils.di.KoinSingleton
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -14,6 +15,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
+@KoinSingleton
 class DiscordClient(appConfig: AppConfig) {
 
     private val token by lazy { appConfig.discordToken }
@@ -23,11 +25,13 @@ class DiscordClient(appConfig: AppConfig) {
             level = LogLevel.INFO
         }
         install(ContentNegotiation) {
-            json(Json {
-                prettyPrint = true
-                isLenient = true
-                ignoreUnknownKeys = true
-            })
+            json(
+                Json {
+                    prettyPrint = true
+                    isLenient = true
+                    ignoreUnknownKeys = true
+                },
+            )
         }
     }
 
@@ -63,7 +67,5 @@ class DiscordClient(appConfig: AppConfig) {
     private companion object {
 
         const val BASE_URL = "https://discord.com/api"
-
     }
-
 }

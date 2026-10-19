@@ -3,10 +3,7 @@ package io.elephantchess.sevenkingdoms
 /**
  * Abstract in this context meaning "independently of color"
  */
-enum class AbstractPieceType(
-    val chineseName: String,
-    val uci: String
-) {
+enum class AbstractPieceType(val chineseName: String, val uci: String) {
 
     GENERAL("將", "Q"),
     CHANCELLOR("偏", "R"),
@@ -17,22 +14,19 @@ enum class AbstractPieceType(
     CROSSBOWMAN("弩", "W"),
     DAGGER_SOLDIER("刀", "A"),
     SWORDSMAN("劍", "S"),
-    KNIGHT("騎", "N");
+    KNIGHT("騎", "N"),
+    ;
 
-    override fun toString(): String {
-        return name
+    override fun toString(): String =
+        name
             .lowercase()
             .replaceFirstChar { it.uppercase() }
             .replace("_", " ")
-    }
 
     companion object {
 
-        fun getPieceTypeByUci(uci: Char): AbstractPieceType {
-            return entries.find { it.uci == uci.toString().uppercase() }
+        fun getPieceTypeByUci(uci: Char): AbstractPieceType =
+            entries.find { it.uci == uci.toString().uppercase() }
                 ?: throw IllegalArgumentException("Not found piece type for UCI $uci")
-        }
-
     }
-
 }

@@ -5,19 +5,18 @@ data class PvpJoinSourceStatsResponse(
     val percentageOver3: List<Double>,
     val percentageOver3LobbyJoinModes: List<Double>,
     val percentageOver3LinkJoinSource: List<Double>,
-    val joinSourceBreakdown: List<TimeSeries>
+    val joinSourceBreakdown: List<TimeSeries>,
 ) {
 
     companion object {
 
-        fun allEmpty(): PvpJoinSourceStatsResponse {
-            return PvpJoinSourceStatsResponse(
+        fun allEmpty(): PvpJoinSourceStatsResponse =
+            PvpJoinSourceStatsResponse(
                 periods = emptyList(),
                 percentageOver3 = emptyList(),
                 percentageOver3LobbyJoinModes = emptyList(),
                 percentageOver3LinkJoinSource = emptyList(),
-                joinSourceBreakdown = emptyList()
+                joinSourceBreakdown = emptyList(),
             )
-        }
     }
 }

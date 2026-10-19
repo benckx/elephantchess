@@ -39,21 +39,17 @@ class InfoLineListener : LineListener {
         }
     }
 
-    fun shouldStopSearch(depth : Int): Boolean {
-        return (deepestDepth != null && deepestDepth!! >= depth) || hasResult()
-    }
+    fun shouldStopSearch(depth: Int): Boolean =
+        (deepestDepth != null && deepestDepth!! >= depth) || hasResult()
 
-    fun hasResult(): Boolean {
-        return bestMove != null || checkmate
-    }
+    fun hasResult(): Boolean =
+        bestMove != null || checkmate
 
-    fun getResult(): InfoLinesResult {
-        return InfoLinesResult(
+    fun getResult(): InfoLinesResult =
+        InfoLinesResult(
             infoLines = infoLines,
             checkmate = checkmate,
             bestMove = bestMove,
-            ponder = ponder
+            ponder = ponder,
         )
-    }
-
 }

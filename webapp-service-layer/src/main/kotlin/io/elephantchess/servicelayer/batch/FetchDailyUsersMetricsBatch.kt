@@ -7,9 +7,11 @@ import io.elephantchess.db.services.UserStatsDaoService
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESPAN_SECONDS
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.days
 
+@KoinSingleton
 class FetchDailyUsersMetricsBatch(
     private val userDaoService: UserDaoService,
     private val userStatsDaoService: UserStatsDaoService,
@@ -17,7 +19,6 @@ class FetchDailyUsersMetricsBatch(
     override val logger: KLogger,
 ) : SinglePodBatch {
 
-    override val podNumber: Int = 0
     private val excludedIds = appConfig.excludedFromAnalytics
 
     override suspend fun run() {
@@ -27,14 +28,14 @@ class FetchDailyUsersMetricsBatch(
             userDaoService.countActiveRecently(
                 duration = 7.days,
                 userTypes = listOf(UserType.AUTHENTICATED),
-                excludeIds = excludedIds
+                excludeIds = excludedIds,
             )
 
         record.authenticatedUsers_30d =
             userDaoService.countActiveRecently(
                 duration = 30.days,
                 userTypes = listOf(UserType.AUTHENTICATED),
-                excludeIds = excludedIds
+                excludeIds = excludedIds,
             )
 
         record.guestsUsers_7d =
@@ -42,7 +43,7 @@ class FetchDailyUsersMetricsBatch(
                 duration = 7.days,
                 userTypes = listOf(UserType.GUEST),
                 excludeIds = excludedIds,
-                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
+                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS,
             )
 
         record.guestsUsers_30d =
@@ -50,10 +51,9 @@ class FetchDailyUsersMetricsBatch(
                 duration = 30.days,
                 userTypes = listOf(UserType.GUEST),
                 excludeIds = excludedIds,
-                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
+                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS,
             )
 
         userStatsDaoService.save(record)
     }
-
 }
