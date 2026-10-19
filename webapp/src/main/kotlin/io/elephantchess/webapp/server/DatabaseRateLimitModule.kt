@@ -2,14 +2,13 @@ package io.elephantchess.webapp.server
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.utils.ops.koin
+import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
-import io.ktor.server.response.*
 import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
@@ -52,12 +51,9 @@ fun Application.databaseRateLimitModule() {
                     "| User-Agent: ${call.request.headers[HttpHeaders.UserAgent]?.take(100)}"
             }
             call.response.headers.append(HttpHeaders.RetryAfter, windowSeconds.toString())
-            call.respond(
-                TextContent(
-                    text = simplePageRenderer.renderTemplate("429"),
-                    contentType = ContentType.Text.Html,
-                    status = HttpStatusCode.TooManyRequests,
-                ),
+            call.respondHtml(
+                simplePageRenderer.renderTemplate("429"),
+                HttpStatusCode.TooManyRequests,
             )
             finish()
         }

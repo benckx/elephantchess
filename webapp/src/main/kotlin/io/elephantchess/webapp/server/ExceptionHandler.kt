@@ -5,13 +5,13 @@ import io.elephantchess.servicelayer.exceptions.HttpErrorException
 import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.utils.ResourceUtils
+import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
-import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
@@ -103,7 +103,7 @@ fun Application.exceptionHandler() {
     suspend fun ApplicationCall.respondNotFound(uri: String) {
         val acceptsHtml = request.acceptItems().any { it.value == Html.toString() }
         if (acceptsHtml) {
-            respond(TextContent(simplePageRenderer.renderTemplate("404"), Html, HttpStatusCode.NotFound))
+            respondHtml(simplePageRenderer.renderTemplate("404"), HttpStatusCode.NotFound)
         } else {
             respond(HttpStatusCode.NotFound, ValidationErrorsResponse("Not Found: $uri"))
         }
@@ -115,7 +115,7 @@ fun Application.exceptionHandler() {
         if (response.isCommitted) return
         val acceptsHtml = request.acceptItems().any { it.value == Html.toString() }
         if (acceptsHtml) {
-            respond(TextContent(simplePageRenderer.renderTemplate("500"), Html, InternalServerError))
+            respondHtml(simplePageRenderer.renderTemplate("500"), InternalServerError)
         } else {
             respond(InternalServerError, ValidationErrorsResponse("Server error"))
         }
