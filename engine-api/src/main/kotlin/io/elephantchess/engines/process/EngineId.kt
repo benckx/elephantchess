@@ -21,10 +21,12 @@ abstract class EngineId {
 
     abstract fun makeProcess(config: EngineConfig, engineProcessLocator: EngineProcessLocator): EngineProcess
 
-    override fun toString() = displayName
+    override fun toString() =
+        displayName
 
-    override fun equals(other: Any?) = (other is EngineId) && (other.id == id)
+    override fun equals(other: Any?) =
+        (other is EngineId) && (other.id == id)
 
-    override fun hashCode() = id.hashCode()
-
+    override fun hashCode() =
+        id.hashCode()
 }

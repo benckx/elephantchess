@@ -4,14 +4,13 @@ import io.elephantchess.db.services.ReferencePlayerDaoService
 import io.elephantchess.servicelayer.dto.database.DatabasePlayerProfileVersionHistoryEntry
 import io.elephantchess.servicelayer.dto.database.DatabasePlayerVersionHistory
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.utils.di.KoinSingleton
 
-class AdminDatabaseService(
-    private val referencePlayerDaoService: ReferencePlayerDaoService,
-    private val userCache: UserCache
-) {
+@KoinSingleton
+class AdminDatabaseService(private val referencePlayerDaoService: ReferencePlayerDaoService, private val userCache: UserCache) {
 
-    suspend fun listLatestPlayerProfileVersions(limit: Int): DatabasePlayerVersionHistory {
-        return referencePlayerDaoService
+    suspend fun listLatestPlayerProfileVersions(limit: Int): DatabasePlayerVersionHistory =
+        referencePlayerDaoService
             .findLatestProfileVersions(limit)
             .map { version ->
                 DatabasePlayerProfileVersionHistoryEntry(
@@ -23,11 +22,9 @@ class AdminDatabaseService(
                     canonicalName = version.canonicalName,
                     chineseName = version.chineseName,
                     gender = version.gender,
-                    enabled = version.enabled
+                    enabled = version.enabled,
                 )
             }.let { entries ->
                 DatabasePlayerVersionHistory(entries)
             }
-    }
-
 }

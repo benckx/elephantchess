@@ -31,6 +31,8 @@ fun loadAppConfig(argConfig: ArgConfig): AppConfig {
         parseUserAgent = properties.loadBoolean("parseUserAgent"),
         disabledBatches = properties.loadList("disabled.batches"),
         cdnEnabled = properties.loadBoolean("cdn.enabled"),
+        symmetricKey = properties.loadString("key"),
+        salt = properties.loadString("salt"),
         properties = properties,
     )
     appConfig.toStringMultilines().forEach { line -> logger.info { line } }

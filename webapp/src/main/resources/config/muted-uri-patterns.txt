@@ -1,0 +1,275 @@
+# Muted 404 URI patterns
+#
+# One pattern per line. Blank lines and lines starting with '#' are ignored.
+# A request whose path (the part before '?') contains any of these patterns
+# (case-insensitive substring match) is logged at DEBUG instead of WARN and
+# answered with a plain 404. This keeps the logs free of the constant
+# background noise from vulnerability scanners and automatic client probes.
+#
+# ElephantChess ships no PHP, WordPress, Joomla, cgi-bin, .NET or native app,
+# so every pattern below can only ever come from a scanner or a benign probe.
+
+# --- PHP / web-shell scans (never served by this app) ---
+.php
+.phtml
+.php7
+.php5
+
+# --- Secret / config file harvesting ---
+.env
+.git/
+.gitignore
+.aws/
+.s3cfg
+.npmrc
+.htaccess
+.htpasswd
+.travis.yml
+docker-compose.yml
+appsettings.json
+credentials.json
+secrets.json
+service-account.json
+serviceaccountkey.json
+firebase-key.json
+firebase-adminsdk.json
+google-services.json
+google-credentials.json
+gcp-key.json
+gcp-credentials.json
+.git-credentials
+.git.bak
+.gitconfig
+.gitmodules
+.gitlab-ci.yml
+/.github/
+/.hg/
+/.svn/
+/.idea/
+/.vscode/
+.ssh/
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+.key
+.pem
+private-key
+privatekey
+.bashrc
+.bash_profile
+.zshrc
+/.profile
+.my.cnf
+.pgpass
+.boto
+.vault-token
+.dev.vars
+.firebaserc
+.amplifyrc
+.azure/
+/.config/
+/.cache/
+.cargo/
+.composer/
+.dbeaver/
+.terraform
+.tfstate
+.tfvars
+/credentials
+/secrets
+secrets.yml
+secret_token.rb
+parameters.yml
+appsettings.
+local.settings.json
+key.json
+keys.json
+keyfile.json
+token.json
+sa.json
+service_account.json
+gcp-service.json
+gcp.json
+auth.json
+firebase
+vertex.json
+llm.json
+push_config.json
+rclone.conf
+s3cmd.ini
+airflow.cfg
+aws-exports.js
+dockerrun.aws.json
+/dockerfile
+docker-compose
+/compose.yaml
+/compose.yml
+wrangler.toml
+netlify.toml
+fly.toml
+railway.json
+railway.toml
+vercel.json
+serverless.y
+samconfig.toml
+azure.yaml
+values.yaml
+/supabase/
+ws-config
+config.js
+config.yaml
+/config/
+settings.json
+settings.local.yml
+/env.
+gc-service.json
+/secret/
+deploy.json
+
+# --- Database dump harvesting ---
+.sql
+
+# --- AI agent / MCP config harvesting ---
+mcp.json
+mcp_config.json
+mcp_settings.json
+claude_desktop_config.json
+opencode.json
+/.claude/
+/.codex/
+/.gemini/
+/.llm/
+
+# --- Dependency manifests / lockfiles (never served by this app) ---
+composer.json
+composer.lock
+package.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lock
+gemfile.lock
+pipfile.lock
+requirements.txt
+go.sum
+/node_modules/
+/vendor/
+webpack-stats.json
+asset-manifest.json
+
+# --- Path traversal / LFI / cloud metadata ---
+/proc/self
+..;/
+....//
+%2e
+/@fs/
+/var/run/secrets
+/latest/meta-data
+
+# --- Framework / appliance probes (stacks not used by this app) ---
+phpinfo
+phpmyadmin
+/pma/
+/_profiler/
+/_ignition/
+/telescope/
+laravel.log
+/actuator
+/containers/json
+wp-json
+/rest/api/1.0/
+/api/v4/ci/
+/go/add-on/
+/fortisandbox/
+/apps/admin/view/
+/userfiles
+/language/en-gb/
+statamic
+pimcore
+/redmine/
+__vite
+/_next/
+.astro.mjs
+main.js.map
+index.js.map
+/api/system/fileview
+/api/fs/read
+/api/console/api_server
+/ipfs/
+actpt_5g.data
+
+# --- API discovery probes (this app exposes no OpenAPI / GraphQL / SOAP endpoint) ---
+openapi.json
+api-docs
+/swagger
+graphql
+/soap
+
+# --- Scanner "does this 404 properly" fingerprinting probes ---
+reconx-
+scnr-probe
+.404test
+__pboot_probe
+should-not-exist
+debug-trigger
+_sweep_fp
+
+# --- WordPress scans ---
+wp-admin
+wp-content
+wp-includes
+wp-login
+wp-config
+wp-trackback
+wp-activate
+xmlrpc
+xmrlpc
+
+# --- cgi-bin / router / appliance exploits ---
+cgi-bin
+.gch
+/level/16/exec
+
+# --- .NET / IIS scans ---
+.aspx
+.asmx
+web.config
+
+# --- Java / Struts scans ---
+.action
+.do
+
+# --- Joomla scans ---
+/administrator/components
+com_jce
+/media/system/js
+/media/jui
+
+# --- SaaS / Next.js auth, admin & billing path scans ---
+# Hit in bursts by scanners probing for a typical SaaS/Next.js app (note the
+# `x-middleware-subrequest` middleware-bypass header). This app ships none of
+# these pages, so every one of them is a 404 from a scanner.
+/onboarding
+/workspace
+/login
+/sign-in
+/reset-password
+/forgot-password
+/settings
+/internal
+/webhooks
+/manage
+/api-keys
+/dashboard/billing
+/studio
+/checkout
+/public/admin.json
+
+# --- Benign automatic client / OS probes ---
+apple-touch-icon
+/.well-known/assetlinks.json
+/.well-known/apple-app-site-association
+/apple-app-site-association
+/.well-known/passkey-endpoints
+/.well-known/appspecific/com.chrome.devtools.json

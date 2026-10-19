@@ -19,6 +19,7 @@ import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.utils.modelToProcess
 import io.elephantchess.utils.EloCalculator.calculateElo
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.math.ceil
@@ -27,6 +28,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
+@KoinSingleton(eager = true)
 class PuzzleService(
     private val enginesPool: EnginePool,
     private val puzzleDaoService: PuzzleDaoService,
@@ -41,20 +43,19 @@ class PuzzleService(
             fen = request.fen,
             engineId = modelToProcess(PIKAFISH),
             depth = 10,
-            timeout = 15_000
+            timeout = 15_000,
         )
 
         result?.bestMove?.let { return PuzzleBestMoveResponse(it) }
         throw InternalErrorException("No response from engine")
     }
 
-    suspend fun fetchById(puzzleId: String, categories: List<PuzzleCategory>): PuzzleResponse {
-        return if (puzzleCache.exists(puzzleId) && puzzleCache.hasCategories(puzzleId, categories)) {
+    suspend fun fetchById(puzzleId: String, categories: List<PuzzleCategory>): PuzzleResponse =
+        if (puzzleCache.exists(puzzleId) && puzzleCache.hasCategories(puzzleId, categories)) {
             fetchAndMapToDto(puzzleId)
         } else {
             throw NotFoundException("Puzzle $puzzleId not found")
         }
-    }
 
     suspend fun fetchCurrent(userId: String, categories: List<PuzzleCategory>): PuzzleResponse {
         val currentlyAssignedPuzzleId = puzzleDaoService.findCurrentlyAssignedTo(userId)
@@ -79,7 +80,7 @@ class PuzzleService(
                     userRating = userRating,
                     range = ELO_RANGE,
                     exclude = playedRecently,
-                    categories = categories
+                    categories = categories,
                 )
 
             logger.debug { "assigning new puzzle to $userId -> $puzzleId" }
@@ -91,8 +92,8 @@ class PuzzleService(
         }
     }
 
-    suspend fun listPlayedPuzzles(userId: String, beforeTs: Long?): PlayedPuzzlesResponse {
-        return puzzleResultDaoService
+    suspend fun listPlayedPuzzles(userId: String, beforeTs: Long?): PlayedPuzzlesResponse =
+        puzzleResultDaoService
             .listPlayedPuzzles(userId, 30, beforeTs)
             .map { record ->
                 PlayedPuzzlesResponse.Entry(
@@ -111,7 +112,6 @@ class PuzzleService(
             .let { entries ->
                 PlayedPuzzlesResponse(entries)
             }
-    }
 
     suspend fun fetchPuzzlesOriginalGameMetadata(request: PuzzlesOriginalGameMetadataRequest): PuzzlesOriginalGameMetadataResponse {
         val records = referenceGameDaoService.findByPuzzleIds(request.puzzleIds)
@@ -162,6 +162,7 @@ class PuzzleService(
 
     suspend fun processOutcome(request: PuzzleOutcomeRequest, userId: String): PuzzleOutcomeResponse {
         puzzleDaoService.unAssign(userId)
+        val enabled = puzzleCache.getById(request.puzzleId)?.enabled ?: true
         return mapOutcomeToDto(
             puzzleResultDaoService.persistOutcome(
                 userId,
@@ -169,8 +170,8 @@ class PuzzleService(
                 request.outcome,
                 request.usedPreRecordedSolution,
                 RE_PLAYABILITY_DAYS.days,
-                eloTransfer(request.visibleCategories)
-            )
+                if (enabled) eloTransfer(request.visibleCategories) else noEloTransfer(),
+            ),
         )
     }
 
@@ -180,7 +181,7 @@ class PuzzleService(
                 puzzleId = request.puzzleId,
                 userId = userId,
                 upVoted = request.upVoted,
-                delay = 10.minutes
+                delay = 10.minutes,
             )
 
         return PuzzleVoteResponse(resultId != null)
@@ -194,8 +195,8 @@ class PuzzleService(
      *
      * If [visibleCategories] is `true`, the solving gain is additionally halved.
      */
-    private fun eloTransfer(visibleCategories: Boolean): (PuzzleOutcome, Int, Int, Instant?) -> Pair<Int, Int> {
-        return { outcome, userRating, puzzleRating, lastPlayed ->
+    private fun eloTransfer(visibleCategories: Boolean): (PuzzleOutcome, Int, Int, Instant?) -> Pair<Int, Int> =
+        { outcome, userRating, puzzleRating, lastPlayed ->
             val newUserRating: Int
             val newPuzzleRating: Int
             val defaultK = 16
@@ -232,7 +233,18 @@ class PuzzleService(
 
             Pair(newUserRating, newPuzzleRating)
         }
-    }
+
+    /**
+     * Elo transfer applied when a disabled puzzle is played: ratings are left unchanged so no Elo is
+     * transferred in either direction.
+     */
+    private fun noEloTransfer(): (
+        PuzzleOutcome,
+        Int,
+        Int,
+        Instant?,
+    ) -> Pair<Int, Int> =
+        { _, userRating, puzzleRating, _ -> Pair(userRating, puzzleRating) }
 
     suspend fun fetchPuzzleRating(userId: String): PuzzleRatingResponse {
         val rating = puzzleDaoService.fetchRatingForUser(userId)
@@ -256,6 +268,7 @@ class PuzzleService(
                 categories = record.categories.mapNotNull { it.category },
                 moves = record.moves.filterNot { move -> move.isSolution }.map { move -> move.uci },
                 solution = record.moves.filter { move -> move.isSolution }.map { move -> move.uci },
+                enabled = record.puzzle.disabledAt == null,
             )
         }
 
@@ -268,10 +281,7 @@ class PuzzleService(
         const val MIN_DAYS_BETWEEN_PUZZLES = 60
         const val RE_PLAYABILITY_DAYS = 90
 
-        fun mapOutcomeToDto(outcome: Pair<Int?, Int?>): PuzzleOutcomeResponse {
-            return PuzzleOutcomeResponse(outcome.first, outcome.second)
-        }
-
+        fun mapOutcomeToDto(outcome: Pair<Int?, Int?>): PuzzleOutcomeResponse =
+            PuzzleOutcomeResponse(outcome.first, outcome.second)
     }
-
 }

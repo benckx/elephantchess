@@ -11,5 +11,4 @@ data class PerpetualCheckingRule(val numberOfPieces: Int, val numberOfChecks: In
                 PerpetualCheckingRule(3, 18),
             )
     }
-
 }

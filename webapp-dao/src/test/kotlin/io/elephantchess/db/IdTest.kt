@@ -25,5 +25,4 @@ class IdTest {
         val ids = (1..5_000_000).map { generateId() }
         assertEquals(ids.size, ids.distinct().size)
     }
-
 }

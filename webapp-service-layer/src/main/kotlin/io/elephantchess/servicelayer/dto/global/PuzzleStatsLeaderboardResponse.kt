@@ -12,5 +12,4 @@ data class PuzzleStatsLeaderboardResponse(val entries: List<Entry>) {
         val solvedRate: Double,
         val failedRate: Double,
     )
-
 }

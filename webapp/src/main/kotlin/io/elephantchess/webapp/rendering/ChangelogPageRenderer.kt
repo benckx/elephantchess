@@ -2,7 +2,9 @@ package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
+import io.elephantchess.utils.di.KoinSingleton
 
+@KoinSingleton(eager = true)
 class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
     suspend fun renderChangelogPage(): String =
@@ -52,7 +54,5 @@ class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) 
             }
             return """<nav id="page-toc"><ul>$items</ul></nav>"""
         }
-
     }
-
 }

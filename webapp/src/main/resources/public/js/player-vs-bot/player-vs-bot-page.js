@@ -88,7 +88,10 @@ class PlayerVsBotPage extends BasePage {
     #controller;
 
     #boardGui = createWebappBoardGui();
-    #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+    #moveTreeWidget = new MoveTreeWidget({
+        containerId: 'move-tree-container',
+        ...moveTreeResizeCookiePersistence('pvb', 'move-tree-container')
+    });
 
     #isOnlineIndicator = document.getElementById('online-status-indicator');
 
@@ -393,7 +396,7 @@ class PlayerVsBotPage extends BasePage {
     #renderAnalysisSummaryReportIfAvailable() {
         if (isStatusFinished(this.#controller.gameStatus())) {
             const gameId = new GameId(GameType.PVB, this.#controller.gameId);
-            fetchDataAndrenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
+            fetchDataAndRenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
         }
     }
 

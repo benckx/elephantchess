@@ -3,14 +3,16 @@ package io.elephantchess.servicelayer.services.admin
 import io.elephantchess.db.services.PasswordRecoveryAttemptsDaoService
 import io.elephantchess.servicelayer.dto.admin.PasswordRecoveryAttemptsResponse
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.utils.di.KoinSingleton
 
+@KoinSingleton
 class AdminPasswordRecoveryService(
     private val passwordRecoveryAttemptsDaoService: PasswordRecoveryAttemptsDaoService,
     private val userCache: UserCache,
 ) {
 
-    suspend fun listLatestPasswordRecoveryAttempts(): PasswordRecoveryAttemptsResponse {
-        return passwordRecoveryAttemptsDaoService
+    suspend fun listLatestPasswordRecoveryAttempts(): PasswordRecoveryAttemptsResponse =
+        passwordRecoveryAttemptsDaoService
             .listLatestAttempts(100)
             .map { record ->
                 val matchingUserId = record.matchingUserId
@@ -27,6 +29,4 @@ class AdminPasswordRecoveryService(
             .let { entries ->
                 PasswordRecoveryAttemptsResponse(entries)
             }
-    }
-
 }

@@ -9,7 +9,7 @@ data class UserAgentResponse(
     val device: Device,
     val os: Os,
     val type: Type,
-    val ua: String
+    val ua: String,
 ) {
 
     @Serializable
@@ -41,5 +41,4 @@ data class UserAgentResponse(
         val tablet: Boolean?,
         @SerialName("touch_capable") val touchCapable: Boolean?,
     )
-
 }

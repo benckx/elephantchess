@@ -7,5 +7,5 @@ data class NumberOfGamesRecord(
     val chineseName: String?,
     val gamesAsRed: Int,
     val gamesAsBlack: Int,
-    val totalGames: Int
+    val totalGames: Int,
 )

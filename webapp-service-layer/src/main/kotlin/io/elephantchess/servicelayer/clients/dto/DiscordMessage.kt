@@ -7,13 +7,9 @@ import kotlinx.serialization.Serializable
 data class DiscordMessage(
     val content: String,
     val tts: Boolean = false,
-    @SerialName("message_reference") val messageReference: MessageReference? = null
+    @SerialName("message_reference") val messageReference: MessageReference? = null,
 ) {
 
     @Serializable
-    data class MessageReference(
-        val type: Int = 0,
-        @SerialName("message_id") val messageId: String
-    )
-
+    data class MessageReference(val type: Int = 0, @SerialName("message_id") val messageId: String)
 }

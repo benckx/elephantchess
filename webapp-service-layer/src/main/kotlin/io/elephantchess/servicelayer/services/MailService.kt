@@ -16,10 +16,12 @@ import io.elephantchess.servicelayer.model.Email
 import io.elephantchess.servicelayer.model.MatchingEmail
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.UserService.Companion.PASSWORD_RECOVERY_TIMEOUT_HOURS
+import io.elephantchess.servicelayer.services.resolvers.ContentFeedbackRowsTagResolver
 import io.elephantchess.servicelayer.services.resolvers.EmailConfirmationLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.GameLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.RecoveryLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.UnsubscribeTagResolver
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +36,7 @@ import javax.mail.internet.MimeMultipart
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
+@KoinSingleton
 class MailService(
     private val appConfig: AppConfig,
     private val emailVerificationDaoService: EmailVerificationDaoService,
@@ -45,23 +48,14 @@ class MailService(
 ) {
 
     private val sendMailNotifications by lazy { appConfig.sendMailNotifications }
-
-    // login
-    private val host by lazy { appConfig.loadString("mail.smtp.host") }
-    private val port by lazy { appConfig.loadString("mail.smtp.port") }
-    private val sslEnable by lazy { appConfig.loadString("mail.smtp.ssl.enable") }
-    private val auth by lazy { appConfig.loadString("mail.smtp.auth") }
-    private val mailUsername by lazy { appConfig.loadString("mail.username") }
-    private val mailPassword by lazy { appConfig.loadString("mail.password") }
-
-    // templating
+    private val mailConfig by lazy { appConfig.mailConfig }
+    private val adminEmail by lazy { appConfig.adminEmail }
     private val webHost = appConfig.webHost
 
     private val mailScope by lazy { CoroutineScope(Dispatchers.IO) }
 
-    suspend fun isEmailAddressValid(email: String): Boolean {
-        return getEmailValidityDetails(email).isValid
-    }
+    suspend fun isEmailAddressValid(email: String): Boolean =
+        getEmailValidityDetails(email).isValid
 
     /**
      * Returns the full [EmailValidityStatus] for the given email.
@@ -85,6 +79,7 @@ class MailService(
 
         return when (automatedVerifications.size) {
             0 -> EmailValidityStatus.UNKNOWN
+
             else -> {
                 val result = automatedVerifications.last().result
                 if (result == "ok" || result == "ok_for_all") {
@@ -137,7 +132,7 @@ class MailService(
                 MatchingEmail(
                     emailAddress = record.emailAddress,
                     isUnsubscribeFromNewsletter = record.unsubscribeFromNewsletterCode == code,
-                    isUnsubscribeFromAll = record.unsubscribeFromAllCode == code
+                    isUnsubscribeFromAll = record.unsubscribeFromAllCode == code,
                 )
             }
 
@@ -180,9 +175,9 @@ class MailService(
 
         logger.info {
             "found ${automaticallyValidated.size} automatically validated e-mail addresses, " +
-                    "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
-                    "${bounced.size} bounced e-mail addresses, " +
-                    "${newsletterRecipients.size} total newsletter recipients"
+                "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
+                "${bounced.size} bounced e-mail addresses, " +
+                "${newsletterRecipients.size} total newsletter recipients"
         }
 
         return newsletterRecipients.sorted()
@@ -190,12 +185,12 @@ class MailService(
 
     fun sendLowCreditNotification(available: Int) {
         if (sendMailNotifications) {
-            sendMail(
+            sendMailSync(
                 Email(
-                    to = ADMIN_GMAIL_EMAIL,
+                    to = adminEmail,
                     subject = "Low credit on EmailListVerify",
-                    body = "Available credits $available"
-                )
+                    body = "Available credits $available",
+                ),
             )
         } else {
             logger.info { "not sending low credit notification because mustSendEmails is disabled" }
@@ -204,42 +199,57 @@ class MailService(
 
     fun sendEnginePoolHealthCheckFailed(errors: List<String>) {
         if (sendMailNotifications) {
-            sendMail(
+            sendMailSync(
                 Email(
-                    to = ADMIN_GMAIL_EMAIL,
+                    to = adminEmail,
                     subject = "Engine pool health check failed",
-                    body = "The following engine(s) failed the health check:<br><br>${errors.joinToString("<br>")}"
-                )
+                    body = "The following engine(s) failed the health check:<br><br>${errors.joinToString("<br>")}",
+                ),
             )
         } else {
             logger.info { "not sending engine pool health check notification because mustSendEmails is disabled" }
         }
     }
 
+    suspend fun sendContentSectionVoteNotificationDigest(contentFeedbackEntries: List<ContentFeedbackEntry>) {
+        if (contentFeedbackEntries.isEmpty()) return
+
+        resolveAndSendAsync(
+            recipient = adminEmail,
+            subject = "new content feedback (${contentFeedbackEntries.size})",
+            templateName = "new_content_feedback_digest",
+            resolvers = listOf(
+                SimpleValueTagResolver("count", contentFeedbackEntries.size.toString()),
+                ContentFeedbackRowsTagResolver(contentFeedbackEntries),
+            ),
+            skipRecipientValidityCheck = true,
+        )
+    }
+
     suspend fun sendContactForm(userId: UserId, email: String, message: String) {
-        resolveAndSend(
-            recipient = ADMIN_GMAIL_EMAIL,
+        resolveAndSendAsync(
+            recipient = adminEmail,
             subject = "contact form",
             templateName = "contact_form_message",
             resolvers = listOf(
                 SimpleValueTagResolver("user_id", userId.toString()),
                 SimpleValueTagResolver("email", email),
                 SimpleValueTagResolver("message", message),
-            )
+            ),
         )
     }
 
     suspend fun sendNewUserNotification(user: User, guestTransferred: Boolean) {
-        resolveAndSend(
-            recipient = ADMIN_GMAIL_EMAIL,
+        resolveAndSendAsync(
+            recipient = adminEmail,
             subject = "new user",
             templateName = "new_user_notification",
             resolvers = listOf(
                 SimpleValueTagResolver("username", user.handle),
                 SimpleValueTagResolver("email", user.email),
-                SimpleValueTagResolver("guest_transferred", if (guestTransferred) "yes" else "no")
+                SimpleValueTagResolver("guest_transferred", if (guestTransferred) "yes" else "no"),
             ),
-            skipRecipientValidityCheck = true
+            skipRecipientValidityCheck = true,
         )
     }
 
@@ -250,12 +260,12 @@ class MailService(
             "elephantchess - email address confirmation"
         }
 
-        resolveAndSend(
+        resolveAndSendAsync(
             recipient = recipient,
             subject = subject,
             templateName = "email_confirmation",
             resolvers = listOf(
-                EmailConfirmationLinkTagResolver(webHost, code)
+                EmailConfirmationLinkTagResolver(webHost, code),
             ),
             // The whole point of this email is to flip the recipient's status to MANUALLY_CONFIRMED,
             // so we must not gate it on the address already being known-valid (it never is at signup).
@@ -264,88 +274,83 @@ class MailService(
     }
 
     suspend fun sendPasswordRecoveryAttempt(recipient: String, code: String) {
-        resolveAndSend(
+        resolveAndSendAsync(
             recipient = recipient,
             subject = "Password Recovery",
             templateName = "password_recovery_attempt",
             resolvers = listOf(
                 RecoveryLinkTagResolver(webHost, recipient, code),
-                SimpleValueTagResolver("recovery_time_validity", "${PASSWORD_RECOVERY_TIMEOUT_HOURS}h")
-            )
+                SimpleValueTagResolver("recovery_time_validity", "${PASSWORD_RECOVERY_TIMEOUT_HOURS}h"),
+            ),
         )
     }
 
     suspend fun sendPasswordRecoverySuccessful(recipient: String) {
-        resolveAndSend(
+        resolveAndSendAsync(
             recipient = recipient,
             subject = "Password Recovery Successful",
-            templateName = "successful_password_recovery"
+            templateName = "successful_password_recovery",
         )
     }
 
     suspend fun sendUserJoinedGameWhileOffline(recipient: String, inviteeUsername: String, gameId: String) {
-        resolveAndSend(
+        resolveAndSendAsync(
             recipient = recipient,
             subject = "$inviteeUsername joined your game",
             templateName = "user_joined_game_while_offline",
             resolvers = listOf(
                 SimpleValueTagResolver("invitee", inviteeUsername),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
     // we could also indicate whether he lost
     suspend fun sendOpponentPlayedMoveWhileOffline(recipient: String, opponent: String, gameId: String) {
-        resolveAndSend(
+        resolveAndSendAsync(
             recipient = recipient,
             subject = "$opponent played a move",
             templateName = "opponent_played_move_while_offline",
             resolvers = listOf(
                 SimpleValueTagResolver("opponent", opponent),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
     suspend fun sendOpponentResignedWhileOffline(recipient: String, opponent: String, gameId: String) {
-        resolveAndSend(
+        resolveAndSendAsync(
             recipient = recipient,
             subject = "$opponent resigned",
             templateName = "opponent_resigned_while_offline",
             resolvers = listOf(
                 SimpleValueTagResolver("opponent", opponent),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
     suspend fun sendDrawProposedWhileOffline(recipient: String, opponent: String, gameId: String) {
-        resolveAndSend(
+        resolveAndSendAsync(
             recipient = recipient,
             subject = "$opponent proposed a draw",
             templateName = "opponent_proposed_draw_while_offline",
             resolvers = listOf(
                 SimpleValueTagResolver("opponent", opponent),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
-    suspend fun sendOpponentRespondedToDrawWhileOffline(
-        recipient: String,
-        opponent: String,
-        accepted: Boolean,
-        gameId: String,
-    ) {
+    suspend fun sendOpponentRespondedToDrawWhileOffline(recipient: String, opponent: String, accepted: Boolean, gameId: String) {
         val verb1 = if (accepted) "accepted" else "declined"
         val verb2 = if (accepted) "Review" else "Resume"
 
-        resolveAndSend(
+        resolveAndSendAsync(
             recipient = recipient,
             subject = "$opponent $verb1 the draw",
             templateName = "opponent_responded_to_draw_while_offline",
@@ -353,16 +358,16 @@ class MailService(
                 SimpleValueTagResolver("opponent", opponent),
                 SimpleValueTagResolver("verb1", verb1),
                 SimpleValueTagResolver("verb2", verb2),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
     /**
      * Asynchronous and safe
      */
-    private suspend fun resolveAndSend(
+    private suspend fun resolveAndSendAsync(
         recipient: String,
         subject: String,
         templateName: String,
@@ -373,7 +378,7 @@ class MailService(
         fun sendSafeAsync(email: Email) {
             mailScope.launch {
                 try {
-                    sendMail(email)
+                    sendMailSync(email)
                 } catch (e: Exception) {
                     logger.error(e) { "error sending email '${email.subject}" }
                 }
@@ -393,10 +398,10 @@ class MailService(
         sendSafeAsync(
             Email(
                 to = recipient,
-                bcc = if (copyToAdmin) ADMIN_GMAIL_EMAIL else null,
+                bcc = if (copyToAdmin) adminEmail else null,
                 subject = subject,
-                body = mailRenderer.renderEmail(templateName, resolvers)
-            )
+                body = mailRenderer.renderEmail(templateName, resolvers),
+            ),
         )
     }
 
@@ -421,40 +426,40 @@ class MailService(
                         UnsubscribeTagResolver(
                             appConfig,
                             "unsubscribe_from_newsletter_url",
-                            unsubscribeFromNewsletterCode
+                            unsubscribeFromNewsletterCode,
                         ),
                         UnsubscribeTagResolver(
                             appConfig,
                             "unsubscribe_from_all_url",
-                            unsubscribeFromAllCode
+                            unsubscribeFromAllCode,
                         ),
                         SimpleValueTagResolver(
                             "utm_medium",
-                            "newsletter-$templateName"
+                            "newsletter-$templateName",
                         ),
-                    )
+                    ),
                 )
 
             // parse the rendered body for CID references and build embedded images map
             val imagesToEmbed = parseCidReferences(renderedBody, templateName)
 
-            sendMail(
+            sendMailSync(
                 Email(
                     to = recipient,
                     subject = subject,
                     body = renderedBody,
-                    embeddedImages = imagesToEmbed
-                )
+                    embeddedImages = imagesToEmbed,
+                ),
             )
         } else {
             logger.info { "not sending newsletter because sendMailNotifications is disabled" }
         }
     }
 
-    private fun sendMail(email: Email) {
+    private fun sendMailSync(email: Email) {
         logger.debug { "sending to '${email.to}': $email" }
         val message = MimeMessage(session())
-        message.setFrom(InternetAddress(mailUsername, "elephantchess.io"))
+        message.setFrom(InternetAddress(mailConfig.username, "elephantchess.io"))
         message.addRecipient(Message.RecipientType.TO, InternetAddress(email.to))
         email.cc?.let { cc -> message.addRecipient(Message.RecipientType.CC, InternetAddress(cc)) }
         email.bcc?.let { bcc -> message.addRecipient(Message.RecipientType.BCC, InternetAddress(bcc)) }
@@ -490,17 +495,19 @@ class MailService(
 
     private fun session(): Session {
         val sysProperties = System.getProperties()
-        sysProperties["mail.smtp.host"] = host
-        sysProperties["mail.smtp.port"] = port
-        sysProperties["mail.smtp.ssl.enable"] = sslEnable
-        sysProperties["mail.smtp.auth"] = auth
+        sysProperties["mail.smtp.host"] = mailConfig.smtpHost
+        sysProperties["mail.smtp.port"] = mailConfig.smtpPort
+        sysProperties["mail.smtp.ssl.enable"] = mailConfig.smtpSslEnable
+        sysProperties["mail.smtp.auth"] = mailConfig.smtpAuth
 
         val session =
-            Session.getInstance(sysProperties, object : Authenticator() {
-                override fun getPasswordAuthentication(): PasswordAuthentication {
-                    return PasswordAuthentication(mailUsername, mailPassword)
-                }
-            })
+            Session.getInstance(
+                sysProperties,
+                object : Authenticator() {
+                    override fun getPasswordAuthentication(): PasswordAuthentication =
+                        PasswordAuthentication(mailConfig.username, mailConfig.password)
+                },
+            )
 
         session.debug = false
         return session
@@ -522,14 +529,18 @@ class MailService(
 
     companion object {
 
-        private const val ADMIN_GMAIL_EMAIL = "benoit.vleminckx@gmail.com"
-
         // 18 months
         val emailValidityDuration = (18 * 30).days
 
         // 12 months
         val emailValidityUpdateTime = (12 * 30).days
-
     }
-
 }
+
+data class ContentFeedbackEntry(
+    val userId: String,
+    val pageId: String,
+    val sectionId: String,
+    val upVoted: Boolean,
+    val feedback: String?,
+)

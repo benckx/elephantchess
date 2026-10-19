@@ -8,17 +8,14 @@ import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.Outcome
 import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.utils.cropToFirstNWords
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.formatWithChineseName
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
-import kotlinx.html.a
-import kotlinx.html.li
-import kotlinx.html.meta
-import kotlinx.html.p
-import kotlinx.html.style
-import kotlinx.html.unsafe
+import kotlinx.html.*
 import kotlin.time.Duration.Companion.hours
 
+@KoinSingleton(eager = true)
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
     private val eventPagesCache =
@@ -38,6 +35,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         requestedVersion: Int?,
         edit: DatabasePlayerProfileEdit,
         fetchEditorsUsername: suspend () -> List<String>,
+        hasOpeningData: Boolean,
     ): String {
         val description = edit.profileText
         val editors = fetchEditorsUsername()
@@ -88,6 +86,18 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             }
         }
 
+        // Opening explorer is only wired up (markup + scripts + stylesheet) for players that
+        // have pre-calculated opening data.
+        val openingsHeadResolver = SimpleValueTagResolver(
+            "database_player_openings_head_conditional",
+            if (hasOpeningData) "{{database_player_openings_head}}" else "",
+        )
+
+        val openingsSectionResolver = SimpleValueTagResolver(
+            "database_player_openings_section_conditional",
+            if (hasOpeningData) "{{database_player_openings_section}}" else "",
+        )
+
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_player.html",
             specificTagResolvers = listOf(
@@ -99,9 +109,11 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 sourcesResolver,
                 styleResolver,
                 authorMeta,
-                noIndexMeta
+                noIndexMeta,
+                openingsHeadResolver,
+                openingsSectionResolver,
             ),
-            canonicalPath = "/database/player/${databasePlayer.urlName}"
+            canonicalPath = "/database/player/${databasePlayer.urlName}",
         )
     }
 
@@ -110,10 +122,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_player_edit.html",
-            specificTagResolvers = listOf(
-                playerIdResolver
-            ),
-            canonicalPath = "/database/player/${databasePlayer.urlName}/edit"
+            specificTagResolvers = listOf(playerIdResolver),
+            canonicalPath = "/database/player/${databasePlayer.urlName}/edit",
         )
     }
 
@@ -122,10 +132,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_player_edit_history.html",
-            specificTagResolvers = listOf(
-                playerIdResolver
-            ),
-            canonicalPath = "/database/player/${databasePlayer.urlName}/edit-history"
+            specificTagResolvers = listOf(playerIdResolver),
+            canonicalPath = "/database/player/${databasePlayer.urlName}/edit-history",
         )
     }
 
@@ -133,15 +141,14 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         databasePlayer: DatabasePlayer,
         fromVersion: Int,
         toVersion: Int,
-        fetchEdit: suspend (Int) -> DatabasePlayerProfileEdit
+        fetchEdit: suspend (Int) -> DatabasePlayerProfileEdit,
     ): String {
-        fun mapGender(gender: String?): String {
-            return when (gender) {
+        fun mapGender(gender: String?): String =
+            when (gender) {
                 "M" -> "Male"
                 "F" -> "Female"
                 else -> ""
             }
-        }
 
         val editFrom = fetchEdit(fromVersion)
         val editTo = fetchEdit(toVersion)
@@ -186,30 +193,24 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 descriptionFromResolver,
                 descriptionToResolver,
                 sourcesFromResolver,
-                sourcesToResolver
-            )
+                sourcesToResolver,
+            ),
         )
     }
 
-    suspend fun renderBrowseGamesPage(
-        databasePlayer: DatabasePlayer,
-    ): String {
+    suspend fun renderBrowseGamesPage(databasePlayer: DatabasePlayer): String {
         val playerNameResolver = SimpleValueTagResolver("player_name", databasePlayer.canonicalName)
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/browse_db_player_games.html",
             specificTagResolvers = listOf(
                 databasePlayerTitle(databasePlayer),
-                playerNameResolver
+                playerNameResolver,
             ),
-            canonicalPath = "/database/player/${databasePlayer.urlName}/games"
+            canonicalPath = "/database/player/${databasePlayer.urlName}/games",
         )
     }
 
-    suspend fun renderBrowseEventGamesPage(
-        eventId: String,
-        eventName: String,
-        round: Int? = null,
-    ): String {
+    suspend fun renderBrowseEventGamesPage(eventId: String, eventName: String, round: Int? = null): String {
         val canonicalPath = buildString {
             append("/browse/event?id=")
             append(eventId)
@@ -222,14 +223,14 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             templatePath = "/templates/database/browse_db_event_games.html",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("page_title", eventName),
-                SimpleValueTagResolver("event_id", eventId)
+                SimpleValueTagResolver("event_id", eventId),
             ),
-            canonicalPath = canonicalPath
+            canonicalPath = canonicalPath,
         )
     }
 
-    suspend fun renderEventPage(event: Event): String {
-        return eventPagesCache.get(event.id) {
+    suspend fun renderEventPage(event: Event): String =
+        eventPagesCache.get(event.id) {
             // get top 10 players by score
             val topPlayerNames = event.scores
                 .entries
@@ -245,41 +246,37 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 specificTagResolvers = listOf(
                     SimpleValueTagResolver("page_title", event.name),
                     SimpleValueTagResolver("description_meta", descriptionMeta(description)),
-                    eventGamesListTagResolver(event)
+                    eventGamesListTagResolver(event),
                 ),
-                canonicalPath = "/database/event?id=${event.id}"
+                canonicalPath = "/database/event?id=${event.id}",
             )
         }
-    }
 
-    suspend fun renderEventsListPage(eventsList: EventsListResponse): String {
-        return pageOfListCache.get("events") {
+    suspend fun renderEventsListPage(eventsList: EventsListResponse): String =
+        pageOfListCache.get("events") {
             htmlRenderer.renderHtml(
                 templatePath = "/templates/database/database_events_list.html",
                 specificTagResolvers = listOf(eventsTableTagResolver(eventsList)),
-                canonicalPath = "/database/events"
+                canonicalPath = "/database/events",
             )
         }
-    }
 
-    suspend fun renderPlayersListPage(playersList: PlayersListResponse): String {
-        return pageOfListCache.get("players") {
+    suspend fun renderPlayersListPage(playersList: PlayersListResponse): String =
+        pageOfListCache.get("players") {
             htmlRenderer.renderHtml(
                 templatePath = "/templates/database/database_players_list.html",
                 specificTagResolvers = listOf(playersTableTagResolver(playersList)),
-                canonicalPath = "/database/players"
+                canonicalPath = "/database/players",
             )
         }
-    }
 
     suspend fun renderGamePage(summary: DatabaseGameSummary, orientation: String? = null): String {
-        fun formatName(canonicalName: String?, chineseName: String?): String {
-            return if (!canonicalName.isNullOrBlank()) {
+        fun formatName(canonicalName: String?, chineseName: String?): String =
+            if (!canonicalName.isNullOrBlank()) {
                 formatWithChineseName(canonicalName, chineseName)
             } else {
                 "<unknown>"
             }
-        }
 
         val redDisplay = formatName(summary.redPlayerCanonicalName, summary.redPlayerChineseName)
         val blackDisplay = formatName(summary.blackPlayerCanonicalName, summary.blackPlayerChineseName)
@@ -333,18 +330,18 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                     playerLink(
                         summary.redPlayerCanonicalName,
                         redDisplay,
-                        "red-color"
+                        "red-color",
                     )
-                }$redWinnerSuffix</div>"""
+                }$redWinnerSuffix</div>""",
             )
             append(
                 """<div>${
                     playerLink(
                         summary.blackPlayerCanonicalName,
                         blackDisplay,
-                        "black-color"
+                        "black-color",
                     )
-                }$blackWinnerSuffix</div>"""
+                }$blackWinnerSuffix</div>""",
             )
         }
 
@@ -354,7 +351,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             val escapedName = escapeHtml(name)
             val eventId = summary.eventId
             if (!eventId.isNullOrBlank()) {
-                """<a href="/database/event?id=${eventId}">$escapedName</a>"""
+                """<a href="/database/event?id=$eventId">$escapedName</a>"""
             } else {
                 escapedName
             }
@@ -383,18 +380,21 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 SimpleValueTagResolver("players_info", playersInfoHtml),
                 SimpleValueTagResolver("game_date_info", dateInfoHtml),
                 SimpleValueTagResolver("game_event_info", eventInfoHtml),
-                SimpleValueTagResolver("body_data_attrs", buildString {
-                    append(dataAttr("game-id", summary.gameId))
-                    append(dataAttr("orientation", orientation))
-                    append(dataAttr("final-fen", summary.finalFen))
-                    append(dataAttr("pgn-red-player", summary.redPlayerCanonicalName))
-                    append(dataAttr("pgn-black-player", summary.blackPlayerCanonicalName))
-                    append(dataAttr("pgn-event", summary.eventName))
-                    append(dataAttr("pgn-date", pgnDate))
-                    append(dataAttr("pgn-result", pgnResult))
-                }),
+                SimpleValueTagResolver(
+                    "body_data_attrs",
+                    buildString {
+                        append(dataAttr("game-id", summary.gameId))
+                        append(dataAttr("orientation", orientation))
+                        append(dataAttr("final-fen", summary.finalFen))
+                        append(dataAttr("pgn-red-player", summary.redPlayerCanonicalName))
+                        append(dataAttr("pgn-black-player", summary.blackPlayerCanonicalName))
+                        append(dataAttr("pgn-event", summary.eventName))
+                        append(dataAttr("pgn-date", pgnDate))
+                        append(dataAttr("pgn-result", pgnResult))
+                    },
+                ),
             ),
-            canonicalPath = "/database/game?id=${summary.gameId}"
+            canonicalPath = "/database/game?id=${summary.gameId}",
         )
     }
 
@@ -403,8 +403,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         fun dataAttr(name: String, value: String?): String =
             if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
 
-        fun descriptionMeta(edit: DatabasePlayerProfileEdit): TagResolver {
-            return CallbackTagResolver("description_meta") {
+        fun descriptionMeta(edit: DatabasePlayerProfileEdit): TagResolver =
+            CallbackTagResolver("description_meta") {
                 val profileText = edit.profileText
                 val metaContent = if (profileText.isNullOrBlank()) {
                     val name = formatWithChineseName(edit.canonicalName, edit.chineseName)
@@ -415,23 +415,18 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
                 descriptionMeta(metaContent)
             }
-        }
 
-        fun databasePlayerTitle(databasePlayer: DatabasePlayer, suffix: String = ""): TagResolver {
-            return SimpleValueTagResolver(
+        fun databasePlayerTitle(databasePlayer: DatabasePlayer, suffix: String = ""): TagResolver =
+            SimpleValueTagResolver(
                 "page_title",
-                formatWithChineseName(databasePlayer.canonicalName, databasePlayer.chineseName) + suffix
+                formatWithChineseName(databasePlayer.canonicalName, databasePlayer.chineseName) + suffix,
             )
-        }
 
-        fun formatSourcesToMarkdown(sources: List<DatabasePlayerProfileSource>): String {
-            return sources
+        fun formatSourcesToMarkdown(sources: List<DatabasePlayerProfileSource>): String =
+            sources
                 .sortedBy { it.index }
                 .joinToString("\n") { source ->
                     "[${source.title}](${source.url})"
                 }
-        }
-
     }
-
 }

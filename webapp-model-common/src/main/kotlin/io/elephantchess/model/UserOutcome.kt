@@ -4,6 +4,5 @@ enum class UserOutcome {
 
     WIN,
     LOSS,
-    DRAW
-
+    DRAW,
 }

@@ -20,7 +20,7 @@ abstract class PostgresTest {
     protected val dbPassword = "postgres"
 
     protected val container: PostgreSQLContainer<*> by lazy {
-        PostgreSQLContainer("postgres:17.6")
+        PostgreSQLContainer("postgres:18.4")
             .withDatabaseName("xiangqi")
             .withUsername(dbUser)
             .withPassword(dbPassword)
@@ -43,14 +43,9 @@ abstract class PostgresTest {
      * Useful in tests / one-off lookups where a single column value needs to be fetched
      * by a simple where condition.
      */
-    suspend inline fun <reified T : Any> DSLContext.fetchValueAsync(
-        field: TableField<*, T>,
-        condition: Condition,
-    ): T? {
-        return select(field)
+    suspend inline fun <reified T : Any> DSLContext.fetchValueAsync(field: TableField<*, T>, condition: Condition): T? =
+        select(field)
             .from(field.table)
             .where(condition)
             .awaitSingleValue()
-    }
-
 }

@@ -16,5 +16,4 @@ data class ListUserAnalysisResponse(val entries: List<Entry>) {
         val numberOfAnnotations: Int,
         val numberOfVariations: Int,
     )
-
 }

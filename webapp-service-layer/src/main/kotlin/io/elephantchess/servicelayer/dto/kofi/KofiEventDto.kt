@@ -31,5 +31,5 @@ data class KofiEventDto(
     @SerialName("discord_username")
     val discordUsername: String? = null,
     @SerialName("discord_userid")
-    val discordUserid: String? = null
+    val discordUserid: String? = null,
 )
