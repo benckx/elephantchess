@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.clients
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -15,13 +17,14 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 @Suppress("SameParameterValue")
+@KoinSingleton
 class DigitalOceanSpacesClient(
     appConfig: AppConfig
 ) {
 
-    private val accessKeyId by lazy { appConfig.loadString("digitalocean.spaces.key.id") }
-    private val secretAccessKey by lazy { appConfig.loadString("digitalocean.spaces.key.secret") }
-    private val bucketName by lazy { appConfig.loadString("digitalocean.spaces.bucket") }
+    private val accessKeyId by lazy { appConfig.doSpacesKeyId }
+    private val secretAccessKey by lazy { appConfig.doSpacesKeySecret }
+    private val bucketName by lazy { appConfig.doSpacesBucket }
     private val region = "ams3"
     private val endpoint = "$bucketName.$region.digitaloceanspaces.com"
 

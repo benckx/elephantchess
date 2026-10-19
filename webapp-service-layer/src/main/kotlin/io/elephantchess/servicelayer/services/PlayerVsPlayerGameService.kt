@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.callback.PerpetualCheckingCallbackResult
 import io.elephantchess.db.callback.PlayMoveCallbackResult
 import io.elephantchess.db.callback.UpdateRatingsCallbackResult
@@ -20,12 +22,14 @@ import io.elephantchess.model.Outcome.RED_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
+import io.elephantchess.servicelayer.dto.lobby.AlwaysVisibleInLobbyAllowedResponse
 import io.elephantchess.servicelayer.dto.ws.*
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.ForbiddenException
 import io.elephantchess.servicelayer.exceptions.InternalErrorException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.model.UserId
+import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.ws.GamesToPlayWebSocketSession
 import io.elephantchess.servicelayer.services.ws.PlayerVsPlayerWebSocketSession
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
@@ -47,6 +51,7 @@ import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.random.Random
@@ -58,6 +63,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import io.elephantchess.servicelayer.dto.ws.RatingUpdate as RatingUpdateWs
 
+@KoinSingleton
 class PlayerVsPlayerGameService(
     private val userService: UserService,
     private val userDaoService: UserDaoService,
@@ -67,18 +73,23 @@ class PlayerVsPlayerGameService(
     private val gameChatTypingStatusDaoService: GameChatTypingStatusDaoService,
     private val userCache: UserCache,
     private val discordService: DiscordService,
+    private val exceptionService: ExceptionService,
     private val logger: KLogger,
     refresherScope: CoroutineScope
 ) {
 
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
-    private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
-    private val playerVsPlayerSessions = mutableListOf<PlayerVsPlayerWebSocketSession>()
+    private val gamesToPlaySessions = CopyOnWriteArrayList<GamesToPlayWebSocketSession>()
+    private val playerVsPlayerSessions = CopyOnWriteArrayList<PlayerVsPlayerWebSocketSession>()
 
     private val pvpSessionsRefreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = 500.milliseconds,
         period = 500.milliseconds,
+        onError = {
+            logger.error(it) { "error in player-vs-player session refresh" }
+            exceptionService.saveException(it)
+        },
         action = { refreshPlayerVsPlayerSessions() }
     )
 
@@ -86,6 +97,10 @@ class PlayerVsPlayerGameService(
         scope = refresherScope,
         initialDelay = 3.seconds,
         period = 3.seconds,
+        onError = {
+            logger.error(it) { "error in games-to-play session refresh" }
+            exceptionService.saveException(it)
+        },
         action = { refreshGamesToPlaySessions() }
     )
 
@@ -161,7 +176,10 @@ class PlayerVsPlayerGameService(
         // Drop already-closed sessions before fetching anything from DB.
         removeClosedPlayerVsPlayerSessions()
 
-        val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
+        // Snapshot the sessions once so the derived gameIds stay consistent with the
+        // maps fetched below. New sessions added concurrently are picked up on the next run.
+        val sessions = playerVsPlayerSessions.toList()
+        val allGameIds = sessions.map { session -> session.gameId }.distinct()
 
         if (allGameIds.isEmpty()) {
             return
@@ -180,10 +198,16 @@ class PlayerVsPlayerGameService(
         val timeRemainingCache = mutableMapOf<String, CachedValue<TimeRemaining?>>()
         val drawPropositionUserCache = mutableMapOf<String, CachedValue<String?>>()
 
-        playerVsPlayerSessions
+        sessions
             .forEach { session ->
                 val gameId = session.gameId
-                val gameState = stateMap[gameId]!!
+                val gameState = stateMap[gameId]
+                if (gameState == null) {
+                    logger.warn {
+                        "Skipping refresh for gameId=$gameId because no game state was found (game removed?)"
+                    }
+                    return@forEach
+                }
                 val status = gameState.gameEventType
                 val index = gameState.index
 
@@ -234,7 +258,7 @@ class PlayerVsPlayerGameService(
                 }
 
                 val chatMessages = mutableListOf<ChatMessage>()
-                if (session.currentChatIndex() < chatIndexes[gameId]!!) {
+                if (session.currentChatIndex() < (chatIndexes[gameId] ?: 0)) {
                     chatMessages.addAll(
                         chatMessageDaoService
                             .listMessagesAfterOrEqualToIndex(gameId, session.currentChatIndex())
@@ -333,6 +357,18 @@ class PlayerVsPlayerGameService(
             throw BadRequestException("Guest users are not allowed to create correspondence games")
         }
 
+        if (userId.userType == UserType.GUEST && request.alwaysVisibleInLobby) {
+            throw BadRequestException("Guest users are not allowed to use the 'always show in lobby' option")
+        }
+
+        if (!request.privateInvite && request.alwaysVisibleInLobby && !isOptionAlwaysVisibleInLobbyAllowed(userId.id)) {
+            throw BadRequestException(
+                "The 'always show in lobby' option is not allowed for this game. " +
+                        "It can only be enabled for correspondence games or if you have a valid email address and the" +
+                        " 'someone joined my game' email notification enabled."
+            )
+        }
+
         // limit the number of CREATED games a user can have with the same settings
         val timeControlCategory = TimeControlCategory.fromSeconds(request.timeControlBase)
         val createdGamesCount = pvpGameDaoService.countCreatedGamesByUser(
@@ -393,6 +429,35 @@ class PlayerVsPlayerGameService(
         pvpGameDaoService.insertGame(userId.id, game)
         discordService.gameCreated(userId.id, game)
         return CreateGameResponse(game.id, CREATED, request.inviterColor)
+    }
+
+    suspend fun isOptionAlwaysVisibleInLobbyAllowed(verifiedToken: VerifiedToken): AlwaysVisibleInLobbyAllowedResponse {
+        if (verifiedToken.userId().userType == UserType.GUEST) {
+            return AlwaysVisibleInLobbyAllowedResponse(false)
+        }
+
+        return AlwaysVisibleInLobbyAllowedResponse(
+            allowed = isOptionAlwaysVisibleInLobbyAllowed(verifiedToken.userId().id)
+        )
+    }
+
+    /**
+     * Whether the user is allowed to use the "always show in lobby (also when I'm offline)" option when creating
+     * a new game. The option only makes sense if we can notify the user by email when someone joins their
+     * game while they are offline, so it requires:
+     *
+     * - a valid email address (manually confirmed or automatically verified)
+     * - the "someone joined my game" email notification to be enabled.
+     *
+     * Guest users have no email address and are therefore never allowed.
+     */
+    internal suspend fun isOptionAlwaysVisibleInLobbyAllowed(userId: String): Boolean {
+        val email = userDaoService.fetchEmail(userId) ?: return false
+        if (!mailService.isEmailAddressValid(email)) {
+            return false
+        }
+        val notificationSettings = userDaoService.fetchNotificationSettings(userId) ?: return false
+        return notificationSettings.opponentJoinedGame
     }
 
     private suspend fun findMatchingGame(
@@ -1075,10 +1140,10 @@ class PlayerVsPlayerGameService(
         if (map.isNotEmpty()) {
             map.toList().sortedBy { (key, _) -> key }.forEach { (key, sequence) ->
                 val fullMovesStr = sequence.fullMoves().joinToString(", ")
-                logger.info { "[$key] ${sequence.attackers} / $fullMovesStr [${sequence.size()}]" }
+                logger.debug { "[$key] ${sequence.attackers} / $fullMovesStr [${sequence.size()}]" }
                 perpetualCheckRules.forEach { rule ->
                     val hasExceeded = sequence.exceeds(rule)
-                    logger.info { "exceeds $rule -> $hasExceeded" }
+                    logger.debug { "exceeds $rule -> $hasExceeded" }
                     if (hasExceeded) {
                         return PerpetualCheckingCallbackResult(PERPETUAL_CHECKING, playerColor.asLoserOutcome())
                     }

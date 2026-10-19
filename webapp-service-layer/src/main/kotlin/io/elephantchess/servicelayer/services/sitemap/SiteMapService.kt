@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services.sitemap
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.services.DatabaseService
 import io.elephantchess.servicelayer.services.UserService
@@ -14,6 +16,7 @@ import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton(eager = true)
 class SiteMapService(
     private val databaseService: DatabaseService,
     private val userService: UserService,
@@ -56,7 +59,7 @@ class SiteMapService(
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/about",
-            lastmod = LocalDate.of(2026, 1, 5),
+            lastmod = LocalDate.of(2026, 6, 14),
             changefreq = MONTHLY,
             priority = 1.0
         ),
@@ -69,6 +72,12 @@ class SiteMapService(
         SitemapEntry(
             loc = "$webHostTrimmed/about/faq",
             lastmod = LocalDate.of(2026, 1, 18),
+            changefreq = MONTHLY,
+            priority = 0.8
+        ),
+        SitemapEntry(
+            loc = "$webHostTrimmed/about/datasets",
+            lastmod = LocalDate.of(2026, 6, 14),
             changefreq = MONTHLY,
             priority = 0.8
         ),

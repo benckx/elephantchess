@@ -8,6 +8,9 @@ enum class PuzzleCategory {
     MATE_IN_3,
     MATE_IN_4,
     MATE_IN_5,
+    MATE_IN_6,
+    MATE_IN_7,
+    MATE_IN_8,
     FORK,
     PIN,
     DISCOVERED_ATTACK;
@@ -19,6 +22,9 @@ enum class PuzzleCategory {
             MATE_IN_3 -> 3
             MATE_IN_4 -> 4
             MATE_IN_5 -> 5
+            MATE_IN_6 -> 6
+            MATE_IN_7 -> 7
+            MATE_IN_8 -> 8
             else -> null
         }
     }
@@ -32,6 +38,9 @@ enum class PuzzleCategory {
                 3 -> MATE_IN_3
                 4 -> MATE_IN_4
                 5 -> MATE_IN_5
+                6 -> MATE_IN_6
+                7 -> MATE_IN_7
+                8 -> MATE_IN_8
                 else -> throw IllegalArgumentException()
             }
         }

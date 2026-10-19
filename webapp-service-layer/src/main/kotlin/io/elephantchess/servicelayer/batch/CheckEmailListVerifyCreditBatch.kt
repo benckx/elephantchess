@@ -1,17 +1,19 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.clients.EmailListVerifyClient
 import io.elephantchess.servicelayer.services.MailService
 import io.github.oshai.kotlinlogging.KotlinLogging
 
+@KoinSingleton
 class CheckEmailListVerifyCreditBatch(
     private val client: EmailListVerifyClient,
     private val mailService: MailService
 ) : SinglePodBatch {
 
     override val logger = KotlinLogging.logger {}
-    override val podNumber: Int = 1
 
     override suspend fun run() {
         client.getCredits()?.onDemand?.available

@@ -1,9 +1,12 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.services.PasswordRecoveryAttemptsDaoService
 import io.elephantchess.servicelayer.dto.admin.PasswordRecoveryAttemptsResponse
 import io.elephantchess.servicelayer.services.UserCache
 
+@KoinSingleton
 class AdminPasswordRecoveryService(
     private val passwordRecoveryAttemptsDaoService: PasswordRecoveryAttemptsDaoService,
     private val userCache: UserCache,

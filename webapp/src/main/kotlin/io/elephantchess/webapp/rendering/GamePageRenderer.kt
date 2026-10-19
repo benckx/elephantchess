@@ -1,5 +1,7 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.model.Engine
@@ -8,6 +10,7 @@ import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.xiangqi.Color
 
+@KoinSingleton(eager = true)
 class GamePageRenderer(
     private val htmlRenderer: HtmlRenderer,
     private val kofiService: KofiService,

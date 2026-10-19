@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.callback.BotMove
 import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult
@@ -50,15 +52,18 @@ import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+@KoinSingleton
 class PlayerVsBotGameService(
     private val enginesPool: EnginePool,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     private val openingRepositoryDaoService: OpeningRepositoryCacheDaoService,
     private val userCache: UserCache,
+    private val exceptionService: ExceptionService,
     appConfig: AppConfig,
     refresherScope: CoroutineScope,
     private val logger: KLogger,
@@ -68,12 +73,16 @@ class PlayerVsBotGameService(
     private val fairyStockfishVersion = appConfig.fairyStockfishVersion
 
     private val sessionsRefresh = 2.seconds
-    private val wsSessions = mutableListOf<PvbWebSocketSession>()
+    private val wsSessions = CopyOnWriteArrayList<PvbWebSocketSession>()
 
     private val refreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = sessionsRefresh,
         period = sessionsRefresh,
+        onError = {
+            logger.error(it) { "error in player-vs-bot session refresh" }
+            exceptionService.saveException(it)
+        },
         action = {
             // remove the sessions that are not active anymore
             wsSessions.removeIf { session ->

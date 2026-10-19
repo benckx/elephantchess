@@ -71,6 +71,19 @@ fun Route.gameDataRoutes() {
                 )
             }
         }
+        get("/list-latest-pvb-games-by-user") {
+            // distinctByUsers is ignored here: filtering by username already scopes results to one user
+            paginationParams { limit, continuation, _ ->
+                val username = call.parameters["username"]
+                    ?: throw BadRequestException("username parameter is required")
+
+                gameDataService.listLatestPvbGamesByUsername(
+                    username = username,
+                    requestedLimit = limit,
+                    beforeTs = continuation
+                )
+            }
+        }
         get("/list-db-player-games") {
             paginationParams { limit, continuation, _ ->
                 val playerName = call.parameters["playerName"]?.replace("_", " ")

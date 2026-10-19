@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.services.DiscordGameNotificationDaoService
@@ -14,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Instant
 import kotlin.time.toKotlinInstant
 
+@KoinSingleton
 class DiscordService(
     private val discordClient: DiscordClient,
     private val userCache: UserCache,
@@ -23,8 +26,8 @@ class DiscordService(
 ) {
 
     private val webHost = appConfig.webHost
-    private val suffix = appConfig.loadString("discord.suffix")
-    private val isEnabled = appConfig.loadBoolean("discord.notification.enabled", false)
+    private val suffix = appConfig.discordSuffix
+    private val isEnabled = appConfig.discordNotificationEnabled
 
     private val discordServiceScope by lazy { CoroutineScope(Dispatchers.IO) }
 

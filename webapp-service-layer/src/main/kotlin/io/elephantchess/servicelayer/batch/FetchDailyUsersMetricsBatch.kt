@@ -1,14 +1,18 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.StatsOnlineUsersDays
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserStatsDaoService
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
+import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESPAN_SECONDS
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.days
 
+@KoinSingleton
 class FetchDailyUsersMetricsBatch(
     private val userDaoService: UserDaoService,
     private val userStatsDaoService: UserStatsDaoService,
@@ -16,8 +20,7 @@ class FetchDailyUsersMetricsBatch(
     override val logger: KLogger,
 ) : SinglePodBatch {
 
-    override val podNumber: Int = 0
-    private val excludedIds = appConfig.loadListOfStrings("excluded.from.analytics")
+    private val excludedIds = appConfig.excludedFromAnalytics
 
     override suspend fun run() {
         val record = StatsOnlineUsersDays()
@@ -40,14 +43,16 @@ class FetchDailyUsersMetricsBatch(
             userDaoService.countActiveRecently(
                 duration = 7.days,
                 userTypes = listOf(UserType.GUEST),
-                excludeIds = excludedIds
+                excludeIds = excludedIds,
+                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
             )
 
         record.guestsUsers_30d =
             userDaoService.countActiveRecently(
                 duration = 30.days,
                 userTypes = listOf(UserType.GUEST),
-                excludeIds = excludedIds
+                excludeIds = excludedIds,
+                minSessionSeconds = MIN_GENUINE_GUEST_LIFESPAN_SECONDS
             )
 
         userStatsDaoService.save(record)

@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.SevenKingdomsGameDao
 import io.elephantchess.db.dao.codegen.tables.daos.SevenKingdomsGameEventDao
@@ -18,6 +20,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 
+@KoinSingleton
 class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(gameRecord: SevenKingdomsGame) =
@@ -69,7 +72,7 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
             Color.entries.forEach { color ->
                 transactional
                     .update(SEVEN_KINGDOMS_GAME)
-                    .set(mapColorToField(color).fixed(), null as Color?)
+                    .set(mapColorToField(color), null as String?)
                     .where(SEVEN_KINGDOMS_GAME.ID.eq(gameId))
                     .and(mapColorToField(color).eq(userId))
                     .awaitExecute()
@@ -79,7 +82,7 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
             newColorsOfUser.forEach { color ->
                 transactional
                     .update(SEVEN_KINGDOMS_GAME)
-                    .set(mapColorToField(color).fixed(), userId)
+                    .set(mapColorToField(color), userId)
                     .set(SEVEN_KINGDOMS_GAME.GAME_STATUS, newStatus)
                     .where(SEVEN_KINGDOMS_GAME.ID.eq(gameId))
                     .awaitExecute()
@@ -99,7 +102,7 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
             // update last updated time
             transactional
                 .update(SEVEN_KINGDOMS_GAME)
-                .set(SEVEN_KINGDOMS_GAME.LAST_UPDATED.fixed(), now)
+                .set(SEVEN_KINGDOMS_GAME.LAST_UPDATED, now)
                 .where(SEVEN_KINGDOMS_GAME.ID.eq(gameId))
                 .awaitExecute()
         }
@@ -141,9 +144,9 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
 
                 transactional
                     .update(SEVEN_KINGDOMS_GAME)
-                    .set(SEVEN_KINGDOMS_GAME.WINNER_USER_ID.fixed(), winnerUserId)
-                    .set(SEVEN_KINGDOMS_GAME.GAME_STATUS.fixed(), newStatus)
-                    .set(SEVEN_KINGDOMS_GAME.LAST_UPDATED.fixed(), now)
+                    .set(SEVEN_KINGDOMS_GAME.WINNER_USER_ID, winnerUserId)
+                    .set(SEVEN_KINGDOMS_GAME.GAME_STATUS, newStatus)
+                    .set(SEVEN_KINGDOMS_GAME.LAST_UPDATED, now)
                     .where(SEVEN_KINGDOMS_GAME.ID.eq(gameId))
                     .awaitExecute()
             }
@@ -177,10 +180,10 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
 
             transactional
                 .update(SEVEN_KINGDOMS_GAME)
-                .set(SEVEN_KINGDOMS_GAME.CURRENT_INDEX.fixed(), newIndex)
-                .set(SEVEN_KINGDOMS_GAME.CURRENT_FEN.fixed(), newFen)
-                .set(SEVEN_KINGDOMS_GAME.COLOR_TO_PLAY.fixed(), newColorToPlay)
-                .set(SEVEN_KINGDOMS_GAME.LAST_UPDATED.fixed(), now)
+                .set(SEVEN_KINGDOMS_GAME.CURRENT_INDEX, newIndex)
+                .set(SEVEN_KINGDOMS_GAME.CURRENT_FEN, newFen)
+                .set(SEVEN_KINGDOMS_GAME.COLOR_TO_PLAY, newColorToPlay)
+                .set(SEVEN_KINGDOMS_GAME.LAST_UPDATED, now)
                 .where(SEVEN_KINGDOMS_GAME.ID.eq(gameId))
                 .awaitExecute()
 
@@ -197,9 +200,9 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
 
                 transactional
                     .update(SEVEN_KINGDOMS_GAME)
-                    .set(SEVEN_KINGDOMS_GAME.WINNER_COLOR.fixed(), winnerColor)
-                    .set(SEVEN_KINGDOMS_GAME.WINNER_USER_ID.fixed(), winnerId)
-                    .set(SEVEN_KINGDOMS_GAME.GAME_STATUS.fixed(), eventType)
+                    .set(SEVEN_KINGDOMS_GAME.WINNER_COLOR, winnerColor)
+                    .set(SEVEN_KINGDOMS_GAME.WINNER_USER_ID, winnerId)
+                    .set(SEVEN_KINGDOMS_GAME.GAME_STATUS, eventType)
                     .where(SEVEN_KINGDOMS_GAME.ID.eq(gameId))
                     .awaitExecute()
             }

@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.callback.PerpetualCheckingCallbackResult
 import io.elephantchess.db.callback.PlayMoveCallbackResult
 import io.elephantchess.db.callback.UpdateRatingsCallbackResult
@@ -17,6 +19,8 @@ import io.elephantchess.db.model.analytics.PvpJoinSourceRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.CANCELLED
+import io.elephantchess.model.AnalysisStatus.NOT_STARTED
+import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
@@ -32,6 +36,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Record2
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -40,9 +45,21 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
+@KoinSingleton
 class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
+
+    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> {
+        return dslContext
+            .select(GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.VARIANT.eq(Variant.XIANGQI))
+            .groupBy(GAME.ANALYSIS_STATUS)
+            .orderBy(GAME.ANALYSIS_STATUS.asc())
+            .awaitRecords()
+    }
 
     suspend fun insertGame(userId: String, game: Game) {
         dslContext.transactionCoroutine { cfg ->
@@ -182,17 +199,25 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     suspend fun listLastGames(
         limit: Int,
         statusToExcludes: List<GameEventType> = listOf(),
+        variantsToInclude: List<Variant>
     ): List<Game> {
-        val query =
-            if (statusToExcludes.isNotEmpty()) {
-                dslContext
-                    .select()
-                    .from(GAME)
-                    .where(GAME.GAME_STATUS.notIn(statusToExcludes))
-            } else {
-                dslContext
-                    .select()
-                    .from(GAME)
+        val conditions = mutableListOf<Condition>()
+        if (statusToExcludes.isNotEmpty()) {
+            conditions += GAME.GAME_STATUS.notIn(statusToExcludes)
+        }
+        if (variantsToInclude.isNotEmpty()) {
+            conditions += GAME.VARIANT.`in`(variantsToInclude)
+        }
+
+        val query = dslContext
+            .select()
+            .from(GAME)
+            .let {
+                if (conditions.isEmpty()) {
+                    it
+                } else {
+                    it.where(conditions)
+                }
             }
 
         return query
@@ -289,12 +314,13 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue() ?: 0
     }
 
-    suspend fun countLiveGames(duration: Duration): Int {
+    suspend fun countLiveGames(lastUpdated: Duration, userIds: Set<String>): Int {
         return dslContext
             .selectCount()
             .from(GAME)
             .where(GAME.GAME_STATUS.`in`(inProgressStatuses))
-            .and(GAME.LAST_UPDATED.isWithin(duration))
+            .and(GAME.LAST_UPDATED.isWithin(lastUpdated))
+            .and(GAME.INVITER.`in`(userIds).and(GAME.INVITEE.`in`(userIds)))
             .awaitSingleValue()!!
     }
 
@@ -387,14 +413,6 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .and(GAME_STATUS_EVENT.EVENT_TYPE.`in`(gameEndedStatuses))
             .orderBy(GAME_STATUS_EVENT.EVENT_TIME.desc())
             .limit(1)
-            .awaitSingleValue()
-    }
-
-    suspend fun fetchGameStatus(gameId: String): GameEventType? {
-        return dslContext
-            .select(GAME.GAME_STATUS)
-            .from(GAME)
-            .where(GAME.ID.eq(gameId))
             .awaitSingleValue()
     }
 
@@ -766,19 +784,19 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 DSL
                     .using(cfg)
                     .update(GAME)
-                    .set(GAME.INVITEE.fixed(), userId)
-                    .set(GAME.INVITEE_RATING_FROM.fixed(), userRating)
-                    .set(GAME.GAME_STATUS.fixed(), JOINED)
-                    .set(GAME.JOIN_SOURCE.fixed(), source)
-                    .set(GAME.JOIN_SOURCE_ID.fixed(), sourceId)
-                    .set(GAME.LAST_UPDATED.fixed(), now)
+                    .set(GAME.INVITEE, userId)
+                    .set(GAME.INVITEE_RATING_FROM, userRating)
+                    .set(GAME.GAME_STATUS, JOINED)
+                    .set(GAME.JOIN_SOURCE, source)
+                    .set(GAME.JOIN_SOURCE_ID, sourceId)
+                    .set(GAME.LAST_UPDATED, now)
 
             if (updatedInviterColor != null) {
-                update = update.set(GAME.INVITER_COLOR.fixed(), updatedInviterColor)
+                update = update.set(GAME.INVITER_COLOR, updatedInviterColor)
             }
 
             if (timeControlRecord != null) {
-                update = update.set(GAME.MIN_FLAG_CHECK_TIME.fixed(), now.plusSeconds(timeControlRecord.base.toLong()))
+                update = update.set(GAME.MIN_FLAG_CHECK_TIME, now.plusSeconds(timeControlRecord.base.toLong()))
             }
 
             update
@@ -802,18 +820,18 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 DSL
                     .using(cfg)
                     .update(GAME)
-                    .set(GAME.GAME_STATUS.fixed(), status)
-                    .set(GAME.LAST_UPDATED.fixed(), now)
+                    .set(GAME.GAME_STATUS, status)
+                    .set(GAME.LAST_UPDATED, now)
 
             update = when (status) {
-                DRAW_PROPOSED -> update.set(GAME.DRAW_PROPOSITION_USER.fixed(), userId)
-                DRAW_DECLINED -> update.setNull(GAME.DRAW_PROPOSITION_USER.fixed())
-                DRAW_ACCEPTED -> update.setNull(GAME.DRAW_PROPOSITION_USER.fixed())
+                DRAW_PROPOSED -> update.set(GAME.DRAW_PROPOSITION_USER, userId)
+                DRAW_DECLINED -> update.setNull(GAME.DRAW_PROPOSITION_USER)
+                DRAW_ACCEPTED -> update.setNull(GAME.DRAW_PROPOSITION_USER)
                 else -> update
             }
 
             if (outcome != null) {
-                update = update.set(GAME.OUTCOME.fixed(), outcome)
+                update = update.set(GAME.OUTCOME, outcome)
             }
 
             update
@@ -923,9 +941,9 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     // update game record
                     transactional
                         .update(GAME)
-                        .set(GAME.CURRENT_FEN.fixed(), playMoveResult.newFen)
-                        .set(GAME.CURRENT_HALF_MOVE_INDEX.fixed(), playMoveResult.newPosition)
-                        .set(GAME.LAST_UPDATED.fixed(), now)
+                        .set(GAME.CURRENT_FEN, playMoveResult.newFen)
+                        .set(GAME.CURRENT_HALF_MOVE_INDEX, playMoveResult.newPosition)
+                        .set(GAME.LAST_UPDATED, now)
                         .where(GAME.ID.eq(gameId))
                         .awaitExecute()
 
@@ -950,18 +968,18 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             // insert status event
             transactional
                 .insertInto(GAME_STATUS_EVENT)
-                .set(GAME_STATUS_EVENT.GAME_ID.fixed(), gameRecord.id)
-                .set(GAME_STATUS_EVENT.EVENT_TYPE.fixed(), gameEventType)
-                .set(GAME_STATUS_EVENT.USER_ID.fixed(), userId)
-                .set(GAME_STATUS_EVENT.EVENT_TIME.fixed(), now)
+                .set(GAME_STATUS_EVENT.GAME_ID, gameRecord.id)
+                .set(GAME_STATUS_EVENT.EVENT_TYPE, gameEventType)
+                .set(GAME_STATUS_EVENT.USER_ID, userId)
+                .set(GAME_STATUS_EVENT.EVENT_TIME, now)
                 .awaitExecute()
 
             // update status and outcome
             transactional
                 .update(GAME)
-                .set(GAME.GAME_STATUS.fixed(), gameEventType)
-                .set(GAME.OUTCOME.fixed(), outcome)
-                .set(GAME.LAST_UPDATED.fixed(), now)
+                .set(GAME.GAME_STATUS, gameEventType)
+                .set(GAME.OUTCOME, outcome)
+                .set(GAME.LAST_UPDATED, now)
                 .where(GAME.ID.eq(gameRecord.id))
                 .awaitExecute()
         }
@@ -978,7 +996,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             suspend fun updateUserRating(userId: String, rating: Int) {
                 transactional
                     .update(USER)
-                    .set(ratingField.fixed(), rating)
+                    .set(ratingField, rating)
                     .where(USER.ID.eq(userId))
                     .awaitExecute()
             }
@@ -988,10 +1006,10 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 // since it may have changed since the beginning of the game, if it was updated in another game
                 transactional
                     .update(GAME)
-                    .set(GAME.INVITER_RATING_FROM.fixed(), inviterRating)
-                    .set(GAME.INVITEE_RATING_FROM.fixed(), inviteeRating)
-                    .set(GAME.INVITER_RATING_TO.fixed(), updatedRatings.inviterNewRating)
-                    .set(GAME.INVITEE_RATING_TO.fixed(), updatedRatings.inviteeNewRating)
+                    .set(GAME.INVITER_RATING_FROM, inviterRating)
+                    .set(GAME.INVITEE_RATING_FROM, inviteeRating)
+                    .set(GAME.INVITER_RATING_TO, updatedRatings.inviterNewRating)
+                    .set(GAME.INVITEE_RATING_TO, updatedRatings.inviteeNewRating)
                     .where(GAME.ID.eq(gameRecord.id))
                     .awaitExecute()
 
@@ -1097,6 +1115,18 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .map { MonthlyValueRecord.ofInt(it) }
     }
 
+    suspend fun countTotalGamesByMonthForJoinSources(joinSources: Collection<GameJoinSource>): List<MonthlyValueRecord> {
+        val yearMonthField = GAME.CREATED.yearMonth()
+        return dslContext
+            .select(yearMonthField, DSL.count())
+            .from(GAME)
+            .where(GAME.JOIN_SOURCE.`in`(joinSources))
+            .groupBy(yearMonthField)
+            .orderBy(yearMonthField)
+            .awaitRecords()
+            .map { MonthlyValueRecord.ofInt(it) }
+    }
+
     /**
      * Counts PvP games with at least minMoveIndex moves, grouped by month
      */
@@ -1106,6 +1136,22 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .select(yearMonthField, DSL.count())
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .groupBy(yearMonthField)
+            .orderBy(yearMonthField)
+            .awaitRecords()
+            .map { MonthlyValueRecord.ofInt(it) }
+    }
+
+    suspend fun countGamesOverMoveIndexByMonthForJoinSources(
+        minMoveIndex: Int,
+        joinSources: Collection<GameJoinSource>
+    ): List<MonthlyValueRecord> {
+        val yearMonthField = GAME.CREATED.yearMonth()
+        return dslContext
+            .select(yearMonthField, DSL.count())
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.JOIN_SOURCE.`in`(joinSources))
             .groupBy(yearMonthField)
             .orderBy(yearMonthField)
             .awaitRecords()
@@ -1149,6 +1195,29 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .where(GAME.INVITEE.eq(guestUserId))
                 .awaitExecute()
         }
+    }
+
+    suspend fun disableAlwaysVisibleInLobbyOptionForUserCreatedGames(userId: String) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL.using(cfg)
+                .update(GAME)
+                .set(GAME.ALWAYS_VISIBLE_IN_LOBBY, false)
+                .where(GAME.INVITER.eq(userId))
+                .and(GAME.GAME_STATUS.eq(CREATED))
+                .awaitExecute()
+        }
+    }
+
+    suspend fun pickRandomGameForAnalysis(): String? {
+        return dslContext
+            .select(GAME.ID)
+            .from(GAME)
+            .where(GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
+            .and(GAME.GAME_STATUS.`in`(gameEndedStatuses))
+            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterThan(10))
+            .orderBy(DSL.rand())
+            .limit(1)
+            .awaitSingleValue()
     }
 
 }

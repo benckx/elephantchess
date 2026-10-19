@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.KOFI_EVENT
 import io.elephantchess.db.dao.codegen.tables.daos.KofiEventDao
 import io.elephantchess.db.dao.codegen.tables.pojos.KofiEvent
@@ -10,6 +12,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 
+@KoinSingleton
 class KofiEventDaoService(private val dslContext: DSLContext) {
 
     // fields mapped to Dto

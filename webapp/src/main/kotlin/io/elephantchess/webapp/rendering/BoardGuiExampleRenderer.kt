@@ -1,5 +1,7 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.htmlrenderer.HtmlRenderer.Companion.CDN_BASE
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
@@ -8,6 +10,7 @@ import io.elephantchess.utils.ResourceUtils.resourceAsString
 import kotlinx.html.link
 import kotlinx.html.script
 
+@KoinSingleton(eager = true)
 class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
     suspend fun renderBoardGuiExample(useCdn: Boolean, templateName: String): String {
@@ -53,7 +56,7 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
 
     companion object {
 
-        const val DIST_VERSION = "0.1.1"
+        const val DIST_VERSION = "0.1.3"
 
     }
 

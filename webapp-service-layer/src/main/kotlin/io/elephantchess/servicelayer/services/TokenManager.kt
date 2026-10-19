@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.elephantchess.config.AppConfig
@@ -21,6 +23,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton(eager = true)
 class TokenManager(
     private val appConfig: AppConfig,
     private val userDaoService: UserDaoService,
@@ -35,7 +38,7 @@ class TokenManager(
 
     private val algorithm by lazy {
         logger.warn { "initializing algorithm for profile ${appConfig.profile}" }
-        val symmetricKey = appConfig.loadString("key")
+        val symmetricKey = appConfig.symmetricKey
         Algorithm.HMAC256(symmetricKey)
     }
 

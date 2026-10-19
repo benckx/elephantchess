@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.GAME_CHAT_MESSAGE
 import io.elephantchess.db.dao.codegen.tables.daos.GameChatMessageDao
 import io.elephantchess.db.dao.codegen.tables.pojos.GameChatMessage
@@ -12,6 +14,7 @@ import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 
+@KoinSingleton
 class ChatMessageDaoService(private val dslContext: DSLContext) {
 
     suspend fun insertChat(gameId: String, userId: String, content: String) {

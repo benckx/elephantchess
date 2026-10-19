@@ -33,6 +33,7 @@
 @media (max-width: 1000px) {
     .my-game-item {
         width: 102%;
+        height: 102px;
     }
 
     .my-game-item .opponent {

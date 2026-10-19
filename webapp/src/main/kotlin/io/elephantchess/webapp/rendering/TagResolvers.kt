@@ -12,7 +12,7 @@ import kotlinx.html.meta
 import kotlinx.html.stream.createHTML
 import kotlin.math.floor
 
-private const val COST_IN_EUR_PER_DAY = 4
+private const val COST_IN_EUR_PER_DAY = 5
 private val supportedCurrencies = setOf("USD", "EUR", "GBP")
 
 /**
@@ -130,7 +130,7 @@ fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
             val description = formatDescription(latestSupporter)
 
             """<p>Our latest donation was offered to us by <b>$username</b>. $description Many thanks to them!</p>""" +
-                    """<p>Do you want to see <b>your name</b> featured as our latest supporter? <b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> and with just 4€ finance the platform for an entire day!</p>"""
+                    """<p>Do you want to see <b>your name</b> featured as our latest supporter? <b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> and with just 5€ finance the platform for an entire day!</p>"""
         } else {
             ""
         }

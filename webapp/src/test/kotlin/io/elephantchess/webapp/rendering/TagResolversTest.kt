@@ -68,19 +68,19 @@ class TagResolversTest {
         assertEquals(
             """<p>Our latest donation was offered to us by <b><a href="/@/alice">alice</a></b>. """ +
                     """Their generous 12€ tip on $pastDateStr allowed us to finance the platform for """ +
-                    """<b>3 entire days!</b> Many thanks to them!</p>""" +
+                    """<b>2 entire days!</b> Many thanks to them!</p>""" +
                     """<p>Do you want to see <b>your name</b> featured as our latest supporter? """ +
                     """<b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> """ +
-                    """and with just 4€ finance the platform for an entire day!</p>""",
+                    """and with just 5€ finance the platform for an entire day!</p>""",
             out
         )
     }
 
     @Test
     fun `eur one-time tip exactly one day uses singular phrasing`() = runTest {
-        val out = render(lastSupporter(amount = 4.0, currency = "EUR"))
+        val out = render(lastSupporter(amount = 5.0, currency = "EUR"))
         assertTrue(
-            out.contains("Their generous 4€ tip on $pastDateStr allowed us to finance the platform for <b>an entire day!</b>"),
+            out.contains("Their generous 5€ tip on $pastDateStr allowed us to finance the platform for <b>an entire day!</b>"),
             "Unexpected output: $out"
         )
     }
@@ -98,7 +98,7 @@ class TagResolversTest {
     fun `usd recurring pledge with several days uses every month`() = runTest {
         val out = render(lastSupporter(amount = 20.0, currency = "USD", recurring = true))
         assertTrue(
-            out.contains("Their generous 20\$ pledge on $pastDateStr allows us to finance the platform for <b>5 entire days every month!</b>"),
+            out.contains("Their generous 20\$ pledge on $pastDateStr allows us to finance the platform for <b>4 entire days every month!</b>"),
             "Unexpected output: $out"
         )
     }
@@ -128,17 +128,17 @@ class TagResolversTest {
     fun `one-time tip covering 30 days or more still shows raw day count`() = runTest {
         val out = render(lastSupporter(amount = 200.0, currency = "EUR", recurring = false))
         assertTrue(
-            out.contains("Their generous 200€ tip on $pastDateStr allowed us to finance the platform for <b>50 entire days!</b>"),
+            out.contains("Their generous 200€ tip on $pastDateStr allowed us to finance the platform for <b>40 entire days!</b>"),
             "Unexpected output: $out"
         )
     }
 
     @Test
     fun `recurring pledge just below 30 days still shows day count`() = runTest {
-        // 29 days * 4 EUR/day = 116 EUR -> still under 30-days threshold
-        val out = render(lastSupporter(amount = 116.0, currency = "EUR", recurring = true))
+        // 29 days * 5 EUR/day = 145 EUR -> still under 30-days threshold
+        val out = render(lastSupporter(amount = 145.0, currency = "EUR", recurring = true))
         assertTrue(
-            out.contains("Their generous 116€ pledge on $pastDateStr allows us to finance the platform for <b>29 entire days every month!</b>"),
+            out.contains("Their generous 145€ pledge on $pastDateStr allows us to finance the platform for <b>29 entire days every month!</b>"),
             "Unexpected output: $out"
         )
     }

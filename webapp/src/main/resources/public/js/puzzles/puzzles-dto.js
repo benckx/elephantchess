@@ -61,6 +61,11 @@ class PuzzleDto {
      */
     #outcome = null;
 
+    /**
+     * @type {boolean}
+     */
+    #enabled;
+
     constructor(json) {
         this.#id = json.id;
         this.#attempts = Number(json.attempts);
@@ -70,10 +75,18 @@ class PuzzleDto {
         this.#startFen = json.fen;
         this.#movesHistory = HalfMove.parseUciMultipleMoves(json.moves);
         this.#preRecordedSolutionMoves = HalfMove.parseUciMultipleMoves(json.solution);
+        this.#enabled = json.enabled;
     }
 
     get id() {
         return this.#id;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    get enabled() {
+        return this.#enabled;
     }
 
     /**

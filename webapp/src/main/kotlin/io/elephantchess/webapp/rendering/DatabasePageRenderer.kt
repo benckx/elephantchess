@@ -1,5 +1,7 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
@@ -19,6 +21,7 @@ import kotlinx.html.style
 import kotlinx.html.unsafe
 import kotlin.time.Duration.Companion.hours
 
+@KoinSingleton(eager = true)
 class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
     private val eventPagesCache =
@@ -38,6 +41,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         requestedVersion: Int?,
         edit: DatabasePlayerProfileEdit,
         fetchEditorsUsername: suspend () -> List<String>,
+        hasOpeningData: Boolean,
     ): String {
         val description = edit.profileText
         val editors = fetchEditorsUsername()
@@ -88,6 +92,18 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             }
         }
 
+        // Opening explorer is only wired up (markup + scripts + stylesheet) for players that
+        // have pre-calculated opening data.
+        val openingsHeadResolver = SimpleValueTagResolver(
+            "database_player_openings_head_conditional",
+            if (hasOpeningData) "{{database_player_openings_head}}" else ""
+        )
+
+        val openingsSectionResolver = SimpleValueTagResolver(
+            "database_player_openings_section_conditional",
+            if (hasOpeningData) "{{database_player_openings_section}}" else ""
+        )
+
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_player.html",
             specificTagResolvers = listOf(
@@ -99,7 +115,9 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 sourcesResolver,
                 styleResolver,
                 authorMeta,
-                noIndexMeta
+                noIndexMeta,
+                openingsHeadResolver,
+                openingsSectionResolver
             ),
             canonicalPath = "/database/player/${databasePlayer.urlName}"
         )

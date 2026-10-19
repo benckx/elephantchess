@@ -1,8 +1,11 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayer
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEditSource
 import io.elephantchess.db.model.EntityIdAndNameRecord
+import io.elephantchess.db.services.OpeningRepositoryReferencePlayerCacheDaoService
 import io.elephantchess.db.services.ReferenceEventDaoService
 import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.db.services.ReferencePlayerDaoService
@@ -34,10 +37,12 @@ import kotlin.time.Duration.Companion.hours
  * What we call "database" in this context is a repository of games played in tournaments,
  * and not specifically the SQL database.
  */
+@KoinSingleton
 class DatabaseService(
     private val referenceEventDaoService: ReferenceEventDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,
     private val referencePlayerDaoService: ReferencePlayerDaoService,
+    private val openingRepositoryReferencePlayerCacheDaoService: OpeningRepositoryReferencePlayerCacheDaoService,
     private val userCache: UserCache,
     private val logger: KLogger
 ) {
@@ -445,6 +450,13 @@ class DatabaseService(
             .let { entries ->
                 ListPlayersResponse(entries)
             }
+    }
+
+    /**
+     * @return `true` if the player has pre-calculated opening repertoire data.
+     */
+    suspend fun hasPlayerOpeningData(playerId: String): Boolean {
+        return openingRepositoryReferencePlayerCacheDaoService.hasOpeningData(playerId)
     }
 
     suspend fun fetchPlayerGameStats(playerId: String): PlayerGameStatsResponse {
