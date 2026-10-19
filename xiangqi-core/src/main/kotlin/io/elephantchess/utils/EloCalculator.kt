@@ -17,8 +17,6 @@ object EloCalculator {
         return EloTransfer(ceil(winnerNewRating).toInt(), floor(loserNewRating).toInt())
     }
 
-    private fun expectedScore(rating: Int, otherPlayerRating: Int): Double {
-        return 1 / (1 + 10.0.pow((otherPlayerRating.toDouble() - rating.toDouble()) / 400))
-    }
-
+    private fun expectedScore(rating: Int, otherPlayerRating: Int): Double =
+        1 / (1 + 10.0.pow((otherPlayerRating.toDouble() - rating.toDouble()) / 400))
 }

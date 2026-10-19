@@ -9,8 +9,7 @@ class UpdateMailSettingsTagResolver(appConfig: AppConfig) : TagResolver {
     private val webHost = appConfig.webHost
 
     override suspend fun resolveContent(): List<String> {
-        val url = "${webHost}/user/settings"
+        val url = "$webHost/user/settings"
         return listOf("You can update your email notifications settings at ${makeAnchor(url)}")
     }
-
 }

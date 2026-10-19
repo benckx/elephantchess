@@ -1,11 +1,10 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.CONTENT_SECTION_VOTE
 import io.elephantchess.db.dao.codegen.tables.pojos.ContentSectionVote
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import kotlin.time.Clock
 
@@ -33,13 +32,12 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun listUnnotifiedVotes(): List<ContentSectionVote> {
-        return dslContext
+    suspend fun listUnnotifiedVotes(): List<ContentSectionVote> =
+        dslContext
             .selectFrom(CONTENT_SECTION_VOTE)
             .where(CONTENT_SECTION_VOTE.NOTIFIED.isFalse)
             .orderBy(CONTENT_SECTION_VOTE.UPDATE_TIME.asc())
             .awaitMappedRecords()
-    }
 
     suspend fun markAsNotified(pageId: String, sectionId: String, userId: String) {
         dslContext
@@ -51,20 +49,17 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun listVotesByUserAndPage(userId: String, pageId: String): List<ContentSectionVote> {
-        return dslContext
+    suspend fun listVotesByUserAndPage(userId: String, pageId: String): List<ContentSectionVote> =
+        dslContext
             .selectFrom(CONTENT_SECTION_VOTE)
             .where(CONTENT_SECTION_VOTE.USER_ID.eq(userId))
             .and(CONTENT_SECTION_VOTE.PAGE_ID.eq(pageId))
             .awaitMappedRecords()
-    }
 
-    suspend fun listLatestFeedback(limit: Int): List<ContentSectionVote> {
-        return dslContext
+    suspend fun listLatestFeedback(limit: Int): List<ContentSectionVote> =
+        dslContext
             .selectFrom(CONTENT_SECTION_VOTE)
             .orderBy(CONTENT_SECTION_VOTE.UPDATE_TIME.desc())
             .limit(limit)
             .awaitMappedRecords<ContentSectionVote>()
-    }
-
 }

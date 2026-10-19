@@ -1,10 +1,9 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.tables.pojos.ThrownException
 import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.db.utils.generateId
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,10 +11,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
 @KoinSingleton
-class ExceptionService(
-    private val daoService: ThrownExceptionDaoService,
-    private val logger: KLogger,
-) {
+class ExceptionService(private val daoService: ThrownExceptionDaoService, private val logger: KLogger) {
 
     private val exceptionServiceScope by lazy { CoroutineScope(Dispatchers.Default) }
 
@@ -23,10 +19,7 @@ class ExceptionService(
      * @param httpCode the HTTP status to associate with the exception, or null for exceptions
      * thrown outside of an HTTP request (e.g. scheduled batches).
      */
-    fun saveException(
-        throwable: Throwable,
-        httpCode: Int? = null,
-    ) {
+    fun saveException(throwable: Throwable, httpCode: Int? = null) {
         exceptionServiceScope.launch {
             try {
                 val record = ThrownException()
@@ -42,5 +35,4 @@ class ExceptionService(
             }
         }
     }
-
 }

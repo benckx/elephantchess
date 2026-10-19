@@ -7,15 +7,11 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 
-suspend fun SimplePageRenderer.renderTemplateHtml(
-    templateName: String,
-    specificTagResolvers: List<TagResolver> = listOf()
-): TextContent {
-    return TextContent(
+suspend fun SimplePageRenderer.renderTemplateHtml(templateName: String, specificTagResolvers: List<TagResolver> = listOf()): TextContent =
+    TextContent(
         renderTemplate(templateName, specificTagResolvers),
-        ContentType.Text.Html
+        ContentType.Text.Html,
     )
-}
 
 suspend fun ApplicationCall.respondHtml(htmlContent: String, status: HttpStatusCode? = null) {
     respondText(htmlContent, ContentType.Text.Html, status)

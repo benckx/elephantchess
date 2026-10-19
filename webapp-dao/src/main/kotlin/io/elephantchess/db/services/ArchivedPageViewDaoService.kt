@@ -28,15 +28,14 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
      * Selects up to [limit] ids of page view events older than [maxAge]. Fetched once per batch run so
      * the (indexed) age scan is not repeated for every chunk; see ArchiveOldPageViewsBatch.
      */
-    suspend fun selectOldPageViewEventIds(maxAge: Duration, limit: Int): List<String> {
-        return dslContext
+    suspend fun selectOldPageViewEventIds(maxAge: Duration, limit: Int): List<String> =
+        dslContext
             .select(PAGE_VIEW_EVENT.EVENT_ID)
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.EVENT_TIME.isOlderThan(maxAge))
             .limit(limit)
             .awaitRecords()
             .map { it.get(PAGE_VIEW_EVENT.EVENT_ID) }
-    }
 
     /**
      * Archives and deletes the page view events with the given [eventIds]. Returns the number of
@@ -77,19 +76,18 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
     /**
      * Number of page views currently recorded for [userId] (not yet archived).
      */
-    suspend fun countPageViewsForUser(userId: String): Int {
-        return dslContext
+    suspend fun countPageViewsForUser(userId: String): Int =
+        dslContext
             .selectCount()
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.USER_ID.eq(userId))
             .awaitSingleValue<Int>() ?: 0
-    }
 
     /**
      * The [limit] most recent page views of [userId], most recent first, starting at [offset].
      */
-    suspend fun listPageViewsForUser(userId: String, limit: Int, offset: Int): List<PageViewRecord> {
-        return dslContext
+    suspend fun listPageViewsForUser(userId: String, limit: Int, offset: Int): List<PageViewRecord> =
+        dslContext
             .select(PAGE_VIEW_EVENT.EVENT_PATH, PAGE_VIEW_EVENT.EVENT_TIME)
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.USER_ID.eq(userId))
@@ -103,7 +101,6 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
                     eventTime = record.get(PAGE_VIEW_EVENT.EVENT_TIME),
                 )
             }
-    }
 
     /**
      * Archives the [PAGE_VIEW_EVENT] rows matched by [selector] into [ARCHIVED_PAGE_VIEW_DAILY]. Shared
@@ -139,7 +136,7 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
                     .from(PAGE_VIEW_EVENT)
                     .leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
                     .where(selector)
-                    .groupBy(eventDay, url)
+                    .groupBy(eventDay, url),
             )
             .onConflict(ARCHIVED_PAGE_VIEW_DAILY.DAY, ARCHIVED_PAGE_VIEW_DAILY.URL)
             .doUpdate()
@@ -153,5 +150,4 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
         // matches the archived_page_view_daily.url column width
         const val URL_MAX_LENGTH = 2048
     }
-
 }

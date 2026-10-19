@@ -8,5 +8,4 @@ data class PreRecordPuzzleSolutionStatsResponse(val entries: List<Entry>) {
         val total: Int,
         val preRecordSolutionRate: Float,
     )
-
 }

@@ -47,5 +47,4 @@ data class Player(
             }
         }
     }
-
 }

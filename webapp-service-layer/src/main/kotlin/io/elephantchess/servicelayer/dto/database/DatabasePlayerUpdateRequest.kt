@@ -7,5 +7,5 @@ data class DatabasePlayerUpdateRequest(
     val gender: String?,
     val profileText: String?,
     val sources: List<DatabasePlayerProfileSource>,
-    val editComment: String
+    val editComment: String,
 )

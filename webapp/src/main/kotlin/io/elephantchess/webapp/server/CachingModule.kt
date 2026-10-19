@@ -47,11 +47,11 @@ private fun cachingOptionsInMinutes(minutes: Int) =
         CacheControl.MaxAge(
             visibility = CacheControl.Visibility.Public,
             maxAgeSeconds = minutes * 60,
-            proxyMaxAgeSeconds = minutes * 60
-        )
+            proxyMaxAgeSeconds = minutes * 60,
+        ),
     )
 
 private fun noStore() =
     CachingOptions(
-        CacheControl.NoStore(CacheControl.Visibility.Public)
+        CacheControl.NoStore(CacheControl.Visibility.Public),
     )

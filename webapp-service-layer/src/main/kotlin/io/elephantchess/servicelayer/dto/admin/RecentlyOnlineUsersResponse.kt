@@ -7,14 +7,7 @@ package io.elephantchess.servicelayer.dto.admin
  * their names are not displayed and fetching them all is expensive (especially with scrapers
  * creating many guest users).
  */
-data class RecentlyOnlineUsersResponse(
-    val authenticatedUsers: List<Entry>,
-    val guestCount: Int,
-) {
+data class RecentlyOnlineUsersResponse(val authenticatedUsers: List<Entry>, val guestCount: Int) {
 
-    data class Entry(
-        val id: String,
-        val username: String,
-    )
-
+    data class Entry(val id: String, val username: String)
 }

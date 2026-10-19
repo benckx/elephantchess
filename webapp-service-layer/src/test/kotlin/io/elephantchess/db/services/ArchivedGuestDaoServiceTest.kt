@@ -1,8 +1,8 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.db.dao.codegen.Tables.ANALYSIS
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_GUEST_DAILY
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_PAGE_VIEW_DAILY
-import io.elephantchess.db.dao.codegen.Tables.ANALYSIS
 import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
 import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME_SEARCH_QUERY
 import io.elephantchess.db.dao.codegen.Tables.USER
@@ -33,139 +33,145 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
     private val archivedGuestDaoService by inject<ArchivedGuestDaoService>()
 
     @Test
-    fun `archives old inactive guest and deletes its data`() = runTest {
-        val creationDay = LocalDate.of(2020, 3, 10)
-        val creation = instantOfUtc(2020, 3, 10, 12, 0, 0)
+    fun `archives old inactive guest and deletes its data`() =
+        runTest {
+            val creationDay = LocalDate.of(2020, 3, 10)
+            val creation = instantOfUtc(2020, 3, 10, 12, 0, 0)
 
-        // lifespan of 20 minutes -> "under 30 min" bucket
-        val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+            // lifespan of 20 minutes -> "under 30 min" bucket
+            val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
 
-        insertPageView(guestId, instantOfUtc(2020, 3, 10, 12, 1, 0))
-        insertPageView(guestId, instantOfUtc(2020, 3, 10, 12, 2, 0))
-        insertPageView(guestId, instantOfUtc(2020, 3, 9, 8, 0, 0))
-        insertSession(guestId)
-        insertSearchQuery(guestId, instantOfUtc(2020, 3, 10, 12, 3, 0))
-        insertSearchQuery(guestId, instantOfUtc(2020, 3, 10, 12, 4, 0))
+            insertPageView(guestId, instantOfUtc(2020, 3, 10, 12, 1, 0))
+            insertPageView(guestId, instantOfUtc(2020, 3, 10, 12, 2, 0))
+            insertPageView(guestId, instantOfUtc(2020, 3, 9, 8, 0, 0))
+            insertSession(guestId)
+            insertSearchQuery(guestId, instantOfUtc(2020, 3, 10, 12, 3, 0))
+            insertSearchQuery(guestId, instantOfUtc(2020, 3, 10, 12, 4, 0))
 
-        val under30MinBefore = archivedGuestBucket(creationDay, ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN)
+            val under30MinBefore = archivedGuestBucket(creationDay, ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN)
 
-        val result = archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
+            val result = archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
 
-        assertTrue(result.archivedGuests >= 1)
-        assertFalse(userExists(guestId))
-        assertEquals(0, countPageViews(guestId))
-        assertEquals(0, countSessions(guestId))
+            assertTrue(result.archivedGuests >= 1)
+            assertFalse(userExists(guestId))
+            assertEquals(0, countPageViews(guestId))
+            assertEquals(0, countSessions(guestId))
 
-        // guest counted once, in the under-30-min bucket, on its creation day
-        assertEquals(
-            under30MinBefore + 1,
-            archivedGuestBucket(creationDay, ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN),
-        )
+            // guest counted once, in the under-30-min bucket, on its creation day
+            assertEquals(
+                under30MinBefore + 1,
+                archivedGuestBucket(creationDay, ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN),
+            )
 
-        // two views on 2020-03-10 collapse to one unique daily view; one on 2020-03-09
-        assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 10)))
-        assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 9)))
+            // two views on 2020-03-10 collapse to one unique daily view; one on 2020-03-09
+            assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 10)))
+            assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 9)))
 
-        // both searches happened on 2020-03-10 and are archived on that day
-        assertEquals(2, archivedGuestBucket(creationDay, ARCHIVED_GUEST_DAILY.DELETED_SEARCHES))
-    }
-
-    @Test
-    fun `does not archive recent guest`() = runTest {
-        val guestId = createOldGuest(creation = Clock.System.now(), lifespanSeconds = 20 * 60)
-
-        archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
-
-        assertTrue(userExists(guestId))
-    }
+            // both searches happened on 2020-03-10 and are archived on that day
+            assertEquals(2, archivedGuestBucket(creationDay, ARCHIVED_GUEST_DAILY.DELETED_SEARCHES))
+        }
 
     @Test
-    fun `does not archive old guest that owns an analysis`() = runTest {
-        val creation = instantOfUtc(2019, 1, 5, 12, 0, 0)
-        val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+    fun `does not archive recent guest`() =
+        runTest {
+            val guestId = createOldGuest(creation = Clock.System.now(), lifespanSeconds = 20 * 60)
 
-        dslContext
-            .insertInto(ANALYSIS)
-            .set(ANALYSIS.ID, insecure().nextAlphanumeric(12))
-            .set(ANALYSIS.OWNER_USER_ID, guestId)
-            .set(ANALYSIS.ANALYSIS_NAME, "test analysis")
-            .set(ANALYSIS.CREATED, creation)
-            .set(ANALYSIS.LAST_UPDATED, creation)
-            .awaitExecute()
+            archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
 
-        archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
-
-        assertTrue(userExists(guestId))
-    }
+            assertTrue(userExists(guestId))
+        }
 
     @Test
-    fun `archived guest feeds the archived guests metric`() = runTest {
-        val creation = instantOfUtc(2018, 6, 20, 12, 0, 0)
-        // 20 minutes -> counts as an "archived guest" (>= 15 min)
-        createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+    fun `does not archive old guest that owns an analysis`() =
+        runTest {
+            val creation = instantOfUtc(2019, 1, 5, 12, 0, 0)
+            val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
 
-        archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
+            dslContext
+                .insertInto(ANALYSIS)
+                .set(ANALYSIS.ID, insecure().nextAlphanumeric(12))
+                .set(ANALYSIS.OWNER_USER_ID, guestId)
+                .set(ANALYSIS.ANALYSIS_NAME, "test analysis")
+                .set(ANALYSIS.CREATED, creation)
+                .set(ANALYSIS.LAST_UPDATED, creation)
+                .awaitExecute()
 
-        val archivedGuests = metricValueForYear("archived guests", 2018)
-        // the guest was deleted, so the live-only "new guests" metric no longer counts it
-        val newGuests = metricValueForYear("new guests", 2018)
+            archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
 
-        assertEquals(1, archivedGuests)
-        assertEquals(0, newGuests)
-    }
-
-    @Test
-    fun `archives page views per url and feeds monthly page views by url`() = runTest {
-        val creation = instantOfUtc(2021, 7, 12, 12, 0, 0)
-        val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
-
-        // two distinct urls on the same day, "/database" viewed on two days
-        insertPageView(guestId, instantOfUtc(2021, 7, 12, 12, 1, 0), eventPath = "/database")
-        insertPageView(guestId, instantOfUtc(2021, 7, 13, 9, 0, 0), eventPath = "/database")
-        insertPageView(guestId, instantOfUtc(2021, 7, 12, 12, 5, 0), eventPath = "/puzzles")
-
-        archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
-
-        // per-url rows are stored distinctly
-        assertEquals(1, archivedPageViews(LocalDate.of(2021, 7, 12), "/database"))
-        assertEquals(1, archivedPageViews(LocalDate.of(2021, 7, 12), "/puzzles"))
-        assertEquals(1, archivedPageViews(LocalDate.of(2021, 7, 13), "/database"))
-
-        // the day-level total sums across urls (2 urls on 2021-07-12)
-        assertEquals(2, archivedPageViews(LocalDate.of(2021, 7, 12)))
-
-        // monthly-by-url aggregates the two "/database" days into one month
-        val databaseMonthly = archivedGuestDaoService.fetchArchivedMonthlyPageViews("/database")
-        assertEquals(1, databaseMonthly.size)
-        assertEquals(2, databaseMonthly.first().uniquePageViews)
-        assertEquals("/database", databaseMonthly.first().label)
-
-        val puzzlesMonthly = archivedGuestDaoService.fetchArchivedMonthlyPageViews("/puzzles")
-        assertEquals(1, puzzlesMonthly.first().uniquePageViews)
-    }
+            assertTrue(userExists(guestId))
+        }
 
     @Test
-    fun `archives guest profile page views as other-profile monthly metrics`() = runTest {
-        val creation = instantOfUtc(2022, 2, 8, 12, 0, 0)
-        val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+    fun `archived guest feeds the archived guests metric`() =
+        runTest {
+            val creation = instantOfUtc(2018, 6, 20, 12, 0, 0)
+            // 20 minutes -> counts as an "archived guest" (>= 15 min)
+            createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
 
-        // guests have no handle, so any "/@/{username}" profile view is an "other" profile view
-        insertPageView(guestId, instantOfUtc(2022, 2, 8, 12, 1, 0), eventPath = "/@/alice")
-        insertPageView(guestId, instantOfUtc(2022, 2, 8, 12, 2, 0), eventPath = "/@/bob")
-        // a profile sub-path is not a profile view and must be excluded
-        insertPageView(guestId, instantOfUtc(2022, 2, 8, 12, 3, 0), eventPath = "/@/alice/games")
+            archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
 
-        archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
+            val archivedGuests = metricValueForYear("archived guests", 2018)
+            // the guest was deleted, so the live-only "new guests" metric no longer counts it
+            val newGuests = metricValueForYear("new guests", 2018)
 
-        val otherMonthly = archivedGuestDaoService.fetchArchivedMonthlyOtherProfilePageViews()
-        assertEquals(1, otherMonthly.size)
-        // two distinct profile urls viewed by the single guest on the same day
-        assertEquals(2, otherMonthly.first().uniquePageViews)
-        assertEquals("/@/{username}", otherMonthly.first().label)
+            assertEquals(1, archivedGuests)
+            assertEquals(0, newGuests)
+        }
 
-        // the guest has no own profile, so own-profile archived views are empty
-        assertTrue(archivedGuestDaoService.fetchArchivedMonthlyOwnProfilePageViews().isEmpty())
-    }
+    @Test
+    fun `archives page views per url and feeds monthly page views by url`() =
+        runTest {
+            val creation = instantOfUtc(2021, 7, 12, 12, 0, 0)
+            val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+
+            // two distinct urls on the same day, "/database" viewed on two days
+            insertPageView(guestId, instantOfUtc(2021, 7, 12, 12, 1, 0), eventPath = "/database")
+            insertPageView(guestId, instantOfUtc(2021, 7, 13, 9, 0, 0), eventPath = "/database")
+            insertPageView(guestId, instantOfUtc(2021, 7, 12, 12, 5, 0), eventPath = "/puzzles")
+
+            archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
+
+            // per-url rows are stored distinctly
+            assertEquals(1, archivedPageViews(LocalDate.of(2021, 7, 12), "/database"))
+            assertEquals(1, archivedPageViews(LocalDate.of(2021, 7, 12), "/puzzles"))
+            assertEquals(1, archivedPageViews(LocalDate.of(2021, 7, 13), "/database"))
+
+            // the day-level total sums across urls (2 urls on 2021-07-12)
+            assertEquals(2, archivedPageViews(LocalDate.of(2021, 7, 12)))
+
+            // monthly-by-url aggregates the two "/database" days into one month
+            val databaseMonthly = archivedGuestDaoService.fetchArchivedMonthlyPageViews("/database")
+            assertEquals(1, databaseMonthly.size)
+            assertEquals(2, databaseMonthly.first().uniquePageViews)
+            assertEquals("/database", databaseMonthly.first().label)
+
+            val puzzlesMonthly = archivedGuestDaoService.fetchArchivedMonthlyPageViews("/puzzles")
+            assertEquals(1, puzzlesMonthly.first().uniquePageViews)
+        }
+
+    @Test
+    fun `archives guest profile page views as other-profile monthly metrics`() =
+        runTest {
+            val creation = instantOfUtc(2022, 2, 8, 12, 0, 0)
+            val guestId = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+
+            // guests have no handle, so any "/@/{username}" profile view is an "other" profile view
+            insertPageView(guestId, instantOfUtc(2022, 2, 8, 12, 1, 0), eventPath = "/@/alice")
+            insertPageView(guestId, instantOfUtc(2022, 2, 8, 12, 2, 0), eventPath = "/@/bob")
+            // a profile sub-path is not a profile view and must be excluded
+            insertPageView(guestId, instantOfUtc(2022, 2, 8, 12, 3, 0), eventPath = "/@/alice/games")
+
+            archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
+
+            val otherMonthly = archivedGuestDaoService.fetchArchivedMonthlyOtherProfilePageViews()
+            assertEquals(1, otherMonthly.size)
+            // two distinct profile urls viewed by the single guest on the same day
+            assertEquals(2, otherMonthly.first().uniquePageViews)
+            assertEquals("/@/{username}", otherMonthly.first().label)
+
+            // the guest has no own profile, so own-profile archived views are empty
+            assertTrue(archivedGuestDaoService.fetchArchivedMonthlyOwnProfilePageViews().isEmpty())
+        }
 
     private suspend fun metricValueForYear(metricName: String, year: Int): Int {
         val metric = allMetrics.first { it.name == metricName }
@@ -265,8 +271,7 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
             .from(ARCHIVED_PAGE_VIEW_DAILY)
             .where(
                 ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)
-                    .and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url))
+                    .and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url)),
             )
             .awaitSingleValue() ?: 0
-
 }

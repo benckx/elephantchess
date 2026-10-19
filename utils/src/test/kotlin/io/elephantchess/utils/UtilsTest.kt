@@ -23,5 +23,4 @@ class UtilsTest {
     fun mayBeOffensiveShouldIgnoreSafeWords() {
         assertFalse(mayBeOffensive("xxelephantxx"))
     }
-
 }

@@ -1,7 +1,5 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.MoveAnalysisDao
 import io.elephantchess.db.dao.codegen.tables.pojos.MoveAnalysis
@@ -12,6 +10,7 @@ import io.elephantchess.model.AnalysisStatus.*
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType
 import io.elephantchess.model.GameType.*
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.*
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -27,38 +26,34 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listCachedAnalyzedMoves(gameId: GameId): List<String> {
-        return dslContext
+    suspend fun listCachedAnalyzedMoves(gameId: GameId): List<String> =
+        dslContext
             .select(MOVE_ANALYSIS.FEN_KEY)
             .from(MOVE_ANALYSIS)
             .where(moveAnalysisTableIdCondition(gameId))
             .and(MOVE_ANALYSIS.ALREADY_IN_CACHE.isTrue)
             .awaitMappedRecords()
-    }
 
-    suspend fun listNonCachedAnalyzedMoves(gameId: GameId): List<MoveAnalysis> {
-        return dslContext
+    suspend fun listNonCachedAnalyzedMoves(gameId: GameId): List<MoveAnalysis> =
+        dslContext
             .selectFrom(MOVE_ANALYSIS)
             .where(moveAnalysisTableIdCondition(gameId))
             .and(MOVE_ANALYSIS.ALREADY_IN_CACHE.isFalse)
             .awaitMappedRecords()
-    }
 
-    suspend fun countAnalyzedMoves(gameId: GameId): Int {
-        return dslContext
+    suspend fun countAnalyzedMoves(gameId: GameId): Int =
+        dslContext
             .selectCount()
             .from(MOVE_ANALYSIS)
             .where(moveAnalysisTableIdCondition(gameId))
             .awaitSingleValue()!!
-    }
 
-    suspend fun fetchAnalysisStatus(gameId: GameId): AnalysisStatus? {
-        return dslContext
+    suspend fun fetchAnalysisStatus(gameId: GameId): AnalysisStatus? =
+        dslContext
             .select(gameTableAnalysisStatusField(gameId))
             .from(gameTable(gameId))
             .where(gameTableIdCondition(gameId))
             .awaitSingleValue()
-    }
 
     suspend fun deleteAnalysisData(gameId: GameId) {
         dslContext.transactionCoroutine { cfg ->
@@ -85,26 +80,29 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
     private suspend fun setAnalyzedFromBatch(gameId: GameId, value: Boolean) {
         dslContext.transactionCoroutine { cfg ->
             when (gameId.type) {
-                DB -> DSL
-                    .using(cfg)
-                    .update(REFERENCE_GAME)
-                    .set(REFERENCE_GAME.ANALYZED_FROM_BATCH, value)
-                    .where(REFERENCE_GAME.ID.eq(gameId.id))
-                    .awaitExecute()
+                DB ->
+                    DSL
+                        .using(cfg)
+                        .update(REFERENCE_GAME)
+                        .set(REFERENCE_GAME.ANALYZED_FROM_BATCH, value)
+                        .where(REFERENCE_GAME.ID.eq(gameId.id))
+                        .awaitExecute()
 
-                PVP -> DSL
-                    .using(cfg)
-                    .update(GAME)
-                    .set(GAME.ANALYZED_FROM_BATCH, value)
-                    .where(GAME.ID.eq(gameId.id))
-                    .awaitExecute()
+                PVP ->
+                    DSL
+                        .using(cfg)
+                        .update(GAME)
+                        .set(GAME.ANALYZED_FROM_BATCH, value)
+                        .where(GAME.ID.eq(gameId.id))
+                        .awaitExecute()
 
-                PVB -> DSL
-                    .using(cfg)
-                    .update(BOT_GAME)
-                    .set(BOT_GAME.ANALYZED_FROM_BATCH, value)
-                    .where(BOT_GAME.ID.eq(gameId.id))
-                    .awaitExecute()
+                PVB ->
+                    DSL
+                        .using(cfg)
+                        .update(BOT_GAME)
+                        .set(BOT_GAME.ANALYZED_FROM_BATCH, value)
+                        .where(BOT_GAME.ID.eq(gameId.id))
+                        .awaitExecute()
             }
         }
     }
@@ -115,11 +113,7 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
     suspend fun cancelAnalysis(gameId: GameId) =
         updateAnalysisStatus(gameId, CANCELLED, endTimeField(gameId))
 
-    private suspend fun updateAnalysisStatus(
-        gameId: GameId,
-        status: AnalysisStatus,
-        timeField: Field<Instant>?,
-    ) {
+    private suspend fun updateAnalysisStatus(gameId: GameId, status: AnalysisStatus, timeField: Field<Instant>?) {
         dslContext.transactionCoroutine { cfg ->
             val baseUpdate = DSL
                 .using(cfg)
@@ -150,7 +144,7 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         val gameIdExpr = DSL.coalesce(
             MOVE_ANALYSIS.GAME_ID,
             MOVE_ANALYSIS.BOT_GAME_ID,
-            MOVE_ANALYSIS.REF_GAME_ID
+            MOVE_ANALYSIS.REF_GAME_ID,
         )
 
         // Keep references to the aliased aggregate fields so we can look them up by Field reference
@@ -165,7 +159,7 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                 gameIdExpr.`as`(GAME_ID),
                 minDateField,
                 maxDateField,
-                DSL.count().cast(Int::class.java).`as`(TOTAL_MOVES)
+                DSL.count().cast(Int::class.java).`as`(TOTAL_MOVES),
             )
             .from(MOVE_ANALYSIS)
             .groupBy(gameTypeExpr, gameIdExpr)
@@ -175,22 +169,22 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             .select(
                 DSL.inline(PVP.name).`as`(GAME_TYPE),
                 GAME.ID.`as`(GAME_ID),
-                GAME.ANALYZED_FROM_BATCH.`as`(ANALYZED_FROM_BATCH)
+                GAME.ANALYZED_FROM_BATCH.`as`(ANALYZED_FROM_BATCH),
             )
             .from(GAME)
             .unionAll(
                 DSL.select(
                     DSL.inline(PVB.name).`as`(GAME_TYPE),
                     BOT_GAME.ID.`as`(GAME_ID),
-                    BOT_GAME.ANALYZED_FROM_BATCH.`as`(ANALYZED_FROM_BATCH)
-                ).from(BOT_GAME)
+                    BOT_GAME.ANALYZED_FROM_BATCH.`as`(ANALYZED_FROM_BATCH),
+                ).from(BOT_GAME),
             )
             .unionAll(
                 DSL.select(
                     DSL.inline(DB.name).`as`(GAME_TYPE),
                     REFERENCE_GAME.ID.`as`(GAME_ID),
-                    REFERENCE_GAME.ANALYZED_FROM_BATCH.`as`(ANALYZED_FROM_BATCH)
-                ).from(REFERENCE_GAME)
+                    REFERENCE_GAME.ANALYZED_FROM_BATCH.`as`(ANALYZED_FROM_BATCH),
+                ).from(REFERENCE_GAME),
             )
             .asTable("analysis_flags")
 
@@ -211,7 +205,7 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                 aggMinDate,
                 aggMaxDate,
                 aggTotalMoves,
-                flagAnalyzedFromBatch
+                flagAnalyzedFromBatch,
             )
             .from(aggregatedMoveAnalysis)
             .leftJoin(analysisFlags)
@@ -225,17 +219,16 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
                     record[aggMinDate],
                     record[aggMaxDate],
                     record[aggTotalMoves],
-                    record[flagAnalyzedFromBatch] ?: false
+                    record[flagAnalyzedFromBatch] ?: false,
                 )
             }
     }
 
-    suspend fun fetchLatestMoveAnalysis(): Instant? {
-        return dslContext
+    suspend fun fetchLatestMoveAnalysis(): Instant? =
+        dslContext
             .select(DSL.max(MOVE_ANALYSIS.ENTRY_CREATION))
             .from(MOVE_ANALYSIS)
             .awaitSingleValue()
-    }
 
     suspend fun isAnyGameCurrentlyBeingAnalyzed(): Boolean {
         val refGameCount = dslContext
@@ -272,74 +265,67 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
         const val MAX_DATE = "max_date"
         const val TOTAL_MOVES = "total_moves"
 
-        fun moveAnalysisTableIdCondition(gameId: GameId): Condition {
-            return moveAnalysisTableIdField(gameId.type).eq(gameId.id)
-        }
+        fun moveAnalysisTableIdCondition(gameId: GameId): Condition =
+            moveAnalysisTableIdField(gameId.type).eq(gameId.id)
 
-        fun moveAnalysisTableIdField(gameType: GameType): Field<String> {
-            return when (gameType) {
+        fun moveAnalysisTableIdField(gameType: GameType): Field<String> =
+            when (gameType) {
                 DB -> MOVE_ANALYSIS.REF_GAME_ID
                 PVP -> MOVE_ANALYSIS.GAME_ID
                 PVB -> MOVE_ANALYSIS.BOT_GAME_ID
             }
-        }
 
-        fun gameTableIdCondition(gameId: GameId): Condition {
-            return gameTableIdField(gameId.type).eq(gameId.id)
-        }
+        fun gameTableIdCondition(gameId: GameId): Condition =
+            gameTableIdField(gameId.type).eq(gameId.id)
 
-        fun gameTableIdField(gameType: GameType): Field<String> {
-            return when (gameType) {
+        fun gameTableIdField(gameType: GameType): Field<String> =
+            when (gameType) {
                 DB -> REFERENCE_GAME.ID
                 PVP -> GAME.ID
                 PVB -> BOT_GAME.ID
             }
-        }
 
         fun gameTableAnalysisStatusField(gameId: GameId) =
             gameTableAnalysisStatusField(gameId.type)
 
-        fun gameTableAnalysisStatusField(gameType: GameType): Field<AnalysisStatus> {
-            return when (gameType) {
+        fun gameTableAnalysisStatusField(gameType: GameType): Field<AnalysisStatus> =
+            when (gameType) {
                 DB -> REFERENCE_GAME.ANALYSIS_STATUS
                 PVP -> GAME.ANALYSIS_STATUS
                 PVB -> BOT_GAME.ANALYSIS_STATUS
             }
-        }
 
         fun startTimeField(gameId: GameId) =
             startTimeField(gameId.type)
 
-        fun startTimeField(gameType: GameType): Field<Instant> {
-            return when (gameType) {
+        fun startTimeField(gameType: GameType): Field<Instant> =
+            when (gameType) {
                 DB -> REFERENCE_GAME.ANALYSIS_START_TIME
                 PVP -> GAME.ANALYSIS_START_TIME
                 PVB -> BOT_GAME.ANALYSIS_START_TIME
             }
-        }
 
-        fun endTimeField(gameId: GameId) = endTimeField(gameId.type)
+        fun endTimeField(gameId: GameId) =
+            endTimeField(gameId.type)
 
-        fun endTimeField(gameType: GameType): Field<Instant> {
-            return when (gameType) {
+        fun endTimeField(gameType: GameType): Field<Instant> =
+            when (gameType) {
                 DB -> REFERENCE_GAME.ANALYSIS_END_TIME
                 PVP -> GAME.ANALYSIS_END_TIME
                 PVB -> BOT_GAME.ANALYSIS_END_TIME
             }
-        }
 
-        fun gameTableUpdate(gameId: GameId) = gameTable(gameId)
+        fun gameTableUpdate(gameId: GameId) =
+            gameTable(gameId)
 
-        fun gameTable(gameId: GameId) = gameTable(gameId.type)
+        fun gameTable(gameId: GameId) =
+            gameTable(gameId.type)
 
-        fun gameTable(gameType: GameType): Table<Record> {
-            return when (gameType) {
+        fun gameTable(gameType: GameType): Table<Record> =
+            when (gameType) {
                 DB -> DSL.table(REFERENCE_GAME.name, false)
                 PVP -> DSL.table(GAME.name, false)
                 PVB -> DSL.table(BOT_GAME.name, false)
             }
-        }
-
     }
-
 }

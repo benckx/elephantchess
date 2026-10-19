@@ -29,7 +29,7 @@ data class MatePuzzleCandidate(
             mate.toString(),
             depth.toString(),
             startFen,
-            solutionMoves.joinToString(",")
+            solutionMoves.joinToString(","),
         ).joinToString(SEPARATOR)
 
     companion object {
@@ -47,10 +47,8 @@ data class MatePuzzleCandidate(
                 mate = columns[3].toInt(),
                 depth = columns[4].toInt(),
                 startFen = columns[5],
-                solutionMoves = columns[6].split(",")
+                solutionMoves = columns[6].split(","),
             )
         }
-
     }
-
 }

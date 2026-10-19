@@ -5,7 +5,8 @@ package io.elephantchess.csvdump
  */
 enum class RatingMode {
     RATED,
-    CASUAL;
+    CASUAL,
+    ;
 
     companion object {
 

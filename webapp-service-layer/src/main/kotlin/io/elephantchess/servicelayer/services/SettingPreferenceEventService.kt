@@ -1,11 +1,10 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.tables.pojos.SettingPreferenceEvent
 import io.elephantchess.db.services.SettingPreferenceEventDaoService
 import io.elephantchess.db.utils.generateId
 import io.elephantchess.model.UserType
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.random.Random.Default.nextDouble
 
@@ -83,5 +82,4 @@ class SettingPreferenceEventService(
             MOVE_TREE_WIDGET_HEIGHT_DATABASE_VIEWER,
         )
     }
-
 }

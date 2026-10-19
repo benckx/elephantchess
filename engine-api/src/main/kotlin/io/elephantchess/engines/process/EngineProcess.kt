@@ -83,17 +83,17 @@ abstract class EngineProcess(
         setVariant(variant)
         inputCommand("position fen $fen")
         inputCommand("go nodes $maxNodes")
-val gotResult = waitForCondition(maxDelay, checkPeriod) {
-    infoListener.hasResult()
-}
-if (!gotResult) {
-    inputCommand("stop")
-    val gotResultAfterStop = waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }
-    if (!gotResultAfterStop) {
-        throw Exception("Engine did not return a result for 'go nodes $maxNodes' within ${maxDelay}ms.")
-    }
-}
-return infoListener.getResult()
+        val gotResult = waitForCondition(maxDelay, checkPeriod) {
+            infoListener.hasResult()
+        }
+        if (!gotResult) {
+            inputCommand("stop")
+            val gotResultAfterStop = waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }
+            if (!gotResultAfterStop) {
+                throw Exception("Engine did not return a result for 'go nodes $maxNodes' within ${maxDelay}ms.")
+            }
+        }
+        return infoListener.getResult()
     }
 
     /**
@@ -120,7 +120,8 @@ return infoListener.getResult()
         return matchListener.matchingLine!!
     }
 
-    fun isAlive(): Boolean = this::process.isInitialized && process.isAlive
+    fun isAlive(): Boolean =
+        this::process.isInitialized && process.isAlive
 
     /**
      * Resets the internal state so this process can be re-submitted to the executor via [run] after it
@@ -195,7 +196,5 @@ return infoListener.getResult()
 
         const val DEFAULT_MAX_DELAY = 5_000L
         const val DEFAULT_CHECK_PERIOD = 100L
-
     }
-
 }

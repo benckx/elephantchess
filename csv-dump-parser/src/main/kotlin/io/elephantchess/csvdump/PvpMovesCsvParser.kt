@@ -15,7 +15,8 @@ object PvpMovesCsvParser {
     fun parseRows(file: File): List<CsvRow> =
         file.bufferedReader().use { reader -> parseRows(reader) }
 
-    fun parseRows(fileName: String): List<CsvRow> = parseRows(File(fileName))
+    fun parseRows(fileName: String): List<CsvRow> =
+        parseRows(File(fileName))
 
     fun parseRows(reader: Reader): List<CsvRow> {
         val csvReader = CSVReaderHeaderAware(reader)
@@ -27,11 +28,14 @@ object PvpMovesCsvParser {
         return rows
     }
 
-    fun parseGames(file: File): List<PvpGame> = PvpGame.fromCsvRows(parseRows(file))
+    fun parseGames(file: File): List<PvpGame> =
+        PvpGame.fromCsvRows(parseRows(file))
 
-    fun parseGames(fileName: String): List<PvpGame> = parseGames(File(fileName))
+    fun parseGames(fileName: String): List<PvpGame> =
+        parseGames(File(fileName))
 
-    fun parseGames(reader: Reader): List<PvpGame> = PvpGame.fromCsvRows(parseRows(reader))
+    fun parseGames(reader: Reader): List<PvpGame> =
+        PvpGame.fromCsvRows(parseRows(reader))
 
     /**
      * Reads every `.csv` entry of the given ZIP archive (in name order) and returns all of their
@@ -51,9 +55,12 @@ object PvpMovesCsvParser {
         return rows
     }
 
-    fun parseRowsFromZip(fileName: String): List<CsvRow> = parseRowsFromZip(File(fileName))
+    fun parseRowsFromZip(fileName: String): List<CsvRow> =
+        parseRowsFromZip(File(fileName))
 
-    fun parseGamesFromZip(file: File): List<PvpGame> = PvpGame.fromCsvRows(parseRowsFromZip(file))
+    fun parseGamesFromZip(file: File): List<PvpGame> =
+        PvpGame.fromCsvRows(parseRowsFromZip(file))
 
-    fun parseGamesFromZip(fileName: String): List<PvpGame> = parseGamesFromZip(File(fileName))
+    fun parseGamesFromZip(fileName: String): List<PvpGame> =
+        parseGamesFromZip(File(fileName))
 }

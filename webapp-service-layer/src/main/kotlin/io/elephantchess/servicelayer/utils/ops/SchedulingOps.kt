@@ -30,9 +30,9 @@ fun launchAtFixedRate(
     period: Duration,
     initialDelay: Duration = Duration.ZERO,
     onError: suspend (Throwable) -> Unit = logError,
-    action: suspend () -> Unit
-): Job {
-    return scope.launch {
+    action: suspend () -> Unit,
+): Job =
+    scope.launch {
         delay(initialDelay)
 
         while (isActive) {
@@ -53,7 +53,6 @@ fun launchAtFixedRate(
             delay(period)
         }
     }
-}
 
 /**
  * Launches a coroutine that runs a suspend action at a fixed rate, starting immediately.
@@ -69,5 +68,6 @@ fun launchAtFixedRateStartImmediately(
     scope: CoroutineScope,
     period: Duration,
     onError: suspend (Throwable) -> Unit = logError,
-    action: suspend () -> Unit
-): Job = launchAtFixedRate(scope, period, Duration.ZERO, onError, action)
+    action: suspend () -> Unit,
+): Job =
+    launchAtFixedRate(scope, period, Duration.ZERO, onError, action)

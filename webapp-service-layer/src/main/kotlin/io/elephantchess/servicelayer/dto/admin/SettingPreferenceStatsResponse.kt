@@ -1,8 +1,6 @@
 package io.elephantchess.servicelayer.dto.admin
 
-data class SettingPreferenceStatsResponse(
-    val segments: List<Segment>
-) {
+data class SettingPreferenceStatsResponse(val segments: List<Segment>) {
 
     /**
      * One user-type slice of the stats (e.g. AUTHENTICATED or GUEST).
@@ -11,7 +9,7 @@ data class SettingPreferenceStatsResponse(
         val userType: String,
         val totalCount: Long,
         val stringFields: List<StringFieldStats>,
-        val numberFields: List<NumberFieldStats>
+        val numberFields: List<NumberFieldStats>,
     )
 
     data class StringFieldStats(
@@ -19,7 +17,7 @@ data class SettingPreferenceStatsResponse(
         val nullCount: Long,
         val nonNullCount: Long,
         val values: List<ValueCount>,
-        val evolution: Evolution
+        val evolution: Evolution,
     )
 
     /**
@@ -30,13 +28,10 @@ data class SettingPreferenceStatsResponse(
     data class Evolution(
         val months: List<String>,
         val sampleSizes: List<Long>,
-        val series: List<ValueShareSeries>
+        val series: List<ValueShareSeries>,
     )
 
-    data class ValueShareSeries(
-        val value: String,
-        val shares: List<Double>
-    )
+    data class ValueShareSeries(val value: String, val shares: List<Double>)
 
     data class NumberFieldStats(
         val fieldName: String,
@@ -45,17 +40,10 @@ data class SettingPreferenceStatsResponse(
         val min: Double?,
         val max: Double?,
         val avg: Double?,
-        val buckets: List<Bucket>
+        val buckets: List<Bucket>,
     )
 
-    data class ValueCount(
-        val value: String,
-        val count: Long
-    )
+    data class ValueCount(val value: String, val count: Long)
 
-    data class Bucket(
-        val label: String,
-        val count: Long
-    )
-
+    data class Bucket(val label: String, val count: Long)
 }

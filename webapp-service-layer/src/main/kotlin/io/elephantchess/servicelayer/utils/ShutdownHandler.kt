@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.utils
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.servicelayer.batch.definitions.BatchesScheduler
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
@@ -9,6 +7,7 @@ import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.services.sitemap.SiteMapService
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -118,5 +117,4 @@ class ShutdownHandler(
 
         logger.info { "shutdown sequence complete" }
     }
-
 }

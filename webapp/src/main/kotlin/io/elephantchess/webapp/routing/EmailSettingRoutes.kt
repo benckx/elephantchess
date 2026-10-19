@@ -36,7 +36,6 @@ private fun Application.emailConfirmationRoutes() {
     }
 }
 
-
 // when sending the newsletter, there is a link to unsubscribe, which contains a unique code that identifies
 // the user and the type of unsubscription (newsletter only or all notifications).
 private fun Application.newsletterUnsubscriptionRoutes() {
@@ -53,26 +52,27 @@ private suspend fun processAndRenderUnsubscription(code: String): String {
 
     return when (val matching = mailService.unsubscribeFromEmailNotifications(code)) {
         null -> simplePageRenderer.renderTemplateNoCache("unsubscribe/unsubscription_error")
+
         else -> {
             val tagResolvers = listOf(
                 SimpleValueTagResolver(
                     "emailAddress",
-                    obfuscateEmail(matching.emailAddress)
-                )
+                    obfuscateEmail(matching.emailAddress),
+                ),
             )
 
             when {
                 matching.isUnsubscribeFromNewsletter -> {
                     simplePageRenderer.renderTemplateNoCache(
                         "unsubscribe/unsubscribed_from_newsletter",
-                        tagResolvers
+                        tagResolvers,
                     )
                 }
 
                 matching.isUnsubscribeFromAll -> {
                     simplePageRenderer.renderTemplateNoCache(
                         "unsubscribe/unsubscribed_from_all",
-                        tagResolvers
+                        tagResolvers,
                     )
                 }
 
