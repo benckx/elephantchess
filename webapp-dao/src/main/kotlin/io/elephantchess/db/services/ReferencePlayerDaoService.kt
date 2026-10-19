@@ -158,21 +158,19 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun findConfirmedDuplicatesOf(canonicalPlayerId: String): List<ReferencePlayerDuplicate> {
-        return dslContext
+    suspend fun findConfirmedDuplicatesOf(canonicalPlayerId: String): List<ReferencePlayerDuplicate> =
+        dslContext
             .select(REFERENCE_PLAYER_DUPLICATE)
             .from(REFERENCE_PLAYER_DUPLICATE)
             .where(REFERENCE_PLAYER_DUPLICATE.IS_DUPLICATE_OF.eq(canonicalPlayerId))
             .awaitMappedRecords()
-    }
 
-    suspend fun findCanonicalPlayerFor(duplicatePlayerId: String): String? {
-        return dslContext
+    suspend fun findCanonicalPlayerFor(duplicatePlayerId: String): String? =
+        dslContext
             .select(REFERENCE_PLAYER_DUPLICATE.IS_DUPLICATE_OF)
             .from(REFERENCE_PLAYER_DUPLICATE)
             .where(REFERENCE_PLAYER_DUPLICATE.PLAYER_ID.eq(duplicatePlayerId))
             .awaitSingleValue()
-    }
 
     suspend fun deletePlayerDuplicate(playerId: String) {
         dslContext
@@ -181,12 +179,11 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
-    suspend fun listAllPlayerDuplicates(): List<ReferencePlayerDuplicate> {
-        return dslContext
+    suspend fun listAllPlayerDuplicates(): List<ReferencePlayerDuplicate> =
+        dslContext
             .select(REFERENCE_PLAYER_DUPLICATE)
             .from(REFERENCE_PLAYER_DUPLICATE)
             .awaitMappedRecords()
-    }
 
     suspend fun listByMostNumberOfGames(limit: Int): List<NumberOfGamesRecord> {
         val gamesAsRed = DSL.`when`(REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.RED_PLAYER), 1).otherwise(0)

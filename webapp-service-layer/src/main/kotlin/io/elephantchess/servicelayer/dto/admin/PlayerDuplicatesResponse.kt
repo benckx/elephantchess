@@ -5,6 +5,6 @@ data class PlayerDuplicatesResponse(val entries: List<Entry>) {
         val playerId: String,
         val playerCanonicalName: String,
         val isDuplicateOf: String,
-        val canonicalPlayerCanonicalName: String
+        val canonicalPlayerCanonicalName: String,
     )
 }

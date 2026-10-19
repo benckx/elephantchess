@@ -481,11 +481,10 @@ class DatabaseService(
         )
     }
 
-    private suspend fun findConfirmedDuplicates(playerId: String): List<ReferencePlayer> {
-        return referencePlayerDaoService
+    private suspend fun findConfirmedDuplicates(playerId: String): List<ReferencePlayer> =
+        referencePlayerDaoService
             .findConfirmedDuplicatesOf(playerId)
             .mapNotNull { duplicate -> referencePlayerDaoService.findPlayer(duplicate.playerId) }
-    }
 
     private suspend fun findPossibleDuplicates(playerId: String): List<ReferencePlayer> {
         val player = referencePlayerDaoService.findPlayer(playerId)

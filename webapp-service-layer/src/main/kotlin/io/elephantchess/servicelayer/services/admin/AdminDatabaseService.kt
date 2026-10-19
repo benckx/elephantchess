@@ -42,7 +42,7 @@ class AdminDatabaseService(private val referencePlayerDaoService: ReferencePlaye
                     playerId = duplicate.playerId,
                     playerCanonicalName = player.canonicalName,
                     isDuplicateOf = duplicate.isDuplicateOf,
-                    canonicalPlayerCanonicalName = canonicalPlayer.canonicalName
+                    canonicalPlayerCanonicalName = canonicalPlayer.canonicalName,
                 )
             }
             .let { entries -> PlayerDuplicatesResponse(entries) }
@@ -62,7 +62,7 @@ class AdminDatabaseService(private val referencePlayerDaoService: ReferencePlaye
         if (canonicalIsAlreadyDuplicate != null) {
             throw BadRequestException(
                 "player $isNewDuplicateOf is already registered as a duplicate of $canonicalIsAlreadyDuplicate; " +
-                        "resolve that relationship first"
+                    "resolve that relationship first",
             )
         }
 
@@ -71,7 +71,7 @@ class AdminDatabaseService(private val referencePlayerDaoService: ReferencePlaye
         if (playersAlreadyDuplicateOf.isNotEmpty()) {
             throw BadRequestException(
                 "player $playerId is already listed as a canonical player for other duplicates; " +
-                        "remove those relationships first"
+                    "remove those relationships first",
             )
         }
 
@@ -81,5 +81,4 @@ class AdminDatabaseService(private val referencePlayerDaoService: ReferencePlaye
     suspend fun deletePlayerDuplicate(playerId: String) {
         referencePlayerDaoService.deletePlayerDuplicate(playerId)
     }
-
 }
