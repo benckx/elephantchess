@@ -10,12 +10,14 @@ import io.elephantchess.db.model.OnlineUsersStatsDaily
 import io.elephantchess.db.model.OnlineUsersStatsHourlyRecord
 import io.elephantchess.db.model.OnlineUsersStatsMonthly
 import io.elephantchess.db.utils.*
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.YearMonth
 import kotlin.time.Clock
 
+@KoinSingleton
 class UserStatsDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(entry: StatsOnlineUsersDays) {
@@ -42,7 +44,7 @@ class UserStatsDaoService(private val dslContext: DSLContext) {
                 hourField.`as`("hour_of_day"),
                 DSL.min(totalField).`as`("min_total"),
                 DSL.max(totalField).`as`("max_total"),
-                DSL.avg(totalField).`as`("avg_total")
+                DSL.avg(totalField).`as`("avg_total"),
             )
             .from(table)
             .where(table.MEASURED_TIME.ge(thirtyDaysAgo))
@@ -63,7 +65,7 @@ class UserStatsDaoService(private val dslContext: DSLContext) {
                 dayField,
                 DSL.min(totalField).`as`("min_total"),
                 DSL.max(totalField).`as`("max_total"),
-                DSL.avg(totalField).`as`("avg_total")
+                DSL.avg(totalField).`as`("avg_total"),
             )
             .from(table)
             .where(table.MEASURED_TIME.ge(thirtyDaysAgo))
@@ -84,7 +86,7 @@ class UserStatsDaoService(private val dslContext: DSLContext) {
                 dowField.`as`("day_of_week"),
                 DSL.min(totalField).`as`("min_total"),
                 DSL.max(totalField).`as`("max_total"),
-                DSL.avg(totalField).`as`("avg_total")
+                DSL.avg(totalField).`as`("avg_total"),
             )
             .from(table)
             .where(table.MEASURED_TIME.ge(thirtyDaysAgo))
@@ -107,7 +109,7 @@ class UserStatsDaoService(private val dslContext: DSLContext) {
                 monthField.`as`("month"),
                 DSL.min(totalField).`as`("min_total"),
                 DSL.max(totalField).`as`("max_total"),
-                DSL.avg(totalField).`as`("avg_total")
+                DSL.avg(totalField).`as`("avg_total"),
             )
             .from(table)
             .where(table.MEASURED_TIME.ge(monthsAgo))
@@ -119,9 +121,8 @@ class UserStatsDaoService(private val dslContext: DSLContext) {
                     month = YearMonth.of(record.get("year", Int::class.java), record.get("month", Int::class.java)),
                     minTotal = record.get("min_total", Int::class.java),
                     maxTotal = record.get("max_total", Int::class.java),
-                    avgTotal = record.get("avg_total", java.math.BigDecimal::class.java).toInt()
+                    avgTotal = record.get("avg_total", java.math.BigDecimal::class.java).toInt(),
                 )
             }
     }
-
 }

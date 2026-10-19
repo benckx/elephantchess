@@ -35,9 +35,10 @@ enum class EmailValidityStatus {
     /**
      * No information available yet.
      */
-    UNKNOWN;
+    UNKNOWN,
+
+    ;
 
     val isValid: Boolean
         get() = this == MANUALLY_CONFIRMED || this == AUTOMATED_VALID
-
 }

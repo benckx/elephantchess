@@ -13,8 +13,7 @@ class RecoveryLinkTagResolver(
 
     override suspend fun resolveContent(): List<String> {
         val encodedAddress = URLEncoder.encode(address, "UTF-8")
-        val url = "${webHost}/recovery/finalize?email=${encodedAddress}&code=$code"
+        val url = "$webHost/recovery/finalize?email=$encodedAddress&code=$code"
         return listOf(makeAnchor(url))
     }
-
 }

@@ -6,9 +6,11 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.scripts.game.Utils.createTestUserIfNotExists
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
+import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
 import kotlin.random.Random
@@ -19,8 +21,8 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-private const val testUsers = 10
-private const val weirdTimeControlsCount = 20
+private const val TEST_USERS = 10
+private const val WEIRD_TIME_CONTROLS_COUNT = 20
 
 private val standardTimeControls: List<Pair<Duration, Duration?>> =
     listOf(
@@ -50,7 +52,7 @@ private val standardTimeControls: List<Pair<Duration, Duration?>> =
     )
 
 private fun Random.generateWeirdTimeControls(): List<Pair<Duration, Duration?>> =
-    List(weirdTimeControlsCount) {
+    List(WEIRD_TIME_CONTROLS_COUNT) {
         if (nextBoolean()) {
             randomWeirdLiveTimeControl()
         } else {
@@ -91,45 +93,60 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
     private val pvpGameService by inject<PlayerVsPlayerGameService>()
 
     @JvmStatic
-    fun main(args: Array<String>): Unit = runBlocking {
-        // set up users
-        (1..testUsers).forEach { i -> createTestUserIfNotExists(i) }
+    fun main(args: Array<String>): Unit =
+        runBlocking {
+            // set up users
+            (1..TEST_USERS).forEach { i -> createTestUserIfNotExists(i) }
 
-        // create games
-        val rnd = Random.Default
-        val weirdTimeControls = rnd.generateWeirdTimeControls()
-        val timeControls = standardTimeControls + weirdTimeControls
+            // create games
+            val rnd = Random.Default
+            val weirdTimeControls = rnd.generateWeirdTimeControls()
+            val timeControls = standardTimeControls + weirdTimeControls
 
-        repeat(50) {
-            val i = rnd.nextInt(testUsers) + 1
-            val user = userDaoService.findByEmail("test$i@protonmail.com")!!
-            val hasColor = rnd.nextBoolean()
-            val color = if (hasColor) null else Color.random()
-            val timeControl = timeControls.random(rnd)
-            val timeControlMode =
-                if (timeControl.first.inWholeSeconds < 1.days.inWholeSeconds) {
-                    TimeControlMode.GAME_TIME
-                } else {
-                    TimeControlMode.MOVE_TIME
+            repeat(50) {
+                val i = rnd.nextInt(TEST_USERS) + 1
+                val user = userDaoService.findByEmail("test$i@protonmail.com")!!
+                val hasColor = rnd.nextBoolean()
+                val color = if (hasColor) null else Color.random()
+                val timeControl = timeControls.random(rnd)
+                val timeControlMode =
+                    if (timeControl.first.inWholeSeconds < 1.days.inWholeSeconds) {
+                        TimeControlMode.GAME_TIME
+                    } else {
+                        TimeControlMode.MOVE_TIME
+                    }
+                val variant = if (rnd.nextInt(100) < 20) Variant.MANCHU else Variant.XIANGQI
+
+                val request =
+                    CreateGameRequest(
+                        inviterColor = color,
+                        isRated = rnd.nextBoolean(),
+                        timeControlBase = timeControl.first.inWholeSeconds.toInt(),
+                        timeControlIncrement = timeControl.second?.inWholeSeconds?.toInt(),
+                        timeControlMode = timeControlMode,
+                        allowGuests = true,
+                        alwaysVisibleInLobby = true,
+                        privateInvite = false,
+                        variant = variant,
+                    )
+
+                try {
+                    val createGameResponse = pvpGameService.createGame(UserId(AUTHENTICATED, user.id), request)
+                    val gameId = createGameResponse.gameId
+                    println("created game $gameId by ${user.handle}")
+                } catch (e: BadRequestException) {
+                    if (e.message == "You already have 3 pending games with the same settings") {
+                        println(
+                            "skipped creating game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"} because of too many pending games with the same settings",
+                        )
+                    } else {
+                        println(
+                            "failed to create game by ${user.handle} with time control ${timeControl.first} + ${timeControl.second ?: "0"}: ${e.message}",
+                        )
+                    }
                 }
+            }
 
-            val request =
-                CreateGameRequest(
-                    inviterColor = color,
-                    isRated = rnd.nextBoolean(),
-                    timeControlBase = timeControl.first.inWholeSeconds.toInt(),
-                    timeControlIncrement = timeControl.second?.inWholeSeconds?.toInt(),
-                    timeControlMode = timeControlMode,
-                    allowGuests = true,
-                    alwaysVisibleInLobby = true,
-                    privateInvite = false
-                )
-
-            val createGameResponse = pvpGameService.createGame(UserId(AUTHENTICATED, user.id), request)
-            val gameId = createGameResponse.gameId
-            println("created game $gameId by ${user.handle}")
+            exitProcess(0)
         }
-
-        exitProcess(0)
-    }
 }

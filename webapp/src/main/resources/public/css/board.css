@@ -118,6 +118,14 @@ a.board-outer-container-link-mask {
     filter: invert(1);
 }
 
+.board-container.flip-opponent-pieces-black .piece-image-black {
+    transform: rotate(180deg);
+}
+
+.board-container.flip-opponent-pieces-red .piece-image-red {
+    transform: rotate(180deg);
+}
+
 .piece-holder .piece-image-can-move {
     cursor: move;
 }
@@ -204,6 +212,14 @@ a.board-outer-container-link-mask {
 .large-river {
     aspect-ratio: 8;
     height: 100%;
+}
+
+.highlight-colored-areas .board-area-river {
+    background-color: #b9dcff;
+}
+
+.highlight-colored-areas .board-area-palace {
+    background-color: #c9ebb0;
 }
 
 .visible-square-last-file,
@@ -415,4 +431,54 @@ a.board-outer-container-link-mask {
         height: 612px;
         width: 552px;
     }
+
+    /* Thinner 1px grid lines on mobile (mini boards keep their own rules) */
+    .board-container:not(.mini-board-container) .visible-square,
+    .board-container:not(.mini-board-container) .large-river {
+        border-width: 1px;
+        border-bottom-width: 0;
+        border-right-width: 0;
+    }
+
+    .board-container:not(.mini-board-container) .visible-square-last-row {
+        border-bottom-width: 1px;
+    }
+
+    .board-container:not(.mini-board-container) .visible-square-last-file,
+    .board-container:not(.mini-board-container) .large-river {
+        border-right-width: 1px;
+    }
+
+    .file-coordinates-top,
+    .file-coordinates-bottom {
+        font-size: 12px;
+    }
+
+    .crosshair-square-bottom-right {
+        border-bottom-width: 1px;
+        border-right-width: 1px;
+    }
+
+    .crosshair-square-top-right {
+        border-top-width: 1px;
+        border-right-width: 1px;
+    }
+
+    .crosshair-square-bottom-left {
+        border-bottom-width: 1px;
+        border-left-width: 1px;
+    }
+
+    .crosshair-square-top-left {
+        border-top-width: 1px;
+        border-left-width: 1px;
+    }
+}
+
+/* Touch drag ghost: the floating piece image that follows the finger */
+.touch-drag-ghost {
+    border-radius: 100%;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 4px 10px;
+    user-select: none;
+    -webkit-user-select: none;
 }

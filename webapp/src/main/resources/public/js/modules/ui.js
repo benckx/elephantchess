@@ -196,6 +196,22 @@ function buildDivWithTextAndClass(textContent, className) {
 }
 
 /**
+ * Builds a variant cell div (symbol + name) for the given variant.
+ *
+ * @param variant {string} - Variant.MANCHU or Variant.XIANGQI
+ * @returns {HTMLDivElement}
+ */
+function buildVariantCell(variant) {
+    const isManchu = variant === Variant.MANCHU;
+    const cell = buildDivWithClass('variant-cell');
+    const symbol = buildDivWithTextAndClass(isManchu ? '统' : '象', 'variant-symbol');
+    symbol.title = isManchu ? 'Manchu chess (or Yitong)' : 'Xiangqi (Chinese chess)';
+    const textContent = isManchu ? 'Manchu' : 'Xiangqi';
+    cell.append(symbol, buildDivWithTextAndClass(textContent, 'variant-name'));
+    return cell;
+}
+
+/**
  *
  * @param username {string}
  * @param maxLength {number|null}
@@ -263,7 +279,7 @@ function buildUsernameSpan(userId, username, userType, maxLength = null, removeG
                     const span = document.createElement('span');
                     span.className = 'guest-name';
                     const rawId = String(userId).replace(/^guest\s+/i, '').trim();
-                    span.innerText = maxLength != null ? cropText(rawId, maxLength) : rawId;
+                    span.innerText = '#' + (maxLength != null ? cropText(rawId, maxLength) : rawId);
                     return span;
                 }
                 return buildGuestUserSpan(userId, maxLength);
@@ -411,16 +427,16 @@ function showGuestMessages() {
     }
 }
 
-function makeCheckboxesClickable() {
-    makeFormElementClickable('standard-checkbox');
+function makeCheckboxesClickable(root = document) {
+    makeFormElementClickable('standard-checkbox', root);
 }
 
-function makeRadioClickable() {
-    makeFormElementClickable('standard-radio');
+function makeRadioClickable(root = document) {
+    makeFormElementClickable('standard-radio', root);
 }
 
-function makeFormElementClickable(cssClass) {
-    const boxes = document.getElementsByClassName(cssClass);
+function makeFormElementClickable(cssClass, root = document) {
+    const boxes = root.getElementsByClassName(cssClass);
     for (let i = 0; i < boxes.length; i++) {
         const box = boxes[i];
         const spans = box.getElementsByTagName('span');
@@ -521,6 +537,15 @@ function addToolTip(element, text) {
             console.log(`tooltip removed ${toolTipElementId}`);
         }
 
+        // Abort and replace any previous listeners registered by an earlier addToolTip call
+        // on this same element, so listeners never accumulate across multiple calls.
+        if (element._tooltipAbortController) {
+            element._tooltipAbortController.abort();
+        }
+        const controller = new AbortController();
+        element._tooltipAbortController = controller;
+        const signal = controller.signal;
+
         const toolTip = document.createElement('div');
         toolTip.id = toolTipElementId;
         toolTip.className = 'tooltip';
@@ -540,12 +565,12 @@ function addToolTip(element, text) {
                     toolTip.style.visibility = 'visible';
                 }
             }, 1_000);
-        });
+        }, { signal });
 
         element.addEventListener('mouseleave', () => {
             toolTip.style.visibility = 'hidden';
             clearTimeout(UI.timeoutId);
-        });
+        }, { signal });
     } else {
         console.warn('empty tooltip text, will not render');
     }
@@ -883,8 +908,9 @@ class UI {
     }
 
     static hideModal(mouseEvent) {
-        if (mouseEvent == null || mouseEvent.target === UI.#modalBackground) {
-            // only close the modal if we click outside the modal form
+        const closeButtonClicked = mouseEvent?.target?.closest?.('.modal-close-button') != null;
+        if (mouseEvent == null || mouseEvent.target === UI.#modalBackground || closeButtonClicked) {
+            // close the modal if we click outside the modal form or on the close button
             if (UI.#isModalVisible()) {
                 UI.#modalBackground.style.display = 'none';
                 UI.#modalBackground.innerHTML = '';

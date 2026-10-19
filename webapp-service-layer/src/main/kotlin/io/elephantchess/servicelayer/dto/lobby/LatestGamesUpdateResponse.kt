@@ -15,5 +15,4 @@ data class LatestGamesUpdateResponse(val entries: List<Entry>) {
         val isRedOnline: Boolean = false,
         val isBlackOnline: Boolean = false,
     )
-
 }

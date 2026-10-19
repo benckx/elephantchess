@@ -38,10 +38,8 @@ data class InfoLineResult(
                 mate = mate,
                 cp = cp,
                 pv = pv,
-                line = line
+                line = line,
             )
         }
-
     }
-
 }

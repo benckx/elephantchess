@@ -1,5 +1,7 @@
 package io.elephantchess.webapp.routing.html
 
+import io.elephantchess.config.AppConfig
+import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.UserService
@@ -8,8 +10,10 @@ import io.elephantchess.webapp.ops.*
 import io.elephantchess.webapp.rendering.*
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
+import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -22,9 +26,7 @@ private val simplePublicPageMapping = mapOf(
     "/401" to "401",
     "/403" to "403",
     "/404" to "404",
-    "/game" to "player_vs_player_game",
-    "/puzzles" to "puzzles",
-    "/board" to "simple_board",
+    "/board" to "test_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
     "/browse/player-vs-player" to "browse_pvp_games",
@@ -34,7 +36,10 @@ private val simplePublicPageMapping = mapOf(
     "/recovery" to "password_recovery1",
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
+    "/about/roadmap" to "about/roadmap",
+    "/about/datasets" to "about/datasets",
     "/contact" to "contact_form",
+    "/how-to-play-xiangqi" to "how_to_play_xiangqi",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
     "/7k/playground" to "seven_kingdoms/seven_kingdoms_playground",
     "/7k/about" to "seven_kingdoms/seven_kingdoms_about",
@@ -42,7 +47,6 @@ private val simplePublicPageMapping = mapOf(
 
 private val simplePublicPageMappingWithSupporterBanner = mapOf(
     "/" to "lobby",
-    "/playbot" to "player_vs_bot",
 )
 
 private val publicPageRedirection = mapOf(
@@ -61,13 +65,16 @@ private val identificationRequiredPagesMapping = mapOf(
 
 // only available authenticated users
 private val authenticatedRequiredPagesMapping = mapOf(
-    "/user/settings" to "user_settings",
     "/user/settings/sessions" to "user_sessions",
+    "/user/settings/views" to "user_views",
 )
 
 private val adminPagesMapping = mapOf(
     "/admin" to "admin/admin_overview",
     "/admin/feeds" to "admin/admin_feeds",
+    "/admin/variant-feeds" to "admin/admin_variant_feeds",
+    "/admin/elo-stats" to "admin/admin_user_elo_stats",
+    "/admin/content-section-feedback" to "admin/admin_content_section_feedback",
     "/admin/sessions" to "admin/admin_user_sessions",
     "/admin/analytics" to "admin/admin_analytics",
     "/admin/analytics-ads" to "admin/admin_analytics_ads",
@@ -81,6 +88,7 @@ private val adminPagesMapping = mapOf(
     "/admin/db-search-queries" to "admin/admin_db_search_queries",
     "/admin/password-recovery-attempts" to "admin/admin_password_recovery_attempts",
     "/admin/database-table-sizes" to "admin/admin_database_table_sizes",
+    "/admin/setting-preferences" to "admin/admin_setting_preferences",
     "/admin/thrown-exceptions" to "admin/admin_thrown_exceptions",
     "/admin/newsletter-stats" to "admin/admin_newsletter_stats",
     "/admin/player-profile-edits" to "admin/admin_player_profile_edits",
@@ -91,12 +99,52 @@ fun Application.htmlRoutingModule() {
     routing {
         simpleMappings()
         simpleMappingsWithSupporterBanner()
+        gamePages()
+        puzzlesPage()
         boardGuiExample()
         userProfile()
+        userSettingsPage()
         modals()
         databasePages()
         aboutPages()
         emailSettingUpdatePages()
+    }
+}
+
+private fun Route.gamePages() {
+    val gamePageRenderer by koin<GamePageRenderer>()
+
+    get("/game") {
+        val gameId = call.parameters["id"]
+        if (gameId == null) {
+            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+        } else {
+            call.respondHtml(gamePageRenderer.renderPvpGamePage(gameId))
+        }
+    }
+
+    get("/playbot") {
+        val gameId = call.parameters["id"]
+        if (gameId == null) {
+            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+        } else {
+            call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId))
+        }
+    }
+}
+
+private fun Route.puzzlesPage() {
+    val appConfig by koin<AppConfig>()
+    val isPuzzlesDebugModeEnabled = appConfig.isPuzzlesDebugModeEnabled
+    val resolvers = listOf(SimpleValueTagResolver("puzzles_debug_mode", isPuzzlesDebugModeEnabled.toString()))
+
+    get("/puzzles") {
+        call.respondHtml(
+            simplePageRenderer.renderTemplate(
+                "puzzles",
+                resolvers,
+            ),
+        )
     }
 }
 
@@ -149,8 +197,8 @@ private fun Routing.simpleMappingsWithSupporterBanner() {
             call.respondHtml(
                 simplePageRenderer.renderTemplate(
                     templateName,
-                    listOf(latestSupporterTagResolver(latestTipper))
-                )
+                    listOf(latestSupporterTagResolver(latestTipper)),
+                ),
             )
         }
     }
@@ -173,6 +221,23 @@ private fun Route.userProfile() {
 
         userService.validateUserExists(username)
         call.respondHtml(renderer.renderUserBrowsePvpGames(username))
+    }
+    get("/@/{username}/browse-pvb-games") {
+        val username = call.parameters["username"]
+            ?: throw BadRequestException("username not provided")
+
+        userService.validateUserExists(username)
+        call.respondHtml(renderer.renderUserBrowsePvbGames(username))
+    }
+}
+
+private fun Route.userSettingsPage() {
+    val renderer by koin<UserSettingsPageRenderer>()
+
+    get("/user/settings") {
+        requireAuthentication { token ->
+            TextContent(renderer.renderUserSettingsPage(token.userId), Html)
+        }
     }
 }
 

@@ -5,10 +5,8 @@ import io.elephantchess.servicelayer.dto.ws.GamesToPlayUpdate
 import io.elephantchess.servicelayer.model.UserId
 import kotlinx.coroutines.channels.ChannelResult
 
-class GamesToPlayWebSocketSession(
-    private val subscriber: UserId,
-    private val sendCb: (GamesToPlayUpdate) -> ChannelResult<Unit>
-) : WebSocketSession<GamesToPlayUpdate>() {
+class GamesToPlayWebSocketSession(private val subscriber: UserId, private val sendCb: (GamesToPlayUpdate) -> ChannelResult<Unit>) :
+    WebSocketSession<GamesToPlayUpdate>() {
 
     private val currentGameIdsToJoin = mutableSetOf<String>()
     private val currentTurnToPlayGames = mutableSetOf<String>()
@@ -54,5 +52,4 @@ class GamesToPlayWebSocketSession(
     companion object {
         private const val FORCE_REFRESH_INTERVAL_MS = 30_000L
     }
-
 }

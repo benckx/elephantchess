@@ -3,14 +3,13 @@ package io.elephantchess.servicelayer.services.admin
 import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.servicelayer.dto.admin.ReferenceGameSearchQueryResponse
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.utils.di.KoinSingleton
 
-class AdminDatabaseSearchService(
-    private val referenceGameDaoService: ReferenceGameDaoService,
-    private val userCache: UserCache,
-) {
+@KoinSingleton
+class AdminDatabaseSearchService(private val referenceGameDaoService: ReferenceGameDaoService, private val userCache: UserCache) {
 
-    suspend fun listLatestSearchQueries(): ReferenceGameSearchQueryResponse {
-        return referenceGameDaoService
+    suspend fun listLatestSearchQueries(): ReferenceGameSearchQueryResponse =
+        referenceGameDaoService
             .listLatestDatabaseSearches(100)
             .map { record ->
                 ReferenceGameSearchQueryResponse.Entry(
@@ -26,11 +25,9 @@ class AdminDatabaseSearchService(
                     eventName = record.eventName,
                     fen = record.fen,
                     offset = record.offset,
-                    numberOfResults = record.numberOfResults
+                    numberOfResults = record.numberOfResults,
                 )
             }.let { entries ->
                 ReferenceGameSearchQueryResponse(entries)
             }
-    }
-
 }
