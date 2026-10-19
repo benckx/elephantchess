@@ -9,5 +9,4 @@ data class PreAnalyzedReferenceGamesPerYearResponse(val entries: List<Entry>) {
         val status: AnalysisStatus,
         val count: Int,
     )
-
 }

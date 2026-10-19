@@ -1,15 +1,15 @@
 <html lang="en">
 <head>
     {{header_init}}
-    <title>Database Game</title>
-    {{meta_no_index}}
+    <title>{{page_title}} – Chinese Chess (Xiangqi) Database Game</title>
+    {{description_meta}}
     <link rel="stylesheet" href="/css/database/database-game-viewer.css"/>
     {{apex_charts}}
     {{board_js}}
     <script defer src="/js/database/database-player-utils.js"></script>
     <script defer src="/js/database/database-game-viewer.js"></script>
 </head>
-<body>
+<body{{body_data_attrs}}>
 {{body_init}}
 <div class="flex-triptych-container">
     <div class="flex-triptych-left-container">
@@ -22,10 +22,9 @@
                         <img src="/images/icons/servers.png" alt="database"/>
                     </td>
                     <td class="description-cell">
-                        <div id="players-info"></div>
-                        <div id="game-status-info"></div>
-                        <div id="game-date-info"></div>
-                        <div id="game-event-info"></div>
+                        <div id="players-info">{{players_info}}</div>
+                        <div id="game-date-info">{{game_date_info}}</div>
+                        <div id="game-event-info">{{game_event_info}}</div>
                     </td>
                 </tr>
                 </tbody>

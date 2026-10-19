@@ -5,8 +5,10 @@ import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.utils.timeControl
 import io.elephantchess.servicelayer.batch.definitions.ShardedBatch
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 
+@KoinSingleton
 class FlagGamesBatch(
     private val pvpGameService: PlayerVsPlayerGameService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
@@ -21,5 +23,4 @@ class FlagGamesBatch(
 
     override suspend fun process(element: Game) =
         pvpGameService.flagIfNeeded(element.id, element.timeControl()!!)
-
 }

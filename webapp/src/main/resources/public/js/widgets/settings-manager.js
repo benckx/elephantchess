@@ -22,6 +22,13 @@ const SHOW_COORDINATES_SETTING = 'setting.show.coordinates';
 const MOVE_FORMAT_SETTING = 'setting.move.format';
 const MOVE_NODE_EVAL_FORMAT = 'setting.move.node.eval.format';
 const SHOW_ANALYTICS_ARROWS = 'setting.show.analytics.arrows';
+const COORDINATES_STYLE_SETTING = 'setting.coordinates.style';
+const FLIP_OPPONENT_PIECES_SETTING = 'setting.flip.opponent.pieces';
+const PLAY_SOUNDS_SETTING = 'setting.play.sounds';
+const COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING = 'setting.colorblind.friendly.black.pieces';
+const SHOW_COLORED_AREAS_SETTING = 'setting.show.colored.areas';
+const SHOW_RIVER_AREA_COLOR_SETTING = 'setting.show.river.area.color';
+const SHOW_PALACE_AREA_COLOR_SETTING = 'setting.show.palace.area.color';
 
 const MoveFormatSetting = Object.freeze({
     WXF_DOT: 'WXF_DOT',
@@ -78,6 +85,59 @@ class SettingsManager {
      */
     set isShowCoordinatesEnabled(value) {
         setCookie(SHOW_COORDINATES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isPlaySoundsEnabled() {
+        const cookieValue = getCookie(PLAY_SOUNDS_SETTING);
+        return cookieValue === null ? true : cookieValue === "true";
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isPlaySoundsEnabled(value) {
+        setCookie(PLAY_SOUNDS_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isColorblindFriendlyBlackPiecesEnabled() {
+        const cookieValue = getCookie(COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING);
+        if (cookieValue === null) {
+            return false;
+        } else {
+            return cookieValue === 'true';
+        }
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isColorblindFriendlyBlackPiecesEnabled(value) {
+        setCookie(COLORBLIND_FRIENDLY_BLACK_PIECES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isColoredAreasEnabled() {
+        const cookieValue = getCookie(SHOW_COLORED_AREAS_SETTING);
+        if (cookieValue !== null) {
+            return cookieValue === 'true';
+        }
+        return getCookie(SHOW_RIVER_AREA_COLOR_SETTING) === 'true'
+            || getCookie(SHOW_PALACE_AREA_COLOR_SETTING) === 'true';
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isColoredAreasEnabled(value) {
+        setCookie(SHOW_COLORED_AREAS_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
     }
 
     /**
@@ -139,6 +199,45 @@ class SettingsManager {
     }
 
     /**
+     * @return {string} one of {@link FileNumbersStyle} or {@link CoordinatesOrientation}.ALGEBRAIC
+     */
+    get coordinatesStyle() {
+        const cookieValue = getCookie(COORDINATES_STYLE_SETTING);
+        if (cookieValue !== null
+            && (cookieValue === CoordinatesOrientation.ALGEBRAIC
+                || Object.values(FileNumbersStyle).includes(cookieValue))) {
+            return cookieValue;
+        }
+        // backward-compat default: tie to the move format chosen by the user
+        // (PGN/Algebraic users get algebraic letters; WXF users get the default WXF flavor)
+        const isWxfMoveFormat = this.moveFormat === MoveFormatSetting.WXF_DOT
+            || this.moveFormat === MoveFormatSetting.WXF_EQUALS;
+        return isWxfMoveFormat ? FileNumbersStyle.DEFAULT : CoordinatesOrientation.ALGEBRAIC;
+    }
+
+    /**
+     * @param value {string}
+     */
+    set coordinatesStyle(value) {
+        setCookie(COORDINATES_STYLE_SETTING, value, CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isFlipOpponentPiecesEnabled() {
+        const cookieValue = getCookie(FLIP_OPPONENT_PIECES_SETTING);
+        return cookieValue === 'true';
+    }
+
+    /**
+     * @param value {boolean}
+     */
+    set isFlipOpponentPiecesEnabled(value) {
+        setCookie(FLIP_OPPONENT_PIECES_SETTING, value.toString(), CHROME_COOKIE_MAX_TTL);
+    }
+
+    /**
      * Resolves the user's preference into a {@link CoordinatesOrientation} value
      * (or `null` if the user disabled the coordinates display).
      *
@@ -148,9 +247,22 @@ class SettingsManager {
         if (!this.isShowCoordinatesEnabled) {
             return null;
         }
-        const isWxf = this.moveFormat === MoveFormatSetting.WXF_DOT
-            || this.moveFormat === MoveFormatSetting.WXF_EQUALS;
-        return isWxf ? CoordinatesOrientation.WXF : CoordinatesOrientation.UCI;
+        return this.coordinatesStyle === CoordinatesOrientation.ALGEBRAIC
+            ? CoordinatesOrientation.ALGEBRAIC
+            : CoordinatesOrientation.WXF;
+    }
+
+    /**
+     * Resolves the user's preference into a {@link FileNumbersStyle} value
+     * (only meaningful when the orientation is WXF).
+     *
+     * @return {string}
+     */
+    getFileNumbersStyle() {
+        const style = this.coordinatesStyle;
+        return Object.values(FileNumbersStyle).includes(style)
+            ? style
+            : FileNumbersStyle.DEFAULT;
     }
 
 }
@@ -172,11 +284,39 @@ function buildWebappBoardGuiOptions(overrides = {}) {
     // const isLocalHost = false;
     return {
         coordinatesOrientation: settingsManager.getCoordinatesOrientation(),
+        playSounds: settingsManager.isPlaySoundsEnabled,
         pieceStyle: settingsManager.pieceStyle,
+        colorblindFriendlyBlackPieces: settingsManager.isColorblindFriendlyBlackPiecesEnabled,
+        flipOpponentPieces: settingsManager.isFlipOpponentPiecesEnabled,
+        showColoredAreas: settingsManager.isColoredAreasEnabled,
+        fileNumbersStyle: settingsManager.getFileNumbersStyle(),
         // when developing locally, serve the assets from the local server
         // (otherwise default to the production CDN baked into BoardGui)
-        ...(isLocalHost ? { assetsBaseUrl: '' } : {}),
+        ...(isLocalHost ? {assetsBaseUrl: ''} : {}),
         ...overrides,
+    };
+}
+
+/**
+ * Returns cookie-backed persistence callbacks for a move-tree widget instance.
+ *
+ * @param {string} pageKey
+ * @param {string} containerId
+ * @return {{loadPersistedHeight: function(): number|null, persistHeight: function(number): void}}
+ */
+function moveTreeResizeCookiePersistence(pageKey, containerId) {
+    const cookieName = `${pageKey}.${containerId}.height`;
+    return {
+        loadPersistedHeight: () => {
+            const rawValue = getCookie(cookieName);
+            if (rawValue === null) {
+                return null;
+            }
+            return Number.parseInt(rawValue, 10);
+        },
+        persistHeight: (height) => {
+            setCookie(cookieName, height.toString(), CHROME_COOKIE_MAX_TTL);
+        }
     };
 }
 
@@ -191,76 +331,10 @@ function createWebappBoardGui(overrides = {}) {
     return new BoardGui(buildWebappBoardGuiOptions(overrides));
 }
 
-let moveLabelMap = new Map([
-    [MoveFormatSetting.WXF_DOT, 'WXF .'],
-    [MoveFormatSetting.WXF_EQUALS, 'WXF ='],
-    [MoveFormatSetting.PGN, 'PGN'],
-    [MoveFormatSetting.ALGEBRAIC_EN, 'Algebraic'],
-]);
-
-class SelectMoveFormatMenu extends ContextualMenu {
-
-    /**
-     * @type {BoardGui}
-     */
-    #boardGui;
-
-    /**
-     * @type {MoveTreeWidget}
-     */
-    #moveTreeWidget;
-
-    #settingsManager = new SettingsManager();
-
-    /**
-     * @type {function(string)[]}
-     */
-    #listeners = [];
-
-    /**
-     * @param boardGui {BoardGui}
-     * @param moveTreeWidget {MoveTreeWidget}
-     */
-    constructor(boardGui, moveTreeWidget) {
-        super('select-move-format-menu');
-        this.#boardGui = boardGui;
-        this.#moveTreeWidget = moveTreeWidget;
-
-        // build menu items
-        let selectedMoveFormat = this.#settingsManager.moveFormat
-        moveLabelMap.forEach((value, key) => {
-            let label = value;
-            if (selectedMoveFormat === key) {
-                label = `✓ ${value}`;
-            }
-
-            this.addSimpleItem(label, () => {
-                this.#updateMoveFormat(key);
-            });
-        });
-    }
-
-    /**
-     * @param moveFormat {string}
-     */
-    #updateMoveFormat(moveFormat) {
-        this.#settingsManager.moveFormat = moveFormat.toString();
-        this.#boardGui.updateMoveFormat(moveFormat);
-        this.#moveTreeWidget.updateMoveFormat(moveFormat);
-        this.#listeners.forEach(listener => listener(moveFormat));
-    }
-
-    /**
-     * @param listener {function(string)}
-     */
-    addListener(listener) {
-        this.#listeners.push(listener);
-    }
-
-}
+let activeAdvancedSettingsEscapeListener = null;
+let activeAdvancedSettingsCloseHandler = null;
 
 class SettingsGui {
-
     #moveTreeWidget;
     #settingsManager = new SettingsManager();
     #selectMoveFormatMenuListeners = [];
@@ -280,17 +354,43 @@ class SettingsGui {
      */
     #boardGuis = [];
 
+    // base settings
     #selectPieceStyleTraditional = document.getElementById('select-piece-style-traditional');
     #selectPieceStyleRomanizedRounded = document.getElementById('select-piece-style-romanized-rounded');
-    #moveFormat = document.getElementById('move-format-button');
-    #showCoordinates = document.getElementById('show-coordinates-button');
     #flipBoard = document.getElementById('flip-board-button');
 
-    // optional
+    // advanced piece style
+    #pieceStyleSelect = document.getElementById('piece-style-select');
+
+    #advancedSettingsToggle = document.getElementById('advanced-settings-toggle');
+    #advancedSettingsBox = document.getElementById('advanced-settings-box');
+    #advancedSettingsCloseButton = document.getElementById('advanced-settings-close-button');
+    #modalBackground = document.getElementById('modal-background');
+    #advancedSettingsUsesModalBackground = false;
+
+    // advanced settings
+    #advancedMoveFormatSettingItem = document.getElementById('advanced-move-format-setting-item');
+
+    #moveFormatSelect = document.getElementById('move-format-select');
+
+    #showCoordinatesCheckbox = document.getElementById('show-coordinates-checkbox');
+
+    #coordinatesStyleSelect = document.getElementById('coordinates-style-select');
+    #coordinatesMoveFormatMismatchWarning = document.getElementById('coordinates-move-format-mismatch-warning');
+
+
+    #flipOpponentPiecesCheckbox = document.getElementById('flip-opponent-pieces-checkbox');
+
+    #playSoundsCheckbox = document.getElementById('play-sounds-checkbox');
+
+    #colorblindFriendlyBlackPiecesCheckbox = document.getElementById('colorblind-friendly-black-pieces-checkbox');
+    #coloredAreasCheckbox = document.getElementById('colored-areas-checkbox');
+
+    // optional (for Analysis Board)
     #showAnalyticsArrowsItem = document.getElementById('show-analytics-arrows-item');
     #showAnalyticsArrowsImg = document.getElementById('show-analytics-arrows');
 
-    // optional
+    // optional (for Analysis Board)
     #editPositionItem = document.getElementById('edit-position-item');
     #editPositionButton = document.getElementById('edit-position-button');
 
@@ -298,46 +398,229 @@ class SettingsGui {
      * @param boardGui {BoardGui}
      * @param moveTreeWidget {MoveTreeWidget|null}
      * @param showArrowsOption {boolean} - whether to show arrows option (it's only for analysis board)
+     * @param showAdvancedSettingsLink {boolean} - whether to show "Advanced" settings trigger
      */
-    constructor(boardGui, moveTreeWidget, showArrowsOption = false) {
+    constructor(boardGui, moveTreeWidget, showArrowsOption = false, showAdvancedSettingsLink = true) {
         this.#moveTreeWidget = moveTreeWidget;
         this.#boardGuis.push(boardGui);
 
-        // select piece style 1
-        this.#selectPieceStyleTraditional.onclick = () => {
-            this.#settingsManager.pieceStyle = PieceStyleSetting.TRADITIONAL;
-            this.#boardGuis.forEach(boardGui => boardGui.updatePieceStyle(PieceStyleSetting.TRADITIONAL));
-        }
+        // piece style: 2 quick picks in the main box + all options in advanced settings
+        const pieceStyleValues = [
+            PieceStyleSetting.TRADITIONAL,
+            PieceStyleSetting.ROMANIZED_ROUNDED,
+            PieceStyleSetting.MODERN,
+            PieceStyleSetting.INK_BRUSH,
+        ];
+        const applyPieceStyle = (pieceStyle) => {
+            this.#settingsManager.pieceStyle = pieceStyle;
+            this.#boardGuis.forEach(boardGui => boardGui.updatePieceStyle(pieceStyle));
+            if (pieceStyleValues.includes(pieceStyle)) {
+                this.#pieceStyleSelect.value = pieceStyle;
+            }
+        };
+
+        // select piece style 1 (main box)
+        this.#selectPieceStyleTraditional.onclick = () => applyPieceStyle(PieceStyleSetting.TRADITIONAL);
         addToolTip(this.#selectPieceStyleTraditional, "Select 'Traditional' piece style");
 
-        // select piece style 2
-        this.#selectPieceStyleRomanizedRounded.onclick = () => {
-            this.#settingsManager.pieceStyle = PieceStyleSetting.ROMANIZED_ROUNDED;
-            this.#boardGuis.forEach(boardGui => boardGui.updatePieceStyle(PieceStyleSetting.ROMANIZED_ROUNDED));
-        }
+        // select piece style 2 (main box)
+        this.#selectPieceStyleRomanizedRounded.onclick = () => applyPieceStyle(PieceStyleSetting.ROMANIZED_ROUNDED);
         addToolTip(this.#selectPieceStyleRomanizedRounded, "Select 'Romanized Rounded' piece style");
 
+        // piece style (advanced settings: all options)
+        const currentPieceStyle = pieceStyleValues.includes(this.#settingsManager.pieceStyle)
+            ? this.#settingsManager.pieceStyle
+            : PieceStyleSetting.DEFAULT;
+        this.#pieceStyleSelect.value = currentPieceStyle;
+        this.#pieceStyleSelect.onchange = () => applyPieceStyle(this.#pieceStyleSelect.value);
+
         // move format
-        // doesn't apply to mini boards, so no need loop over all boards for this one
-        this.#moveFormat.onclick = () => {
-            if (this.#moveTreeWidget != null) {
-                const menu = new SelectMoveFormatMenu(boardGui, moveTreeWidget);
-                this.#selectMoveFormatMenuListeners.forEach(listener => menu.addListener(listener));
-                menu.showAt(UI.cursorX, UI.cursorY);
-                DropDownMenuManager.getInstance().registerDropDownMenu(menu, [this.#moveFormat.id]);
+        const isWxfMoveFormat = (mf) => mf === MoveFormatSetting.WXF_DOT || mf === MoveFormatSetting.WXF_EQUALS;
+        const isWxfCoordinatesStyle = (cs) => cs !== CoordinatesOrientation.ALGEBRAIC;
+        const updateCoordinatesMoveFormatMismatchWarning = () => {
+            const mf = this.#settingsManager.moveFormat;
+            const cs = this.#settingsManager.coordinatesStyle;
+            const mismatch = isWxfMoveFormat(mf) !== isWxfCoordinatesStyle(cs);
+            if (this.#coordinatesMoveFormatMismatchWarning != null) {
+                this.#coordinatesMoveFormatMismatchWarning.hidden = !mismatch;
             }
+        };
+        const applyMoveFormat = (moveFormat) => {
+            this.#settingsManager.moveFormat = moveFormat;
+            if (this.#moveTreeWidget != null) {
+                // Move format only affects how moves are displayed in the move tree widget;
+                // it must not redraw the board (would clear transient overlays like check highlights).
+                this.#moveTreeWidget.updateMoveFormat(moveFormat);
+                this.#selectMoveFormatMenuListeners.forEach(listener => listener(moveFormat));
+            }
+            updateCoordinatesMoveFormatMismatchWarning();
         }
-        addToolTip(this.#moveFormat, 'Select move format');
+        this.#moveFormatSelect.onchange = () => applyMoveFormat(this.#moveFormatSelect.value);
+        switch (this.#settingsManager.moveFormat) {
+            case MoveFormatSetting.WXF_EQUALS:
+            case MoveFormatSetting.PGN:
+            case MoveFormatSetting.ALGEBRAIC_EN:
+                this.#moveFormatSelect.value = this.#settingsManager.moveFormat;
+                break;
+            default:
+                this.#moveFormatSelect.value = MoveFormatSetting.WXF_DOT;
+                break;
+        }
+        applyMoveFormat(this.#settingsManager.moveFormat);
         if (this.#moveTreeWidget == null) {
-            // .setting-option-item
-            this.#moveFormat.parentElement.parentElement.style.display = 'none';
+            this.#advancedMoveFormatSettingItem.style.display = 'none';
         }
 
         // show coordinates
-        this.#showCoordinates.onclick = () => {
-            this.#settingsManager.isShowCoordinatesEnabled = boardGui.toggleShowCoordinates();
+        const setShowCoordinatesEnabled = (enabled) => {
+            if (this.#settingsManager.isShowCoordinatesEnabled === enabled) {
+                return;
+            }
+            this.#boardGuis.forEach(board => board.toggleShowCoordinates());
+            this.#settingsManager.isShowCoordinatesEnabled = enabled;
         }
-        addToolTip(this.#showCoordinates, 'Show or hide board coordinates');
+        this.#showCoordinatesCheckbox.checked = this.#settingsManager.isShowCoordinatesEnabled;
+        this.#showCoordinatesCheckbox.onchange = () => {
+            setShowCoordinatesEnabled(this.#showCoordinatesCheckbox.checked);
+        }
+
+        // colorblind-friendly black pieces
+        this.#colorblindFriendlyBlackPiecesCheckbox.checked = this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled;
+        this.#colorblindFriendlyBlackPiecesCheckbox.onchange = () => {
+            const enabled = this.#colorblindFriendlyBlackPiecesCheckbox.checked;
+            this.#settingsManager.isColorblindFriendlyBlackPiecesEnabled = enabled;
+            this.#boardGuis.forEach(board => board.setColorblindFriendlyBlackPiecesEnabled(enabled));
+        }
+
+        // colored areas
+        this.#coloredAreasCheckbox.checked = this.#settingsManager.isColoredAreasEnabled;
+        this.#coloredAreasCheckbox.onchange = () => {
+            const enabled = this.#coloredAreasCheckbox.checked;
+            this.#settingsManager.isColoredAreasEnabled = enabled;
+            this.#boardGuis.forEach(board => board.setShowColoredAreasEnabled(enabled));
+        };
+
+        // flip opponent pieces
+        this.#flipOpponentPiecesCheckbox.checked = this.#settingsManager.isFlipOpponentPiecesEnabled;
+        this.#flipOpponentPiecesCheckbox.onchange = () => {
+            const enabled = this.#flipOpponentPiecesCheckbox.checked;
+            this.#settingsManager.isFlipOpponentPiecesEnabled = enabled;
+            this.#boardGuis.forEach(board => board.setFlipOpponentPiecesEnabled(enabled));
+        }
+
+        // play sounds
+        const setPlaySoundsEnabled = (enabled) => {
+            if (this.#settingsManager.isPlaySoundsEnabled === enabled) {
+                return;
+            }
+            this.#settingsManager.isPlaySoundsEnabled = enabled;
+            this.#boardGuis.forEach(boardGui => boardGui.updatePlaySounds(enabled));
+        }
+        this.#playSoundsCheckbox.checked = this.#settingsManager.isPlaySoundsEnabled;
+        this.#playSoundsCheckbox.onchange = () => {
+            setPlaySoundsEnabled(this.#playSoundsCheckbox.checked);
+        }
+
+        // coordinates style (WXF flavors + Algebraic letters)
+        const coordinatesStyleValues = [
+            FileNumbersStyle.ARABIC_BOTH,
+            FileNumbersStyle.CHINESE_BOTH,
+            FileNumbersStyle.CHINESE_RED_ONLY,
+            FileNumbersStyle.CHINESE_BLACK_ONLY,
+            FileNumbersStyle.CHINESE_LOWER_ONLY,
+            FileNumbersStyle.CHINESE_TOP_ONLY,
+            CoordinatesOrientation.ALGEBRAIC,
+        ];
+        const applyCoordinatesStyle = (style) => {
+            this.#settingsManager.coordinatesStyle = style;
+            const orientation = this.#settingsManager.getCoordinatesOrientation();
+            const fileNumbersStyle = this.#settingsManager.getFileNumbersStyle();
+            this.#boardGuis.forEach(board => {
+                board.setCoordinatesOrientation(orientation);
+                board.setFileNumbersStyle(fileNumbersStyle);
+            });
+            updateCoordinatesMoveFormatMismatchWarning();
+        };
+        const currentCoordinatesStyle = coordinatesStyleValues.includes(this.#settingsManager.coordinatesStyle)
+            ? this.#settingsManager.coordinatesStyle
+            : FileNumbersStyle.DEFAULT;
+        this.#coordinatesStyleSelect.value = currentCoordinatesStyle;
+        this.#coordinatesStyleSelect.onchange = () => applyCoordinatesStyle(this.#coordinatesStyleSelect.value);
+
+        // when "show coordinates" is off, grey out and disable the coordinates style select
+        const updateCoordinatesStyleEnabledState = () => {
+            const enabled = this.#settingsManager.isShowCoordinatesEnabled;
+            this.#coordinatesStyleSelect.disabled = !enabled;
+            const optionsContainer = this.#coordinatesStyleSelect.closest('.advanced-setting-options');
+            if (optionsContainer != null) {
+                optionsContainer.classList.toggle('advanced-setting-option-disabled', !enabled);
+            }
+        };
+        updateCoordinatesStyleEnabledState();
+        this.#showCoordinatesCheckbox.addEventListener('change', updateCoordinatesStyleEnabledState);
+        updateCoordinatesMoveFormatMismatchWarning();
+
+        // make the "Enabled" labels of the checkboxes clickable (scoped to the advanced settings box)
+        if (this.#advancedSettingsBox != null) {
+            makeCheckboxesClickable(this.#advancedSettingsBox);
+        }
+
+        // advanced settings
+        const isMobileAdvancedSettingsLayout = () => window.matchMedia('(max-width: 1000px)').matches;
+        const closeAdvancedSettings = () => {
+            this.#advancedSettingsBox.classList.remove('advanced-settings-box-open');
+            if (activeAdvancedSettingsCloseHandler === closeAdvancedSettings) {
+                activeAdvancedSettingsCloseHandler = null;
+            }
+            if (this.#advancedSettingsUsesModalBackground) {
+                this.#advancedSettingsUsesModalBackground = false;
+                this.#modalBackground.style.display = 'none';
+            }
+        };
+        const openAdvancedSettings = () => {
+            if (isMobileAdvancedSettingsLayout() && this.#modalBackground != null) {
+                const isModalBackgroundHidden = this.#modalBackground.style.display === ''
+                    || this.#modalBackground.style.display === 'none';
+                if (isModalBackgroundHidden) {
+                    this.#advancedSettingsUsesModalBackground = true;
+                    this.#modalBackground.style.display = 'flex';
+                }
+            }
+            activeAdvancedSettingsCloseHandler = closeAdvancedSettings;
+            this.#advancedSettingsBox.classList.add('advanced-settings-box-open');
+        };
+        this.#advancedSettingsToggle.onclick = (e) => {
+            e.preventDefault();
+            if (this.#advancedSettingsBox.classList.contains('advanced-settings-box-open')) {
+                closeAdvancedSettings();
+            } else {
+                openAdvancedSettings();
+            }
+        };
+        this.#advancedSettingsCloseButton.onclick = (e) => {
+            e.preventDefault();
+            closeAdvancedSettings();
+        };
+        if (activeAdvancedSettingsEscapeListener === null) {
+            activeAdvancedSettingsEscapeListener = (event) => {
+                if (event.key === 'Escape' && typeof activeAdvancedSettingsCloseHandler === 'function') {
+                    activeAdvancedSettingsCloseHandler();
+                }
+            };
+            document.addEventListener('keydown', activeAdvancedSettingsEscapeListener);
+        }
+        if (!showAdvancedSettingsLink) {
+            this.#advancedSettingsToggle.style.display = 'none';
+            this.#advancedSettingsBox.style.display = 'none';
+        } else {
+            document.addEventListener('click', (event) => {
+                const isInsideAdvancedBox = this.#advancedSettingsBox.contains(event.target);
+                const isAdvancedToggle = this.#advancedSettingsToggle.contains(event.target);
+                if (!isInsideAdvancedBox && !isAdvancedToggle) {
+                    closeAdvancedSettings();
+                }
+            });
+        }
 
         // flip board
         this.#flipBoard.onclick = () => {
@@ -399,4 +682,3 @@ class SettingsGui {
     }
 
 }
-

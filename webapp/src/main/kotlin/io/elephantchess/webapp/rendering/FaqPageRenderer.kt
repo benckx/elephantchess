@@ -2,7 +2,9 @@ package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
+import io.elephantchess.utils.di.KoinSingleton
 
+@KoinSingleton(eager = true)
 class FaqPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
     suspend fun renderFaqPage(): String =
@@ -47,9 +49,7 @@ class FaqPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
             val items = entries.joinToString("\n") { (id, title) ->
                 """<li><a href="#${escapeHtmlAttr(id)}">${escapeHtml(title)}</a></li>"""
             }
-            return """<nav id="faq-toc"><ul>$items</ul></nav>"""
+            return """<nav id="page-toc"><ul>$items</ul></nav>"""
         }
-
     }
-
 }

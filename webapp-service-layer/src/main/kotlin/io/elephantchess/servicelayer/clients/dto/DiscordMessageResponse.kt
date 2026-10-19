@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class DiscordMessageResponse(
     val id: String,
     @SerialName("channel_id") val channelId: String,
-    val timestamp: String
+    val timestamp: String,
 )

@@ -7,23 +7,27 @@ import io.elephantchess.db.dao.codegen.tables.records.UserRecord
 import io.elephantchess.db.model.NotificationsSettingsRecord
 import io.elephantchess.db.model.PlayerVsPlayerNumberOfGamesAndLastPlayedRecord
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
+import io.elephantchess.db.model.UserRatingSummaryRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.UserType
 import io.elephantchess.model.UserType.AUTHENTICATED
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.safeRandomAlphaNumericString
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
-import org.jooq.Record2
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
+import java.math.BigDecimal
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
+@KoinSingleton
 class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
 
     suspend fun save(user: User): String {
@@ -77,33 +81,41 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         return id!!
     }
 
-    suspend fun fetchProfileSettings(userId: String): Record2<String, String>? {
-        return dslContext
+    suspend fun fetchProfileSettings(userId: String): User? =
+        dslContext
             .select(
                 USER.DESCRIPTION,
-                USER.COUNTRY
+                USER.COUNTRY,
+                USER.SHOW_PVP_GAMES_ON_PROFILE,
+                USER.SHOW_PVB_GAMES_ON_PROFILE,
             )
             .from(USER)
             .where(USER.ID.eq(userId))
-            .awaitRecords()
-            .firstOrNull()
-    }
+            .awaitSingleMappedRecord<User>()
 
-    suspend fun updateProfileSettings(userId: String, description: String, country: String) {
+    suspend fun updateProfileSettings(
+        userId: String,
+        description: String,
+        country: String?,
+        showPvpGamesOnProfile: Boolean,
+        showPvbGamesOnProfile: Boolean,
+    ) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.DESCRIPTION.fixed(), description)
-                .set(USER.COUNTRY.fixed(), country)
-                .set(USER.LAST_PROFILE_UPDATE.fixed(), Clock.System.now())
-                .where(USER.ID.fixed().eq(userId))
+                .update(USER)
+                .set(USER.DESCRIPTION, description)
+                .set(USER.COUNTRY, country)
+                .set(USER.SHOW_PVP_GAMES_ON_PROFILE, showPvpGamesOnProfile)
+                .set(USER.SHOW_PVB_GAMES_ON_PROFILE, showPvbGamesOnProfile)
+                .set(USER.LAST_PROFILE_UPDATE, Clock.System.now())
+                .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
     }
 
-    suspend fun fetchNotificationSettings(userId: String): NotificationsSettingsRecord? {
-        return dslContext
+    suspend fun fetchNotificationSettings(userId: String): NotificationsSettingsRecord? =
+        dslContext
             .select(
                 USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER,
                 USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME,
@@ -111,7 +123,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED,
                 USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW,
                 USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW,
-                USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW
+                USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW,
             )
             .from(USER)
             .where(USER.ID.eq(userId))
@@ -127,7 +139,6 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                     opponentDeclinedDraw = userRecord.emailNotificationEnabledOpponentDeclinedDraw,
                 )
             }
-    }
 
     suspend fun updateNotificationSettings(
         userId: String,
@@ -142,14 +153,14 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER.fixed(), newsletter)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME.fixed(), opponentJoinedGame)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE.fixed(), opponentPlayedMove)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED.fixed(), opponentResigned)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW.fixed(), opponentProposedDraw)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW.fixed(), opponentAcceptedDraw)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW.fixed(), opponentDeclinedDraw)
+                .update(USER)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, newsletter)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME, opponentJoinedGame)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE, opponentPlayedMove)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED, opponentResigned)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW, opponentProposedDraw)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW, opponentAcceptedDraw)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW, opponentDeclinedDraw)
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
@@ -159,8 +170,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER.fixed(), false)
+                .update(USER)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, false)
                 .where(USER.EMAIL.eqIgnoreCaseTrimmed(emailAddress))
                 .awaitExecute()
         }
@@ -170,44 +181,42 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW.fixed(), false)
-                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW.fixed(), false)
+                .update(USER)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW, false)
                 .where(USER.EMAIL.eqIgnoreCaseTrimmed(emailAddress))
                 .awaitExecute()
         }
     }
 
-    suspend fun fetchEmail(userId: String): String? {
-        return dslContext
+    suspend fun fetchEmail(userId: String): String? =
+        dslContext
             .select(USER.EMAIL)
             .from(USER)
             .where(USER.ID.eq(userId))
             .and(USER.USER_TYPE.eq(AUTHENTICATED))
             .awaitSingleValue()
-    }
 
-    suspend fun listNewsletterEmailAddresses(): List<String> {
-        return dslContext
+    suspend fun listNewsletterEmailAddresses(): List<String> =
+        dslContext
             .select(USER.EMAIL)
             .from(USER)
             .where(USER.EMAIL.isNotNull)
             .and(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER.isTrue)
             .awaitMappedRecords()
-    }
 
     suspend fun updatePassword(userId: String, password: ByteArray) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.PASSWORD.fixed(), password)
-                .where(USER.ID.fixed().eq(userId))
+                .update(USER)
+                .set(USER.PASSWORD, password)
+                .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
     }
@@ -215,55 +224,50 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
     /**
      * Case-insensitive email, case sensitive username
      */
-    suspend fun findByLogin(login: String): User? {
-        return dslContext
+    suspend fun findByLogin(login: String): User? =
+        dslContext
             .select()
             .from(USER)
             .where(USER.HANDLE.eq(login))
             .or(DSL.lower(USER.EMAIL).eq(login.lowercase()))
             .awaitSingleMappedRecord()
-    }
 
-    suspend fun findByUserName(username: String): User? {
-        return dslContext
+    suspend fun findByUserName(username: String): User? =
+        dslContext
             .select()
             .from(USER)
             .where(USER.HANDLE.eq(username))
             .awaitSingleMappedRecord()
-    }
 
     /**
      * Case-insensitive and trim-insensitive
      */
-    suspend fun findByEmail(email: String): User? {
-        return dslContext
+    suspend fun findByEmail(email: String): User? =
+        dslContext
             .select()
             .from(USER)
             .where(USER.EMAIL.eqIgnoreCaseTrimmed(email))
             .awaitSingleMappedRecord()
-    }
 
-    suspend fun findUserNameById(userId: String): String? {
-        return dslContext
+    suspend fun findUserNameById(userId: String): String? =
+        dslContext
             .select(USER.HANDLE)
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleValue()
-    }
 
-    suspend fun searchForUsernames(usernames: List<String>): List<String> {
-        return dslContext
+    suspend fun searchForUsernames(usernames: List<String>): List<String> =
+        dslContext
             .select(USER.ID)
             .from(USER)
             .where(
                 DSL.lower(DSL.trim(USER.HANDLE))
-                    .`in`(usernames.map { it.trim().lowercase() })
+                    .`in`(usernames.map { it.trim().lowercase() }),
             )
             .awaitMappedRecords()
-    }
 
-    suspend fun fetchBasicInformation(userId: String): User? {
-        return dslContext
+    suspend fun fetchBasicInformation(userId: String): User? =
+        dslContext
             .select(
                 USER.ID,
                 USER.HANDLE,
@@ -275,68 +279,82 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleOrNull()
-    }
 
-    suspend fun fetchDescriptionByUsername(username: String): String? {
-        return dslContext
-            .select(USER.DESCRIPTION)
-            .from(USER)
-            .where(USER.HANDLE.eq(username))
-            .awaitSingleValue()
-    }
-
-    suspend fun fetchLastOnline(userIds: List<String>): Map<String, Instant> {
-        return dslContext
-            .select(USER.ID, USER.LAST_ONLINE)
-            .from(USER)
-            .where(USER.ID.`in`(userIds))
-            .awaitRecords()
-            .associate { record ->
-                record.get(USER.ID) to record.get(USER.LAST_ONLINE)
-            }
-    }
-
-    suspend fun findById(userId: String): User? {
-        return dslContext
+    suspend fun findById(userId: String): User? =
+        dslContext
             .select()
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleMappedRecord()
+
+    suspend fun listManuallyConfirmedEmailAddresses(): List<String> =
+        dslContext
+            .select(USER.EMAIL)
+            .from(USER)
+            .where(USER.EMAIL.isNotNull)
+            .and(USER.EMAIL_CONFIRMED_AT.isNotNull)
+            .awaitMappedRecords()
+
+    suspend fun findByEmailConfirmationCode(code: String): User? =
+        dslContext
+            .select()
+            .from(USER)
+            .where(USER.EMAIL_CONFIRMATION_CODE.eq(code))
+            .awaitSingleMappedRecord()
+
+    suspend fun markEmailConfirmed(userId: String, confirmedAt: Instant) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL
+                .using(cfg)
+                .update(USER)
+                .set(USER.EMAIL_CONFIRMED_AT, confirmedAt)
+                .where(USER.ID.eq(userId))
+                .awaitExecute()
+        }
     }
 
-    suspend fun existsById(userId: String): Boolean {
-        return dslContext
+    suspend fun updateEmailConfirmationCode(userId: String, code: String, createdAt: Instant) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL
+                .using(cfg)
+                .update(USER)
+                .set(USER.EMAIL_CONFIRMATION_CODE, code)
+                .set(USER.EMAIL_CONFIRMATION_CODE_CREATED_AT, createdAt)
+                .where(USER.ID.eq(userId))
+                .awaitExecute()
+        }
+    }
+
+    suspend fun existsById(userId: String): Boolean =
+        dslContext
             .selectCount()
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleValue<Int>()!! > 0
-    }
 
     /**
      * Case-insensitive and trim-insensitive
      */
-    suspend fun existsForEmail(email: String): Boolean {
-        return dslContext
+    suspend fun existsForEmail(email: String): Boolean =
+        dslContext
             .selectCount()
             .from(USER)
             .where(USER.EMAIL.eqIgnoreCaseTrimmed(email))
             .awaitSingleValue<Int>()!! > 0
-    }
 
-    suspend fun existsForUsername(username: String): Boolean {
-        return dslContext
+    suspend fun existsForUsername(username: String): Boolean =
+        dslContext
             .selectCount()
             .from(USER)
             .where(USER.HANDLE.eq(username))
             .awaitSingleValue<Int>()!! > 0
-    }
 
     suspend fun updateLastOnline(userId: String) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
                 .update(USER)
-                .set(USER.LAST_ONLINE.fixed(), Clock.System.now())
+                .set(USER.LAST_ONLINE, Clock.System.now())
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
@@ -358,6 +376,12 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .set(USER.GAME_RATING_CLASSICAL, guestUser.gameRatingClassical)
                 .set(USER.GAME_RATING_SEVERAL_DAYS, guestUser.gameRatingSeveralDays)
                 .set(USER.GAME_RATING_CORRESPONDENCE, guestUser.gameRatingCorrespondence)
+                .set(USER.GAME_RATING_MANCHU_BULLET, guestUser.gameRatingManchuBullet)
+                .set(USER.GAME_RATING_MANCHU_BLITZ, guestUser.gameRatingManchuBlitz)
+                .set(USER.GAME_RATING_MANCHU_RAPID, guestUser.gameRatingManchuRapid)
+                .set(USER.GAME_RATING_MANCHU_CLASSICAL, guestUser.gameRatingManchuClassical)
+                .set(USER.GAME_RATING_MANCHU_SEVERAL_DAYS, guestUser.gameRatingManchuSeveralDays)
+                .set(USER.GAME_RATING_MANCHU_CORRESPONDENCE, guestUser.gameRatingManchuCorrespondence)
                 .where(USER.ID.eq(newUserId))
                 .awaitExecute()
         }
@@ -369,41 +393,36 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 DSL
                     .using(cfg)
                     .update(USER)
-                    .set(USER.LAST_ONLINE.fixed(), Clock.System.now())
+                    .set(USER.LAST_ONLINE, Clock.System.now())
                     .where(USER.ID.`in`(userIds))
                     .awaitExecute()
             }
         }
     }
 
-    suspend fun updateSessionExpirationInfo(
-        userId: String,
-        oldExpirationTime: Instant,
-        newExpirationTime: Instant,
-    ) {
+    suspend fun updateSessionExpirationInfo(userId: String, oldExpirationTime: Instant, newExpirationTime: Instant) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
                 .update(USER)
-                .set(USER.SESSION_PROLONGED_AT.fixed(), Clock.System.now())
-                .set(USER.OLD_EXPIRATION_TIME.fixed(), oldExpirationTime)
-                .set(USER.NEW_EXPIRATION_TIME.fixed(), newExpirationTime)
-                .where(USER.ID.fixed().eq(userId))
+                .set(USER.SESSION_PROLONGED_AT, Clock.System.now())
+                .set(USER.OLD_EXPIRATION_TIME, oldExpirationTime)
+                .set(USER.NEW_EXPIRATION_TIME, newExpirationTime)
+                .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
     }
 
-    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int): List<PuzzleLeaderboardRecord> {
-        return fetchPuzzleLeaderboard(maxNumberOfEntries, Instant.fromEpochSeconds(0L))
-    }
+    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int): List<PuzzleLeaderboardRecord> =
+        fetchPuzzleLeaderboard(maxNumberOfEntries, Instant.fromEpochSeconds(0L))
 
     suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int, days: Long): List<PuzzleLeaderboardRecord> {
         val since = Clock.System.now().minusDays(days)
         return fetchPuzzleLeaderboard(maxNumberOfEntries, since)
     }
 
-    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int, since: Instant): List<PuzzleLeaderboardRecord> {
-        return dslContext
+    suspend fun fetchPuzzleLeaderboard(maxNumberOfEntries: Int, since: Instant): List<PuzzleLeaderboardRecord> =
+        dslContext
             .select(
                 USER.ID,
                 USER.HANDLE,
@@ -411,7 +430,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 USER.PUZZLE_RATING,
                 DSL.max(PUZZLE_RESULT.PLAYER_RATING_TO).`as`("max_rating"),
                 DSL.count().`as`("total_played"),
-                DSL.max(PUZZLE_RESULT.ENTRY_CREATION).`as`("last_played")
+                DSL.max(PUZZLE_RESULT.ENTRY_CREATION).`as`("last_played"),
             )
             .from(USER, PUZZLE_RESULT)
             .where(USER.ID.eq(PUZZLE_RESULT.USER_ID))
@@ -424,26 +443,24 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .map { record ->
                 PuzzleLeaderboardRecord(
                     userId = record.get(USER.ID),
-                    username = record.get(USER.HANDLE),
+                    username = record.get(USER.HANDLE, String::class.java),
                     countryCode = record.get(USER.COUNTRY),
                     currentRating = record.get(USER.PUZZLE_RATING),
                     maxRating = record.get("max_rating", Int::class.java),
                     totalPlayed = record.get("total_played", Int::class.java),
-                    lastPlayed = record.get("last_played", Instant::class.java)
+                    lastPlayed = record.get("last_played", Instant::class.java),
                 )
             }
-    }
 
-    suspend fun fetchAllRatings(userId: String): User? {
-        return dslContext
+    suspend fun fetchAllRatings(userId: String): User? =
+        dslContext
             .select(listRatingFields())
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleMappedRecord()
-    }
 
-    suspend fun fetchNumberOfGamesAndLastPlayed(userIds: List<String>): List<PlayerVsPlayerNumberOfGamesAndLastPlayedRecord> {
-        return TimeControlCategory
+    suspend fun fetchNumberOfGamesAndLastPlayed(userIds: List<String>): List<PlayerVsPlayerNumberOfGamesAndLastPlayedRecord> =
+        TimeControlCategory
             .entries
             .filterNot { it == TimeControlCategory.SEVERAL_DAYS }
             .flatMap { timeControlCategory ->
@@ -452,7 +469,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                         USER.ID,
                         GAME.TIME_CONTROL_CATEGORY,
                         DSL.max(GAME.LAST_UPDATED).`as`("last_played"),
-                        DSL.count(GAME.ID).`as`("total_played")
+                        DSL.count(GAME.ID).`as`("total_played"),
                     )
                     .from(USER, GAME)
                     .where(USER.USER_TYPE.eq(AUTHENTICATED))
@@ -466,15 +483,14 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                             userId = record4.get(USER.ID),
                             category = record4.get(GAME.TIME_CONTROL_CATEGORY),
                             totalPlayed = record4.get("total_played", Int::class.java),
-                            lastPlayed = record4.get("last_played", Instant::class.java)
+                            lastPlayed = record4.get("last_played", Instant::class.java),
                         )
                     }
             }
-    }
 
-    suspend fun fetchUsersWithHighestRating(numberOfUsers: Int): Map<TimeControlCategory, List<User>> {
-        return listRatingFields().mapNotNull { field ->
-            mapRatingFieldToTimeControlCategory(field)?.let { category ->
+    suspend fun fetchUsersWithHighestRating(numberOfUsers: Int): Map<TimeControlCategory, List<User>> =
+        listXiangqiRatingFields().mapNotNull { field ->
+            mapXiangqiRatingFieldToTimeControlCategory(field)?.let { category ->
                 val users = dslContext
                     .select()
                     .from(USER)
@@ -488,39 +504,90 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             }
         }
             .toMap()
+
+    suspend fun fetchRatingSummary(
+        timeControlCategory: TimeControlCategory,
+        variant: Variant,
+        userType: UserType? = null,
+    ): UserRatingSummaryRecord {
+        val ratingField = findRatingField(timeControlCategory, variant)
+        val userTypeCondition = userType?.let { USER.USER_TYPE.eq(it) } ?: DSL.noCondition()
+        val aggregateRecord =
+            dslContext
+                .select(
+                    DSL.count().`as`("user_count"),
+                    DSL.avg(ratingField).`as`("avg_rating"),
+                )
+                .from(USER)
+                .where(userTypeCondition)
+                .awaitSingleRecord()
+
+        suspend fun fetchUserWithExtremeRating(ascending: Boolean): UserRatingExtremum? {
+            val sortField = if (ascending) ratingField.asc() else ratingField.desc()
+            val record =
+                dslContext
+                    .select(USER.ID, USER.HANDLE, ratingField.`as`("rating"))
+                    .from(USER)
+                    .where(ratingField.isNotNull)
+                    .and(userTypeCondition)
+                    .orderBy(sortField, USER.HANDLE.asc())
+                    .limit(1)
+                    .awaitSingleRecord()
+                    ?: return null
+
+            return UserRatingExtremum(
+                userId = record.get(USER.ID),
+                username = record.get(USER.HANDLE),
+                rating = record.get("rating", Int::class.java),
+            )
+        }
+
+        val minUser = fetchUserWithExtremeRating(ascending = true)
+        val maxUser = fetchUserWithExtremeRating(ascending = false)
+
+        return UserRatingSummaryRecord(
+            variant = variant,
+            timeControlCategory = timeControlCategory,
+            userCount = aggregateRecord?.get("user_count", Int::class.java) ?: 0,
+            averageRating = aggregateRecord?.get("avg_rating", BigDecimal::class.java)?.toDouble(),
+            minUserId = minUser?.userId,
+            minUsername = minUser?.username,
+            minRating = minUser?.rating,
+            maxUserId = maxUser?.userId,
+            maxUsername = maxUser?.username,
+            maxRating = maxUser?.rating,
+        )
     }
 
-    suspend fun countAuthenticated(): Int {
-        return dslContext
+    suspend fun countAuthenticated(): Int =
+        dslContext
             .selectCount()
             .from(USER)
             .where(USER.USER_TYPE.eq(AUTHENTICATED))
             .awaitSingleValue()!!
-    }
 
-    suspend fun countGuestsWithSessionAtLeast(sessionDuration: Duration): Int {
-        return dslContext
+    suspend fun countGuestsWithSessionAtLeast(sessionDuration: Duration): Int =
+        dslContext
             .selectCount()
             .from(USER)
             .where(USER.USER_TYPE.eq(UserType.GUEST))
             .and(diffInSeconds(USER.LAST_ONLINE, USER.CREATION).gt(sessionDuration.inWholeSeconds.toInt()))
             .awaitSingleValue()!!
-    }
 
-    suspend fun countGuestsWithSessionAtLeastAndActiveWithin(sessionDuration: Duration, activeWithin: Duration): Int {
-        return dslContext
+    suspend fun countGuestsWithSessionAtLeastAndActiveWithin(sessionDuration: Duration, activeWithin: Duration): Int =
+        dslContext
             .selectCount()
             .from(USER)
             .where(USER.USER_TYPE.eq(UserType.GUEST))
             .and(diffInSeconds(USER.LAST_ONLINE, USER.CREATION).gt(sessionDuration.inWholeSeconds.toInt()))
             .and(USER.LAST_ONLINE.isWithin(activeWithin))
             .awaitSingleValue()!!
-    }
 
     suspend fun countActiveRecently(
         duration: Duration,
         userTypes: List<UserType>,
         excludeIds: List<String> = emptyList(),
+        minSessionSeconds: Int? = null,
     ): Int {
         var select =
             dslContext
@@ -536,77 +603,59 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             select = select.and(USER.USER_TYPE.`in`(userTypes))
         }
 
+        // Filter out short-lived accounts (typically scraper guests that ping once and never come back)
+        // by requiring a minimum lifespan between creation and last activity.
+        if (minSessionSeconds != null) {
+            select = select.and(diffInSeconds(USER.LAST_ONLINE, USER.CREATION).ge(minSessionSeconds))
+        }
+
         return select.awaitSingleValue()!!
     }
 
-    suspend fun listRecentlyActiveMinutes(minutes: Int) = listRecentlyActive(minutes.minutes)
+    suspend fun listRecentlyActiveMinutes(minutes: Int, userTypes: List<UserType> = emptyList()) =
+        listRecentlyActive(minutes.minutes, userTypes)
 
-    suspend fun listRecentlyActiveSeconds(seconds: Int) = listRecentlyActive(seconds.seconds)
+    suspend fun listRecentlyActiveSeconds(seconds: Int, userTypes: List<UserType> = emptyList()) =
+        listRecentlyActive(seconds.seconds, userTypes)
 
-    private suspend fun listRecentlyActive(duration: Duration): List<User> {
-        return dslContext
-            .select(
-                USER.ID,
-                USER.HANDLE,
-                USER.USER_TYPE
-            )
-            .from(USER)
-            .where(USER.LAST_ONLINE.isWithin(duration))
-            .awaitMappedRecords<User>()
-    }
+    private suspend fun listRecentlyActive(duration: Duration, userTypes: List<UserType>): List<User> {
+        var select =
+            dslContext
+                .select(
+                    USER.ID,
+                    USER.HANDLE,
+                    USER.USER_TYPE,
+                )
+                .from(USER)
+                .where(USER.LAST_ONLINE.isWithin(duration))
 
-    private companion object {
-
-        const val GUEST_ID_MIN = 3
-        const val GUEST_ID_MAX = 8
-
-        fun listRatingFields(): List<TableField<UserRecord, Int>> {
-            val fields = mutableListOf<TableField<UserRecord, Int>>()
-            fields += USER.GAME_RATING_BULLET
-            fields += USER.GAME_RATING_BLITZ
-            fields += USER.GAME_RATING_RAPID
-            fields += USER.GAME_RATING_CLASSICAL
-            fields += USER.GAME_RATING_SEVERAL_DAYS
-            fields += USER.GAME_RATING_CORRESPONDENCE
-            return fields
+        if (userTypes.isNotEmpty()) {
+            select = select.and(USER.USER_TYPE.`in`(userTypes))
         }
 
-        fun mapRatingFieldToTimeControlCategory(field: TableField<UserRecord, Int>): TimeControlCategory? {
-            return when (field) {
-                USER.GAME_RATING_BULLET -> TimeControlCategory.BULLET
-                USER.GAME_RATING_BLITZ -> TimeControlCategory.BLITZ
-                USER.GAME_RATING_RAPID -> TimeControlCategory.RAPID
-                USER.GAME_RATING_CLASSICAL -> TimeControlCategory.CLASSICAL
-                USER.GAME_RATING_SEVERAL_DAYS -> TimeControlCategory.SEVERAL_DAYS
-                USER.GAME_RATING_CORRESPONDENCE -> TimeControlCategory.CORRESPONDENCE
-                else -> null
-            }
-        }
-
+        return select.awaitMappedRecords<User>()
     }
 
-    suspend fun latestNewGuestUser(): Instant? {
-        return dslContext
+    suspend fun latestNewGuestUser(): Instant? =
+        dslContext
             .select(USER.CREATION)
             .from(USER)
             .where(USER.USER_TYPE.eq(UserType.GUEST))
             .orderBy(USER.CREATION.desc())
             .limit(1)
             .awaitSingleValue()
-    }
 
-    suspend fun latestNewAuthenticatedUser(): Instant? {
-        return dslContext
+    suspend fun latestNewAuthenticatedUser(): Instant? =
+        dslContext
             .select(USER.CREATION)
             .from(USER)
             .where(USER.USER_TYPE.eq(AUTHENTICATED))
             .orderBy(USER.CREATION.desc())
             .limit(1)
             .awaitSingleValue()
-    }
 
-    suspend fun listUsersWithDescriptionForSiteMap(): List<Pair<String, Instant>> {
-        return dslContext
+    suspend fun listUsersWithDescriptionForSiteMap(): List<Pair<String, Instant>> =
+        dslContext
             .select(USER.HANDLE, USER.LAST_PROFILE_UPDATE)
             .from(USER)
             .where(USER.DESCRIPTION.isNotNull)
@@ -617,6 +666,104 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .map { record ->
                 record.get(USER.HANDLE) to record.get(USER.LAST_PROFILE_UPDATE)
             }
-    }
 
+    private companion object {
+
+        const val GUEST_ID_MIN = 3
+        const val GUEST_ID_MAX = 8
+
+        data class RatingFieldDefinition(
+            val timeControlCategory: TimeControlCategory,
+            val variant: Variant,
+            val field: TableField<UserRecord, Int>,
+        )
+
+        data class UserRatingExtremum(
+            val userId: String,
+            val username: String?,
+            val rating: Int,
+        )
+
+        fun listRatingFieldDefinitions(): List<RatingFieldDefinition> =
+            listOf(
+                RatingFieldDefinition(
+                    TimeControlCategory.BULLET,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_BULLET,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.BLITZ,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_BLITZ,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.RAPID,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_RAPID,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.CLASSICAL,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_CLASSICAL,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.SEVERAL_DAYS,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_SEVERAL_DAYS,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.CORRESPONDENCE,
+                    Variant.XIANGQI,
+                    USER.GAME_RATING_CORRESPONDENCE,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.BULLET,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_BULLET,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.BLITZ,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_BLITZ,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.RAPID,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_RAPID,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.CLASSICAL,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_CLASSICAL,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.SEVERAL_DAYS,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_SEVERAL_DAYS,
+                ),
+                RatingFieldDefinition(
+                    TimeControlCategory.CORRESPONDENCE,
+                    Variant.MANCHU,
+                    USER.GAME_RATING_MANCHU_CORRESPONDENCE,
+                ),
+            )
+
+        fun listRatingFields(): List<TableField<UserRecord, Int>> =
+            listRatingFieldDefinitions().map { it.field }
+
+        fun listXiangqiRatingFields(): List<TableField<UserRecord, Int>> =
+            listRatingFieldDefinitions()
+                .filter { it.variant == Variant.XIANGQI }
+                .map { it.field }
+
+        fun mapXiangqiRatingFieldToTimeControlCategory(field: TableField<UserRecord, Int>): TimeControlCategory? =
+            listRatingFieldDefinitions()
+                .firstOrNull { it.field == field && it.variant == Variant.XIANGQI }
+                ?.timeControlCategory
+
+        fun findRatingField(timeControlCategory: TimeControlCategory, variant: Variant): TableField<UserRecord, Int> =
+            listRatingFieldDefinitions()
+                .first { it.timeControlCategory == timeControlCategory && it.variant == variant }
+                .field
+    }
 }

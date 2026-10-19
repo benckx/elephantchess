@@ -5,6 +5,6 @@ enum class GameJoinSource {
     DISCORD_NOTIFICATION,
     LOBBY,
     MATCHED,
-    LINK
-
+    DYNAMIC_MATCHED,
+    LINK,
 }

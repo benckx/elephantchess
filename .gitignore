@@ -5,6 +5,7 @@ build
 *.min.js
 *.min.css
 *.csv
+*.zip
 *.gz
 *.properties
 formatter.json
@@ -13,3 +14,4 @@ formatter.json
 .kotlin
 rendered_email.html
 **/out/
+*.hprof

@@ -80,10 +80,12 @@
 
     .main-container,
     .main-container-text,
+    .main-container-text-extended-smaller,
     .main-container-text-extended,
     .main-container-text-extended-larger,
     .main-container-text-error-message {
         width: 96%;
+        min-width: 0;
     }
 
     .standard-data-table .user-rating-delta-value-box,
@@ -91,6 +93,10 @@
     .standard-data-table .user-rating-delta-value-box-positive,
     .standard-data-table .user-rating-delta-value-box-negative {
         font-size: 18px;
+    }
+
+    textarea {
+        font-size: 28px;
     }
 
     input[type="checkbox"],
@@ -156,16 +162,45 @@
     /*noinspection ALL*/
     .modal-content {
         font-size: 38px;
-        width: 100%;
-        border-radius: 0;
+        width: 94%;
+        position: relative;
+        border-radius: 8px;
         border-width: 3px;
-        border-left-width: 0;
-        border-right-width: 0;
-        padding-top: 40px;
+        padding-top: 76px;
         padding-bottom: 40px;
         padding-left: 0;
         padding-right: 0;
         box-shadow: rgba(0, 0, 0, 0.35) 0px 10px 25px;
+    }
+
+    .modal-content .standard-checkbox .label-span label,
+    .modal-content .standard-radio .label-span label {
+        font-size: 38px;
+    }
+
+    .modal-content .standard-checkbox {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .modal-content .standard-checkbox .label-span,
+    .modal-content .standard-radio .label-span {
+        padding-top: 6px;
+    }
+
+    .modal-close-button {
+        display: block;
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 40px;
+        line-height: 1;
+        cursor: pointer;
     }
 
     .modal-content h3 {
@@ -174,6 +209,11 @@
 
     .modal-form-label {
         margin-bottom: 20px;
+    }
+
+    #login-modal .modal-form-label,
+    #signup-modal .modal-form-label {
+        width: 90%;
     }
 
     .signup-validation-text {
@@ -193,13 +233,18 @@
     #signup-modal,
     #play-bot-modal,
     #join-game-confirmation-modal {
-        width: 100%;
+        width: 94%;
     }
 
     .game-thumb {
         min-width: 100%;
         margin-left: 0;
         margin-right: 0;
+    }
+
+    .game-thumb-variant {
+        font-size: 35px;
+        margin-right: 8px;
     }
 
     .game-thumb-info-box {
@@ -210,6 +255,10 @@
     .game-thumb-rating,
     .game-thumb-status {
         font-size: 30px;
+    }
+
+    .game-thumb-player-name {
+        max-width: 260px;
     }
 
     .game-thumb-last-updated {
@@ -352,39 +401,39 @@
         font-size: 30px;
     }
 
-    input[type=button].app-buttons,
-    input[type=button].app-buttons-red,
-    input[type=button].app-buttons-bigger,
-    input[type=button].app-buttons-much-bigger {
+    .app-buttons,
+    .app-buttons-red,
+    .app-buttons-bigger,
+    .app-buttons-much-bigger {
         border-radius: 6px;
     }
 
     /* use the color of :hover (since there is no hover on mobile) */
-    input[type=button].app-buttons,
-    input[type=button].app-buttons-bigger,
-    input[type=button].app-buttons-much-bigger {
+    .app-buttons,
+    .app-buttons-bigger,
+    .app-buttons-much-bigger {
         background-color: #077d01;
     }
 
-    input[type=button].app-buttons-disabled,
-    input[type=button].app-buttons-disabled:hover {
+    .app-buttons-disabled,
+    .app-buttons-disabled:hover {
         background-color: #848484;
     }
 
-    input[type=button].app-buttons,
-    input[type=button].app-buttons-red {
+    .app-buttons,
+    .app-buttons-red {
         font-size: 30px;
         height: 55px;
         min-width: 180px;
     }
 
-    input[type=button].app-buttons-bigger {
+    .app-buttons-bigger {
         font-size: 34px;
         height: 60px;
         min-width: 200px;
     }
 
-    input[type=button].app-buttons-much-bigger {
+    .app-buttons-much-bigger {
         font-size: 36px;
         height: 66px;
         margin-top: 30px;
@@ -392,7 +441,7 @@
         min-width: 220px;
     }
 
-    input[type=button].app-buttons-smaller {
+    .app-buttons-smaller {
         font-size: 20px;
         height: 54px;
     }
@@ -433,6 +482,7 @@
     }
 
     table.info-box-table td.description-cell {
+        font-size: 34px;
         line-height: 40px;
     }
 
@@ -481,6 +531,10 @@
         height: 55px;
     }
 
+    .move-tree-container {
+        min-height: 55px;
+    }
+
     .move-tree-container .full-move-index-label {
         font-size: 20px;
     }
@@ -510,8 +564,42 @@
         width: 68px;
     }
 
+    #settings-info-box-container #advanced-settings-toggle {
+        font-size: 34px;
+    }
+
+    #settings-info-box-container #advanced-settings-box {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 84vw;
+        height: auto;
+        max-height: calc(100vh - 24px);
+        transform: translate(-50%, -50%);
+        z-index: 1202;
+        overflow-y: auto;
+        border-radius: 8px;
+        padding: 76px 34px 34px;
+    }
+
+    #settings-info-box-container #advanced-settings-close-button {
+        display: block;
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 40px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
     #settings-info-box img#flip-board-button,
     #settings-info-box img#show-coordinates-button,
+    #settings-info-box img#colorblind-friendly-black-pieces-button,
     #settings-info-box img#show-analytics-arrows {
         width: 55px;
     }
@@ -528,6 +616,45 @@
 
     #settings-info-box .setting-option-item {
         width: 88px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-row {
+        margin: 16px 0;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-icon {
+        width: 34px;
+        margin-right: 12px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-title {
+        font-size: 32px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-description {
+        font-size: 20px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options {
+        gap: 8px;
+        font-size: 30px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options input[type=checkbox] {
+        width: 22px;
+        height: 22px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-options .standard-checkbox .label-span label {
+        font-size: 26px;
+    }
+
+    #settings-info-box-container #advanced-settings-box .advanced-setting-select {
+        max-width: 100%;
+        font-size: 26px;
+        padding: 8px 40px 8px 12px;
+        background-position: right 14px center;
+        background-size: 16px 10px;
     }
 
     #settings-info-box .setting-option-double-item {

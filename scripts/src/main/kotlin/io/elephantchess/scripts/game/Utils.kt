@@ -3,9 +3,9 @@ package io.elephantchess.scripts.game
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.awaitExecute
-import io.elephantchess.db.utils.fixed
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.services.UserService
+import io.elephantchess.utils.safeRandomAlphaNumericString
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -20,8 +20,8 @@ object Utils : KoinComponent {
     private val dslContext by inject<DSLContext>()
 
     suspend fun createTestUserIfNotExists(i: Int, randomizeRatings: Boolean = true) {
-        val username = "test$i"
-        val email = "test$i@gmail.com"
+        val username = "test$i-pretty-long-name-${safeRandomAlphaNumericString(5, 10)}".take(30)
+        val email = "test$i@protonmail.com"
         val password = "password$i"
         val userExists = userDaoService.existsForEmail(email)
 
@@ -41,15 +41,20 @@ object Utils : KoinComponent {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER).set(USER.GAME_RATING_BULLET.fixed(), nextInt(500, 2500))
-                .set(USER.GAME_RATING_BLITZ.fixed(), nextInt(500, 2500))
-                .set(USER.GAME_RATING_RAPID.fixed(), nextInt(500, 2500))
-                .set(USER.GAME_RATING_CLASSICAL.fixed(), nextInt(500, 2500))
-                .set(USER.GAME_RATING_SEVERAL_DAYS.fixed(), nextInt(500, 2500))
-                .set(USER.GAME_RATING_CORRESPONDENCE.fixed(), nextInt(500, 2500))
+                .update(USER).set(USER.GAME_RATING_BULLET, nextInt(500, 2500))
+                .set(USER.GAME_RATING_BLITZ, nextInt(500, 2500))
+                .set(USER.GAME_RATING_RAPID, nextInt(500, 2500))
+                .set(USER.GAME_RATING_CLASSICAL, nextInt(500, 2500))
+                .set(USER.GAME_RATING_SEVERAL_DAYS, nextInt(500, 2500))
+                .set(USER.GAME_RATING_CORRESPONDENCE, nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_BULLET, nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_BLITZ, nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_RAPID, nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_CLASSICAL, nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_SEVERAL_DAYS, nextInt(500, 2500))
+                .set(USER.GAME_RATING_MANCHU_CORRESPONDENCE, nextInt(500, 2500))
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
     }
-
 }

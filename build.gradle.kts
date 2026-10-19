@@ -3,81 +3,62 @@ import liquibase.Liquibase
 import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.DirectoryResourceAccessor
-import org.gradle.kotlin.dsl.DependencyHandlerScope
-import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.add
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.named
-import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.the
-import org.gradle.kotlin.dsl.withType
 import org.h2.Driver
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jooq.codegen.GenerationTool
-import org.jooq.meta.jaxb.Configuration
-import org.jooq.meta.jaxb.Database
-import org.jooq.meta.jaxb.ForcedType
-import org.jooq.meta.jaxb.Generate
-import org.jooq.meta.jaxb.Generator
-import org.jooq.meta.jaxb.Jdbc
+import org.jooq.meta.jaxb.*
 import org.jooq.meta.jaxb.Target
 import java.sql.Connection
 
-val kotlinVersion: String by project
-val coroutineVersion: String by project
-val kTorVersion: String by project
-val koinCoreVersion: String by project
-val postgresVersion: String by project
-val liquibaseVersion: String by project
-val jooqVersion: String by project
-val h2Version: String by project
-val jacksonVersion: String by project
-val jsoupVersion: String by project
-val mockitoVersion: String by project
-val cache4kVersion: String by project
-val commonLang3Version: String by project
-val javaxMailVersion: String by project
-val openCsvVersion: String by project
-val testContainerVersion: String by project
-val guavaVersion: String by project
-val logbackVersion: String by project
+val rootLibs = libs
 
-fun DependencyHandlerScope.api(dependencyNotation: Any) = add("api", dependencyNotation)
+val publishableModules = listOf(
+    "engine-api",
+    "xiangqi-core",
+    "xiangqi-core-test-utils",
+    "seven-kingdoms-core",
+    "seven-kingdoms-core-test-utils",
+    "csv-dump-parser",
+)
 
-fun DependencyHandlerScope.implementation(dependencyNotation: Any) = add("implementation", dependencyNotation)
-
-fun DependencyHandlerScope.testImplementation(dependencyNotation: Any) = add("testImplementation", dependencyNotation)
-
+// buildscript classpath resolves from settings.pluginManagement.repositories (which include mavenCentral)
 buildscript {
-    repositories {
-        mavenCentral()
-    }
     dependencies {
-        classpath("org.jooq:jooq-codegen:${project.property("jooqVersion")}")
-        classpath("com.h2database:h2:${project.property("h2Version")}")
-        classpath("org.liquibase:liquibase-core:${project.property("liquibaseVersion")}")
+        classpath(libs.jooq.codegen)
+        classpath(libs.h2)
+        classpath(libs.liquibase.core)
     }
 }
 
 plugins {
-    id("com.github.ben-manes.versions") version "0.54.0"
-    id("org.jetbrains.kotlin.jvm") version "2.3.21" apply false
-    id("com.adarshr.test-logger") version "4.0.0" apply false
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.21" apply false
+    alias(libs.plugins.versions)
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.test.logger) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.ktlint)
+}
+
+repositories {
+    mavenCentral()
+}
+
+ktlint {
+    version.set(rootLibs.versions.ktlint)
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "com.adarshr.test-logger")
-    apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+    pluginManager.apply("org.jetbrains.kotlin.jvm")
+    pluginManager.apply("com.adarshr.test-logger")
+    pluginManager.apply("org.jetbrains.kotlin.plugin.serialization")
+    pluginManager.apply("org.jlleitschuh.gradle.ktlint")
+
+    extensions.configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        version.set(rootLibs.versions.ktlint)
+        filter {
+            exclude { it.file.path.contains("${File.separator}build${File.separator}") }
+        }
+    }
 
     extensions.configure<KotlinJvmProjectExtension> {
         jvmToolchain(21)
@@ -89,40 +70,38 @@ subprojects {
     }
 
     dependencies {
-        implementation("io.github.oshai:kotlin-logging-jvm:8.0.02")
-        implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-        implementation("ch.qos.logback:logback-classic:$logbackVersion")
-        testImplementation("org.jetbrains.kotlin:kotlin-test")
-        testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutineVersion")
-        testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:6.0.3")
+        implementation(rootLibs.kotlin.stdlib)
+
+        // Align all transitive Netty modules via the Netty BOM, so the Netty version used by
+        // ktor-server-netty is pinned consistently across modules.
+        val nettyBom = enforcedPlatform(rootLibs.netty.bom)
+        implementation(nettyBom)
+        testImplementation(nettyBom)
+
+        // Logging and coroutines pollute the published library classpath, so only
+        // non-publishable modules get them by default. Publishable libraries declare
+        // exactly what they need (e.g. engine-api adds coroutines in its own block).
+        // Tests are never published, so publishable modules still get logging in test
+        // scope to keep release artifacts free of logging dependencies.
+        if (project.name !in publishableModules) {
+            implementation(rootLibs.kotlin.logging)
+            implementation(rootLibs.coroutines.core)
+            implementation(rootLibs.logback.classic)
+        } else {
+            testImplementation(rootLibs.kotlin.logging)
+            testImplementation(rootLibs.logback.classic)
+        }
+
+        testImplementation(rootLibs.kotlin.test)
+        testImplementation(rootLibs.coroutines.test)
+        testImplementation(rootLibs.mockito.kotlin)
+        testImplementation(rootLibs.junit.jupiter.params)
     }
 
-    val nettyVersion = "4.2.12.Final"
     configurations.configureEach {
         resolutionStrategy {
-            force("org.apache.commons:commons-lang3:$commonLang3Version")
-            force("org.checkerframework:checker-qual:4.1.0")
-            force("io.netty:netty-buffer:$nettyVersion")
-            force("io.netty:netty-codec:$nettyVersion")
-            force("io.netty:netty-codec-base:$nettyVersion")
-            force("io.netty:netty-codec-compression:$nettyVersion")
-            force("io.netty:netty-codec-dns:$nettyVersion")
-            force("io.netty:netty-codec-http:$nettyVersion")
-            force("io.netty:netty-codec-http2:$nettyVersion")
-            force("io.netty:netty-codec-socks:$nettyVersion")
-            force("io.netty:netty-common:$nettyVersion")
-            force("io.netty:netty-handler:$nettyVersion")
-            force("io.netty:netty-handler-proxy:$nettyVersion")
-            force("io.netty:netty-resolver:$nettyVersion")
-            force("io.netty:netty-resolver-dns:$nettyVersion")
-            force("io.netty:netty-transport:$nettyVersion")
-            force("io.netty:netty-transport-classes-epoll:$nettyVersion")
-            force("io.netty:netty-transport-classes-kqueue:$nettyVersion")
-            force("io.netty:netty-transport-native-epoll:$nettyVersion")
-            force("io.netty:netty-transport-native-kqueue:$nettyVersion")
-            force("io.netty:netty-transport-native-unix-common:$nettyVersion")
+            force("org.apache.commons:commons-lang3:${rootLibs.versions.commonsLang3.get()}")
+            force("org.checkerframework:checker-qual:${rootLibs.versions.checkerQual.get()}")
         }
     }
 
@@ -212,16 +191,8 @@ project(":webapp-dao").tasks.named("compileKotlin") {
     dependsOn(daoCodeGen)
 }
 
-val publishableModules = listOf(
-    "engine-api",
-    "xiangqi-core",
-    "xiangqi-core-test-utils",
-    "seven-kingdoms-core",
-    "seven-kingdoms-core-test-utils",
-)
-
 configure(publishableModules.map { project(":$it") }) {
-    apply(plugin = "maven-publish")
+    pluginManager.apply("maven-publish")
 
     group = "io.elephantchess"
     version = rootProject.findProperty("publishVersion") as String? ?: "1.0.0-SNAPSHOT"
@@ -242,8 +213,17 @@ configure(publishableModules.map { project(":$it") }) {
 
 project(":engine-api") {
     dependencies {
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-        testImplementation(project(":xiangqi-core"))
+        implementation(rootLibs.coroutines.core)
+        api(rootLibs.kotlin.logging)
+        api(project(":xiangqi-core"))
+    }
+}
+
+project(":csv-dump-parser") {
+    dependencies {
+        api(project(":xiangqi-core"))
+        api(project(":engine-api"))
+        implementation(rootLibs.opencsv)
     }
 }
 
@@ -262,15 +242,15 @@ project(":seven-kingdoms-core") {
 project(":seven-kingdoms-core-test-utils") {
     dependencies {
         implementation(project(":seven-kingdoms-core"))
-        api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-        api("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+        api(rootLibs.jackson.datatype.jsr310)
+        api(rootLibs.jackson.module.kotlin)
     }
 }
 
 project(":webapp-dao-migration") {
     dependencies {
-        implementation("org.liquibase:liquibase-core:$liquibaseVersion")
-        implementation("org.postgresql:postgresql:$postgresVersion")
+        implementation(rootLibs.liquibase.core)
+        implementation(rootLibs.postgresql)
     }
 }
 
@@ -285,19 +265,20 @@ project(":webapp-dao") {
         implementation(project(":webapp-model-common"))
         implementation(project(":xiangqi-core"))
         implementation(project(":engine-api"))
-        implementation("org.jooq:jooq:$jooqVersion")
-        implementation("org.jooq:jooq-kotlin:$jooqVersion")
-        implementation("org.jooq:jooq-kotlin-coroutines:$jooqVersion")
-        implementation("org.liquibase:liquibase-core:$liquibaseVersion")
-        implementation("org.postgresql:r2dbc-postgresql:1.1.1.RELEASE")
-        implementation("io.r2dbc:r2dbc-pool:1.0.2.RELEASE")
+        implementation(rootLibs.jooq)
+        implementation(rootLibs.jooq.kotlin)
+        implementation(rootLibs.jooq.kotlin.coroutines)
+        implementation(rootLibs.liquibase.core)
+        implementation(rootLibs.r2dbc.postgresql)
+        implementation(rootLibs.r2dbc.pool)
     }
 }
 
 project(":webapp-html-renderer") {
     dependencies {
         implementation(project(":utils"))
-        implementation("org.jsoup:jsoup:$jsoupVersion")
+        implementation(rootLibs.ktor.server.html.builder)
+        implementation(rootLibs.jsoup)
     }
 }
 
@@ -309,55 +290,58 @@ project(":webapp-service-layer") {
         api(project(":webapp-html-renderer"))
         implementation(project(":seven-kingdoms-core"))
         implementation(project(":webapp-dao"))
-        api("io.insert-koin:koin-core:$koinCoreVersion")
+        api(rootLibs.koin.core)
+        implementation(rootLibs.classgraph)
         api(project(":xiangqi-core"))
         api(project(":engine-api"))
-        api("org.apache.commons:commons-lang3:$commonLang3Version")
-        implementation("org.jsoup:jsoup:$jsoupVersion")
-        implementation("commons-validator:commons-validator:1.10.1")
-        implementation("com.auth0:java-jwt:4.5.2")
-        implementation("com.sun.mail:javax.mail:$javaxMailVersion")
-        implementation("io.github.reactivecircus.cache4k:cache4k:$cache4kVersion")
-        implementation("io.fabric8:kubernetes-client:7.7.0")
-        implementation("org.jooq:jooq:$jooqVersion")
-        implementation("io.ktor:ktor-client-core:$kTorVersion")
-        implementation("io.ktor:ktor-client-cio:$kTorVersion")
-        implementation("io.ktor:ktor-client-content-negotiation:$kTorVersion")
-        implementation("io.ktor:ktor-client-logging:$kTorVersion")
-        implementation("io.ktor:ktor-serialization-jackson:$kTorVersion")
-        implementation("io.ktor:ktor-serialization-kotlinx-json:$kTorVersion")
+        api(rootLibs.commons.lang3)
+        implementation(rootLibs.jsoup)
+        implementation(rootLibs.commons.validator)
+        implementation(rootLibs.java.jwt)
+        implementation(rootLibs.javax.mail)
+        implementation(rootLibs.cache4k)
+        implementation(rootLibs.jooq)
+        implementation(rootLibs.ktor.client.core)
+        implementation(rootLibs.ktor.client.cio)
+        implementation(rootLibs.ktor.client.content.negotiation)
+        implementation(rootLibs.ktor.client.logging)
+        implementation(rootLibs.ktor.serialization.jackson)
+        implementation(rootLibs.ktor.serialization.kotlinx.json)
+        implementation(rootLibs.ktor.server.html.builder)
         testImplementation(project(":xiangqi-core-test-utils"))
         testImplementation(project(":seven-kingdoms-core-test-utils"))
-        testImplementation("org.apache.commons:commons-rng-simple:1.7")
-        testImplementation("org.apache.commons:commons-text:1.15.0")
-        testImplementation("com.h2database:h2:$h2Version")
-        testImplementation("org.liquibase:liquibase-core:$liquibaseVersion")
-        testImplementation("org.testcontainers:postgresql:$testContainerVersion")
+        testImplementation(rootLibs.commons.rng.simple)
+        testImplementation(rootLibs.commons.text)
+        testImplementation(rootLibs.h2)
+        testImplementation(rootLibs.liquibase.core)
+        testImplementation(rootLibs.testcontainers.postgresql)
     }
 }
 
 project(":webapp-config") {
     dependencies {
-        implementation("commons-cli:commons-cli:1.11.0")
+        implementation(rootLibs.commons.cli)
     }
 }
 
 project(":webapp") {
     dependencies {
         implementation(project(":webapp-service-layer"))
-        implementation("io.ktor:ktor-server-core:$kTorVersion")
-        implementation("io.ktor:ktor-server-netty:$kTorVersion")
-        implementation("io.ktor:ktor-server-status-pages:$kTorVersion")
-        implementation("io.ktor:ktor-server-default-headers:$kTorVersion")
-        implementation("io.ktor:ktor-server-content-negotiation:$kTorVersion")
-        implementation("io.ktor:ktor-server-caching-headers:$kTorVersion")
-        implementation("io.ktor:ktor-serialization-jackson:$kTorVersion")
-        implementation("io.ktor:ktor-serialization-kotlinx-json:$kTorVersion")
-        implementation("io.ktor:ktor-server-websockets:$kTorVersion")
-        implementation("io.ktor:ktor-server-compression:$kTorVersion")
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-        implementation("io.github.reactivecircus.cache4k:cache4k:$cache4kVersion")
+        implementation(rootLibs.ktor.server.core)
+        implementation(rootLibs.ktor.server.netty)
+        implementation(rootLibs.ktor.server.status.pages)
+        implementation(rootLibs.ktor.server.default.headers)
+        implementation(rootLibs.ktor.server.content.negotiation)
+        implementation(rootLibs.ktor.server.caching.headers)
+        implementation(rootLibs.ktor.server.html.builder)
+        implementation(rootLibs.ktor.serialization.jackson)
+        implementation(rootLibs.ktor.serialization.kotlinx.json)
+        implementation(rootLibs.ktor.server.websockets)
+        implementation(rootLibs.ktor.server.compression)
+        implementation(rootLibs.jackson.datatype.jsr310)
+        implementation(rootLibs.jackson.module.kotlin)
+        implementation(rootLibs.cache4k)
+        testImplementation(rootLibs.ktor.server.test.host)
     }
 
     tasks.named<Jar>("jar") {
@@ -385,17 +369,17 @@ project(":scripts") {
         implementation(project(":webapp-service-layer"))
         implementation(project(":webapp-config"))
         implementation(project(":webapp"))
-        implementation("com.google.guava:guava:$guavaVersion")
+        implementation(rootLibs.guava)
         implementation(project(":xiangqi-core"))
         implementation(project(":engine-api"))
-        implementation("io.ktor:ktor-client-core:$kTorVersion")
-        implementation("io.ktor:ktor-client-cio:$kTorVersion")
-        implementation("io.ktor:ktor-client-logging:$kTorVersion")
-        implementation("io.ktor:ktor-client-content-negotiation:$kTorVersion")
-        implementation("com.opencsv:opencsv:$openCsvVersion")
-        implementation("com.sun.mail:javax.mail:$javaxMailVersion")
-        implementation("org.apache.logging.log4j:log4j-core:2.26.0")
-        implementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
+        implementation(rootLibs.ktor.client.core)
+        implementation(rootLibs.ktor.client.cio)
+        implementation(rootLibs.ktor.client.logging)
+        implementation(rootLibs.ktor.client.content.negotiation)
+        implementation(rootLibs.opencsv)
+        implementation(rootLibs.javax.mail)
+        implementation(rootLibs.log4j.core)
+        implementation(rootLibs.mockito.kotlin)
     }
 
     val sourceSets = the<SourceSetContainer>()

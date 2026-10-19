@@ -5,8 +5,6 @@ import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.services.UserService
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 object CreateVietnameseTestUsers : KoinScriptInit() {
 
@@ -16,10 +14,7 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
     private val userService by inject<UserService>()
     private val userDaoService by inject<UserDaoService>()
 
-    private data class UserSeed(
-        val username: String,
-        val email: String,
-    )
+    private data class UserSeed(val username: String, val email: String)
 
     private val usersToCreate = listOf(
         UserSeed(username = "nguyễn", email = "vietuser1@example.com"),
@@ -56,5 +51,4 @@ object CreateVietnameseTestUsers : KoinScriptInit() {
 //        val encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8).replace("+", "%20")
         return "$LOCALHOST_BASE_URL/@/$username"
     }
-
 }

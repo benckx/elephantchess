@@ -31,11 +31,16 @@ class Board(initFen: String = DEFAULT_START_FEN) {
     val currentIndex
         get() = historicalMoves.size
 
-    fun colorToPlay(): Color = colorToPlay // TODO: should be null on game over
-    fun captures(): Map<Color, List<PieceAtPosition>> = captures.toMap()
-    fun capturedKingdomsMap(): Map<Color, List<Color>> = capturedKingdomsMap.toMap()
-    fun capturedKingdoms(): List<Color> = capturedKingdomsMap.values.flatten().sorted()
-    fun winner() = winner
+    fun colorToPlay(): Color =
+        colorToPlay // TODO: should be null on game over
+    fun captures(): Map<Color, List<PieceAtPosition>> =
+        captures.toMap()
+    fun capturedKingdomsMap(): Map<Color, List<Color>> =
+        capturedKingdomsMap.toMap()
+    fun capturedKingdoms(): List<Color> =
+        capturedKingdomsMap.values.flatten().sorted()
+    fun winner() =
+        winner
 
     fun capturesCount(): Map<Color, Int> =
         captures.mapValues { (_, pieces) -> pieces.size }
@@ -53,12 +58,14 @@ class Board(initFen: String = DEFAULT_START_FEN) {
         losses().mapValues { (_, pieces) -> pieces.size }
 
     fun setExtraEliminationEvents(events: List<ExtraEliminationEvent>) {
-        if (historicalMoves.isNotEmpty())
+        if (historicalMoves.isNotEmpty()) {
             throw IllegalStateException("Extra elimination events must be set before playing moves")
+        }
 
         val allColors = events.flatMap { it.colors }.sorted()
-        if (allColors != allColors.distinct())
+        if (allColors != allColors.distinct()) {
             throw IllegalArgumentException("Colors must be unique")
+        }
 
         extraEliminationEvents.clear()
         extraEliminationEvents += events
@@ -147,17 +154,15 @@ class Board(initFen: String = DEFAULT_START_FEN) {
         return ranks.joinToString("/")
     }
 
-    fun listAllPieces(): List<PieceAtPosition> {
-        return Position.listAll().mapNotNull { position ->
+    fun listAllPieces(): List<PieceAtPosition> =
+        Position.listAll().mapNotNull { position ->
             pieceAt(position)?.let { piece ->
                 PieceAtPosition(piece, position)
             }
         }
-    }
 
-    fun listPiecesByColor(color: Color): List<PieceAtPosition> {
-        return listAllPieces().filter { it.color == color }
-    }
+    fun listPiecesByColor(color: Color): List<PieceAtPosition> =
+        listAllPieces().filter { it.color == color }
 
     fun clear() {
         content = Array(BOARD_SIZE) { arrayOfNulls(BOARD_SIZE) }
@@ -191,11 +196,13 @@ class Board(initFen: String = DEFAULT_START_FEN) {
         val piece = pieceAt(move.from)
             ?: throw IllegalArgumentException("No piece at ${move.from}")
 
-        if (piece.color != colorToPlay)
+        if (piece.color != colorToPlay) {
             throw IllegalArgumentException("It's not ${piece.color}'s turn to play, it's $colorToPlay")
+        }
 
-        if (!listCurrentLegalMoves().contains(move))
+        if (!listCurrentLegalMoves().contains(move)) {
             throw IllegalArgumentException("$move is not a legal")
+        }
 
         val capturedPiece = pieceAt(move.to)
         content[move.from.x][move.from.y] = null
@@ -257,7 +264,7 @@ class Board(initFen: String = DEFAULT_START_FEN) {
             ArmyCapturedEvent(
                 capturingColor = colorToPlay,
                 capturedColor = capturedColor,
-                generalCapture = true
+                generalCapture = true,
             )
         } else {
             // capture the most pieces of the captured army
@@ -271,7 +278,7 @@ class Board(initFen: String = DEFAULT_START_FEN) {
             ArmyCapturedEvent(
                 capturingColor = winnerTieBreak(candidatesColors),
                 capturedColor = capturedColor,
-                generalCapture = false
+                generalCapture = false,
             )
         }
     }
@@ -426,14 +433,14 @@ class Board(initFen: String = DEFAULT_START_FEN) {
             DAGGER_SOLDIER,
             SWORDSMAN,
             GO_BETWEEN,
-                -> {
+            -> {
                 if (movesOrthogonal) {
                     // TODO: move to Position
                     val lines = listOf(
                         position.allTopFor(max),
                         position.allBottomFor(max),
                         position.allLeftFor(max),
-                        position.allRightFor(max)
+                        position.allRightFor(max),
                     )
 
                     destinations += lines.flatMap { line -> filterLineOfPositions(position, line, captureEnabled) }
@@ -444,7 +451,7 @@ class Board(initFen: String = DEFAULT_START_FEN) {
                         position.allTopRightDiagonalsFor(max),
                         position.allTopLeftDiagonalsFor(max),
                         position.allBottomLeftDiagonalsFor(max),
-                        position.allBottomRightDiagonalsFor(max)
+                        position.allBottomRightDiagonalsFor(max),
                     )
 
                     destinations += lines.flatMap { line -> filterLineOfPositions(position, line, captureEnabled) }
@@ -457,7 +464,7 @@ class Board(initFen: String = DEFAULT_START_FEN) {
                     position.allTopFor(BOARD_SIZE),
                     position.allBottomFor(BOARD_SIZE),
                     position.allLeftFor(BOARD_SIZE),
-                    position.allRightFor(BOARD_SIZE)
+                    position.allRightFor(BOARD_SIZE),
                 )
 
                 destinations += lines.flatMap { line -> filterMovesForCannon(position, line) }
@@ -493,11 +500,7 @@ class Board(initFen: String = DEFAULT_START_FEN) {
         return destinations.map { to -> Move(position, to) }
     }
 
-    private fun filterLineOfPositions(
-        from: Position,
-        positions: List<Position>,
-        captureEnabled: Boolean = true,
-    ): List<Position> {
+    private fun filterLineOfPositions(from: Position, positions: List<Position>, captureEnabled: Boolean = true): List<Position> {
         val filtered = mutableListOf<Position>()
 
         for (position in positions) {
@@ -617,25 +620,23 @@ class Board(initFen: String = DEFAULT_START_FEN) {
 
         const val DEFAULT_START_FEN =
             "2dNdSdBdQdRdSdN1pNpSpBpQpRpSpN2/" +
-                    "3dNdSdCdSdN3pNpSpCpSpN3/" +
-                    "4dAdWdA5pApWpA3gN/" +
-                    "5dH7pH3gNgS/" +
-                    "5dG7pG2gAgSgB/" +
-                    "14gGgHgWgCgQ/" +
-                    "wN15gAgSgR/" +
-                    "wSwN15gNgS/" +
-                    "wRwSwA15gN/" +
-                    "wQwCwWwHwG14/" +
-                    "wBwSwA15bN/" +
-                    "wSwN15bNbS/" +
-                    "wN15bAbSbB/" +
-                    "14bGbHbWbCbQ/" +
-                    "5rG7oG2bAbSbR/" +
-                    "5rH7oH3bNbS/" +
-                    "4rArWrA5oAoWoA3bN/" +
-                    "3rNrSrCrSrN3oNoSoCoSoN3/" +
-                    "2rNrSrBrQrRrSrN1oNoSoBoQoRoSoN2"
-
+                "3dNdSdCdSdN3pNpSpCpSpN3/" +
+                "4dAdWdA5pApWpA3gN/" +
+                "5dH7pH3gNgS/" +
+                "5dG7pG2gAgSgB/" +
+                "14gGgHgWgCgQ/" +
+                "wN15gAgSgR/" +
+                "wSwN15gNgS/" +
+                "wRwSwA15gN/" +
+                "wQwCwWwHwG14/" +
+                "wBwSwA15bN/" +
+                "wSwN15bNbS/" +
+                "wN15bAbSbB/" +
+                "14bGbHbWbCbQ/" +
+                "5rG7oG2bAbSbR/" +
+                "5rH7oH3bNbS/" +
+                "4rArWrA5oAoWoA3bN/" +
+                "3rNrSrCrSrN3oNoSoCoSoN3/" +
+                "2rNrSrBrQrRrSrN1oNoSoBoQoRoSoN2"
     }
-
 }

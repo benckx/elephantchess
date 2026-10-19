@@ -6,9 +6,8 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.servicelayer.clients.DigitalOceanSpacesClient
-import io.elephantchess.servicelayer.utils.ops.singleAuto
+import io.elephantchess.servicelayer.utils.ops.registerInjectables
 import io.elephantchess.webapp.rendering.*
-import io.elephantchess.webapp.sitemap.SiteMapService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.koin.core.module.Module
@@ -19,66 +18,60 @@ import java.util.jar.JarFile
 
 private val webAppLogger = KotlinLogging.logger {}
 
-fun webAppKoinModule(eagerAllowed: Boolean): Module = module {
-    singleAuto<SiteMapService>(eager = eagerAllowed)
-    includes(htmlRendering())
-    includes(pageRendererModule(eagerAllowed))
-    single(named("wsJsonMapper")) {
-        JsonMapper
-            .builder()
-            .addModule(KotlinModule.Builder().build())
-            .configure(INDENT_OUTPUT, false)
-            .build()
-    }
-}
-
-private fun htmlRendering() = module {
-    single {
-        val fragmentTags = listFragmentTags()
-        fragmentTags.forEach { webAppLogger.info { "discovered web fragment: $it" } }
-
-        val appConfig = get<AppConfig>()
-        val webFragmentsTagResolvers = fragmentTags.map { WebFragmentResolver(it) }
-
-        val disabledTemplates = mutableListOf<String>()
-        if (!appConfig.isGoogleAnalyticsEnabled) {
-            disabledTemplates += "google_analytics"
-        }
-        if (!appConfig.isCookieConsentBannerEnabled) {
-            disabledTemplates += "google_tag_manager_head"
-            disabledTemplates += "google_tag_manager_body"
+fun webAppKoinModule(eagerAllowed: Boolean): Module =
+    module {
+        includes(htmlRendering())
+        single(named("wsJsonMapper")) {
+            JsonMapper
+                .builder()
+                .addModule(KotlinModule.Builder().build())
+                .configure(INDENT_OUTPUT, false)
+                .build()
         }
 
-        WebTemplateRenderer(webFragmentsTagResolvers, disabledTemplates)
+        // page renderers annotated with @KoinSingleton
+        registerInjectables(eagerAllowed, "io.elephantchess.webapp")
     }
-    single {
-        runBlocking {
+
+private fun htmlRendering() =
+    module {
+        single {
+            val fragmentTags = listFragmentTags()
+            fragmentTags.forEach { webAppLogger.info { "discovered web fragment: $it" } }
+
             val appConfig = get<AppConfig>()
-            val webTemplateRenderer = get<WebTemplateRenderer>()
-            val cdnFolder =
-                if (appConfig.cdnEnabled) {
-                    mostRecentVersionFolder(get<DigitalOceanSpacesClient>())
-                } else {
-                    null
-                }
+            val webFragmentsTagResolvers = fragmentTags.map { WebFragmentResolver(it) }
 
-            HtmlRenderer(
-                isMinificationEnabled = appConfig.isMinificationEnabled,
-                cdnFolder = cdnFolder,
-                webTemplateRenderer = webTemplateRenderer
-            )
+            val disabledTemplates = mutableListOf<String>()
+            if (!appConfig.isGoogleAnalyticsEnabled) {
+                disabledTemplates += "google_analytics"
+            }
+            if (!appConfig.isCookieConsentBannerEnabled) {
+                disabledTemplates += "google_tag_manager_head"
+                disabledTemplates += "google_tag_manager_body"
+            }
+
+            WebTemplateRenderer(webFragmentsTagResolvers, disabledTemplates)
+        }
+        single {
+            runBlocking {
+                val appConfig = get<AppConfig>()
+                val webTemplateRenderer = get<WebTemplateRenderer>()
+                val cdnFolder =
+                    if (appConfig.cdnEnabled) {
+                        mostRecentVersionFolder(get<DigitalOceanSpacesClient>())
+                    } else {
+                        null
+                    }
+
+                HtmlRenderer(
+                    isMinificationEnabled = appConfig.isMinificationEnabled,
+                    cdnFolder = cdnFolder,
+                    webTemplateRenderer = webTemplateRenderer,
+                )
+            }
         }
     }
-}
-
-private fun pageRendererModule(eagerAllowed: Boolean) = module {
-    singleAuto<SimplePageRenderer>(eager = eagerAllowed)
-    singleAuto<UserProfilePageRenderer>(eager = eagerAllowed)
-    singleAuto<DatabasePageRenderer>(eager = eagerAllowed)
-    singleAuto<BoardGuiExampleRenderer>(eager = eagerAllowed)
-    singleAuto<ModalRenderer>(eager = eagerAllowed)
-    singleAuto<FaqPageRenderer>(eager = eagerAllowed)
-}
 
 private fun listFragmentTags(): List<String> {
     val resourcePath = "/web_fragments"
@@ -113,13 +106,10 @@ private fun listFragmentTags(): List<String> {
     }
 }
 
-private suspend fun mostRecentVersionFolder(
-    client: DigitalOceanSpacesClient
-): String? {
-    return try {
+private suspend fun mostRecentVersionFolder(client: DigitalOceanSpacesClient): String? =
+    try {
         client.getMostRecentVersionFolder()
     } catch (e: Exception) {
         webAppLogger.error { "error getting most recent CDN version folder from Space: $e" }
         null
     }
-}
