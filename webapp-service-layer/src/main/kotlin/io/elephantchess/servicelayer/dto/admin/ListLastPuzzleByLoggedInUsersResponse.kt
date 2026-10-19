@@ -14,5 +14,4 @@ data class ListLastPuzzleByLoggedInUsersResponse(val entries: List<Entry>) {
         val date: Long,
         val upVoted: Boolean?,
     )
-
 }

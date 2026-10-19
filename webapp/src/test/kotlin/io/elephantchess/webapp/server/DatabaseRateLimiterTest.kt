@@ -1,9 +1,9 @@
 package io.elephantchess.webapp.server
 
-import kotlin.time.Duration.Companion.seconds
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class DatabaseRateLimiterTest {
 
@@ -19,13 +19,14 @@ class DatabaseRateLimiterTest {
         ip: String = "203.0.113.7",
         method: String = "GET",
         forwardedFor: String? = null,
-    ) = isRateLimited(
-        httpMethod = method,
-        path = path,
-        userAgent = ua,
-        remoteAddress = ip,
-        forwardedFor = forwardedFor,
-    )
+    ) =
+        isRateLimited(
+            httpMethod = method,
+            path = path,
+            userAgent = ua,
+            remoteAddress = ip,
+            forwardedFor = forwardedFor,
+        )
 
     @Test
     fun `allows requests up to the limit then blocks`() {
@@ -33,8 +34,8 @@ class DatabaseRateLimiterTest {
         assertFalse(limiter.hit()) // 1
         assertFalse(limiter.hit()) // 2
         assertFalse(limiter.hit()) // 3
-        assertTrue(limiter.hit())  // 4 -> over the limit
-        assertTrue(limiter.hit())  // 5
+        assertTrue(limiter.hit()) // 4 -> over the limit
+        assertTrue(limiter.hit()) // 5
     }
 
     @Test

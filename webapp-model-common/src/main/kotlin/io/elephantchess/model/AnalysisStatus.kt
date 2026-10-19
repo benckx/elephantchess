@@ -6,6 +6,5 @@ enum class AnalysisStatus {
     STARTED,
     CANCELLED,
     PARTIALLY_COMPLETED,
-    COMPLETED;
-
+    COMPLETED,
 }

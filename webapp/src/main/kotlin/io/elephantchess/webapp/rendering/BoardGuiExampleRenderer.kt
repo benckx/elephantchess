@@ -1,34 +1,32 @@
 package io.elephantchess.webapp.rendering
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.htmlrenderer.HtmlRenderer.Companion.CDN_BASE
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
+import io.elephantchess.utils.di.KoinSingleton
 import kotlinx.html.link
 import kotlinx.html.script
 
 @KoinSingleton(eager = true)
 class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
-    suspend fun renderBoardGuiExample(useCdn: Boolean, templateName: String): String {
-        return simplePageRenderer.renderTemplate(
+    suspend fun renderBoardGuiExample(useCdn: Boolean, templateName: String): String =
+        simplePageRenderer.renderTemplate(
             templateName,
             listOf(
                 boardGuiAssetsTagResolver(useCdn),
                 SimpleValueTagResolver(
                     "board_gui_assets_base_url_option",
-                    if (useCdn) "${CDN_BASE}/static" else ""
+                    if (useCdn) "${CDN_BASE}/static" else "",
                 ),
                 SimpleValueTagResolver("dist_version", DIST_VERSION),
                 snippetTagResolver("snippet_setup", "board-gui-setup.html"),
                 snippetTagResolver("snipped_config", "board-gui-config.js"),
-                snippetTagResolver("snippet_headless", "board-gui-headless.html")
-            )
+                snippetTagResolver("snippet_headless", "board-gui-headless.html"),
+            ),
         )
-    }
 
     /**
      * Loads a raw HTML snippet file, and HTML-escapes the result so it can be safely inlined
@@ -57,7 +55,5 @@ class BoardGuiExampleRenderer(private val simplePageRenderer: SimplePageRenderer
     companion object {
 
         const val DIST_VERSION = "0.1.3"
-
     }
-
 }

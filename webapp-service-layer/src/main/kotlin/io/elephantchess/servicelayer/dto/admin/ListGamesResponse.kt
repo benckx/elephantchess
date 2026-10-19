@@ -26,5 +26,4 @@ data class ListGamesResponse(val entries: List<Entry>) {
         val sourceType: GameJoinSource?,
         val variant: Variant?,
     )
-
 }

@@ -48,159 +48,185 @@ class TagResolversTest {
         userId: String? = "user-id",
         username: String = "alice",
         timestamp: Long = pastTimestamp,
-    ) = LatestSupporter(
-        userId = userId,
-        username = username,
-        timestamp = timestamp,
-        amount = amount,
-        currency = currency,
-        recurring = recurring,
-    )
+    ) =
+        LatestSupporter(
+            userId = userId,
+            username = username,
+            timestamp = timestamp,
+            amount = amount,
+            currency = currency,
+            recurring = recurring,
+        )
 
     @Test
-    fun `null supporter returns empty string`() = runTest {
-        assertEquals("", render(null))
-    }
+    fun `null supporter returns empty string`() =
+        runTest {
+            assertEquals("", render(null))
+        }
 
     @Test
-    fun `eur one-time tip enough for several days`() = runTest {
-        val out = render(lastSupporter(amount = 12.0, currency = "EUR"))
-        assertEquals(
-            """<p>Our latest donation was offered to us by <b><a href="/@/alice">alice</a></b>. """ +
+    fun `eur one-time tip enough for several days`() =
+        runTest {
+            val out = render(lastSupporter(amount = 12.0, currency = "EUR"))
+            assertEquals(
+                """<p>Our latest donation was offered to us by <b><a href="/@/alice">alice</a></b>. """ +
                     """Their generous 12€ tip on $pastDateStr allowed us to finance the platform for """ +
                     """<b>2 entire days!</b> Many thanks to them!</p>""" +
                     """<p>Do you want to see <b>your name</b> featured as our latest supporter? """ +
                     """<b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> """ +
                     """and with just 5€ finance the platform for an entire day!</p>""",
-            out
-        )
-    }
+                out,
+            )
+        }
 
     @Test
-    fun `eur one-time tip exactly one day uses singular phrasing`() = runTest {
-        val out = render(lastSupporter(amount = 5.0, currency = "EUR"))
-        assertTrue(
-            out.contains("Their generous 5€ tip on $pastDateStr allowed us to finance the platform for <b>an entire day!</b>"),
-            "Unexpected output: $out"
-        )
-    }
+    fun `eur one-time tip exactly one day uses singular phrasing`() =
+        runTest {
+            val out = render(lastSupporter(amount = 5.0, currency = "EUR"))
+            assertTrue(
+                out.contains("Their generous 5€ tip on $pastDateStr allowed us to finance the platform for <b>an entire day!</b>"),
+                "Unexpected output: $out",
+            )
+        }
 
     @Test
-    fun `eur one-time tip below one day shows few hours`() = runTest {
-        val out = render(lastSupporter(amount = 2.0, currency = "EUR"))
-        assertTrue(
-            out.contains("Their 2€ tip on $pastDateStr allowed us to finance the platform for a few hours!"),
-            "Unexpected output: $out"
-        )
-    }
+    fun `eur one-time tip below one day shows few hours`() =
+        runTest {
+            val out = render(lastSupporter(amount = 2.0, currency = "EUR"))
+            assertTrue(
+                out.contains("Their 2€ tip on $pastDateStr allowed us to finance the platform for a few hours!"),
+                "Unexpected output: $out",
+            )
+        }
 
     @Test
-    fun `usd recurring pledge with several days uses every month`() = runTest {
-        val out = render(lastSupporter(amount = 20.0, currency = "USD", recurring = true))
-        assertTrue(
-            out.contains("Their generous 20\$ pledge on $pastDateStr allows us to finance the platform for <b>4 entire days every month!</b>"),
-            "Unexpected output: $out"
-        )
-    }
+    fun `usd recurring pledge with several days uses every month`() =
+        runTest {
+            val out = render(lastSupporter(amount = 20.0, currency = "USD", recurring = true))
+            assertTrue(
+                out.contains(
+                    "Their generous 20\$ pledge on $pastDateStr allows us to finance the platform for <b>4 entire days every month!</b>",
+                ),
+                "Unexpected output: $out",
+            )
+        }
 
     @Test
-    fun `gbp recurring pledge below one day uses every month suffix`() = runTest {
-        val out = render(lastSupporter(amount = 2.0, currency = "GBP", recurring = true))
-        assertTrue(
-            out.contains("Their 2£ pledge on $pastDateStr allows us to finance the platform for a few hours every month!"),
-            "Unexpected output: $out"
-        )
-    }
+    fun `gbp recurring pledge below one day uses every month suffix`() =
+        runTest {
+            val out = render(lastSupporter(amount = 2.0, currency = "GBP", recurring = true))
+            assertTrue(
+                out.contains("Their 2£ pledge on $pastDateStr allows us to finance the platform for a few hours every month!"),
+                "Unexpected output: $out",
+            )
+        }
 
     @Test
-    fun `recurring pledge covering 30 days or more uses entire-platform message`() = runTest {
-        val out = render(lastSupporter(amount = 200.0, currency = "EUR", recurring = true))
-        assertTrue(
-            out.contains("Their incredibly generous 200€ pledge on $pastDateStr allows us to finance <b>the entire platform every month!</b>"),
-            "Unexpected output: $out"
-        )
-        // Must NOT contain the misleading raw day count phrasing.
-        assertTrue(!out.contains("entire days every month"), "Should not include raw day count: $out")
-        assertTrue(!Regex("\\d+ entire days").containsMatchIn(out.substringBefore(" Many thanks")), "Should not include raw day count: $out")
-    }
+    fun `recurring pledge covering 30 days or more uses entire-platform message`() =
+        runTest {
+            val out = render(lastSupporter(amount = 200.0, currency = "EUR", recurring = true))
+            assertTrue(
+                out.contains(
+                    "Their incredibly generous 200€ pledge on $pastDateStr allows us to finance <b>the entire platform every month!</b>",
+                ),
+                "Unexpected output: $out",
+            )
+            // Must NOT contain the misleading raw day count phrasing.
+            assertTrue(!out.contains("entire days every month"), "Should not include raw day count: $out")
+            assertTrue(
+                !Regex("\\d+ entire days").containsMatchIn(out.substringBefore(" Many thanks")),
+                "Should not include raw day count: $out",
+            )
+        }
 
     @Test
-    fun `one-time tip covering 30 days or more still shows raw day count`() = runTest {
-        val out = render(lastSupporter(amount = 200.0, currency = "EUR", recurring = false))
-        assertTrue(
-            out.contains("Their generous 200€ tip on $pastDateStr allowed us to finance the platform for <b>40 entire days!</b>"),
-            "Unexpected output: $out"
-        )
-    }
+    fun `one-time tip covering 30 days or more still shows raw day count`() =
+        runTest {
+            val out = render(lastSupporter(amount = 200.0, currency = "EUR", recurring = false))
+            assertTrue(
+                out.contains("Their generous 200€ tip on $pastDateStr allowed us to finance the platform for <b>40 entire days!</b>"),
+                "Unexpected output: $out",
+            )
+        }
 
     @Test
-    fun `recurring pledge just below 30 days still shows day count`() = runTest {
-        // 29 days * 5 EUR/day = 145 EUR -> still under 30-days threshold
-        val out = render(lastSupporter(amount = 145.0, currency = "EUR", recurring = true))
-        assertTrue(
-            out.contains("Their generous 145€ pledge on $pastDateStr allows us to finance the platform for <b>29 entire days every month!</b>"),
-            "Unexpected output: $out"
-        )
-    }
+    fun `recurring pledge just below 30 days still shows day count`() =
+        runTest {
+            // 29 days * 5 EUR/day = 145 EUR -> still under 30-days threshold
+            val out = render(lastSupporter(amount = 145.0, currency = "EUR", recurring = true))
+            assertTrue(
+                out.contains(
+                    "Their generous 145€ pledge on $pastDateStr allows us to finance the platform for <b>29 entire days every month!</b>",
+                ),
+                "Unexpected output: $out",
+            )
+        }
 
     @Test
-    fun `unsupported currency falls back to generic message`() = runTest {
-        val out = render(lastSupporter(amount = 1500.0, currency = "JPY"))
-        // Look at only the dynamic first paragraph (the second one has static promo text).
-        val firstParagraph = out.substringBefore("</p>") + "</p>"
-        assertTrue(
-            firstParagraph.contains("Their 1500JPY tip on $pastDateStr allowed us to finance the platform for a little bit!"),
-            "Unexpected first paragraph: $firstParagraph"
-        )
-        assertTrue(!firstParagraph.contains("entire day"), "Should not include day estimate: $firstParagraph")
-        assertTrue(!firstParagraph.contains("a few hours"), "Should not include hours estimate: $firstParagraph")
-    }
+    fun `unsupported currency falls back to generic message`() =
+        runTest {
+            val out = render(lastSupporter(amount = 1500.0, currency = "JPY"))
+            // Look at only the dynamic first paragraph (the second one has static promo text).
+            val firstParagraph = out.substringBefore("</p>") + "</p>"
+            assertTrue(
+                firstParagraph.contains("Their 1500JPY tip on $pastDateStr allowed us to finance the platform for a little bit!"),
+                "Unexpected first paragraph: $firstParagraph",
+            )
+            assertTrue(!firstParagraph.contains("entire day"), "Should not include day estimate: $firstParagraph")
+            assertTrue(!firstParagraph.contains("a few hours"), "Should not include hours estimate: $firstParagraph")
+        }
 
     @Test
-    fun `unsupported currency recurring uses every month and present tense`() = runTest {
-        val out = render(lastSupporter(amount = 500.0, currency = "INR", recurring = true))
-        assertTrue(
-            out.contains("Their 500INR pledge on $pastDateStr allows us to finance the platform every month for a little bit!"),
-            "Unexpected output: $out"
-        )
-    }
+    fun `unsupported currency recurring uses every month and present tense`() =
+        runTest {
+            val out = render(lastSupporter(amount = 500.0, currency = "INR", recurring = true))
+            assertTrue(
+                out.contains("Their 500INR pledge on $pastDateStr allows us to finance the platform every month for a little bit!"),
+                "Unexpected output: $out",
+            )
+        }
 
     @Test
-    fun `fractional amount keeps decimals`() = runTest {
-        val out = render(lastSupporter(amount = 5.5, currency = "EUR"))
-        assertTrue(out.contains("5.5€"), "Expected decimal amount in: $out")
-    }
+    fun `fractional amount keeps decimals`() =
+        runTest {
+            val out = render(lastSupporter(amount = 5.5, currency = "EUR"))
+            assertTrue(out.contains("5.5€"), "Expected decimal amount in: $out")
+        }
 
     @Test
-    fun `whole amount drops decimals`() = runTest {
-        val out = render(lastSupporter(amount = 5.0, currency = "EUR"))
-        assertTrue(out.contains("5€"), "Expected integer amount in: $out")
-        assertTrue(!out.contains("5.0€"), "Should not contain decimal: $out")
-    }
+    fun `whole amount drops decimals`() =
+        runTest {
+            val out = render(lastSupporter(amount = 5.0, currency = "EUR"))
+            assertTrue(out.contains("5€"), "Expected integer amount in: $out")
+            assertTrue(!out.contains("5.0€"), "Should not contain decimal: $out")
+        }
 
     @Test
-    fun `anonymous supporter without userId is not linked`() = runTest {
-        val out = render(lastSupporter(amount = 8.0, currency = "EUR", userId = null, username = "bob"))
-        assertTrue(out.contains("offered to us by <b>bob</b>"), "Expected unlinked username in: $out")
-        assertTrue(!out.contains("/@/bob"), "Should not contain profile link: $out")
-    }
+    fun `anonymous supporter without userId is not linked`() =
+        runTest {
+            val out = render(lastSupporter(amount = 8.0, currency = "EUR", userId = null, username = "bob"))
+            assertTrue(out.contains("offered to us by <b>bob</b>"), "Expected unlinked username in: $out")
+            assertTrue(!out.contains("/@/bob"), "Should not contain profile link: $out")
+        }
 
     @Test
-    fun `currency matching is case insensitive`() = runTest {
-        val out = render(lastSupporter(amount = 8.0, currency = "eur"))
-        assertTrue(
-            out.contains("entire days") || out.contains("entire day"),
-            "Expected days-based message for lower-case eur: $out"
-        )
-    }
+    fun `currency matching is case insensitive`() =
+        runTest {
+            val out = render(lastSupporter(amount = 8.0, currency = "eur"))
+            assertTrue(
+                out.contains("entire days") || out.contains("entire day"),
+                "Expected days-based message for lower-case eur: $out",
+            )
+        }
 
     @Test
-    fun `current-year date omits year`() = runTest {
-        val now = LocalDate.now(UTC)
-        val jan5 = LocalDate.of(now.year, 1, 5)
-        val ts = jan5.atStartOfDay(UTC).toInstant().toEpochMilli()
-        val out = render(lastSupporter(amount = 4.0, currency = "EUR", timestamp = ts))
-        assertTrue(out.contains("on Jan. 5 "), "Expected current-year date without year in: $out")
-        assertTrue(!out.contains("Jan. 5 ${now.year}"), "Should not include year for current-year date: $out")
-    }
+    fun `current-year date omits year`() =
+        runTest {
+            val now = LocalDate.now(UTC)
+            val jan5 = LocalDate.of(now.year, 1, 5)
+            val ts = jan5.atStartOfDay(UTC).toInstant().toEpochMilli()
+            val out = render(lastSupporter(amount = 4.0, currency = "EUR", timestamp = ts))
+            assertTrue(out.contains("on Jan. 5 "), "Expected current-year date without year in: $out")
+            assertTrue(!out.contains("Jan. 5 ${now.year}"), "Should not include year for current-year date: $out")
+        }
 }

@@ -142,8 +142,8 @@ private fun Route.puzzlesPage() {
         call.respondHtml(
             simplePageRenderer.renderTemplate(
                 "puzzles",
-                resolvers
-            )
+                resolvers,
+            ),
         )
     }
 }
@@ -197,8 +197,8 @@ private fun Routing.simpleMappingsWithSupporterBanner() {
             call.respondHtml(
                 simplePageRenderer.renderTemplate(
                     templateName,
-                    listOf(latestSupporterTagResolver(latestTipper))
-                )
+                    listOf(latestSupporterTagResolver(latestTipper)),
+                ),
             )
         }
     }

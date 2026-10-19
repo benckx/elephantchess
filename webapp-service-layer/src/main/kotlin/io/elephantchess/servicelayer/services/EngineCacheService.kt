@@ -1,9 +1,8 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.EngineCacheDaoService
 import io.elephantchess.engines.protocol.model.InfoLineResult
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 
 @KoinSingleton
@@ -18,5 +17,4 @@ class EngineCacheService(private val engineCacheDaoService: EngineCacheDaoServic
         val fenKey = resetFullMoveCount(fen)
         return engineCacheDaoService.fetchInfoLine(fenKey)
     }
-
 }

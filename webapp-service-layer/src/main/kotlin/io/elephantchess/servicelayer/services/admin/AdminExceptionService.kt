@@ -1,17 +1,14 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.servicelayer.dto.admin.ThrownExceptionsResponse
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
-class AdminExceptionService(
-    private val thrownExceptionDaoService: ThrownExceptionDaoService,
-) {
+class AdminExceptionService(private val thrownExceptionDaoService: ThrownExceptionDaoService) {
 
-    suspend fun listLatestExceptions(limit: Int, httpCodeFilter: String?): ThrownExceptionsResponse {
-        return thrownExceptionDaoService
+    suspend fun listLatestExceptions(limit: Int, httpCodeFilter: String?): ThrownExceptionsResponse =
+        thrownExceptionDaoService
             .listLatestExceptions(limit, httpCodeFilter)
             .map { record ->
                 ThrownExceptionsResponse.Entry(
@@ -25,6 +22,4 @@ class AdminExceptionService(
             .let { entries ->
                 ThrownExceptionsResponse(entries)
             }
-    }
-
 }

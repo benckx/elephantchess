@@ -3,7 +3,7 @@ package io.elephantchess.sevenkingdoms
 data class ArmyCapturedEvent(
     val capturingColor: Color,
     val capturedColor: Color,
-    val generalCapture: Boolean
+    val generalCapture: Boolean,
 ) {
 
     override fun toString(): String {
@@ -16,5 +16,4 @@ data class ArmyCapturedEvent(
 
         return "${javaClass.simpleName}{$middle}"
     }
-
 }

@@ -9,5 +9,5 @@ data class CachedUser(
     val userId: String,
     val username: String,
     val creationTime: Instant,
-    val roles: List<UserRole>
+    val roles: List<UserRole>,
 )

@@ -53,8 +53,8 @@ object FindMatePuzzleCandidates : KoinScript {
                 PikafishEngineId to EngineConfig(
                     version = "2023-03-05",
                     poolSize = 1,
-                    numberOfThreads = ENGINE_THREADS
-                )
+                    numberOfThreads = ENGINE_THREADS,
+                ),
             ),
             executor = Executors.newVirtualThreadPerTaskExecutor(),
             engineProcessLocator = LocalProcessLocator,
@@ -62,7 +62,7 @@ object FindMatePuzzleCandidates : KoinScript {
 
         initKoin(
             appProfile = PROFILE,
-            enginesPool = enginePool
+            enginesPool = enginePool,
         )
     }
 
@@ -79,8 +79,8 @@ object FindMatePuzzleCandidates : KoinScript {
                 REFERENCE_GAME.SOURCE_ID.notIn(
                     dslContext
                         .select(PUZZLE.REF_GAME_SOURCE_ID)
-                        .from(PUZZLE)
-                )
+                        .from(PUZZLE),
+                ),
             )
             .awaitMappedRecords<ReferenceGame>()
 
@@ -99,7 +99,7 @@ object FindMatePuzzleCandidates : KoinScript {
             fen = finalFen,
             engineId = PikafishEngineId,
             depth = DEPTH,
-            timeout = TIME_OUT
+            timeout = TIME_OUT,
         )
         if (result == null) {
             logger.info { "${game.id}: engine returned no result (timeout or acquisition failure), skipping" }
@@ -157,56 +157,57 @@ object FindMatePuzzleCandidates : KoinScript {
             mate = mate,
             depth = mateLine.depth ?: DEPTH,
             startFen = finalFen,
-            solutionMoves = solutionMoves
+            solutionMoves = solutionMoves,
         )
     }
 
     @JvmStatic
-    fun main(args: Array<String>) = runBlocking {
-        // sort by reference game id so the run is deterministic and resumable
-        val games = fetchReferenceGamesWithoutPuzzle().sortedBy { game -> game.id }
-        logger.info { "checking ${games.size} reference games without puzzles" }
+    fun main(args: Array<String>) =
+        runBlocking {
+            // sort by reference game id so the run is deterministic and resumable
+            val games = fetchReferenceGamesWithoutPuzzle().sortedBy { game -> game.id }
+            logger.info { "checking ${games.size} reference games without puzzles" }
 
-        val outputFile = File(OUTPUT_FILE_NAME)
-        val resumeIndex = resumeIndex(outputFile, games)
-        if (resumeIndex > 0) {
-            logger.info { "resuming from index $resumeIndex (${games.size - resumeIndex} games left to check)" }
-        }
-
-        var found = 0
-        val total = games.size
-        val startedAt = System.currentTimeMillis()
-        // append when resuming an existing file, otherwise start fresh with a header
-        val isResuming = resumeIndex > 0 && outputFile.exists()
-        PrintWriter(FileWriter(outputFile, isResuming)).use { writer ->
-            if (!isResuming) {
-                writer.println(MatePuzzleCandidate.CSV_HEADER)
-                writer.flush()
+            val outputFile = File(OUTPUT_FILE_NAME)
+            val resumeIndex = resumeIndex(outputFile, games)
+            if (resumeIndex > 0) {
+                logger.info { "resuming from index $resumeIndex (${games.size - resumeIndex} games left to check)" }
             }
 
-            games.drop(resumeIndex).forEachIndexed { offset, game ->
-                val index = resumeIndex + offset
-                val finalFen = game.finalFen ?: return@forEachIndexed
-                val done = index + 1
-                val percent = done * 100.0 / total
-                val eta = formatEta(startedAt, offset + 1, total - resumeIndex)
-                logger.info { "[$done/$total] (${"%.1f".format(percent)}%, ETA $eta) evaluating ${game.id}" }
-                try {
-                    val candidate = evaluate(game, finalFen)
-                    if (candidate != null) {
-                        writer.println(candidate.toCsvLine())
-                        writer.flush()
-                        found++
-                        logger.info { "[$done/$total] ${game.id}: mate in ${candidate.mate} -> candidate (total found: $found)" }
+            var found = 0
+            val total = games.size
+            val startedAt = System.currentTimeMillis()
+            // append when resuming an existing file, otherwise start fresh with a header
+            val isResuming = resumeIndex > 0 && outputFile.exists()
+            PrintWriter(FileWriter(outputFile, isResuming)).use { writer ->
+                if (!isResuming) {
+                    writer.println(MatePuzzleCandidate.CSV_HEADER)
+                    writer.flush()
+                }
+
+                games.drop(resumeIndex).forEachIndexed { offset, game ->
+                    val index = resumeIndex + offset
+                    val finalFen = game.finalFen ?: return@forEachIndexed
+                    val done = index + 1
+                    val percent = done * 100.0 / total
+                    val eta = formatEta(startedAt, offset + 1, total - resumeIndex)
+                    logger.info { "[$done/$total] (${"%.1f".format(percent)}%, ETA $eta) evaluating ${game.id}" }
+                    try {
+                        val candidate = evaluate(game, finalFen)
+                        if (candidate != null) {
+                            writer.println(candidate.toCsvLine())
+                            writer.flush()
+                            found++
+                            logger.info { "[$done/$total] ${game.id}: mate in ${candidate.mate} -> candidate (total found: $found)" }
+                        }
+                    } catch (e: Exception) {
+                        logger.warn { "could not evaluate ${game.id} due to ${e::class.simpleName}: ${e.message}" }
                     }
-                } catch (e: Exception) {
-                    logger.warn { "could not evaluate ${game.id} due to ${e::class.simpleName}: ${e.message}" }
                 }
             }
-        }
 
-        logger.info { "found $found mate puzzle candidates, written to $OUTPUT_FILE_NAME" }
-    }
+            logger.info { "found $found mate puzzle candidates, written to $OUTPUT_FILE_NAME" }
+        }
 
     /**
      * Returns the index in the (id-sorted) [games] list from which to resume, based on the last
@@ -237,5 +238,4 @@ object FindMatePuzzleCandidates : KoinScript {
         val hours = remainingMs / 1000 / 60 / 60
         return "%02d:%02d:%02d".format(hours, minutes, seconds)
     }
-
 }

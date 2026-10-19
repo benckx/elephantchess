@@ -1,19 +1,18 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.services.NewsletterDaoService
 import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.servicelayer.dto.admin.NewsletterStatsResponse
 import io.elephantchess.servicelayer.services.MailService
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
 class AdminNewsletterService(
     private val newsletterDaoService: NewsletterDaoService,
     private val pageViewEventDaoService: PageViewEventDaoService,
     private val mailService: MailService,
-    appConfig: AppConfig
+    appConfig: AppConfig,
 ) {
 
     private val excludedUserIds = appConfig.excludedFromAnalytics
@@ -50,12 +49,11 @@ class AdminNewsletterService(
                     unsubscribedAllCount = record.unsubscribedAllCount,
                     linkClicks = clicksPerTemplate[record.templateName] ?: 0,
                     linkClickDetails = (linkClicksPerTemplate[record.templateName] ?: emptyList())
-                        .map { NewsletterStatsResponse.LinkClickDetail(it.link, it.clickCount) }
+                        .map { NewsletterStatsResponse.LinkClickDetail(it.link, it.clickCount) },
                 )
             }
             .let { entries ->
                 NewsletterStatsResponse(entries, potentialRecipients)
             }
     }
-
 }

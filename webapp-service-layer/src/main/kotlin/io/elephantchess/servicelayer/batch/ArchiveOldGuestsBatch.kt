@@ -1,10 +1,9 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.ArchivedGuestDaoService
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.services.analytics.ARCHIVE_GUEST_AFTER_DAYS
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.days
 
@@ -17,10 +16,7 @@ import kotlin.time.Duration.Companion.days
  * over multiple runs.
  */
 @KoinSingleton
-class ArchiveOldGuestsBatch(
-    private val archivedGuestDaoService: ArchivedGuestDaoService,
-    override val logger: KLogger,
-) : SinglePodBatch {
+class ArchiveOldGuestsBatch(private val archivedGuestDaoService: ArchivedGuestDaoService, override val logger: KLogger) : SinglePodBatch {
 
     override suspend fun run() {
         val guestIds = archivedGuestDaoService.selectArchivableGuestIds(
@@ -50,5 +46,4 @@ class ArchiveOldGuestsBatch(
         const val CHUNK_SIZE = 500
         const val MAX_CHUNKS_PER_RUN = 20
     }
-
 }

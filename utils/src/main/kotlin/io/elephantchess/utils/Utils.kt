@@ -37,7 +37,11 @@ private val chars by lazy { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy
  * An item is more likely to be selected the more occurrences it has
  */
 fun <T> selectByProbability(elements: List<T>, elementOccurrences: (T) -> Int): T {
-    data class SpaceInterval<T>(val start: Int, val end: Int, val entry: T)
+    data class SpaceInterval<T>(
+        val start: Int,
+        val end: Int,
+        val entry: T,
+    )
 
     if (elements.size > 1) {
         var i = 0
@@ -64,7 +68,8 @@ fun <T> selectByProbability(elements: List<T>, elementOccurrences: (T) -> Int): 
 fun safeRandomAlphaNumericString(min: Int, max: Int): String {
     val length = (min until max).random()
 
-    fun generate() = (1..length).map { chars.random() }.joinToString("")
+    fun generate() =
+        (1..length).map { chars.random() }.joinToString("")
 
     var result = generate()
     while (mayBeOffensive(result)) {
@@ -73,7 +78,6 @@ fun safeRandomAlphaNumericString(min: Int, max: Int): String {
 
     return result
 }
-
 
 fun cropToFirstNWords(text: String, maxWords: Int): String {
     val words = text.split(Regex("\\s+"))
@@ -97,11 +101,10 @@ fun cropToFirstNWords(text: String, maxWords: Int): String {
     }
 }
 
-fun stripHtml(text: String): String {
-    return text
+fun stripHtml(text: String): String =
+    text
         .replace(Regex("<[^>]*>"), "")
         .replace("\"", "'")
-}
 
 /**
  * Returns a list of [LocalDate] between firstDay and lastDay inclusive
@@ -129,26 +132,22 @@ fun rangeOfYearMonths(firstMonth: YearMonth, lastMonth: YearMonth): List<YearMon
     return result.toList()
 }
 
-fun isChineseText(s: String): Boolean {
-    return s.matches(Regex("^[\\u4E00-\\u9FFF]+$"))
-}
+fun isChineseText(s: String): Boolean =
+    s.matches(Regex("^[\\u4E00-\\u9FFF]+$"))
 
-fun formatWithChineseName(name: String, chineseName: String?): String {
-    return if (chineseName.isNullOrBlank()) {
+fun formatWithChineseName(name: String, chineseName: String?): String =
+    if (chineseName.isNullOrBlank()) {
         name
     } else {
         "$name ($chineseName)"
     }
-}
 
-fun generateNameVariations(vararg names: String): List<String> {
-    return names.flatMap { name -> generateNameVariations(name) }.distinct()
-}
+fun generateNameVariations(vararg names: String): List<String> =
+    names.flatMap { name -> generateNameVariations(name) }.distinct()
 
 fun generateNameVariations(name: String): List<String> {
-    fun splitCamelCase(name: String): String {
-        return name.replace(Regex("([A-Z])"), " $1").trim()
-    }
+    fun splitCamelCase(name: String): String =
+        name.replace(Regex("([A-Z])"), " $1").trim()
 
     fun <T> List<T>.permutations(): List<List<T>> {
         if (size <= 1) return listOf(this)
@@ -164,7 +163,6 @@ fun generateNameVariations(name: String): List<String> {
         return result
     }
 
-
     val toSplit = if (name.trim().contains(" ")) {
         name.trim()
     } else {
@@ -175,7 +173,7 @@ fun generateNameVariations(name: String): List<String> {
         .flatMap { permutation ->
             listOf(
                 permutation.joinToString(""),
-                permutation.joinToString(" ")
+                permutation.joinToString(" "),
             )
         }
         .map { it.lowercase() }

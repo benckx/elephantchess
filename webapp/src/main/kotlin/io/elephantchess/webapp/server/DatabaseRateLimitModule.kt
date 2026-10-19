@@ -49,7 +49,7 @@ fun Application.databaseRateLimitModule() {
         if (rateLimited) {
             logger.warn {
                 "rate limited ${call.request.httpMethod.value} ${call.request.path()} " +
-                        "| User-Agent: ${call.request.headers[HttpHeaders.UserAgent]?.take(100)}"
+                    "| User-Agent: ${call.request.headers[HttpHeaders.UserAgent]?.take(100)}"
             }
             call.response.headers.append(HttpHeaders.RetryAfter, windowSeconds.toString())
             call.respond(
@@ -57,7 +57,7 @@ fun Application.databaseRateLimitModule() {
                     text = simplePageRenderer.renderTemplate("429"),
                     contentType = ContentType.Text.Html,
                     status = HttpStatusCode.TooManyRequests,
-                )
+                ),
             )
             finish()
         }

@@ -104,9 +104,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         }
     }
 
-    private suspend fun processGame(
-        gameId: String,
-    ): GameSummaries {
+    private suspend fun processGame(gameId: String): GameSummaries {
         val analysisMap = gameDataService
             .fetchAnalysisData(GameId(PVP, gameId))
             .entries
@@ -131,12 +129,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         )
     }
 
-    private fun printSummarySection(
-        title: String,
-        gameCount: Int,
-        failedCount: Int,
-        totals: SummaryTotals,
-    ) {
+    private fun printSummarySection(title: String, gameCount: Int, failedCount: Int, totals: SummaryTotals) {
         println(title)
         println("Completed PvP games: $gameCount")
         println("Failed games: $failedCount")
@@ -185,34 +178,31 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         }
         println(
             "Category      " +
-                    "Count".padStart(columnWidths.count) + "   " +
-                    "Pct Ann".padStart(columnWidths.annotatedPercentage) + "   " +
-                    "Pct Global".padStart(columnWidths.globalPercentage) + "   " +
-                    "Avg CPL".padStart(columnWidths.average) + "   " +
-                    "Min".padStart(columnWidths.min) + "   " +
-                    "Max".padStart(columnWidths.max),
+                "Count".padStart(columnWidths.count) + "   " +
+                "Pct Ann".padStart(columnWidths.annotatedPercentage) + "   " +
+                "Pct Global".padStart(columnWidths.globalPercentage) + "   " +
+                "Avg CPL".padStart(columnWidths.average) + "   " +
+                "Min".padStart(columnWidths.min) + "   " +
+                "Max".padStart(columnWidths.max),
         )
         categoryRows.forEach { row ->
             println(
                 "${row.category.name.padEnd(13)} " +
-                        "${row.count.padStart(columnWidths.count)}   " +
-                        "${row.annotatedPercentage.padStart(columnWidths.annotatedPercentage)}   " +
-                        "${row.globalPercentage.padStart(columnWidths.globalPercentage)}   " +
-                        "${row.average.padStart(columnWidths.average)}   " +
-                        "${row.min.padStart(columnWidths.min)}   " +
-                        row.max.padStart(columnWidths.max),
+                    "${row.count.padStart(columnWidths.count)}   " +
+                    "${row.annotatedPercentage.padStart(columnWidths.annotatedPercentage)}   " +
+                    "${row.globalPercentage.padStart(columnWidths.globalPercentage)}   " +
+                    "${row.average.padStart(columnWidths.average)}   " +
+                    "${row.min.padStart(columnWidths.min)}   " +
+                    row.max.padStart(columnWidths.max),
             )
         }
     }
 
-    internal fun formatPercentages(
-        count: Int,
-        annotatedMoves: Int,
-        totalMoves: Int,
-    ) = AnnotationPercentages(
-        annotated = formatPercentage(count, annotatedMoves),
-        global = formatPercentage(count, totalMoves),
-    )
+    internal fun formatPercentages(count: Int, annotatedMoves: Int, totalMoves: Int) =
+        AnnotationPercentages(
+            annotated = formatPercentage(count, annotatedMoves),
+            global = formatPercentage(count, totalMoves),
+        )
 
     private fun formatPercentage(count: Int, denominator: Int): String =
         denominator
@@ -330,10 +320,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
                     .take(sampleSize)
             }
 
-    internal fun buildAnnotatedMoveLines(
-        title: String,
-        annotatedMoves: List<AnnotatedMoveDetail>,
-    ): List<String> {
+    internal fun buildAnnotatedMoveLines(title: String, annotatedMoves: List<AnnotatedMoveDetail>): List<String> {
         if (annotatedMoves.isEmpty()) {
             return listOf("$title: 0")
         }
@@ -343,8 +330,8 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
             annotatedMoves.forEachIndexed { index, detail ->
                 add(
                     "game=${detail.gameId} ply=${detail.ply} moveIndex=${detail.moveIndex} " +
-                            "fullMoveIndex=${detail.fullMoveIndex} playedMove=${detail.playedMove} " +
-                            "engineMove=${detail.engineMove} cpl=${detail.cpl} annotation=${detail.category}",
+                        "fullMoveIndex=${detail.fullMoveIndex} playedMove=${detail.playedMove} " +
+                        "engineMove=${detail.engineMove} cpl=${detail.cpl} annotation=${detail.category}",
                 )
                 add("  fen: ${detail.fenBeforeMove}")
                 add("  localhost: ${LOCALHOST_GAME_URL_PREFIX}${detail.gameId}")
@@ -470,10 +457,7 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         val max: String,
     )
 
-    internal data class AnnotationPercentages(
-        val annotated: String,
-        val global: String,
-    )
+    internal data class AnnotationPercentages(val annotated: String, val global: String)
 
     private data class ColumnWidths(
         val count: Int,

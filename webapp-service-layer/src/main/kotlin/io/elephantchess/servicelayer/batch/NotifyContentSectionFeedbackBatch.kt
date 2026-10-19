@@ -1,11 +1,10 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.ContentSectionVoteDaoService
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.services.ContentFeedbackEntry
 import io.elephantchess.servicelayer.services.MailService
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 
 /**
@@ -38,7 +37,7 @@ class NotifyContentSectionFeedbackBatch(
                     upVoted = vote.upVoted,
                     feedback = vote.feedback,
                 )
-            }
+            },
         )
 
         votes.forEach { vote ->
@@ -51,5 +50,4 @@ class NotifyContentSectionFeedbackBatch(
 
         logger.info { "notified ${votes.size} content section vote(s)" }
     }
-
 }

@@ -38,7 +38,7 @@ internal fun Routing.databasePages() {
                 requestedVersion = version,
                 edit = databaseService.fetchPlayerEdit(databasePlayer.id, version),
                 fetchEditorsUsername = fetchEditorsUsername,
-                hasOpeningData = databaseService.hasPlayerOpeningData(databasePlayer.id)
+                hasOpeningData = databaseService.hasPlayerOpeningData(databasePlayer.id),
             )
         }
     }
@@ -72,7 +72,7 @@ internal fun Routing.databasePages() {
                 databasePlayer = databasePlayer,
                 fromVersion = version - 1,
                 toVersion = version,
-                fetchEdit = fetchEdit
+                fetchEdit = fetchEdit,
             )
         }
     }
@@ -134,7 +134,7 @@ private suspend fun RoutingContext.resolveDatabasePlayer(render: suspend (Databa
         // player not found, render 404 page
         call.respondHtml(
             simplePageRenderer.renderTemplate("404"),
-            HttpStatusCode.NotFound
+            HttpStatusCode.NotFound,
         )
     } else if (databasePlayer.urlName != playerName.replace(" ", "_")) {
         // reconstruct the correct URL path by replacing the playerName segment
@@ -150,10 +150,10 @@ private suspend fun RoutingContext.resolveDatabasePlayer(render: suspend (Databa
         } else {
             // fallback: just reconstruct from scratch using the route pattern
             originalPath.substringBefore("/database/player/") +
-                    "/database/player/${databasePlayer.urlName.encodeURLPath()}" +
-                    originalPath
-                        .substringAfter("/database/player/")
-                        .substringAfter("/").let { if (it.isEmpty()) "" else "/$it" }
+                "/database/player/${databasePlayer.urlName.encodeURLPath()}" +
+                originalPath
+                    .substringAfter("/database/player/")
+                    .substringAfter("/").let { if (it.isEmpty()) "" else "/$it" }
         }
 
         val queryString = call.request.queryString()

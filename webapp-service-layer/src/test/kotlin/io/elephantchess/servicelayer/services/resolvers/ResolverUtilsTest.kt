@@ -13,5 +13,4 @@ class ResolverUtilsTest {
         assertEquals("""<a href="$url">$url</a>""", anchor)
         assertFalse(anchor.endsWith("\n"))
     }
-
 }

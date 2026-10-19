@@ -8,10 +8,7 @@ import java.util.*
 /**
  * configurationLocation exists so I can use a config file from outside the repo when working with a prod backup
  */
-data class ScriptConfig(
-    val appProfile: String?,
-    val configurationLocation: String?
-) {
+data class ScriptConfig(val appProfile: String?, val configurationLocation: String?) {
 
     companion object {
 
@@ -28,17 +25,15 @@ data class ScriptConfig(
                 logger.info { "scripts.properties -> configuration.location=$configurationLocation" }
                 return ScriptConfig(
                     appProfile = appProfile,
-                    configurationLocation = configurationLocation
+                    configurationLocation = configurationLocation,
                 )
             } else {
                 logger.warn { "scripts.properties not found" }
                 return ScriptConfig(
                     appProfile = null,
-                    configurationLocation = null
+                    configurationLocation = null,
                 )
             }
         }
-
     }
-
 }

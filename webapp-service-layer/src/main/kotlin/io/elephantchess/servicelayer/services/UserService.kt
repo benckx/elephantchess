@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.PasswordRecoveryAttempt
 import io.elephantchess.db.dao.codegen.tables.pojos.User
@@ -19,6 +17,7 @@ import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.TokenManager.Companion.RENEW_SESSION_INTERVAL
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRateStartImmediately
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.stripHtml
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
@@ -67,7 +66,7 @@ class UserService(
     private val refreshJob = launchAtFixedRateStartImmediately(
         scope = refresherScope,
         period = 2.seconds,
-        action = { refreshIsOnlineCache() }
+        action = { refreshIsOnlineCache() },
     )
 
     fun cancel() {
@@ -136,8 +135,8 @@ class UserService(
                 SignUpResponse(
                     userId = user.id,
                     username = user.handle,
-                    token = tokenManager.buildTokenForAuthenticatedUser(user)
-                )
+                    token = tokenManager.buildTokenForAuthenticatedUser(user),
+                ),
             )
         } else {
             errors.forEach { error ->
@@ -209,7 +208,7 @@ class UserService(
         logger.debug { "created guest #$id" }
         return ObtainAnonymousTokenResponse(
             id = id,
-            token = tokenManager.buildTokenForGuestUser(id)
+            token = tokenManager.buildTokenForGuestUser(id),
         )
     }
 
@@ -223,7 +222,7 @@ class UserService(
                 userId = user.id,
                 username = user.handle,
                 token = tokenManager.buildTokenForAuthenticatedUser(user),
-                roles = user.roles
+                roles = user.roles,
             )
         } else {
             throw UnauthorizedException("Incorrect credentials")
@@ -465,7 +464,7 @@ class UserService(
         val deletedCount =
             userSessionDaoService.deleteAuthenticatedSessionsForUser(
                 userId = userId,
-                sessionIds = request.sessionIds.toSet()
+                sessionIds = request.sessionIds.toSet(),
             )
 
         return DeleteUserSessionsResponse(deletedCount)
@@ -499,17 +498,14 @@ class UserService(
         return ArchiveUserPageViewsResponse(archivedCount)
     }
 
-    fun isOnline(userId: String): Boolean {
-        return onlineUserIds.contains(userId)
-    }
+    fun isOnline(userId: String): Boolean =
+        onlineUserIds.contains(userId)
 
-    fun areOnline(userIds: List<String>): AreUsersOnlineResponse {
-        return AreUsersOnlineResponse(userIds.toSet().intersect(onlineUserIds))
-    }
+    fun areOnline(userIds: List<String>): AreUsersOnlineResponse =
+        AreUsersOnlineResponse(userIds.toSet().intersect(onlineUserIds))
 
-    fun countOnline(): Int {
-        return onlineUserIds.size
-    }
+    fun countOnline(): Int =
+        onlineUserIds.size
 
     fun onlineUserIds() =
         onlineUserIds.toSet()
@@ -524,7 +520,7 @@ class UserService(
         mailService.sendContactForm(
             userId = userId,
             email = request.email,
-            message = request.message
+            message = request.message,
         )
     }
 
@@ -571,13 +567,12 @@ class UserService(
         return secretKeyFactory.generateSecret(spec).encoded!!
     }
 
-    suspend fun listUsersForSiteMap(): List<Pair<String, LocalDate>> {
-        return userDaoService
+    suspend fun listUsersForSiteMap(): List<Pair<String, LocalDate>> =
+        userDaoService
             .listUsersWithDescriptionForSiteMap()
             .map { (username, lastProfileUpdate) ->
                 username to lastProfileUpdate.toUtcLocalDate()
             }
-    }
 
     companion object {
 
@@ -597,13 +592,12 @@ class UserService(
 
         private val EMAIL_REGEX = "^[A-Za-z0-9][^\\s]*@[^\\s]+\\.[^\\s]+$".toRegex()
 
-        private fun validatePassword(password: String): String? {
-            return if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
+        private fun validatePassword(password: String): String? =
+            if (password.length !in PASSWORD_MIN_LENGTH..PASSWORD_MAX_LENGTH) {
                 "Password must be between $PASSWORD_MIN_LENGTH and $PASSWORD_MAX_LENGTH char."
             } else {
                 null
             }
-        }
 
         /**
          * Allowed characters: latin letters (including combining marks), numbers, underscore and dashes
@@ -613,7 +607,5 @@ class UserService(
 
         private fun isEmailFormatValid(chars: String): Boolean =
             chars.matches(EMAIL_REGEX)
-
     }
-
 }

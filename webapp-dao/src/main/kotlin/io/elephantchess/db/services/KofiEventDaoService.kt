@@ -1,13 +1,12 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.KOFI_EVENT
 import io.elephantchess.db.dao.codegen.tables.daos.KofiEventDao
 import io.elephantchess.db.dao.codegen.tables.pojos.KofiEvent
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.awaitSingleMappedRecord
 import io.elephantchess.db.utils.insertReactive
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -22,7 +21,7 @@ class KofiEventDaoService(private val dslContext: DSLContext) {
         KOFI_EVENT.TIMESTAMP,
         KOFI_EVENT.AMOUNT,
         KOFI_EVENT.CURRENCY,
-        KOFI_EVENT.TRANSACTION_TYPE
+        KOFI_EVENT.TRANSACTION_TYPE,
     )
 
     suspend fun insert(record: KofiEvent) {
@@ -36,7 +35,7 @@ class KofiEventDaoService(private val dslContext: DSLContext) {
             .select(
                 KOFI_EVENT.MATCHED_USER_ID,
                 DSL.max(KOFI_EVENT.TIMESTAMP).`as`("max_timestamp"),
-                DSL.max(KOFI_EVENT.ID).`as`("max_id")
+                DSL.max(KOFI_EVENT.ID).`as`("max_id"),
             )
             .from(KOFI_EVENT)
             .where(KOFI_EVENT.MATCHED_USER_ID.isNotNull())
@@ -54,7 +53,7 @@ class KofiEventDaoService(private val dslContext: DSLContext) {
             .on(
                 KOFI_EVENT.MATCHED_USER_ID.eq(latestTips.field(KOFI_EVENT.MATCHED_USER_ID))
                     .and(KOFI_EVENT.TIMESTAMP.eq(latestTips.field("max_timestamp", KOFI_EVENT.TIMESTAMP.dataType)))
-                    .and(KOFI_EVENT.ID.eq(latestTips.field("max_id", KOFI_EVENT.ID.dataType)))
+                    .and(KOFI_EVENT.ID.eq(latestTips.field("max_id", KOFI_EVENT.ID.dataType))),
             )
             .orderBy(KOFI_EVENT.TIMESTAMP.desc())
             .awaitMappedRecords()
@@ -68,7 +67,7 @@ class KofiEventDaoService(private val dslContext: DSLContext) {
         val earliestSubscriptions = dslContext
             .select(
                 KOFI_EVENT.MATCHED_USER_ID,
-                DSL.min(KOFI_EVENT.TIMESTAMP).`as`("min_timestamp")
+                DSL.min(KOFI_EVENT.TIMESTAMP).`as`("min_timestamp"),
             )
             .from(KOFI_EVENT)
             .where(KOFI_EVENT.MATCHED_USER_ID.isNotNull())
@@ -88,37 +87,34 @@ class KofiEventDaoService(private val dslContext: DSLContext) {
                         KOFI_EVENT.TIMESTAMP.eq(
                             earliestSubscriptions.field(
                                 "min_timestamp",
-                                KOFI_EVENT.TIMESTAMP.dataType
-                            )
-                        )
-                    )
+                                KOFI_EVENT.TIMESTAMP.dataType,
+                            ),
+                        ),
+                    ),
             )
             .orderBy(KOFI_EVENT.TIMESTAMP.desc())
             .limit(limit)
             .awaitMappedRecords()
     }
 
-    suspend fun fetchLatestEvent(): KofiEvent? {
-        return dslContext
+    suspend fun fetchLatestEvent(): KofiEvent? =
+        dslContext
             .select(relevantFields)
             .from(KOFI_EVENT)
             .where(KOFI_EVENT.EMAIL.notEqual(EXAMPLE_EMAIL))
             .and(
                 KOFI_EVENT.TRANSACTION_TYPE.`in`("Donation", "Tip").or(
                     KOFI_EVENT.TRANSACTION_TYPE.`in`("Subscription")
-                        .and(KOFI_EVENT.IS_FIRST_SUBSCRIPTION_PAYMENT.eq(true))
-                )
+                        .and(KOFI_EVENT.IS_FIRST_SUBSCRIPTION_PAYMENT.eq(true)),
+                ),
             )
             .orderBy(KOFI_EVENT.TIMESTAMP.desc())
             .limit(1)
             .awaitSingleMappedRecord()
-    }
 
     companion object {
 
         // used for testing purposes
         const val EXAMPLE_EMAIL = "jo.example@example.com"
-
     }
-
 }
