@@ -12,14 +12,19 @@ data class AnalysisAndVersionRecord(
 
     fun analysisId(): String =
         record.get(ANALYSIS.ID)
+
     fun created(): Instant =
         record.get(ANALYSIS.CREATED)
+
     fun lastUpdated(): Instant =
         record.get(ANALYSIS.LAST_UPDATED)
+
     fun analysisName(): String =
         record.get(ANALYSIS.ANALYSIS_NAME)
+
     fun versionNumber(): Int =
         record.get(ANALYSIS_VERSION.VERSION_NUMBER)
+
     fun gameType(): GameType? =
         if (record.get(ANALYSIS.GAME_ID) != null) {
             GameType.PVP
