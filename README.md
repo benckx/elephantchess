@@ -11,6 +11,7 @@
     - [Pre-requisites](#pre-requisites)
     - [Set-up](#set-up)
     - [Build and Run](#build-and-run)
+    - [Code Style](#code-style)
     - [Common Issues](#common-issues)
 - [Back-End (Kotlin)](#back-end-kotlin)
     - [Gradle Modules](#gradle-modules)
