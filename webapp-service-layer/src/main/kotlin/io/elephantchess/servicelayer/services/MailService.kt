@@ -275,7 +275,7 @@ class MailService(
                 SimpleValueTagResolver("opponent", opponent),
                 GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 

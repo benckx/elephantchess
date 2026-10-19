@@ -842,7 +842,7 @@ class PlayerVsPlayerGameService(
                     gameId = gameId,
                     flaggedUserId = userId,
                     gamePlayersStatus = gamePlayersStatus,
-                    duration = NOTIFICATIONS_OFFLINE_FOR
+                    duration = NOTIFICATIONS_OFFLINE_FOR,
                 )
                 ?.let { recipient ->
                     mailService.sendOpponentFlaggedWhileOffline(
