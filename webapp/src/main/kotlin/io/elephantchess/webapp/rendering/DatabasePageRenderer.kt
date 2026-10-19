@@ -12,12 +12,7 @@ import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.formatWithChineseName
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
-import kotlinx.html.a
-import kotlinx.html.li
-import kotlinx.html.meta
-import kotlinx.html.p
-import kotlinx.html.style
-import kotlinx.html.unsafe
+import kotlinx.html.*
 import kotlin.time.Duration.Companion.hours
 
 @KoinSingleton(eager = true)
@@ -127,9 +122,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_player_edit.html",
-            specificTagResolvers = listOf(
-                playerIdResolver,
-            ),
+            specificTagResolvers = listOf(playerIdResolver),
             canonicalPath = "/database/player/${databasePlayer.urlName}/edit",
         )
     }
@@ -139,9 +132,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/database/database_player_edit_history.html",
-            specificTagResolvers = listOf(
-                playerIdResolver,
-            ),
+            specificTagResolvers = listOf(playerIdResolver),
             canonicalPath = "/database/player/${databasePlayer.urlName}/edit-history",
         )
     }
