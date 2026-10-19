@@ -1145,7 +1145,10 @@ class PlayerVsPlayerGameService(
                     val hasExceeded = sequence.exceeds(rule)
                     logger.debug { "exceeds $rule -> $hasExceeded" }
                     if (hasExceeded) {
-                        return PerpetualCheckingCallbackResult(PERPETUAL_CHECKING, playerColor.asLoserOutcome())
+                        return PerpetualCheckingCallbackResult(
+                            newGameEventType = PERPETUAL_CHECKING,
+                            outcome = playerColor.asLoserOutcome(),
+                        )
                     }
                 }
             }
