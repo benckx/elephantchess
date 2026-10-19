@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.callback.PerpetualCheckingCallbackResult
 import io.elephantchess.db.callback.PlayMoveCallbackResult
 import io.elephantchess.db.callback.UpdateRatingsCallbackResult
@@ -36,6 +34,7 @@ import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
 import io.elephantchess.xiangqi.Board.Companion.isCheckmated
@@ -1145,7 +1144,10 @@ class PlayerVsPlayerGameService(
                     val hasExceeded = sequence.exceeds(rule)
                     logger.debug { "exceeds $rule -> $hasExceeded" }
                     if (hasExceeded) {
-                        return PerpetualCheckingCallbackResult(PERPETUAL_CHECKING, playerColor.asLoserOutcome())
+                        return PerpetualCheckingCallbackResult(
+                            newGameEventType = PERPETUAL_CHECKING,
+                            outcome = playerColor.asLoserOutcome()
+                        )
                     }
                 }
             }
