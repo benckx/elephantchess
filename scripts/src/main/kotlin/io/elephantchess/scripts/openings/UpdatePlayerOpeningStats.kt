@@ -37,16 +37,17 @@ private val readContext = getScriptDslContext(readAppConfig, maximumPoolSize = 8
 private val writeContext = getScriptDslContext(writeAppConfig, maximumPoolSize = 2)
 private val referenceGameDaoService = ReferenceGameDaoService(readContext)
 
-fun main(): Unit = runBlocking {
-    val start = System.currentTimeMillis()
-    val memoryCache = loadGamesWithMoves(readContext, referenceGameDaoService) { i ->
-        logger.info { "loaded $i games into memory cache" }
+fun main(): Unit =
+    runBlocking {
+        val start = System.currentTimeMillis()
+        val memoryCache = loadGamesWithMoves(readContext, referenceGameDaoService) { i ->
+            logger.info { "loaded $i games into memory cache" }
+        }
+
+        updatePlayerOpenings(memoryCache)
+
+        logger.info { "done in ${(System.currentTimeMillis() - start) / 60_000} minutes" }
     }
-
-    updatePlayerOpenings(memoryCache)
-
-    logger.info { "done in ${(System.currentTimeMillis() - start) / 60_000} minutes" }
-}
 
 /**
  * (Re)build the per-reference-player opening repertoires, split by the color the player played,
@@ -84,7 +85,7 @@ private suspend fun updatePlayerOpenings(memoryCache: List<ReferenceGameDto>) {
 private fun buildRepertoire(
     playerId: String,
     color: Color,
-    games: List<ReferenceGameDto>
+    games: List<ReferenceGameDto>,
 ): List<OpeningPreCalculationCacheReferencePlayer> {
     val aggregates = mutableMapOf<String, OpeningAggregate>()
 
@@ -116,11 +117,7 @@ private fun buildRepertoire(
         }
 }
 
-private suspend fun persistRepertoire(
-    playerId: String,
-    color: Color,
-    records: List<OpeningPreCalculationCacheReferencePlayer>
-) {
+private suspend fun persistRepertoire(playerId: String, color: Color, records: List<OpeningPreCalculationCacheReferencePlayer>) {
     writeContext.transactionCoroutine { cfg ->
         DSL.using(cfg)
             .deleteFrom(OPENING_PRE_CALCULATION_CACHE_REFERENCE_PLAYER)

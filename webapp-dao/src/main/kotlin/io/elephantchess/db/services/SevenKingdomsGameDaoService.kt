@@ -1,7 +1,5 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.SevenKingdomsGameDao
 import io.elephantchess.db.dao.codegen.tables.daos.SevenKingdomsGameEventDao
@@ -14,6 +12,7 @@ import io.elephantchess.db.utils.*
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.sevenkingdoms.Color
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.TableField
 import org.jooq.impl.DSL
@@ -58,12 +57,7 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
             .and(SEVEN_KINGDOMS_GAME_EVENT.EVENT_TYPE.`in`(listOf(RESIGNED, FLAGGED)))
             .awaitMappedRecords()
 
-    suspend fun updateJoinStatus(
-        userId: String,
-        gameId: String,
-        newColorsOfUser: List<Color>,
-        newStatus: GameEventType
-    ) {
+    suspend fun updateJoinStatus(userId: String, gameId: String, newColorsOfUser: List<Color>, newStatus: GameEventType) {
         dslContext.transactionCoroutine { cfg ->
             val now = Clock.System.now()
             val transactional = DSL.using(cfg)
@@ -108,14 +102,7 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun resign(
-        gameId: String,
-        index: Int,
-        userId: String,
-        colors: List<Color>,
-        newStatus: GameEventType?,
-        winnerUserId: String?
-    ) {
+    suspend fun resign(gameId: String, index: Int, userId: String, colors: List<Color>, newStatus: GameEventType?, winnerUserId: String?) {
         dslContext.transactionCoroutine { cfg ->
             val transactional by lazy { DSL.using(cfg) }
             val eventDao = SevenKingdomsGameEventDao(cfg)
@@ -163,7 +150,7 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
         newColorToPlay: Color?,
         eventType: GameEventType?,
         winnerColor: Color?,
-        winnerId: String?
+        winnerId: String?,
     ) {
         dslContext.transactionCoroutine { cfg ->
             val now = Clock.System.now()
@@ -221,7 +208,5 @@ class SevenKingdomsGameDaoService(private val dslContext: DSLContext) {
                 Color.PURPLE -> SEVEN_KINGDOMS_GAME.PLAYER_PURPLE
                 Color.BLACK -> SEVEN_KINGDOMS_GAME.PLAYER_BLACK
             }
-
     }
-
 }

@@ -37,119 +37,122 @@ fun serviceLayerModule(
     eagerAllowed: Boolean = false,
     dslBuilder: (DbConfig) -> DSLContext = { getDslContext(it) },
     enginesPool: EnginePool? = null,
-) = module {
-    val appConfig = loadAppConfig(argConfig)
-    single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
-    single { appConfig }
-    single { appConfig.dbConfig }
-    single { dslBuilder(get()) }
-    single { enginesPool ?: buildDefaultEnginePool(get()) }
+) =
+    module {
+        val appConfig = loadAppConfig(argConfig)
+        single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+        single { appConfig }
+        single { appConfig.dbConfig }
+        single { dslBuilder(get()) }
+        single { enginesPool ?: buildDefaultEnginePool(get()) }
 
-    // all services, DAOs, clients and batches annotated with @KoinSingleton
-    registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
+        // all services, DAOs, clients and batches annotated with @KoinSingleton
+        registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")
 
-    includes(
-        mailTemplateRenderModule(),
-        batchSchedulesModule()
-    )
-}
+        includes(
+            mailTemplateRenderModule(),
+            batchSchedulesModule(),
+        )
+    }
 
 // emails: custom wiring that can't be auto-resolved from the constructor alone
-private fun mailTemplateRenderModule() = module {
-    single {
-        val config = get<AppConfig>()
-        MailTemplateRender(
-            baseTagResolvers = listOf(
-                UpdateMailSettingsTagResolver(config),
-                ContactLinkTagResolver(config),
-                MailFragmentResolver("email_css"),
+private fun mailTemplateRenderModule() =
+    module {
+        single {
+            val config = get<AppConfig>()
+            MailTemplateRender(
+                baseTagResolvers = listOf(
+                    UpdateMailSettingsTagResolver(config),
+                    ContactLinkTagResolver(config),
+                    MailFragmentResolver("email_css"),
+                ),
             )
-        )
+        }
     }
-}
 
-private fun batchSchedulesModule() = module {
-    single {
-        listOf(
-            ShardedBatchSchedule(
-                get<PreAnalysisCleanUpBatch>(),
-                period = 6.hours
-            ),
-            ShardedBatchSchedule(
-                get<FetchUserSessionGeographicDataBatch>(),
-                period = 15.minutes
-            ),
-            ShardedBatchSchedule(
-                get<FlagGamesBatch>(),
-                period = 5.seconds,
-                delay = 10.seconds
-            ),
-            ShardedBatchSchedule(
-                get<AutoCancelCreatedGamesFromOfflineUsersBatch>(),
-                period = 15.minutes,
-                delay = 2.minutes
-            ),
-            ShardedBatchSchedule(
-                get<AutoResignIdleBotGamesBatch>(),
-                period = 15.minutes,
-                delay = 4.minutes
-            ),
-            ShardedBatchSchedule(
-                get<BackgroundGameAnalysisBatch>(),
-                period = 5.minutes,
-                delay = 1.minutes
-            ),
-            SinglePodBatchSchedule(
-                get<FetchMinutesUsersMetricsBatch>(),
-                period = 5.minutes,
-                delay = 5.seconds,
-                podNumber = 0
-            ),
-            SinglePodBatchSchedule(
-                get<FetchDailyUsersMetricsBatch>(),
-                period = 6.hours,
-                delay = 15.minutes,
-                podNumber = 0
-            ),
-            SinglePodBatchSchedule(
-                get<ArchiveOldGuestsBatch>(),
-                period = 6.hours,
-                delay = 30.minutes,
-                podNumber = 1
-            ),
-            SinglePodBatchSchedule(
-                get<ArchiveOldPageViewsBatch>(),
-                period = 6.hours,
-                delay = 45.minutes,
-                podNumber = 0
-            ),
-            SinglePodBatchSchedule(
-                get<SendOutNewslettersBatch>(),
-                period = 5.minutes,
-                delay = 3.minutes,
-                podNumber = 0
-            ),
-            SinglePodBatchSchedule(
-                get<NotifyContentSectionFeedbackBatch>(),
-                period = 4.hours,
-                delay = 1.hours,
-                podNumber = 1
-            ),
-            SinglePodBatchSchedule(
-                get<CheckEmailListVerifyCreditBatch>(),
-                period = 48.hours,
-                delay = 30.seconds,
-                podNumber = 1
-            ),
-            SinglePodBatchSchedule(
-                get<VerifyEmailsBatch>(),
-                period = 48.hours,
-                delay = 12.hours,
-                podNumber = 1
-            ),
-        )
+private fun batchSchedulesModule() =
+    module {
+        single {
+            listOf(
+                ShardedBatchSchedule(
+                    get<PreAnalysisCleanUpBatch>(),
+                    period = 6.hours,
+                ),
+                ShardedBatchSchedule(
+                    get<FetchUserSessionGeographicDataBatch>(),
+                    period = 15.minutes,
+                ),
+                ShardedBatchSchedule(
+                    get<FlagGamesBatch>(),
+                    period = 5.seconds,
+                    delay = 10.seconds,
+                ),
+                ShardedBatchSchedule(
+                    get<AutoCancelCreatedGamesFromOfflineUsersBatch>(),
+                    period = 15.minutes,
+                    delay = 2.minutes,
+                ),
+                ShardedBatchSchedule(
+                    get<AutoResignIdleBotGamesBatch>(),
+                    period = 15.minutes,
+                    delay = 4.minutes,
+                ),
+                ShardedBatchSchedule(
+                    get<BackgroundGameAnalysisBatch>(),
+                    period = 5.minutes,
+                    delay = 1.minutes,
+                ),
+                SinglePodBatchSchedule(
+                    get<FetchMinutesUsersMetricsBatch>(),
+                    period = 5.minutes,
+                    delay = 5.seconds,
+                    podNumber = 0,
+                ),
+                SinglePodBatchSchedule(
+                    get<FetchDailyUsersMetricsBatch>(),
+                    period = 6.hours,
+                    delay = 15.minutes,
+                    podNumber = 0,
+                ),
+                SinglePodBatchSchedule(
+                    get<ArchiveOldGuestsBatch>(),
+                    period = 6.hours,
+                    delay = 30.minutes,
+                    podNumber = 1,
+                ),
+                SinglePodBatchSchedule(
+                    get<ArchiveOldPageViewsBatch>(),
+                    period = 6.hours,
+                    delay = 45.minutes,
+                    podNumber = 0,
+                ),
+                SinglePodBatchSchedule(
+                    get<SendOutNewslettersBatch>(),
+                    period = 5.minutes,
+                    delay = 3.minutes,
+                    podNumber = 0,
+                ),
+                SinglePodBatchSchedule(
+                    get<NotifyContentSectionFeedbackBatch>(),
+                    period = 4.hours,
+                    delay = 1.hours,
+                    podNumber = 1,
+                ),
+                SinglePodBatchSchedule(
+                    get<CheckEmailListVerifyCreditBatch>(),
+                    period = 48.hours,
+                    delay = 30.seconds,
+                    podNumber = 1,
+                ),
+                SinglePodBatchSchedule(
+                    get<VerifyEmailsBatch>(),
+                    period = 48.hours,
+                    delay = 12.hours,
+                    podNumber = 1,
+                ),
+            )
+        }
     }
-}
 
 private fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
     val osName = System.getProperty("os.name")
@@ -162,13 +165,13 @@ private fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
             PikafishEngineId to EngineConfig(
                 version = appConfig.pikafishVersion,
                 poolSize = 1,
-                numberOfThreads = appConfig.enginesThreads
+                numberOfThreads = appConfig.enginesThreads,
             ),
             FairyStockfishEngineId to EngineConfig(
                 version = appConfig.fairyStockfishVersion,
                 poolSize = 1,
-                numberOfThreads = appConfig.enginesThreads
-            )
+                numberOfThreads = appConfig.enginesThreads,
+            ),
         )
     } else {
         mapOf()

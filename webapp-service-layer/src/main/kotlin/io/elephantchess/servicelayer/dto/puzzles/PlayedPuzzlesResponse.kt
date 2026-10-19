@@ -18,5 +18,4 @@ class PlayedPuzzlesResponse(val entries: List<Entry>) {
         val puzzleRatingTo: Int,
         val date: Long,
     )
-
 }

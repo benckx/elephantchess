@@ -4,10 +4,7 @@ package io.elephantchess.servicelayer.dto.game
  * One entry in the PvP move history: a UCI move together with the wall-clock
  * timestamp (epoch milliseconds) at which the move was played.
  */
-data class GameMoveEntry(
-    val move: String,
-    val timestamp: Long,
-)
+data class GameMoveEntry(val move: String, val timestamp: Long)
 
 /**
  * Response for the PvP `/api/game/moves-history` endpoint.

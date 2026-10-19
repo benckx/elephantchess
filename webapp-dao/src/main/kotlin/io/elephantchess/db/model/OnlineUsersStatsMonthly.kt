@@ -6,5 +6,5 @@ data class OnlineUsersStatsMonthly(
     val month: YearMonth,
     val minTotal: Int,
     val maxTotal: Int,
-    val avgTotal: Int
+    val avgTotal: Int,
 )

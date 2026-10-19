@@ -22,5 +22,5 @@ data class GameToPlay(
     val timeControlIncrement: Int?,
     val allowGuests: Boolean,
     val lastUpdated: Long,
-    val variant: Variant
+    val variant: Variant,
 )

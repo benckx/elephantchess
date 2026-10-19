@@ -16,5 +16,4 @@ class TestUserSaver(private val nbr: Int = 10) : KoinComponent {
             println(either)
         }
     }
-
 }

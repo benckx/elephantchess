@@ -18,5 +18,4 @@ data class Email(
         val abridgedBody = if (body.length <= 200) body else body.take(200) + "..."
         return "Email(to=$to, cc=$cc, bcc=$bcc, subject=$subject, body=$abridgedBody, embeddedImages=${embeddedImages.keys})"
     }
-
 }

@@ -49,5 +49,4 @@ class ShardingTest {
             assertEquals(shard, count.toDouble(), margin)
         }
     }
-
 }

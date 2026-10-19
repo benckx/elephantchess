@@ -1,13 +1,12 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.UserSessionDao
 import io.elephantchess.db.dao.codegen.tables.pojos.UserSession
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -17,10 +16,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
 @KoinSingleton
-class UserSessionDaoService(
-    private val dslContext: DSLContext,
-    private val logger: KLogger,
-) {
+class UserSessionDaoService(private val dslContext: DSLContext, private val logger: KLogger) {
 
     suspend fun createOrUpdate(record: UserSessionRecord) {
         if (record.userId != null) {
@@ -93,7 +89,7 @@ class UserSessionDaoService(
             .and(USER.USER_TYPE.`in`(listOf(UserType.GUEST)))
             .and(
                 diffInSeconds(USER_SESSION.LAST_UPDATED, USER_SESSION.CREATED)
-                    .ge(minGuestSessionDuration.inWholeSeconds.toInt())
+                    .ge(minGuestSessionDuration.inWholeSeconds.toInt()),
             )
             .awaitMappedRecords<UserSession>()
             .map { mapToRecord(it) }
@@ -101,18 +97,17 @@ class UserSessionDaoService(
         return records.toList().sortedByDescending { it.lastUpdated }
     }
 
-    suspend fun listAuthenticatedSessions(limit: Int): List<UserSessionRecord> {
-        return dslContext
+    suspend fun listAuthenticatedSessions(limit: Int): List<UserSessionRecord> =
+        dslContext
             .select()
             .from(USER_SESSION)
             .orderBy(USER_SESSION.LAST_UPDATED.desc())
             .limit(limit)
             .awaitMappedRecords<UserSession>()
             .map { mapToRecord(it) }
-    }
 
-    suspend fun listAuthenticatedSessionsForUser(userId: String, limit: Int, offset: Int = 0): List<UserSessionRecord> {
-        return dslContext
+    suspend fun listAuthenticatedSessionsForUser(userId: String, limit: Int, offset: Int = 0): List<UserSessionRecord> =
+        dslContext
             .select()
             .from(USER_SESSION)
             .where(USER_SESSION.USER_ID.eq(userId))
@@ -121,15 +116,13 @@ class UserSessionDaoService(
             .offset(offset)
             .awaitMappedRecords<UserSession>()
             .map { mapToRecord(it) }
-    }
 
-    suspend fun countAuthenticatedSessionsForUser(userId: String): Int {
-        return dslContext
+    suspend fun countAuthenticatedSessionsForUser(userId: String): Int =
+        dslContext
             .selectCount()
             .from(USER_SESSION)
             .where(USER_SESSION.USER_ID.eq(userId))
             .awaitSingleValue<Int>() ?: 0
-    }
 
     suspend fun deleteAuthenticatedSessionsForUser(userId: String, sessionIds: Collection<Int>): Int {
         if (sessionIds.isEmpty()) {
@@ -143,12 +136,11 @@ class UserSessionDaoService(
             .awaitExecute()
     }
 
-    suspend fun deleteAllAuthenticatedSessionsForUser(userId: String): Int {
-        return dslContext
+    suspend fun deleteAllAuthenticatedSessionsForUser(userId: String): Int =
+        dslContext
             .deleteFrom(USER_SESSION)
             .where(USER_SESSION.USER_ID.eq(userId))
             .awaitExecute()
-    }
 
     suspend fun findByUserAgent(userAgent: String): List<UserSessionRecord> {
         val records = mutableListOf<UserSessionRecord>()
@@ -202,8 +194,8 @@ class UserSessionDaoService(
 
         val USER_SESSION_TTL = 60.days
 
-        fun mapToRecord(userSession: UserSession): UserSessionRecord {
-            return UserSessionRecord(
+        fun mapToRecord(userSession: UserSession): UserSessionRecord =
+            UserSessionRecord(
                 id = userSession.id,
                 userId = userSession.userId,
                 remoteAddress = userSession.remoteAddress,
@@ -216,10 +208,7 @@ class UserSessionDaoService(
                 countryName = userSession.countryName,
                 countryCode = userSession.countryCode,
                 region = userSession.region,
-                city = userSession.city
+                city = userSession.city,
             )
-        }
-
     }
-
 }

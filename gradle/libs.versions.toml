@@ -32,6 +32,8 @@ commonsCli = "1.11.0"
 log4jCore = "2.26.1"
 versionsPlugin = "0.66.0"
 testLoggerPlugin = "4.0.0"
+ktlintPlugin = "14.2.0"
+ktlint = "1.8.0"
 
 [libraries]
 cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref = "cache4k" }
@@ -91,3 +93,4 @@ versions = { id = "io.github.ben-manes.versions", version.ref = "versionsPlugin"
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 test-logger = { id = "com.adarshr.test-logger", version.ref = "testLoggerPlugin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintPlugin" }

@@ -13,10 +13,11 @@ enum class PuzzleCategory {
     MATE_IN_8,
     FORK,
     PIN,
-    DISCOVERED_ATTACK;
+    DISCOVERED_ATTACK,
+    ;
 
-    fun isMateIn(): Int? {
-        return when (this) {
+    fun isMateIn(): Int? =
+        when (this) {
             MATE_IN_1 -> 1
             MATE_IN_2 -> 2
             MATE_IN_3 -> 3
@@ -27,12 +28,11 @@ enum class PuzzleCategory {
             MATE_IN_8 -> 8
             else -> null
         }
-    }
 
     companion object {
 
-        fun findMateInN(n: Int): PuzzleCategory {
-            return when (n) {
+        fun findMateInN(n: Int): PuzzleCategory =
+            when (n) {
                 1 -> MATE_IN_1
                 2 -> MATE_IN_2
                 3 -> MATE_IN_3
@@ -43,12 +43,8 @@ enum class PuzzleCategory {
                 8 -> MATE_IN_8
                 else -> throw IllegalArgumentException()
             }
-        }
 
-        fun parseList(list: List<String>): List<PuzzleCategory> {
-            return list.map { valueOf(it) }
-        }
-
+        fun parseList(list: List<String>): List<PuzzleCategory> =
+            list.map { valueOf(it) }
     }
-
 }

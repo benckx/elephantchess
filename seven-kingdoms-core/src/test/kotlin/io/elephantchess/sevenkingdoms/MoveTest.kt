@@ -28,7 +28,7 @@ class MoveTest {
             "n3n4" to Move(Position(13, 3), Position(13, 4)),
             "o5l5" to Move(Position(14, 5), Position(11, 5)),
             "r11n8" to Move(Position(17, 11), Position(13, 8)),
-            "l17k15" to Move(Position(11, 17), Position(10, 15))
+            "l17k15" to Move(Position(11, 17), Position(10, 15)),
         )
 
         for ((uci, expectedMove) in moves) {
@@ -37,5 +37,4 @@ class MoveTest {
             assertEquals(uci, expectedMove.uci, "expected $uci but got ${expectedMove.uci}")
         }
     }
-
 }

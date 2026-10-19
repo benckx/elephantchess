@@ -60,7 +60,7 @@ fun getDslContext(
         url = jdbcUrl,
         user = dbConfig.user,
         password = dbConfig.password,
-        resourceAccessor = resourceAccessor
+        resourceAccessor = resourceAccessor,
     )
 
     // create R2DBC-based DSLContext
@@ -69,11 +69,7 @@ fun getDslContext(
     return DSL.using(connectionFactory, POSTGRES, settings)
 }
 
-private fun getR2dbcConnectionFactory(
-    dbConfig: DbConfig,
-    maxPoolSize: Int,
-    requireSsl: Boolean
-): ConnectionFactory {
+private fun getR2dbcConnectionFactory(dbConfig: DbConfig, maxPoolSize: Int, requireSsl: Boolean): ConnectionFactory {
     val url = dbConfig.url
     val cleaned = if (url.startsWith("jdbc:")) url.removePrefix("jdbc:") else url
     val uri = URI(cleaned)

@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
@@ -16,7 +14,6 @@ import io.elephantchess.engines.protocol.model.InfoLineResult.Companion.parseInf
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.*
 import io.elephantchess.model.GameType.*
-import io.elephantchess.servicelayer.utils.collectMoveAnnotations
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisResponse
 import io.elephantchess.servicelayer.dto.analysis.GameAnalysisStatusResponse
 import io.elephantchess.servicelayer.dto.analysis.StartGameAnalysisResponse
@@ -29,7 +26,9 @@ import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateResponse
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.exceptions.PreConditionFailedException
+import io.elephantchess.servicelayer.utils.collectMoveAnnotations
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
@@ -67,36 +66,31 @@ class GameDataService(
         CoroutineScope(Dispatchers.IO.limitedParallelism(2))
     }
 
-    suspend fun countTotalGames(): Int {
-        return referenceGameDaoService.countAllGames() +
-                pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
-                pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
-    }
+    suspend fun countTotalGames(): Int =
+        referenceGameDaoService.countAllGames() +
+            pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
+            pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
 
-    suspend fun countTotalAppGames(): Int {
-        return pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
-                pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
-    }
+    suspend fun countTotalAppGames(): Int =
+        pvbGameDaoService.countTotalGames(MIN_MOVE_INDEX) +
+            pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
 
-    suspend fun countTotalManchuGames(): Int {
-        return pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
-                pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
-    }
+    suspend fun countTotalManchuGames(): Int =
+        pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
+            pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
 
     /**
      * Half moves or plies
      */
-    suspend fun countTotalMoves(): Map<GameType, Int> {
-        return mapOf(
+    suspend fun countTotalMoves(): Map<GameType, Int> =
+        mapOf(
             PVP to pvpGameDaoService.countTotalMoves(),
             PVB to pvbGameDaoService.countTotalMoves(),
-            DB to referenceGameDaoService.countTotalMoves()
+            DB to referenceGameDaoService.countTotalMoves(),
         )
-    }
 
-    suspend fun latestMoveAnalysisUpdate(): Instant? {
-        return moveAnalysisDaoService.fetchLatestMoveAnalysis()
-    }
+    suspend fun latestMoveAnalysisUpdate(): Instant? =
+        moveAnalysisDaoService.fetchLatestMoveAnalysis()
 
     suspend fun fetchAnalysisStatusOfGame(gameId: GameId): AnalysisStatus =
         moveAnalysisDaoService.fetchAnalysisStatus(gameId) ?: throw NotFoundException("$gameId not found")
@@ -124,7 +118,7 @@ class GameDataService(
                                     startFen = record.startFen,
                                     analysisStatus = record.analysisStatus,
                                     engine = record.engine,
-                                    depth = record.depth
+                                    depth = record.depth,
                                 )
                         }
 
@@ -137,7 +131,7 @@ class GameDataService(
                                 .copy(
                                     analysisStatus = record.analysisStatus,
                                     eventId = event?.id,
-                                    eventName = event?.name
+                                    eventName = event?.name,
                                 )
                         }
             }
@@ -320,14 +314,13 @@ class GameDataService(
     }
 
     private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean) {
-        suspend fun queryEngine(fen: String): InfoLineResult? {
-            return enginesPool.safeQueryForDepth(
+        suspend fun queryEngine(fen: String): InfoLineResult? =
+            enginesPool.safeQueryForDepth(
                 fen = fen,
                 engineId = PikafishEngineId,
                 depth = DEFAULT_ANALYSIS_DEPTH,
-                timeout = 20_000L
+                timeout = 20_000L,
             )?.deepestResult()
-        }
 
         suspend fun processPosition(positionIndex: Int, fen: String, isEngineMoveAnalysis: Boolean): MoveAnalysis {
             val fenKey = resetFullMoveCount(fen)
@@ -356,10 +349,7 @@ class GameDataService(
             return moveAnalysis
         }
 
-        suspend fun processWhatTheEngineWouldHavePlayed(
-            startFen: String,
-            moves: List<String>
-        ) {
+        suspend fun processWhatTheEngineWouldHavePlayed(startFen: String, moves: List<String>) {
             val infoLineResultsDtos = fetchAnalysisData(gameId).entries
 
             val board = Board(startFen)
@@ -375,7 +365,7 @@ class GameDataService(
                     processPosition(
                         positionIndex = positionIndex,
                         fen = fenResultingFromEngineBestMove,
-                        isEngineMoveAnalysis = true
+                        isEngineMoveAnalysis = true,
                     )
                 }
 
@@ -460,11 +450,7 @@ class GameDataService(
     private suspend fun fetchUserName(userId: String?): String? =
         userId?.let { userCache.fetchUsername(it) }
 
-    suspend fun listLastPvpGames(
-        requestedLimit: Int,
-        distinctByUsers: Boolean,
-        beforeTs: Long?
-    ): ListLastGamesResponse {
+    suspend fun listLastPvpGames(requestedLimit: Int, distinctByUsers: Boolean, beforeTs: Long?): ListLastGamesResponse {
         // ensure each user appears at most once in the list
         // maybe we could also make a distinct by user session or countries to avoid showing only sock-puppeteers
         fun distinctByUserId(games: List<Game>): List<Game> {
@@ -488,7 +474,7 @@ class GameDataService(
             .listLastGames(
                 limit = actualLimit,
                 minMoveIndex = MIN_MOVE_INDEX,
-                beforeTs = beforeTs
+                beforeTs = beforeTs,
             )
 
         val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
@@ -503,30 +489,22 @@ class GameDataService(
             }
     }
 
-    suspend fun listLastPvpGamesByUsername(
-        username: String,
-        requestedLimit: Int,
-        beforeTs: Long?
-    ): ListLastGamesResponse {
+    suspend fun listLastPvpGamesByUsername(username: String, requestedLimit: Int, beforeTs: Long?): ListLastGamesResponse {
         val user = userDaoService.findByUserName(username)
             ?: throw NotFoundException("User $username could not be found")
         return listLastPvpGamesByUserId(
             userId = user.id,
             requestedLimit = requestedLimit,
-            beforeTs = beforeTs
+            beforeTs = beforeTs,
         )
     }
 
-    suspend fun listLastPvpGamesByUserId(
-        userId: String,
-        requestedLimit: Int,
-        beforeTs: Long?
-    ): ListLastGamesResponse {
+    suspend fun listLastPvpGamesByUserId(userId: String, requestedLimit: Int, beforeTs: Long?): ListLastGamesResponse {
         val games = pvpGameDaoService.listLastGamesByUserId(
             userId = userId,
             limit = requestedLimit,
             minMoveIndex = MIN_MOVE_INDEX,
-            beforeTs = beforeTs
+            beforeTs = beforeTs,
         )
 
         val userIds = games.flatMap { game -> listOf(game.inviter, game.invitee) }.distinct().filterNotNull()
@@ -539,30 +517,22 @@ class GameDataService(
             }
     }
 
-    suspend fun listLatestPvbGamesByUsername(
-        username: String,
-        requestedLimit: Int,
-        beforeTs: Long?
-    ): ListLastGamesResponse {
+    suspend fun listLatestPvbGamesByUsername(username: String, requestedLimit: Int, beforeTs: Long?): ListLastGamesResponse {
         val user = userDaoService.findByUserName(username)
             ?: throw NotFoundException("User $username could not be found")
         return listLatestPvbGamesByUserId(
             userId = user.id,
             requestedLimit = requestedLimit,
-            beforeTs = beforeTs
+            beforeTs = beforeTs,
         )
     }
 
-    suspend fun listLatestPvbGamesByUserId(
-        userId: String,
-        requestedLimit: Int,
-        beforeTs: Long?
-    ): ListLastGamesResponse {
+    suspend fun listLatestPvbGamesByUserId(userId: String, requestedLimit: Int, beforeTs: Long?): ListLastGamesResponse {
         val gameRecords = pvbGameDaoService.listGamesByUserId(
             userId = userId,
             limit = requestedLimit,
             beforeTs = beforeTs,
-            minMoveIndex = MIN_MOVE_INDEX
+            minMoveIndex = MIN_MOVE_INDEX,
         )
 
         val onlineUserIds = userService.areOnline(listOf(userId)).onlineUserIds
@@ -576,7 +546,7 @@ class GameDataService(
         requestedLimit: Int,
         distinctByUsers: Boolean = true,
         beforeTs: Long? = null,
-        excludeAutoResigned: Boolean
+        excludeAutoResigned: Boolean,
     ): ListLastGamesResponse {
         // ensure each user appears at most once in the list
         fun distinctByUserId(games: List<BotGame>): List<BotGame> {
@@ -602,7 +572,7 @@ class GameDataService(
                 minMoveIndex = MIN_MOVE_INDEX,
                 beforeTs = beforeTs,
                 excludeAutoResigned = excludeAutoResigned,
-                variantsToInclude = Variant.entries
+                variantsToInclude = Variant.entries,
             )
 
         val selectedGames = if (distinctByUsers) distinctByUserId(gameRecords) else gameRecords
@@ -616,34 +586,25 @@ class GameDataService(
             .let { entries -> ListLastGamesResponse(entries) }
     }
 
-    suspend fun listLastDbGamesByPlayerName(
-        requestedLimit: Int,
-        canonicalPlayerName: String,
-        offset: Int?
-    ): ListLastGamesResponse {
+    suspend fun listLastDbGamesByPlayerName(requestedLimit: Int, canonicalPlayerName: String, offset: Int?): ListLastGamesResponse {
         val referencePlayer = referencePlayerDaoService.findPlayerByCanonicalName(canonicalPlayerName)
             ?: throw NotFoundException("Player '$canonicalPlayerName' not found")
 
         val games = referenceGameDaoService.search(
             playerIds = listOf(referencePlayer.id),
             limit = requestedLimit,
-            offset = offset
+            offset = offset,
         )
 
         return ListLastGamesResponse(mapDatabaseGamesToDto(games, offset))
     }
 
-    suspend fun listLastDbGamesByEventId(
-        requestedLimit: Int,
-        eventId: String,
-        round: Int?,
-        offset: Int?
-    ): ListLastGamesResponse {
+    suspend fun listLastDbGamesByEventId(requestedLimit: Int, eventId: String, round: Int?, offset: Int?): ListLastGamesResponse {
         val games = referenceGameDaoService.search(
             eventIds = listOf(eventId),
             round = round,
             limit = requestedLimit,
-            offset = offset
+            offset = offset,
         )
 
         return ListLastGamesResponse(mapDatabaseGamesToDto(games, offset))
@@ -662,14 +623,14 @@ class GameDataService(
                 gameId = GameId(PVP, game.id),
                 status = game.gameStatus,
                 fen = game.currentFen,
-                lastUpdated = game.lastUpdated.toEpochMilliseconds()
+                lastUpdated = game.lastUpdated.toEpochMilliseconds(),
             )
         } + pvbGames.map { game ->
             LatestGamesUpdateResponse.Entry(
                 gameId = GameId(PVB, game.id),
                 status = game.gameStatus,
                 fen = game.currentFen,
-                lastUpdated = game.lastUpdated.toEpochMilliseconds()
+                lastUpdated = game.lastUpdated.toEpochMilliseconds(),
             )
         }
 
@@ -726,7 +687,6 @@ class GameDataService(
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
             variant = record.variant,
         )
-
     }
 
     private suspend fun mapPlayerVsPlayerGameToDto(gameRecord: Game, onlineUserIds: Set<String>): GameMetadataDto {
@@ -749,12 +709,12 @@ class GameDataService(
             status = gameRecord.gameStatus,
             outcome = gameRecord.outcome,
             lastUpdated = gameRecord.lastUpdated.toEpochMilliseconds(),
-            variant = gameRecord.variant
+            variant = gameRecord.variant,
         )
     }
 
-    private suspend fun mapDatabaseGameToDto(game: ReferenceGame, paginationOffset: Int?): GameMetadataDto {
-        return GameMetadataDto(
+    private suspend fun mapDatabaseGameToDto(game: ReferenceGame, paginationOffset: Int?): GameMetadataDto =
+        GameMetadataDto(
             gameId = GameId(DB, game.id),
             redPlayerId = game.redPlayer,
             redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
@@ -764,21 +724,20 @@ class GameDataService(
             outcome = game.outcome,
             lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
             paginationOffset = paginationOffset,
-            variant = Variant.XIANGQI
+            variant = Variant.XIANGQI,
         )
-    }
 
-    private suspend fun mapDatabaseGamesToDto(games: List<ReferenceGame>, offset: Int?): List<GameMetadataDto> {
-        return games.mapIndexed { i, game ->
+    private suspend fun mapDatabaseGamesToDto(games: List<ReferenceGame>, offset: Int?): List<GameMetadataDto> =
+        games.mapIndexed {
+                i,
+                game,
+            ->
             mapDatabaseGameToDto(game, (offset ?: 0) + i)
         }
-    }
 
     companion object {
 
         const val DEFAULT_ANALYSIS_DEPTH = 20
         const val MIN_MOVE_INDEX = 6
-
     }
-
 }

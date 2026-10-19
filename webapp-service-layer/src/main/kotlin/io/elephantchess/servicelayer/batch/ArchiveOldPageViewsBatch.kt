@@ -1,10 +1,9 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.ArchivedPageViewDaoService
 import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
 import io.elephantchess.servicelayer.services.analytics.ARCHIVE_PAGE_VIEW_AFTER_DAYS
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.days
 
@@ -18,10 +17,8 @@ import kotlin.time.Duration.Companion.days
  * over multiple runs.
  */
 @KoinSingleton
-class ArchiveOldPageViewsBatch(
-    private val archivedPageViewDaoService: ArchivedPageViewDaoService,
-    override val logger: KLogger,
-) : SinglePodBatch {
+class ArchiveOldPageViewsBatch(private val archivedPageViewDaoService: ArchivedPageViewDaoService, override val logger: KLogger) :
+    SinglePodBatch {
 
     override suspend fun run() {
         val eventIds = archivedPageViewDaoService.selectOldPageViewEventIds(
@@ -48,5 +45,4 @@ class ArchiveOldPageViewsBatch(
         const val CHUNK_SIZE = 10_000
         const val MAX_CHUNKS_PER_RUN = 20
     }
-
 }

@@ -4,5 +4,5 @@ data class PuzzleResultCountsRecord(
     val userId: String,
     val solved: Int,
     val failed: Int,
-    val total: Int
+    val total: Int,
 )

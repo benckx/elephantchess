@@ -50,7 +50,7 @@ class TotalPuzzleMetric : HourlyAvailableMetric("puzzles") {
             PUZZLE_RESULT.ENTRY_CREATION.localDate(),
             PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.localDate(),
             dslContext,
-            days
+            days,
         )
 
         return records
@@ -65,7 +65,7 @@ class TotalPuzzleMetric : HourlyAvailableMetric("puzzles") {
         val records = countByTimeFields(
             PUZZLE_RESULT.ENTRY_CREATION.yearMonth(),
             PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.yearMonth(),
-            dslContext
+            dslContext,
         )
 
         return records
@@ -76,34 +76,31 @@ class TotalPuzzleMetric : HourlyAvailableMetric("puzzles") {
             .sortedByDescending { it.month }
     }
 
-    override suspend fun countByYear(dslContext: DSLContext): List<IntDimensionValueRecord> {
-        return countByIntPeriod(
+    override suspend fun countByYear(dslContext: DSLContext): List<IntDimensionValueRecord> =
+        countByIntPeriod(
             dslContext,
             PUZZLE_RESULT.ENTRY_CREATION.year(),
-            PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.year()
+            PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.year(),
         )
-    }
 
-    override suspend fun countByCentury(dslContext: DSLContext): List<IntDimensionValueRecord> {
-        return countByIntPeriod(
+    override suspend fun countByCentury(dslContext: DSLContext): List<IntDimensionValueRecord> =
+        countByIntPeriod(
             dslContext,
             PUZZLE_RESULT.ENTRY_CREATION.century(),
-            PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.century()
+            PUZZLE_RESULT_ANONYMOUS.ENTRY_CREATION.century(),
         )
-    }
 
     private suspend fun <T> countByIntPeriod(
         dslContext: DSLContext,
         timeField1: Field<T>,
         timeField2: Field<T>,
-    ): List<IntDimensionValueRecord> {
-        return countByTimeFields(timeField1, timeField2, dslContext)
+    ): List<IntDimensionValueRecord> =
+        countByTimeFields(timeField1, timeField2, dslContext)
             .groupBy { it.get(0).toString().toInt() }
             .map { (period, records) ->
                 IntDimensionValueRecord(period, records.sumOf { it.get(1).toString().toInt() })
             }
             .sortedByDescending { it.period }
-    }
 
     private suspend fun <T> countByTimeFields(
         timeField1: Field<T>,
@@ -125,10 +122,9 @@ class TotalPuzzleMetric : HourlyAvailableMetric("puzzles") {
 
         return if (limit != null) {
             select1.limit(limit).awaitRecords() +
-                    select2.limit(limit).awaitRecords()
+                select2.limit(limit).awaitRecords()
         } else {
             select1.awaitRecords() + select2.awaitRecords()
         }
     }
-
 }

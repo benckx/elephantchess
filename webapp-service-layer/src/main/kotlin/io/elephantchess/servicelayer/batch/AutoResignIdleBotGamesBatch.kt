@@ -1,10 +1,9 @@
 package io.elephantchess.servicelayer.batch
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.servicelayer.batch.definitions.SimpleKeyShardedBatch
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.days
 
@@ -13,8 +12,7 @@ class AutoResignIdleBotGamesBatch(
     private val pvbGameService: PlayerVsBotGameService,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     override val logger: KLogger,
-) :
-    SimpleKeyShardedBatch() {
+) : SimpleKeyShardedBatch() {
 
     private val idleDuration = 1.days
 
@@ -30,5 +28,4 @@ class AutoResignIdleBotGamesBatch(
         logger.debug { "auto-resigning old game $element" }
         pvbGameService.autoResign(gameId = element, delay = idleDuration)
     }
-
 }

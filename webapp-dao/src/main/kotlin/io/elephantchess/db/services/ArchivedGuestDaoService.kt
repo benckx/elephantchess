@@ -1,7 +1,5 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.ANALYSIS
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_GUEST_DAILY
 import io.elephantchess.db.dao.codegen.Tables.ARCHIVED_PAGE_VIEW_DAILY
@@ -33,6 +31,7 @@ import io.elephantchess.db.utils.isBefore
 import io.elephantchess.db.utils.localDate
 import io.elephantchess.db.utils.yearMonthOfDay
 import io.elephantchess.model.UserType
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Select
@@ -54,10 +53,7 @@ import kotlin.time.Instant
  * their page views and database search queries are archived by the day they happened.
  */
 @KoinSingleton
-class ArchivedGuestDaoService(
-    private val dslContext: DSLContext,
-    private val archivedPageViewDaoService: ArchivedPageViewDaoService,
-) {
+class ArchivedGuestDaoService(private val dslContext: DSLContext, private val archivedPageViewDaoService: ArchivedPageViewDaoService) {
 
     /**
      * Selects up to [limit] guests that are older than [maxAge] and inactive for at least [maxAge] and
@@ -187,7 +183,7 @@ class ArchivedGuestDaoService(
                 ARCHIVED_PAGE_VIEW_DAILY.URL.eq(eventPath)
                     .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?medium=%"))
                     .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?gad_source=1%"))
-                    .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?fbclid=%"))
+                    .or(ARCHIVED_PAGE_VIEW_DAILY.URL.like("$eventPath?fbclid=%")),
             )
             .groupBy(month, ARCHIVED_PAGE_VIEW_DAILY.URL)
             .awaitRecords()
@@ -215,9 +211,7 @@ class ArchivedGuestDaoService(
     suspend fun fetchArchivedMonthlyOtherProfilePageViews(): List<MonthlyPageViewRecord> =
         fetchArchivedMonthlyProfilePageViews(ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS)
 
-    private suspend fun fetchArchivedMonthlyProfilePageViews(
-        column: org.jooq.TableField<*, Int>,
-    ): List<MonthlyPageViewRecord> {
+    private suspend fun fetchArchivedMonthlyProfilePageViews(column: org.jooq.TableField<*, Int>): List<MonthlyPageViewRecord> {
         val month = ARCHIVED_PAGE_VIEW_DAILY.DAY.yearMonthOfDay()
         val pageViews = DSL.sum(column).`as`("page_views")
 
@@ -267,11 +261,11 @@ class ArchivedGuestDaoService(
                         under5min,
                         under15min,
                         under30min,
-                        other
+                        other,
                     )
                     .from(USER)
                     .where(USER.ID.`in`(guestIds))
-                    .groupBy(creationDay)
+                    .groupBy(creationDay),
             )
             .onConflict(ARCHIVED_GUEST_DAILY.DAY)
             .doUpdate()
@@ -304,7 +298,7 @@ class ArchivedGuestDaoService(
                     .select(queryDay, searchCount)
                     .from(REFERENCE_GAME_SEARCH_QUERY)
                     .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.`in`(guestIds))
-                    .groupBy(queryDay)
+                    .groupBy(queryDay),
             )
             .onConflict(ARCHIVED_GUEST_DAILY.DAY)
             .doUpdate()
@@ -318,8 +312,8 @@ class ArchivedGuestDaoService(
      * referenced by any table other than the ones deleted together with it (page views, database search
      * queries and sessions).
      */
-    private fun archivableCondition(cutoff: Instant): Condition {
-        return USER.USER_TYPE.eq(UserType.GUEST)
+    private fun archivableCondition(cutoff: Instant): Condition =
+        USER.USER_TYPE.eq(UserType.GUEST)
             .and(USER.LAST_ONLINE.isBefore(cutoff))
             .andNotExists(gameExists())
             .andNotExists(botGameExists())
@@ -335,7 +329,6 @@ class ArchivedGuestDaoService(
             .andNotExists(referencePlayerProfileEditSourceExists())
             .andNotExists(kofiEventExists())
             .andNotExists(upcomingEventExists())
-    }
 
     private fun gameExists(): Select<*> =
         DSL
@@ -344,7 +337,7 @@ class ArchivedGuestDaoService(
             .where(
                 GAME.INVITER.eq(USER.ID)
                     .or(GAME.INVITEE.eq(USER.ID))
-                    .or(GAME.DRAW_PROPOSITION_USER.eq(USER.ID))
+                    .or(GAME.DRAW_PROPOSITION_USER.eq(USER.ID)),
             )
 
     private fun botGameExists(): Select<*> =
@@ -394,7 +387,7 @@ class ArchivedGuestDaoService(
                     .or(SEVEN_KINGDOMS_GAME.PLAYER_BLUE.eq(USER.ID))
                     .or(SEVEN_KINGDOMS_GAME.PLAYER_GREEN.eq(USER.ID))
                     .or(SEVEN_KINGDOMS_GAME.PLAYER_PURPLE.eq(USER.ID))
-                    .or(SEVEN_KINGDOMS_GAME.PLAYER_BLACK.eq(USER.ID))
+                    .or(SEVEN_KINGDOMS_GAME.PLAYER_BLACK.eq(USER.ID)),
             )
 
     private fun sevenKingdomsGameEventExists(): Select<*> =
@@ -433,5 +426,4 @@ class ArchivedGuestDaoService(
         const val LIFESPAN_15_MIN = 15 * 60
         const val LIFESPAN_30_MIN = 30 * 60
     }
-
 }

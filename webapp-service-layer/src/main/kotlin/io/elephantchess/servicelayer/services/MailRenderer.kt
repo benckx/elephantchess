@@ -1,9 +1,8 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
 class MailRenderer(private val mailTemplateRenderer: MailTemplateRender) {
@@ -14,10 +13,8 @@ class MailRenderer(private val mailTemplateRenderer: MailTemplateRender) {
     suspend fun renderNewsLetter(templateName: String, specificTagResolvers: List<TagResolver>): String =
         render("newsletters", templateName, specificTagResolvers)
 
-    private suspend fun render(path: String, templateName: String, specificTagResolvers: List<TagResolver>): String {
-        return resourceAsString("/$path/$templateName.html")
+    private suspend fun render(path: String, templateName: String, specificTagResolvers: List<TagResolver>): String =
+        resourceAsString("/$path/$templateName.html")
             ?.let { html -> mailTemplateRenderer.render(html, specificTagResolvers) }
             ?: throw IllegalArgumentException("Template $path/$templateName not found")
-    }
-
 }
