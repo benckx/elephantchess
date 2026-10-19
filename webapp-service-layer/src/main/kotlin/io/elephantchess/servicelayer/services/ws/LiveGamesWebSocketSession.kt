@@ -11,10 +11,7 @@ import kotlinx.coroutines.channels.ChannelResult
  * for the union of all watched games (using the lowest tracked move index per game,
  * see [batchMoveIndexes]) so each session can slice out only the moves it still needs.
  */
-data class LiveGamesBatchUpdate(
-    val response: LatestGamesUpdateResponse,
-    val batchMoveIndexes: Map<String, Int>,
-)
+data class LiveGamesBatchUpdate(val response: LatestGamesUpdateResponse, val batchMoveIndexes: Map<String, Int>)
 
 /**
  * WebSocket session for a lobby client watching the live games thumbnails.
@@ -24,9 +21,8 @@ data class LiveGamesBatchUpdate(
  * refresher can request only the new moves and the session only pushes entries
  * that actually changed (new moves or a status change).
  */
-class LiveGamesWebSocketSession(
-    private val sendCb: (LatestGamesUpdateResponse) -> ChannelResult<Unit>,
-) : WebSocketSession<LiveGamesBatchUpdate>() {
+class LiveGamesWebSocketSession(private val sendCb: (LatestGamesUpdateResponse) -> ChannelResult<Unit>) :
+    WebSocketSession<LiveGamesBatchUpdate>() {
 
     private var subscribedGameIds: List<GameId> = emptyList()
     private val moveIndexes = mutableMapOf<String, Int>()
@@ -44,7 +40,7 @@ class LiveGamesWebSocketSession(
     fun currentRequest(): LatestGamesUpdateRequest =
         LatestGamesUpdateRequest(
             gameIds = subscribedGameIds,
-            moveIndexes = moveIndexes.toMap()
+            moveIndexes = moveIndexes.toMap(),
         )
 
     override fun update(update: LiveGamesBatchUpdate) {
@@ -99,5 +95,4 @@ class LiveGamesWebSocketSession(
 
     override fun toString() =
         "${javaClass.simpleName}{sessionId=$sessionId, games=${subscribedGameIds.size}}"
-
 }

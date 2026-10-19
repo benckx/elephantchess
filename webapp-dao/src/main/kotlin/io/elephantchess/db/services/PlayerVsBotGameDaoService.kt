@@ -247,7 +247,7 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .select(
                 BOT_GAME_MOVE.BOT_GAME_ID,
                 BOT_GAME_MOVE.POSITION,
-                BOT_GAME_MOVE.UCI,,
+                BOT_GAME_MOVE.UCI,
             )
             .from(BOT_GAME_MOVE)
             .where(conditionForPairs)

@@ -32,7 +32,7 @@ fun Route.lobbyWsRoutes() {
         handleBidirectionalWebSocketSession<LiveGamesSubscription>(
             { lobbyService.startLiveGamesSession { update -> sendWs(update) }.also { sessionId = it } },
             { subscription -> sessionId?.let { lobbyService.handleLiveGamesSubscription(it, subscription.gameIds) } },
-            { lobbyService.closeLiveGamesSession(it) }
+            { lobbyService.closeLiveGamesSession(it) },
         )
     }
 }

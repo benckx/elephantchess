@@ -8,6 +8,4 @@ import io.elephantchess.model.GameId
  * game is tracked server-side (in [io.elephantchess.servicelayer.services.ws.LiveGamesWebSocketSession]),
  * so the client only needs to send the game ids.
  */
-data class LiveGamesSubscription(
-    val gameIds: List<GameId> = emptyList()
-)
+data class LiveGamesSubscription(val gameIds: List<GameId> = emptyList())

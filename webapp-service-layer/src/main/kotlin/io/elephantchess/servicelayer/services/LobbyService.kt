@@ -52,9 +52,7 @@ class LobbyService(
                 GetUpcomingEventsResponse(events)
             }
 
-    fun startLiveGamesSession(
-        sendCb: (LatestGamesUpdateResponse) -> ChannelResult<Unit>,
-    ): String {
+    fun startLiveGamesSession(sendCb: (LatestGamesUpdateResponse) -> ChannelResult<Unit>): String {
         val session = LiveGamesWebSocketSession(sendCb)
         liveGamesSessions.add(session)
         logger.debug { "created $session" }
