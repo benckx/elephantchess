@@ -48,9 +48,9 @@ internal fun isClientDisconnectException(t: Throwable): Boolean {
         if (current is ClosedChannelException ||
             current is ClosedByteChannelException ||
             current is CancellationException ||
-            current is IOException && current.message?.contains("Broken pipe") == true ||
-            current is IOException && current.message?.contains("Connection reset") == true ||
-            current is UnsupportedOperationException && current.message?.contains("response was already completed") == true
+            (current is IOException && current.message?.contains("Broken pipe") == true) ||
+            (current is IOException && current.message?.contains("Connection reset") == true) ||
+            (current is UnsupportedOperationException && current.message?.contains("response was already completed") == true)
         ) {
             return true
         }

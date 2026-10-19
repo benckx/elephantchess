@@ -7,9 +7,7 @@ import io.elephantchess.model.UserType
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 
-data class ListBotGamesResponse(
-    val entries: List<Entry>,
-) {
+data class ListBotGamesResponse(val entries: List<Entry>) {
 
     data class Entry(
         val gameId: String,
@@ -27,5 +25,4 @@ data class ListBotGamesResponse(
         val lastUpdated: Long,
         val variant: Variant?,
     )
-
 }

@@ -36,10 +36,12 @@ fun Module.registerInjectables(eagerAllowed: Boolean, vararg packages: String) {
                 .forEach { classInfo ->
                     @Suppress("UNCHECKED_CAST")
                     val klass = classInfo.loadClass().kotlin as KClass<Any>
-                    val eager = (classInfo
-                        .getAnnotationInfo(KoinSingleton::class.java.name)
-                        ?.parameterValues
-                        ?.getValue("eager") as? Boolean) ?: false
+                    val eager = (
+                        classInfo
+                            .getAnnotationInfo(KoinSingleton::class.java.name)
+                            ?.parameterValues
+                            ?.getValue("eager") as? Boolean
+                        ) ?: false
                     kLogger.info { "registering injectable ${klass.simpleName} (eager=$eager)" }
                     registerInjectable(klass, createdAtStart = eager && eagerAllowed)
                 }
@@ -105,16 +107,19 @@ inline fun <reified T> getKoinInstance(name: String): T {
  * Doesn't require to extend KoinComponent (can be used in a top level function)
  * Usage: private val service by koin<MyService>()
  */
-inline fun <reified T> koin(): ReadOnlyProperty<Any?, T> = KoinDelegate { getKoinInstance<T>() }
+inline fun <reified T> koin(): ReadOnlyProperty<Any?, T> =
+    KoinDelegate { getKoinInstance<T>() }
 
 /**
  * Property delegate for lazy Koin dependency injection with named qualifier.
  * Doesn't require to extend KoinComponent (can be used in a top level function)
  * Usage: private val service by koin<MyService>("myName")
  */
-inline fun <reified T> koin(name: String): ReadOnlyProperty<Any?, T> = KoinDelegate { getKoinInstance<T>(name) }
+inline fun <reified T> koin(name: String): ReadOnlyProperty<Any?, T> =
+    KoinDelegate { getKoinInstance<T>(name) }
 
 class KoinDelegate<T>(initializer: () -> T) : ReadOnlyProperty<Any?, T> {
     private val lazy = lazy(initializer)
-    override fun getValue(thisRef: Any?, property: KProperty<*>): T = lazy.value
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T =
+        lazy.value
 }

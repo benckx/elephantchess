@@ -31,5 +31,4 @@ data class ListUserGamesResponse(val entries: List<Entry>) {
         val numberOfMessages: Int,
         val variant: Variant,
     )
-
 }

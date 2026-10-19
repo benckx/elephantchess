@@ -18,5 +18,4 @@ data class GameEntryDto(
         moves.forEach { board.registerMove(it) }
         return board
     }
-
 }

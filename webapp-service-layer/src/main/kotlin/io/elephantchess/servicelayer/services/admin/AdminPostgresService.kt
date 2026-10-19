@@ -1,17 +1,14 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.DatabaseAdminDaoService
 import io.elephantchess.servicelayer.dto.admin.DatabaseTableSizeResponse
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
-class AdminPostgresService(
-    private val databaseAdminDaoService: DatabaseAdminDaoService
-) {
+class AdminPostgresService(private val databaseAdminDaoService: DatabaseAdminDaoService) {
 
-    suspend fun fetchTableSizes(): DatabaseTableSizeResponse {
-        return databaseAdminDaoService
+    suspend fun fetchTableSizes(): DatabaseTableSizeResponse =
+        databaseAdminDaoService
             .fetchTableSizes()
             .map { record ->
                 DatabaseTableSizeResponse.Entry(
@@ -25,12 +22,10 @@ class AdminPostgresService(
                     totalSize = record.total,
                     indexSize = record.index,
                     toastSize = record.toast,
-                    tableSize = record.table
+                    tableSize = record.table,
                 )
             }
             .let { entries ->
                 DatabaseTableSizeResponse(entries)
             }
-    }
-
 }

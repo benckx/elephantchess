@@ -9,5 +9,4 @@ data class ThrownExceptionsResponse(val entries: List<Entry>) {
         val exceptionMessage: String,
         val exceptionTrace: String?,
     )
-
 }

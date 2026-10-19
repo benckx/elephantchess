@@ -1,19 +1,15 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.servicelayer.dto.admin.LastChatMessageResponse
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
-class AdminChatService(
-    private val userCache: UserCache,
-    private val chatMessageDaoService: ChatMessageDaoService,
-) {
+class AdminChatService(private val userCache: UserCache, private val chatMessageDaoService: ChatMessageDaoService) {
 
-    suspend fun listLastChatMessages(): LastChatMessageResponse {
-        return chatMessageDaoService
+    suspend fun listLastChatMessages(): LastChatMessageResponse =
+        chatMessageDaoService
             .listLastMessages(200)
             .map { record ->
                 LastChatMessageResponse.ChatMessage(
@@ -33,6 +29,4 @@ class AdminChatService(
             .let { messages ->
                 LastChatMessageResponse(messages)
             }
-    }
-
 }

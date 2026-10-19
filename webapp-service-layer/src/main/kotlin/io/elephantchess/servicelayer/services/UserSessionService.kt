@@ -1,12 +1,11 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.servicelayer.clients.ApiLayerClient
 import io.elephantchess.servicelayer.utils.extractAddress
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,11 +29,7 @@ class UserSessionService(
         }
     }
 
-    private suspend fun persistUserSessionSync(
-        userId: String?,
-        remoteAddress: String,
-        headers: Map<String, List<String>>
-    ) {
+    private suspend fun persistUserSessionSync(userId: String?, remoteAddress: String, headers: Map<String, List<String>>) {
         fun cleanAddress(address: String): String? {
             val validator = InetAddressValidator.getInstance()
 
@@ -63,7 +58,7 @@ class UserSessionService(
                         remoteAddress = address,
                         userAgent = userAgent,
                         operatingSystemName = response.osName,
-                        agentName = response.agentName
+                        agentName = response.agentName,
                     )
 
                     userSessionDaoService.createOrUpdate(record)
@@ -102,6 +97,7 @@ class UserSessionService(
             }
 
             1 -> return fromDb.first()
+
             else -> {
                 logger.warn { "multiple DB records matching for User-Agent $userAgent" }
                 return fromDb.first()
@@ -114,7 +110,5 @@ class UserSessionService(
     private companion object {
 
         data class UserAgentInfo(val osName: String, val agentName: String)
-
     }
-
 }

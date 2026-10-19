@@ -46,79 +46,82 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `manchu variant requires engine-only opening mode in service`() = runTest {
-        val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+    fun `manchu variant requires engine-only opening mode in service`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
 
-        val request = CreateBotGameRequest(
-            color = RED,
-            depth = 5,
-            engine = Engine.FAIRYSTOCKFISH,
-            startFen = null,
-            openingMode = OpeningMode.BY_FREQUENCY,
-            variant = Variant.MANCHU,
-        )
+            val request = CreateBotGameRequest(
+                color = RED,
+                depth = 5,
+                engine = Engine.FAIRYSTOCKFISH,
+                startFen = null,
+                openingMode = OpeningMode.BY_FREQUENCY,
+                variant = Variant.MANCHU,
+            )
 
-        val exception = assertFailsWith<BadRequestException> {
-            service.create(userId, request)
+            val exception = assertFailsWith<BadRequestException> {
+                service.create(userId, request)
+            }
+
+            assertEquals("Variants require engine-only opening mode", exception.message)
         }
-
-        assertEquals("Variants require engine-only opening mode", exception.message)
-    }
 
     @Test
-    fun `manchu variant can not be played with Pikafish`() = runTest {
-        val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+    fun `manchu variant can not be played with Pikafish`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
 
-        val request = CreateBotGameRequest(
-            color = RED,
-            depth = 5,
-            engine = Engine.PIKAFISH,
-            startFen = null,
-            openingMode = OpeningMode.ENGINE_ONLY,
-            variant = Variant.MANCHU,
-        )
+            val request = CreateBotGameRequest(
+                color = RED,
+                depth = 5,
+                engine = Engine.PIKAFISH,
+                startFen = null,
+                openingMode = OpeningMode.ENGINE_ONLY,
+                variant = Variant.MANCHU,
+            )
 
-        val exception = assertFailsWith<BadRequestException> {
-            service.create(userId, request)
+            val exception = assertFailsWith<BadRequestException> {
+                service.create(userId, request)
+            }
+
+            assertEquals("Pikafish does not support the Manchu variant. Please use Fairy Stockfish", exception.message)
         }
-
-        assertEquals("Pikafish does not support the Manchu variant. Please use Fairy Stockfish", exception.message)
-    }
 
     @Test
-    fun `can not create a game with more 14 in depth`() = runTest {
-        val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+    fun `can not create a game with more 14 in depth`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
 
-        val request = CreateBotGameRequest(
-            color = RED,
-            depth = 15,
-            engine = Engine.PIKAFISH,
-            startFen = null
-        )
+            val request = CreateBotGameRequest(
+                color = RED,
+                depth = 15,
+                engine = Engine.PIKAFISH,
+                startFen = null,
+            )
 
-        val exception = assertFailsWith<BadRequestException> {
-            service.create(userId, request)
+            val exception = assertFailsWith<BadRequestException> {
+                service.create(userId, request)
+            }
+
+            assertEquals("Depth must be between 1 and 14", exception.message)
         }
-
-        assertEquals("Depth must be between 1 and 14", exception.message)
-    }
 
     @Test
-    fun `guest can not create a game with depth greater than 6`() = runTest {
-        val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
+    fun `guest can not create a game with depth greater than 6`() =
+        runTest {
+            val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
 
-        val request = CreateBotGameRequest(
-            color = RED,
-            depth = 7,
-            engine = Engine.PIKAFISH,
-            startFen = null,
-        )
+            val request = CreateBotGameRequest(
+                color = RED,
+                depth = 7,
+                engine = Engine.PIKAFISH,
+                startFen = null,
+            )
 
-        val exception = assertFailsWith<BadRequestException> {
-            service.create(guestId, request)
+            val exception = assertFailsWith<BadRequestException> {
+                service.create(guestId, request)
+            }
+
+            assertEquals("You must be authenticated in to play with depth greater than 6", exception.message)
         }
-
-        assertEquals("You must be authenticated in to play with depth greater than 6", exception.message)
-    }
-
 }

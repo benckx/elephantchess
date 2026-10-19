@@ -1,11 +1,10 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.PuzzleDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRateStartImmediately
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlin.time.Duration.Companion.hours
@@ -15,7 +14,7 @@ class PuzzleCache(
     private val puzzleDaoService: PuzzleDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val logger: KLogger,
-    refresherScope: CoroutineScope
+    refresherScope: CoroutineScope,
 ) {
 
     private var entries = listOf<PuzzleCacheEntry>()
@@ -37,7 +36,7 @@ class PuzzleCache(
                     }
 
             logger.info { "loaded ${entries.size} puzzles from DB into cache" }
-        }
+        },
     )
 
     fun cancel() {
@@ -107,7 +106,5 @@ class PuzzleCache(
             val categories: List<PuzzleCategory>,
             val enabled: Boolean,
         )
-
     }
-
 }

@@ -4,7 +4,4 @@ import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGame
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferenceGameHalfMove
 
 // TODO: private script
-data class ReferenceGamePojo(
-    val game: ReferenceGame,
-    val moves: List<ReferenceGameHalfMove>,
-)
+data class ReferenceGamePojo(val game: ReferenceGame, val moves: List<ReferenceGameHalfMove>)

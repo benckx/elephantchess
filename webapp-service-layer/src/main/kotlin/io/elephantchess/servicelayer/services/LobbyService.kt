@@ -1,18 +1,15 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.services.UpcomingEventDaoService
 import io.elephantchess.servicelayer.dto.lobby.GetUpcomingEventsResponse
 import io.elephantchess.servicelayer.dto.lobby.GetUpcomingEventsResponse.UpcomingEvent
+import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
-class LobbyService(
-    private val upcomingEventDaoService: UpcomingEventDaoService
-) {
+class LobbyService(private val upcomingEventDaoService: UpcomingEventDaoService) {
 
-    suspend fun listUpcomingEvents(): GetUpcomingEventsResponse {
-        return upcomingEventDaoService
+    suspend fun listUpcomingEvents(): GetUpcomingEventsResponse =
+        upcomingEventDaoService
             .listUpcomingEventsForLobby()
             .map { event ->
                 UpcomingEvent(
@@ -25,6 +22,4 @@ class LobbyService(
             .let { events ->
                 GetUpcomingEventsResponse(events)
             }
-    }
-
 }

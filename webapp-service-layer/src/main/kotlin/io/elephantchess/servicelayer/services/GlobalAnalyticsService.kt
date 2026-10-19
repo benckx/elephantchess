@@ -1,7 +1,5 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
 import io.elephantchess.db.services.ArchivedGuestDaoService
@@ -15,6 +13,7 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.servicelayer.dto.global.*
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService.Companion.CacheKey.*
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +37,7 @@ class GlobalAnalyticsService(
     private val podService: PodService,
     appConfig: AppConfig,
     refresherScope: CoroutineScope,
-    private val logger: KLogger
+    private val logger: KLogger,
 ) {
 
     private val isDockerized = appConfig.isDockerized
@@ -61,7 +60,7 @@ class GlobalAnalyticsService(
     private val refreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = 30.seconds,
-        period = longRefresh / 2
+        period = longRefresh / 2,
     ) {
         logger.info { "refreshing global analytics caches..." }
 
@@ -111,7 +110,7 @@ class GlobalAnalyticsService(
                                 countryCode = user.country,
                                 rating = user.rating(timeControlCategory),
                                 totalPlayed = aggregatedInfo?.totalPlayed ?: 0,
-                                lastPlayed = aggregatedInfo?.lastPlayed?.toEpochMilliseconds() ?: 0L
+                                lastPlayed = aggregatedInfo?.lastPlayed?.toEpochMilliseconds() ?: 0L,
                             )
                         }
                 }
@@ -172,7 +171,7 @@ class GlobalAnalyticsService(
             totalInAppGames = totalInAppGames,
             totalMoves = totalMoves,
             totalInAppMoves = totalInAppMovesMap,
-            totalManchuGames = gameDataService.countTotalManchuGames()
+            totalManchuGames = gameDataService.countTotalManchuGames(),
         )
     }
 
@@ -192,20 +191,20 @@ class GlobalAnalyticsService(
 
         val totalUsers =
             userDaoService.countAuthenticated() +
-                    userDaoService.countGuestsWithSessionAtLeast(minGuestDuration) +
-                    archivedGuestDaoService.countArchivedGuestsWithSessionAtLeast30Min()
+                userDaoService.countGuestsWithSessionAtLeast(minGuestDuration) +
+                archivedGuestDaoService.countArchivedGuestsWithSessionAtLeast30Min()
 
         val totalRecentlyActive =
             userDaoService.countActiveRecently(recentlyDuration, listOf(AUTHENTICATED)) +
-                    userDaoService.countGuestsWithSessionAtLeastAndActiveWithin(
-                        minGuestDuration,
-                        recentlyDuration
-                    )
+                userDaoService.countGuestsWithSessionAtLeastAndActiveWithin(
+                    minGuestDuration,
+                    recentlyDuration,
+                )
 
         return GlobalUserStatsResponse(
             totalUsers = totalUsers,
             recentlyActiveUsers = totalRecentlyActive,
-            onlineUsers = 0
+            onlineUsers = 0,
         )
     }
 
@@ -223,7 +222,7 @@ class GlobalAnalyticsService(
             }
 
         return GlobalAppDataResponse(
-            lastDeploy = lastDeploy.toEpochMilliseconds()
+            lastDeploy = lastDeploy.toEpochMilliseconds(),
         )
     }
 
@@ -252,7 +251,7 @@ class GlobalAnalyticsService(
                     total = record.totalPlayed,
                     lastPlayed = record.lastPlayed.toEpochMilliseconds(),
                     solvedRate = solvedRate,
-                    failedRate = failedRate
+                    failedRate = failedRate,
                 )
             }
             .let { entries ->
@@ -261,12 +260,8 @@ class GlobalAnalyticsService(
     }
 
     // to avoid casting
-    private suspend inline fun <reified T> Cache<CacheKey, Any>.typedGet(
-        key: CacheKey,
-        noinline loader: suspend () -> Any
-    ): T {
-        return get(key) { loader() } as T
-    }
+    private suspend inline fun <reified T> Cache<CacheKey, Any>.typedGet(key: CacheKey, noinline loader: suspend () -> Any): T =
+        get(key) { loader() } as T
 
     private companion object {
 
@@ -277,9 +272,7 @@ class GlobalAnalyticsService(
             GLOBAL_PUZZLE_STATS,
             GLOBAL_GAME_STATS,
             USER_ANALYTICS,
-            GLOBAL_APP_DATA
+            GLOBAL_APP_DATA,
         }
-
     }
-
 }

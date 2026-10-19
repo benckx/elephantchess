@@ -90,5 +90,4 @@ object GenerateGamesDataToDatabase : KoinScript {
                 }
         }
     }
-
 }

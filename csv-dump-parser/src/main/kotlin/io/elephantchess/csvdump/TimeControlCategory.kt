@@ -9,7 +9,8 @@ enum class TimeControlCategory {
     RAPID,
     CLASSICAL,
     SEVERAL_DAYS,
-    CORRESPONDENCE;
+    CORRESPONDENCE,
+    ;
 
     companion object {
 

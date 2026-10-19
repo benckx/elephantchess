@@ -5,7 +5,8 @@ package io.elephantchess.csvdump
  */
 enum class UserType {
     AUTHENTICATED,
-    GUEST;
+    GUEST,
+    ;
 
     companion object {
 

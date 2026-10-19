@@ -33,13 +33,7 @@ class DatabaseRateLimiter(private val maxRequests: Int, window: Duration) {
      *
      * Non-monitored paths, non-GET methods and allow-listed crawler user-agents are never rate limited.
      */
-    fun isRateLimited(
-        httpMethod: String,
-        path: String,
-        userAgent: String?,
-        remoteAddress: String,
-        forwardedFor: String?,
-    ): Boolean {
+    fun isRateLimited(httpMethod: String, path: String, userAgent: String?, remoteAddress: String, forwardedFor: String?): Boolean {
         if (!httpMethod.equals("GET", ignoreCase = true)) return false
         if (!isMonitoredPath(path)) return false
         if (isAllowlistedCrawler(userAgent)) return false
@@ -93,5 +87,4 @@ class DatabaseRateLimiter(private val maxRequests: Int, window: Duration) {
             return address.substringBefore(',').trim()
         }
     }
-
 }

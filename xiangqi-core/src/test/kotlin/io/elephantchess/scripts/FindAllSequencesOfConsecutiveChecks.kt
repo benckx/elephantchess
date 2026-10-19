@@ -1,10 +1,10 @@
 package io.elephantchess.scripts
 
-import io.elephantchess.xiangqi.testutils.GameMovesDtoCache
-import io.elephantchess.xiangqi.testutils.Ops.moves
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.testutils.GameMovesDtoCache
+import io.elephantchess.xiangqi.testutils.Ops.moves
 
 private val cache = GameMovesDtoCache()
 

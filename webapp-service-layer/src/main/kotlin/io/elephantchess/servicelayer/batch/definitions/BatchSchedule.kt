@@ -11,7 +11,6 @@ abstract class BatchSchedule<T : Batch>(
 
     val batchName: String
         get() = batch.javaClass.simpleName
-
 }
 
 /**
@@ -25,8 +24,8 @@ class SinglePodBatchSchedule<T : SinglePodBatch>(
     val podNumber: Int,
 ) : BatchSchedule<T>(batch, period, delay) {
 
-    override fun toString() = "SinglePodBatchSchedule(${batchName}, period=$period, delay=$delay, podNumber=$podNumber)"
-
+    override fun toString() =
+        "SinglePodBatchSchedule($batchName, period=$period, delay=$delay, podNumber=$podNumber)"
 }
 
 class ShardedBatchSchedule<B : ShardedBatch<*>>(
@@ -35,6 +34,6 @@ class ShardedBatchSchedule<B : ShardedBatch<*>>(
     delay: Duration = 5.minutes,
 ) : BatchSchedule<B>(batch, period, delay) {
 
-    override fun toString(): String = "ShardedBatchSchedule(${batchName}, period=$period, delay=$delay)"
-
+    override fun toString(): String =
+        "ShardedBatchSchedule($batchName, period=$period, delay=$delay)"
 }

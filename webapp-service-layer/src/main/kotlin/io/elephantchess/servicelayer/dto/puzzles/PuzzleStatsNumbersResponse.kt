@@ -9,10 +9,7 @@ data class PuzzleStatsNumbersResponse(val history: List<Entry>) {
         val failed: Int,
     ) {
 
-        fun isOnlyZeros(): Boolean {
-            return solved == 0 && skipped == 0 && failed == 0
-        }
-
+        fun isOnlyZeros(): Boolean =
+            solved == 0 && skipped == 0 && failed == 0
     }
-
 }

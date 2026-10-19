@@ -11,7 +11,6 @@ data class GlobalPlayerVsPlayerLeaderboardResponse(val entries: List<Entry>) {
         val countryCode: String?,
         val rating: Int,
         val totalPlayed: Int,
-        val lastPlayed: Long
+        val lastPlayed: Long,
     )
-
 }

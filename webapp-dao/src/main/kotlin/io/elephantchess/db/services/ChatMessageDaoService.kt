@@ -1,7 +1,5 @@
 package io.elephantchess.db.services
 
-import io.elephantchess.utils.di.KoinSingleton
-
 import io.elephantchess.db.dao.codegen.Tables.GAME_CHAT_MESSAGE
 import io.elephantchess.db.dao.codegen.tables.daos.GameChatMessageDao
 import io.elephantchess.db.dao.codegen.tables.pojos.GameChatMessage
@@ -9,6 +7,7 @@ import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.db.utils.insertReactive
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -30,9 +29,8 @@ class ChatMessageDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun currentIndex(gameId: String): Int {
-        return currentIndex(gameId, dslContext)
-    }
+    suspend fun currentIndex(gameId: String): Int =
+        currentIndex(gameId, dslContext)
 
     private suspend fun currentIndex(gameId: String, context: DSLContext): Int {
         val max = context
@@ -52,7 +50,7 @@ class ChatMessageDaoService(private val dslContext: DSLContext) {
         val maxIndexes = dslContext
             .select(
                 GAME_CHAT_MESSAGE.GAME_ID,
-                DSL.max(GAME_CHAT_MESSAGE.INDEX).`as`("currentIndex")
+                DSL.max(GAME_CHAT_MESSAGE.INDEX).`as`("currentIndex"),
             )
             .from(GAME_CHAT_MESSAGE)
             .where(GAME_CHAT_MESSAGE.GAME_ID.`in`(gameIds))
@@ -72,30 +70,27 @@ class ChatMessageDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listMessagesAfterOrEqualToIndex(gameId: String, index: Int): List<GameChatMessage> {
-        return dslContext
+    suspend fun listMessagesAfterOrEqualToIndex(gameId: String, index: Int): List<GameChatMessage> =
+        dslContext
             .selectFrom(GAME_CHAT_MESSAGE)
             .where(GAME_CHAT_MESSAGE.GAME_ID.eq(gameId))
             .and(GAME_CHAT_MESSAGE.INDEX.ge(index))
             .orderBy(GAME_CHAT_MESSAGE.INDEX.asc())
             .awaitMappedRecords()
-    }
 
-    suspend fun listAllMessages(gameId: String): List<GameChatMessage> {
-        return dslContext
+    suspend fun listAllMessages(gameId: String): List<GameChatMessage> =
+        dslContext
             .selectFrom(GAME_CHAT_MESSAGE)
             .where(GAME_CHAT_MESSAGE.GAME_ID.eq(gameId))
             .orderBy(GAME_CHAT_MESSAGE.INDEX.asc())
             .awaitMappedRecords()
-    }
 
-    suspend fun listLastMessages(limit: Int): List<GameChatMessage> {
-        return dslContext
+    suspend fun listLastMessages(limit: Int): List<GameChatMessage> =
+        dslContext
             .selectFrom(GAME_CHAT_MESSAGE)
             .orderBy(GAME_CHAT_MESSAGE.MESSAGE_TIME.desc())
             .limit(limit)
             .awaitMappedRecords()
-    }
 
     suspend fun countMessages(gameIds: List<String>): Map<String, Int> {
         val conditions = gameIds.map { gameId ->
@@ -118,5 +113,4 @@ class ChatMessageDaoService(private val dslContext: DSLContext) {
                 record2.value1() to record2.value2() as Int
             }
     }
-
 }
