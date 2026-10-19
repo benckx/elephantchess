@@ -1,0 +1,414 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+:root {
+    --crosshair-margin: 5%;
+}
+
+#board-svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: 110;
+    pointer-events: none;
+}
+
+.board-container {
+    margin: auto;
+    aspect-ratio: 0.9;
+    background-color: #876e59;
+    padding: 4%;
+    text-align: initial;
+    touch-action: manipulation;
+    position: relative;
+    /* Matches the shared .basic-box / .info-box rule in style.css so board.css
+       renders identically when used standalone (as a library). */
+    box-shadow: rgba(67, 71, 85, 0.27) 0 0 0.25em, rgba(90, 125, 188, 0.05) 0 0.25em 1em;
+    border: 2px solid #323232;
+    border-radius: 3px;
+}
+
+.safari-board-container {
+    display: flex;
+    display: -webkit-box;
+}
+
+.board-outer-container {
+    position: relative;
+    width: 80%;
+}
+
+.board-container-placeholder {
+    background-color: #808080;
+}
+
+.board-container-placeholder .visible-square,
+.board-container-placeholder .large-river {
+    background-color: #dbd8d8;
+}
+
+.board-container-placeholder .piece-image {
+    filter: grayscale(90%);
+}
+
+.board-container-placeholder .coordinates-labels {
+    color: #dbd8d8;
+}
+
+a.board-outer-container-link-mask {
+    position: absolute;
+    aspect-ratio: 0.9;
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.rows {
+    height: 10%;
+}
+
+/* TODO: could be replaced by '.safari-board .rows' */
+.safari-rows {
+    height: 9%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.piece-holder {
+    float: left;
+    position: relative;
+    height: 100%;
+    aspect-ratio: 1;
+}
+
+.piece-holder .piece-image {
+    width: 95%;
+    height: 95%;
+    margin: 2.5%;
+    position: absolute;
+    border-radius: 100%;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 2px 5px;
+    z-index: 100;
+}
+
+.piece-holder .piece-image-can-move {
+    cursor: move;
+}
+
+.piece-holder .piece-image-moving {
+    z-index: 110;
+}
+
+.crosshair-square {
+    position: absolute;
+    border: 2px solid rgba(10, 10, 10, 0.8);
+    /*background-color: rgba(0, 0, 227, 0.47);*/
+    width: 19%;
+    height: 19%;
+    z-index: 80;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.crosshair-square-bottom-right {
+    bottom: var(--crosshair-margin);
+    right: var(--crosshair-margin);
+    border-top-width: 0;
+    border-left-width: 0;
+}
+
+.crosshair-square-bottom-left {
+    bottom: var(--crosshair-margin);
+    left: var(--crosshair-margin);
+    border-top-width: 0;
+    border-right-width: 0;
+}
+
+.crosshair-square-top-right {
+    top: var(--crosshair-margin);
+    right: var(--crosshair-margin);
+    border-bottom-width: 0;
+    border-left-width: 0;
+}
+
+.crosshair-square-top-left {
+    top: var(--crosshair-margin);
+    left: var(--crosshair-margin);
+    border-bottom-width: 0;
+    border-right-width: 0;
+}
+
+/* 2px because it's the border size of visible-square */
+.safari-board-container .visible-square .crosshair-square-bottom-right,
+.safari-board-container .visible-square .crosshair-square-top-right {
+    right: calc(var(--crosshair-margin) + 2px);
+}
+
+.safari-board-container .visible-square-last-file .crosshair-square-bottom-right,
+.safari-board-container .visible-square-last-file .crosshair-square-top-right {
+    right: var(--crosshair-margin);
+}
+
+/* 1px because it's the border size of visible-square */
+.safari-mini-board-container .visible-square .crosshair-square-bottom-right,
+.safari-mini-board-container .visible-square .crosshair-square-top-right {
+    right: calc(var(--crosshair-margin) + 1px);
+}
+
+.safari-mini-board-container .visible-square-last-file .crosshair-square-bottom-right,
+.safari-mini-board-container .visible-square-last-file .crosshair-square-top-right {
+    right: var(--crosshair-margin);
+}
+
+.visible-square, .large-river {
+    background-color: #ead1af;
+    height: 100%;
+    margin: 50%;
+    aspect-ratio: 1;
+    border: 2px solid rgba(10, 10, 10, 0.8);
+    border-right-width: 0;
+    border-bottom-width: 0;
+    position: absolute;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.large-river {
+    aspect-ratio: 8;
+    height: 100%;
+}
+
+.visible-square-last-file,
+.large-river {
+    border-right-width: 2px;
+}
+
+.visible-square-last-row {
+    border-bottom-width: 2px;
+}
+
+.river-of-the-chu,
+.border-of-the-han {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 48%;
+}
+
+.river-of-the-chu {
+    float: left;
+}
+
+.border-of-the-han {
+    float: right;
+}
+
+.river-of-the-chu img,
+.border-of-the-han img {
+    opacity: 60%;
+    height: 70%;
+}
+
+.mini-board-container .piece-image {
+    box-shadow: none;
+}
+
+.mini-board-container .visible-square,
+.mini-board-container .large-river {
+    border-width: 1px;
+    border-bottom-width: 0;
+    border-right-width: 0;
+}
+
+.mini-board-container .visible-square-last-row {
+    border-bottom-width: 1px;
+}
+
+.mini-board-container .visible-square-last-file,
+.mini-board-container .large-river {
+    border-right-width: 1px;
+}
+
+.mini-board-container .crosshair-square-bottom-right {
+    border-bottom-width: 1px;
+    border-right-width: 1px;
+}
+
+.mini-board-container .crosshair-square-bottom-left {
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+}
+
+.mini-board-container .crosshair-square-top-right {
+    border-top-width: 1px;
+    border-right-width: 1px;
+}
+
+.mini-board-container .crosshair-square-top-left {
+    border-top-width: 1px;
+    border-left-width: 1px;
+}
+
+.mini-board-overview {
+    display: none;
+    position: absolute;
+    z-index: 700;
+    max-width: 236px;
+    width: 236px;
+    padding: 8px;
+}
+
+.safari-mini-board-container .safari-rows {
+    height: 10%;
+}
+
+.safari-mini-board-container {
+    height: 306px;
+    width: 276px;
+}
+
+.file-coordinates-top,
+.file-coordinates-bottom,
+.rows-coordinates-right {
+    font-size: 12px;
+    color: #ead1af;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-coordinates-bottom {
+    margin-top: 100%;
+    margin-left: 50%;
+}
+
+.file-coordinates-top {
+    margin-top: -25%;
+    margin-left: 40%;
+}
+
+.rows-coordinates-right {
+    margin-left: 65%;
+    width: 100%;
+    height: 100%;
+}
+
+.legal-move-place-holder,
+.selected-piece,
+.possible-capture,
+.highlighted-debug,
+.highlighted-move,
+.highlighted-check,
+.highlighted-checkmate,
+.highlighted-last-move {
+    position: absolute;
+    border-radius: 100%;
+    z-index: 10;
+}
+
+.selected-piece,
+.possible-capture,
+.highlighted-debug,
+.highlighted-check {
+    width: 110%;
+    height: 110%;
+    margin: -5%;
+}
+
+.highlighted-checkmate,
+.highlighted-move {
+    width: 120%;
+    height: 120%;
+    margin: -10%;
+}
+
+.legal-move-place-holder {
+    width: 75%;
+    height: 75%;
+    margin: 12.5%;
+}
+
+.highlighted-last-move {
+    width: 115%;
+    height: 115%;
+    margin: -7.5%;
+}
+
+.legal-move-place-holder {
+    background-color: rgba(0, 64, 255, 0.4);
+}
+
+.selected-piece {
+    background-color: rgba(40, 229, 27, 0.7);
+}
+
+.possible-capture {
+    background-color: blueviolet;
+}
+
+.highlighted-check {
+    background-color: orange;
+}
+
+.highlighted-checkmate {
+    background-color: red;
+}
+
+.highlighted-move {
+    background-color: rgba(247, 247, 17, 0.79);
+}
+
+.highlighted-last-move {
+    border: 5px dashed rgba(13, 98, 7, 0.7);
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+/* reactive: hide river/han decorations on narrower viewports */
+@media (max-width: 1400px) {
+    .river-of-the-chu,
+    .border-of-the-han {
+        display: none;
+    }
+}
+
+/* reactive: enlarge board on small viewports */
+@media (max-width: 1000px) {
+    .board-outer-container-link-mask,
+    .board-outer-container {
+        width: 90%;
+    }
+
+    /* x2 compared to normal */
+    .safari-mini-board-container {
+        height: 612px;
+        width: 552px;
+    }
+}

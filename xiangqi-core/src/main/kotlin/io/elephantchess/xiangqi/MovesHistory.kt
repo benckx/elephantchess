@@ -11,19 +11,17 @@ data class MovesHistory(val history: List<HistoricalMove>) {
     /**
      * The key of the map is the number of attackers involved in the check sequence
      */
-    fun findSequencesOfConsecutiveChecks(color: Color, maxAttackers: Int = 3): Map<Int, SequenceOfChecks> {
-        return detectConsecutiveChecks(color, maxAttackers)
+    fun findSequencesOfConsecutiveChecks(color: Color, maxAttackers: Int = 3): Map<Int, SequenceOfChecks> =
+        detectConsecutiveChecks(color, maxAttackers)
             .groupBy { sequence -> sequence.attackers.size }
             .map { (nbrOfAttackers, sequences) ->
                 nbrOfAttackers to sequences.maxBy { it.moves.size }
             }
             .toMap()
-    }
 
     fun detectConsecutiveChecks(color: Color, maxAttackers: Int): List<SequenceOfChecks> {
-        fun filterOutSubSets(sequences: List<SequenceOfChecks>): List<SequenceOfChecks> {
-            return sequences.filterNot { sequence -> sequences.any { sequence.isSubSetOf(it) } }
-        }
+        fun filterOutSubSets(sequences: List<SequenceOfChecks>): List<SequenceOfChecks> =
+            sequences.filterNot { sequence -> sequences.any { sequence.isSubSetOf(it) } }
 
         val sequences = allCombinationsOfMax(findAllCheckingPieces(color), maxAttackers)
             .flatMap { pieces ->
@@ -45,13 +43,12 @@ data class MovesHistory(val history: List<HistoricalMove>) {
         return filterOutSubSets(sequences)
     }
 
-    fun findAllCheckingPieces(color: Color): List<PhysicalPiece> {
-        return history
+    fun findAllCheckingPieces(color: Color): List<PhysicalPiece> =
+        history
             .flatMap { move -> move.attackMap.keys }
             .map { pieceAtPosition -> pieceAtPosition.physicalPiece }
             .filter { piece -> piece.color() == color }
             .distinct()
-    }
 
     fun longestConsecutiveChecks(attackingPieces: Collection<PhysicalPiece>): List<HistoricalMove> {
         val checkingMoves = history
@@ -66,10 +63,7 @@ data class MovesHistory(val history: List<HistoricalMove>) {
         /**
          * Each piece is attacking the general at least once in the moves
          */
-        fun areAllPiecesInvolved(pieces: Collection<PhysicalPiece>, moves: Collection<HistoricalMove>): Boolean {
-            return pieces.all { piece -> moves.any { move -> move.isAttackingGeneral(piece) } }
-        }
-
+        fun areAllPiecesInvolved(pieces: Collection<PhysicalPiece>, moves: Collection<HistoricalMove>): Boolean =
+            pieces.all { piece -> moves.any { move -> move.isAttackingGeneral(piece) } }
     }
-
 }

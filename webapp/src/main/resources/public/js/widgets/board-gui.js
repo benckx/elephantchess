@@ -70,6 +70,8 @@ pieceImageNames.set('R', 'red_chariot.png');
 pieceImageNames.set('r', 'black_chariot.png');
 pieceImageNames.set('P', 'red_soldier.png');
 pieceImageNames.set('p', 'black_soldier.png');
+// Manchu super-chariot (combines chariot + horse + cannon powers), red only, displayed as chariot
+pieceImageNames.set('M', 'red_chariot.png');
 
 const diagonalDescending = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="0" x2="100" y2="100" vector-effect="non-scaling-stroke" stroke="black" /></svg>';
 const diagonalRising = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="100" x2="100" y2="0" vector-effect="non-scaling-stroke" stroke="black"/></svg>';
@@ -129,7 +131,31 @@ const EngineArrowType = Object.freeze({
  */
 const CoordinatesOrientation = Object.freeze({
     WXF: 'WXF',
-    UCI: 'UCI',
+    ALGEBRAIC: 'ALGEBRAIC',
+});
+
+// Chinese numerals for files 1..9, used to label files in WXF mode when the
+// {@link FileNumbersStyle} setting calls for Chinese numerals on that side.
+const CHINESE_FILE_DIGITS = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
+
+/**
+ * How file numbers are rendered around the board in WXF mode. Only affects the
+ * file-number labels; the algebraic orientation (a..i letters) is unaffected.
+ */
+const FileNumbersStyle = Object.freeze({
+    /** Arabic numerals (1..9) on both sides of the board. */
+    ARABIC_BOTH: 'ARABIC_BOTH',
+    /** Chinese numerals (一..九) on both sides of the board. */
+    CHINESE_BOTH: 'CHINESE_BOTH',
+    /** Chinese numerals on red's side; Arabic numerals on black's side (default). */
+    CHINESE_RED_ONLY: 'CHINESE_RED_ONLY',
+    /** Chinese numerals on black's side; Arabic numerals on red's side. */
+    CHINESE_BLACK_ONLY: 'CHINESE_BLACK_ONLY',
+    /** Chinese numerals on the bottom (lower) side of the screen; Arabic on the top side. */
+    CHINESE_LOWER_ONLY: 'CHINESE_LOWER_ONLY',
+    /** Chinese numerals on the top side of the screen; Arabic on the bottom side. */
+    CHINESE_TOP_ONLY: 'CHINESE_TOP_ONLY',
+    DEFAULT: 'CHINESE_RED_ONLY',
 });
 
 /**
@@ -139,6 +165,8 @@ const CoordinatesOrientation = Object.freeze({
 const PieceStyleSetting = Object.freeze({
     TRADITIONAL: 'TRADITIONAL',
     ROMANIZED_ROUNDED: 'ROMANIZED_ROUNDED',
+    MODERN: 'MODERN',
+    INK_BRUSH: 'INK_BRUSH',
     DEFAULT: 'TRADITIONAL',
 });
 
@@ -153,12 +181,20 @@ const PieceStyleSetting = Object.freeze({
  * @property {boolean}     [mini]                   - whether this is a mini (thumb) board
  * @property {boolean}     [forceRenderChecks]      - render checks even on mini boards
  * @property {boolean}     [svg]                    - enable the SVG overlay (used for engine arrows)
+ * @property {boolean}     [playSounds]             - whether board sounds are enabled
  * @property {string}      [assetsBaseUrl]          - base URL prepended to every static asset path
  *                                                    (images, audio). Default: `https://elephantchess.io`.
  *                                                    Pass an empty string to use relative paths (e.g. when
  *                                                    serving the assets from the current host on localhost).
  * @property {string}      [pieceStyle]             - one of {@link PieceStyleSetting}; selects the piece
  *                                                    image folder.
+ * @property {boolean}     [colorblindFriendlyBlackPieces] - if true, black piece images get an invert
+ *                                                    CSS filter for improved contrast.
+ * @property {boolean}     [flipOpponentPieces]     - if true, opponent piece images are rotated
+ *                                                    180° to simulate the OTB appearance.
+ * @property {boolean}     [showColoredAreas]       - if true, river/palace areas are highlighted.
+ * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
+ *                                                    file numbers are rendered in WXF mode.
  */
 
 /** @type {Readonly<Required<BoardGuiOptions>>} */
@@ -169,8 +205,13 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     mini: false,
     forceRenderChecks: false,
     svg: false,
+    playSounds: true,
     assetsBaseUrl: 'https://cdn.elephantchess.io/static',
     pieceStyle: PieceStyleSetting.DEFAULT,
+    colorblindFriendlyBlackPieces: false,
+    flipOpponentPieces: false,
+    showColoredAreas: false,
+    fileNumbersStyle: FileNumbersStyle.DEFAULT,
 });
 
 class BoardGui {
@@ -207,6 +248,21 @@ class BoardGui {
 
     #isSafari = false;
 
+    /** @type {function():void|null} - cancels any in-flight animation */
+    #cancelAnimation = null;
+
+    /** @type {Position|null} - source square of an in-progress touch drag */
+    #touchDragFromPosition = null;
+
+    /** @type {HTMLElement|null} - floating ghost image that follows the finger */
+    #touchDragGhost = null;
+
+    /** @type {number} - cached width of the touch drag ghost in pixels */
+    #touchDragGhostWidth = 0;
+
+    /** @type {number} - cached height of the touch drag ghost in pixels */
+    #touchDragGhostHeight = 0;
+
     /**
      * @param {BoardGuiOptions} [options]
      */
@@ -217,6 +273,9 @@ class BoardGui {
         this.#clickSound = new Audio(`${this.#options.assetsBaseUrl}/audio/rclick-13693.mp3`);
 
         this.#boardContainer = document.getElementById(this.#options.elementId);
+        this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
+        this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
+        this.#renderColoredAreasSetting(this.#options.showColoredAreas);
         this.#drawBoard();
         this.#drawPieces(); // FIXME: useful?
 
@@ -230,6 +289,12 @@ class BoardGui {
                     boardGui.#hideAllPiecePlaceHolders();
                 }
             });
+
+        // Touch drag-and-drop: listen at document level so the drag continues
+        // even if the finger moves outside the board container.
+        // document.addEventListener('touchmove', (e) => this.#touchDragMove(e), {passive: false});
+        // document.addEventListener('touchend', (e) => this.#touchDragEnd(e));
+        // document.addEventListener('touchcancel', () => this.#touchDragCancel());
 
         if (this.#options.svg) {
             window.onresize = function () {
@@ -286,6 +351,13 @@ class BoardGui {
      * @param targetFen {string}
      */
     #drawPositionAnimated(targetFen) {
+        // Cancel any in-flight animation: commit its target immediately so the
+        // new animation can diff cleanly from a fully-drawn state.
+        if (this.#cancelAnimation) {
+            this.#cancelAnimation();
+            this.#cancelAnimation = null;
+        }
+
         this.#hideAllPiecePlaceHolders();
         this.#hideHighlightedLastMove();
 
@@ -295,13 +367,29 @@ class BoardGui {
         targetBoard.loadFen(targetFen);
         const targetPieces = targetBoard.listPiecePositions();
 
-        this.#animatePiecesTo(targetPieces, 200, () => {
+        let animationCompleted = false;
+        const cancelFn = this.#animatePiecesTo(targetPieces, 200, () => {
             // commit the new board state in the model
+            animationCompleted = true;
+            this.#cancelAnimation = null;
             this.#board.loadFen(targetFen);
             this.updateHighlightedChecks();
             this.#resetDraggableCursors();
             this.#afterDrawPositionsListeners.forEach(listener => listener());
         });
+
+        // Wrap cancelFn so that interrupting the animation also commits the
+        // target position synchronously, leaving the board in a clean state
+        // for the next animation to diff against.
+        // `animationCompleted` guards against the synchronous no-op bail-out
+        // path in #animatePiecesTo where onDone fires before this wrapper is
+        // assigned.
+        this.#cancelAnimation = () => {
+            if (!animationCompleted) {
+                cancelFn();
+                this.#drawPositionNoAnimation(targetFen);
+            }
+        };
     }
 
     outputFen() {
@@ -391,11 +479,13 @@ class BoardGui {
             }
             this.updateHighlightedChecks();
             this.#resetDraggableCursors();
-            this.#clickSound
-                .play()
-                .catch(e => {
-                    // ignored, spam error in console in dev
-                });
+            if (this.#options.playSounds) {
+                this.#clickSound
+                    .play()
+                    .catch(() => {
+                        // ignored, spam error in console in dev
+                    });
+            }
             if (afterMoveCallback != null) {
                 afterMoveCallback()
             }
@@ -484,10 +574,10 @@ class BoardGui {
         const toRemove = currentBoardMisplacements.filter((_, i) => !usedCurrent.has(i));
         const toAdd = targetBoardMisplacements.filter((_, j) => !usedTarget.has(j));
 
-        // nothing to animate: bail out early
+        // nothing to animate: bail out early; return a no-op cancel function
         if (animatedMoves.length === 0 && toRemove.length === 0 && toAdd.length === 0) {
             onDone();
-            return;
+            return () => {};
         }
 
         const transitionStr = `transform ${durationMs}ms ease, opacity ${durationMs}ms ease`;
@@ -551,7 +641,7 @@ class BoardGui {
             }
         });
 
-        setTimeout(() => {
+        const timerId = setTimeout(() => {
             // drop transient animation images
             cleanups.forEach(c => c());
 
@@ -571,6 +661,12 @@ class BoardGui {
             onDone();
             this.#forceSafariLayoutRefresh();
         }, durationMs + 20);
+
+        return () => {
+            clearTimeout(timerId);
+            cleanups.forEach(c => c());
+            addedImages.forEach(img => img.remove());
+        };
     }
 
     /**
@@ -603,11 +699,6 @@ class BoardGui {
     }
 
     /**
-     * Animate a single move by delegating to the generic diff-based animator
-     * {@link #animatePiecesTo}. The target position is computed on a copy of
-     * the current board so the real model is only mutated once the animation
-     * completes. This replaces the old xiangqi-shape-aware setInterval based
-     * {@code #animateMove}.
      *
      * @param move {HalfMove}
      * @param onDone {function}
@@ -793,6 +884,12 @@ class BoardGui {
                 (move.isHorizontal() && Math.abs(move.to.x - move.from.x) <= 1)
         }
 
+        function isKnightMove(move) {
+            const dx = Math.abs(move.to.x - move.from.x);
+            const dy = Math.abs(move.to.y - move.from.y);
+            return (dx === 1 && dy === 2) || (dx === 2 && dy === 1);
+        }
+
         const boardBounds = this.#boardContainer.getBoundingClientRect();
 
         const square1 = document.getElementById(this.#positionToElementId('square', move.from));
@@ -804,36 +901,92 @@ class BoardGui {
         const y1 = (bound1.top + bound1.height / 2) - boardBounds.top;
         const x2 = (bound2.left + bound2.width / 2) - boardBounds.left;
         const y2 = (bound2.top + bound2.height / 2) - boardBounds.top;
-        const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 
-        // we reduce the distance, otherwise the arrow goes from the middle of a square to the other (with the arrow tip on top)
-        let reduction;
+        // stroke width scales with the square size so the arrow looks consistent across viewports
+        // (a fixed thick stroke is proportionally too fat on smaller boards, making the elbow look off-centered)
+        const strokeWidth = Math.min(16, bound1.width * 0.16);
 
-        // we can not reduce by as much when the arrow is already very small
-        // otherwise, the direction of the arrow flips and points the wrong way
-        if (isSmallMove(move)) {
-            // we remove 40% a square length
-            reduction = bound1.width * 0.40;
+        let pathD, midpointX, midpointY;
+
+        if (isKnightMove(move)) {
+            // draw an elbowed arrow matching the horse's actual movement:
+            //   segment 1: orthogonal (straight line, 1 square) — the horse's "leg"
+            //   segment 2: diagonal (1 square) — the horse's diagonal step
+            const sourceReduction = bound1.width * 0.40;
+            // the arrow-head marker (path "M0,0 V4 L2,2", refX=0.1) tips at 1.9 marker units past the
+            // path endpoint, and markerUnits defaults to strokeWidth — so to make the tip land exactly
+            // on the destination intersection, we shorten the destination end by 1.9 * strokeWidth.
+            const destReduction = strokeWidth * 1.9;
+            const dxPx = x2 - x1;
+            const dyPx = y2 - y1;
+
+            // Returns the point shortened by `r` pixels along the line from (px,py) toward (tx,ty)
+            function shortenToward(px, py, tx, ty, r) {
+                const dx = tx - px;
+                const dy = ty - py;
+                const d = Math.sqrt(dx * dx + dy * dy);
+                return [px + (dx / d) * r, py + (dy / d) * r];
+            }
+
+            let x1Prime, y1Prime, x2Prime, y2Prime, elbowX, elbowY;
+
+            const dyBoardSquares = Math.abs(move.to.y - move.from.y);
+
+            if (dyBoardSquares === 2) {
+                // vertical-dominant: horse moves 2 squares vertically then 1 diagonally
+                // elbow is exactly 1 square-height above/below the source, derived from the actual pixel displacement
+                elbowX = x1;
+                elbowY = y1 + dyPx / 2;
+
+                [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, sourceReduction);
+                [x2Prime, y2Prime] = shortenToward(x2, y2, elbowX, elbowY, destReduction);
+            } else {
+                // horizontal-dominant: horse moves 2 squares horizontally then 1 diagonally
+                // elbow is exactly 1 square-width left/right of the source, derived from the actual pixel displacement
+                elbowX = x1 + dxPx / 2;
+                elbowY = y1;
+
+                [x1Prime, y1Prime] = shortenToward(x1, y1, elbowX, elbowY, sourceReduction);
+                [x2Prime, y2Prime] = shortenToward(x2, y2, elbowX, elbowY, destReduction);
+            }
+
+            pathD = `M${Math.round(x1Prime)},${Math.round(y1Prime)} L${Math.round(elbowX)},${Math.round(elbowY)} L${Math.round(x2Prime)},${Math.round(y2Prime)}`;
+            midpointX = elbowX;
+            midpointY = elbowY;
         } else {
-            // we remove 50% a square length
-            reduction = bound1.width * 0.50;
+            const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+
+            // we reduce the distance, otherwise the arrow goes from the middle of a square to the other (with the arrow tip on top)
+            let reduction;
+
+            // we can not reduce by as much when the arrow is already very small
+            // otherwise, the direction of the arrow flips and points the wrong way
+            if (isSmallMove(move)) {
+                // we remove 40% a square length
+                reduction = bound1.width * 0.40;
+            } else {
+                // we remove 50% a square length
+                reduction = bound1.width * 0.50;
+            }
+
+            const reducedDist = dist - reduction;
+            const ratio = reducedDist / dist;
+
+            const x1Prime = x2 + ratio * (x1 - x2);
+            const y1Prime = y2 + ratio * (y1 - y2);
+            const x2Prime = x1 + ratio * (x2 - x1);
+            const y2Prime = y1 + ratio * (y2 - y1);
+
+            pathD = `M${Math.round(x1Prime)},${Math.round(y1Prime)} L${Math.round(x2Prime)},${Math.round(y2Prime)}`;
+            midpointX = (x1Prime + x2Prime) / 2;
+            midpointY = (y1Prime + y2Prime) / 2;
         }
 
-        const reducedDist = dist - reduction;
-        const ratio = reducedDist / dist;
-
-        const x1Prime = x2 + ratio * (x1 - x2);
-        const y1Prime = y2 + ratio * (y1 - y2);
-        const x2Prime = x1 + ratio * (x2 - x1);
-        const y2Prime = y1 + ratio * (y2 - y1);
-
-        const p1 = `M${Math.round(x1Prime)},${Math.round(y1Prime)}`;
-        const p2 = `L${Math.round(x2Prime)},${Math.round(y2Prime)}`;
-
         const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        arrowPath.setAttribute('d', `${p1} ${p2}`);
-        arrowPath.style.strokeWidth = `13px`;
+        arrowPath.setAttribute('d', pathD);
+        arrowPath.style.strokeWidth = `${strokeWidth}px`;
         arrowPath.style.fill = 'none';
+        arrowPath.style.strokeLinejoin = 'round';
 
         switch (type) {
             case EngineArrowType.PRIMARY:
@@ -847,8 +1000,6 @@ class BoardGui {
         }
 
         // draw number circle
-        const midpointX = (x1Prime + x2Prime) / 2;
-        const midpointY = (y1Prime + y2Prime) / 2;
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute('r', (bound1.width * 0.20).toString());
         circle.setAttribute('cx', midpointX.toString());
@@ -902,6 +1053,18 @@ class BoardGui {
         if (onlyClickedSquareAndNoImage) {
             this.#clickedOnSquare(position);
         }
+    }
+
+    /**
+     * @param e {DragEvent}
+     * @param to {Position}
+     */
+    #handlePieceHolderDropEvent(e, to) {
+        const uci = e.dataTransfer.getData('text/plain');
+        const from = Position.parseUci(uci);
+        const move = new HalfMove(from, to);
+        this.registerMoveIfLegal(move, false);
+        this.#hideAllPiecePlaceHolders();
     }
 
     #clickedOnPiece(position) {
@@ -1015,6 +1178,7 @@ class BoardGui {
                 if (y === 5) {
                     if (x === 0) {
                         const river = buildDivWithClass('large-river');
+                        river.classList.add('board-area-river');
 
                         if (!this.#options.mini) {
                             const riverOfTheChuContainer = buildDivWithClass('river-of-the-chu');
@@ -1036,6 +1200,12 @@ class BoardGui {
                     if (x < BOARD_WIDTH - 1 && y > 0) {
                         const visibleSquare = buildDivWithClass('visible-square');
                         pieceHolder.appendChild(visibleSquare);
+
+                        // a palace square cell is bounded by two diagonally
+                        // opposite intersections that both sit inside a palace
+                        if (new Position(x, y).isInAnyPalace() && new Position(x + 1, y - 1).isInAnyPalace()) {
+                            visibleSquare.classList.add('board-area-palace');
+                        }
 
                         if ((x === 3 && y === 2) || (x === 4 && y === 1) || (x === 3 && y === 9) || (x === 4 && y === 8)) {
                             if (this.#options.mini) {
@@ -1066,6 +1236,7 @@ class BoardGui {
             this.#boardContainer.appendChild(row);
         }
 
+        // TODO: looks like something that could be done in CSS
         // add bottom border to last row of visible squares
         if (this.#flippedRed) {
             for (let x = 0; x < BOARD_WIDTH - 1; x++) {
@@ -1125,7 +1296,28 @@ class BoardGui {
             const isSettingEnabled = orientation !== null;
             // when the user has disabled coordinates we still reserve the space (hidden labels),
             // so we must pick an arbitrary orientation for the (invisible) labels:
-            const isWfxOriented = orientation !== CoordinatesOrientation.UCI;
+            const isWfxOriented = orientation !== CoordinatesOrientation.ALGEBRAIC;
+
+            const fileNumbersStyle = this.#options.fileNumbersStyle;
+            // For a given side ('red' | 'black') and its screen position ('top' | 'bottom'),
+            // should we render Chinese numerals?
+            const isChineseOnSide = (side, position) => {
+                switch (fileNumbersStyle) {
+                    case FileNumbersStyle.ARABIC_BOTH:
+                        return false;
+                    case FileNumbersStyle.CHINESE_BOTH:
+                        return true;
+                    case FileNumbersStyle.CHINESE_BLACK_ONLY:
+                        return side === 'black';
+                    case FileNumbersStyle.CHINESE_LOWER_ONLY:
+                        return position === 'bottom';
+                    case FileNumbersStyle.CHINESE_TOP_ONLY:
+                        return position === 'top';
+                    case FileNumbersStyle.CHINESE_RED_ONLY:
+                    default:
+                        return side === 'red';
+                }
+            };
 
             // draw top file coordinates
             if (isWfxOriented) {
@@ -1133,14 +1325,21 @@ class BoardGui {
                 if (!this.#flippedRed) {
                     topCoordinatesY = 0;
                 }
+                // top row shows black's side when red is at the bottom, and red's side when flipped
+                const topSide = this.#flippedRed ? 'black' : 'red';
+                const topChinese = isChineseOnSide(topSide, 'top');
 
                 for (let x = 0; x < BOARD_WIDTH; x++) {
                     // actual text
-                    let label = '?';
+                    let label;
                     if (this.#flippedRed) {
-                        label = (x + 1).toString();
+                        // top row: file 1 is on the right (black perspective)
+                        label = topChinese ? CHINESE_FILE_DIGITS[x] : (x + 1).toString();
                     } else {
-                        label = (BOARD_WIDTH - x).toString();
+                        // top row: file 1 is on the left (board flipped, red on top)
+                        label = topChinese
+                            ? CHINESE_FILE_DIGITS[BOARD_WIDTH - x - 1]
+                            : (BOARD_WIDTH - x).toString();
                     }
 
                     let div = buildFileDiv(label, 'file-coordinates-top', isSettingEnabled);
@@ -1154,14 +1353,21 @@ class BoardGui {
             if (!this.#flippedRed) {
                 bottomCoordinatesY = BOARD_HEIGHT - 1;
             }
+            // bottom row shows red's side when red is at the bottom, and black's side when flipped
+            const bottomSide = this.#flippedRed ? 'red' : 'black';
+            const bottomChinese = isChineseOnSide(bottomSide, 'bottom');
             for (let x = 0; x < BOARD_WIDTH; x++) {
                 // actual text
-                let label = '?';
+                let label;
                 if (isWfxOriented) {
                     if (this.#flippedRed) {
-                        label = (BOARD_WIDTH - x).toString();
+                        // bottom row: file 1 is on the left (red perspective)
+                        label = bottomChinese
+                            ? CHINESE_FILE_DIGITS[BOARD_WIDTH - x - 1]
+                            : (BOARD_WIDTH - x).toString();
                     } else {
-                        label = (x + 1).toString();
+                        // bottom row: file 1 is on the right (board flipped, black at bottom)
+                        label = bottomChinese ? CHINESE_FILE_DIGITS[x] : (x + 1).toString();
                     }
                 } else {
                     label = UCI_LETTER[x];
@@ -1230,14 +1436,20 @@ class BoardGui {
      * @param position {Position}
      */
     #drawPieceAt(pieceChar, position) {
-        let square = document.getElementById(this.#positionToElementId('square', position));
-        let img = document.createElement('img');
+        const square = document.getElementById(this.#positionToElementId('square', position));
+        const img = document.createElement('img');
         img.id = this.#positionToElementId('image', position);
         img.className = 'piece-image';
+        if (isBlackPiece(pieceChar)) {
+            img.classList.add('piece-image-black');
+        } else if (isRedPiece(pieceChar)) {
+            img.classList.add('piece-image-red');
+        }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
         img.addEventListener('click', () => this.#clickedOnPiece(position));
         img.addEventListener('dragstart', (e) => this.#dragStart(e, position));
         img.addEventListener('dragend', () => this.#dragEnd());
+        // img.addEventListener('touchstart', (e) => this.#touchDragStart(e, position), {passive: false});
         square.prepend(img);
     }
 
@@ -1294,8 +1506,6 @@ class BoardGui {
      * @param position {Position}
      */
     #dragStart(e, position) {
-        console.log('drag start');
-
         if (this.isPlayerMoveEnabled && this.#board.getColorAt(position) === this.#board.getColorToPlay()) {
             e.dataTransfer.setData('text/plain', position.toUci());
             this.#showSelectedPositionAndLegalMovesPlaceHolders(position);
@@ -1305,21 +1515,104 @@ class BoardGui {
     }
 
     #dragEnd() {
-        console.log('drag end');
-
         this.#hideAllPiecePlaceHolders();
     }
 
+    // -------------------------------------------------------------------------
+    // Touch drag-and-drop (mobile support)
+    // -------------------------------------------------------------------------
+
     /**
-     * @param e {DragEvent}
-     * @param to {Position}
+     * @param e {TouchEvent}
+     * @param position {Position}
      */
-    #handlePieceHolderDropEvent(e, to) {
-        const uci = e.dataTransfer.getData('text/plain');
-        const from = Position.parseUci(uci);
-        const move = new HalfMove(from, to);
-        this.registerMoveIfLegal(move, false);
+    #touchDragStart(e, position) {
+        if (!this.isPlayerMoveEnabled || this.#board.getColorAt(position) !== this.#board.getColorToPlay()) {
+            return;
+        }
+
+        e.preventDefault(); // prevent page scroll while dragging a piece
+
+        const touch = e.touches[0];
+        this.#touchDragFromPosition = position;
+        this.#showSelectedPositionAndLegalMovesPlaceHolders(position);
+
+        // Build a floating ghost image that follows the finger
+        const img = e.currentTarget;
+        const rect = img.getBoundingClientRect();
+        const ghost = img.cloneNode(false);
+        ghost.className = 'piece-image touch-drag-ghost';
+        ghost.style.position = 'fixed';
+        ghost.style.pointerEvents = 'none';
+        ghost.style.zIndex = '1000';
+        ghost.style.width = rect.width + 'px';
+        ghost.style.height = rect.height + 'px';
+        ghost.style.margin = '0';
+        ghost.style.opacity = '0.85';
+        this.#moveTouchGhost(ghost, touch.clientX, touch.clientY, rect.width, rect.height);
+        document.body.appendChild(ghost);
+        this.#touchDragGhost = ghost;
+        this.#touchDragGhostWidth = rect.width;
+        this.#touchDragGhostHeight = rect.height;
+    }
+
+    /**
+     * @param e {TouchEvent}
+     */
+    #touchDragMove(e) {
+        if (this.#touchDragFromPosition === null) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        this.#moveTouchGhost(this.#touchDragGhost, touch.clientX, touch.clientY, this.#touchDragGhostWidth, this.#touchDragGhostHeight);
+    }
+
+    /**
+     * @param e {TouchEvent}
+     */
+    #touchDragEnd(e) {
+        if (this.#touchDragFromPosition === null) return;
+
+        // Remove the ghost before calling elementFromPoint so the ghost
+        // element does not obscure the target square.
+        if (this.#touchDragGhost) {
+            this.#touchDragGhost.remove();
+            this.#touchDragGhost = null;
+        }
+
+        const touch = e.changedTouches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (element != null) {
+            const square = element.closest('.piece-holder');
+            if (square != null && square.id) {
+                const to = parsePositionFromElementId(square.id);
+                const move = new HalfMove(this.#touchDragFromPosition, to);
+                this.registerMoveIfLegal(move, false);
+            }
+        }
+
         this.#hideAllPiecePlaceHolders();
+        this.#touchDragFromPosition = null;
+    }
+
+    #touchDragCancel() {
+        if (this.#touchDragGhost) {
+            this.#touchDragGhost.remove();
+            this.#touchDragGhost = null;
+        }
+        this.#hideAllPiecePlaceHolders();
+        this.#touchDragFromPosition = null;
+    }
+
+    /**
+     * @param ghost {HTMLElement}
+     * @param clientX {number}
+     * @param clientY {number}
+     * @param width {number}
+     * @param height {number}
+     */
+    #moveTouchGhost(ghost, clientX, clientY, width, height) {
+        ghost.style.left = (clientX - width / 2) + 'px';
+        ghost.style.top = (clientY - height / 2) + 'px';
     }
 
     #unDrawAllPieces() {
@@ -1389,9 +1682,13 @@ class BoardGui {
         this.#currentShowingLegalMovesFor = position;
     }
 
+    /**
+     * @param move {HalfMove}
+     * @param color {string} CSS color
+     */
     highlightDebugMove(move, color) {
-        let from = this.#locateLegalMovePlaceHolderAt(move.from);
-        let to = this.#locateLegalMovePlaceHolderAt(move.to);
+        const from = this.#locateLegalMovePlaceHolderAt(move.from);
+        const to = this.#locateLegalMovePlaceHolderAt(move.to);
         from.classList.add('highlighted-debug');
         from.style.backgroundColor = color;
         to.classList.add('highlighted-debug');
@@ -1400,7 +1697,7 @@ class BoardGui {
 
     hideAllDebugHighlight() {
         Position.getAll().forEach(position => {
-            let element = this.#locateLegalMovePlaceHolderAt(position);
+            const element = this.#locateLegalMovePlaceHolderAt(position);
             element.classList.remove('highlighted-debug');
             element.style.backgroundColor = null;
         });
@@ -1436,6 +1733,15 @@ class BoardGui {
         }
     }
 
+    /**
+     * Returns the color currently shown at the bottom of the board.
+     *
+     * @return {string}
+     */
+    get bottomColor() {
+        return this.#flippedRed ? Color.RED : Color.BLACK;
+    }
+
     flip() {
         this.#boardContainer.innerHTML = '';
         this.#flippedRed = !this.#flippedRed;
@@ -1443,21 +1749,11 @@ class BoardGui {
         this.#drawPieces();
         this.updateHighlightedChecks();
         this.#resetDraggableCursors();
+        this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
 
         const newColor = this.#flippedRed ? Color.RED : Color.BLACK;
         this.#afterFlipListeners.forEach(listener => listener(newColor));
         this.#forceSafariLayoutRefresh();
-    }
-
-    /**
-     *
-     * @param moveFormat {string}
-     */
-    updateMoveFormat(moveFormat) {
-        // easy solution: complete redraw (TODO: can more subtle)
-        this.#boardContainer.innerHTML = '';
-        this.#drawBoard();
-        this.#drawPieces();
     }
 
     reRenderPieces() {
@@ -1481,6 +1777,84 @@ class BoardGui {
     }
 
     /**
+     * @param enabled {boolean}
+     */
+    setColorblindFriendlyBlackPiecesEnabled(enabled) {
+        if (this.#options.colorblindFriendlyBlackPieces === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, colorblindFriendlyBlackPieces: enabled});
+        this.#renderColorblindFriendlyBlackPiecesSetting(enabled);
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    setFlipOpponentPiecesEnabled(enabled) {
+        if (this.#options.flipOpponentPieces === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, flipOpponentPieces: enabled});
+        this.#renderFlipOpponentPiecesSetting(enabled);
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    setShowColoredAreasEnabled(enabled) {
+        if (this.#options.showColoredAreas === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, showColoredAreas: enabled});
+        this.#renderColoredAreasSetting(enabled);
+    }
+
+    /**
+     * @param playSoundsEnabled {boolean}
+     */
+    updatePlaySounds(playSoundsEnabled) {
+        this.#options = Object.freeze({...this.#options, playSounds: playSoundsEnabled});
+    }
+
+    /**
+     * Change which numeral system is used for file coordinates in WXF mode.
+     *
+     * @param fileNumbersStyle {string} one of {@link FileNumbersStyle}
+     */
+    setFileNumbersStyle(fileNumbersStyle) {
+        if (this.#options.fileNumbersStyle === fileNumbersStyle) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, fileNumbersStyle});
+        this.#redrawCoordinates();
+    }
+
+    /**
+     * Change the orientation (WXF numerals vs algebraic letters) of the board coordinates.
+     *
+     * @param coordinatesOrientation {string|null} one of {@link CoordinatesOrientation} or
+     *                                             `null` to keep the labels hidden
+     */
+    setCoordinatesOrientation(coordinatesOrientation) {
+        if (this.#options.coordinatesOrientation === coordinatesOrientation) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, coordinatesOrientation});
+        this.#redrawCoordinates();
+    }
+
+    #redrawCoordinates() {
+        // remove existing file-coordinate (top + bottom) and right-side rank labels
+        // (rank labels only exist in algebraic mode but the selector is harmless if absent)
+        // noinspection CssUnusedSymbol
+        document.querySelectorAll(`#${this.#options.elementId} .file-coordinates-top,
+                                   #${this.#options.elementId} .file-coordinates-bottom,
+                                   #${this.#options.elementId} .rows-coordinates-right`)
+            .forEach(el => el.remove());
+        this.#drawCoordinates();
+    }
+
+    /**
      * @return {boolean}
      */
     toggleShowCoordinates() {
@@ -1497,6 +1871,35 @@ class BoardGui {
         for (let label of labels) {
             label.style.visibility = show ? 'visible' : 'hidden';
         }
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderColorblindFriendlyBlackPiecesSetting(enabled) {
+        this.#boardContainer.classList.toggle('colorblind-friendly-black-pieces', enabled);
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderFlipOpponentPiecesSetting(enabled) {
+        this.#boardContainer.classList.remove('flip-opponent-pieces-red', 'flip-opponent-pieces-black');
+
+        if (enabled) {
+            if (!this.#flippedRed) {
+                this.#boardContainer.classList.add('flip-opponent-pieces-red');
+            } else {
+                this.#boardContainer.classList.add('flip-opponent-pieces-black');
+            }
+        }
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderColoredAreasSetting(enabled) {
+        this.#boardContainer.classList.toggle('highlight-colored-areas', enabled);
     }
 
     #areCoordinatesVisible() {
@@ -1600,7 +2003,9 @@ function parsePositionFromElementId(elementId) {
 }
 
 /**
- * Adds a miniature board that appears on hover for an element
+ * Adds a miniature board that appears on hover for an element.
+ * Uses {@link createWebappBoardGui} so piece images are served from the
+ * correct base URL (local server in dev, CDN in production).
  *
  * @param element {HTMLElement} - The element to attach hover listeners to
  * @param gameId {string} - Unique identifier for this miniboard
@@ -1629,14 +2034,12 @@ function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false) {
 
         document.body.appendChild(miniBoardDiv);
 
-        const options = {
+        const boardGui = createWebappBoardGui({
             elementId: miniBoardId,
             showCoordinates: false,
             mini: true,
             forceRenderChecks: true,
-        };
-
-        const boardGui = new BoardGui(options);
+        });
         boardGui.loadFen(fen);
         boardGui.flipToColor(playerColor);
         boardGui.updateHighlightedChecks();

@@ -1,13 +1,12 @@
 <html lang="en">
 <head>
     {{header_init}}
-    <title>Chinese Chess (Xiangqi) Games Database – Player vs Bot</title>
+    <title>Browse PvB games</title>
     <meta name="description"
           content="Browse the latest Player-vs-Bot Chinese Chess (Xiangqi) games played on elephantchess.io against Pikafish and Fairy-Stockfish engines.">
     <link rel="stylesheet" href="/css/browse-games.css"/>
     <meta property="og:url" content="https://elephantchess.io/browse/player-vs-bot">
     <link rel="canonical" href="https://elephantchess.io/browse/player-vs-bot">
-    <script defer src="/js/widgets/settings-manager.js"></script>
     <script defer src="/js/widgets/board-gui.js"></script>
     <script defer src="/js/widgets/game-thumb.js"></script>
     <script defer src="/js/infinite-scroll-page.js"></script>
@@ -20,7 +19,7 @@
     <h1>Latest Player-vs-Bot Games</h1>
     <hr class="only-desktop"/>
     <div id="pvb-games-container">
-        {{game_thumb}}[[iterations:12; {gameType: 'pvb', parentClass: 'pvb-game-thumb'}]]
+        {{game_thumb}}[[iterations:6; {gameType: 'pvb', parentClass: 'pvb-game-thumb'}]]
     </div>
     <div id="is-loading-message" style="display: none;">
         Loading more games...

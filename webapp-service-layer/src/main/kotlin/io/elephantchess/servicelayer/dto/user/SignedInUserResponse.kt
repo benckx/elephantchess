@@ -6,5 +6,5 @@ data class SignedInUserResponse(
     val userId: String,
     val username: String,
     val token: String,
-    val roles: List<UserRole>
+    val roles: List<UserRole>,
 )

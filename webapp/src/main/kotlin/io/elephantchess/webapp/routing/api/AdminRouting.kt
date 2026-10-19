@@ -19,12 +19,22 @@ fun Route.adminConsoleRoutes() {
         adminDatabaseSearchRoutes()
         adminPasswordRecoveryRoutes()
         adminUserSessionRoutes()
+        adminUserEloRoutes()
         adminAnalysisRoutes()
         adminPostgresRoutes()
         adminDatabaseRoutes()
         adminExceptionRoutes()
         adminNewsletterRoutes()
         adminUpcomingEventsRoutes()
+        adminSettingPreferenceRoutes()
+    }
+}
+
+private fun Route.adminSettingPreferenceRoutes() {
+    val adminSettingPreferenceService by koin<AdminSettingPreferenceService>()
+
+    get("/setting-preference-stats") {
+        requireAdminRole { adminSettingPreferenceService.fetchStats() }
     }
 }
 
@@ -67,16 +77,25 @@ private fun Route.adminFeedsRoutes() {
     val adminFeedService by koin<AdminFeedService>()
 
     get("/list-games") {
-        requireAdminRole { adminFeedService.listLastGames() }
+        requireAdminRole { adminFeedService.listLatestPvpGames() }
+    }
+    get("/list-variant-games") {
+        requireAdminRole { adminFeedService.listLatestVariantPvpGames() }
     }
     get("/list-bot-games") {
-        requireAdminRole { adminFeedService.listLastBotGames() }
+        requireAdminRole { adminFeedService.listLatestPvbGames() }
+    }
+    get("/list-variant-bot-games") {
+        requireAdminRole { adminFeedService.listLatestVariantPvbGames() }
     }
     get("/last-played-puzzles") {
         requireAdminRole { adminFeedService.listLastPuzzlePlayedByLoggedUsers() }
     }
     get("/last-users-analysis") {
         requireAdminRole { adminFeedService.listLastUsersAnalysis() }
+    }
+    get("/content-section-feedback") {
+        requireAdminRole { adminFeedService.listLatestFeedback() }
     }
 }
 
@@ -122,12 +141,33 @@ private fun Route.adminAnalyticsRoutes() {
             adminAnalyticsService.fetchOnlineUsersStatsByMonth(months)
         }
     }
+    get("/thrown-exception-stats-by-month") {
+        requireAdminRole { _ ->
+            val months = call.parameters["months"]?.toIntOrNull() ?: 12
+            adminAnalyticsService.fetchThrownExceptionStatsByMonth(months)
+        }
+    }
     get("/page-view-stats-by-event-path") {
         requireAdminRole { _ ->
             val encodedPath = call.parameters["path"] ?: "/"
             val eventPath = URLDecoder.decode(encodedPath, "UTF-8")
 
             adminAnalyticsService.fetchPageViewStatsByEventPath(eventPath)
+        }
+    }
+    get("/page-view-stats-database-games") {
+        requireAdminRole { _ ->
+            adminAnalyticsService.fetchPageViewStatsForDatabaseGames()
+        }
+    }
+    get("/page-view-stats-user-profiles-own") {
+        requireAdminRole { _ ->
+            adminAnalyticsService.fetchPageViewStatsForOwnUserProfiles()
+        }
+    }
+    get("/page-view-stats-user-profiles-other") {
+        requireAdminRole { _ ->
+            adminAnalyticsService.fetchPageViewStatsForOtherUserProfiles()
         }
     }
     get("/page-view-stats-gad") {
@@ -180,11 +220,22 @@ private fun Route.adminUserSessionRoutes() {
     }
 }
 
+private fun Route.adminUserEloRoutes() {
+    val adminUserEloService by koin<AdminUserEloService>()
+
+    get("/elo-stats") {
+        requireAdminRole { adminUserEloService.listUserEloStats() }
+    }
+}
+
 private fun Route.adminAnalysisRoutes() {
     val adminAnalysisService by koin<AdminAnalysisService>()
 
     get("/list-latest-move-analysis-by-game") {
         requireAdminRole { adminAnalysisService.listLatestMoveAnalysisByGame() }
+    }
+    get("/pre-analysis-status-by-game-type") {
+        requireAdminRole { adminAnalysisService.listPreAnalysisStatusByGameType() }
     }
     get("/pre-analyzed-reference-games-per-year") {
         requireAdminRole { adminAnalysisService.listPreAnalyzedReferenceGamesPerYear() }

@@ -20,31 +20,54 @@
 class AdminFeedsPage extends BasePage {
 
     #gamesTable = document.getElementById('list-games');
+    #variantGamesTable = document.getElementById('list-variant-games');
     #botGamesTable = document.getElementById('list-bot-games');
+    #variantBotGamesTable = document.getElementById('list-variant-bot-games');
     #lastPlayedPuzzlesTable = document.getElementById('last-played-puzzles');
     #usersAnalysisTable = document.getElementById('users-analysis');
 
     constructor() {
         super();
-        this.#fetchGames();
-        this.#fetchBotGames();
-        this.#fetchLastPlayedPuzzles(
-            `${ADMIN_URL_PREFIX}/last-played-puzzles`,
-            this.#lastPlayedPuzzlesTable,
-            true
-        );
-        this.#fetchUsersAnalysis();
+        if (this.#gamesTable != null) {
+            this.#fetchGames('/list-games', this.#gamesTable);
+        }
+        if (this.#variantGamesTable != null) {
+            this.#fetchGames('/list-variant-games', this.#variantGamesTable);
+        }
+        if (this.#botGamesTable != null) {
+            this.#fetchBotGames();
+        }
+        if (this.#variantBotGamesTable != null) {
+            this.#fetchBotGamesGeneric('/list-variant-bot-games', this.#variantBotGamesTable);
+        }
+        if (this.#lastPlayedPuzzlesTable != null) {
+            this.#fetchLastPlayedPuzzles(
+                `${ADMIN_URL_PREFIX}/last-played-puzzles`,
+                this.#lastPlayedPuzzlesTable,
+                true
+            );
+        }
+        if (this.#usersAnalysisTable != null) {
+            this.#fetchUsersAnalysis();
+        }
     }
 
-    #fetchGames() {
-        getAndHandle(`${ADMIN_URL_PREFIX}/list-games`, json => {
-            let tbody = emptyTable(this.#gamesTable);
+    /**
+     * @param endpoint {string}
+     * @param tableElement {HTMLTableElement}
+     */
+    #fetchGames(endpoint, tableElement) {
+        getAndHandle(ADMIN_URL_PREFIX + endpoint, json => {
+            const tbody = emptyTable(tableElement);
             GameAnalyticsDto.parseEntries(json).forEach(entry => {
-                let row = tbody.insertRow();
+                const row = tbody.insertRow();
 
                 if (!entry.isLegit()) {
                     row.classList.add('not-legit-game');
                 }
+
+                const variantCell = row.insertCell();
+                variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
 
                 const gameIdCell = row.insertCell();
                 gameIdCell.append(entry.buildGameAnchor());
@@ -120,13 +143,17 @@ class AdminFeedsPage extends BasePage {
      */
     #fetchBotGamesGeneric(endpoint, tableElement) {
         getAndHandle(ADMIN_URL_PREFIX + endpoint, json => {
-            let tbody = emptyTable(tableElement);
+            const tbody = emptyTable(tableElement);
             BotGameAnalyticsDto.parseEntries(json).forEach(entry => {
-                let row = tbody.insertRow();
+                const row = tbody.insertRow();
 
                 if (!entry.isLegit()) {
                     row.classList.add('not-legit-game');
                 }
+
+                const variantCell = row.insertCell();
+                variantCell.className = 'label-cell';
+                variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
 
                 const gameIdCell = row.insertCell();
                 gameIdCell.className = 'label-cell';

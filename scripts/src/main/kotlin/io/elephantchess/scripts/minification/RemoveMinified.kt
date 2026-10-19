@@ -27,16 +27,6 @@ fun main() {
     println()
     println("deleted ${minifiedFiles.size} minified files")
 
-    // Optionally clean up the CSV file
-    val csvFile = File("minified_files.csv")
-    if (csvFile.exists()) {
-        println("[deleting] ${csvFile.path}")
-        csvFile.delete()
-        println("deleted CSV tracking file")
-    } else {
-        println("CSV tracking file not found")
-    }
-
     println()
     println("cleanup complete!")
 }

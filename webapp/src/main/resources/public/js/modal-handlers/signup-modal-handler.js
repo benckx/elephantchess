@@ -123,6 +123,11 @@ class SignUpModalHandler extends ModalHandler {
             'password': password
         };
 
+        const transferCheckbox = document.getElementById('signup-transfer-games-checkbox');
+        if (isUserIdentifiedAsGuest() && transferCheckbox && transferCheckbox.checked) {
+            body['transferGuestData'] = true;
+        }
+
         const handler = new ValidationResponseHandler(
             (json) => {
                 eraseAllIdentificationCookies();

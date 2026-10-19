@@ -5,27 +5,26 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.batch.definitions.SimpleKeyShardedBatch
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.days
 
+@KoinSingleton
 class AutoCancelCreatedGamesFromOfflineUsersBatch(
     private val pvpGameService: PlayerVsPlayerGameService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
     override val logger: KLogger,
-) :
-    SimpleKeyShardedBatch() {
+) : SimpleKeyShardedBatch() {
 
     private val offlineDurationAuthenticated = 7.days
     private val offlineDurationGuest = 2.days
 
-    override suspend fun fetchAll(): List<String> {
-        return pvpGameDaoService.listCreatedGamesByOfflineUsers(offlineDurationAuthenticated, AUTHENTICATED) +
-                pvpGameDaoService.listCreatedGamesByOfflineUsers(offlineDurationGuest, GUEST)
-    }
+    override suspend fun fetchAll(): List<String> =
+        pvpGameDaoService.listCreatedGamesByOfflineUsers(offlineDurationAuthenticated, AUTHENTICATED) +
+            pvpGameDaoService.listCreatedGamesByOfflineUsers(offlineDurationGuest, GUEST)
 
     override suspend fun process(element: String) {
         logger.debug { "auto-canceling old game $element" }
         pvpGameService.autoCancelGame(gameId = element)
     }
-
 }

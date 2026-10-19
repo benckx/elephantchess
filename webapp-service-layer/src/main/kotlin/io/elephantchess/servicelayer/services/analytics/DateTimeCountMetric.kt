@@ -17,52 +17,47 @@ class DateTimeCountMetric(
     private val condition: Condition? = null,
 ) : HourlyAvailableMetric(name) {
 
-    override suspend fun countByHour(dslContext: DSLContext, hours: Int): List<IntDimensionValueRecord> {
-        return countByTime(
+    override suspend fun countByHour(dslContext: DSLContext, hours: Int): List<IntDimensionValueRecord> =
+        countByTime(
             timeField = dateTimeField.hourOfDay(),
             dslContext = dslContext,
             table = table,
             condition = condition,
-            limit = dateTimeField.isWithin(hours.hours).isTrue
+            limit = dateTimeField.isWithin(hours.hours).isTrue,
         ).map { record -> IntDimensionValueRecord.ofInt(record) }
-    }
 
-    override suspend fun countByDay(dslContext: DSLContext, days: Int): List<DailyValueRecord> {
-        return countByTime(
+    override suspend fun countByDay(dslContext: DSLContext, days: Int): List<DailyValueRecord> =
+        countByTime(
             timeField = dateTimeField.localDate(),
             dslContext = dslContext,
             table = table,
             condition = condition,
-            limit = dateTimeField.isWithin(days.days).isTrue
+            limit = dateTimeField.isWithin(days.days).isTrue,
         ).map { record -> DailyValueRecord.ofInt(record) }
-    }
 
-    override suspend fun countByYearMonth(dslContext: DSLContext): List<MonthlyValueRecord> {
-        return countByTime(
+    override suspend fun countByYearMonth(dslContext: DSLContext): List<MonthlyValueRecord> =
+        countByTime(
             timeField = dateTimeField.yearMonth(),
             dslContext = dslContext,
             table = table,
-            condition = condition
+            condition = condition,
         ).map { record -> MonthlyValueRecord.ofInt(record) }
-    }
 
-    override suspend fun countByYear(dslContext: DSLContext): List<IntDimensionValueRecord> {
-        return countByTime(
+    override suspend fun countByYear(dslContext: DSLContext): List<IntDimensionValueRecord> =
+        countByTime(
             timeField = dateTimeField.year(),
             dslContext = dslContext,
             table = table,
-            condition = condition
+            condition = condition,
         ).map { record -> IntDimensionValueRecord.ofInt(record) }
-    }
 
-    override suspend fun countByCentury(dslContext: DSLContext): List<IntDimensionValueRecord> {
-        return countByTime(
+    override suspend fun countByCentury(dslContext: DSLContext): List<IntDimensionValueRecord> =
+        countByTime(
             timeField = dateTimeField.century(),
             dslContext = dslContext,
             table = table,
-            condition = condition
+            condition = condition,
         ).map { record -> IntDimensionValueRecord.ofInt(record) }
-    }
 
     private suspend fun <R : Record, T> countByTime(
         timeField: Field<T>,
@@ -92,5 +87,4 @@ class DateTimeCountMetric(
 
         return query2.awaitRecords().toList()
     }
-
 }

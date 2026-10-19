@@ -5,7 +5,7 @@ data class HistoricalMove(
     val to: Position,
     val color: Color,
     val capture: PieceAtPosition?,
-    val armyCapturedEvent: ArmyCapturedEvent? = null
+    val armyCapturedEvent: ArmyCapturedEvent? = null,
 ) {
 
     init {
@@ -29,5 +29,4 @@ data class HistoricalMove(
 
         return result
     }
-
 }

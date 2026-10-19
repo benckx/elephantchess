@@ -14,23 +14,25 @@ import io.elephantchess.sevenkingdoms.Color
 import io.elephantchess.sevenkingdoms.Color.*
 import io.elephantchess.sevenkingdoms.Color.Companion.areContiguous
 import io.elephantchess.sevenkingdoms.ExtraEliminationEvent
+import io.elephantchess.utils.di.KoinSingleton
 import kotlin.time.Clock
 
-class SevenKingdomsGameService(
-    private val gameDaoService: SevenKingdomsGameDaoService,
-    private val userCache: UserCache
-) {
+@KoinSingleton
+class SevenKingdomsGameService(private val gameDaoService: SevenKingdomsGameDaoService, private val userCache: UserCache) {
 
     suspend fun createGame(request: CreateGameRequest): CreateGameResponse {
-        if (request.minPlayers !in 2..7)
+        if (request.minPlayers !in 2..7) {
             throw BadRequestException("minPlayers must be [2-7], ${request.minPlayers} is invalid")
+        }
 
-        if (request.minPlayers !in acceptedNumbersOfMinPlayers)
+        if (request.minPlayers !in acceptedNumbersOfMinPlayers) {
             throw BadRequestException("minPlayers must be one of $acceptedNumbersOfMinPlayers")
+        }
 
         val existingGame = gameDaoService.countGamesWithStatusCreated(request.minPlayers)
-        if (existingGame > 0)
+        if (existingGame > 0) {
             throw BadRequestException("A similar open game already exists")
+        }
 
         val now = Clock.System.now()
         val gameRecord = SevenKingdomsGame()
@@ -75,42 +77,47 @@ class SevenKingdomsGameService(
             status = gameRecord.gameStatus,
             currentIndex = gameRecord.currentIndex,
             currentFen = gameRecord.currentFen,
-            colorToPlay = gameRecord.colorToPlay
+            colorToPlay = gameRecord.colorToPlay,
         )
     }
 
-    suspend fun fetchMoves(gameId: String): GetMovesResponse {
-        return GetMovesResponse(gameDaoService.fetchMovesUci(gameId))
-    }
+    suspend fun fetchMoves(gameId: String): GetMovesResponse =
+        GetMovesResponse(gameDaoService.fetchMovesUci(gameId))
 
     suspend fun joinGame(userId: UserId, request: JoinGameRequest): JoinGameResponse {
         // TODO: check user isn't guest and email is validated
 
-        if (request.colors.isEmpty())
+        if (request.colors.isEmpty()) {
             throw BadRequestException("Colors must not be empty")
+        }
 
-        if (request.colors.size > 1 && !areContiguous(request.colors))
+        if (request.colors.size > 1 && !areContiguous(request.colors)) {
             throw BadRequestException("Colors are not contiguous ${request.colors.joinToString(", ")}")
+        }
 
         val gameRecord = gameDaoService.fetchGame(request.gameId)
             ?: throw NotFoundException("Game ${request.gameId} not found")
 
-        if (request.colors.size > gameRecord.maxColorPerPlayer())
+        if (request.colors.size > gameRecord.maxColorPerPlayer()) {
             throw BadRequestException("You can only select up to ${gameRecord.maxColorPerPlayer()} color(s) for this game")
+        }
 
-        if (gameRecord.gameStatus != CREATED)
+        if (gameRecord.gameStatus != CREATED) {
             throw BadRequestException("Game ${request.gameId} is not open to join")
+        }
 
         request.colors.forEach { color ->
-            if (gameRecord.userIdOfColor(color) != null && gameRecord.userIdOfColor(color) != userId.id)
+            if (gameRecord.userIdOfColor(color) != null && gameRecord.userIdOfColor(color) != userId.id) {
                 throw BadRequestException("Color $color is already taken")
+            }
         }
 
         // gather all colors player now plays with
         val colorsOfUser = (request.colors + gameRecord.colorsOfUser(userId.id)).distinct().sorted()
 
-        if (colorsOfUser.size > gameRecord.maxColorPerPlayer())
+        if (colorsOfUser.size > gameRecord.maxColorPerPlayer()) {
             throw BadRequestException("You can only select up to ${gameRecord.maxColorPerPlayer()} color(s) for this game")
+        }
 
         // update status to JOINED if all colors are now taken
         val oldFreeColors = gameRecord.freeColors().toSet()
@@ -129,7 +136,7 @@ class SevenKingdomsGameService(
             userId = userId.id,
             gameId = request.gameId,
             newColorsOfUser = colorsOfUser,
-            newStatus = newStatus
+            newStatus = newStatus,
         )
 
         return JoinGameResponse(colorsOfUser, newStatus)
@@ -139,21 +146,23 @@ class SevenKingdomsGameService(
         val gameRecord = gameDaoService.fetchGame(request.gameId)
             ?: throw NotFoundException("Game ${request.gameId} not found")
 
-        if (gameRecord.gameStatus != CREATED)
+        if (gameRecord.gameStatus != CREATED) {
             throw BadRequestException("Game ${request.gameId} is not open to join")
+        }
 
         val currentColors = gameRecord.colorsOfUser(userId.id)
         val newColors = currentColors.minus(request.colors.toSet())
 
-        if (newColors.size > 1 && !areContiguous(newColors))
+        if (newColors.size > 1 && !areContiguous(newColors)) {
             throw BadRequestException("Colors are not contiguous ${newColors.joinToString(", ")}")
+        }
 
         // persist
         gameDaoService.updateJoinStatus(
             userId = userId.id,
             gameId = request.gameId,
             newColorsOfUser = newColors,
-            newStatus = CREATED
+            newStatus = CREATED,
         )
 
         return CancelJoinGameResponse(newColors)
@@ -163,12 +172,14 @@ class SevenKingdomsGameService(
         val gameRecord = gameDaoService.fetchGame(request.gameId)
             ?: throw NotFoundException("Game ${request.gameId} not found")
 
-        if (gameRecord.gameStatus != JOINED)
+        if (gameRecord.gameStatus != JOINED) {
             throw BadRequestException("Game ${request.gameId} hasn't start yet")
+        }
 
         val colorsOfUser = gameRecord.colorsOfUser(userId.id)
-        if (colorsOfUser.isEmpty())
+        if (colorsOfUser.isEmpty()) {
             throw BadRequestException("User ${userId.id} is not part of game ${request.gameId}")
+        }
 
         val board = loadBoard(request.gameId)
         val allEliminations = board.allEliminatedColors().toMutableList()
@@ -199,7 +210,7 @@ class SevenKingdomsGameService(
             userId = userId.id,
             colors = colorsOfUser,
             newStatus = newStatus,
-            winnerUserId = remainingPairs.firstOrNull()?.second
+            winnerUserId = remainingPairs.firstOrNull()?.second,
         )
     }
 
@@ -207,24 +218,29 @@ class SevenKingdomsGameService(
         val gameRecord = gameDaoService.fetchGame(request.gameId)
             ?: throw NotFoundException("Game ${request.gameId} not found")
 
-        if (gameRecord.gameStatus != JOINED)
+        if (gameRecord.gameStatus != JOINED) {
             throw BadRequestException("Game ${request.gameId} is not open to play")
+        }
 
-        if (gameRecord.colorsOfUser(userId.id).isEmpty())
+        if (gameRecord.colorsOfUser(userId.id).isEmpty()) {
             throw BadRequestException("User ${userId.id} doesn't play in game ${request.gameId}")
+        }
 
         val board = loadBoard(request.gameId)
 
-        if (board.allEliminatedColors().containsAll(gameRecord.colorsOfUser(userId.id)))
+        if (board.allEliminatedColors().containsAll(gameRecord.colorsOfUser(userId.id))) {
             throw BadRequestException("User ${userId.id} is already eliminated, it's ${board.colorToPlay()}'s turn")
+        }
 
         // should not be possible if status has been updated correctly (see above)
-        if (board.winner() != null)
+        if (board.winner() != null) {
             throw BadRequestException("Game ${request.gameId} already has a winner")
+        }
 
         val colorToPlay = board.colorToPlay()
-        if (userId.id != gameRecord.userIdOfColor(colorToPlay))
+        if (userId.id != gameRecord.userIdOfColor(colorToPlay)) {
             throw BadRequestException("${userId.id} is not allowed to play color $colorToPlay")
+        }
 
         val numberOfEventBefore = board.listCaptureEvents().size
 
@@ -256,7 +272,7 @@ class SevenKingdomsGameService(
             newColorToPlay = newColorToPlay,
             eventType = statusUpdate,
             winnerColor = board.winner(),
-            winnerId = board.winner()?.let { gameRecord.userIdOfColor(it) }
+            winnerId = board.winner()?.let { gameRecord.userIdOfColor(it) },
         )
 
         return PlayMoveResponse(
@@ -265,7 +281,7 @@ class SevenKingdomsGameService(
             statusUpdate = statusUpdate,
             winner = winner,
             victoryType = board.victoryType(),
-            armyCapturedEvent = armyCapturedEvent
+            armyCapturedEvent = armyCapturedEvent,
         )
     }
 
@@ -286,7 +302,5 @@ class SevenKingdomsGameService(
     companion object {
 
         val acceptedNumbersOfMinPlayers = listOf(2, 4, 7)
-
     }
-
 }

@@ -14,5 +14,4 @@ object CreateTestUsers : KoinScriptInit() {
             exitProcess(0)
         }
     }
-
 }

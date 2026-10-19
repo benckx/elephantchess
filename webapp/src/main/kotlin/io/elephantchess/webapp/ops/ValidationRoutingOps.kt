@@ -8,17 +8,22 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-suspend inline fun <reified T : Any, reified B : Any> RoutingContext.handleValidatedResponse(
-    handler: (T) -> ValidatedResponse<B>
-) {
+// FIXME: what's the point of this beside naming?
+suspend inline fun <reified T : Any, reified B : Any> RoutingContext.handleValidatedResponse(handler: (T) -> ValidatedResponse<B>) {
     handleEither(handler)
 }
 
-suspend inline fun <reified T : Any, reified A : Any, reified B : Any> RoutingContext.handleEither(
-    handler: (T) -> GenericEither<A, B>,
-) {
+suspend inline fun <reified T : Any, reified A : Any, reified B : Any> RoutingContext.handleEither(handler: (T) -> GenericEither<A, B>) {
     val request = call.receive<T>()
     val either = handler(request)
+    if (either.isRight()) {
+        call.respond(Created, either.right())
+    } else {
+        call.respond(NotAcceptable, either.left())
+    }
+}
+
+suspend inline fun <reified A : Any, reified B : Any> RoutingContext.handleEither(either: GenericEither<A, B>) {
     if (either.isRight()) {
         call.respond(Created, either.right())
     } else {
