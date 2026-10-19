@@ -165,6 +165,8 @@ const FileNumbersStyle = Object.freeze({
 const PieceStyleSetting = Object.freeze({
     TRADITIONAL: 'TRADITIONAL',
     ROMANIZED_ROUNDED: 'ROMANIZED_ROUNDED',
+    MODERN: 'MODERN',
+    INK_BRUSH: 'INK_BRUSH',
     DEFAULT: 'TRADITIONAL',
 });
 
@@ -190,6 +192,7 @@ const PieceStyleSetting = Object.freeze({
  *                                                    CSS filter for improved contrast.
  * @property {boolean}     [flipOpponentPieces]     - if true, opponent piece images are rotated
  *                                                    180° to simulate the OTB appearance.
+ * @property {boolean}     [showColoredAreas]       - if true, river/palace areas are highlighted.
  * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
  *                                                    file numbers are rendered in WXF mode.
  */
@@ -207,6 +210,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     pieceStyle: PieceStyleSetting.DEFAULT,
     colorblindFriendlyBlackPieces: false,
     flipOpponentPieces: false,
+    showColoredAreas: false,
     fileNumbersStyle: FileNumbersStyle.DEFAULT,
 });
 
@@ -244,6 +248,9 @@ class BoardGui {
 
     #isSafari = false;
 
+    /** @type {function():void|null} - cancels any in-flight animation */
+    #cancelAnimation = null;
+
     /** @type {Position|null} - source square of an in-progress touch drag */
     #touchDragFromPosition = null;
 
@@ -268,6 +275,7 @@ class BoardGui {
         this.#boardContainer = document.getElementById(this.#options.elementId);
         this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
         this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
+        this.#renderColoredAreasSetting(this.#options.showColoredAreas);
         this.#drawBoard();
         this.#drawPieces(); // FIXME: useful?
 
@@ -343,6 +351,13 @@ class BoardGui {
      * @param targetFen {string}
      */
     #drawPositionAnimated(targetFen) {
+        // Cancel any in-flight animation: commit its target immediately so the
+        // new animation can diff cleanly from a fully-drawn state.
+        if (this.#cancelAnimation) {
+            this.#cancelAnimation();
+            this.#cancelAnimation = null;
+        }
+
         this.#hideAllPiecePlaceHolders();
         this.#hideHighlightedLastMove();
 
@@ -352,13 +367,29 @@ class BoardGui {
         targetBoard.loadFen(targetFen);
         const targetPieces = targetBoard.listPiecePositions();
 
-        this.#animatePiecesTo(targetPieces, 200, () => {
+        let animationCompleted = false;
+        const cancelFn = this.#animatePiecesTo(targetPieces, 200, () => {
             // commit the new board state in the model
+            animationCompleted = true;
+            this.#cancelAnimation = null;
             this.#board.loadFen(targetFen);
             this.updateHighlightedChecks();
             this.#resetDraggableCursors();
             this.#afterDrawPositionsListeners.forEach(listener => listener());
         });
+
+        // Wrap cancelFn so that interrupting the animation also commits the
+        // target position synchronously, leaving the board in a clean state
+        // for the next animation to diff against.
+        // `animationCompleted` guards against the synchronous no-op bail-out
+        // path in #animatePiecesTo where onDone fires before this wrapper is
+        // assigned.
+        this.#cancelAnimation = () => {
+            if (!animationCompleted) {
+                cancelFn();
+                this.#drawPositionNoAnimation(targetFen);
+            }
+        };
     }
 
     outputFen() {
@@ -543,10 +574,10 @@ class BoardGui {
         const toRemove = currentBoardMisplacements.filter((_, i) => !usedCurrent.has(i));
         const toAdd = targetBoardMisplacements.filter((_, j) => !usedTarget.has(j));
 
-        // nothing to animate: bail out early
+        // nothing to animate: bail out early; return a no-op cancel function
         if (animatedMoves.length === 0 && toRemove.length === 0 && toAdd.length === 0) {
             onDone();
-            return;
+            return () => {};
         }
 
         const transitionStr = `transform ${durationMs}ms ease, opacity ${durationMs}ms ease`;
@@ -610,7 +641,7 @@ class BoardGui {
             }
         });
 
-        setTimeout(() => {
+        const timerId = setTimeout(() => {
             // drop transient animation images
             cleanups.forEach(c => c());
 
@@ -630,6 +661,12 @@ class BoardGui {
             onDone();
             this.#forceSafariLayoutRefresh();
         }, durationMs + 20);
+
+        return () => {
+            clearTimeout(timerId);
+            cleanups.forEach(c => c());
+            addedImages.forEach(img => img.remove());
+        };
     }
 
     /**
@@ -1141,6 +1178,7 @@ class BoardGui {
                 if (y === 5) {
                     if (x === 0) {
                         const river = buildDivWithClass('large-river');
+                        river.classList.add('board-area-river');
 
                         if (!this.#options.mini) {
                             const riverOfTheChuContainer = buildDivWithClass('river-of-the-chu');
@@ -1162,6 +1200,12 @@ class BoardGui {
                     if (x < BOARD_WIDTH - 1 && y > 0) {
                         const visibleSquare = buildDivWithClass('visible-square');
                         pieceHolder.appendChild(visibleSquare);
+
+                        // a palace square cell is bounded by two diagonally
+                        // opposite intersections that both sit inside a palace
+                        if (new Position(x, y).isInAnyPalace() && new Position(x + 1, y - 1).isInAnyPalace()) {
+                            visibleSquare.classList.add('board-area-palace');
+                        }
 
                         if ((x === 3 && y === 2) || (x === 4 && y === 1) || (x === 3 && y === 9) || (x === 4 && y === 8)) {
                             if (this.#options.mini) {
@@ -1755,6 +1799,17 @@ class BoardGui {
     }
 
     /**
+     * @param enabled {boolean}
+     */
+    setShowColoredAreasEnabled(enabled) {
+        if (this.#options.showColoredAreas === enabled) {
+            return;
+        }
+        this.#options = Object.freeze({...this.#options, showColoredAreas: enabled});
+        this.#renderColoredAreasSetting(enabled);
+    }
+
+    /**
      * @param playSoundsEnabled {boolean}
      */
     updatePlaySounds(playSoundsEnabled) {
@@ -1838,6 +1893,13 @@ class BoardGui {
                 this.#boardContainer.classList.add('flip-opponent-pieces-black');
             }
         }
+    }
+
+    /**
+     * @param enabled {boolean}
+     */
+    #renderColoredAreasSetting(enabled) {
+        this.#boardContainer.classList.toggle('highlight-colored-areas', enabled);
     }
 
     #areCoordinatesVisible() {

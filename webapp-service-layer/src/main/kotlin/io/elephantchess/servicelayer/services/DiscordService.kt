@@ -6,6 +6,7 @@ import io.elephantchess.db.services.DiscordGameNotificationDaoService
 import io.elephantchess.model.DiscordNotificationEventType.GAME_CREATED
 import io.elephantchess.servicelayer.clients.DiscordClient
 import io.elephantchess.servicelayer.clients.dto.DiscordMessage
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Instant
 import kotlin.time.toKotlinInstant
 
+@KoinSingleton
 class DiscordService(
     private val discordClient: DiscordClient,
     private val userCache: UserCache,
@@ -23,8 +25,8 @@ class DiscordService(
 ) {
 
     private val webHost = appConfig.webHost
-    private val suffix = appConfig.loadString("discord.suffix")
-    private val isEnabled = appConfig.loadBoolean("discord.notification.enabled", false)
+    private val suffix = appConfig.discordSuffix
+    private val isEnabled = appConfig.discordNotificationEnabled
 
     private val discordServiceScope by lazy { CoroutineScope(Dispatchers.IO) }
 
@@ -36,52 +38,56 @@ class DiscordService(
         }
     }
 
-    fun gameCreated(userId: String, game: Game) = doAsync {
-        fun gameLink(channelId: String, game: Game) =
-            "${webHost}/game?id=${game.id}&channelId=$channelId"
+    fun gameCreated(userId: String, game: Game) =
+        doAsync {
+            fun gameLink(channelId: String, game: Game) =
+                "$webHost/game?id=${game.id}&channelId=$channelId"
 
-        val username = userCache.fetchUsername(userId)
+            val username = userCache.fetchUsername(userId)
 
-        newGameNotificationChannels.forEach { channelId ->
-            val content = "$username (${game.inviterRatingFrom}) created a game ${formatGameSettings(game)} " +
+            newGameNotificationChannels.forEach { channelId ->
+                val content = "$username (${game.inviterRatingFrom}) created a game ${formatGameSettings(game)} " +
                     "that you can join at ${gameLink(channelId, game)} $suffix"
 
-            logExceptionIfAny {
-                val response = discordClient.sendMessage(channelId, DiscordMessage(content))
-                daoService.insertGameCreated(
-                    userId = userId,
-                    gameId = game.id,
-                    channelId = channelId,
-                    messageId = response.id,
-                    sent = parseTimestamp(response.timestamp)
-                )
+                logExceptionIfAny {
+                    val response = discordClient.sendMessage(channelId, DiscordMessage(content))
+                    daoService.insertGameCreated(
+                        userId = userId,
+                        gameId = game.id,
+                        channelId = channelId,
+                        messageId = response.id,
+                        sent = parseTimestamp(response.timestamp),
+                    )
+                }
             }
         }
-    }
 
-    fun gameJoined(gameId: String) = doAsync {
-        newGameNotificationChannels.forEach { channelId ->
-            logExceptionIfAny {
-                addReactionToOriginalMessage(channelId, gameId, HAS_JOINED_REACTION)
+    fun gameJoined(gameId: String) =
+        doAsync {
+            newGameNotificationChannels.forEach { channelId ->
+                logExceptionIfAny {
+                    addReactionToOriginalMessage(channelId, gameId, HAS_JOINED_REACTION)
+                }
             }
         }
-    }
 
-    fun gameCanceled(gameId: String) = doAsync {
-        newGameNotificationChannels.forEach { channelId ->
-            logExceptionIfAny {
-                addReactionToOriginalMessage(channelId, gameId, HAS_CANCELED_REACTION)
+    fun gameCanceled(gameId: String) =
+        doAsync {
+            newGameNotificationChannels.forEach { channelId ->
+                logExceptionIfAny {
+                    addReactionToOriginalMessage(channelId, gameId, HAS_CANCELED_REACTION)
+                }
             }
         }
-    }
 
-    fun gameReachedMove3(gameId: String) = doAsync {
-        newGameNotificationChannels.forEach { channelId ->
-            logExceptionIfAny {
-                addReactionToOriginalMessage(channelId, gameId, HAS_REACHED_MOVE_3)
+    fun gameReachedMove3(gameId: String) =
+        doAsync {
+            newGameNotificationChannels.forEach { channelId ->
+                logExceptionIfAny {
+                    addReactionToOriginalMessage(channelId, gameId, HAS_REACHED_MOVE_3)
+                }
             }
         }
-    }
 
     private suspend fun addReactionToOriginalMessage(channelId: String, gameId: String, emoji: String) {
         val gameCreatedNotification = daoService.findGameCreatedNotification(channelId, gameId)
@@ -89,10 +95,12 @@ class DiscordService(
             discordClient.addReaction(
                 channelId = channelId,
                 messageId = gameCreatedNotification.messageId,
-                emoji = emoji
+                emoji = emoji,
             )
         } else {
-            logger.error { "original $GAME_CREATED notification event not found for (channel $channelId, game $gameId); can not add reaction" }
+            logger.error {
+                "original $GAME_CREATED notification event not found for (channel $channelId, game $gameId); can not add reaction"
+            }
         }
     }
 
@@ -156,7 +164,5 @@ class DiscordService(
 
             return "(${formatTimeControl(game)}, playing ${formatColor(game)}, ${formatRated(game)})"
         }
-
     }
-
 }

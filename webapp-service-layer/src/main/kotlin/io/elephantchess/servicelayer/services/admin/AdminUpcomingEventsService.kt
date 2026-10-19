@@ -6,14 +6,13 @@ import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.UserCache
+import io.elephantchess.utils.di.KoinSingleton
 import org.apache.commons.validator.routines.UrlValidator
 import java.time.LocalDate
 import kotlin.time.Clock
 
-class AdminUpcomingEventsService(
-    private val upcomingEventDaoService: UpcomingEventDaoService,
-    private val userCache: UserCache
-) {
+@KoinSingleton
+class AdminUpcomingEventsService(private val upcomingEventDaoService: UpcomingEventDaoService, private val userCache: UserCache) {
 
     private val urlValidator = UrlValidator(arrayOf("http", "https"))
 
@@ -29,7 +28,7 @@ class AdminUpcomingEventsService(
                     link = event.link,
                     isEnabled = event.isEnabled,
                     createdAt = event.createdAt?.toEpochMilliseconds(),
-                    createdByUsername = createdByUsername
+                    createdByUsername = createdByUsername,
                 )
             }
         return AdminUpcomingEventsResponse(events)
@@ -95,5 +94,4 @@ class AdminUpcomingEventsService(
 
         upcomingEventDaoService.toggleEnabled(existingEvent.id, request.enabled)
     }
-
 }

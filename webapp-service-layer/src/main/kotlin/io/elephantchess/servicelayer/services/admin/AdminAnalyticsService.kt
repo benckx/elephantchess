@@ -6,14 +6,21 @@ import io.elephantchess.db.model.MonthlyValueRecord
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
 import io.elephantchess.db.services.AnalysisDaoService
+import io.elephantchess.db.services.ArchivedGuestDaoService
 import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
+import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.db.services.UserStatsDaoService
 import io.elephantchess.model.GameJoinSource
+import io.elephantchess.model.GameJoinSource.DYNAMIC_MATCHED
+import io.elephantchess.model.GameJoinSource.LINK
+import io.elephantchess.model.GameJoinSource.LOBBY
+import io.elephantchess.model.GameJoinSource.MATCHED
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.analytics.HourlyAvailableMetric
 import io.elephantchess.servicelayer.services.analytics.allMetrics
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.rangeOfDays
 import io.elephantchess.utils.rangeOfYearMonths
 import io.github.oshai.kotlinlogging.KLogger
@@ -21,17 +28,20 @@ import org.jooq.DSLContext
 import java.time.LocalDate
 import java.time.YearMonth
 
+@KoinSingleton
 class AdminAnalyticsService(
     private val analysisDaoService: AnalysisDaoService,
+    private val archivedGuestDaoService: ArchivedGuestDaoService,
     private val userStatsDaoService: UserStatsDaoService,
     private val pageViewEventDaoService: PageViewEventDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
+    private val thrownExceptionDaoService: ThrownExceptionDaoService,
     private val dslContext: DSLContext,
     logger: KLogger,
     appConfig: AppConfig,
 ) {
 
-    private val excludedUserIds = appConfig.loadListOfStrings("excluded.from.analytics")
+    private val excludedUserIds = appConfig.excludedFromAnalytics
 
     init {
         logger.info { "excludedUserIds = $excludedUserIds" }
@@ -91,7 +101,7 @@ class AdminAnalyticsService(
 
         return MultipleTimeSeriesResponse(
             periods = rangeOfDays(requestedStart, requestedEnd).map { it.toString() },
-            timeSeries = timeSeries
+            timeSeries = timeSeries,
         )
     }
 
@@ -193,7 +203,7 @@ class AdminAnalyticsService(
                         userId = record3.value1(),
                         username = record3.value2(),
                         count = record3.value3(),
-                        lastUpdated = lastUpdatedByUser[record3.value1()]
+                        lastUpdated = lastUpdatedByUser[record3.value1()],
                     )
                 }
                 .sortedByDescending { entry ->
@@ -203,69 +213,79 @@ class AdminAnalyticsService(
         return AnalysisPerUserResponse(entries)
     }
 
-    suspend fun fetchOnlineUsersStatsByHour(): OnlineUsersStatsByHourResponse {
-        return userStatsDaoService
+    suspend fun fetchOnlineUsersStatsByHour(): OnlineUsersStatsByHourResponse =
+        userStatsDaoService
             .fetchOnlineUsersStatsByHour()
             .map { record ->
                 OnlineUsersStatsByHourResponse.Entry(
                     hourOfDay = record.hourOfDay,
                     minTotal = record.minTotal,
                     maxTotal = record.maxTotal,
-                    avgTotal = record.avgTotal
+                    avgTotal = record.avgTotal,
                 )
             }
             .let { entries ->
                 OnlineUsersStatsByHourResponse(entries)
             }
-    }
 
-    suspend fun fetchOnlineUsersStatsByDay(): OnlineUsersStatsByDayResponse {
-        return userStatsDaoService
+    suspend fun fetchOnlineUsersStatsByDay(): OnlineUsersStatsByDayResponse =
+        userStatsDaoService
             .fetchOnlineUsersStatsByDay()
             .map { record ->
                 OnlineUsersStatsByDayResponse.Entry(
                     day = record.day.toString(),
                     minTotal = record.minTotal,
                     maxTotal = record.maxTotal,
-                    avgTotal = record.avgTotal
+                    avgTotal = record.avgTotal,
                 )
             }
             .let { entries ->
                 OnlineUsersStatsByDayResponse(entries)
             }
-    }
 
-    suspend fun fetchOnlineUsersStatsByDayOfWeek(): OnlineUsersStatsByDayOfWeekResponse {
-        return userStatsDaoService
+    suspend fun fetchOnlineUsersStatsByDayOfWeek(): OnlineUsersStatsByDayOfWeekResponse =
+        userStatsDaoService
             .fetchOnlineUsersStatsByDayOfWeek()
             .map { record ->
                 OnlineUsersStatsByDayOfWeekResponse.Entry(
                     dayOfWeek = record.dayOfWeek,
                     minTotal = record.minTotal,
                     maxTotal = record.maxTotal,
-                    avgTotal = record.avgTotal
+                    avgTotal = record.avgTotal,
                 )
             }
             .let { entries ->
                 OnlineUsersStatsByDayOfWeekResponse(entries)
             }
-    }
 
-    suspend fun fetchOnlineUsersStatsByMonth(months: Int): OnlineUsersStatsByMonthResponse {
-        return userStatsDaoService
+    suspend fun fetchOnlineUsersStatsByMonth(months: Int): OnlineUsersStatsByMonthResponse =
+        userStatsDaoService
             .fetchOnlineUsersStatsByMonth(months)
             .map { record ->
                 OnlineUsersStatsByMonthResponse.Entry(
                     month = record.month.toString(),
                     minTotal = record.minTotal,
                     maxTotal = record.maxTotal,
-                    avgTotal = record.avgTotal
+                    avgTotal = record.avgTotal,
                 )
             }
             .let { entries ->
                 OnlineUsersStatsByMonthResponse(entries)
             }
-    }
+
+    suspend fun fetchThrownExceptionStatsByMonth(months: Int): ThrownExceptionStatsByMonthResponse =
+        thrownExceptionDaoService
+            .fetchExceptionCountsByMonth(months)
+            .map { record ->
+                ThrownExceptionStatsByMonthResponse.Entry(
+                    month = record.month.toString(),
+                    clientErrors = record.clientErrors,
+                    serverErrors = record.serverErrors,
+                )
+            }
+            .let { entries ->
+                ThrownExceptionStatsByMonthResponse(entries)
+            }
 
     suspend fun fetchPageViewStatsByGad(): MultipleTimeSeriesResponse {
         val pattern = "%?gad_source=1%"
@@ -275,29 +295,37 @@ class AdminAnalyticsService(
 
     suspend fun fetchPageViewStatsByEventPath(eventPath: String): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyPageViews(eventPath, excludedUserIds)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedMonthlyPageViews(eventPath)
+        return mapPageViewRecordsToMultipleTimeseries(mergeMonthlyPageViews(records, archivedRecords))
+    }
+
+    suspend fun fetchPageViewStatsForDatabaseGames(): MultipleTimeSeriesResponse {
+        val records = pageViewEventDaoService.fetchMonthlyDatabaseGamePageViews(excludedUserIds)
         return mapPageViewRecordsToMultipleTimeseries(records)
     }
 
     suspend fun fetchPageViewStatsForOwnUserProfiles(): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyOwnUserProfilePageViews(excludedUserIds)
-        return mapPageViewRecordsToMultipleTimeseries(records)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedMonthlyOwnProfilePageViews()
+        return mapPageViewRecordsToMultipleTimeseries(mergeMonthlyPageViews(records, archivedRecords))
     }
 
     suspend fun fetchPageViewStatsForOtherUserProfiles(): MultipleTimeSeriesResponse {
         val records = pageViewEventDaoService.fetchMonthlyOtherUserProfilePageViews(excludedUserIds)
-        return mapPageViewRecordsToMultipleTimeseries(records)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedMonthlyOtherProfilePageViews()
+        return mapPageViewRecordsToMultipleTimeseries(mergeMonthlyPageViews(records, archivedRecords))
     }
 
     suspend fun fetchHourlyPageViews(hours: Int = 12): HourlyPageViewsResponse {
         val records = pageViewEventDaoService.fetchHourlyPageViews(
             hours = hours,
-            excludedUserIds = excludedUserIds
+            excludedUserIds = excludedUserIds,
         )
 
         val entries = records.map { record ->
             HourlyPageViewsResponse.Entry(
                 hour = record.hour,
-                pageViews = record.uniquePageViews
+                pageViews = record.uniquePageViews,
             )
         }
 
@@ -307,13 +335,21 @@ class AdminAnalyticsService(
     suspend fun fechDailyPageViews(days: Int = 30): DailyPageViewsResponse {
         val records = pageViewEventDaoService.fetchDailyPageViews(
             days = days,
-            excludedUserIds = excludedUserIds
+            excludedUserIds = excludedUserIds,
         )
 
-        val entries = records.map { record ->
+        val archivedRecords = archivedGuestDaoService.fetchArchivedPageViewsByDay(days = days)
+
+        // guests are archived into a disjoint set of users, so per-day counts can simply be summed
+        val pageViewsByDay = sortedMapOf<LocalDate, Long>()
+        (records + archivedRecords).forEach { record ->
+            pageViewsByDay.merge(record.day, record.value.toLong(), Long::plus)
+        }
+
+        val entries = pageViewsByDay.map { (day, pageViews) ->
             DailyPageViewsResponse.Entry(
-                day = record.day.toString(),
-                pageViews = record.value.toInt()
+                day = day.toString(),
+                pageViews = pageViews.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
             )
         }
 
@@ -329,14 +365,33 @@ class AdminAnalyticsService(
      * - Breakdown of PvP > 3 by join source
      */
     suspend fun fetchPvpStatsByJoinSource(): PvpJoinSourceStatsResponse {
+        val lobbyJoinSources = listOf(LOBBY, MATCHED, DYNAMIC_MATCHED)
+        val linkJoinSources = listOf(LINK)
+
         // Query total PvP games by month
         val totalPvpByMonth = pvpGameDaoService
             .countTotalGamesByMonth()
             .associate { it.month to it.value.toInt() }
 
+        val totalLobbyJoinModePvpByMonth = pvpGameDaoService
+            .countTotalGamesByMonthForJoinSources(lobbyJoinSources)
+            .associate { it.month to it.value.toInt() }
+
+        val totalLinkJoinSourcePvpByMonth = pvpGameDaoService
+            .countTotalGamesByMonthForJoinSources(linkJoinSources)
+            .associate { it.month to it.value.toInt() }
+
         // Query PvP > 3 games by month
         val pvpOver3ByMonth = pvpGameDaoService
             .countGamesOverMoveIndexByMonth(MIN_MOVE_INDEX)
+            .associate { it.month to it.value.toInt() }
+
+        val pvpOver3LobbyJoinModeByMonth = pvpGameDaoService
+            .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, lobbyJoinSources)
+            .associate { it.month to it.value.toInt() }
+
+        val pvpOver3LinkJoinSourceByMonth = pvpGameDaoService
+            .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, linkJoinSources)
             .associate { it.month to it.value.toInt() }
 
         // Query PvP > 3 by join source and month
@@ -353,7 +408,7 @@ class AdminAnalyticsService(
             .sorted()
 
         if (allMonths.isEmpty()) {
-            return PvpJoinSourceStatsResponse(emptyList(), emptyList(), emptyList())
+            return PvpJoinSourceStatsResponse.allEmpty()
         }
 
         val firstMonth = allMonths.first()
@@ -364,6 +419,18 @@ class AdminAnalyticsService(
         val percentageValues = allPeriods.map { month ->
             val total = totalPvpByMonth[month] ?: 0
             val over3 = pvpOver3ByMonth[month] ?: 0
+            if (total > 0) (over3.toDouble() / total * 100) else 0.0
+        }
+
+        val lobbyJoinModePercentageValues = allPeriods.map { month ->
+            val total = totalLobbyJoinModePvpByMonth[month] ?: 0
+            val over3 = pvpOver3LobbyJoinModeByMonth[month] ?: 0
+            if (total > 0) (over3.toDouble() / total * 100) else 0.0
+        }
+
+        val linkJoinSourcePercentageValues = allPeriods.map { month ->
+            val total = totalLinkJoinSourcePvpByMonth[month] ?: 0
+            val over3 = pvpOver3LinkJoinSourceByMonth[month] ?: 0
             if (total > 0) (over3.toDouble() / total * 100) else 0.0
         }
 
@@ -379,8 +446,33 @@ class AdminAnalyticsService(
         return PvpJoinSourceStatsResponse(
             periods = allPeriods.map { it.toString() },
             percentageOver3 = percentageValues,
-            joinSourceBreakdown = joinSourceSeries
+            percentageOver3LobbyJoinModes = lobbyJoinModePercentageValues,
+            percentageOver3LinkJoinSource = linkJoinSourcePercentageValues,
+            joinSourceBreakdown = joinSourceSeries,
         )
+    }
+
+    /**
+     * Merges live and archived monthly page-view records. Live guests and archived (deleted) guests are
+     * disjoint sets, so counts for the same month and url are summed.
+     */
+    private fun mergeMonthlyPageViews(
+        live: List<MonthlyPageViewRecord>,
+        archived: List<MonthlyPageViewRecord>,
+    ): List<MonthlyPageViewRecord> {
+        if (archived.isEmpty()) {
+            return live
+        }
+
+        return (live + archived)
+            .groupBy { it.yearMonth to it.label }
+            .map { (key, records) ->
+                MonthlyPageViewRecord(
+                    yearMonth = key.first,
+                    label = key.second,
+                    uniquePageViews = records.sumOf { it.uniquePageViews },
+                )
+            }
     }
 
     private fun mapPageViewRecordsToMultipleTimeseries(records: List<MonthlyPageViewRecord>): MultipleTimeSeriesResponse {
@@ -418,42 +510,27 @@ class AdminAnalyticsService(
 
     private companion object {
 
-        fun fillGapsWithZeros(
-            minMonth: YearMonth,
-            maxMonth: YearMonth,
-            records: List<MonthlyValueRecord>,
-        ): List<MonthlyValueRecord> {
-            return rangeOfYearMonths(minMonth, maxMonth).map { month ->
+        fun fillGapsWithZeros(minMonth: YearMonth, maxMonth: YearMonth, records: List<MonthlyValueRecord>): List<MonthlyValueRecord> =
+            rangeOfYearMonths(minMonth, maxMonth).map { month ->
                 records.find { it.month == month }
                     ?: MonthlyValueRecord(month, 0)
             }
-        }
 
-        fun fillGapsWithZeros(
-            firstDay: LocalDate,
-            lastDay: LocalDate,
-            records: List<DailyValueRecord>,
-        ): List<DailyValueRecord> {
-            return rangeOfDays(firstDay, lastDay).map { day ->
+        fun fillGapsWithZeros(firstDay: LocalDate, lastDay: LocalDate, records: List<DailyValueRecord>): List<DailyValueRecord> =
+            rangeOfDays(firstDay, lastDay).map { day ->
                 records.find { it.day == day }
                     ?: DailyValueRecord(day, 0)
             }
-        }
 
-        fun fillGapsWithZeros(
-            first: Int,
-            last: Int,
-            records: List<IntDimensionValueRecord>,
-        ): List<IntDimensionValueRecord> {
-            return (first..last).map { period ->
+        fun fillGapsWithZeros(first: Int, last: Int, records: List<IntDimensionValueRecord>): List<IntDimensionValueRecord> =
+            (first..last).map { period ->
                 records.find { it.period == period }
                     ?: IntDimensionValueRecord(period, 0)
             }
-        }
 
         // Normalize paths: if path contains "gad_source=1" or "fbclid", crop everything after it
-        fun normalizeRecords(records: List<MonthlyPageViewRecord>): List<MonthlyPageViewRecord> {
-            return records.map { record ->
+        fun normalizeRecords(records: List<MonthlyPageViewRecord>): List<MonthlyPageViewRecord> =
+            records.map { record ->
                 val normalizedPath = when {
                     record.label.contains("gad_source=1") -> {
                         val index = record.label.indexOf("gad_source=1")
@@ -469,23 +546,19 @@ class AdminAnalyticsService(
                 }
                 record.copy(label = normalizedPath)
             }
-        }
 
         // Group by normalized eventPath and sum page views for same month+path
-        fun groupByEventPath(normalizedRecords: List<MonthlyPageViewRecord>): Map<String, List<MonthlyPageViewRecord>> {
-            return normalizedRecords
+        fun groupByEventPath(normalizedRecords: List<MonthlyPageViewRecord>): Map<String, List<MonthlyPageViewRecord>> =
+            normalizedRecords
                 .groupBy { it.label }
                 .mapValues { (_, pathRecords) ->
                     pathRecords
                         .groupBy { YearMonth.from(it.yearMonth) }
                         .map { (_, monthRecords) ->
                             monthRecords.first().copy(
-                                uniquePageViews = monthRecords.sumOf { it.uniquePageViews }
+                                uniquePageViews = monthRecords.sumOf { it.uniquePageViews },
                             )
                         }
                 }
-        }
-
     }
-
 }

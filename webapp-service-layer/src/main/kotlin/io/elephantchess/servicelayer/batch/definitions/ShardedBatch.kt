@@ -25,5 +25,4 @@ abstract class ShardedBatch<T> : Batch {
             }
         }
     }
-
 }

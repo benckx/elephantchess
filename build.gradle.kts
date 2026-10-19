@@ -11,18 +11,19 @@ import org.jooq.meta.jaxb.*
 import org.jooq.meta.jaxb.Target
 import java.sql.Connection
 
-fun DependencyHandlerScope.api(dependencyNotation: Any) = add("api", dependencyNotation)
-
-fun DependencyHandlerScope.implementation(dependencyNotation: Any) = add("implementation", dependencyNotation)
-
-fun DependencyHandlerScope.testImplementation(dependencyNotation: Any) = add("testImplementation", dependencyNotation)
-
 val rootLibs = libs
 
+val publishableModules = listOf(
+    "engine-api",
+    "xiangqi-core",
+    "xiangqi-core-test-utils",
+    "seven-kingdoms-core",
+    "seven-kingdoms-core-test-utils",
+    "csv-dump-parser",
+)
+
+// buildscript classpath resolves from settings.pluginManagement.repositories (which include mavenCentral)
 buildscript {
-    repositories {
-        mavenCentral()
-    }
     dependencies {
         classpath(libs.jooq.codegen)
         classpath(libs.h2)
@@ -35,12 +36,29 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.test.logger) apply false
     alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.ktlint)
+}
+
+repositories {
+    mavenCentral()
+}
+
+ktlint {
+    version.set(rootLibs.versions.ktlint)
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "com.adarshr.test-logger")
-    apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+    pluginManager.apply("org.jetbrains.kotlin.jvm")
+    pluginManager.apply("com.adarshr.test-logger")
+    pluginManager.apply("org.jetbrains.kotlin.plugin.serialization")
+    pluginManager.apply("org.jlleitschuh.gradle.ktlint")
+
+    extensions.configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        version.set(rootLibs.versions.ktlint)
+        filter {
+            exclude { it.file.path.contains("${File.separator}build${File.separator}") }
+        }
+    }
 
     extensions.configure<KotlinJvmProjectExtension> {
         jvmToolchain(21)
@@ -52,40 +70,38 @@ subprojects {
     }
 
     dependencies {
-        implementation(rootLibs.kotlin.logging)
         implementation(rootLibs.kotlin.stdlib)
-        implementation(rootLibs.coroutines.core)
-        implementation(rootLibs.logback.classic)
+
+        // Align all transitive Netty modules via the Netty BOM, so the Netty version used by
+        // ktor-server-netty is pinned consistently across modules.
+        val nettyBom = enforcedPlatform(rootLibs.netty.bom)
+        implementation(nettyBom)
+        testImplementation(nettyBom)
+
+        // Logging and coroutines pollute the published library classpath, so only
+        // non-publishable modules get them by default. Publishable libraries declare
+        // exactly what they need (e.g. engine-api adds coroutines in its own block).
+        // Tests are never published, so publishable modules still get logging in test
+        // scope to keep release artifacts free of logging dependencies.
+        if (project.name !in publishableModules) {
+            implementation(rootLibs.kotlin.logging)
+            implementation(rootLibs.coroutines.core)
+            implementation(rootLibs.logback.classic)
+        } else {
+            testImplementation(rootLibs.kotlin.logging)
+            testImplementation(rootLibs.logback.classic)
+        }
+
         testImplementation(rootLibs.kotlin.test)
         testImplementation(rootLibs.coroutines.test)
         testImplementation(rootLibs.mockito.kotlin)
         testImplementation(rootLibs.junit.jupiter.params)
     }
 
-    val nettyVersion = "4.2.12.Final"
     configurations.configureEach {
         resolutionStrategy {
             force("org.apache.commons:commons-lang3:${rootLibs.versions.commonsLang3.get()}")
             force("org.checkerframework:checker-qual:${rootLibs.versions.checkerQual.get()}")
-            force("io.netty:netty-buffer:$nettyVersion")
-            force("io.netty:netty-codec:$nettyVersion")
-            force("io.netty:netty-codec-base:$nettyVersion")
-            force("io.netty:netty-codec-compression:$nettyVersion")
-            force("io.netty:netty-codec-dns:$nettyVersion")
-            force("io.netty:netty-codec-http:$nettyVersion")
-            force("io.netty:netty-codec-http2:$nettyVersion")
-            force("io.netty:netty-codec-socks:$nettyVersion")
-            force("io.netty:netty-common:$nettyVersion")
-            force("io.netty:netty-handler:$nettyVersion")
-            force("io.netty:netty-handler-proxy:$nettyVersion")
-            force("io.netty:netty-resolver:$nettyVersion")
-            force("io.netty:netty-resolver-dns:$nettyVersion")
-            force("io.netty:netty-transport:$nettyVersion")
-            force("io.netty:netty-transport-classes-epoll:$nettyVersion")
-            force("io.netty:netty-transport-classes-kqueue:$nettyVersion")
-            force("io.netty:netty-transport-native-epoll:$nettyVersion")
-            force("io.netty:netty-transport-native-kqueue:$nettyVersion")
-            force("io.netty:netty-transport-native-unix-common:$nettyVersion")
         }
     }
 
@@ -175,16 +191,8 @@ project(":webapp-dao").tasks.named("compileKotlin") {
     dependsOn(daoCodeGen)
 }
 
-val publishableModules = listOf(
-    "engine-api",
-    "xiangqi-core",
-    "xiangqi-core-test-utils",
-    "seven-kingdoms-core",
-    "seven-kingdoms-core-test-utils",
-)
-
 configure(publishableModules.map { project(":$it") }) {
-    apply(plugin = "maven-publish")
+    pluginManager.apply("maven-publish")
 
     group = "io.elephantchess"
     version = rootProject.findProperty("publishVersion") as String? ?: "1.0.0-SNAPSHOT"
@@ -206,8 +214,16 @@ configure(publishableModules.map { project(":$it") }) {
 project(":engine-api") {
     dependencies {
         implementation(rootLibs.coroutines.core)
-        implementation(project(":xiangqi-core"))
-        testImplementation(project(":xiangqi-core"))
+        api(rootLibs.kotlin.logging)
+        api(project(":xiangqi-core"))
+    }
+}
+
+project(":csv-dump-parser") {
+    dependencies {
+        api(project(":xiangqi-core"))
+        api(project(":engine-api"))
+        implementation(rootLibs.opencsv)
     }
 }
 
@@ -275,6 +291,7 @@ project(":webapp-service-layer") {
         implementation(project(":seven-kingdoms-core"))
         implementation(project(":webapp-dao"))
         api(rootLibs.koin.core)
+        implementation(rootLibs.classgraph)
         api(project(":xiangqi-core"))
         api(project(":engine-api"))
         api(rootLibs.commons.lang3)
@@ -283,7 +300,6 @@ project(":webapp-service-layer") {
         implementation(rootLibs.java.jwt)
         implementation(rootLibs.javax.mail)
         implementation(rootLibs.cache4k)
-        implementation(rootLibs.kubernetes.client)
         implementation(rootLibs.jooq)
         implementation(rootLibs.ktor.client.core)
         implementation(rootLibs.ktor.client.cio)
@@ -325,6 +341,7 @@ project(":webapp") {
         implementation(rootLibs.jackson.datatype.jsr310)
         implementation(rootLibs.jackson.module.kotlin)
         implementation(rootLibs.cache4k)
+        testImplementation(rootLibs.ktor.server.test.host)
     }
 
     tasks.named<Jar>("jar") {

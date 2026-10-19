@@ -15,14 +15,17 @@ object GameEntryCacheManager {
     private val entries by lazy {
         mapper.readValue(
             object {}.javaClass.getResource("/games.json")?.readText(),
-            GameEntriesDto::class.java
+            GameEntriesDto::class.java,
         )?.entries ?: emptyList()
     }
 
-    fun gameEntriesToJson(value: List<GameEntryDto>): String = gameEntriesToJson(GameEntriesDto(value))
-    fun gameEntriesToJson(value: GameEntriesDto): String = mapper.writeValueAsString(value)
+    fun gameEntriesToJson(value: List<GameEntryDto>): String =
+        gameEntriesToJson(GameEntriesDto(value))
+    fun gameEntriesToJson(value: GameEntriesDto): String =
+        mapper.writeValueAsString(value)
 
-    fun getAllGames(): List<GameEntryDto> = entries
-    fun randomGame(): GameEntryDto = entries.random()
-
+    fun getAllGames(): List<GameEntryDto> =
+        entries
+    fun randomGame(): GameEntryDto =
+        entries.random()
 }

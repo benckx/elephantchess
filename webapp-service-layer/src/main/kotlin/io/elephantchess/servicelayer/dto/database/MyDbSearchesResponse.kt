@@ -15,5 +15,4 @@ data class MyDbSearchesResponse(val entries: List<Entry>) {
         val fen: String?,
         val numberOfResults: Int,
     )
-
 }

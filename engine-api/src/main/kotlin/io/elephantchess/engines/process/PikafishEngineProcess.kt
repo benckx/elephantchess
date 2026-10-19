@@ -9,8 +9,7 @@ class PikafishEngineProcess(
     locator: EngineProcessLocator = LocalProcessLocator,
     version: String?,
     private val numberOfThreads: Int,
-) :
-    EngineProcess(locator, PikafishEngineId, version) {
+) : EngineProcess(locator, PikafishEngineId, version) {
 
     override val logger = KotlinLogging.logger {}
 
@@ -23,5 +22,4 @@ class PikafishEngineProcess(
             logger.error { "Pikafish does not support variants, ignoring setVariant command" }
         }
     }
-
 }

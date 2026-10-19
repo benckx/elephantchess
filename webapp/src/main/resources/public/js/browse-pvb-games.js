@@ -17,4 +17,36 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-window.onload = () => new BrowseGamesPage('pvb');
+class BrowsePlayerVsBotForUserPage extends BrowseGamesPage {
+
+    /**
+     * @param username {string}
+     */
+    constructor(username) {
+        super('pvb');
+        this.username = username;
+    }
+
+    baseUrl() {
+        return '/api/game-data/list-latest-pvb-games-by-user';
+    }
+
+    additionalParameters() {
+        const params = super.additionalParameters();
+        params.set('username', this.username ?? document.body.dataset.username);
+        return params;
+    }
+}
+
+// if "username" data attribute is present on the body,
+// we are browsing PvB games of a single user
+window.onload = () => {
+    const username = document.body.dataset.username;
+    if (username) {
+        // browse PvB for a single user
+        new BrowsePlayerVsBotForUserPage(username);
+    } else {
+        // general PvB browse
+        new BrowseGamesPage('pvb');
+    }
+};

@@ -1,14 +1,13 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.HtmlRenderer
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlin.time.Duration.Companion.hours
 
-class ModalRenderer(
-    private val htmlRenderer: HtmlRenderer,
-    private val logger: KLogger,
-) {
+@KoinSingleton(eager = true)
+class ModalRenderer(private val htmlRenderer: HtmlRenderer, private val logger: KLogger) {
 
     private val defaultExpiration = 1.hours
 
@@ -23,7 +22,7 @@ class ModalRenderer(
             htmlRenderer.renderHtml(
                 templatePath = "/modals/$modalName.html",
                 specificTagResolvers = emptyList(),
-                skipDocType = true
+                skipDocType = true,
             )
         }
 
@@ -33,5 +32,4 @@ class ModalRenderer(
             null
         }
     }
-
 }

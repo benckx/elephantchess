@@ -7,5 +7,4 @@ data class PuzzleStatsRatingResponse(val history: List<Entry>) {
         val last: Int,
         val max: Int,
     )
-
 }
