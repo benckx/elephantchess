@@ -14,5 +14,4 @@ data class OpeningNextMovesResponse(val entries: List<Entry>, val moves: List<St
          */
         val generalPopulationRate: Float? = null,
     )
-
 }

@@ -24,9 +24,9 @@ fun main(args: Array<String>) {
         modules(
             serviceLayerModule(
                 argConfig = argsConfig,
-                eagerAllowed = true
+                eagerAllowed = true,
             ),
-            webAppKoinModule(eagerAllowed = true)
+            webAppKoinModule(eagerAllowed = true),
         )
     }
 
@@ -38,6 +38,7 @@ fun main(args: Array<String>) {
 private fun Application.kTorModule() {
     configureDefaultHeaders()
     exceptionHandler()
+    databaseRateLimitModule()
     cachingModule()
     staticAssetsModule()
     apiServiceModule()

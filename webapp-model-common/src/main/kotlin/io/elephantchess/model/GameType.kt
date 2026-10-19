@@ -15,6 +15,5 @@ enum class GameType {
     /**
      * Game from tournaments database
      */
-    DB
-
+    DB,
 }

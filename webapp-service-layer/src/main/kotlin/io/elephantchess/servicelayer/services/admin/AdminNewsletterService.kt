@@ -5,12 +5,14 @@ import io.elephantchess.db.services.NewsletterDaoService
 import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.servicelayer.dto.admin.NewsletterStatsResponse
 import io.elephantchess.servicelayer.services.MailService
+import io.elephantchess.utils.di.KoinSingleton
 
+@KoinSingleton
 class AdminNewsletterService(
     private val newsletterDaoService: NewsletterDaoService,
     private val pageViewEventDaoService: PageViewEventDaoService,
     private val mailService: MailService,
-    appConfig: AppConfig
+    appConfig: AppConfig,
 ) {
 
     private val excludedUserIds = appConfig.excludedFromAnalytics
@@ -18,6 +20,9 @@ class AdminNewsletterService(
     suspend fun fetchNewsletterStats(): NewsletterStatsResponse {
         val potentialRecipients = mailService.listNewsLetterRecipientEmails().size
         val clicksPerTemplate = pageViewEventDaoService.countNewsletterClicksPerTemplate(excludedUserIds)
+        val linkClicksPerTemplate = pageViewEventDaoService
+            .listNewsletterClicksPerTemplateAndLink(excludedUserIds)
+            .groupBy { it.templateName }
 
         return newsletterDaoService
             .fetchNewsletterStats()
@@ -42,12 +47,13 @@ class AdminNewsletterService(
                     pendingCount = record.totalEmails - record.sentCount,
                     unsubscribedNewsletterCount = record.unsubscribedNewsletterCount,
                     unsubscribedAllCount = record.unsubscribedAllCount,
-                    linkClicks = clicksPerTemplate[record.templateName] ?: 0
+                    linkClicks = clicksPerTemplate[record.templateName] ?: 0,
+                    linkClickDetails = (linkClicksPerTemplate[record.templateName] ?: emptyList())
+                        .map { NewsletterStatsResponse.LinkClickDetail(it.link, it.clickCount) },
                 )
             }
             .let { entries ->
                 NewsletterStatsResponse(entries, potentialRecipients)
             }
     }
-
 }

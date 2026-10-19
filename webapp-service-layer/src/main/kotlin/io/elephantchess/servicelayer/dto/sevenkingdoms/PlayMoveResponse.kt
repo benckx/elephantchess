@@ -11,5 +11,5 @@ data class PlayMoveResponse(
     val statusUpdate: GameEventType?,
     val winner: Color?,
     val victoryType: VictoryType?,
-    val armyCapturedEvent : ArmyCapturedEvent?
+    val armyCapturedEvent: ArmyCapturedEvent?,
 )

@@ -10,11 +10,7 @@ import org.koin.core.context.startKoin
 
 interface KoinScript : KoinComponent {
 
-    fun initKoin(
-        enginesPool: EnginePool? = null,
-        appProfile: String? = null,
-        configurationLocation: String? = null
-    ) {
+    fun initKoin(enginesPool: EnginePool? = null, appProfile: String? = null, configurationLocation: String? = null) {
         val scriptConfig = loadScriptConfig()
         val profile = appProfile ?: scriptConfig.appProfile ?: "local"
 
@@ -24,13 +20,12 @@ interface KoinScript : KoinComponent {
                     argConfig = ArgConfig(
                         profile = profile,
                         configLocation = configurationLocation
-                            ?: if (profile != "local") scriptConfig.configurationLocation else null
+                            ?: if (profile != "local") scriptConfig.configurationLocation else null,
                     ),
                     dslBuilder = { getScriptDslContext(it) },
-                    enginesPool = enginesPool
-                )
+                    enginesPool = enginesPool,
+                ),
             )
         }
     }
-
 }

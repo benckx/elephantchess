@@ -6,6 +6,5 @@ enum class GameJoinSource {
     LOBBY,
     MATCHED,
     DYNAMIC_MATCHED,
-    LINK
-
+    LINK,
 }

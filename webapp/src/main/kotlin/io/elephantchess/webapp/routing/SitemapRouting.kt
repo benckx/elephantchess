@@ -1,7 +1,7 @@
 package io.elephantchess.webapp.routing
 
-import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.servicelayer.services.sitemap.SiteMapService
+import io.elephantchess.servicelayer.utils.ops.koin
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -22,7 +22,7 @@ fun Application.sitemapRoutingModule() {
                 call.respondText(
                     text = siteMapService.getSiteMapXml(),
                     contentType = ContentType.Application.Xml,
-                    status = HttpStatusCode.OK
+                    status = HttpStatusCode.OK,
                 )
             }
             head {

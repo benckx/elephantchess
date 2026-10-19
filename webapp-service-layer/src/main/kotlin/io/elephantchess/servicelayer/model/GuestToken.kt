@@ -18,5 +18,4 @@ data class GuestToken(override val userId: String, val decoded: DecodedJWT) : Ve
 
         return "GuestToken{${attributes.joinToString(", ") { (k, v) -> "$k=$v" }}}"
     }
-
 }

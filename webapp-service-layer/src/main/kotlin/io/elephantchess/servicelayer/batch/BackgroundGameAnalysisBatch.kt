@@ -9,9 +9,11 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.batch.definitions.ShardedBatch
 import io.elephantchess.servicelayer.services.GameDataService
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton
 class BackgroundGameAnalysisBatch(
     private val gameDataService: GameDataService,
     private val moveAnalysisDaoService: MoveAnalysisDaoService,
@@ -20,13 +22,14 @@ class BackgroundGameAnalysisBatch(
     override val logger: KLogger,
 ) : ShardedBatch<GameId>() {
 
-    override fun shardKey(element: GameId): String = element.id
+    override fun shardKey(element: GameId): String =
+        element.id
 
     override suspend fun fetchAll(): List<GameId> {
         // Check if there are MAX_CONNECTED_USERS or fewer connected users
         val connectedUsers = userDaoService.countActiveRecently(
             duration = 5.minutes,
-            userTypes = listOf(AUTHENTICATED, GUEST)
+            userTypes = listOf(AUTHENTICATED, GUEST),
         )
 
         if (connectedUsers > MAX_CONNECTED_USERS) {
@@ -69,5 +72,4 @@ class BackgroundGameAnalysisBatch(
     companion object {
         private const val MAX_CONNECTED_USERS = 6
     }
-
 }

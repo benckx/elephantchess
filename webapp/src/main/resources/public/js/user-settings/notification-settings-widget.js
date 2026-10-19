@@ -22,11 +22,9 @@ const NOTIFICATIONS_API = '/api/user/settings/notifications';
 class NotificationSetting {
 
     #id;
-    #label;
 
-    constructor(id, label) {
+    constructor(id) {
         this.#id = id;
-        this.#label = label;
     }
 
     get id() {
@@ -41,14 +39,6 @@ class NotificationSetting {
         return document.getElementById(this.checkboxId);
     }
 
-    get hitBoxId() {
-        return this.#id + '-hit-box';
-    }
-
-    get hitBox() {
-        return document.getElementById(this.hitBoxId);
-    }
-
     /**
      * @return {boolean}
      */
@@ -56,98 +46,21 @@ class NotificationSetting {
         return this.checkbox.checked;
     }
 
-    /**
-     * @param value {boolean}
-     */
-    set isChecked(value) {
-        this.checkbox.checked = value;
-    }
-
-    /**
-     * @param table {HTMLTableElement}
-     */
-    appendToTable(table) {
-        table.append(this.#renderRow(table));
-        this.#linkCheckboxToHitBox();
-    }
-
-    /**
-     * @param table {HTMLTableElement}
-     * @return {HTMLTableRowElement}
-     */
-    #renderRow(table) {
-        let row = table.insertRow();
-
-        let checkboxCell = row.insertCell();
-        checkboxCell.append(this.#buildCheckboxCellContent());
-        checkboxCell.classList.add('checkbox-cell');
-
-        let labelCell = row.insertCell();
-        labelCell.append(this.#buildLabelCellContent());
-
-        row.append(checkboxCell, labelCell);
-        return row;
-    }
-
-    #buildCheckboxCellContent() {
-        let input = document.createElement('input');
-        input.type = 'checkbox';
-        input.id = this.#id + '-checkbox';
-        return this.#buildCellContent(input)
-    }
-
-    #buildLabelCellContent() {
-        let span = document.createElement('span');
-        span.innerText = this.#label;
-        let outerDiv = this.#buildCellContent(span);
-        outerDiv.id = this.#id + '-hit-box';
-        outerDiv.classList.add('notifications-hit-box');
-        return outerDiv;
-    }
-
-    #buildCellContent(content) {
-        let outerDiv = document.createElement('div');
-        let innerDiv = document.createElement('div');
-
-        innerDiv.append(content);
-        outerDiv.append(innerDiv);
-        return outerDiv;
-    }
-
-    /**
-     * Can only be done once added to the DOM.
-     */
-    #linkCheckboxToHitBox() {
-        let checkbox = this.checkbox;
-        let hitBox = this.hitBox;
-        hitBox.addEventListener('click', () => checkbox.checked = !checkbox.checked);
-    }
-
 }
 
 class NotificationSettingsWidget {
 
+    // The table and checked states are rendered server-side; the ids must match
+    // the checkbox ids injected by UserSettingsPageRenderer.
     #notificationSettings = [
-        new NotificationSetting('newsletter', 'Newsletter. At most once a month.'),
-        new NotificationSetting('opponent-joined-game', 'Somebody joined a game you created - but you\'re offline.'),
-        new NotificationSetting('opponent-played-move', 'Your opponent played a move - but you\'re offline.'),
-        new NotificationSetting('opponent-resigned', 'Your opponent resigned - but you\'re offline.'),
-        new NotificationSetting('opponent-proposed-draw', 'Your opponent proposed a draw - but you\'re offline.'),
-        new NotificationSetting('opponent-accepted-draw', 'Your opponent accepted a draw - but you\'re offline.'),
-        new NotificationSetting('opponent-declined-draw', 'Your opponent declined a draw - but you\'re offline.'),
+        new NotificationSetting('newsletter'),
+        new NotificationSetting('opponent-joined-game'),
+        new NotificationSetting('opponent-played-move'),
+        new NotificationSetting('opponent-resigned'),
+        new NotificationSetting('opponent-proposed-draw'),
+        new NotificationSetting('opponent-accepted-draw'),
+        new NotificationSetting('opponent-declined-draw'),
     ];
-
-    constructor() {
-        getAndHandle(NOTIFICATIONS_API, json => {
-            this.#findSettingById('newsletter').isChecked = json.newsletter;
-            this.#findSettingById('opponent-joined-game').isChecked = json.opponentJoinedGame;
-            this.#findSettingById('opponent-played-move').isChecked = json.opponentPlayedMove;
-            this.#findSettingById('opponent-resigned').isChecked = json.opponentResigned;
-            this.#findSettingById('opponent-proposed-draw').isChecked = json.opponentProposedDraw;
-            this.#findSettingById('opponent-accepted-draw').isChecked = json.opponentAcceptedDraw;
-            this.#findSettingById('opponent-declined-draw').isChecked = json.opponentDeclinedDraw;
-        });
-    }
 
     /**
      * @param cb {function}
@@ -167,12 +80,24 @@ class NotificationSettingsWidget {
     }
 
     /**
-     * @param table {HTMLTableElement}
+     * @param checked {boolean}
      */
-    renderToTable(table) {
-        this.#notificationSettings.forEach(item => {
-            item.appendToTable(table);
-        });
+    setAll(checked) {
+        this.#notificationSettings.forEach(setting => setting.checkbox.checked = checked);
+    }
+
+    /**
+     * @return {string}
+     */
+    stateSignature() {
+        return JSON.stringify(this.#notificationSettings.map(setting => setting.isChecked));
+    }
+
+    /**
+     * @param cb {function}
+     */
+    addChangeListener(cb) {
+        this.#notificationSettings.forEach(setting => setting.checkbox.addEventListener('change', cb));
     }
 
     /**

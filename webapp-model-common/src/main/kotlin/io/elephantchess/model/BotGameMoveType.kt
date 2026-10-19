@@ -15,6 +15,5 @@ enum class BotGameMoveType {
     /**
      * The bot played a move from the opening repository
      */
-    OPENING
-
+    OPENING,
 }

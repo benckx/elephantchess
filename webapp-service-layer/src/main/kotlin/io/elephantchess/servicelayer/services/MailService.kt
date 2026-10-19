@@ -16,10 +16,12 @@ import io.elephantchess.servicelayer.model.Email
 import io.elephantchess.servicelayer.model.MatchingEmail
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.UserService.Companion.PASSWORD_RECOVERY_TIMEOUT_HOURS
+import io.elephantchess.servicelayer.services.resolvers.ContentFeedbackRowsTagResolver
 import io.elephantchess.servicelayer.services.resolvers.EmailConfirmationLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.GameLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.RecoveryLinkTagResolver
 import io.elephantchess.servicelayer.services.resolvers.UnsubscribeTagResolver
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +36,7 @@ import javax.mail.internet.MimeMultipart
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
+@KoinSingleton
 class MailService(
     private val appConfig: AppConfig,
     private val emailVerificationDaoService: EmailVerificationDaoService,
@@ -51,9 +54,8 @@ class MailService(
 
     private val mailScope by lazy { CoroutineScope(Dispatchers.IO) }
 
-    suspend fun isEmailAddressValid(email: String): Boolean {
-        return getEmailValidityDetails(email).isValid
-    }
+    suspend fun isEmailAddressValid(email: String): Boolean =
+        getEmailValidityDetails(email).isValid
 
     /**
      * Returns the full [EmailValidityStatus] for the given email.
@@ -77,6 +79,7 @@ class MailService(
 
         return when (automatedVerifications.size) {
             0 -> EmailValidityStatus.UNKNOWN
+
             else -> {
                 val result = automatedVerifications.last().result
                 if (result == "ok" || result == "ok_for_all") {
@@ -129,7 +132,7 @@ class MailService(
                 MatchingEmail(
                     emailAddress = record.emailAddress,
                     isUnsubscribeFromNewsletter = record.unsubscribeFromNewsletterCode == code,
-                    isUnsubscribeFromAll = record.unsubscribeFromAllCode == code
+                    isUnsubscribeFromAll = record.unsubscribeFromAllCode == code,
                 )
             }
 
@@ -172,9 +175,9 @@ class MailService(
 
         logger.info {
             "found ${automaticallyValidated.size} automatically validated e-mail addresses, " +
-                    "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
-                    "${bounced.size} bounced e-mail addresses, " +
-                    "${newsletterRecipients.size} total newsletter recipients"
+                "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
+                "${bounced.size} bounced e-mail addresses, " +
+                "${newsletterRecipients.size} total newsletter recipients"
         }
 
         return newsletterRecipients.sorted()
@@ -186,8 +189,8 @@ class MailService(
                 Email(
                     to = adminEmail,
                     subject = "Low credit on EmailListVerify",
-                    body = "Available credits $available"
-                )
+                    body = "Available credits $available",
+                ),
             )
         } else {
             logger.info { "not sending low credit notification because mustSendEmails is disabled" }
@@ -200,33 +203,26 @@ class MailService(
                 Email(
                     to = adminEmail,
                     subject = "Engine pool health check failed",
-                    body = "The following engine(s) failed the health check:<br><br>${errors.joinToString("<br>")}"
-                )
+                    body = "The following engine(s) failed the health check:<br><br>${errors.joinToString("<br>")}",
+                ),
             )
         } else {
             logger.info { "not sending engine pool health check notification because mustSendEmails is disabled" }
         }
     }
 
-    suspend fun sendContentSectionVoteNotification(
-        userId: UserId,
-        pageId: String,
-        sectionId: String,
-        upVoted: Boolean,
-        feedback: String?,
-    ) {
+    suspend fun sendContentSectionVoteNotificationDigest(contentFeedbackEntries: List<ContentFeedbackEntry>) {
+        if (contentFeedbackEntries.isEmpty()) return
+
         resolveAndSendAsync(
             recipient = adminEmail,
-            subject = "new content feedback",
-            templateName = "new_content_feedback_notification",
+            subject = "new content feedback (${contentFeedbackEntries.size})",
+            templateName = "new_content_feedback_digest",
             resolvers = listOf(
-                SimpleValueTagResolver("user_id", userId.toString()),
-                SimpleValueTagResolver("page_id", pageId),
-                SimpleValueTagResolver("section_id", sectionId),
-                SimpleValueTagResolver("vote", if (upVoted) "up" else "down"),
-                SimpleValueTagResolver("feedback", feedback ?: "-"),
+                SimpleValueTagResolver("count", contentFeedbackEntries.size.toString()),
+                ContentFeedbackRowsTagResolver(contentFeedbackEntries),
             ),
-            skipRecipientValidityCheck = true
+            skipRecipientValidityCheck = true,
         )
     }
 
@@ -239,7 +235,7 @@ class MailService(
                 SimpleValueTagResolver("user_id", userId.toString()),
                 SimpleValueTagResolver("email", email),
                 SimpleValueTagResolver("message", message),
-            )
+            ),
         )
     }
 
@@ -251,9 +247,9 @@ class MailService(
             resolvers = listOf(
                 SimpleValueTagResolver("username", user.handle),
                 SimpleValueTagResolver("email", user.email),
-                SimpleValueTagResolver("guest_transferred", if (guestTransferred) "yes" else "no")
+                SimpleValueTagResolver("guest_transferred", if (guestTransferred) "yes" else "no"),
             ),
-            skipRecipientValidityCheck = true
+            skipRecipientValidityCheck = true,
         )
     }
 
@@ -269,7 +265,7 @@ class MailService(
             subject = subject,
             templateName = "email_confirmation",
             resolvers = listOf(
-                EmailConfirmationLinkTagResolver(webHost, code)
+                EmailConfirmationLinkTagResolver(webHost, code),
             ),
             // The whole point of this email is to flip the recipient's status to MANUALLY_CONFIRMED,
             // so we must not gate it on the address already being known-valid (it never is at signup).
@@ -284,8 +280,8 @@ class MailService(
             templateName = "password_recovery_attempt",
             resolvers = listOf(
                 RecoveryLinkTagResolver(webHost, recipient, code),
-                SimpleValueTagResolver("recovery_time_validity", "${PASSWORD_RECOVERY_TIMEOUT_HOURS}h")
-            )
+                SimpleValueTagResolver("recovery_time_validity", "${PASSWORD_RECOVERY_TIMEOUT_HOURS}h"),
+            ),
         )
     }
 
@@ -293,7 +289,7 @@ class MailService(
         resolveAndSendAsync(
             recipient = recipient,
             subject = "Password Recovery Successful",
-            templateName = "successful_password_recovery"
+            templateName = "successful_password_recovery",
         )
     }
 
@@ -304,9 +300,9 @@ class MailService(
             templateName = "user_joined_game_while_offline",
             resolvers = listOf(
                 SimpleValueTagResolver("invitee", inviteeUsername),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
@@ -318,9 +314,9 @@ class MailService(
             templateName = "opponent_played_move_while_offline",
             resolvers = listOf(
                 SimpleValueTagResolver("opponent", opponent),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
@@ -331,9 +327,9 @@ class MailService(
             templateName = "opponent_resigned_while_offline",
             resolvers = listOf(
                 SimpleValueTagResolver("opponent", opponent),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
@@ -344,18 +340,13 @@ class MailService(
             templateName = "opponent_proposed_draw_while_offline",
             resolvers = listOf(
                 SimpleValueTagResolver("opponent", opponent),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
-    suspend fun sendOpponentRespondedToDrawWhileOffline(
-        recipient: String,
-        opponent: String,
-        accepted: Boolean,
-        gameId: String,
-    ) {
+    suspend fun sendOpponentRespondedToDrawWhileOffline(recipient: String, opponent: String, accepted: Boolean, gameId: String) {
         val verb1 = if (accepted) "accepted" else "declined"
         val verb2 = if (accepted) "Review" else "Resume"
 
@@ -367,9 +358,9 @@ class MailService(
                 SimpleValueTagResolver("opponent", opponent),
                 SimpleValueTagResolver("verb1", verb1),
                 SimpleValueTagResolver("verb2", verb2),
-                GameLinkTagResolver(webHost, gameId)
+                GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true
+            copyToAdmin = true,
         )
     }
 
@@ -409,8 +400,8 @@ class MailService(
                 to = recipient,
                 bcc = if (copyToAdmin) adminEmail else null,
                 subject = subject,
-                body = mailRenderer.renderEmail(templateName, resolvers)
-            )
+                body = mailRenderer.renderEmail(templateName, resolvers),
+            ),
         )
     }
 
@@ -435,18 +426,18 @@ class MailService(
                         UnsubscribeTagResolver(
                             appConfig,
                             "unsubscribe_from_newsletter_url",
-                            unsubscribeFromNewsletterCode
+                            unsubscribeFromNewsletterCode,
                         ),
                         UnsubscribeTagResolver(
                             appConfig,
                             "unsubscribe_from_all_url",
-                            unsubscribeFromAllCode
+                            unsubscribeFromAllCode,
                         ),
                         SimpleValueTagResolver(
                             "utm_medium",
-                            "newsletter-$templateName"
+                            "newsletter-$templateName",
                         ),
-                    )
+                    ),
                 )
 
             // parse the rendered body for CID references and build embedded images map
@@ -457,8 +448,8 @@ class MailService(
                     to = recipient,
                     subject = subject,
                     body = renderedBody,
-                    embeddedImages = imagesToEmbed
-                )
+                    embeddedImages = imagesToEmbed,
+                ),
             )
         } else {
             logger.info { "not sending newsletter because sendMailNotifications is disabled" }
@@ -510,11 +501,13 @@ class MailService(
         sysProperties["mail.smtp.auth"] = mailConfig.smtpAuth
 
         val session =
-            Session.getInstance(sysProperties, object : Authenticator() {
-                override fun getPasswordAuthentication(): PasswordAuthentication {
-                    return PasswordAuthentication(mailConfig.username, mailConfig.password)
-                }
-            })
+            Session.getInstance(
+                sysProperties,
+                object : Authenticator() {
+                    override fun getPasswordAuthentication(): PasswordAuthentication =
+                        PasswordAuthentication(mailConfig.username, mailConfig.password)
+                },
+            )
 
         session.debug = false
         return session
@@ -536,12 +529,18 @@ class MailService(
 
     companion object {
 
-                // 18 months
+        // 18 months
         val emailValidityDuration = (18 * 30).days
 
         // 12 months
         val emailValidityUpdateTime = (12 * 30).days
-
     }
-
 }
+
+data class ContentFeedbackEntry(
+    val userId: String,
+    val pageId: String,
+    val sectionId: String,
+    val upVoted: Boolean,
+    val feedback: String?,
+)

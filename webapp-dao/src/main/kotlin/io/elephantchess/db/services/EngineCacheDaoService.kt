@@ -3,13 +3,15 @@ package io.elephantchess.db.services
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.engines.protocol.model.InfoLineResult
 import io.elephantchess.engines.protocol.model.InfoLineResult.Companion.parseInfoLine
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 
+@KoinSingleton
 class EngineCacheDaoService(private val dslContext: DSLContext) {
 
-    suspend fun fetchInfoLine(fenKey: String, minDepth: Int): InfoLineResult? {
-        return dslContext
+    suspend fun fetchInfoLine(fenKey: String, minDepth: Int): InfoLineResult? =
+        dslContext
             .select(RAW_LINE)
             .from(ENGINE_CACHE_COMPACT)
             .where(FEN_KEY.eq(fenKey))
@@ -19,10 +21,9 @@ class EngineCacheDaoService(private val dslContext: DSLContext) {
             .awaitRecords()
             .map { record -> parseInfoLine(record.get(RAW_LINE)) }
             .firstOrNull()
-    }
 
-    suspend fun fetchInfoLine(fenKey: String): InfoLineResult? {
-        return dslContext
+    suspend fun fetchInfoLine(fenKey: String): InfoLineResult? =
+        dslContext
             .select(RAW_LINE)
             .from(ENGINE_CACHE_COMPACT)
             .where(FEN_KEY.eq(fenKey))
@@ -31,7 +32,6 @@ class EngineCacheDaoService(private val dslContext: DSLContext) {
             .awaitRecords()
             .map { record -> parseInfoLine(record.get(RAW_LINE)) }
             .firstOrNull()
-    }
 
     private companion object {
 
@@ -39,7 +39,5 @@ class EngineCacheDaoService(private val dslContext: DSLContext) {
         val FEN_KEY = DSL.field("fen_key", String::class.java)
         val DEPTH = DSL.field("depth", Int::class.java)
         val RAW_LINE = DSL.field("raw_line", String::class.java)
-
     }
-
 }

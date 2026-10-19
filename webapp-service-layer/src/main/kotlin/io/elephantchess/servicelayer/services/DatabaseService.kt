@@ -18,6 +18,7 @@ import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.servicelayer.dto.gamedata.GameMetadataDto
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.formatWithChineseName
 import io.elephantchess.utils.generateNameVariations
 import io.elephantchess.utils.isChineseText
@@ -35,13 +36,14 @@ import kotlin.time.Duration.Companion.hours
  * What we call "database" in this context is a repository of games played in tournaments,
  * and not specifically the SQL database.
  */
+@KoinSingleton
 class DatabaseService(
     private val referenceEventDaoService: ReferenceEventDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,
     private val referencePlayerDaoService: ReferencePlayerDaoService,
     private val openingRepositoryReferencePlayerCacheDaoService: OpeningRepositoryReferencePlayerCacheDaoService,
     private val userCache: UserCache,
-    private val logger: KLogger
+    private val logger: KLogger,
 ) {
 
     private val cacheDuration = 12.hours
@@ -76,11 +78,10 @@ class DatabaseService(
         return mapToAutocompleteResponse(entries = fetchSuggestions())
     }
 
-    suspend fun listEventsSuggestions(contains: String): AutocompleteResponse {
-        return mapToAutocompleteResponse(
-            entries = referenceGameDaoService.listEvents(contains, SUGGESTIONS_LIMIT)
+    suspend fun listEventsSuggestions(contains: String): AutocompleteResponse =
+        mapToAutocompleteResponse(
+            entries = referenceGameDaoService.listEvents(contains, SUGGESTIONS_LIMIT),
         )
-    }
 
     suspend fun resolvePlayerByName(playerName: String): DatabasePlayer? {
         // try to find by current name first,
@@ -98,7 +99,6 @@ class DatabaseService(
             )
         }
     }
-
 
     suspend fun search(
         dateStart: String?,
@@ -119,8 +119,8 @@ class DatabaseService(
         if (offset != null && offset > MAX_OFFSET) {
             throw BadRequestException(
                 "Results cannot be greater than $MAX_OFFSET. " +
-                        "You can make your query more specific. " +
-                        "Or feel free to contact us if you would like a sample of game data."
+                    "You can make your query more specific. " +
+                    "Or feel free to contact us if you would like a sample of game data.",
             )
         }
 
@@ -168,7 +168,7 @@ class DatabaseService(
                     eventIds = resolvedEventIds,
                     fen = abridgedFen,
                     limit = SEARCH_RESULT_LIMIT,
-                    offset = offset
+                    offset = offset,
                 )
                 .mapIndexed { i, record ->
                     GameMetadataDto(
@@ -183,18 +183,18 @@ class DatabaseService(
                         outcome = record.outcome,
                         analysisStatus = record.analysisStatus,
                         paginationOffset = (offset ?: 1) + i,
-                        variant = Variant.XIANGQI
+                        variant = Variant.XIANGQI,
                     )
                 }
 
         val hasAnyCriteria = dateStartParsed != null ||
-                dateEndParsed != null ||
-                !playerName.isNullOrBlank() ||
-                resolvedPlayerIds.isNotEmpty() ||
-                playerColor != null ||
-                !eventName.isNullOrBlank() ||
-                resolvedEventIds.isNotEmpty() ||
-                !abridgedFen.isNullOrBlank()
+            dateEndParsed != null ||
+            !playerName.isNullOrBlank() ||
+            resolvedPlayerIds.isNotEmpty() ||
+            playerColor != null ||
+            !eventName.isNullOrBlank() ||
+            resolvedEventIds.isNotEmpty() ||
+            !abridgedFen.isNullOrBlank()
 
         if (hasAnyCriteria) {
             referenceGameDaoService.persistSearch(
@@ -209,7 +209,7 @@ class DatabaseService(
                 fen = fen,
                 offset = offset,
                 limit = SEARCH_RESULT_LIMIT,
-                numberOfResults = entries.size
+                numberOfResults = entries.size,
             )
         }
 
@@ -261,15 +261,11 @@ class DatabaseService(
         return null
     }
 
-    suspend fun countAllGames(): CountAllGamesResponse {
-        return CountAllGamesResponse(referenceGameDaoService.countAllGames())
-    }
+    suspend fun countAllGames(): CountAllGamesResponse =
+        CountAllGamesResponse(referenceGameDaoService.countAllGames())
 
-    suspend fun listAllEventsWithStats(
-        limit: Int? = null,
-        offset: Int? = null
-    ): EventsListResponse {
-        return referenceEventDaoService
+    suspend fun listAllEventsWithStats(limit: Int? = null, offset: Int? = null): EventsListResponse =
+        referenceEventDaoService
             .listAllEventsWithStats(limit = limit, offset = offset)
             .map { record ->
                 EventsListResponse.Entry(
@@ -277,19 +273,15 @@ class DatabaseService(
                     name = record.name,
                     date = record.date?.toString(),
                     maxRound = record.maxRound,
-                    gameCount = record.gameCount
+                    gameCount = record.gameCount,
                 )
             }
             .let { entries ->
                 EventsListResponse(entries)
             }
-    }
 
-    suspend fun listAllPlayersWithStats(
-        limit: Int? = null,
-        offset: Int? = null
-    ): PlayersListResponse {
-        return referencePlayerDaoService
+    suspend fun listAllPlayersWithStats(limit: Int? = null, offset: Int? = null): PlayersListResponse =
+        referencePlayerDaoService
             .listPlayersByWins(limit = limit, offset = offset)
             .map { record ->
                 PlayersListResponse.Entry(
@@ -299,13 +291,12 @@ class DatabaseService(
                     wins = record.wins,
                     draws = record.draws,
                     losses = record.losses,
-                    totalGames = record.totalGames
+                    totalGames = record.totalGames,
                 )
             }
             .let { entries ->
                 PlayersListResponse(entries)
             }
-    }
 
     suspend fun listPlayersForSiteMap(limit: Int): List<Pair<String, LocalDate>> {
         val records = mutableSetOf<EntityIdAndNameRecord>()
@@ -339,7 +330,7 @@ class DatabaseService(
                     ?.coerceAtLeast(minOrDefaultLastPlayerUpdateDate)
 
                 (player?.canonicalName ?: record.id) to
-                        (lastModified ?: minOrDefaultLastPlayerUpdateDate)
+                    (lastModified ?: minOrDefaultLastPlayerUpdateDate)
             }
     }
 
@@ -350,7 +341,7 @@ class DatabaseService(
         records += referencePlayerDaoService.listByMostNumberOfGames(limit).map { record ->
             EntityIdAndNameRecord(
                 id = record.canonicalName,
-                name = formatWithChineseName(record.canonicalName, record.chineseName)
+                name = formatWithChineseName(record.canonicalName, record.chineseName),
             )
         }
 
@@ -361,7 +352,7 @@ class DatabaseService(
             .map { record ->
                 ListPlayersResponse.Entry(
                     slug = record.id.replace(" ", "_"),
-                    displayName = record.name
+                    displayName = record.name,
                 )
             }
             .let { entries ->
@@ -369,14 +360,13 @@ class DatabaseService(
             }
     }
 
-    suspend fun listAllEditorsUsername(playerId: String): List<String> {
-        return referencePlayerDaoService
+    suspend fun listAllEditorsUsername(playerId: String): List<String> =
+        referencePlayerDaoService
             .listAllEditorsUserId(playerId)
             .map { editorId -> userCache.fetchUsernameOrDefault(editorId) }
-    }
 
-    suspend fun fetchPlayerEditHistory(playerId: String): DatabasePlayerVersionHistory {
-        return referencePlayerDaoService
+    suspend fun fetchPlayerEditHistory(playerId: String): DatabasePlayerVersionHistory =
+        referencePlayerDaoService
             .fetchEditHistory(playerId)
             .map { versionRecord ->
                 val editorUsername = userCache.fetchUsernameOrDefault(versionRecord.editorId)
@@ -389,12 +379,11 @@ class DatabaseService(
                     canonicalName = versionRecord.canonicalName,
                     chineseName = versionRecord.chineseName,
                     gender = versionRecord.gender,
-                    enabled = versionRecord.enabled
+                    enabled = versionRecord.enabled,
                 )
             }.let { entries ->
                 DatabasePlayerVersionHistory(entries)
             }
-    }
 
     /**
      * If version is specified, fetch that version even if it's disabled
@@ -417,7 +406,7 @@ class DatabaseService(
                 profileText = profileVersion.profile,
                 sources = fetchPlayerProfileSources(playerId, profileVersion.version),
                 editComment = profileVersion.comment,
-                enabled = profileVersion.enabled
+                enabled = profileVersion.enabled,
             )
         } else {
             val player = referencePlayerDaoService.findPlayer(playerId)
@@ -431,30 +420,28 @@ class DatabaseService(
                 profileText = null,
                 sources = emptyList(),
                 editComment = null,
-                enabled = true
+                enabled = true,
             )
         }
     }
 
-    suspend fun findPossibleDuplicatedPlayers(playerId: String): ListPlayersResponse {
-        return findPossibleDuplicates(playerId)
+    suspend fun findPossibleDuplicatedPlayers(playerId: String): ListPlayersResponse =
+        findPossibleDuplicates(playerId)
             .map { player ->
                 ListPlayersResponse.Entry(
                     slug = player.canonicalName.replace(" ", "_"),
-                    displayName = formatWithChineseName(player.canonicalName, player.chineseName)
+                    displayName = formatWithChineseName(player.canonicalName, player.chineseName),
                 )
             }
             .let { entries ->
                 ListPlayersResponse(entries)
             }
-    }
 
     /**
      * @return `true` if the player has pre-calculated opening repertoire data.
      */
-    suspend fun hasPlayerOpeningData(playerId: String): Boolean {
-        return openingRepositoryReferencePlayerCacheDaoService.hasOpeningData(playerId)
-    }
+    suspend fun hasPlayerOpeningData(playerId: String): Boolean =
+        openingRepositoryReferencePlayerCacheDaoService.hasOpeningData(playerId)
 
     suspend fun fetchPlayerGameStats(playerId: String): PlayerGameStatsResponse {
         // fetch stats for player alone
@@ -479,7 +466,7 @@ class DatabaseService(
                 redDraws = playerStats.redDraws,
                 blackWins = playerStats.blackWins,
                 blackLosses = playerStats.blackLosses,
-                blackDraws = playerStats.blackDraws
+                blackDraws = playerStats.blackDraws,
             ),
             withDuplicates = statsWithDuplicates?.let { stats ->
                 PlayerGameStatsResponse.PlayerStats(
@@ -488,9 +475,9 @@ class DatabaseService(
                     redDraws = stats.redDraws,
                     blackWins = stats.blackWins,
                     blackLosses = stats.blackLosses,
-                    blackDraws = stats.blackDraws
+                    blackDraws = stats.blackDraws,
                 )
-            }
+            },
         )
     }
 
@@ -521,9 +508,8 @@ class DatabaseService(
         )
     }
 
-    suspend fun fetchEventName(eventId: String): String? {
-        return referenceEventDaoService.findEventName(eventId)
-    }
+    suspend fun fetchEventName(eventId: String): String? =
+        referenceEventDaoService.findEventName(eventId)
 
     suspend fun fetchEvent(eventId: String): Event {
         val event = referenceEventDaoService.fetchEventById(eventId)
@@ -539,7 +525,9 @@ class DatabaseService(
         gameRecords.forEach { game ->
             when (game.outcome) {
                 RED_WINS -> scores[game.redPlayer] = scores[game.redPlayer]!! + 2
+
                 BLACK_WINS -> scores[game.blackPlayer] = scores[game.blackPlayer]!! + 2
+
                 DRAW -> {
                     scores[game.redPlayer] = scores[game.redPlayer]!! + 1
                     scores[game.blackPlayer] = scores[game.blackPlayer]!! + 1
@@ -559,7 +547,7 @@ class DatabaseService(
                 outcome = game.outcome,
                 round = game.round,
                 date = game.date,
-                finalFen = game.finalFen
+                finalFen = game.finalFen,
             )
         }
 
@@ -567,14 +555,11 @@ class DatabaseService(
             id = event.id,
             name = event.name,
             scores = scores,
-            games = gameDtos
+            games = gameDtos,
         )
     }
 
-    suspend fun updatePlayerProfile(
-        request: DatabasePlayerUpdateRequest,
-        userId: String
-    ): ValidatedResponse<Unit> {
+    suspend fun updatePlayerProfile(request: DatabasePlayerUpdateRequest, userId: String): ValidatedResponse<Unit> {
         val errors = mutableListOf<String>()
 
         if (StringUtils.isBlank(request.canonicalName)) {
@@ -618,7 +603,7 @@ class DatabaseService(
         if (request.canonicalName != null &&
             referencePlayerDaoService.existsByCanonicalName(
                 request.canonicalName.trim(),
-                excludedPlayerId = request.playerId
+                excludedPlayerId = request.playerId,
             )
         ) {
             errors += "Canonical Name '${request.canonicalName.trim()}' is already used"
@@ -660,7 +645,7 @@ class DatabaseService(
             profileText = request.profileText!!,
             sources = sourceRecords,
             editorId = userId,
-            comment = request.editComment.trim()
+            comment = request.editComment.trim(),
         )
 
         return ValidatedResponse.Valid(Unit)
@@ -699,8 +684,8 @@ class DatabaseService(
             .let { mapped -> MyDbSearchesResponse(mapped) }
     }
 
-    suspend fun findEditedPlayersLatestVersions(userId: String): ListUserEdits {
-        return referencePlayerDaoService
+    suspend fun findEditedPlayersLatestVersions(userId: String): ListUserEdits =
+        referencePlayerDaoService
             .findEditedPlayersByEditorId(userId)
             .map { entry ->
                 ListUserEdits.Entry(
@@ -712,13 +697,12 @@ class DatabaseService(
                     latestEditorUsername = userCache.fetchUsernameOrDefault(entry.editorId),
                     latestComment = entry.comment,
                     latestEditTimestamp = entry.versionTime.toEpochMilliseconds(),
-                    enabled = entry.enabled
+                    enabled = entry.enabled,
                 )
             }
             .let { entries ->
                 ListUserEdits(entries)
             }
-    }
 
     private suspend fun fetchPlayerProfileSources(playerId: String, version: Int?): List<DatabasePlayerProfileSource> {
         val sources = if (version == null) {
@@ -731,7 +715,7 @@ class DatabaseService(
             DatabasePlayerProfileSource(
                 index = source.sourceIndex,
                 url = source.url,
-                title = source.title
+                title = source.title,
             )
         }
     }
@@ -742,14 +726,15 @@ class DatabaseService(
         const val SEARCH_RESULT_LIMIT = 20
         const val MAX_OFFSET = 500
 
-        fun mapToAutocompleteResponse(entries: List<EntityIdAndNameRecord>): AutocompleteResponse {
-            return AutocompleteResponse(entries.map { entry ->
-                AutocompleteResponse.Entry(
-                    id = entry.id,
-                    name = entry.name
-                )
-            })
-        }
+        fun mapToAutocompleteResponse(entries: List<EntityIdAndNameRecord>): AutocompleteResponse =
+            AutocompleteResponse(
+                entries.map { entry ->
+                    AutocompleteResponse.Entry(
+                        id = entry.id,
+                        name = entry.name,
+                    )
+                },
+            )
 
         fun validateFenParameter(fen: String?) {
             try {
@@ -763,10 +748,7 @@ class DatabaseService(
             }
         }
 
-        fun areSourcesEqual(
-            requestSources: List<DatabasePlayerProfileSource>,
-            currentSources: List<DatabasePlayerProfileSource>
-        ): Boolean {
+        fun areSourcesEqual(requestSources: List<DatabasePlayerProfileSource>, currentSources: List<DatabasePlayerProfileSource>): Boolean {
             if (requestSources.size != currentSources.size) {
                 return false
             }
@@ -779,7 +761,5 @@ class DatabaseService(
                 req.url == curr.url && req.title == curr.title
             }
         }
-
     }
-
 }

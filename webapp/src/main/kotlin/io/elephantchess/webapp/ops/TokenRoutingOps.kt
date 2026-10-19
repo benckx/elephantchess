@@ -8,16 +8,15 @@ import io.ktor.server.routing.*
 
 private val tokenManager by koin<TokenManager>()
 
-fun RoutingContext.extractAndVerifyToken(): TokenVerificationResult? {
-    return call.token()?.let { token -> tokenManager.verifyToken(token) }
-}
+fun RoutingContext.extractAndVerifyToken(): TokenVerificationResult? =
+    call.token()?.let { token -> tokenManager.verifyToken(token) }
 
 /**
  * Extract token from header or cookies
  */
 private fun ApplicationCall.token(): String? {
-    fun findFromHeaders(): String? {
-        return request.headers["Authorization"]?.let { header ->
+    fun findFromHeaders(): String? =
+        request.headers["Authorization"]?.let { header ->
             val split = header.split(' ')
             if (split.size != 2 || split.first() != "Bearer") {
                 null
@@ -25,7 +24,6 @@ private fun ApplicationCall.token(): String? {
                 split.last()
             }
         }
-    }
 
     fun findFromCookie(name: String): String? =
         request.cookies[name]?.let { token -> token.ifBlank { null } }

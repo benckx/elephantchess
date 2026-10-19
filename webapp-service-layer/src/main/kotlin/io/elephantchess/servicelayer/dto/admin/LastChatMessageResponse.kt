@@ -15,7 +15,6 @@ data class LastChatMessageResponse(val messages: List<ChatMessage>) {
     data class Author(
         val userType: UserType,
         val userId: String,
-        val username: String
+        val username: String,
     )
-
 }

@@ -1912,20 +1912,11 @@ class MoveTreeWidget {
      */
     refreshAllMoveNodeEval(analysisCache = null) {
         if (analysisCache != null) {
-            this.#analysisCache = new Map(analysisCache);
+            this.#syncAnalysisCache(analysisCache);
         }
-
-        // clear all eval labels
-        this.#moveTree.getAllNodes().forEach(node => {
-            node.annotationDetails = null;
-            node.clearEvalCssClasses();
-            this.#updateEvalPlaceholder(node);
+        this.#moveTree.getAllNodes().forEach((node) => {
+            this.#renderNodeEval(node);
         });
-
-        // re-render
-        for (let [key, _] of this.#analysisCache) {
-            this.updateEvalForInfoLineResult(key, this.#analysisCache);
-        }
     }
 
     /**
@@ -1933,82 +1924,113 @@ class MoveTreeWidget {
      * @param analysisCache {Map<string, InfoLineResult>}
      */
     updateEvalForInfoLineResult(fenKey, analysisCache) {
+        this.#syncAnalysisCache(analysisCache);
+
         switch (this.#settingsManager.moveNodeEvalFormat) {
             case MoveNodeEvalFormat.NORMALIZED_CENTI_PAWNS:
                 const infoLineResult = analysisCache.get(fenKey);
                 if (infoLineResult != null) {
                     this.#moveTree.getAllNodesMatchingFenKey(fenKey).forEach((node) => {
-                        node.annotationDetails = null;
-                        node.eval = infoLineResult.evalAsString;
-                        this.#updateEvalPlaceholder(node);
+                        this.#renderNodeEval(node, infoLineResult);
                     });
                 }
                 break;
             case MoveNodeEvalFormat.ANNOTATION_SYMBOLS:
                 this.#moveTree.getAllNodesMatchingFenKey(fenKey).forEach((node) => {
-                    this.#applyAnnotationSymbolToNode(node, analysisCache);
+                    this.#renderNodeEval(node);
                 });
                 break;
             default:
                 break;
         }
-
-        this.#analysisCache = new Map(analysisCache);
     }
 
     /**
-     * Apply annotation symbols (??, ?!, etc.) to every node in the move tree, based on the provided analysis cache.
-     * This bypasses the `moveNodeEvalFormat` setting and is intended for pages that do not let the user toggle
-     * between raw eval and annotation symbols (PvP, PvB, database game viewer).
+     * Apply backend-provided annotation details to every node in the move tree.
      *
-     * @param analysisCache {Map<string, InfoLineResult>}
+     * @param moveAnnotations {GameMoveAnnotationDto[]}
      */
-    applyAnnotationSymbolsFromCache(analysisCache) {
+    applyAnnotationSymbols(moveAnnotations) {
+        const moveAnnotationsByMoveIndex = new Map(moveAnnotations.map(annotation => [annotation.moveIndex, annotation]));
         this.#moveTree.getAllNodes().forEach((node) => {
-            this.#applyAnnotationSymbolToNode(node, analysisCache);
+            const moveAnnotation = moveAnnotationsByMoveIndex.get(node.position);
+            if (moveAnnotation != null) {
+                node.annotationDetails = new AnnotationEvalDetails(
+                    moveAnnotation.annotation,
+                    moveAnnotation.engineCp,
+                    moveAnnotation.actualMoveCp,
+                    moveAnnotation.cpl
+                );
+            } else {
+                node.annotationDetails = null;
+            }
+            this.#renderNodeEval(node);
         });
-        this.#analysisCache = new Map(analysisCache);
     }
 
     /**
      * @param node {MoveTreeNode}
+     * @param infoLineResult {InfoLineResult|null}
+     */
+    #renderNodeEval(node, infoLineResult = null) {
+        switch (this.#settingsManager.moveNodeEvalFormat) {
+            case MoveNodeEvalFormat.NORMALIZED_CENTI_PAWNS:
+                node.clearEvalCssClasses();
+                node.eval = this.#getNormalizedEvalString(node, infoLineResult);
+                this.#updateEvalPlaceholder(node);
+                break;
+            case MoveNodeEvalFormat.ANNOTATION_SYMBOLS:
+                this.#renderAnnotationDetails(node);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Persist the latest streamed analysis cache so eval display can be refreshed
+     * consistently when the user changes formats.
+     *
      * @param analysisCache {Map<string, InfoLineResult>}
      */
-    #applyAnnotationSymbolToNode(node, analysisCache) {
-        const nodeFenKey = node.fenKey;
-        const previousNodeFenKey = node.hasPrevious() ? node.previous.fenKey : this.#startFen;
-
-        if (analysisCache.has(previousNodeFenKey) && analysisCache.has(nodeFenKey)) {
-            const previousNodeData = analysisCache.get(previousNodeFenKey);
-            const engineBestMoveData = findAnalysisDataFromEngineBestMove(analysisCache, previousNodeData);
-            if (engineBestMoveData != null) {
-                const currentNodeData = analysisCache.get(nodeFenKey);
-                const details = calculateAnnotationDetails(engineBestMoveData, currentNodeData);
-                if (details != null) {
-                    const annotationDetails = new AnnotationEvalDetails(
-                        details.symbol,
-                        details.engineCp,
-                        details.actualMoveCp,
-                        details.delta
-                    );
-                    node.annotationDetails = annotationDetails;
-                    node.eval = annotationDetails.symbol;
-                    node.clearEvalCssClasses();
-                    node.addEvalCssClass(annotationDetails.cssClass);
-                    this.#updateEvalPlaceholder(node);
-                } else {
-                    node.annotationDetails = null;
-                    node.eval = null;
-                    node.clearEvalCssClasses();
-                    this.#updateEvalPlaceholder(node);
-                }
-            } else {
-                node.annotationDetails = null;
-                node.eval = null;
-                node.clearEvalCssClasses();
-                this.#updateEvalPlaceholder(node);
-            }
+    #syncAnalysisCache(analysisCache) {
+        if (analysisCache != null) {
+            this.#analysisCache = new Map(analysisCache);
         }
+    }
+
+    /**
+     * @param node {MoveTreeNode}
+     * @param infoLineResult {InfoLineResult|null}
+     * @return {string|null}
+     */
+    #getNormalizedEvalString(node, infoLineResult = null) {
+        if (infoLineResult != null) {
+            return infoLineResult.evalAsString;
+        }
+
+        const cachedInfoLineResult = this.#analysisCache.get(node.fenKey);
+        if (cachedInfoLineResult != null) {
+            return cachedInfoLineResult.evalAsString;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param node {MoveTreeNode}
+     */
+    #renderAnnotationDetails(node) {
+        node.clearEvalCssClasses();
+
+        if (node.annotationDetails != null) {
+            node.eval = node.annotationDetails.symbol;
+            node.addEvalCssClass(node.annotationDetails.cssClass);
+        } else {
+            node.eval = null;
+        }
+
+        this.#updateEvalPlaceholder(node);
     }
 
     /**
@@ -2033,10 +2055,11 @@ class MoveTreeWidget {
 
         // tooltip describing the calculation behind the eval annotation symbol
         // should be available on the whole move cell (not only the eval label)
-        if (node.annotationDetails != null) {
+        const annotationTooltipText = this.#annotationTooltipText(node);
+        if (annotationTooltipText != null) {
             this.#removeEvalTooltip(evalPlaceholder);
             if (moveContainer != null) {
-                addToolTip(moveContainer, node.annotationDetails.toTooltipText());
+                addToolTip(moveContainer, annotationTooltipText);
             }
         } else {
             this.#removeEvalTooltip(evalPlaceholder);
@@ -2056,6 +2079,18 @@ class MoveTreeWidget {
         if (tooltip != null) {
             tooltip.remove();
         }
+    }
+
+    /**
+     * @param node {MoveTreeNode}
+     * @return {string|null}
+     */
+    #annotationTooltipText(node) {
+        if (this.#settingsManager.moveNodeEvalFormat !== MoveNodeEvalFormat.ANNOTATION_SYMBOLS) {
+            return null;
+        }
+
+        return node.annotationDetails?.toTooltipText() ?? null;
     }
 
     /**

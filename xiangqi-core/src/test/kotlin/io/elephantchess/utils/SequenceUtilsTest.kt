@@ -19,8 +19,9 @@ class SequenceUtilsTest {
                 setOf("a", "b"),
                 setOf("a", "c"),
                 setOf("b", "c"),
-                setOf("a", "b", "c")
-            ), allCombinations(setOf("a", "b", "c"))
+                setOf("a", "b", "c"),
+            ),
+            allCombinations(setOf("a", "b", "c")),
         )
     }
 
@@ -35,8 +36,9 @@ class SequenceUtilsTest {
                 setOf("c"),
                 setOf("a", "b"),
                 setOf("a", "c"),
-                setOf("b", "c")
-            ), allCombinationsOfMax(setOf("a", "b", "c"), 2)
+                setOf("b", "c"),
+            ),
+            allCombinationsOfMax(setOf("a", "b", "c"), 2),
         )
 
         assertEquals(
@@ -47,8 +49,9 @@ class SequenceUtilsTest {
                 setOf("a", "b"),
                 setOf("a", "c"),
                 setOf("b", "c"),
-                setOf("a", "b", "c")
-            ), allCombinationsOfMax(setOf("a", "b", "c"), 3)
+                setOf("a", "b", "c"),
+            ),
+            allCombinationsOfMax(setOf("a", "b", "c"), 3),
         )
 
         assertEquals(
@@ -59,9 +62,9 @@ class SequenceUtilsTest {
                 setOf("a", "b"),
                 setOf("a", "c"),
                 setOf("b", "c"),
-                setOf("a", "b", "c")
-            ), allCombinationsOfMax(setOf("a", "b", "c"), 4)
+                setOf("a", "b", "c"),
+            ),
+            allCombinationsOfMax(setOf("a", "b", "c"), 4),
         )
     }
-
 }

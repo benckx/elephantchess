@@ -8,5 +8,5 @@ data class PlayerStandingsRecord(
     val wins: Int,
     val draws: Int,
     val losses: Int,
-    val totalGames: Int
+    val totalGames: Int,
 )

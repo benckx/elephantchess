@@ -26,6 +26,15 @@ fun Route.adminConsoleRoutes() {
         adminExceptionRoutes()
         adminNewsletterRoutes()
         adminUpcomingEventsRoutes()
+        adminSettingPreferenceRoutes()
+    }
+}
+
+private fun Route.adminSettingPreferenceRoutes() {
+    val adminSettingPreferenceService by koin<AdminSettingPreferenceService>()
+
+    get("/setting-preference-stats") {
+        requireAdminRole { adminSettingPreferenceService.fetchStats() }
     }
 }
 
@@ -132,6 +141,12 @@ private fun Route.adminAnalyticsRoutes() {
             adminAnalyticsService.fetchOnlineUsersStatsByMonth(months)
         }
     }
+    get("/thrown-exception-stats-by-month") {
+        requireAdminRole { _ ->
+            val months = call.parameters["months"]?.toIntOrNull() ?: 12
+            adminAnalyticsService.fetchThrownExceptionStatsByMonth(months)
+        }
+    }
     get("/page-view-stats-by-event-path") {
         requireAdminRole { _ ->
             val encodedPath = call.parameters["path"] ?: "/"
@@ -218,6 +233,9 @@ private fun Route.adminAnalysisRoutes() {
 
     get("/list-latest-move-analysis-by-game") {
         requireAdminRole { adminAnalysisService.listLatestMoveAnalysisByGame() }
+    }
+    get("/pre-analysis-status-by-game-type") {
+        requireAdminRole { adminAnalysisService.listPreAnalysisStatusByGameType() }
     }
     get("/pre-analyzed-reference-games-per-year") {
         requireAdminRole { adminAnalysisService.listPreAnalyzedReferenceGamesPerYear() }

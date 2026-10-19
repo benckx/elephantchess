@@ -80,7 +80,7 @@ fun Route.databaseRoutes() {
                 handleValidatedResponse<DatabasePlayerUpdateRequest, Unit> { request ->
                     databaseService.updatePlayerProfile(
                         request = request,
-                        userId = verifiedToken.userId
+                        userId = verifiedToken.userId,
                     )
                 }
             }
@@ -120,7 +120,7 @@ fun Route.databaseRoutes() {
                         fen = fen,
                         offset = offset,
                         userId = verifiedToken.userId,
-                    )
+                    ),
                 )
             }
         }
