@@ -1,8 +1,11 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayer
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEditSource
 import io.elephantchess.db.model.EntityIdAndNameRecord
+import io.elephantchess.db.services.OpeningRepositoryReferencePlayerCacheDaoService
 import io.elephantchess.db.services.ReferenceEventDaoService
 import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.db.services.ReferencePlayerDaoService
@@ -22,6 +25,7 @@ import io.elephantchess.utils.generateNameVariations
 import io.elephantchess.utils.isChineseText
 import io.elephantchess.xiangqi.Board.Companion.validateFen
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import org.apache.commons.lang3.StringUtils
@@ -33,10 +37,12 @@ import kotlin.time.Duration.Companion.hours
  * What we call "database" in this context is a repository of games played in tournaments,
  * and not specifically the SQL database.
  */
+@KoinSingleton
 class DatabaseService(
     private val referenceEventDaoService: ReferenceEventDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,
     private val referencePlayerDaoService: ReferencePlayerDaoService,
+    private val openingRepositoryReferencePlayerCacheDaoService: OpeningRepositoryReferencePlayerCacheDaoService,
     private val userCache: UserCache,
     private val logger: KLogger
 ) {
@@ -95,6 +101,7 @@ class DatabaseService(
             )
         }
     }
+
 
     suspend fun search(
         dateStart: String?,
@@ -171,31 +178,43 @@ class DatabaseService(
                         gameId = GameId(GameType.DB, record.id),
                         lastUpdated = record.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
                         redPlayerId = record.redPlayer,
-                        redPlayerName = playerIdToCanonicalName(record.redPlayer),
+                        redPlayerName = playerIdToDisplayName(record.redPlayer),
                         blackPlayerId = record.blackPlayer,
-                        blackPlayerName = playerIdToCanonicalName(record.blackPlayer),
+                        blackPlayerName = playerIdToDisplayName(record.blackPlayer),
                         eventName = idToEventName(record.event),
                         finalFen = record.finalFen,
                         outcome = record.outcome,
                         analysisStatus = record.analysisStatus,
-                        paginationOffset = (offset ?: 1) + i
+                        paginationOffset = (offset ?: 1) + i,
+                        variant = Variant.XIANGQI
                     )
                 }
 
-        referenceGameDaoService.persistSearch(
-            userId = userId,
-            searchStart = dateStartParsed,
-            searchEnd = dateEndParsed,
-            playerName = playerName,
-            playerId = playerIds.firstOrNull(),
-            playerColor = playerColor,
-            eventName = eventName,
-            eventId = eventIds.firstOrNull(),
-            fen = fen,
-            offset = offset,
-            limit = SEARCH_RESULT_LIMIT,
-            numberOfResults = entries.size
-        )
+        val hasAnyCriteria = dateStartParsed != null ||
+                dateEndParsed != null ||
+                !playerName.isNullOrBlank() ||
+                resolvedPlayerIds.isNotEmpty() ||
+                playerColor != null ||
+                !eventName.isNullOrBlank() ||
+                resolvedEventIds.isNotEmpty() ||
+                !abridgedFen.isNullOrBlank()
+
+        if (hasAnyCriteria) {
+            referenceGameDaoService.persistSearch(
+                userId = userId,
+                searchStart = dateStartParsed,
+                searchEnd = dateEndParsed,
+                playerName = playerName,
+                playerId = playerIds.firstOrNull(),
+                playerColor = playerColor,
+                eventName = eventName,
+                eventId = eventIds.firstOrNull(),
+                fen = fen,
+                offset = offset,
+                limit = SEARCH_RESULT_LIMIT,
+                numberOfResults = entries.size
+            )
+        }
 
         return ReferenceGameSearchResult(entries)
     }
@@ -217,13 +236,10 @@ class DatabaseService(
     private suspend fun playerIdToDisplayName(playerId: String?): String? {
         if (playerId != null) {
             val result = playerIdToDisplayNameCache.get(playerId) {
-                referencePlayerDaoService.findPlayer(playerId)?.let {
-                    if (it.isVisible) {
-                        formatWithChineseName(it.canonicalName, it.chineseName)
-                    } else {
-                        ""
-                    }
-                } ?: ""
+                referencePlayerDaoService
+                    .findPlayer(playerId)
+                    ?.let { player -> formatWithChineseName(player.canonicalName, player.chineseName) }
+                    ?: "<unknown>"
             }
 
             if (result.isNotBlank()) {
@@ -436,6 +452,13 @@ class DatabaseService(
             }
     }
 
+    /**
+     * @return `true` if the player has pre-calculated opening repertoire data.
+     */
+    suspend fun hasPlayerOpeningData(playerId: String): Boolean {
+        return openingRepositoryReferencePlayerCacheDaoService.hasOpeningData(playerId)
+    }
+
     suspend fun fetchPlayerGameStats(playerId: String): PlayerGameStatsResponse {
         // fetch stats for player alone
         val playerStats = referencePlayerDaoService.fetchGameStats(playerId)
@@ -480,6 +503,25 @@ class DatabaseService(
 
         val nameVariations = generateNameVariations(player.sourceName, player.canonicalName)
         return referencePlayerDaoService.searchByNames(names = nameVariations, excludedPlayerId = player.id)
+    }
+
+    suspend fun fetchGameSummary(gameId: String): DatabaseGameSummary? {
+        val record = referenceGameDaoService.findById(gameId) ?: return null
+        val redPlayer = record.redPlayer?.let { referencePlayerDaoService.findPlayer(it) }
+        val blackPlayer = record.blackPlayer?.let { referencePlayerDaoService.findPlayer(it) }
+        return DatabaseGameSummary(
+            gameId = record.id,
+            redPlayerCanonicalName = redPlayer?.canonicalName,
+            redPlayerChineseName = redPlayer?.chineseName,
+            blackPlayerCanonicalName = blackPlayer?.canonicalName,
+            blackPlayerChineseName = blackPlayer?.chineseName,
+            eventId = record.event,
+            eventName = idToEventName(record.event),
+            date = record.date,
+            outcome = record.outcome,
+            finalFen = record.finalFen,
+            analysisStatus = record.analysisStatus,
+        )
     }
 
     suspend fun fetchEventName(eventId: String): String? {
@@ -625,6 +667,39 @@ class DatabaseService(
         )
 
         return ValidatedResponse.Valid(Unit)
+    }
+
+    suspend fun listUserSearches(userId: String, beforeTime: Long?): MyDbSearchesResponse {
+        val beforeInstant = beforeTime?.let { kotlin.time.Instant.fromEpochMilliseconds(it) }
+        val records = referenceGameDaoService.listUserSearches(userId, beforeInstant, 30)
+        val resolvedPlayers = records
+            .mapNotNull { entry -> entry.playerName }
+            .distinct()
+            .mapNotNull { name -> resolvePlayerByName(name)?.let { name to it } }
+            .toMap()
+
+        return records
+            .map { record ->
+                val prettyName =
+                    record.playerName?.let { name ->
+                        resolvedPlayers[name]
+                            ?.let { player -> formatWithChineseName(player.canonicalName, player.chineseName) }
+                            ?: name
+                    }
+
+                MyDbSearchesResponse.Entry(
+                    queryId = record.queryId,
+                    updateTime = record.updateTime.toEpochMilliseconds(),
+                    playerName = prettyName,
+                    playerColor = record.playerColor,
+                    eventName = record.eventName,
+                    searchStart = record.searchStart?.toString(),
+                    searchEnd = record.searchEnd?.toString(),
+                    fen = record.fen,
+                    numberOfResults = record.numberOfResults ?: 0,
+                )
+            }
+            .let { mapped -> MyDbSearchesResponse(mapped) }
     }
 
     suspend fun findEditedPlayersLatestVersions(userId: String): ListUserEdits {

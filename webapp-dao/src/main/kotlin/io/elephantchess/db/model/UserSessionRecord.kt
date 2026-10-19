@@ -3,6 +3,7 @@ package io.elephantchess.db.model
 import kotlin.time.Instant
 
 data class UserSessionRecord(
+    val id: Int? = null,
     val userId: String?,
     val remoteAddress: String,
     val userAgent: String,

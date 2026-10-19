@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.clients
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.clients.dto.CreditResponse
 import io.elephantchess.servicelayer.clients.dto.EmailVerificationResult
@@ -16,12 +18,13 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
+@KoinSingleton
 class EmailListVerifyClient(
     appConfig: AppConfig,
     private val logger: KLogger,
 ) {
 
-    private val apiKey by lazy { appConfig.loadString("emaillistverify.apikey") }
+    private val apiKey by lazy { appConfig.emailListVerifyApiKey }
 
     private val json = Json {
         prettyPrint = true

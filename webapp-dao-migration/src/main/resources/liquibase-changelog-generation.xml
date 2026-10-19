@@ -2208,4 +2208,421 @@
             <column name="engine_version" type="varchar(50)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="0094" author="benckx">
+        <addColumn tableName="reference_game_search_query">
+            <column name="update_time" type="timestamp with time zone"/>
+        </addColumn>
+        <update tableName="reference_game_search_query">
+            <column name="update_time" valueComputed="query_time"/>
+            <where>update_time IS NULL</where>
+        </update>
+        <addNotNullConstraint tableName="reference_game_search_query" columnName="update_time"
+                              columnDataType="timestamp with time zone"/>
+        <createIndex tableName="reference_game_search_query" indexName="idx_ref_game_search_query_user_update_time">
+            <column name="user_id"/>
+            <column name="update_time" descending="true"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0095" author="benckx">
+        <comment>Delete persisted "empty" searches (all criteria null/blank) that were stored before the
+            empty-criteria guard was added.
+        </comment>
+        <delete tableName="reference_game_search_query">
+            <where>
+                (player_name IS NULL OR player_name = '')
+                AND player_id IS NULL
+                AND player_color IS NULL
+                AND (event_name IS NULL OR event_name = '')
+                AND event_id IS NULL
+                AND search_start IS NULL
+                AND search_end IS NULL
+                AND (fen IS NULL OR fen = '')
+            </where>
+        </delete>
+    </changeSet>
+    <changeSet id="0096" author="benckx">
+        <createTable tableName="game_chat_typing_status">
+            <column name="game_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="typed_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="game_id, user_id"
+                       constraintName="game_chat_typing_status_pkey"
+                       tableName="game_chat_typing_status"/>
+        <addForeignKeyConstraint baseTableName="game_chat_typing_status"
+                                 baseColumnNames="game_id"
+                                 constraintName="game_typing_status_to_game_fk"
+                                 referencedTableName="game"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+    <changeSet id="0097" author="benckx">
+        <addColumn tableName="game">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="puzzle_result">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+        <addColumn tableName="reference_game_search_query">
+            <column name="guest_user_id" type="varchar(12)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0098" author="benckx">
+        <comment>Add email confirmation fields to user table (separate from automated email_verification)</comment>
+        <addColumn tableName="user">
+            <column name="email_confirmation_code" type="varchar(64)"/>
+            <column name="email_confirmation_code_created_at" type="timestamp with time zone"/>
+            <column name="email_confirmed_at" type="timestamp with time zone"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0099" author="benckx">
+        <comment>Add variant column to game and bot_game tables for Manchu variant support</comment>
+        <addColumn tableName="game">
+            <column name="variant" type="varchar(20)" defaultValue="XIANGQI"/>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="variant" type="varchar(20)" defaultValue="XIANGQI"/>
+        </addColumn>
+        <addColumn tableName="user">
+            <column name="game_rating_manchu_bullet" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_blitz" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_rapid" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_classical" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_several_days" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="game_rating_manchu_correspondence" type="int" defaultValueNumeric="1000">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0100" author="benckx">
+        <addColumn tableName="bot_game">
+            <column name="opening_mode" type="varchar(50)" defaultValue="BY_FREQUENCY">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0101" author="benckx">
+        <createTable tableName="content_section_vote">
+            <column name="page_id" type="varchar(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="section_id" type="varchar(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="up_voted" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feedback" type="varchar(1000)"/>
+            <column name="creation_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="page_id, section_id, user_id"
+                       constraintName="content_section_vote_pkey"
+                       tableName="content_section_vote"/>
+    </changeSet>
+    <changeSet id="0102" author="benckx">
+        <comment>Anonymous sample of cookie-based user preferences</comment>
+        <createTable tableName="setting_preference_event">
+            <column name="event_id" type="varchar(12)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="event_time" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_type" type="varchar(24)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="piece_style" type="varchar(100)"/>
+            <column name="show_coordinates" type="varchar(100)"/>
+            <column name="move_format" type="varchar(100)"/>
+            <column name="move_node_eval_format" type="varchar(100)"/>
+            <column name="show_analytics_arrows" type="varchar(100)"/>
+            <column name="coordinates_style" type="varchar(100)"/>
+            <column name="flip_opponent_pieces" type="varchar(100)"/>
+            <column name="play_sounds" type="varchar(100)"/>
+            <column name="colorblind_friendly_black_pieces" type="varchar(100)"/>
+            <column name="move_tree_widget_height_pvp" type="varchar(100)"/>
+            <column name="move_tree_widget_height_pvb" type="varchar(100)"/>
+            <column name="move_tree_widget_height_simple_board" type="varchar(100)"/>
+            <column name="move_tree_widget_height_analysis" type="varchar(100)"/>
+            <column name="move_tree_widget_height_database_viewer" type="varchar(100)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="0103" author="benckx">
+        <comment>Indexes to optimize page view analytics queries</comment>
+    </changeSet>
+    <changeSet id="0104" author="benckx">
+        <comment>user_agent can exceed 255 characters</comment>
+        <modifyDataType tableName="user_session" columnName="user_agent" newDataType="text"/>
+        <modifyDataType tableName="user_session_anonymous" columnName="user_agent" newDataType="text"/>
+    </changeSet>
+    <changeSet id="0105" author="benckx">
+        <comment>Add analyzed_from_batch flag to reference_game and game tables</comment>
+        <addColumn tableName="reference_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="bot_game">
+            <column name="analyzed_from_batch" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0106" author="benckx">
+        <comment>Map opening_pre_calculation_cache entries to the reference games matching them.</comment>
+        <createTable tableName="opening_pre_calculation_cache_reference_game">
+            <column name="opening_pre_calculation_cache_id" type="int">
+                <constraints nullable="false"
+                             foreignKeyName="opening_cache_ref_game_to_cache_fk"
+                             references="opening_pre_calculation_cache(id)"/>
+            </column>
+            <column name="reference_game_id" type="varchar(12)">
+                <constraints nullable="false"
+                             foreignKeyName="opening_cache_ref_game_to_game_fk"
+                             references="reference_game(id)"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="opening_pre_calculation_cache_reference_game"
+                       columnNames="opening_pre_calculation_cache_id,reference_game_id"
+                       constraintName="opening_pre_calculation_cache_reference_game_pk"/>
+        <createIndex tableName="opening_pre_calculation_cache_reference_game"
+                     indexName="opening_pre_calculation_cache_reference_game_game_id_index">
+            <column name="reference_game_id"/>
+        </createIndex>
+        <createTable tableName="opening_pre_calculation_cache_reference_player">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reference_player_id" type="varchar(12)">
+                <constraints nullable="false"
+                             foreignKeyName="opening_cache_ref_player_to_player_fk"
+                             references="reference_player(id)"/>
+            </column>
+            <column name="color" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number_of_moves" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="moves" type="varchar(300)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="occurrences" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_red_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_black_wins" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outcome_draws" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_creation" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entry_update" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="opening_pre_calculation_cache_reference_player"
+                             columnNames="reference_player_id,color,moves"
+                             constraintName="opening_pre_calculation_cache_reference_player_unique"/>
+        <createIndex tableName="opening_pre_calculation_cache_reference_player"
+                     indexName="opening_pre_calculation_cache_reference_player_index">
+            <column name="reference_player_id"/>
+            <column name="color"/>
+            <column name="number_of_moves"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0107" author="benckx">
+        <comment>Indexes for latest move analysis aggregation and analyzed flag lookup</comment>
+    </changeSet>
+    <changeSet id="0108" author="benckx">
+        <comment>Index on bot_game.last_updated to speed up the latest PvB games listing (ORDER BY last_updated DESC LIMIT)</comment>
+    </changeSet>
+    <changeSet id="0109" author="benckx">
+        <comment>Store the stack trace of thrown exceptions to see where they come from</comment>
+        <addColumn tableName="thrown_exception">
+            <column name="exception_trace" type="text"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0110" author="benckx">
+    </changeSet>
+    <changeSet id="0111" author="benckx">
+        <comment>Preferences to show/hide PvP and PvB games on the user profile page</comment>
+        <addColumn tableName="user">
+            <column name="show_pvp_games_on_profile"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="show_pvb_games_on_profile"
+                    type="boolean"
+                    defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0112" author="benckx">
+        <comment>Tables holding archived metrics for deleted guest users, aggregated by day</comment>
+        <createTable tableName="archived_page_view_daily">
+            <column name="day" type="date">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="url" type="varchar(2048)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="own_profile_page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="other_profile_page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="archived_guest_daily">
+            <column name="day" type="date">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="guests_under_1min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_under_5min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_under_15min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_under_30min" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guests_other" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_searches" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <dropNotNullConstraint tableName="thrown_exception" columnName="http_code"/>
+    </changeSet>
+    <changeSet id="0114" author="benckx">
+        <comment>
+            Indexes supporting ArchiveOldGuestsBatch's archivable-guest selection. That query filters the
+            user table and runs ~13 NOT EXISTS anti-joins against these tables; without indexes on the
+            referenced user columns each anti-join was a full seq scan, saturating DB CPU. Also adds a
+            composite (user_type, last_online) index so the driving filter is index-seekable.
+        </comment>
+        <createIndex tableName="user" indexName="user_type_last_online_index">
+            <column name="user_type"/>
+            <column name="last_online"/>
+        </createIndex>
+        <createIndex tableName="game" indexName="game_draw_proposition_user_index">
+            <column name="draw_proposition_user"/>
+        </createIndex>
+        <createIndex tableName="puzzle_result" indexName="puzzle_result_user_id_index">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="game_status_event" indexName="game_status_event_user_id_index">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="game_chat_message" indexName="game_chat_message_author_index">
+            <column name="author"/>
+        </createIndex>
+        <createIndex tableName="discord_game_notification" indexName="discord_game_notification_user_id_index">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="reference_player_profile_edit" indexName="reference_player_profile_edit_editor_id_index">
+            <column name="editor_id"/>
+        </createIndex>
+        <createIndex tableName="reference_player_profile_edit_source" indexName="reference_player_profile_edit_source_editor_id_index">
+            <column name="editor_id"/>
+        </createIndex>
+        <createIndex tableName="kofi_event" indexName="kofi_event_matched_user_id_index">
+            <column name="matched_user_id"/>
+        </createIndex>
+        <createIndex tableName="upcoming_event" indexName="upcoming_event_created_by_index">
+            <column name="created_by"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0115" author="benckx">
+        <comment>
+            Content section feedback notifications are no longer sent synchronously on each vote. A batch
+            picks up votes that have not been notified yet; this flag tracks that. Existing rows were
+            already notified under the old flow, so they are marked as notified.
+        </comment>
+        <addColumn tableName="content_section_vote">
+            <column name="notified" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <update tableName="content_section_vote">
+            <column name="notified" valueBoolean="true"/>
+        </update>
+        <createIndex tableName="content_section_vote" indexName="content_section_vote_notified_index">
+            <column name="notified"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0116" author="benckx">
+        <comment>Disabled puzzles (disabled_at is set) are not served when picking the next puzzle to assign</comment>
+        <addColumn tableName="puzzle">
+            <column name="disabled_at" type="datetime"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0117" author="benckx">
+        <comment>
+            Date a puzzle was inserted. Existing puzzles are backfilled with 2023-03-25, the day the initial
+            batch of ~18,000 puzzles was uploaded (see changelog.html).
+        </comment>
+        <addColumn tableName="puzzle">
+            <column name="created_at" type="datetime"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0118" author="benckx">
+        <comment>
+            Drop the kubernetes_pod registry: pod identity (shard index and count) now comes from the
+            StatefulSet POD_NAME/POD_COUNT env vars, so the DB registry and the k8s client are no longer used.
+        </comment>
+        <dropTable tableName="kubernetes_pod"/>
+    </changeSet>
 </databaseChangeLog>

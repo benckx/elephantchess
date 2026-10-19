@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.clients
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.clients.ApiLayerClient.Companion.Service.IP_TO_LOCATION
 import io.elephantchess.servicelayer.clients.ApiLayerClient.Companion.Service.USER_AGENT
@@ -23,12 +25,13 @@ import kotlin.random.Random.Default.nextDouble
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.toJavaDuration
 
+@KoinSingleton
 class ApiLayerClient(
     appConfig: AppConfig,
     private val logger: KLogger = logger {},
 ) {
 
-    private val apiKey by lazy { appConfig.loadString("apilayer.apikey") }
+    private val apiKey by lazy { appConfig.apiLayerApiKey }
     private val client by lazy {
         HttpClient(CIO) {
             install(HttpTimeout)

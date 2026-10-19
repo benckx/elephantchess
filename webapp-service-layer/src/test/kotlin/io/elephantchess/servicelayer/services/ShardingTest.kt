@@ -2,7 +2,7 @@ package io.elephantchess.servicelayer.services
 
 import io.elephantchess.servicelayer.model.Pod
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
+import org.apache.commons.lang3.RandomStringUtils.insecure
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -28,7 +28,7 @@ class ShardingTest {
         logger.debug { "margin: $margin" }
 
         repeat(n) {
-            val id = randomAlphanumeric(12)
+            val id = insecure().nextAlphanumeric(12)
             val pods = map.keys.filter { pod -> pod.mustProcess(id) }
             assertEquals(1, pods.size)
 

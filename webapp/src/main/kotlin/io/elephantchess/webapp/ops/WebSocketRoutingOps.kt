@@ -11,6 +11,7 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.delay
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
+import kotlin.coroutines.cancellation.CancellationException
 
 val wsOpsLogger by lazy { logger {} }
 val wsJsonMapper by koin<JsonMapper>("wsJsonMapper")
@@ -73,6 +74,7 @@ fun isWebSocketDisconnectException(t: Throwable): Boolean {
     while (current != null) {
         if (current is ClosedChannelException ||
             current is ClosedReceiveChannelException ||
+            current is CancellationException ||
             current is IOException && current.message?.contains("Ping timeout") == true ||
             current is IOException && current.message?.contains("Broken pipe") == true ||
             current is IOException && current.message?.contains("Connection reset") == true

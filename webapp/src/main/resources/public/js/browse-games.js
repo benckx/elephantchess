@@ -17,7 +17,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const INIT_ELEMENTS_COUNT = 12;
+const DEFAULT_DISPLAY = '';
+const FIRST_ROW_SIZE = 3;
+const PRE_RENDERED_THUMBS_COUNT = 6;
 
 class BrowseGamesPage extends InfiniteScrollPage {
 
@@ -35,6 +37,13 @@ class BrowseGamesPage extends InfiniteScrollPage {
     #initThumbDivs = [];
 
     #renderedCount = 0;
+
+    /**
+     * Number of pre-rendered game thumb divs present in the DOM.
+     * Derived from the template (e.g. `{{game_thumb}}[[iterations:N; ...]]`).
+     * @type {number}
+     */
+    #initElementsCount = 0;
 
     /**
      * @type {string}
@@ -55,6 +64,7 @@ class BrowseGamesPage extends InfiniteScrollPage {
 
         // initialize board GUIs for pre-rendered game thumbs
         this.#initThumbDivs = getElementsByClassNameArray(`${gameType}-game-thumb`);
+        this.#initElementsCount = this.#initThumbDivs.length;
         this.#initThumbDivs.forEach((thumbDiv, i) => {
             const boardId = `last-${gameType}-game-board-${i}`;
             const boardElement = document.getElementById(boardId);
@@ -101,6 +111,9 @@ class BrowseGamesPage extends InfiniteScrollPage {
      */
     showNoItem(value) {
         this.#noGamesMessage.style.display = value ? 'block' : 'none';
+        if (value) {
+            this.#setSecondThumbRowVisibility(false);
+        }
     }
 
     /**
@@ -108,7 +121,7 @@ class BrowseGamesPage extends InfiniteScrollPage {
      */
     additionalParameters() {
         const params = new Map();
-        params.set('limit', INIT_ELEMENTS_COUNT.toString());
+        params.set('limit', '12');
         params.set('distinctByUsers', 'false');
         return params;
     }
@@ -117,8 +130,10 @@ class BrowseGamesPage extends InfiniteScrollPage {
      * @param entries {GameMetadataDto[]}
      */
     addEntries(entries) {
+        const isInitialBatch = this.#renderedCount === 0;
         entries.forEach((entry) => {
-            if (this.#renderedCount < INIT_ELEMENTS_COUNT) {
+            if (this.#renderedCount < this.#initElementsCount) {
+                this.#initThumbDivs[this.#renderedCount].style.display = DEFAULT_DISPLAY;
                 // Use pre-rendered thumbs for first batch
                 this.#initThumbs[this.#renderedCount].render(
                     entry,
@@ -132,6 +147,10 @@ class BrowseGamesPage extends InfiniteScrollPage {
                 this.#renderedCount++;
             }
         });
+
+        if (isInitialBatch) {
+            this.#setSecondThumbRowVisibility(this.#renderedCount > FIRST_ROW_SIZE);
+        }
     }
 
     /**
@@ -147,6 +166,15 @@ class BrowseGamesPage extends InfiniteScrollPage {
             `browse_${this.#gameType}`,
             this.#playerNameHighlight
         );
+    }
+
+    /**
+     * @param show {boolean}
+     */
+    #setSecondThumbRowVisibility(show) {
+        for (let i = FIRST_ROW_SIZE; i < Math.min(PRE_RENDERED_THUMBS_COUNT, this.#initThumbDivs.length); i++) {
+            this.#initThumbDivs[i].style.display = show ? DEFAULT_DISPLAY : 'none';
+        }
     }
 
 }

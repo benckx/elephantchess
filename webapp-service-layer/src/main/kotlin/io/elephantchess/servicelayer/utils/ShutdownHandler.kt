@@ -1,11 +1,14 @@
 package io.elephantchess.servicelayer.utils
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.servicelayer.batch.definitions.BatchesScheduler
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserService
+import io.elephantchess.servicelayer.services.sitemap.SiteMapService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -16,6 +19,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * Handles graceful shutdown of application resources
  */
+@KoinSingleton(eager = true)
 class ShutdownHandler(
     private val dslContext: DSLContext,
     private val playerVsPlayerGameService: PlayerVsPlayerGameService,
@@ -24,6 +28,7 @@ class ShutdownHandler(
     private val puzzleCache: PuzzleCache,
     private val enginePool: EnginePool,
     private val batchesScheduler: BatchesScheduler,
+    private val siteMapService: SiteMapService,
     private val coroutineScope: CoroutineScope,
 ) {
 
@@ -68,6 +73,14 @@ class ShutdownHandler(
             // cancel batch scheduler jobs
             logger.info { "cancelling batch scheduler jobs..." }
             batchesScheduler.cancel()
+        } catch (e: Exception) {
+            logger.error(e) { "error cancelling batch scheduler" }
+        }
+
+        try {
+            // cancel site map job
+            logger.info { "cancelling site map service..." }
+            siteMapService.cancel()
         } catch (e: Exception) {
             logger.error(e) { "error cancelling batch scheduler" }
         }

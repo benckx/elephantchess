@@ -1,7 +1,7 @@
 package io.elephantchess.webapp.routing
 
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.sitemap.SiteMapService
+import io.elephantchess.servicelayer.services.sitemap.SiteMapService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.server.application.*

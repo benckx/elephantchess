@@ -14,6 +14,8 @@ class PlayedPuzzlesResponse(val entries: List<Entry>) {
         val outcome: PuzzleOutcome,
         val ratingFrom: Int,
         val ratingTo: Int,
+        val puzzleRatingFrom: Int,
+        val puzzleRatingTo: Int,
         val date: Long,
     )
 

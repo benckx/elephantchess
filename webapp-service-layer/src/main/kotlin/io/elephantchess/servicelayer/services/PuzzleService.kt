@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.model.PuzzleRecord
 import io.elephantchess.db.services.PuzzleDaoService
@@ -19,6 +21,7 @@ import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.utils.modelToProcess
 import io.elephantchess.utils.EloCalculator.calculateElo
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.math.ceil
 import kotlin.time.Clock
@@ -26,6 +29,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
+@KoinSingleton(eager = true)
 class PuzzleService(
     private val enginesPool: EnginePool,
     private val puzzleDaoService: PuzzleDaoService,
@@ -102,6 +106,8 @@ class PuzzleService(
                     outcome = record.outcome,
                     ratingFrom = record.ratingFrom,
                     ratingTo = record.ratingTo,
+                    puzzleRatingFrom = record.puzzleRatingFrom,
+                    puzzleRatingTo = record.puzzleRatingTo,
                     date = record.date.toEpochMilliseconds(),
                 )
             }
@@ -119,6 +125,7 @@ class PuzzleService(
             val blackPlayerId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.BLACK_PLAYER) }.firstOrNull()
             val outcome = puzzleRecords.map { record -> record.get(REFERENCE_GAME.OUTCOME) }.firstOrNull()
             val date = puzzleRecords.map { record -> record.get(REFERENCE_GAME.DATE) }.firstOrNull()
+            val puzzleRating = puzzleRecords.map { record -> record.get(PUZZLE.RATING) }.firstOrNull()
 
             val redPlayerName = puzzleRecords
                 .filter { redPlayerId != null && it.get(REFERENCE_PLAYER.ID) == redPlayerId }
@@ -141,8 +148,13 @@ class PuzzleService(
                     analysisStatus = puzzleRecords.map { record -> record.get(REFERENCE_GAME.ANALYSIS_STATUS) }.first(),
                     outcome = outcome,
                     lastUpdated = date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
+                    variant = Variant.XIANGQI,
                 )
-                PuzzlesOriginalGameMetadataResponse.Entry(puzzleId, metadata)
+                PuzzlesOriginalGameMetadataResponse.Entry(
+                    puzzleId = puzzleId,
+                    gameMetadata = metadata,
+                    puzzleRating = puzzleRating,
+                )
             } else {
                 null
             }
@@ -153,6 +165,7 @@ class PuzzleService(
 
     suspend fun processOutcome(request: PuzzleOutcomeRequest, userId: String): PuzzleOutcomeResponse {
         puzzleDaoService.unAssign(userId)
+        val enabled = puzzleCache.getById(request.puzzleId)?.enabled ?: true
         return mapOutcomeToDto(
             puzzleResultDaoService.persistOutcome(
                 userId,
@@ -160,7 +173,7 @@ class PuzzleService(
                 request.outcome,
                 request.usedPreRecordedSolution,
                 RE_PLAYABILITY_DAYS.days,
-                eloTransfer(request.visibleCategories)
+                if (enabled) eloTransfer(request.visibleCategories) else noEloTransfer()
             )
         )
     }
@@ -177,6 +190,14 @@ class PuzzleService(
         return PuzzleVoteResponse(resultId != null)
     }
 
+    /**
+     * Builds the Elo transfer function applied on a puzzle outcome.
+     *
+     * Replaying a puzzle played within [RE_PLAYABILITY_DAYS] yields a smaller Elo gain when SOLVED
+     * (K is scaled down linearly by recency), but the same Elo loss when FAILED/SKIPPED (full K).
+     *
+     * If [visibleCategories] is `true`, the solving gain is additionally halved.
+     */
     private fun eloTransfer(visibleCategories: Boolean): (PuzzleOutcome, Int, Int, Instant?) -> Pair<Int, Int> {
         return { outcome, userRating, puzzleRating, lastPlayed ->
             val newUserRating: Int
@@ -217,6 +238,14 @@ class PuzzleService(
         }
     }
 
+    /**
+     * Elo transfer applied when a disabled puzzle is played: ratings are left unchanged so no Elo is
+     * transferred in either direction.
+     */
+    private fun noEloTransfer(): (PuzzleOutcome, Int, Int, Instant?) -> Pair<Int, Int> {
+        return { _, userRating, puzzleRating, _ -> Pair(userRating, puzzleRating) }
+    }
+
     suspend fun fetchPuzzleRating(userId: String): PuzzleRatingResponse {
         val rating = puzzleDaoService.fetchRatingForUser(userId)
         if (rating == null) {
@@ -239,6 +268,7 @@ class PuzzleService(
                 categories = record.categories.mapNotNull { it.category },
                 moves = record.moves.filterNot { move -> move.isSolution }.map { move -> move.uci },
                 solution = record.moves.filter { move -> move.isSolution }.map { move -> move.uci },
+                enabled = record.puzzle.disabledAt == null,
             )
         }
 

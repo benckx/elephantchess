@@ -1,12 +1,12 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.*
-import io.elephantchess.db.dao.codegen.tables.daos.ReferencePlayerDao
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayer
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEdit
 import io.elephantchess.db.dao.codegen.tables.pojos.ReferencePlayerProfileEditSource
 import io.elephantchess.db.dao.codegen.tables.records.ReferenceGameRecord
-import io.elephantchess.db.dao.codegen.tables.records.ReferencePlayerRecord
 import io.elephantchess.db.model.EntityIdAndNameRecord
 import io.elephantchess.db.model.NumberOfGamesRecord
 import io.elephantchess.db.model.PlayerGameStatsRecord
@@ -26,22 +26,8 @@ import java.math.BigDecimal
 import kotlin.time.Clock
 import kotlin.time.Instant
 
+@KoinSingleton
 class ReferencePlayerDaoService(private val dslContext: DSLContext) {
-
-    suspend fun savePlayers(players: List<ReferencePlayer>) {
-        dslContext.transactionCoroutine { cfg ->
-            ReferencePlayerDao(cfg).insertMultipleReactive(players)
-        }
-    }
-
-    suspend fun findCanonicalPlayerName(id: String): String? {
-        return dslContext
-            .select(REFERENCE_PLAYER.CANONICAL_NAME)
-            .from(REFERENCE_PLAYER)
-            .where(REFERENCE_PLAYER.ID.eq(id))
-            .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
-            .awaitSingleValue()
-    }
 
     suspend fun findPlayer(id: String): ReferencePlayer? {
         return dslContext
@@ -238,8 +224,8 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
 
         // total games expression for HAVING clause (can't use aliases, must use the actual expressions)
         val totalGamesExpr = winsAsRed.plus(winsAsBlack)
-                .plus(drawsExpr)
-                .plus(lossesAsRed).plus(lossesAsBlack)
+            .plus(drawsExpr)
+            .plus(lossesAsRed).plus(lossesAsBlack)
 
         val baseQuery = dslContext
             .select(
@@ -460,14 +446,6 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
         )
     }
 
-    suspend fun listAllPlayers(): List<ReferencePlayerRecord> {
-        return dslContext
-            .select()
-            .from(REFERENCE_PLAYER)
-            .orderBy(REFERENCE_PLAYER.SOURCE_NAME)
-            .awaitMappedRecords()
-    }
-
     suspend fun listPlayersStartingWith(startsWith: String, limit: Int): List<EntityIdAndNameRecord> {
         return dslContext
             .select(
@@ -476,7 +454,10 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
                 REFERENCE_PLAYER.CHINESE_NAME
             )
             .from(REFERENCE_PLAYER)
-            .where(lower(REFERENCE_PLAYER.CANONICAL_NAME).startsWith(startsWith.lowercase()))
+            .where(
+                lower(REFERENCE_PLAYER.CANONICAL_NAME).startsWith(startsWith.lowercase())
+                    .or(REFERENCE_PLAYER.CHINESE_NAME.startsWith(startsWith))
+            )
             .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
             .orderBy(REFERENCE_PLAYER.CANONICAL_NAME)
             .limit(limit)
@@ -493,7 +474,10 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
                 REFERENCE_PLAYER.CHINESE_NAME
             )
             .from(REFERENCE_PLAYER)
-            .where(lower(REFERENCE_PLAYER.CANONICAL_NAME).contains(contains.lowercase()))
+            .where(
+                lower(REFERENCE_PLAYER.CANONICAL_NAME).contains(contains.lowercase())
+                    .or(REFERENCE_PLAYER.CHINESE_NAME.contains(contains))
+            )
             .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
             .orderBy(REFERENCE_PLAYER.CANONICAL_NAME)
             .limit(limit)

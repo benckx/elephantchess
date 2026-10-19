@@ -20,6 +20,7 @@
 const OPTION_BUTTON_CLASS = 'option-button-div'
 const OPTION_BUTTON_SELECTED_CLASS = 'option-button-div-selected'
 const COLOR_OPTION_GROUP = 'color-option-button-div'
+const VARIANT_OPTION_GROUP = 'variant-option-button-div'
 const TIME_CONTROL_OPTION_GROUP = 'tc-option-button-div'
 const SECONDS_IN_ONE_DAY = 86_400;
 
@@ -30,7 +31,7 @@ class NewGameHandler extends ModalHandler {
      *
      * @type {string[]}
      */
-    #exclusionGroups = [COLOR_OPTION_GROUP, TIME_CONTROL_OPTION_GROUP];
+    #exclusionGroups = [COLOR_OPTION_GROUP, TIME_CONTROL_OPTION_GROUP, VARIANT_OPTION_GROUP];
 
     /**
      * @type {Element[]}
@@ -41,12 +42,25 @@ class NewGameHandler extends ModalHandler {
     #allowGuestsCheckBox = document.getElementById('allow-guests');
     #privateInvite = document.getElementById('private-invite');
 
+    /**
+     * Time control option ids that correspond to correspondence (one or more days per move) games.
+     *
+     * @type {string[]}
+     */
+    #correspondenceTimeControls = ['tc-86400', 'tc-259200', 'tc-604800'];
+
+    /**
+     * Whether the user is allowed to use the "always visible in lobby" option (valid email and "someone joined
+     * my game" notification enabled). Resolved asynchronously from the backend; false until then.
+     *
+     * @type {boolean}
+     */
+    #alwaysVisibleInLobbyAllowed = false;
+
     #newGameButton = document.getElementById('create-new-game-button-modal');
 
     constructor() {
         super();
-
-        const correspondenceTimeControls = ['tc-86400', 'tc-259200', 'tc-604800'];
 
         // option div click listener
         this.#optionsDivs.forEach(item => {
@@ -63,12 +77,6 @@ class NewGameHandler extends ModalHandler {
                     this.#unselectedForGroup(itemExclusionGroup);
                     item.classList.add(OPTION_BUTTON_SELECTED_CLASS);
                 }
-
-                // alwaysVisibleInLobby checked when correspondence time control is selected
-                // alwaysVisibleInLobby unchecked otherwise
-                if (item.classList.contains(TIME_CONTROL_OPTION_GROUP)) {
-                    this.#alwaysVisibleInLobbyCheckBox.checked = correspondenceTimeControls.includes(item.id);
-                }
             });
         });
 
@@ -76,14 +84,8 @@ class NewGameHandler extends ModalHandler {
 
         // private game checkbox listener
         this.#privateInvite.addEventListener('change', () => {
-            if (this.#privateInvite.checked) {
-                // When private game is checked, uncheck and disable "always visible in lobby"
-                this.#alwaysVisibleInLobbyCheckBox.checked = false;
-                this.#disableCheckbox('always-visible-in-lobby-container');
-            } else {
-                // When private game is unchecked, enable "always visible in lobby"
-                this.#enableCheckbox('always-visible-in-lobby-container');
-            }
+            // private games are never visible in the lobby; refresh the option accordingly
+            this.#refreshAlwaysVisibleInLobby();
         });
 
         // button click listener
@@ -95,11 +97,11 @@ class NewGameHandler extends ModalHandler {
         if (isUserAuthenticated()) {
             this.#enableCheckbox('allow-guests-container');
 
-            correspondenceTimeControls.forEach(tcId => {
+            this.#correspondenceTimeControls.forEach(tcId => {
                 document.getElementById(tcId).classList.remove('option-button-div-disabled');
             });
         } else {
-            correspondenceTimeControls.forEach(tcId => {
+            this.#correspondenceTimeControls.forEach(tcId => {
                 addToolTip(document.getElementById(tcId), 'This option is not available for guest users.');
             });
         }
@@ -125,6 +127,42 @@ class NewGameHandler extends ModalHandler {
             document.getElementById('is-private-container'),
             'Private games are not listed in the lobby and can only be joined by players with the direct link.'
         );
+
+        // "always visible in lobby" requires a valid email and the "someone joined my game" notification:
+        // greyed out until/unless those conditions are met
+        this.#disableCheckbox('always-visible-in-lobby-container');
+        if (isUserAuthenticated()) {
+            getAndHandle('/api/lobby/always-visible-in-lobby-allowed', (json) => {
+                this.#setAlwaysVisibleInLobbyAllowed(json.allowed === true);
+            });
+        } else {
+            this.#setAlwaysVisibleInLobbyAllowed(false);
+        }
+    }
+
+    /**
+     * Refresh the enabled state of the "always visible in lobby" option. It is available when the user is allowed
+     * to use it (valid email + notification), but never for private games. When not available, the checkbox is
+     * unchecked and disabled.
+     */
+    #refreshAlwaysVisibleInLobby() {
+        const available = !this.#privateInvite.checked && this.#alwaysVisibleInLobbyAllowed;
+        if (available) {
+            this.#enableCheckbox('always-visible-in-lobby-container');
+        } else {
+            this.#disableCheckbox('always-visible-in-lobby-container');
+        }
+    }
+
+    /**
+     * Update whether the user is allowed to use the "always visible in lobby" option (valid email + notification)
+     * and refresh the option's enabled state.
+     *
+     * @param allowed {boolean}
+     */
+    #setAlwaysVisibleInLobbyAllowed(allowed) {
+        this.#alwaysVisibleInLobbyAllowed = allowed;
+        this.#refreshAlwaysVisibleInLobby();
     }
 
     /**
@@ -137,6 +175,7 @@ class NewGameHandler extends ModalHandler {
         // Find the checkbox inside the container
         const checkbox = container.querySelector('input[type="checkbox"]');
         if (checkbox) {
+            checkbox.checked = false;
             checkbox.disabled = true;
         }
     }
@@ -211,6 +250,24 @@ class NewGameHandler extends ModalHandler {
         }
     }
 
+    /**
+     * @return {string}
+     */
+    #getSelectedVariant() {
+        let variantId = null;
+        this.#optionsDivs
+            .filter(item => item.classList.contains(OPTION_BUTTON_SELECTED_CLASS))
+            .filter(item => item.classList.contains(VARIANT_OPTION_GROUP))
+            .forEach(item => variantId = item.id);
+
+        switch (variantId) {
+            case 'variant-manchu':
+                return Variant.MANCHU;
+            default:
+                return Variant.XIANGQI;
+        }
+    }
+
     #handleClickCreateNewGame() {
         const color = this.#getSelectedColor();
         const isRated = this.#isRatedCheckbox.checked;
@@ -230,6 +287,7 @@ class NewGameHandler extends ModalHandler {
         const allowGuests = this.#allowGuestsCheckBox.checked;
         const alwaysVisibleInLobby = this.#alwaysVisibleInLobbyCheckBox.checked;
         const privateInvite = this.#privateInvite.checked;
+        const variant = this.#getSelectedVariant();
 
         const request = {
             'inviterColor': color,
@@ -239,7 +297,8 @@ class NewGameHandler extends ModalHandler {
             'timeControlMode': timeControlMode,
             'allowGuests': allowGuests,
             'alwaysVisibleInLobby': alwaysVisibleInLobby,
-            'privateInvite': privateInvite
+            'privateInvite': privateInvite,
+            'variant': variant,
         };
 
         // TODO: also check color that comes from the response and event type

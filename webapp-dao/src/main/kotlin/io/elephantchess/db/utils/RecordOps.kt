@@ -1,18 +1,27 @@
 package io.elephantchess.db.utils
 
+import io.elephantchess.db.dao.codegen.Tables.PAGE_VIEW_EVENT
+import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.pojos.*
 import io.elephantchess.db.model.RatingUpdateRecord
 import io.elephantchess.db.model.TimeControlRecord
 import io.elephantchess.model.*
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import org.apache.commons.lang3.BooleanUtils
+import org.jooq.Condition
+import org.jooq.impl.DSL
 import io.elephantchess.sevenkingdoms.Color as Color7k
 
 // When possible, add the record ops here
 // Otherwise they can go to the service-layer (if they depend on other modules)
 
 fun OpeningPreCalculationCache.nextMove(): String {
+    return moves.split(",").last()
+}
+
+fun OpeningPreCalculationCacheReferencePlayer.nextMove(): String {
     return moves.split(",").last()
 }
 
@@ -28,14 +37,24 @@ val User.roles: List<UserRole>
         return roles.toList()
     }
 
-fun User.rating(timeControlCategory: TimeControlCategory): Int {
-    return when (timeControlCategory) {
-        TimeControlCategory.BULLET -> gameRatingBullet
-        TimeControlCategory.BLITZ -> gameRatingBlitz
-        TimeControlCategory.RAPID -> gameRatingRapid
-        TimeControlCategory.CLASSICAL -> gameRatingClassical
-        TimeControlCategory.SEVERAL_DAYS -> gameRatingSeveralDays
-        TimeControlCategory.CORRESPONDENCE -> gameRatingCorrespondence
+fun User.rating(timeControlCategory: TimeControlCategory, variant: Variant = Variant.XIANGQI): Int {
+    return when (variant) {
+        Variant.XIANGQI -> when (timeControlCategory) {
+            TimeControlCategory.BULLET -> gameRatingBullet
+            TimeControlCategory.BLITZ -> gameRatingBlitz
+            TimeControlCategory.RAPID -> gameRatingRapid
+            TimeControlCategory.CLASSICAL -> gameRatingClassical
+            TimeControlCategory.SEVERAL_DAYS -> gameRatingSeveralDays
+            TimeControlCategory.CORRESPONDENCE -> gameRatingCorrespondence
+        }
+        Variant.MANCHU -> when (timeControlCategory) {
+            TimeControlCategory.BULLET -> gameRatingManchuBullet
+            TimeControlCategory.BLITZ -> gameRatingManchuBlitz
+            TimeControlCategory.RAPID -> gameRatingManchuRapid
+            TimeControlCategory.CLASSICAL -> gameRatingManchuClassical
+            TimeControlCategory.SEVERAL_DAYS -> gameRatingManchuSeveralDays
+            TimeControlCategory.CORRESPONDENCE -> gameRatingManchuCorrespondence
+        }
     }
 }
 
@@ -207,6 +226,10 @@ private fun Game.userIdByColor(color: Color): String? {
     }
 }
 
+fun BotGame.prettyEngineName() : String {
+    return "$engine (${depth})"
+}
+
 fun SevenKingdomsGame.minColorPerPlayer(): Int {
     return when (minPlayers) {
         4 -> 1
@@ -283,4 +306,12 @@ fun SevenKingdomsGame.colorToUserIdMap(): Map<Color7k, String?> {
         Color7k.PURPLE to playerPurple,
         Color7k.BLACK to playerBlack,
     )
+}
+
+fun ownProfileViewCondition(): Condition {
+    val safeHandle = DSL.coalesce(USER.HANDLE, DSL.inline(""))
+    val ownPath = DSL.concat(DSL.inline("/@/"), safeHandle)
+    val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), safeHandle, DSL.inline("?%"))
+    return PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
+        .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
 }

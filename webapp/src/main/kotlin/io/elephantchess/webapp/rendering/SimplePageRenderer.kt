@@ -1,10 +1,13 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.TagResolver
 import io.github.reactivecircus.cache4k.Cache
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton(eager = true)
 class SimplePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
     private val defaultExpiration = 10.minutes

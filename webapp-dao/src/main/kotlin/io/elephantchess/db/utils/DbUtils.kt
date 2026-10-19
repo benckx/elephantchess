@@ -12,7 +12,7 @@ import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions
 import liquibase.resource.ClassLoaderResourceAccessor
 import liquibase.resource.ResourceAccessor
-import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
+import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
 import org.jooq.SQLDialect.POSTGRES
 import org.jooq.conf.RenderNameCase.LOWER
@@ -36,7 +36,7 @@ fun generateId(size: Int = 12): String {
     }
 
     var id = convertLongToBase62(System.nanoTime())
-    id += randomAlphanumeric(size - id.length)
+    id += insecure().nextAlphanumeric(size - id.length)
     return id
 }
 

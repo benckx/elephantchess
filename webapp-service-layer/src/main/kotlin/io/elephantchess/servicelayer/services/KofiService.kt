@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.tables.pojos.KofiEvent
 import io.elephantchess.db.services.KofiEventDaoService
@@ -18,6 +20,7 @@ import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import java.util.*
 import kotlin.time.Instant
 
+@KoinSingleton
 class KofiService(
     private val kofiEventDaoService: KofiEventDaoService,
     private val userDaoService: UserDaoService,
@@ -26,7 +29,7 @@ class KofiService(
     private val logger: KLogger
 ) {
 
-    private val verificationToken by lazy { appConfig.loadString("kofi.verification.token") }
+    private val verificationToken by lazy { appConfig.kofiVerificationToken }
 
     suspend fun processEvent(kofiEvent: KofiEventDto) {
         logger.info { "processing Ko-fi event: transactionId=${kofiEvent.kofiTransactionId}, messageId=${kofiEvent.messageId}" }

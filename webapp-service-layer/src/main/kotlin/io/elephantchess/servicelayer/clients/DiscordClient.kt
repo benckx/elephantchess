@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.clients
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.clients.dto.DiscordMessage
 import io.elephantchess.servicelayer.clients.dto.DiscordMessageResponse
@@ -14,9 +16,10 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
+@KoinSingleton
 class DiscordClient(appConfig: AppConfig) {
 
-    private val token by lazy { appConfig.loadString("discord.token") }
+    private val token by lazy { appConfig.discordToken }
 
     private val client = HttpClient(CIO) {
         install(Logging) {

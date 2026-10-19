@@ -166,14 +166,16 @@ class GameThumb {
             gameMetadataDto.redPlayerId,
             gameMetadataDto.redPlayerName,
             gameMetadataDto.redUserType,
-            maxUserNameLength
+            maxUserNameLength,
+            true
         );
 
         const buildBlackUsername = () => buildUsernameSpan(
             gameMetadataDto.blackPlayerId,
             gameMetadataDto.blackPlayerName,
             gameMetadataDto.blackUserType,
-            maxUserNameLength
+            maxUserNameLength,
+            true
         );
 
         // Safari
@@ -241,10 +243,10 @@ class GameThumb {
         redPlayerRatingElement.innerHTML = '';
         blackPlayerRatingElement.innerHTML = '';
         if (gameMetadataDto.redPlayerRating != null) {
-            redPlayerRatingElement.innerHTML = ` (${gameMetadataDto.redPlayerRating})`;
+            redPlayerRatingElement.innerHTML = `&nbsp;(${gameMetadataDto.redPlayerRating})`;
         }
         if (gameMetadataDto.blackPlayerRating != null) {
-            blackPlayerRatingElement.innerHTML = ` (${gameMetadataDto.blackPlayerRating})`;
+            blackPlayerRatingElement.innerHTML = `&nbsp;(${gameMetadataDto.blackPlayerRating})`;
         }
 
         // outcome
@@ -311,6 +313,15 @@ class GameThumb {
             lastUpdatedDiv.innerHTML = formatTimestampToRelativeTime(gameMetadataDto.lastUpdated);
         } else {
             lastUpdatedDiv.innerHTML = '--';
+        }
+
+        // variant indicator
+        const variantIndicator = this.#findFirst('game-thumb-variant');
+        if (variantIndicator) {
+            variantIndicator.innerHTML = gameMetadataDto.variant === Variant.MANCHU ? '统' : '象';
+            variantIndicator.title = gameMetadataDto.variant === Variant.MANCHU
+                ? 'Manchu chess (or Yitong)'
+                : 'Xiangqi (Chinese chess)';
         }
 
         // is online
@@ -390,6 +401,8 @@ class GameThumb {
         // Reset status and timestamp
         div.querySelector('.game-thumb-status').innerHTML = '--';
         div.querySelector('.game-thumb-last-updated').innerHTML = '--';
+        const variantDiv = div.querySelector('.game-thumb-variant');
+        if (variantDiv) variantDiv.innerHTML = '';
 
         // Reset online indicators
         div.querySelector('.red-player-status-indicator').classList.remove(IS_ONLINE_CSS_CLASS);

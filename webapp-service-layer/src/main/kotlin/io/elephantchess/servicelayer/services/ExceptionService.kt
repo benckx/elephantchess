@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.tables.pojos.ThrownException
 import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.db.utils.generateId
@@ -9,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
+@KoinSingleton
 class ExceptionService(
     private val daoService: ThrownExceptionDaoService,
     private val logger: KLogger,
@@ -16,9 +19,13 @@ class ExceptionService(
 
     private val exceptionServiceScope by lazy { CoroutineScope(Dispatchers.Default) }
 
+    /**
+     * @param httpCode the HTTP status to associate with the exception, or null for exceptions
+     * thrown outside of an HTTP request (e.g. scheduled batches).
+     */
     fun saveException(
         throwable: Throwable,
-        httpCode: Int,
+        httpCode: Int? = null,
     ) {
         exceptionServiceScope.launch {
             try {
@@ -28,6 +35,7 @@ class ExceptionService(
                 record.httpCode = httpCode
                 record.exceptionClass = throwable::class.qualifiedName ?: throwable::class.simpleName ?: "Unknown"
                 record.exceptionMessage = throwable.message ?: throwable.toString()
+                record.exceptionTrace = throwable.stackTraceToString()
                 daoService.save(record)
             } catch (e: Exception) {
                 logger.error(e) { "Error saving exception to database" }

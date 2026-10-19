@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.PuzzleCategoryTagDao
 import io.elephantchess.db.dao.codegen.tables.daos.PuzzleDao
@@ -13,11 +15,11 @@ import io.elephantchess.db.utils.*
 import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.model.PuzzleOutcome
 import org.jooq.DSLContext
-import org.jooq.Record2
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDate
 
+@KoinSingleton
 class PuzzleDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(puzzle: Puzzle, moves: List<PuzzleHalfMove>, categories: List<PuzzleCategoryTag>) {
@@ -84,8 +86,8 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .set(USER.LAST_PUZZLE_ASSIGNED.fixed(), puzzleId)
+                .update(USER)
+                .set(USER.LAST_PUZZLE_ASSIGNED, puzzleId)
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
@@ -95,8 +97,8 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
         dslContext.transactionCoroutine { cfg ->
             DSL
                 .using(cfg)
-                .update(USER.fixed())
-                .setNull(USER.LAST_PUZZLE_ASSIGNED.fixed())
+                .update(USER)
+                .setNull(USER.LAST_PUZZLE_ASSIGNED)
                 .where(USER.ID.eq(userId))
                 .awaitExecute()
         }
@@ -204,35 +206,6 @@ class PuzzleDaoService(private val dslContext: DSLContext) {
                 )
             }
             .toList()
-    }
-
-    suspend fun fetchPuzzleSolved(userIds: List<String>): List<Record2<String, Int>> {
-        return dslContext
-            .select(PUZZLE_RESULT.USER_ID, DSL.count().`as`("nbr_solved"))
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.SOLVED))
-            .and(PUZZLE_RESULT.USER_ID.`in`(userIds))
-            .groupBy(PUZZLE_RESULT.USER_ID)
-            .awaitRecords()
-    }
-
-    suspend fun fetchPuzzleFailed(userIds: List<String>): List<Record2<String, Int>> {
-        return dslContext
-            .select(PUZZLE_RESULT.USER_ID, DSL.count().`as`("nbr_failed"))
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.FAILED))
-            .and(PUZZLE_RESULT.USER_ID.`in`(userIds))
-            .groupBy(PUZZLE_RESULT.USER_ID)
-            .awaitRecords()
-    }
-
-    suspend fun fetchPuzzleTotal(userIds: List<String>): List<Record2<String, Int>> {
-        return dslContext
-            .select(PUZZLE_RESULT.USER_ID, DSL.count().`as`("nbr_failed"))
-            .from(PUZZLE_RESULT)
-            .where(PUZZLE_RESULT.USER_ID.`in`(userIds))
-            .groupBy(PUZZLE_RESULT.USER_ID)
-            .awaitRecords()
     }
 
 }

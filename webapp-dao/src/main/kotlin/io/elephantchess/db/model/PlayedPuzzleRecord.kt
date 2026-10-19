@@ -11,5 +11,7 @@ data class PlayedPuzzleRecord(
     val outcome: PuzzleOutcome,
     val ratingFrom: Int,
     val ratingTo: Int,
+    val puzzleRatingFrom: Int,
+    val puzzleRatingTo: Int,
     val date: Instant,
 )

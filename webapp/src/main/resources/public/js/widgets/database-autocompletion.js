@@ -83,6 +83,13 @@ class AutocompleteSearchField {
     }
 
     /**
+     * @param value {string}
+     */
+    setInputFieldValue(value) {
+        this.#inputField.value = value;
+    }
+
+    /**
      * @returns {string}
      */
     get inputFieldId() {

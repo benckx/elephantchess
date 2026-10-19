@@ -4,6 +4,8 @@ class GameMovesDtoCache {
 
     fun listAll(): List<GameMovesDto> = cache.toList()
 
+    fun randomGame(): GameMovesDto = cache.random()
+
     fun findByGameId(gameId: String) = cache.find { it.gameId == gameId }!!
 
     private companion object {

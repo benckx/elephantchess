@@ -1,3 +1,4 @@
+<!--suppress CssUnusedSymbol -->
 <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
 <script>
     kofiWidgetOverlay.draw('elephantchess', {
@@ -7,3 +8,12 @@
         'floating-chat.donateButton.text-color': '#fff'
     });
 </script>
+<style>
+    /* Override Ko-fi inline z-index:10000 on mobile/desktop wrappers and popup */
+    .floatingchat-container-wrap,
+    .floatingchat-container-wrap-mobi,
+    .floating-chat-kofi-popup-iframe,
+    .floating-chat-kofi-popup-iframe-mobi {
+        z-index: 450 !important;
+    }
+</style>

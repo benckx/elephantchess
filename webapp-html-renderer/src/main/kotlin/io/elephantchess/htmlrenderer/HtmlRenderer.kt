@@ -102,12 +102,12 @@ class HtmlRenderer(
         val metas = head.getElementsByTag("meta").toList()
         val elementsToAdd = mutableListOf<Element>()
 
-        val pageTitle = head.getElementsByTag("title").firstOrNull()?.text()?.takeIf { it.isNotBlank() } ?: "Elephant Chess"
+        val pageTitle = head.getElementsByTag("title").firstOrNull()?.text()?.takeIf { it.isNotBlank() } ?: "elephantchess.io"
 
-        val ogTitle = if (pageTitle.contains("Elephant Chess", ignoreCase = true)) {
+        val ogTitle = if (pageTitle.contains("elephantchess.io", ignoreCase = true)) {
             pageTitle
         } else {
-            "$pageTitle – Elephant Chess"
+            "$pageTitle – elephantchess.io"
         }
 
         val ogDescription = metas
@@ -148,7 +148,7 @@ class HtmlRenderer(
             elementsToAdd.add(document.createPropertyMetaElement("og:type", "website"))
         }
         if (!metas.hasAttribute("property", "og:site_name")) {
-            elementsToAdd.add(document.createPropertyMetaElement("og:site_name", "Elephant Chess"))
+            elementsToAdd.add(document.createPropertyMetaElement("og:site_name", "elephantchess.io"))
         }
         if (!metas.hasAttribute("property", "og:title")) {
             elementsToAdd.add(document.createPropertyMetaElement("og:title", ogTitle))

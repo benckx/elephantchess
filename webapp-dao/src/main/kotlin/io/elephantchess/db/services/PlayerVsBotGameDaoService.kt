@@ -1,5 +1,7 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.db.callback.BotMove
 import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult
 import io.elephantchess.db.dao.codegen.Tables.BOT_GAME_MOVE
@@ -12,6 +14,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.BotGameMove
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGameStatusEvent
 import io.elephantchess.db.model.BotGameStatusRecord
 import io.elephantchess.db.utils.*
+import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.BotGameMoveType
@@ -19,17 +22,32 @@ import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
 import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Record2
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
 
+@KoinSingleton
 class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
+
+    suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> {
+        return dslContext
+            .select(BOT_GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
+            .from(BOT_GAME)
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(BOT_GAME.VARIANT.eq(Variant.XIANGQI))
+            .groupBy(BOT_GAME.ANALYSIS_STATUS)
+            .orderBy(BOT_GAME.ANALYSIS_STATUS.asc())
+            .awaitRecords()
+    }
 
     suspend fun insertGame(gameRecord: BotGame, statusRecord: BotGameStatusEvent) {
         dslContext.transactionCoroutine { configuration ->
@@ -38,11 +56,20 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listGamesByUserId(userId: String, limit: Int, beforeTs: Long?): List<BotGame> {
+    suspend fun listGamesByUserId(
+        userId: String,
+        limit: Int,
+        beforeTs: Long?,
+        minMoveIndex: Int? = null,
+    ): List<BotGame> {
         var sql = dslContext
             .select()
             .from(BOT_GAME)
             .where(BOT_GAME.USER_ID.eq(userId))
+
+        if (minMoveIndex != null) {
+            sql = sql.and(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+        }
 
         if (beforeTs != null) {
             sql = sql.and(BOT_GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))
@@ -64,31 +91,37 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .awaitMappedRecords()
     }
 
-    suspend fun listLastGamesByIdentifiedUsers(
+    suspend fun listLatestGamesByIdentifiedUsers(
         limit: Int,
         minMoveIndex: Int? = null,
         beforeTs: Long? = null,
-        excludeAutoResigned: Boolean = false
+        excludeAutoResigned: Boolean = false,
+        variantsToInclude: List<Variant>
     ): List<BotGame> {
-        var query =
-            dslContext
-                .select()
-                .from(BOT_GAME)
-                .where(BOT_GAME.USER_ID.isNotNull)
+        val conditions = mutableListOf<Condition>()
+        conditions += BOT_GAME.USER_ID.isNotNull
+        conditions += BOT_GAME.VARIANT.`in`(variantsToInclude)
 
         if (minMoveIndex != null) {
-            query = query.and(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            conditions += BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)
         }
 
         if (beforeTs != null) {
-            query = query.and(BOT_GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs))
+            conditions += BOT_GAME.LAST_UPDATED.isBeforeEpochMillis(beforeTs)
         }
 
         if (excludeAutoResigned) {
-            query = query.and(BOT_GAME.GAME_STATUS.ne(AUTO_RESIGNED))
+            conditions += BOT_GAME.GAME_STATUS.ne(AUTO_RESIGNED)
         }
 
-        return query
+        // Distinct-by-user is applied in the service layer (see GameDataService.listLatestPvbGames) by
+        // over-fetching and de-duplicating in memory. Doing the deduplication here with a window function over
+        // the whole table forced Postgres to scan and sort every eligible row on each request, which scaled
+        // poorly with the number of (guest) users. This query relies on the bot_game_last_updated_idx index.
+        return dslContext
+            .select()
+            .from(BOT_GAME)
+            .where(conditions)
             .orderBy(BOT_GAME.LAST_UPDATED.desc())
             .limit(limit)
             .awaitMappedRecords()
@@ -126,12 +159,13 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
-    suspend fun countLiveGames(duration: Duration): Int {
+    suspend fun countLiveGames(lastUpdated: Duration, userIds: Set<String>): Int {
         return dslContext
             .selectCount()
             .from(BOT_GAME)
             .where(BOT_GAME.GAME_STATUS.`in`(CREATED))
-            .and(BOT_GAME.LAST_UPDATED.isWithin(duration))
+            .and(BOT_GAME.LAST_UPDATED.isWithin(lastUpdated))
+            .and(BOT_GAME.USER_ID.`in`(userIds))
             .awaitSingleValue()!!
     }
 
@@ -249,7 +283,19 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .selectCount()
             .from(BOT_GAME)
-            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex))
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex).or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
+            .awaitSingleValue()!!
+    }
+
+    suspend fun countManchuGames(minIndex: Int): Int {
+        val countCondition =
+            BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex)
+                .or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
+
+        return dslContext
+            .selectCount()
+            .from(BOT_GAME)
+            .where(countCondition.and(BOT_GAME.VARIANT.eq(Variant.MANCHU)))
             .awaitSingleValue()!!
     }
 
@@ -275,9 +321,9 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             DSL
                 .using(cfg)
                 .update(BOT_GAME)
-                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX.fixed(), 1)
-                .set(BOT_GAME.CURRENT_FEN.fixed(), newFen)
-                .set(BOT_GAME.LAST_UPDATED.fixed(), now)
+                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX, 1)
+                .set(BOT_GAME.CURRENT_FEN, newFen)
+                .set(BOT_GAME.LAST_UPDATED, now)
                 .where(BOT_GAME.ID.eq(gameId))
                 .awaitExecute()
 
@@ -356,16 +402,16 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                         var update =
                             transactional
                                 .update(BOT_GAME)
-                                .set(BOT_GAME.CURRENT_FEN.fixed(), playMoveResult.newFen)
-                                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX.fixed(), newPosition)
-                                .set(BOT_GAME.LAST_UPDATED.fixed(), afterCallbackTime)
+                                .set(BOT_GAME.CURRENT_FEN, playMoveResult.newFen)
+                                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX, newPosition)
+                                .set(BOT_GAME.LAST_UPDATED, afterCallbackTime)
 
                         playMoveResult.gameEventType?.let { gameEventType ->
-                            update = update.set(BOT_GAME.GAME_STATUS.fixed(), gameEventType)
+                            update = update.set(BOT_GAME.GAME_STATUS, gameEventType)
                         }
 
                         playMoveResult.outcome?.let { outcome ->
-                            update = update.set(BOT_GAME.OUTCOME.fixed(), outcome)
+                            update = update.set(BOT_GAME.OUTCOME, outcome)
                         }
 
                         update
@@ -395,12 +441,12 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                 DSL
                     .using(cfg)
                     .update(BOT_GAME)
-                    .set(BOT_GAME.GAME_STATUS.fixed(), status)
-                    .set(BOT_GAME.LAST_UPDATED.fixed(), eventTime)
+                    .set(BOT_GAME.GAME_STATUS, status)
+                    .set(BOT_GAME.LAST_UPDATED, eventTime)
 
             update = when (winnerColor) {
-                Color.RED -> update.set(BOT_GAME.OUTCOME.fixed(), Outcome.RED_WINS)
-                Color.BLACK -> update.set(BOT_GAME.OUTCOME.fixed(), Outcome.BLACK_WINS)
+                Color.RED -> update.set(BOT_GAME.OUTCOME, Outcome.RED_WINS)
+                Color.BLACK -> update.set(BOT_GAME.OUTCOME, Outcome.BLACK_WINS)
                 null -> update
             }
 
@@ -408,6 +454,15 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                 .where(BOT_GAME.ID.eq(gameId))
                 .awaitExecute()
         }
+    }
+
+    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
+        dslContext
+            .update(BOT_GAME)
+            .set(BOT_GAME.USER_ID, newUserId)
+            .set(BOT_GAME.GUEST_USER_ID, guestUserId)
+            .where(BOT_GAME.USER_ID.eq(guestUserId))
+            .awaitExecute()
     }
 
 }

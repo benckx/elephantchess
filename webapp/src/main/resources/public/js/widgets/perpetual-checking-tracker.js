@@ -20,6 +20,8 @@
 const PERPETUAL_CHECKING_INFO_BOX_SUB_BOXES = 'perpetual-checking-info-box-sub-boxes';
 const PERPETUAL_CHECKING_INFO_BOX_LIMIT_LABEL = 'perpetual-checking-info-box-limit-label'
 const PERPETUAL_CHECKING_INFO_BOX_PIECES_LABEL = 'perpetual-checking-info-box-pieces-label'
+const PERPETUAL_CHECKING_LIMIT_WARNING_CLASS = 'perpetual-checking-limit-warning'
+const PERPETUAL_CHECKING_WARNING_THRESHOLD = 2
 
 class PerpetualCheckingRule {
 
@@ -354,6 +356,8 @@ class PerpetualCheckingTrackerWidget {
         const limitLabel = box.getElementsByClassName(PERPETUAL_CHECKING_INFO_BOX_LIMIT_LABEL)[0];
 
         const limitIndicator = this.#tracker.findCurrentLimitIndicator(color);
+        const shouldWarn = limitIndicator != null && this.#isCloseToLimit(limitIndicator);
+        box.classList.toggle(PERPETUAL_CHECKING_LIMIT_WARNING_CLASS, shouldWarn);
         if (limitIndicator != null) {
             const attackers = limitIndicator.attackers.map(it => it.piece.pieceChar).join(', ');
             const counter = `${limitIndicator.numberOfChecks}/${limitIndicator.maxNumberOfChecks}`;
@@ -363,6 +367,14 @@ class PerpetualCheckingTrackerWidget {
             piecesLabel.innerHTML = 'pieces: --';
             limitLabel.innerHTML = 'limit: --';
         }
+    }
+
+    /**
+     * @param limitIndicator {RuleSetLimitIndication}
+     * @return {boolean}
+     */
+    #isCloseToLimit(limitIndicator) {
+        return (limitIndicator.maxNumberOfChecks - limitIndicator.numberOfChecks) <= PERPETUAL_CHECKING_WARNING_THRESHOLD;
     }
 
 }

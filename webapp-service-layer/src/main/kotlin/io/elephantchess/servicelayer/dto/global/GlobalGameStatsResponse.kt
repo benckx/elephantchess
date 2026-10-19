@@ -7,4 +7,5 @@ data class GlobalGameStatsResponse(
     val totalMoves : Int,
     // half moves
     val totalInAppMoves: Int,
+    val totalManchuGames: Int,
 )

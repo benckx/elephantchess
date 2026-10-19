@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.services
 
+import io.elephantchess.utils.di.KoinSingleton
+
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.services.UserSessionDaoService
@@ -11,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.apache.commons.validator.routines.InetAddressValidator
 
+@KoinSingleton
 class UserSessionService(
     appConfig: AppConfig,
     private val apiLayerClient: ApiLayerClient,

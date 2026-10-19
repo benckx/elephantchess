@@ -31,6 +31,32 @@
     margin-top: 4px !important;
 }
 
+.my-game-item .current-puzzle-rating {
+    color: #626161;
+}
+
+/* rating indicator: user rating on top, puzzle rating below in smaller text */
+.my-game-item .user-rating-row .rating-from {
+    font-size: 16px;
+}
+
+.my-game-item .user-rating-row .user-rating-delta-value-box {
+    font-size: 16px;
+}
+
+.my-game-item .puzzle-rating-row {
+    margin-top: 2px;
+}
+
+.my-game-item .puzzle-rating-row .puzzle-rating-from {
+    color: #626161;
+    font-size: 12px;
+}
+
+.my-game-item .puzzle-rating-row .user-rating-delta-value-box {
+    font-size: 12px;
+}
+
 .my-game-item {
     height: 84px;
     width: 94%;
@@ -38,7 +64,7 @@
 
 @media (max-width: 1000px) {
     .my-game-item {
-        height: 150px;
+        height: 120px;
         width: 102%;
     }
 
@@ -54,5 +80,22 @@
     .my-game-item .puzzle-categories {
         font-size: 22px;
         margin-top: 6px !important;
+    }
+
+    /* keep the delta the same size as the rating value on mobile */
+    .my-game-item .user-rating-row .rating-from {
+        font-size: 24px;
+    }
+
+    .my-game-item .user-rating-row .user-rating-delta-value-box {
+        font-size: 24px;
+    }
+
+    .my-game-item .puzzle-rating-row .puzzle-rating-from {
+        font-size: 18px;
+    }
+
+    .my-game-item .puzzle-rating-row .user-rating-delta-value-box {
+        font-size: 18px;
     }
 }

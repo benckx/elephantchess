@@ -44,7 +44,8 @@ class AnalysisBoardPage extends BasePage {
     #moveTreeWidget = new MoveTreeWidget({
         containerId: 'move-tree-container',
         isContextualMenuEnabled: true,
-        isLoadingAnimationEnabled: true
+        isLoadingAnimationEnabled: true,
+        ...moveTreeResizeCookiePersistence('analysis', 'move-tree-container')
     });
 
     #boardGui = createWebappBoardGui({ svg: true });
@@ -100,6 +101,9 @@ class AnalysisBoardPage extends BasePage {
     #gameTypeIcon = document.getElementById('game-type-icon');
 
     #startFen = DEFAULT_START_FEN;
+    #analysisSummaryRenderTimeout = null;
+    #moveTreeEvalRefreshTimeout = null;
+    #moveAnnotations = [];
 
     constructor() {
         super();
@@ -120,7 +124,8 @@ class AnalysisBoardPage extends BasePage {
         // needs to be on top and not in 'createListeners', so we can display eval data when it's been loaded below
         this.#analysisCache.addNewPvListener(pv => {
             this.#pushNewInfoLineResultToMoveTreeWidget(pv);
-            this.#renderAnalysisSummaryIfPossible();
+            this.#scheduleRenderAnalysisSummaryIfPossible();
+            this.#scheduleRefreshMoveTreeEvalFromCache();
             this.#renderEngineArrows();
 
             // enable the loading animation when receiving new evaluation data in the background
@@ -133,8 +138,6 @@ class AnalysisBoardPage extends BasePage {
                 this.#moveTreeWidget.startLoadingAnimation();
             }
 
-            // render "move annotation symbols" whenever new analysis data is available
-            this.#moveTreeWidget.refreshAllMoveNodeEval(this.#analysisCache.asMap());
         });
 
         // 1. attempt to load persisted analysis
@@ -219,7 +222,7 @@ class AnalysisBoardPage extends BasePage {
 
             this.#client.fetchAnalysisEngineDataCache(analysisId, entries => {
                 this.#analysisCache.populateCache(entries);
-                this.#renderAnalysisSummaryIfPossible();
+                this.#renderAnalysisSummaryIfLongEnough();
             });
 
             this.#moveTreeWidget.openBranchesByIds(analysis.openedBranchIds);
@@ -274,9 +277,11 @@ class AnalysisBoardPage extends BasePage {
             this.#gameDataClient.fetchMoves(moves => {
                 this.#moveTreeWidget.setMoves(moves);
 
-                this.#gameDataClient.fetchAnalysisData(entries => {
-                    this.#analysisCache.populateCache(entries);
-                    this.#renderAnalysisSummaryIfPossible();
+                this.#gameDataClient.fetchAnalysisData(response => {
+                    this.#analysisCache.populateCache(response.entries);
+                    this.#moveAnnotations = response.moveAnnotations;
+                    this.#moveTreeWidget.applyAnnotationSymbols(this.#moveAnnotations);
+                    this.#renderAnalysisSummaryIfLongEnough();
                     this.#startUpWidgets();
                 });
 
@@ -511,8 +516,10 @@ class AnalysisBoardPage extends BasePage {
 
         // fetch updated data every 2 sec
         const fetchAnalysisDataInterval = setInterval(() => {
-            this.#gameDataClient.fetchAnalysisData(entries => {
-                this.#analysisCache.populateCache(entries)
+            this.#gameDataClient.fetchAnalysisData(response => {
+                this.#analysisCache.populateCache(response.entries);
+                this.#moveAnnotations = response.moveAnnotations;
+                this.#moveTreeWidget.applyAnnotationSymbols(this.#moveAnnotations);
             });
         }, 2_000);
 
@@ -541,9 +548,11 @@ class AnalysisBoardPage extends BasePage {
                         }, PROGRESS_BAR_DISAPPEAR_TIMEOUT);
 
                         // fetch the final analysis data
-                        this.#gameDataClient.fetchAnalysisData(entries => {
-                            this.#analysisCache.populateCache(entries);
-                            this.#renderAnalysisSummaryIfPossible();
+                        this.#gameDataClient.fetchAnalysisData(response => {
+                            this.#analysisCache.populateCache(response.entries);
+                            this.#moveAnnotations = response.moveAnnotations;
+                            this.#moveTreeWidget.applyAnnotationSymbols(this.#moveAnnotations);
+                            this.#renderAnalysisSummaryIfLongEnough();
                         });
                         break;
                     default:
@@ -666,18 +675,39 @@ class AnalysisBoardPage extends BasePage {
         return this.#analysisId != null;
     }
 
-    #renderAnalysisSummaryIfPossible() {
+    #renderAnalysisSummaryIfLongEnough() {
         const nodes = this.#moveTreeWidget.getMainBranchNodes();
         if (nodes.length > 6) {
             renderAnalysisSummaryReport(
-                nodes,
                 this.#analysisCache.asMap(),
-                this.#startFen,
                 this.#gameMetadata?.redPlayerName,
                 this.#gameMetadata?.blackPlayerName,
-                this.#gameMetadata?.outcome
+                this.#gameMetadata?.outcome,
+                this.#moveTreeWidget,
+                this.#moveAnnotations
             );
         }
+    }
+
+    #scheduleRenderAnalysisSummaryIfPossible() {
+        if (this.#analysisSummaryRenderTimeout !== null) {
+            clearTimeout(this.#analysisSummaryRenderTimeout);
+        }
+        // Coalesce rapid cache updates during startup into a single summary recomputation.
+        this.#analysisSummaryRenderTimeout = setTimeout(() => {
+            this.#analysisSummaryRenderTimeout = null;
+            this.#renderAnalysisSummaryIfLongEnough();
+        }, 120);
+    }
+
+    #scheduleRefreshMoveTreeEvalFromCache() {
+        if (this.#moveTreeEvalRefreshTimeout !== null) {
+            clearTimeout(this.#moveTreeEvalRefreshTimeout);
+        }
+        this.#moveTreeEvalRefreshTimeout = setTimeout(() => {
+            this.#moveTreeEvalRefreshTimeout = null;
+            this.#moveTreeWidget.refreshAllMoveNodeEval(this.#analysisCache.asMap());
+        }, 120);
     }
 
     /**
