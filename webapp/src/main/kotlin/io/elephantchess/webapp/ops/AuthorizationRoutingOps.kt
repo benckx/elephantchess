@@ -17,7 +17,6 @@ import io.ktor.http.*
 import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -97,7 +96,7 @@ private suspend fun RoutingContext.requireRole(
     if (result is AuthenticatedToken && result.hasRole(requiredRole) && verifyInDb(result, requiredRole)) {
         call.respond(handler(result))
     } else if (customErrorPage != null) {
-        call.respond(TextContent(customErrorPage(), Html))
+        call.respondHtml(customErrorPage(), Forbidden)
     } else {
         handleInvalidToken(result, requiredRole.name, Forbidden)
     }
@@ -144,8 +143,7 @@ suspend fun verifyInDb(token: TokenVerificationResult, requiredRole: UserRole? =
 
         is GuestToken -> {
             val user = userCache.get(token.userId)
-            user != null && user.userType == GUEST &&
-                (requiredRole == null || user.roles.contains(requiredRole))
+            user != null && user.userType == GUEST && requiredRole == null
         }
 
         else -> false

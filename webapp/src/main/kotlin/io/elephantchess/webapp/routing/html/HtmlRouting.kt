@@ -117,7 +117,7 @@ private fun Route.gamePages() {
     get("/game") {
         val gameId = call.parameters["id"]
         if (gameId == null) {
-            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+            call.respondHtml(simplePageRenderer.renderTemplate("404"), NotFound)
         } else {
             call.respondHtml(gamePageRenderer.renderPvpGamePage(gameId))
         }
@@ -126,7 +126,7 @@ private fun Route.gamePages() {
     get("/playbot") {
         val gameId = call.parameters["id"]
         if (gameId == null) {
-            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+            call.respondHtml(simplePageRenderer.renderTemplate("404"), NotFound)
         } else {
             call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId))
         }
@@ -209,22 +209,19 @@ private fun Route.userProfile() {
     val userService by koin<UserService>()
 
     get("/@/{username}") {
-        val username = call.parameters["username"]
-            ?: throw BadRequestException("username not provided")
+        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
 
         val userProfileResponse = userService.fetchProfile(username)
         call.respondHtml(renderer.renderUserProfile(userProfileResponse))
     }
     get("/@/{username}/browse-pvp-games") {
-        val username = call.parameters["username"]
-            ?: throw BadRequestException("username not provided")
+        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
 
         userService.validateUserExists(username)
         call.respondHtml(renderer.renderUserBrowsePvpGames(username))
     }
     get("/@/{username}/browse-pvb-games") {
-        val username = call.parameters["username"]
-            ?: throw BadRequestException("username not provided")
+        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
 
         userService.validateUserExists(username)
         call.respondHtml(renderer.renderUserBrowsePvbGames(username))
