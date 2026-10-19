@@ -36,12 +36,25 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.test.logger) apply false
     alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.ktlint)
+}
+
+ktlint {
+    version.set(rootLibs.versions.ktlint)
 }
 
 subprojects {
     pluginManager.apply("org.jetbrains.kotlin.jvm")
     pluginManager.apply("com.adarshr.test-logger")
     pluginManager.apply("org.jetbrains.kotlin.plugin.serialization")
+    pluginManager.apply("org.jlleitschuh.gradle.ktlint")
+
+    extensions.configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        version.set(rootLibs.versions.ktlint)
+        filter {
+            exclude { it.file.path.contains("${File.separator}build${File.separator}") }
+        }
+    }
 
     extensions.configure<KotlinJvmProjectExtension> {
         jvmToolchain(21)

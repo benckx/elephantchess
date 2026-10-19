@@ -43,6 +43,9 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Check Kotlin formatting (ktlint)
+        run: ./gradlew ktlintCheck --no-daemon --continue
+
       - name: Run JavaScript parser tests
         run: node --test
         working-directory: webapp/src/test/js

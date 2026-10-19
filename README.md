@@ -202,6 +202,16 @@ Then you should be able to access the webapp at http://localhost:8080.
 
 Alternatively, you can launch the `Main` from your IDE of choice.
 
+## Code Style
+
+Kotlin code is formatted with [ktlint](https://pinterest.github.io/ktlint/) (rules configured in `.editorconfig`).
+The CI fails if the formatting is not respected.
+
+```shell
+./gradlew ktlintCheck   # check formatting
+./gradlew ktlintFormat  # fix formatting
+```
+
 ## Common Issues
 
 ### Port 8080 blocked
