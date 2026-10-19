@@ -20,9 +20,8 @@ class UserProfilePictureService(
 
     private val profile = requireValidProfileSegment(appConfig.profile)
 
-    private fun profilePictureKey(userId: String, extension: String): String {
-        return "$profile/$PROFILE_PICTURE_FOLDER/$userId.$extension"
-    }
+    private fun profilePictureKey(userId: String, extension: String): String =
+        "$profile/$PROFILE_PICTURE_FOLDER/$userId.$extension"
 
     /**
      * Validate and normalize a profile picture upload, store it on the CDN-backed object storage,
@@ -69,7 +68,7 @@ class UserProfilePictureService(
         val outputImage = BufferedImage(
             PROFILE_PICTURE_SIZE_PX,
             PROFILE_PICTURE_SIZE_PX,
-            if (isJpeg) BufferedImage.TYPE_INT_RGB else BufferedImage.TYPE_INT_ARGB
+            if (isJpeg) BufferedImage.TYPE_INT_RGB else BufferedImage.TYPE_INT_ARGB,
         )
 
         val graphics = outputImage.createGraphics()
@@ -88,7 +87,7 @@ class UserProfilePictureService(
                 cropY,
                 cropX + size,
                 cropY + size,
-                null
+                null,
             )
         } finally {
             graphics.dispose()
@@ -110,21 +109,18 @@ class UserProfilePictureService(
         return extension
     }
 
-    private fun contentTypeFor(extension: String): String {
-        return when (extension) {
+    private fun contentTypeFor(extension: String): String =
+        when (extension) {
             "png" -> "image/png"
             "jpg", "jpeg" -> "image/jpeg"
             else -> error("Unsupported file extension for profile picture: $extension")
         }
-    }
 
-    private fun imageIoFormatName(extension: String): String {
-        return if (extension == "jpg") "jpeg" else extension
-    }
+    private fun imageIoFormatName(extension: String): String =
+        if (extension == "jpg") "jpeg" else extension
 
-    private fun isJpegExtension(extension: String): Boolean {
-        return extension == "jpg" || extension == "jpeg"
-    }
+    private fun isJpegExtension(extension: String): Boolean =
+        extension == "jpg" || extension == "jpeg"
 
     companion object {
         const val PROFILE_PICTURE_FOLDER = "profile-pictures"

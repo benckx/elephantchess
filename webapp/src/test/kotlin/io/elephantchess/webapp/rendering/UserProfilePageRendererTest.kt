@@ -27,8 +27,8 @@ class UserProfilePageRendererTest {
                 SimpleValueTagResolver("body_init", ""),
                 SimpleValueTagResolver("footer", ""),
                 SimpleValueTagResolver("apex_charts", ""),
-            )
-        )
+            ),
+        ),
     )
     private val gameStats = GameStatsResponse(
         ratings = RatingsPerTimeCategory(1000, 1001, 1002, 1003, 1004, 1005),
@@ -43,44 +43,46 @@ class UserProfilePageRendererTest {
     )
 
     @Test
-    fun `renderUserProfile includes profile picture when available`() = runTest {
-        whenever(userProfileAnalyticsService.fetchGameRatings("user-1")).thenReturn(gameStats)
-        val renderer = UserProfilePageRenderer(htmlRenderer, userProfileAnalyticsService)
+    fun `renderUserProfile includes profile picture when available`() =
+        runTest {
+            whenever(userProfileAnalyticsService.fetchGameRatings("user-1")).thenReturn(gameStats)
+            val renderer = UserProfilePageRenderer(htmlRenderer, userProfileAnalyticsService)
 
-        val html = renderer.renderUserProfile(
-            UserProfileDto(
-                userId = "user-1",
-                username = "alice",
-                country = "BE",
-                profileDescription = "hello",
-                puzzleRating = 1200,
-                profilePictureUrl = "https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png",
-                showPvpGamesOnProfile = true,
-                showPvbGamesOnProfile = true,
+            val html = renderer.renderUserProfile(
+                UserProfileDto(
+                    userId = "user-1",
+                    username = "alice",
+                    country = "BE",
+                    profileDescription = "hello",
+                    puzzleRating = 1200,
+                    profilePictureUrl = "https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png",
+                    showPvpGamesOnProfile = true,
+                    showPvbGamesOnProfile = true,
+                ),
             )
-        )
 
-        assertTrue(html.contains("""id="profile-picture""""))
-        assertTrue(html.contains("""src="https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png""""))
-    }
+            assertTrue(html.contains("""id="profile-picture""""))
+            assertTrue(html.contains("""src="https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png""""))
+        }
 
     @Test
-    fun `renderUserProfile omits profile picture when unavailable`() = runTest {
-        whenever(userProfileAnalyticsService.fetchGameRatings("user-1")).thenReturn(gameStats)
-        val renderer = UserProfilePageRenderer(htmlRenderer, userProfileAnalyticsService)
+    fun `renderUserProfile omits profile picture when unavailable`() =
+        runTest {
+            whenever(userProfileAnalyticsService.fetchGameRatings("user-1")).thenReturn(gameStats)
+            val renderer = UserProfilePageRenderer(htmlRenderer, userProfileAnalyticsService)
 
-        val html = renderer.renderUserProfile(
-            UserProfileDto(
-                userId = "user-1",
-                username = "alice",
-                country = null,
-                profileDescription = null,
-                puzzleRating = 1200,
-                showPvpGamesOnProfile = true,
-                showPvbGamesOnProfile = true,
+            val html = renderer.renderUserProfile(
+                UserProfileDto(
+                    userId = "user-1",
+                    username = "alice",
+                    country = null,
+                    profileDescription = null,
+                    puzzleRating = 1200,
+                    showPvpGamesOnProfile = true,
+                    showPvbGamesOnProfile = true,
+                ),
             )
-        )
 
-        assertFalse(html.contains("""id="profile-picture""""))
-    }
+            assertFalse(html.contains("""id="profile-picture""""))
+        }
 }

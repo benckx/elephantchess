@@ -215,10 +215,7 @@ private fun Route.userSettingsRoutes() {
     }
 }
 
-private data class ProfilePictureUpload(
-    val fileName: String,
-    val bytes: ByteArray,
-)
+private data class ProfilePictureUpload(val fileName: String, val bytes: ByteArray)
 
 private suspend fun ApplicationCall.receiveProfilePictureUpload(): ProfilePictureUpload {
     var upload: ProfilePictureUpload? = null

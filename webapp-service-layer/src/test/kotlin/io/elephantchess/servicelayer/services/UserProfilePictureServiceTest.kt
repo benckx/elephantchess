@@ -28,27 +28,28 @@ class UserProfilePictureServiceTest {
     private val spacesClient = mock<DigitalOceanSpacesClient>()
     private val userDaoService = mock<UserDaoService>()
     private val propertiesFile = mock<PropertiesFile>()
-    private fun testAppConfig(profile: String) = AppConfig(
-        profile = profile,
-        webHost = "localhost",
-        isMinificationEnabled = false,
-        isGoogleAnalyticsEnabled = false,
-        isCookieConsentBannerEnabled = false,
-        isDockerized = false,
-        sendMailNotifications = false,
-        isCachingEnabled = false,
-        isEnginePoolEnabled = false,
-        enginesThreads = 1,
-        pikafishVersion = "",
-        fairyStockfishVersion = "",
-        dbConfig = DbConfig("test", "jdbc:postgresql://localhost/test", "postgres", "postgres"),
-        parseUserAgent = false,
-        disabledBatches = emptyList(),
-        cdnEnabled = true,
-        symmetricKey = "",
-        salt = "",
-        properties = propertiesFile,
-    )
+    private fun testAppConfig(profile: String) =
+        AppConfig(
+            profile = profile,
+            webHost = "localhost",
+            isMinificationEnabled = false,
+            isGoogleAnalyticsEnabled = false,
+            isCookieConsentBannerEnabled = false,
+            isDockerized = false,
+            sendMailNotifications = false,
+            isCachingEnabled = false,
+            isEnginePoolEnabled = false,
+            enginesThreads = 1,
+            pikafishVersion = "",
+            fairyStockfishVersion = "",
+            dbConfig = DbConfig("test", "jdbc:postgresql://localhost/test", "postgres", "postgres"),
+            parseUserAgent = false,
+            disabledBatches = emptyList(),
+            cdnEnabled = true,
+            symmetricKey = "",
+            salt = "",
+            properties = propertiesFile,
+        )
 
     private val service = UserProfilePictureService(testAppConfig("local-backup"), spacesClient, userDaoService)
 
@@ -86,26 +87,27 @@ class UserProfilePictureServiceTest {
     }
 
     @Test
-    fun `uploadProfilePicture uploads normalized picture and persists extension`() = runTest {
-        whenever(spacesClient.uploadBytes(any(), any(), any(), any())).thenReturn(true)
+    fun `uploadProfilePicture uploads normalized picture and persists extension`() =
+        runTest {
+            whenever(spacesClient.uploadBytes(any(), any(), any(), any())).thenReturn(true)
 
-        val source = BufferedImage(140, 90, BufferedImage.TYPE_INT_RGB)
-        val output = ByteArrayOutputStream()
-        ImageIO.write(source, "png", output)
+            val source = BufferedImage(140, 90, BufferedImage.TYPE_INT_RGB)
+            val output = ByteArrayOutputStream()
+            ImageIO.write(source, "png", output)
 
-        val url = service.uploadProfilePicture("user-1", "photo.png", output.toByteArray())
+            val url = service.uploadProfilePicture("user-1", "photo.png", output.toByteArray())
 
-        assertEquals("https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png", url)
-        verify(userDaoService).updateProfilePictureExtension("user-1", "png")
-        verify(spacesClient).uploadBytes(
-            check { bytes ->
-                val image = ImageIO.read(ByteArrayInputStream(bytes))
-                assertEquals(100, image.width)
-                assertEquals(100, image.height)
-            },
-            eq("local-backup/profile-pictures/user-1.png"),
-            eq("image/png"),
-            eq("public-read"),
-        )
-    }
+            assertEquals("https://cdn.elephantchess.io/local-backup/profile-pictures/user-1.png", url)
+            verify(userDaoService).updateProfilePictureExtension("user-1", "png")
+            verify(spacesClient).uploadBytes(
+                check { bytes ->
+                    val image = ImageIO.read(ByteArrayInputStream(bytes))
+                    assertEquals(100, image.width)
+                    assertEquals(100, image.height)
+                },
+                eq("local-backup/profile-pictures/user-1.png"),
+                eq("image/png"),
+                eq("public-read"),
+            )
+        }
 }

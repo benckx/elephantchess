@@ -88,7 +88,8 @@ class UserProfilePageRenderer(
                 val escapedUsername = escapeHtml(username)
                 """<div class="profile-header-panel profile-picture-header-panel">
                     |<img id="profile-picture" src="$profilePictureUrl" alt="$escapedUsername profile picture"/>
-                    |</div>""".trimMargin()
+                    |</div>
+                """.trimMargin()
             } else {
                 ""
             }
