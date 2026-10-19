@@ -7,10 +7,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * Replace tags (i.e. {{tag_name}}) in templates with their resolved content
  */
-abstract class TemplateRenderer(
-    private val baseTagResolvers: List<TagResolver>,
-    private val disabledTemplates: List<String>,
-) {
+abstract class TemplateRenderer(private val baseTagResolvers: List<TagResolver>, private val disabledTemplates: List<String>) {
 
     suspend fun render(text: String, specificTagResolvers: List<TagResolver> = listOf()): String {
         val allTagResolvers = baseTagResolvers + specificTagResolvers
@@ -31,6 +28,7 @@ abstract class TemplateRenderer(
                 // but preserve author-written blank lines (e.g. inside <pre>).
                 if (inlined.isBlank() && line.isNotBlank()) listOf() else listOf(inlined)
             }
+
             else -> renderTag(parsedTag, resolvers)
         }
     }
@@ -67,7 +65,8 @@ abstract class TemplateRenderer(
 
     // Recursively resolves nested tags
     private suspend fun renderTag(parsedTag: ParsedTag, resolvers: List<TagResolver>): List<String> {
-        fun isTagEnabled(tagName: String) = !disabledTemplates.contains(tagName)
+        fun isTagEnabled(tagName: String) =
+            !disabledTemplates.contains(tagName)
 
         fun clearUnusedSubstitutionTags(line: String): String {
             val start = line.indexOf("\${")
@@ -90,9 +89,8 @@ abstract class TemplateRenderer(
             return clearUnusedSubstitutionTags(result)
         }
 
-        fun containsTag(line: String): Boolean {
-            return line.contains(TAG_OPEN) && line.contains(TAG_CLOSE)
-        }
+        fun containsTag(line: String): Boolean =
+            line.contains(TAG_OPEN) && line.contains(TAG_CLOSE)
 
         if (isTagEnabled(parsedTag.tagName)) {
             val resolver = resolvers.find { resolver -> resolver.tagName == parsedTag.tagName }
@@ -175,14 +173,15 @@ abstract class TemplateRenderer(
                         val (key, value) = arg.split(KEY_VALUE_SEPARATOR, limit = 2)
                             .map { it.trim() }
                         when (key) {
-                            "keepIndentation" -> result =
-                                result.copy(keepIndentation = value.toBoolean())
+                            "keepIndentation" ->
+                                result =
+                                    result.copy(keepIndentation = value.toBoolean())
 
-                            "iterations" -> result =
-                                result.copy(iteration = value.toInt())
+                            "iterations" ->
+                                result =
+                                    result.copy(iteration = value.toInt())
                         }
                     }
-
                 }
 
             return result
@@ -210,7 +209,5 @@ abstract class TemplateRenderer(
         const val KEY_VALUE_SEPARATOR = ":"
         const val ARG_OPEN_SUBSTITUTION_MAP = "{"
         const val ARG_CLOSE_SUBSTITUTION_MAP = "}"
-
     }
-
 }

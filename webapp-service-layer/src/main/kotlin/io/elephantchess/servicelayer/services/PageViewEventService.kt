@@ -6,14 +6,16 @@ import io.elephantchess.db.services.PageViewEventDaoService
 import io.elephantchess.db.utils.generateId
 import io.elephantchess.servicelayer.model.AuthenticatedToken
 import io.elephantchess.servicelayer.model.VerifiedToken
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.random.Random.Default.nextDouble
 
+@KoinSingleton
 class PageViewEventService(
     private val pageViewDaoService: PageViewEventDaoService,
     private val userCache: UserCache,
     appConfig: AppConfig,
-    private val logger: KLogger
+    private val logger: KLogger,
 ) {
 
     private val webHost = appConfig.webHost
@@ -56,5 +58,4 @@ class PageViewEventService(
             logger.info { pingLoggingLine }
         }
     }
-
 }

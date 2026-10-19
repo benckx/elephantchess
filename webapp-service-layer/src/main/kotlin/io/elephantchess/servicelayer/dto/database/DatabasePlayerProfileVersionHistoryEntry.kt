@@ -9,5 +9,5 @@ data class DatabasePlayerProfileVersionHistoryEntry(
     val canonicalName: String,
     val chineseName: String?,
     val gender: String?,
-    val enabled: Boolean
+    val enabled: Boolean,
 )

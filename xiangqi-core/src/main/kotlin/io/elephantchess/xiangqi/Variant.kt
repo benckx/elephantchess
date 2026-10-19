@@ -14,22 +14,25 @@ enum class Variant {
      *
      * @see <a href="https://en.wikipedia.org/wiki/Manchu_chess">Wikipedia: Manchu chess</a>
      */
-    MANCHU;
+    MANCHU,
+
+    ;
 
     /**
      * The Chinese character commonly used to represent this variant.
      */
-    fun chineseChar(): String = when (this) {
-        XIANGQI -> "象"
-        MANCHU -> "统"
-    }
+    fun chineseChar(): String =
+        when (this) {
+            XIANGQI -> "象"
+            MANCHU -> "统"
+        }
 
     /**
      * The Fairy Stockfish variant name for this variant (used with `setoption name UCI_Variant value <name>`).
      */
-    fun fairyStockfishVariantName(): String = when (this) {
-        XIANGQI -> "xiangqi"
-        MANCHU -> "manchu"
-    }
-
+    fun fairyStockfishVariantName(): String =
+        when (this) {
+            XIANGQI -> "xiangqi"
+            MANCHU -> "manchu"
+        }
 }

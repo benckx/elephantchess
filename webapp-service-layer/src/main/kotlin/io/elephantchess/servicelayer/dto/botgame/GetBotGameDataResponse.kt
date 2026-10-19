@@ -21,5 +21,5 @@ data class GetBotGameDataResponse(
     val created: Long,
     val lastUpdated: Long,
     val outcome: Outcome?,
-    val variant: Variant
+    val variant: Variant,
 )

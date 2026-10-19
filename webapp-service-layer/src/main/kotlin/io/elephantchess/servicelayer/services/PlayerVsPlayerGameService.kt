@@ -20,18 +20,21 @@ import io.elephantchess.model.Outcome.RED_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
+import io.elephantchess.servicelayer.dto.lobby.AlwaysVisibleInLobbyAllowedResponse
 import io.elephantchess.servicelayer.dto.ws.*
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.ForbiddenException
 import io.elephantchess.servicelayer.exceptions.InternalErrorException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.model.UserId
+import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.ws.GamesToPlayWebSocketSession
 import io.elephantchess.servicelayer.services.ws.PlayerVsPlayerWebSocketSession
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
 import io.elephantchess.xiangqi.Board.Companion.isCheckmated
@@ -47,6 +50,7 @@ import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.random.Random
@@ -58,6 +62,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import io.elephantchess.servicelayer.dto.ws.RatingUpdate as RatingUpdateWs
 
+@KoinSingleton
 class PlayerVsPlayerGameService(
     private val userService: UserService,
     private val userDaoService: UserDaoService,
@@ -67,26 +72,35 @@ class PlayerVsPlayerGameService(
     private val gameChatTypingStatusDaoService: GameChatTypingStatusDaoService,
     private val userCache: UserCache,
     private val discordService: DiscordService,
+    private val exceptionService: ExceptionService,
     private val logger: KLogger,
-    refresherScope: CoroutineScope
+    refresherScope: CoroutineScope,
 ) {
 
     private val perpetualCheckRules by lazy { defaultPerpetualCheckingRules }
-    private val gamesToPlaySessions = mutableListOf<GamesToPlayWebSocketSession>()
-    private val playerVsPlayerSessions = mutableListOf<PlayerVsPlayerWebSocketSession>()
+    private val gamesToPlaySessions = CopyOnWriteArrayList<GamesToPlayWebSocketSession>()
+    private val playerVsPlayerSessions = CopyOnWriteArrayList<PlayerVsPlayerWebSocketSession>()
 
     private val pvpSessionsRefreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = 500.milliseconds,
         period = 500.milliseconds,
-        action = { refreshPlayerVsPlayerSessions() }
+        onError = {
+            logger.error(it) { "error in player-vs-player session refresh" }
+            exceptionService.saveException(it)
+        },
+        action = { refreshPlayerVsPlayerSessions() },
     )
 
     private val gamesToPlayRefreshJob = launchAtFixedRate(
         scope = refresherScope,
         initialDelay = 3.seconds,
         period = 3.seconds,
-        action = { refreshGamesToPlaySessions() }
+        onError = {
+            logger.error(it) { "error in games-to-play session refresh" }
+            exceptionService.saveException(it)
+        },
+        action = { refreshGamesToPlaySessions() },
     )
 
     private val dynamicMatchingJob = launchAtFixedRate(
@@ -98,7 +112,7 @@ class PlayerVsPlayerGameService(
             if (onlineUserIds.size >= 2) {
                 findDynamicMatches(onlineUserIds)
             }
-        }
+        },
     )
 
     fun cancel() {
@@ -128,7 +142,7 @@ class PlayerVsPlayerGameService(
                                 mapToGameToPlayDto(
                                     game = game,
                                     userId = game.inviter,
-                                    onlineUserIds = onlineUserIds
+                                    onlineUserIds = onlineUserIds,
                                 )
                             },
                         turnToPlayGames = allActiveGames
@@ -138,11 +152,11 @@ class PlayerVsPlayerGameService(
                                 mapToGameToPlayDto(
                                     game = game,
                                     userId = game.opponentOf(session.userId)!!,
-                                    onlineUserIds = onlineUserIds
+                                    onlineUserIds = onlineUserIds,
                                 )
                             },
-                        totalOnline = onlineUserIds.size
-                    )
+                        totalOnline = onlineUserIds.size,
+                    ),
                 )
             }
         }
@@ -161,7 +175,10 @@ class PlayerVsPlayerGameService(
         // Drop already-closed sessions before fetching anything from DB.
         removeClosedPlayerVsPlayerSessions()
 
-        val allGameIds = playerVsPlayerSessions.map { session -> session.gameId }.distinct()
+        // Snapshot the sessions once so the derived gameIds stay consistent with the
+        // maps fetched below. New sessions added concurrently are picked up on the next run.
+        val sessions = playerVsPlayerSessions.toList()
+        val allGameIds = sessions.map { session -> session.gameId }.distinct()
 
         if (allGameIds.isEmpty()) {
             return
@@ -180,10 +197,16 @@ class PlayerVsPlayerGameService(
         val timeRemainingCache = mutableMapOf<String, CachedValue<TimeRemaining?>>()
         val drawPropositionUserCache = mutableMapOf<String, CachedValue<String?>>()
 
-        playerVsPlayerSessions
+        sessions
             .forEach { session ->
                 val gameId = session.gameId
-                val gameState = stateMap[gameId]!!
+                val gameState = stateMap[gameId]
+                if (gameState == null) {
+                    logger.warn {
+                        "Skipping refresh for gameId=$gameId because no game state was found (game removed?)"
+                    }
+                    return@forEach
+                }
                 val status = gameState.gameEventType
                 val index = gameState.index
 
@@ -200,7 +223,7 @@ class PlayerVsPlayerGameService(
                             inviteeUsername = userCache.fetchUsernameOrDefault(inviteeId),
                             inviteeRating = hasJoinedRecord.inviteeRating!!,
                             inviteeUserType = userCache.fetchUserType(inviteeId)!!,
-                            inviterColor = hasJoinedRecord.inviterColor
+                            inviterColor = hasJoinedRecord.inviterColor,
                         )
                     }
                 }
@@ -234,11 +257,11 @@ class PlayerVsPlayerGameService(
                 }
 
                 val chatMessages = mutableListOf<ChatMessage>()
-                if (session.currentChatIndex() < chatIndexes[gameId]!!) {
+                if (session.currentChatIndex() < (chatIndexes[gameId] ?: 0)) {
                     chatMessages.addAll(
                         chatMessageDaoService
                             .listMessagesAfterOrEqualToIndex(gameId, session.currentChatIndex())
-                            .map { record -> mapRecordToDto(record) }
+                            .map { record -> mapRecordToDto(record) },
                     )
                 }
 
@@ -259,11 +282,11 @@ class PlayerVsPlayerGameService(
 
                 val shouldUpdate =
                     session.currentStatus() != status ||
-                            newMove != null ||
-                            hasJoinedEvent != null ||
-                            timeRemaining != null ||
-                            chatMessages.isNotEmpty() ||
-                            typingUsers.isNotEmpty()
+                        newMove != null ||
+                        hasJoinedEvent != null ||
+                        timeRemaining != null ||
+                        chatMessages.isNotEmpty() ||
+                        typingUsers.isNotEmpty()
 
                 // update session
                 if (shouldUpdate) {
@@ -284,7 +307,7 @@ class PlayerVsPlayerGameService(
                             timeRemaining = timeRemaining,
                             chatMessages = chatMessages,
                             typingUsers = typingUsers,
-                        )
+                        ),
                     )
                 }
             }
@@ -297,13 +320,12 @@ class PlayerVsPlayerGameService(
         }
     }
 
-
     private suspend fun fetchAllGamesOpenToJoin(onlineUserIds: Set<String>) =
         pvpGameDaoService
             .listGamesOpenToJoin()
             .filter { gameRecord ->
                 gameRecord.alwaysVisibleInLobby ||
-                        onlineUserIds.contains(gameRecord.inviter)
+                    onlineUserIds.contains(gameRecord.inviter)
             }
 
     private suspend fun fetchAllActiveGames(onlineUserIds: Set<String>) =
@@ -311,7 +333,7 @@ class PlayerVsPlayerGameService(
             .listAllActiveGames()
             .filter { gameRecord ->
                 onlineUserIds.contains(gameRecord.inviter) ||
-                        onlineUserIds.contains(gameRecord.invitee)
+                    onlineUserIds.contains(gameRecord.invitee)
             }
 
     suspend fun createGame(userId: UserId, request: CreateGameRequest): CreateGameResponse {
@@ -331,6 +353,18 @@ class PlayerVsPlayerGameService(
         // correspondence games can not be created by guest
         if (userId.userType == UserType.GUEST && request.timeControlMode == TimeControlMode.MOVE_TIME) {
             throw BadRequestException("Guest users are not allowed to create correspondence games")
+        }
+
+        if (userId.userType == UserType.GUEST && request.alwaysVisibleInLobby) {
+            throw BadRequestException("Guest users are not allowed to use the 'always show in lobby' option")
+        }
+
+        if (!request.privateInvite && request.alwaysVisibleInLobby && !isOptionAlwaysVisibleInLobbyAllowed(userId.id)) {
+            throw BadRequestException(
+                "The 'always show in lobby' option is not allowed for this game. " +
+                    "It can only be enabled for correspondence games or if you have a valid email address and the" +
+                    " 'someone joined my game' email notification enabled.",
+            )
         }
 
         // limit the number of CREATED games a user can have with the same settings
@@ -395,12 +429,37 @@ class PlayerVsPlayerGameService(
         return CreateGameResponse(game.id, CREATED, request.inviterColor)
     }
 
-    private suspend fun findMatchingGame(
-        userId: UserId,
-        userRating: Int,
-        request: CreateGameRequest,
-    ): Game? {
-        return pvpGameDaoService.listCompatibleGames(
+    suspend fun isOptionAlwaysVisibleInLobbyAllowed(verifiedToken: VerifiedToken): AlwaysVisibleInLobbyAllowedResponse {
+        if (verifiedToken.userId().userType == UserType.GUEST) {
+            return AlwaysVisibleInLobbyAllowedResponse(false)
+        }
+
+        return AlwaysVisibleInLobbyAllowedResponse(
+            allowed = isOptionAlwaysVisibleInLobbyAllowed(verifiedToken.userId().id),
+        )
+    }
+
+    /**
+     * Whether the user is allowed to use the "always show in lobby (also when I'm offline)" option when creating
+     * a new game. The option only makes sense if we can notify the user by email when someone joins their
+     * game while they are offline, so it requires:
+     *
+     * - a valid email address (manually confirmed or automatically verified)
+     * - the "someone joined my game" email notification to be enabled.
+     *
+     * Guest users have no email address and are therefore never allowed.
+     */
+    internal suspend fun isOptionAlwaysVisibleInLobbyAllowed(userId: String): Boolean {
+        val email = userDaoService.fetchEmail(userId) ?: return false
+        if (!mailService.isEmailAddressValid(email)) {
+            return false
+        }
+        val notificationSettings = userDaoService.fetchNotificationSettings(userId) ?: return false
+        return notificationSettings.opponentJoinedGame
+    }
+
+    private suspend fun findMatchingGame(userId: UserId, userRating: Int, request: CreateGameRequest): Game? =
+        pvpGameDaoService.listCompatibleGames(
             inviterColor = request.inviterColor,
             isRated = request.isRated,
             timeControlMode = request.timeControlMode,
@@ -408,11 +467,10 @@ class PlayerVsPlayerGameService(
             timeControlIncrement = request.timeControlIncrement,
             userType = userId.userType,
             userId = userId.id,
-            variant = request.variant
+            variant = request.variant,
         )
             .filter { gameRecord -> isOnline(gameRecord.inviter) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
-    }
 
     /**
      * Pair together pending games whose inviters are now both online but did
@@ -535,10 +593,7 @@ class PlayerVsPlayerGameService(
             }
     }
 
-    suspend fun startGamesToPlaySession(
-        userId: UserId,
-        sendCb: (GamesToPlayUpdate) -> ChannelResult<Unit>,
-    ): String {
+    suspend fun startGamesToPlaySession(userId: UserId, sendCb: (GamesToPlayUpdate) -> ChannelResult<Unit>): String {
         validateUserType(userId)
 
         val session = GamesToPlayWebSocketSession(userId, sendCb)
@@ -552,11 +607,7 @@ class PlayerVsPlayerGameService(
             ?.markAsClosed()
     }
 
-    suspend fun startPlayerVsPlayerSession(
-        userId: UserId,
-        gameId: String,
-        sendCb: (PlayerVsPlayerUpdate) -> ChannelResult<Unit>,
-    ): String {
+    suspend fun startPlayerVsPlayerSession(userId: UserId, gameId: String, sendCb: (PlayerVsPlayerUpdate) -> ChannelResult<Unit>): String {
         validateUserType(userId)
 
         val gameState =
@@ -570,7 +621,7 @@ class PlayerVsPlayerGameService(
                 status = gameState.gameEventType,
                 moveIndex = gameState.index,
                 chatIndex = chatMessageDaoService.currentIndex(gameId),
-                sendCb = sendCb
+                sendCb = sendCb,
             )
         playerVsPlayerSessions += session
         logger.debug { "created $session for $userId" }
@@ -587,7 +638,7 @@ class PlayerVsPlayerGameService(
                 chatMessageDaoService.insertChat(
                     gameId = gameId,
                     userId = userId.id,
-                    content = input.message.trim().take(MESSAGE_LENGTH_LIMIT)
+                    content = input.message.trim().take(MESSAGE_LENGTH_LIMIT),
                 )
             } else if (input.isTyping) {
                 gameChatTypingStatusDaoService.upsertTypingStatus(gameId, userId.id)
@@ -687,9 +738,8 @@ class PlayerVsPlayerGameService(
         joinTime: Instant?,
         endTime: Instant?,
     ): TimeRemaining {
-        fun timeElapsed(since: Instant): Long {
-            return (endTime ?: Clock.System.now()).toEpochMilliseconds() - since.toEpochMilliseconds()
-        }
+        fun timeElapsed(since: Instant): Long =
+            (endTime ?: Clock.System.now()).toEpochMilliseconds() - since.toEpochMilliseconds()
 
         val baseMs = timeControl.base * 1_000L
         val incrementMs = timeControl.increment * 1_000L
@@ -767,7 +817,7 @@ class PlayerVsPlayerGameService(
                 userId = userId,
                 gameId = gameId,
                 winnerColor = color.reverse(),
-                updateRatingsCallback = updateRatingsCallback
+                updateRatingsCallback = updateRatingsCallback,
             )
             // TODO: send email when offline?
         }
@@ -833,7 +883,7 @@ class PlayerVsPlayerGameService(
                 updatedInviterColor = inviterColor,
                 timeControlRecord = timeControlRecord,
                 source = request.source,
-                sourceId = request.sourceId
+                sourceId = request.sourceId,
             )
 
             // if inviter has been offline for > N seconds, send email notification
@@ -843,7 +893,7 @@ class PlayerVsPlayerGameService(
                     mailService.sendUserJoinedGameWhileOffline(
                         recipient = recipient,
                         inviteeUsername = userCache.fetchUsernameOrDefault(userId),
-                        gameId = gameId
+                        gameId = gameId,
                     )
                 }
 
@@ -851,7 +901,7 @@ class PlayerVsPlayerGameService(
 
             return JoinGameResponse(
                 inviteeColor = inviteeColor,
-                inviteeRating = userRating
+                inviteeRating = userRating,
             )
         }
     }
@@ -873,13 +923,13 @@ class PlayerVsPlayerGameService(
                     gameId = gameId,
                     userId = userId,
                     gamePlayersStatus,
-                    NOTIFICATIONS_OFFLINE_FOR
+                    NOTIFICATIONS_OFFLINE_FOR,
                 )
                 ?.let { recipient ->
                     mailService.sendOpponentResignedWhileOffline(
                         recipient = recipient,
                         opponent = userCache.fetchUsernameOrDefault(userId),
-                        gameId = gameId
+                        gameId = gameId,
                     )
                 }
 
@@ -905,13 +955,13 @@ class PlayerVsPlayerGameService(
                     gameId = gameId,
                     userId = userId,
                     gamePlayersStatus,
-                    NOTIFICATIONS_OFFLINE_FOR
+                    NOTIFICATIONS_OFFLINE_FOR,
                 )
                 ?.let { recipient ->
                     mailService.sendDrawProposedWhileOffline(
                         recipient = recipient,
                         opponent = userCache.fetchUsernameOrDefault(userId),
-                        gameId = gameId
+                        gameId = gameId,
                     )
                 }
         }
@@ -938,14 +988,14 @@ class PlayerVsPlayerGameService(
                     gameId = gameId,
                     userId = userId,
                     gamePlayersStatus,
-                    NOTIFICATIONS_OFFLINE_FOR
+                    NOTIFICATIONS_OFFLINE_FOR,
                 )
                 ?.let { recipient ->
                     mailService.sendOpponentRespondedToDrawWhileOffline(
                         recipient = recipient,
                         opponent = userCache.fetchUsernameOrDefault(userId),
                         accepted = accept,
-                        gameId = gameId
+                        gameId = gameId,
                     )
                 }
         }
@@ -992,12 +1042,12 @@ class PlayerVsPlayerGameService(
             if (isCheckmated(updatedFen)) {
                 result = result.copy(
                     newGameEventType = CHECKMATED,
-                    outcome = userColor.asWinnerOutcome()
+                    outcome = userColor.asWinnerOutcome(),
                 )
             } else if (isStalemated(updatedFen)) {
                 result = result.copy(
                     newGameEventType = STALEMATED,
-                    outcome = userColor.asWinnerOutcome()
+                    outcome = userColor.asWinnerOutcome(),
                 )
             } else if (isInCheck(updatedFen, opponentColor)) {
                 result = result.flagInCheck()
@@ -1015,7 +1065,7 @@ class PlayerVsPlayerGameService(
                 hasViolatedPerpetualCheckingRule = { game, moves ->
                     hasViolatedPerpetualCheckingRuleCallback(game, moves)
                 },
-                updateRatingsCallback = updateRatingsCallback
+                updateRatingsCallback = updateRatingsCallback,
             )
 
         return when (dbResult) {
@@ -1031,13 +1081,13 @@ class PlayerVsPlayerGameService(
                         gameId = gameId,
                         userId = userId,
                         gamePlayersStatus,
-                        NOTIFICATIONS_OFFLINE_FOR
+                        NOTIFICATIONS_OFFLINE_FOR,
                     )
                     ?.let { recipient ->
                         mailService.sendOpponentPlayedMoveWhileOffline(
                             recipient = recipient,
                             opponent = userCache.fetchUsernameOrDefault(userId),
-                            gameId = gameId
+                            gameId = gameId,
                         )
                     }
 
@@ -1051,11 +1101,12 @@ class PlayerVsPlayerGameService(
                     updatedIndex = playMoveResult.newPosition,
                     updatedFen = playMoveResult.newFen,
                     gameEventType = playMoveResult.newGameEventType,
-                    ratingUpdate = ratingUpdate
+                    ratingUpdate = ratingUpdate,
                 )
             }
 
             is TryEither.Invalid -> throw dbResult.exception
+
             else -> throw InternalErrorException("Unexpected result")
         }
     }
@@ -1063,10 +1114,7 @@ class PlayerVsPlayerGameService(
     /**
      * Moves must include last one played
      */
-    private fun hasViolatedPerpetualCheckingRuleCallback(
-        game: Game,
-        moves: List<String>
-    ): PerpetualCheckingCallbackResult? {
+    private fun hasViolatedPerpetualCheckingRuleCallback(game: Game, moves: List<String>): PerpetualCheckingCallbackResult? {
         val startFen = Board.defaultStartFen(game.variant ?: Variant.XIANGQI)
         val board = Board(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
@@ -1076,12 +1124,15 @@ class PlayerVsPlayerGameService(
         if (map.isNotEmpty()) {
             map.toList().sortedBy { (key, _) -> key }.forEach { (key, sequence) ->
                 val fullMovesStr = sequence.fullMoves().joinToString(", ")
-                logger.info { "[$key] ${sequence.attackers} / $fullMovesStr [${sequence.size()}]" }
+                logger.debug { "[$key] ${sequence.attackers} / $fullMovesStr [${sequence.size()}]" }
                 perpetualCheckRules.forEach { rule ->
                     val hasExceeded = sequence.exceeds(rule)
-                    logger.info { "exceeds $rule -> $hasExceeded" }
+                    logger.debug { "exceeds $rule -> $hasExceeded" }
                     if (hasExceeded) {
-                        return PerpetualCheckingCallbackResult(PERPETUAL_CHECKING, playerColor.asLoserOutcome())
+                        return PerpetualCheckingCallbackResult(
+                            newGameEventType = PERPETUAL_CHECKING,
+                            outcome = playerColor.asLoserOutcome(),
+                        )
                     }
                 }
             }
@@ -1107,10 +1158,7 @@ class PlayerVsPlayerGameService(
             null
         }
 
-    private suspend fun fetchRatingUpdateIfNecessaryWs(
-        gameId: String,
-        gameEventType: GameEventType
-    ): RatingUpdateWs? {
+    private suspend fun fetchRatingUpdateIfNecessaryWs(gameId: String, gameEventType: GameEventType): RatingUpdateWs? {
         fun mapToWsRatingUpdate(gameRatingUpdate: RatingUpdate?): RatingUpdateWs? =
             gameRatingUpdate?.let {
                 RatingUpdateWs(
@@ -1156,30 +1204,30 @@ class PlayerVsPlayerGameService(
             if (gameRecord.isRated && outcome != Outcome.DRAW) {
                 val k = gameRecord.kValue
                 val isInviterWinner =
-                    (outcome == RED_WINS && gameRecord.inviterColor == RED)
-                            || (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
+                    (outcome == RED_WINS && gameRecord.inviterColor == RED) ||
+                        (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
 
                 if (isInviterWinner) {
                     val elo = calculateElo(
                         winnerRating = inviterCurrentRating,
                         loserRating = inviteeCurrentRating,
-                        k = k
+                        k = k,
                     )
 
                     UpdateRatingsCallbackResult(
                         inviterNewRating = elo.winnerNewRating,
-                        inviteeNewRating = elo.loserNewRating
+                        inviteeNewRating = elo.loserNewRating,
                     )
                 } else {
                     val elo = calculateElo(
                         winnerRating = inviteeCurrentRating,
                         loserRating = inviterCurrentRating,
-                        k = k
+                        k = k,
                     )
 
                     UpdateRatingsCallbackResult(
                         inviterNewRating = elo.loserNewRating,
-                        inviteeNewRating = elo.winnerNewRating
+                        inviteeNewRating = elo.winnerNewRating,
                     )
                 }
             } else {
@@ -1187,12 +1235,8 @@ class PlayerVsPlayerGameService(
             }
         }
 
-    private suspend fun mapToGameToPlayDto(
-        game: Game,
-        userId: String,
-        onlineUserIds: Set<String>
-    ): GameToPlay {
-        return GameToPlay(
+    private suspend fun mapToGameToPlayDto(game: Game, userId: String, onlineUserIds: Set<String>): GameToPlay =
+        GameToPlay(
             gameId = game.id,
             isRated = game.isRated,
             opponentUserId = userId,
@@ -1206,12 +1250,11 @@ class PlayerVsPlayerGameService(
             timeControlIncrement = game.timeControlIncrement,
             allowGuests = game.allowGuestsToJoin,
             lastUpdated = game.lastUpdated.toEpochMilliseconds(),
-            variant = game.variant
+            variant = game.variant,
         )
-    }
 
-    private suspend fun mapRecordToDto(message: GameChatMessage): ChatMessage {
-        return ChatMessage(
+    private suspend fun mapRecordToDto(message: GameChatMessage): ChatMessage =
+        ChatMessage(
             index = message.index,
             author = ChatMessage.Author(
                 userId = message.author,
@@ -1219,18 +1262,13 @@ class PlayerVsPlayerGameService(
                 userType = userCache.fetchUserType(message.author)!!,
             ),
             messageTime = message.messageTime.toEpochMilliseconds(),
-            content = message.content
+            content = message.content,
         )
-    }
 
     private data class CachedValue<T>(val value: T)
 
-    private inline fun <K, V> MutableMap<K, CachedValue<V?>>.cachedGetOrPut(
-        key: K,
-        defaultValue: () -> V?
-    ): V? {
-        return getOrPut(key) { CachedValue(defaultValue()) }.value
-    }
+    private inline fun <K, V> MutableMap<K, CachedValue<V?>>.cachedGetOrPut(key: K, defaultValue: () -> V?): V? =
+        getOrPut(key) { CachedValue(defaultValue()) }.value
 
     private companion object {
 
@@ -1254,10 +1292,7 @@ class PlayerVsPlayerGameService(
             return String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millisRemainder)
         }
 
-        fun TimeRemaining.pretty(): String {
-            return "red " + formatMillis(this.red) + " vs. black " + formatMillis(this.black)
-        }
-
+        fun TimeRemaining.pretty(): String =
+            "red " + formatMillis(this.red) + " vs. black " + formatMillis(this.black)
     }
-
 }

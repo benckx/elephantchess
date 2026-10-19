@@ -7,7 +7,7 @@ data class UserSessionsResponse(val entries: List<Entry>) {
         val username: String?,
         val os: String,
         val agentName: String,
-        val agentClass:  String?,
+        val agentClass: String?,
         val countryCode: String?,
         val countryName: String?,
         val region: String?,
@@ -16,5 +16,4 @@ data class UserSessionsResponse(val entries: List<Entry>) {
         val created: Long,
         val updated: Long,
     )
-
 }

@@ -7,5 +7,5 @@ data class PlayMoveResponse(
     val updatedIndex: Int,
     val updatedFen: String,
     val gameEventType: GameEventType?,
-    val ratingUpdate: RatingUpdate?
+    val ratingUpdate: RatingUpdate?,
 )

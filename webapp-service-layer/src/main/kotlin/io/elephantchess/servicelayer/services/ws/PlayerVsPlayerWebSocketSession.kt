@@ -20,19 +20,21 @@ class PlayerVsPlayerWebSocketSession(
     private var timeRemainingLastSync: Instant? = null
     private var drawPropositionUser: String? = null
 
-    fun currentIndex(): Int = moveIndex
+    fun currentIndex(): Int =
+        moveIndex
 
-    fun currentChatIndex(): Int = chatIndex
+    fun currentChatIndex(): Int =
+        chatIndex
 
-    fun currentStatus(): GameEventType = status
+    fun currentStatus(): GameEventType =
+        status
 
     fun isWaitingToBeJoined() =
         status == GameEventType.CREATED
 
-    fun mustSyncTime(now: Instant): Boolean {
-        return timeRemainingLastSync == null ||
-                now > (timeRemainingLastSync!! + TIME_REMAINING_SYNC_INTERVAL)
-    }
+    fun mustSyncTime(now: Instant): Boolean =
+        timeRemainingLastSync == null ||
+            now > (timeRemainingLastSync!! + TIME_REMAINING_SYNC_INTERVAL)
 
     override fun update(update: PlayerVsPlayerUpdate) {
         var mustUpdate = false
@@ -70,7 +72,7 @@ class PlayerVsPlayerWebSocketSession(
             mustUpdate = true
         }
 
-        // push update  
+        // push update
         if (mustUpdate) {
             val result = sendCb(update)
             if (result.isClosed) {
@@ -87,7 +89,5 @@ class PlayerVsPlayerWebSocketSession(
     private companion object {
 
         val TIME_REMAINING_SYNC_INTERVAL = 20.seconds
-
     }
-
 }

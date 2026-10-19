@@ -9,8 +9,7 @@ class ContactLinkTagResolver(appConfig: AppConfig) : TagResolver {
     private val webHost = appConfig.webHost
 
     override suspend fun resolveContent(): List<String> {
-        val url = "${webHost}/about"
+        val url = "$webHost/about"
         return listOf(makeAnchor(url))
     }
-
 }

@@ -9,7 +9,7 @@ data class Position(val x: Int, val y: Int) {
         get() = x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE
 
     val uci: String
-        get() = "${('a' + x)}${y}"
+        get() = "${('a' + x)}$y"
 
     val algebraic: String
         get() = "${('a' + x)}${y + 1}"
@@ -50,7 +50,8 @@ data class Position(val x: Int, val y: Int) {
     fun allBottomRightDiagonalsFor(n: Int) =
         (1..n).map { Position(x + it, y - it) }
 
-    override fun toString() = "($x, $y)"
+    override fun toString() =
+        "($x, $y)"
 
     companion object {
 
@@ -68,5 +69,4 @@ data class Position(val x: Int, val y: Int) {
             return positions
         }
     }
-
 }

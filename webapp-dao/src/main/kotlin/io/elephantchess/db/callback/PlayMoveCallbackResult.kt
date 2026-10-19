@@ -13,12 +13,9 @@ data class PlayMoveCallbackResult(
     val mustCheckPerpetualChecking: Boolean = false,
 ) {
 
-    fun flagInCheck(): PlayMoveCallbackResult {
-        return copy(mustCheckPerpetualChecking = true)
-    }
+    fun flagInCheck(): PlayMoveCallbackResult =
+        copy(mustCheckPerpetualChecking = true)
 
-    fun isMated(): Boolean {
-        return outcome != null && (newGameEventType == CHECKMATED || newGameEventType == STALEMATED)
-    }
-
+    fun isMated(): Boolean =
+        outcome != null && (newGameEventType == CHECKMATED || newGameEventType == STALEMATED)
 }
