@@ -4,6 +4,5 @@ enum class PuzzleOutcome {
 
     SOLVED,
     FAILED,
-    SKIPPED
-
+    SKIPPED,
 }

@@ -8,5 +8,4 @@ data class GetUpcomingEventsResponse(val events: List<UpcomingEvent>) {
         val description: String,
         val link: String,
     )
-
 }

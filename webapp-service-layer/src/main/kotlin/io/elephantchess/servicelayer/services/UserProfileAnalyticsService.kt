@@ -1,7 +1,7 @@
 package io.elephantchess.servicelayer.services
 
-import io.elephantchess.db.services.PuzzleDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
+import io.elephantchess.db.services.PuzzleDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.model.PuzzleOutcome
 import io.elephantchess.model.TimeControlCategory
@@ -14,18 +14,20 @@ import io.elephantchess.model.TimeControlCategory.SEVERAL_DAYS
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsNumbersResponse
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsRatingResponse
 import io.elephantchess.servicelayer.dto.puzzles.PuzzleStatsSummaryResponse
-import io.elephantchess.servicelayer.dto.user.PlayerVsPlayerStatsDto
-import io.elephantchess.servicelayer.dto.user.TimeCategoryPlayerVsPlayerStatsDto
-import io.elephantchess.servicelayer.dto.user.TimeCategoryStatsDto
 import io.elephantchess.servicelayer.dto.user.GameStatsResponse
+import io.elephantchess.servicelayer.dto.user.NumberOfGamesPerTimeCategory
+import io.elephantchess.servicelayer.dto.user.NumberOfOutcomes
+import io.elephantchess.servicelayer.dto.user.RatingsPerTimeCategory
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.UserService.Companion.PUZZLE_START_RATING
+import io.elephantchess.utils.di.KoinSingleton
 import java.time.LocalDate
 
+@KoinSingleton
 class UserProfileAnalyticsService(
     private val userDaoService: UserDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
-    private val puzzleDaoService: PuzzleDaoService
+    private val puzzleDaoService: PuzzleDaoService,
 ) {
 
     suspend fun fetchGameRatings(userId: String): GameStatsResponse {
@@ -33,35 +35,35 @@ class UserProfileAnalyticsService(
             ?: throw NotFoundException("User $userId could not be found")
 
         return GameStatsResponse(
-            ratings = TimeCategoryStatsDto(
+            ratings = RatingsPerTimeCategory(
                 bullet = userRecord.gameRatingBullet,
                 blitz = userRecord.gameRatingBlitz,
                 rapid = userRecord.gameRatingRapid,
                 classical = userRecord.gameRatingClassical,
                 severalDays = userRecord.gameRatingSeveralDays,
-                correspondence = userRecord.gameRatingCorrespondence
+                correspondence = userRecord.gameRatingCorrespondence,
             ),
-            pvp = fetchPlayerVsPlayerStatsByCategory(userId)
+            pvp = fetchPlayerVsPlayerStatsByCategory(userId),
         )
     }
 
-    private suspend fun fetchPlayerVsPlayerStatsByCategory(userId: String): TimeCategoryPlayerVsPlayerStatsDto {
+    private suspend fun fetchPlayerVsPlayerStatsByCategory(userId: String): NumberOfGamesPerTimeCategory {
         val pvpStatsByCategory = playerVsPlayerGameDaoService
             .fetchPlayerVsPlayerOutcomeStatsPerCategory(userId)
             .associateBy { it.category }
 
-        val noGamesStats = PlayerVsPlayerStatsDto(wins = 0, losses = 0, draws = 0)
+        val noGamesStats = NumberOfOutcomes(wins = 0, losses = 0, draws = 0)
 
-        fun pvpStatsFor(category: TimeControlCategory): PlayerVsPlayerStatsDto {
+        fun pvpStatsFor(category: TimeControlCategory): NumberOfOutcomes {
             val stats = pvpStatsByCategory[category] ?: return noGamesStats
-            return PlayerVsPlayerStatsDto(
+            return NumberOfOutcomes(
                 wins = stats.wins,
                 losses = stats.losses,
-                draws = stats.draws
+                draws = stats.draws,
             )
         }
 
-        return TimeCategoryPlayerVsPlayerStatsDto(
+        return NumberOfGamesPerTimeCategory(
             bullet = pvpStatsFor(BULLET),
             blitz = pvpStatsFor(BLITZ),
             rapid = pvpStatsFor(RAPID),
@@ -79,7 +81,7 @@ class UserProfileAnalyticsService(
         return PuzzleStatsSummaryResponse(
             rating = rating,
             maxRating = maxRating,
-            totalPlayed = totalPlayed
+            totalPlayed = totalPlayed,
         )
     }
 
@@ -105,7 +107,7 @@ class UserProfileAnalyticsService(
                     entries += PuzzleStatsRatingResponse.Entry(
                         currentDate.toString(),
                         currentLastValue,
-                        currentMaxValue
+                        currentMaxValue,
                     )
                 }
                 currentDate = currentDate.plusDays(1L)
@@ -148,7 +150,7 @@ class UserProfileAnalyticsService(
                         date = currentDate.toString(),
                         solved = solvedForDay,
                         skipped = skippedForDay,
-                        failed = failedForDay
+                        failed = failedForDay,
                     )
 
                 currentDate = currentDate.plusDays(1L)
@@ -162,7 +164,5 @@ class UserProfileAnalyticsService(
 
         const val MAX_BAR_CHART = 10
         const val MAX_DAYS_LINE_CHART = 180
-
     }
-
 }

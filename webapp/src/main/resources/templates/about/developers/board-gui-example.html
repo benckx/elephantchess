@@ -13,18 +13,18 @@
 </head>
 <body>
 <div class="example-page">
-    <h1><code>board-gui.js</code> – minimal example</h1>
+    <h1>How to use <code>board-gui.js</code> library</h1>
     <p>
         This page demonstrates the <em>smallest</em> working setup for the <code>BoardGui</code> widget: just <code>board.css</code>,
         <code>xiangqi.js</code> and <code>board-gui.js</code>. View the page source for a copy-pasteable starting point.
         The non-minified versions of the JS and CSS files are accessible if you just removed the ".min" from the URLs,
-        so you can also see the functions.
+        so you can also check the implementation details.
     </p>
     <p>
-        If you only need in-memory functions (e.g. validating if a FEN is correct), you can just use
-        <code>xiangqi.js</code> without the GUI. <code>board-gui.js</code> only provides the visual board and user
-        interaction, but it relies on <code>xiangqi.js</code> for all the game logic (for examples legal moves).
-        Therefore <code>board-gui.js</code> requires <code>board.css</code>.
+        If you only need in-memory functions (e.g. validating if a FEN is correct), you can use <code>xiangqi.js</code>
+        without the GUI. <code>board-gui.js</code> only provides the visual board and user interaction, but it relies on
+        <code>xiangqi.js</code> for all the game logic (for examples list legal moves). <code>board-gui.js</code>
+        requires <code>board.css</code>.
     </p>
     <p>
         The images (pieces) and sound assets are resolved from <code>https://cdn.elephantchess.io/static</code> by
@@ -50,8 +50,14 @@
         <button id="btn-style-traditional">Pieces: Traditional</button>
     </div>
 
-    <h2>Setup</h2>
+    <h2>Minimal Setup</h2>
     <pre><code class="language-html">{{snippet_setup}}</code></pre>
+
+    <h2>Default Configuration</h2>
+    <p>
+        There are many parameters that can be overridden. Here are the default values:
+    </p>
+    <pre><code class="language-javascript">{{snipped_config}}</code></pre>
 
     <h2>Using <code>xiangqi.js</code> without the GUI</h2>
     <p>

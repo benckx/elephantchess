@@ -34,7 +34,10 @@ class PlayGamePage extends BasePage {
     /**
      * @type {MoveTreeWidget}
      */
-    #moveTreeWidget = new MoveTreeWidget({containerId: 'move-tree-container'});
+    #moveTreeWidget = new MoveTreeWidget({
+        containerId: 'move-tree-container',
+        ...moveTreeResizeCookiePersistence('pvp', 'move-tree-container')
+    });
 
     #redPlayerInfo = document.getElementById('red-player-info');
     #blackPlayerInfo = document.getElementById('black-player-info');
@@ -469,7 +472,21 @@ class PlayGamePage extends BasePage {
             }
         }
 
+        // show initial time when selecting the initial state (start FEN)
         const isLastMove = this.#moveTreeWidget.isLastMoveSelected();
+        const isStartFenSelected = selectedNode === null && !isLastMove;
+        if (isStartFenSelected) {
+            const timeControl = this.#gameController.gameDto.timeControl;
+            if (timeControl != null) {
+                const baseMs = timeControl.base.toMillis();
+                this.#renderClock(new TimeControlClock(baseMs, baseMs));
+            }
+            if (this.#chatBoxWidget != null) {
+                this.#chatBoxWidget.clearHighlightedMessage();
+            }
+            return;
+        }
+
         if (moveIndex == null || isLastMove) {
             // Back to "live" view: rely on the gameDto clock and clear highlight.
             this.#updateClocks();
@@ -920,12 +937,8 @@ class PlayGamePage extends BasePage {
 
     #renderAnalysisSummaryReportIfAvailable() {
         if (this.#gameController.isGameFinished()) {
-            renderAnalysisSummaryReportGeneric(
-                new GameId(GameType.PVP, this.#gameController.gameId),
-                this.#moveTreeWidget.getMainBranchNodes(),
-                DEFAULT_START_FEN,
-                this.#moveTreeWidget
-            );
+            const gameId = new GameId(GameType.PVP, this.#gameController.gameId);
+            fetchDataAndRenderAnalysisSummaryReport(gameId, this.#moveTreeWidget);
         }
     }
 

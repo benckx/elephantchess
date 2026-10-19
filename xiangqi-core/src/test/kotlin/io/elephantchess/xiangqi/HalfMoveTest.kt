@@ -1,8 +1,8 @@
 package io.elephantchess.xiangqi
 
-import io.elephantchess.xiangqi.testutils.ResourcesUtils.loadDigitsStringGame
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMovesFromDigitsString
+import io.elephantchess.xiangqi.testutils.ResourcesUtils.loadDigitsStringGame
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -33,5 +33,4 @@ class HalfMoveTest {
         logger.info { "actual fen:   $actualFen" }
         assertEquals(expectedFen, actualFen)
     }
-
 }

@@ -25,8 +25,9 @@ const EVAL_LINE_CHART_RENDER_DEBOUNCE_MS = 120;
  * @param nodes {MoveTreeNode[]}
  * @param analysisMap {Map<string, InfoLineResult>}
  * @param startFen {string}
+ * @param onClickNode {function(MoveTreeNode|null)}
  */
-function scheduleEvalChartRender(nodes, analysisMap, startFen) {
+function scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode) {
     if (scheduleEvalChartRenderTimeout != null) {
         clearTimeout(scheduleEvalChartRenderTimeout);
     }
@@ -42,44 +43,37 @@ function scheduleEvalChartRender(nodes, analysisMap, startFen) {
         if (evalLineChart != null) {
             evalLineChart.destroy();
         }
-        evalLineChart = new EvalLineChart('eval-line-chart-container', nodes, analysisMap, startFen);
+        evalLineChart = new EvalLineChart('eval-line-chart-container', analysisMap, startFen, nodes, onClickNode);
         evalLineChart.render();
     }, EVAL_LINE_CHART_RENDER_DEBOUNCE_MS);
 }
 
 /**
  * @param gameId {GameId}
- * @param nodes {MoveTreeNode[]}
- * @param startFen {string}
- * @param moveTreeWidget {MoveTreeWidget|null} optional widget on which annotation symbols (??, ?!, etc.) will be
- *        applied to the move history once analysis data is fetched
+ * @param moveTreeWidget {MoveTreeWidget}
  */
-function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_START_FEN, moveTreeWidget = null) {
-    if (startFen == null) {
-        startFen = DEFAULT_START_FEN;
-    }
-
+function fetchDataAndRenderAnalysisSummaryReport(gameId, moveTreeWidget) {
     const client = new GameDataClient(gameId);
     client.fetchAnalysisStatus((analysisProgressStatus) => {
         if (analysisProgressStatus.status === AnalysisStatus.COMPLETED) {
-            client.fetchAnalysisData((infoLineResults) => {
+            client.fetchAnalysisData((analysisResponse) => {
                 client.fetchMetadata((gameMetadata) => {
                     const analysisMap = new Map();
-                    infoLineResults.forEach((infoLineResult) => {
+                    analysisResponse.entries.forEach((infoLineResult) => {
                         analysisMap.set(resetFenFullMovesCount(infoLineResult.fen), infoLineResult);
                     });
 
                     renderAnalysisSummaryReport(
-                        nodes,
                         analysisMap,
-                        startFen,
                         gameMetadata.redPlayerName,
                         gameMetadata.blackPlayerName,
-                        gameMetadata.outcome
+                        gameMetadata.outcome,
+                        moveTreeWidget,
+                        analysisResponse.moveAnnotations
                     );
 
                     if (moveTreeWidget != null) {
-                        moveTreeWidget.applyAnnotationSymbolsFromCache(analysisMap);
+                        moveTreeWidget.applyAnnotationSymbols(analysisResponse.moveAnnotations);
                     }
                 });
             });
@@ -88,21 +82,31 @@ function renderAnalysisSummaryReportGeneric(gameId, nodes, startFen = DEFAULT_ST
 }
 
 /**
- * @param nodes {MoveTreeNode[]}
  * @param analysisMap {Map<string, InfoLineResult>}
- * @param startFen {string}
  * @param redPlayerName {string|null}
  * @param blackPlayerName {string|null}
  * @param outcome {string|null}
+ * @param moveTreeWidget {MoveTreeWidget}
+ * @param moveAnnotations {GameMoveAnnotationDto[]}
  */
 function renderAnalysisSummaryReport(
-    nodes,
     analysisMap,
-    startFen,
     redPlayerName,
     blackPlayerName,
-    outcome
+    outcome,
+    moveTreeWidget,
+    moveAnnotations = []
 ) {
+    const nodes = moveTreeWidget.getMainBranchNodes();
+    const startFen = moveTreeWidget.startFen;
+    const annotationsByMoveIndex = new Map(moveAnnotations.map(annotation => [annotation.moveIndex, annotation]));
+    const onClickNode = (node) => {
+        if (node != null) {
+            moveTreeWidget.selectNodeById(node.nodeId);
+        } else {
+            moveTreeWidget.navigateToStart();
+        }
+    };
 
     /**
      * @param nodes {Array<MoveTreeNode>}
@@ -114,36 +118,11 @@ function renderAnalysisSummaryReport(
             return nodes.map(node => node.fenKey).every(fenKey => analysisMap.has(fenKey));
         }
 
-        function hasDataForBestEngineMoves() {
-            return nodes.every(node => {
-                if (node.hasPrevious()) {
-                    const previousNodeData = analysisMap.get(node.previous.fenKey);
-                    if (previousNodeData == null) {
-                        return false;
-                    }
-
-                    if (previousNodeData.pv.length > 0) {
-                        const bestMove = previousNodeData.pv[0];
-                        const board = new Board();
-                        board.loadFen(previousNodeData.fen);
-                        board.registerMove(bestMove);
-                        const resultingFen = resetFenFullMovesCount(board.outputFen());
-                        if (!analysisMap.has(resultingFen)) {
-                            return false;
-                        }
-                    }
-                }
-
-                return true;
-            });
-        }
-
         function hasDataForStartPosition() {
             return analysisMap.has(resetFenFullMovesCount(startFen));
         }
 
         return hasDataForActualMoves() &&
-            hasDataForBestEngineMoves() &&
             hasDataForStartPosition();
     }
 
@@ -162,12 +141,9 @@ function renderAnalysisSummaryReport(
             }
 
             if (previousNodeData.colorToPlay === color) {
-                const dataFromEngineBestMove = findAnalysisDataFromEngineBestMove(analysisMap, previousNodeData);
-                if (dataFromEngineBestMove != null) {
-                    const annotationValue = calculateAnnotationValue(dataFromEngineBestMove, analysisMap.get(node.fenKey));
-                    if (annotationValue != null) {
-                        counter.set(annotationValue, counter.get(annotationValue) + 1 || 1);
-                    }
+                const moveAnnotation = annotationsByMoveIndex.get(node.position);
+                if (moveAnnotation != null) {
+                    counter.set(moveAnnotation.annotation, counter.get(moveAnnotation.annotation) + 1 || 1);
                 }
             }
         });
@@ -196,7 +172,7 @@ function renderAnalysisSummaryReport(
             row.cells.item(3).innerText = (counterBlack.get(symbolType) || 0).toString()
         }
 
-        scheduleEvalChartRender(nodes, analysisMap, startFen);
+        scheduleEvalChartRender(nodes, analysisMap, startFen, onClickNode);
 
         if (redPlayerName != null) {
             document

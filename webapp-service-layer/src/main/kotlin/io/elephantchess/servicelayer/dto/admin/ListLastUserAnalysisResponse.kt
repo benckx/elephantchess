@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.dto.admin
 
-data class ListLastUserAnalysisResponse(val entries : List<Entry>) {
+data class ListLastUserAnalysisResponse(val entries: List<Entry>) {
 
     data class Entry(
         val analysisId: String,
@@ -11,5 +11,4 @@ data class ListLastUserAnalysisResponse(val entries : List<Entry>) {
         val userId: String,
         val username: String,
     )
-
 }

@@ -125,7 +125,7 @@ h1 {
 }
 
 .game-to-join-time-control-pane {
-    width: 80px;
+    width: 60px;
     flex-direction: column;
     justify-content: center;
     gap: 4px;
@@ -280,11 +280,6 @@ img#kofi-logo {
     color: #a0a0a0;
 }
 
-.modal-form-label input[type=text].custom-time-control {
-    width: 30px;
-    margin: 0;
-}
-
 #logo-holder {
     width: 100%;
     margin-top: 40px;
@@ -427,7 +422,7 @@ iframe {
     }
 
     .game-to-join-item .time-control-icons {
-        width: 38px;
+        width: 48px;
     }
 
     .game-to-join-variant-pane {
@@ -453,7 +448,7 @@ iframe {
     }
 
     .game-to-join-time-control-pane {
-        width: 118px;
+        width: 114px;
     }
 
     .game-to-join-middle-pane {
@@ -476,7 +471,7 @@ iframe {
 
     .game-to-join-opponent-line .username-cell {
         max-width: unset;
-        font-size: 24px;
+        font-size: 28px;
         overflow: hidden;
         text-overflow: ellipsis;
     }

@@ -10,16 +10,12 @@ data class BotGameStatusRecord(
     val position: Int,
 ) {
 
-    fun isInProgress(): Boolean {
-        return status.isInProgress() || status == GameEventType.CREATED
-    }
+    fun isInProgress(): Boolean =
+        status.isInProgress() || status == GameEventType.CREATED
 
-    fun canCancel(): Boolean {
-        return isInProgress() && !userHasPlayed()
-    }
+    fun canCancel(): Boolean =
+        isInProgress() && !userHasPlayed()
 
-    private fun userHasPlayed(): Boolean {
-        return (position > 0 && userColor == Color.RED) || (position > 1 && userColor == Color.BLACK)
-    }
-
+    private fun userHasPlayed(): Boolean =
+        (position > 0 && userColor == Color.RED) || (position > 1 && userColor == Color.BLACK)
 }

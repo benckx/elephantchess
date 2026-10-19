@@ -26,6 +26,8 @@ class PlayedPuzzleDto {
     #outcome;
     #ratingFrom;
     #ratingTo;
+    #puzzleRatingFrom;
+    #puzzleRatingTo;
     #date;
 
     constructor(json) {
@@ -36,6 +38,8 @@ class PlayedPuzzleDto {
         this.#outcome = json.outcome;
         this.#ratingFrom = Number(json.ratingFrom);
         this.#ratingTo = Number(json.ratingTo);
+        this.#puzzleRatingFrom = Number(json.puzzleRatingFrom);
+        this.#puzzleRatingTo = Number(json.puzzleRatingTo);
         this.#date = Number(json.date);
     }
 
@@ -104,6 +108,20 @@ class PlayedPuzzleDto {
      */
     get ratingDelta() {
         return this.#ratingTo - this.#ratingFrom;
+    }
+
+    /**
+     * @return {number}
+     */
+    get puzzleRatingFrom() {
+        return this.#puzzleRatingFrom;
+    }
+
+    /**
+     * @return {number}
+     */
+    get puzzleRatingDelta() {
+        return this.#puzzleRatingTo - this.#puzzleRatingFrom;
     }
 
     /**

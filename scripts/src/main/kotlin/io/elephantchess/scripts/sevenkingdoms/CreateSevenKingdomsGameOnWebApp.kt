@@ -42,7 +42,7 @@ object CreateSevenKingdomsGameOnWebApp : KoinScript {
         listOf(
             SEVEN_KINGDOMS_GAME_EVENT,
             SEVEN_KINGDOMS_GAME_MOVE,
-            SEVEN_KINGDOMS_GAME
+            SEVEN_KINGDOMS_GAME,
         ).forEach { table ->
             dslContext.deleteFrom(table).awaitExecute()
         }
@@ -82,7 +82,7 @@ object CreateSevenKingdomsGameOnWebApp : KoinScript {
                 val user = userDaoService.findByUserName(users[i++])!!
                 gameService.joinGame(
                     UserId(AUTHENTICATED, user.id),
-                    JoinGameRequest(gameId, colors)
+                    JoinGameRequest(gameId, colors),
                 )
             }
 
@@ -129,5 +129,4 @@ object CreateSevenKingdomsGameOnWebApp : KoinScript {
         }
         exitProcess(0)
     }
-
 }

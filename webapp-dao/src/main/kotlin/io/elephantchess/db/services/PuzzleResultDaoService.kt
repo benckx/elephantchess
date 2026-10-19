@@ -4,8 +4,10 @@ import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.PuzzleResultDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleResult
 import io.elephantchess.db.model.PlayedPuzzleRecord
+import io.elephantchess.db.model.PuzzleResultCountsRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.PuzzleOutcome
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jooq.DSLContext
 import org.jooq.Record5
@@ -15,18 +17,18 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
+@KoinSingleton
 class PuzzleResultDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
 
-    suspend fun listPlayedRecently(userId: String, nbrOfDays: Int): List<String> {
-        return dslContext
+    suspend fun listPlayedRecently(userId: String, nbrOfDays: Int): List<String> =
+        dslContext
             .selectDistinct(PUZZLE_RESULT.PUZZLE_ID)
             .from(PUZZLE_RESULT)
             .where(PUZZLE_RESULT.USER_ID.eq(userId))
             .and(PUZZLE_RESULT.ENTRY_CREATION.isWithin(nbrOfDays.days))
             .awaitMappedRecords()
-    }
 
     suspend fun listPlayedPuzzles(userId: String, limit: Int, beforeMillis: Long?): List<PlayedPuzzleRecord> {
         var sql = dslContext
@@ -37,7 +39,9 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
                 PUZZLE_RESULT.OUTCOME,
                 PUZZLE_RESULT.PLAYER_RATING_FROM,
                 PUZZLE_RESULT.PLAYER_RATING_TO,
-                PUZZLE_RESULT.ENTRY_CREATION
+                PUZZLE_RESULT.PUZZLE_RATING_FROM,
+                PUZZLE_RESULT.PUZZLE_RATING_TO,
+                PUZZLE_RESULT.ENTRY_CREATION,
             )
             .from(PUZZLE_RESULT, PUZZLE)
             .where(PUZZLE_RESULT.USER_ID.eq(userId))
@@ -59,29 +63,52 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
                     outcome = record.get(PUZZLE_RESULT.OUTCOME),
                     ratingFrom = record.get(PUZZLE_RESULT.PLAYER_RATING_FROM),
                     ratingTo = record.get(PUZZLE_RESULT.PLAYER_RATING_TO),
+                    puzzleRatingFrom = record.get(PUZZLE_RESULT.PUZZLE_RATING_FROM),
+                    puzzleRatingTo = record.get(PUZZLE_RESULT.PUZZLE_RATING_TO),
                     date = record.get(PUZZLE_RESULT.ENTRY_CREATION),
                 )
             }
     }
 
-    suspend fun latestPlayedPuzzle(): Instant? {
-        return dslContext
+    suspend fun latestPlayedPuzzle(): Instant? =
+        dslContext
             .select(PUZZLE_RESULT.ENTRY_CREATION)
             .from(PUZZLE_RESULT)
             .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
             .limit(1)
             .awaitSingleValue()
+
+    suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCountsRecord> {
+        if (userIds.isEmpty()) return emptyList()
+
+        val solvedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.SOLVED)).`as`("nbr_solved")
+        val failedField = DSL.count().filterWhere(PUZZLE_RESULT.OUTCOME.eq(PuzzleOutcome.FAILED)).`as`("nbr_failed")
+        val totalField = DSL.count().`as`("nbr_total")
+
+        return dslContext
+            .select(PUZZLE_RESULT.USER_ID, solvedField, failedField, totalField)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.USER_ID.`in`(userIds))
+            .groupBy(PUZZLE_RESULT.USER_ID)
+            .awaitRecords()
+            .map { record ->
+                PuzzleResultCountsRecord(
+                    userId = requireNotNull(record.value1()),
+                    solved = record.value2(),
+                    failed = record.value3(),
+                    total = record.value4(),
+                )
+            }
     }
 
-    suspend fun latestPuzzleVote(): Instant? {
-        return dslContext
+    suspend fun latestPuzzleVote(): Instant? =
+        dslContext
             .select(PUZZLE_RESULT.ENTRY_CREATION)
             .from(PUZZLE_RESULT)
             .where(PUZZLE_RESULT.UP_VOTED.isNotNull)
             .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
             .limit(1)
             .awaitSingleValue()
-    }
 
     suspend fun persistOutcome(
         userId: String,
@@ -106,7 +133,7 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
                     outcome,
                     userRating,
                     puzzleRating,
-                    fetchLastPlayed(userId, puzzleId, rePlayabilityTimeLimit, transaction)
+                    fetchLastPlayed(userId, puzzleId, rePlayabilityTimeLimit, transaction),
                 )
 
             val puzzleResult = PuzzleResult()
@@ -130,11 +157,11 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
 
             logger.debug {
                 "[$userId] user ${puzzleResult.playerRatingFrom} -> ${puzzleResult.playerRatingTo}" +
-                        " (${renderDelta(playerDelta)})"
+                    " (${renderDelta(playerDelta)})"
             }
             logger.debug {
                 "[$puzzleId] puzzle ${puzzleResult.puzzleRatingFrom} -> ${puzzleResult.puzzleRatingTo}" +
-                        " (${renderDelta(puzzleDelta)})"
+                    " (${renderDelta(puzzleDelta)})"
             }
 
             PuzzleResultDao(cfg).insertReactive(puzzleResult)
@@ -146,8 +173,8 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
     /**
      * @return null if record wasn't found, or the id of the record otherwise
      */
-    suspend fun persistVote(puzzleId: String, userId: String, upVoted: Boolean, delay: Duration): Int? {
-        return dslContext.transactionCoroutine { cfg ->
+    suspend fun persistVote(puzzleId: String, userId: String, upVoted: Boolean, delay: Duration): Int? =
+        dslContext.transactionCoroutine { cfg ->
             val transactional = DSL.using(cfg)
 
             val id = transactional
@@ -163,54 +190,46 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             if (id != null) {
                 transactional
                     .update(PUZZLE_RESULT)
-                    .set(PUZZLE_RESULT.UP_VOTED.fixed(), upVoted)
-                    .where(PUZZLE_RESULT.ID.fixed().eq(id))
+                    .set(PUZZLE_RESULT.UP_VOTED, upVoted)
+                    .where(PUZZLE_RESULT.ID.eq(id))
                     .awaitExecute()
             }
 
             id
         }
-    }
 
-    private suspend fun fetchPuzzleRating(puzzleId: String, context: DSLContext): Int? {
-        return context
+    private suspend fun fetchPuzzleRating(puzzleId: String, context: DSLContext): Int? =
+        context
             .select(PUZZLE.RATING)
             .from(PUZZLE)
             .where(PUZZLE.ID.eq(puzzleId))
             .awaitSingleValue()
-    }
 
-    private suspend fun fetchUserPuzzleRating(userId: String, context: DSLContext): Int? {
-        return context
+    private suspend fun fetchUserPuzzleRating(userId: String, context: DSLContext): Int? =
+        context
             .select(USER.PUZZLE_RATING)
             .from(USER)
             .where(USER.ID.eq(userId))
             .awaitSingleValue()
-    }
 
     private suspend fun updatePuzzleRating(puzzleId: String, rating: Int, context: DSLContext) {
         context
-            .update(PUZZLE.fixed())
-            .set(PUZZLE.RATING.fixed(), rating)
+            .update(PUZZLE)
+            .set(PUZZLE.RATING, rating)
             .where(PUZZLE.ID.eq(puzzleId))
             .awaitExecute()
     }
 
     private suspend fun updateUserRating(userId: String, rating: Int, context: DSLContext) {
         context
-            .update(USER.fixed())
-            .set(USER.PUZZLE_RATING.fixed(), rating)
+            .update(USER)
+            .set(USER.PUZZLE_RATING, rating)
             .where(USER.ID.eq(userId))
             .awaitExecute()
     }
 
-    private suspend fun fetchLastPlayed(
-        userId: String,
-        puzzleId: String,
-        duration: Duration,
-        context: DSLContext,
-    ): Instant? {
-        return context
+    private suspend fun fetchLastPlayed(userId: String, puzzleId: String, duration: Duration, context: DSLContext): Instant? =
+        context
             .select(PUZZLE_RESULT.ENTRY_CREATION)
             .from(PUZZLE_RESULT)
             .where(PUZZLE_RESULT.USER_ID.eq(userId))
@@ -219,7 +238,6 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
             .limit(1)
             .awaitSingleValue()
-    }
 
     /**
      * Always includes SKIPPED result.
@@ -246,32 +264,29 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record5<String, PuzzleOutcome, String, Instant, Boolean>> {
-        return dslContext
+    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record5<String, PuzzleOutcome, String, Instant, Boolean>> =
+        dslContext
             .select(
                 PUZZLE_RESULT.PUZZLE_ID,
                 PUZZLE_RESULT.OUTCOME,
                 USER.ID,
                 PUZZLE_RESULT.ENTRY_CREATION,
-                PUZZLE_RESULT.UP_VOTED
+                PUZZLE_RESULT.UP_VOTED,
             )
             .from(PUZZLE_RESULT, USER)
             .where(PUZZLE_RESULT.USER_ID.eq(USER.ID))
             .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
             .limit(n)
             .awaitRecords()
-    }
 
     private companion object {
 
-        fun renderDelta(value: Int): String {
-            return if (value > 0) {
+        fun renderDelta(value: Int): String =
+            if (value > 0) {
                 "+$value"
             } else {
                 value.toString()
             }
-        }
-
     }
 
     suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
@@ -282,5 +297,4 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             .where(PUZZLE_RESULT.USER_ID.eq(guestUserId))
             .awaitExecute()
     }
-
 }

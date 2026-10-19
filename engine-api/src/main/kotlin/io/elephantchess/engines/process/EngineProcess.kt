@@ -12,6 +12,7 @@ import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.BufferedWriter
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -64,6 +65,38 @@ abstract class EngineProcess(
     }
 
     /**
+     * Query the engine using a fixed number of nodes (`go nodes N`).
+     *
+     * Unlike a fixed depth or a fixed time/move, the node count is reproducible across different machines and lets the
+     * engine search deeper in positions with fewer pieces (e.g. endgame positions). Useful for R&D work.
+     */
+    suspend fun queryForNodes(
+        fen: String,
+        maxNodes: Long,
+        variant: Variant = Variant.XIANGQI,
+        maxDelay: Long = DEFAULT_MAX_DELAY,
+        checkPeriod: Long = DEFAULT_CHECK_PERIOD,
+    ): InfoLinesResult {
+        val infoListener = InfoLineListener()
+        lineListener = infoListener
+
+        setVariant(variant)
+        inputCommand("position fen $fen")
+        inputCommand("go nodes $maxNodes")
+        val gotResult = waitForCondition(maxDelay, checkPeriod) {
+            infoListener.hasResult()
+        }
+        if (!gotResult) {
+            inputCommand("stop")
+            val gotResultAfterStop = waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }
+            if (!gotResultAfterStop) {
+                throw Exception("Engine did not return a result for 'go nodes $maxNodes' within ${maxDelay}ms.")
+            }
+        }
+        return infoListener.getResult()
+    }
+
+    /**
      * Override in engine implementations to set the variant before queries.
      * Default implementation does nothing (for engines that do not support variants).
      */
@@ -87,9 +120,33 @@ abstract class EngineProcess(
         return matchListener.matchingLine!!
     }
 
+    fun isAlive(): Boolean =
+        this::process.isInitialized && process.isAlive
+
+    /**
+     * Resets the internal state so this process can be re-submitted to the executor via [run] after it
+     * has unexpectedly terminated (e.g. an engine crash). The pool is responsible for the actual
+     * re-submission and for waiting until the new process is ready again.
+     */
+    fun prepareRelaunch() {
+        hasQuit = false
+        processedHasStarted.set(false)
+        lineListener = null
+    }
+
     fun quit(timeoutMs: Long = 10_000): Boolean {
         hasQuit = true
-        inputCommand("quit")
+        if (!process.isAlive) {
+            logger.info { "$engineId process already exited, skipping quit command" }
+            return true
+        }
+        try {
+            inputCommand("quit")
+        } catch (e: IOException) {
+            // The child process may have already terminated (e.g. when the JVM is shutting down
+            // and SIGTERM was propagated to children), in which case the output stream is closed.
+            logger.info { "could not send quit command to $engineId, process likely already terminated: ${e.message}" }
+        }
         return process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)
     }
 
@@ -108,7 +165,16 @@ abstract class EngineProcess(
         initEngine()
 
         while (!hasQuit) {
-            reader.readLine()?.let { receivedLine(it) }
+            val line = reader.readLine()
+            if (line == null) {
+                // end of stream: the engine process terminated. Break out instead of busy-spinning
+                // on readLine() (which keeps returning null once the stream is closed).
+                if (!hasQuit) {
+                    logger.warn { "$engineId process stream closed unexpectedly (process likely crashed)" }
+                }
+                break
+            }
+            receivedLine(line)
         }
     }
 
@@ -130,7 +196,5 @@ abstract class EngineProcess(
 
         const val DEFAULT_MAX_DELAY = 5_000L
         const val DEFAULT_CHECK_PERIOD = 100L
-
     }
-
 }
