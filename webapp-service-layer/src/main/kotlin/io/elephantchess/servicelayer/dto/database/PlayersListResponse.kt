@@ -9,7 +9,6 @@ data class PlayersListResponse(val entries: List<Entry>) {
         val wins: Int,
         val draws: Int,
         val losses: Int,
-        val totalGames: Int
+        val totalGames: Int,
     )
-
 }

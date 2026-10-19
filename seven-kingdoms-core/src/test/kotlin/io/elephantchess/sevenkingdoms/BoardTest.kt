@@ -128,5 +128,4 @@ class BoardTest {
         val allGenerals = listAllPieces().filter { it.abstractPieceType == GENERAL }
         return listCurrentLegalMoves().filterNot { move -> allGenerals.any { it.position == move.to } }
     }
-
 }

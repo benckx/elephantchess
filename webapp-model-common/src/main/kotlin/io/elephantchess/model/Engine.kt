@@ -3,13 +3,12 @@ package io.elephantchess.model
 enum class Engine {
 
     PIKAFISH,
-    FAIRYSTOCKFISH;
+    FAIRYSTOCKFISH,
+    ;
 
-    override fun toString(): String {
-        return when (this) {
+    override fun toString(): String =
+        when (this) {
             PIKAFISH -> "Pikafish"
             FAIRYSTOCKFISH -> "Fairy"
         }
-    }
-
 }

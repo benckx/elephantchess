@@ -11,7 +11,6 @@ data class LatestGamesUpdateResponse(val entries: List<Entry>) {
         val fen: String,
         val lastUpdated: Long,
         val moveIndex: Int? = null,
-        val newMoves: List<String> = emptyList()
+        val newMoves: List<String> = emptyList(),
     )
-
 }

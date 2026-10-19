@@ -941,6 +941,18 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     cursor: unset;
 }
 
+.app-buttons:disabled,
+.app-buttons-smaller:disabled,
+.app-buttons-bigger:disabled,
+.app-buttons-much-bigger:disabled,
+.app-buttons:disabled:hover,
+.app-buttons-smaller:disabled:hover,
+.app-buttons-bigger:disabled:hover,
+.app-buttons-much-bigger:disabled:hover {
+    background-color: #848484;
+    cursor: not-allowed;
+}
+
 #modal-background {
     display: none;
     align-items: center;
@@ -970,6 +982,17 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     border: 2px solid #323232;
     text-align: center;
+    font-size: 15px;
+}
+
+.modal-content .standard-checkbox .label-span label,
+.modal-content .standard-radio .label-span label {
+    font-size: 15px;
+}
+
+.modal-content .standard-checkbox input[type=checkbox] {
+    width: 16px;
+    height: 16px;
 }
 
 .modal-content h2 {

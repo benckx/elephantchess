@@ -6,8 +6,10 @@ import io.elephantchess.db.utils.nextMove
 import io.elephantchess.servicelayer.dto.analysis.OpeningNextMovesRequest
 import io.elephantchess.servicelayer.dto.analysis.OpeningNextMovesResponse
 import io.elephantchess.servicelayer.dto.analysis.OpeningReferencePlayerNextMovesRequest
+import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
 
+@KoinSingleton
 class OpeningService(
     private val openingRepositoryCacheDaoService: OpeningRepositoryCacheDaoService,
     private val openingRepositoryReferencePlayerCacheDaoService: OpeningRepositoryReferencePlayerCacheDaoService,
@@ -36,9 +38,7 @@ class OpeningService(
      * Fetch the opening repertoire of a single reference player. When [OpeningReferencePlayerNextMovesRequest.color]
      * is `null` ("all"), the per-color entries are aggregated by next move.
      */
-    suspend fun fetchReferencePlayerNextMovesData(
-        request: OpeningReferencePlayerNextMovesRequest,
-    ): OpeningNextMovesResponse {
+    suspend fun fetchReferencePlayerNextMovesData(request: OpeningReferencePlayerNextMovesRequest): OpeningNextMovesResponse {
         val color = request.color?.let { Color.valueOf(it.uppercase()) }
 
         // general population (all reference games) share of each next move at the same position,
@@ -75,5 +75,4 @@ class OpeningService(
 
         return OpeningNextMovesResponse(entries, request.moves)
     }
-
 }

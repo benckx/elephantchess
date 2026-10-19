@@ -6,5 +6,5 @@ data class LatestSupporter(
     val timestamp: Long,
     val amount: Double,
     val currency: String,
-    val recurring: Boolean
+    val recurring: Boolean,
 )

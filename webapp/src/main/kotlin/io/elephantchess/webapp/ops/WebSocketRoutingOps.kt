@@ -16,9 +16,8 @@ import kotlin.coroutines.cancellation.CancellationException
 val wsOpsLogger by lazy { logger {} }
 val wsJsonMapper by koin<JsonMapper>("wsJsonMapper")
 
-fun DefaultWebSocketServerSession.sendWs(o: Any): ChannelResult<Unit> {
-    return outgoing.trySend(Frame.Text(wsJsonMapper.writeValueAsString(o)))
-}
+fun DefaultWebSocketServerSession.sendWs(o: Any): ChannelResult<Unit> =
+    outgoing.trySend(Frame.Text(wsJsonMapper.writeValueAsString(o)))
 
 suspend fun DefaultWebSocketServerSession.handleWebSocketSession(
     startSession: suspend () -> String,
@@ -75,9 +74,9 @@ fun isWebSocketDisconnectException(t: Throwable): Boolean {
         if (current is ClosedChannelException ||
             current is ClosedReceiveChannelException ||
             current is CancellationException ||
-            current is IOException && current.message?.contains("Ping timeout") == true ||
-            current is IOException && current.message?.contains("Broken pipe") == true ||
-            current is IOException && current.message?.contains("Connection reset") == true
+            (current is IOException && current.message?.contains("Ping timeout") == true) ||
+            (current is IOException && current.message?.contains("Broken pipe") == true) ||
+            (current is IOException && current.message?.contains("Connection reset") == true)
         ) {
             return true
         }

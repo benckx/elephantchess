@@ -9,11 +9,13 @@ import io.elephantchess.servicelayer.dto.lobby.LatestGamesUpdateResponse
 import io.elephantchess.servicelayer.services.ws.LiveGamesBatchUpdate
 import io.elephantchess.servicelayer.services.ws.LiveGamesWebSocketSession
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
 import kotlin.time.Duration.Companion.seconds
 
+@KoinSingleton
 class LobbyService(
     private val upcomingEventDaoService: UpcomingEventDaoService,
     private val gameDataService: GameDataService,
@@ -28,15 +30,15 @@ class LobbyService(
         scope = refresherScope,
         initialDelay = sessionsRefresh,
         period = sessionsRefresh,
-        action = { refreshLiveGamesSessions() }
+        action = { refreshLiveGamesSessions() },
     )
 
     fun cancel() {
         refreshJob.cancel()
     }
 
-    suspend fun listUpcomingEvents(): GetUpcomingEventsResponse {
-        return upcomingEventDaoService
+    suspend fun listUpcomingEvents(): GetUpcomingEventsResponse =
+        upcomingEventDaoService
             .listUpcomingEventsForLobby()
             .map { event ->
                 UpcomingEvent(
@@ -49,7 +51,6 @@ class LobbyService(
             .let { events ->
                 GetUpcomingEventsResponse(events)
             }
-    }
 
     fun startLiveGamesSession(
         sendCb: (LatestGamesUpdateResponse) -> ChannelResult<Unit>,
@@ -102,5 +103,4 @@ class LobbyService(
             }
         }
     }
-
 }

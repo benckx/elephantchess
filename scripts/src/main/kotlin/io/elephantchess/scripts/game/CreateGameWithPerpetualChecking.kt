@@ -66,7 +66,7 @@ object CreateGameWithPerpetualChecking : KoinScriptInit() {
                             timeControlMode = TimeControlMode.GAME_TIME,
                             allowGuests = true,
                             alwaysVisibleInLobby = false,
-                            privateInvite = false
+                            privateInvite = false,
                         )
 
                     val response = pvpGameService.createGame(UserId(AUTHENTICATED, inviter.id), request)
@@ -88,5 +88,4 @@ object CreateGameWithPerpetualChecking : KoinScriptInit() {
             exitProcess(0)
         }
     }
-
 }

@@ -10,14 +10,11 @@ open class TryEither<T>(e: Exception?, t: T?) : GenericEither<Exception, T>(e, t
 
         val exception: Exception
             get() = left()
-
     }
 
     class Valid<B>(b: B) : TryEither<B>(null, b) {
 
         val value: B
             get() = right()
-
     }
-
 }

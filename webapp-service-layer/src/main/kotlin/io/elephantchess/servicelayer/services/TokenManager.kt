@@ -14,6 +14,7 @@ import io.elephantchess.servicelayer.model.AuthenticatedToken.Companion.USERNAME
 import io.elephantchess.servicelayer.model.GuestToken
 import io.elephantchess.servicelayer.model.InvalidToken
 import io.elephantchess.servicelayer.model.TokenVerificationResult
+import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import kotlinx.coroutines.runBlocking
@@ -21,6 +22,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.time.Duration.Companion.minutes
 
+@KoinSingleton(eager = true)
 class TokenManager(
     private val appConfig: AppConfig,
     private val userDaoService: UserDaoService,
@@ -70,8 +72,8 @@ class TokenManager(
         return tokenBuilder.sign(algorithm)
     }
 
-    fun verifyToken(token: String): TokenVerificationResult {
-        return try {
+    fun verifyToken(token: String): TokenVerificationResult =
+        try {
             val decodedJWT = verifier.verify(token)
             val tokenType = decodedJWT.getClaim(TOKEN_TYPE_CLAIM)
                 ?.`as`(String::class.java)
@@ -96,7 +98,6 @@ class TokenManager(
         } catch (e: Exception) {
             InvalidToken(e)
         }
-    }
 
     companion object {
 
@@ -106,7 +107,5 @@ class TokenManager(
         const val RENEW_SESSION_INTERVAL = 300L
 
         const val TOKEN_TYPE_CLAIM = "TOKEN_TYPE"
-
     }
-
 }

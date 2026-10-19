@@ -9,3 +9,16 @@ package io.elephantchess.servicelayer.services.analytics
  * distorts the "new guests" and "online users" charts, so they are excluded.
  */
 const val MIN_GENUINE_GUEST_LIFESPAN_SECONDS = 60
+
+/**
+ * Guests older than this (and inactive for at least as long) that never played a PvP, PvB or puzzle
+ * game are archived into aggregated daily tables and then deleted.
+ */
+const val ARCHIVE_GUEST_AFTER_DAYS = 60
+
+/**
+ * Page views older than this are aggregated into [io.elephantchess.db.dao.codegen.Tables.ARCHIVED_PAGE_VIEW_DAILY]
+ * and then deleted, so they are no longer tied to a user. This applies to all users (guests and
+ * authenticated), independently of the guest-archiving job.
+ */
+const val ARCHIVE_PAGE_VIEW_AFTER_DAYS = 90

@@ -9,6 +9,7 @@ import io.elephantchess.db.model.analytics.HourlyPageViewRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
 import io.elephantchess.db.model.analytics.NewsletterLinkClickRecord
 import io.elephantchess.db.utils.*
+import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Field
@@ -22,6 +23,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
+@KoinSingleton
 class PageViewEventDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(record: PageViewEvent) {
@@ -30,17 +32,14 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun fetchMonthlyPageViewsByPattern(
-        pattern: String,
-        excludedUserIds: List<String>
-    ): List<MonthlyPageViewRecord> {
+    suspend fun fetchMonthlyPageViewsByPattern(pattern: String, excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
         val yearMonth = PAGE_VIEW_EVENT.EVENT_TIME.yearMonth("year_month")
 
-        suspend fun fetchRecords(condition: Condition): List<Record2<YearMonth, Int>> {
-            return dslContext
+        suspend fun fetchRecords(condition: Condition): List<Record2<YearMonth, Int>> =
+            dslContext
                 .select(
                     yearMonth,
-                    uniqueDailyPageViewsField()
+                    uniqueDailyPageViewsField(),
                 )
                 .from(PAGE_VIEW_EVENT)
                 .where(condition)
@@ -49,15 +48,13 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                 .groupBy(yearMonth)
                 .orderBy(yearMonth.desc())
                 .awaitRecords()
-        }
 
-        fun mapRecord(record2: Record2<YearMonth, Int>, eventPath: String): MonthlyPageViewRecord {
-            return MonthlyPageViewRecord(
+        fun mapRecord(record2: Record2<YearMonth, Int>, eventPath: String): MonthlyPageViewRecord =
+            MonthlyPageViewRecord(
                 yearMonth = record2.getValue(yearMonth),
                 label = eventPath,
-                uniquePageViews = record2.getValue("unique_page_views", Int::class.java)
+                uniquePageViews = record2.getValue("unique_page_views", Int::class.java),
             )
-        }
 
         val condition1 = PAGE_VIEW_EVENT.EVENT_PATH.like(pattern)
         val condition2 = PAGE_VIEW_EVENT.EVENT_PATH.notLike(pattern)
@@ -78,14 +75,14 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             .select(
                 yearMonth,
                 PAGE_VIEW_EVENT.EVENT_PATH,
-                uniqueDailyPageViewsField()
+                uniqueDailyPageViewsField(),
             )
             .from(PAGE_VIEW_EVENT)
             .where(
                 PAGE_VIEW_EVENT.EVENT_PATH.eq(eventPath)
                     .or(PAGE_VIEW_EVENT.EVENT_PATH.like("$eventPath?medium=%"))
                     .or(PAGE_VIEW_EVENT.EVENT_PATH.like("$eventPath?gad_source=1%"))
-                    .or(PAGE_VIEW_EVENT.EVENT_PATH.like("$eventPath?fbclid=%"))
+                    .or(PAGE_VIEW_EVENT.EVENT_PATH.like("$eventPath?fbclid=%")),
             )
             .and(PAGE_VIEW_EVENT.EVENT_TIME.greaterOrEqual(startDate))
             .and(excludedUsersCondition(excludedUserIds))
@@ -98,7 +95,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                 MonthlyPageViewRecord(
                     yearMonth = yearMonth,
                     label = record.getValue(PAGE_VIEW_EVENT.EVENT_PATH),
-                    uniquePageViews = record.getValue("unique_page_views", Int::class.java)
+                    uniquePageViews = record.getValue("unique_page_views", Int::class.java),
                 )
             }
     }
@@ -108,7 +105,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
         return dslContext
             .select(
                 yearMonth,
-                uniqueDailyPageViewsField()
+                uniqueDailyPageViewsField(),
             )
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.EVENT_PATH.like("/database/game?id=%"))
@@ -123,34 +120,32 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                 MonthlyPageViewRecord(
                     yearMonth = yearMonth,
                     label = "/database/game",
-                    uniquePageViews = record.getValue("unique_page_views", Int::class.java)
+                    uniquePageViews = record.getValue("unique_page_views", Int::class.java),
                 )
             }
     }
 
-    suspend fun fetchMonthlyOwnUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
-        return fetchMonthlyUserProfilePageViewsByCondition(
-            excludedUserIds = excludedUserIds
+    suspend fun fetchMonthlyOwnUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> =
+        fetchMonthlyUserProfilePageViewsByCondition(
+            excludedUserIds = excludedUserIds,
         ) { USER.ID.isNotNull.and(ownProfileViewCondition()) }
-    }
 
-    suspend fun fetchMonthlyOtherUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> {
-        return fetchMonthlyUserProfilePageViewsByCondition(
-            excludedUserIds = excludedUserIds
+    suspend fun fetchMonthlyOtherUserProfilePageViews(excludedUserIds: List<String>): List<MonthlyPageViewRecord> =
+        fetchMonthlyUserProfilePageViewsByCondition(
+            excludedUserIds = excludedUserIds,
         ) {
             USER.ID.isNotNull.and(ownProfileViewCondition().not())
         }
-    }
 
     private suspend fun fetchMonthlyUserProfilePageViewsByCondition(
         excludedUserIds: List<String>,
-        additionalCondition: () -> Condition
+        additionalCondition: () -> Condition,
     ): List<MonthlyPageViewRecord> {
         val yearMonth = PAGE_VIEW_EVENT.EVENT_TIME.yearMonth("year_month")
         return dslContext
             .select(
                 yearMonth,
-                uniqueDailyPageViewsField()
+                uniqueDailyPageViewsField(),
             )
             .from(PAGE_VIEW_EVENT)
             .leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
@@ -168,23 +163,12 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                 MonthlyPageViewRecord(
                     yearMonth = yearMonth,
                     label = "/@/{username}",
-                    uniquePageViews = record.getValue("unique_page_views", Int::class.java)
+                    uniquePageViews = record.getValue("unique_page_views", Int::class.java),
                 )
             }
     }
 
-    private fun ownProfileViewCondition(): Condition {
-        val safeHandle = DSL.coalesce(USER.HANDLE, DSL.inline(""))
-        val ownPath = DSL.concat(DSL.inline("/@/"), safeHandle)
-        val ownPathWithQueryParam = DSL.concat(DSL.inline("/@/"), safeHandle, DSL.inline("?%"))
-        return PAGE_VIEW_EVENT.EVENT_PATH.eq(ownPath)
-            .or(PAGE_VIEW_EVENT.EVENT_PATH.like(ownPathWithQueryParam))
-    }
-
-    suspend fun fetchHourlyPageViews(
-        hours: Int,
-        excludedUserIds: List<String>
-    ): List<HourlyPageViewRecord> {
+    suspend fun fetchHourlyPageViews(hours: Int, excludedUserIds: List<String>): List<HourlyPageViewRecord> {
         // format: YYYY-MM-DD HH
         val hourExpression = "to_char(${PAGE_VIEW_EVENT.EVENT_TIME.name}, 'YYYY-MM-DD HH24')"
         val hourField = DSL.field(hourExpression).`as`("hour")
@@ -198,7 +182,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
         return dslContext
             .select(
                 hourField,
-                uniqueHourlyPageViewFields(hourExpression)
+                uniqueHourlyPageViewFields(hourExpression),
             )
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.EVENT_TIME.isWithin(hours.hours))
@@ -210,15 +194,12 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             .map { record ->
                 HourlyPageViewRecord(
                     hour = record.getValue("hour", String::class.java),
-                    uniquePageViews = record.getValue("unique_page_views", Int::class.java)
+                    uniquePageViews = record.getValue("unique_page_views", Int::class.java),
                 )
             }
     }
 
-    suspend fun fetchDailyPageViews(
-        days: Int,
-        excludedUserIds: List<String>
-    ): List<DailyValueRecord> {
+    suspend fun fetchDailyPageViews(days: Int, excludedUserIds: List<String>): List<DailyValueRecord> {
         val dayField = PAGE_VIEW_EVENT.EVENT_TIME.localDate("day")
 
         // get the start of the current day to exclude it
@@ -230,7 +211,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
         return dslContext
             .select(
                 dayField,
-                uniqueDailyPageViewsField()
+                uniqueDailyPageViewsField(),
             )
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.EVENT_TIME.isWithin(days.days))
@@ -242,7 +223,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             .map { record ->
                 DailyValueRecord(
                     day = record.getValue("day", LocalDate::class.java),
-                    value = record.getValue("unique_page_views", Int::class.java)
+                    value = record.getValue("unique_page_views", Int::class.java),
                 )
             }
     }
@@ -251,13 +232,13 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
         val newsletterTemplateField = DSL.field(
             "substring({0} from 'medium=newsletter-([^&#]+)')",
             String::class.java,
-            PAGE_VIEW_EVENT.EVENT_PATH
+            PAGE_VIEW_EVENT.EVENT_PATH,
         )
 
         return dslContext
             .select(
                 newsletterTemplateField,
-                DSL.count().`as`("click_count")
+                DSL.count().`as`("click_count"),
             )
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.EVENT_PATH.like("%medium=newsletter-%"))
@@ -281,13 +262,13 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
         val newsletterTemplateField = DSL.field(
             "substring({0} from 'medium=newsletter-([^&#]+)')",
             String::class.java,
-            PAGE_VIEW_EVENT.EVENT_PATH
+            PAGE_VIEW_EVENT.EVENT_PATH,
         )
         // extracts the clicked link, i.e. the path before the query string ("?...")
         val linkField = DSL.field(
             "substring({0} from '^([^?]+)')",
             String::class.java,
-            PAGE_VIEW_EVENT.EVENT_PATH
+            PAGE_VIEW_EVENT.EVENT_PATH,
         )
         val clickCountField = DSL.count().`as`("click_count")
 
@@ -295,7 +276,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             .select(
                 newsletterTemplateField,
                 linkField,
-                clickCountField
+                clickCountField,
             )
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.EVENT_PATH.like("%medium=newsletter-%"))
@@ -312,7 +293,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                     NewsletterLinkClickRecord(
                         templateName = templateName,
                         link = link,
-                        clickCount = record.get("click_count", Int::class.java) ?: 0
+                        clickCount = record.get("click_count", Int::class.java) ?: 0,
                     )
                 }
             }
@@ -323,20 +304,19 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
         val startDate: Instant =
             instantOfUtc(2025, 11, 1, 0, 0, 0)
 
-        fun excludedUsersCondition(excludedUserIds: List<String>): Condition {
-            return if (excludedUserIds.isEmpty()) {
+        fun excludedUsersCondition(excludedUserIds: List<String>): Condition =
+            if (excludedUserIds.isEmpty()) {
                 DSL.noCondition()
             } else {
                 PAGE_VIEW_EVENT.USER_ID.notIn(excludedUserIds)
             }
-        }
 
         fun uniqueHourlyPageViewFields(hourExpression: String): Field<Int> {
             // create a composite field for counting unique user-hour combinations
             val userHourComposite = DSL.concat(
                 PAGE_VIEW_EVENT.USER_ID,
                 DSL.inline("-"),
-                DSL.field(hourExpression)
+                DSL.field(hourExpression),
             )
 
             return DSL.countDistinct(userHourComposite).`as`("unique_page_views")
@@ -347,12 +327,10 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                 DSL.concat(
                     PAGE_VIEW_EVENT.USER_ID,
                     DSL.inline("-"),
-                    PAGE_VIEW_EVENT.EVENT_TIME.localDate(null)
+                    PAGE_VIEW_EVENT.EVENT_TIME.localDate(null),
                 )
 
             return DSL.countDistinct(userDayCompositeField).`as`("unique_page_views")
         }
-
     }
-
 }

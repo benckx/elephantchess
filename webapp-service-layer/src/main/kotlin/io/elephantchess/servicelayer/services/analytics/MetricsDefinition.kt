@@ -21,75 +21,85 @@ val allMetrics: List<Metric> by lazy {
             "new users",
             USER,
             USER.CREATION,
-            USER.USER_TYPE.eq(UserType.AUTHENTICATED)
+            USER.USER_TYPE.eq(UserType.AUTHENTICATED),
         ),
         DateTimeCountMetric(
             "new guests",
             USER,
             USER.CREATION,
-            isLongLivedGuest
+            isLongLivedGuest,
+        ),
+        DaySumMetric(
+            "archived guests",
+            ARCHIVED_GUEST_DAILY,
+            ARCHIVED_GUEST_DAILY.DAY,
+            // "only count > 15 min" (issue #858): the buckets are lifespan ranges, so >15 min is the
+            // GUESTS_UNDER_30MIN bucket (15-30 min) plus GUESTS_OTHER (>= 30 min). GUESTS_UNDER_15MIN
+            // (5-15 min) is intentionally excluded because those guests stayed less than 15 min.
+            ARCHIVED_GUEST_DAILY.GUESTS_UNDER_30MIN
+                .plus(ARCHIVED_GUEST_DAILY.GUESTS_OTHER),
         ),
         TotalPuzzleMetric(),
         DateTimeCountMetric(
             "puzzle votes",
             PUZZLE_RESULT,
             PUZZLE_RESULT.ENTRY_CREATION,
-            PUZZLE_RESULT.UP_VOTED.isNotNull
+            PUZZLE_RESULT.UP_VOTED.isNotNull,
         ),
         DateTimeCountMetric(
             "PvP",
             GAME,
-            GAME.CREATED
+            GAME.CREATED,
         ),
         DateTimeCountMetric(
             "PvP > 3",
             GAME,
             GAME.CREATED,
-            GAME.CURRENT_HALF_MOVE_INDEX.ge(MIN_MOVE_INDEX)
+            GAME.CURRENT_HALF_MOVE_INDEX.ge(MIN_MOVE_INDEX),
         ),
         DateTimeCountMetric(
             "PvB",
             BOT_GAME,
-            BOT_GAME.CREATED
+            BOT_GAME.CREATED,
         ),
         DateTimeCountMetric(
             "PvB > 3",
             BOT_GAME,
             BOT_GAME.CREATED,
-            BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(MIN_MOVE_INDEX)
+            BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(MIN_MOVE_INDEX),
         ),
         DateTimeCountMetric(
             "newsletters",
             NEWSLETTER_EMAIL,
             NEWSLETTER_EMAIL.SENT_TIME,
-            NEWSLETTER_EMAIL.SENT_TIME.isNotNull
+            NEWSLETTER_EMAIL.SENT_TIME.isNotNull,
         ),
         DateTimeCountMetric(
             "chat msg",
             GAME_CHAT_MESSAGE,
-            GAME_CHAT_MESSAGE.MESSAGE_TIME
+            GAME_CHAT_MESSAGE.MESSAGE_TIME,
         ),
         DateTimeCountMetric(
             "db searches",
             REFERENCE_GAME_SEARCH_QUERY,
-            REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME
+            REFERENCE_GAME_SEARCH_QUERY.QUERY_TIME,
         ),
         DateTimeCountMetric(
             "pw recoveries",
             PASSWORD_RECOVERY_ATTEMPT,
-            PASSWORD_RECOVERY_ATTEMPT.ENTRY_CREATION
+            PASSWORD_RECOVERY_ATTEMPT.ENTRY_CREATION,
         ),
         DaySumMetric(
             "ads cost",
             GOOGLE_ADS_SPENDING,
             GOOGLE_ADS_SPENDING.DAY,
-            GOOGLE_ADS_SPENDING.COST
+            GOOGLE_ADS_SPENDING.COST,
         ),
         DaySumMetric(
             "ads clicks",
             GOOGLE_ADS_SPENDING,
             GOOGLE_ADS_SPENDING.DAY,
-            GOOGLE_ADS_SPENDING.CLICKS
+            GOOGLE_ADS_SPENDING.CLICKS,
         ),
     )
 }
