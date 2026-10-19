@@ -36,39 +36,42 @@ class GameDataServiceTest : ServiceTest() {
     private lateinit var userId: UserId
 
     @BeforeTest
-    fun before() = runTest {
-        userId = UserId(AUTHENTICATED, signUpTestUser().second)
-    }
-
-    @AfterTest
-    fun afterTest() = runTest {
-        listOf(MOVE_ANALYSIS, GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
-            .forEach { table ->
-                dslContext
-                    .deleteFrom(table)
-                    .awaitExecute()
-            }
-    }
-
-    @Test
-    fun startGameAnalysisShouldRejectGameWithoutMoves() = runTest {
-        val request = CreateGameRequest(
-            inviterColor = RED,
-            isRated = true,
-            timeControlBase = 30.minutes.inWholeSeconds.toInt(),
-            timeControlIncrement = null,
-            timeControlMode = TimeControlMode.GAME_TIME,
-            allowGuests = true,
-            alwaysVisibleInLobby = false,
-            privateInvite = false
-        )
-
-        val response = pvpGameService.createGame(userId, request)
-
-        val exception = assertFailsWith<BadRequestException> {
-            gameDataService.startGameAnalysis(GameId(PVP, response.gameId))
+    fun before() =
+        runTest {
+            userId = UserId(AUTHENTICATED, signUpTestUser().second)
         }
 
-        assertEquals("Game must contain at least one move to analyze", exception.message)
-    }
+    @AfterTest
+    fun afterTest() =
+        runTest {
+            listOf(MOVE_ANALYSIS, GAME_MOVE, GAME_STATUS_EVENT, GAME, USER)
+                .forEach { table ->
+                    dslContext
+                        .deleteFrom(table)
+                        .awaitExecute()
+                }
+        }
+
+    @Test
+    fun startGameAnalysisShouldRejectGameWithoutMoves() =
+        runTest {
+            val request = CreateGameRequest(
+                inviterColor = RED,
+                isRated = true,
+                timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = false,
+            )
+
+            val response = pvpGameService.createGame(userId, request)
+
+            val exception = assertFailsWith<BadRequestException> {
+                gameDataService.startGameAnalysis(GameId(PVP, response.gameId))
+            }
+
+            assertEquals("Game must contain at least one move to analyze", exception.message)
+        }
 }
