@@ -6,6 +6,7 @@ import io.elephantchess.engines.protocol.model.InfoLineResult
  * A single parsed CSV row keyed by column name, with typed accessors used while building the
  * [PvpMove] and [PvpGame] domain objects.
  */
+@Suppress("ktlint:standard:class-signature")
 class CsvRow(
     private val columns: Map<String, String>,
 ) {
