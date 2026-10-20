@@ -209,8 +209,11 @@ Kotlin code is formatted with [ktlint](https://pinterest.github.io/ktlint/) (rul
 The CI fails if the formatting is not respected.
 
 ```shell
-./gradlew ktlintCheck   # check formatting
-./gradlew ktlintFormat  # fix formatting
+# check formatting
+./gradlew ktlintCheck
+
+# fix formatting
+./gradlew ktlintFormat
 ```
 
 ## Common Issues
