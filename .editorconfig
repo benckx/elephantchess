@@ -9,3 +9,4 @@ ij_kotlin_blank_lines_after_class_header = 1
 
 [csv-dump-parser/src/main/kotlin/io/elephantchess/csvdump/CsvRow.kt]
 ktlint_class_signature_rule_force_multiline_when_parameter_count_greater_or_equal_than = 1
+ij_kotlin_blank_lines_after_class_header = 0
