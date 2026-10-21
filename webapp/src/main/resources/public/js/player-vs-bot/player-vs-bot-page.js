@@ -19,6 +19,7 @@
 
 const ANALYZE_BUTTON_TOOLTIP_ENABLED = 'You can analyse the game with the Analysis Board tool';
 const ANALYZE_BUTTON_TOOLTIP_DISABLED = `Game must be finished before you can analyze them. If you want to analyze this game now, you have to resign first.`;
+const ANALYZE_BUTTON_TOOLTIP_DISABLED_NO_MOVES = 'Games without moves cannot be analyzed.';
 
 class BotGameSpectatorWebSocketSession {
 
@@ -159,6 +160,7 @@ class PlayerVsBotPage extends BasePage {
             moves => {
                 this.#moveTreeWidget.setMoves(moves);
                 this.#renderAnalysisSummaryReportIfAvailable();
+                this.#updateButtonsEnabled();
             },
             (botMove) => {
                 this.#boardGui.registerOpponentMove(botMove, true, null);
@@ -309,15 +311,21 @@ class PlayerVsBotPage extends BasePage {
     }
 
     #updateButtonsEnabled() {
-        if (isStatusFinished(this.#controller.gameStatus()) && !this.#controller.isManchu()) {
+        const isFinished = isStatusFinished(this.#controller.gameStatus());
+        const hasMoves = this.#moveTreeWidget.getMainBranchNodes().length > 0;
+        const isManchu = this.#controller.isManchu();
+
+        if (isFinished && hasMoves && !isManchu) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
             });
         } else {
-            const tooltip = this.#controller.isManchu()
+            const tooltip = isManchu
                 ? 'Analysis is not supported for Manchu variant games'
-                : ANALYZE_BUTTON_TOOLTIP_DISABLED;
+                : isFinished
+                    ? ANALYZE_BUTTON_TOOLTIP_DISABLED_NO_MOVES
+                    : ANALYZE_BUTTON_TOOLTIP_DISABLED;
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
                 addToolTip(button, tooltip);

@@ -2625,4 +2625,7 @@
         </comment>
         <dropTable tableName="kubernetes_pod"/>
     </changeSet>
+    <changeSet id="0119" author="benckx">
+        <comment>Delete persisted analyses that contain no moves</comment>
+    </changeSet>
 </databaseChangeLog>

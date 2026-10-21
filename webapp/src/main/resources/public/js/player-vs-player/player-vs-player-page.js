@@ -212,6 +212,7 @@ class PlayGamePage extends BasePage {
                     }
 
                     this.#renderAnalysisSummaryReportIfAvailable();
+                    this.#updateButtonsEnabled();
                 },
                 (chatMessages, acks) => {
                     this.#handleChatMessages(chatMessages, acks);
@@ -708,7 +709,12 @@ class PlayGamePage extends BasePage {
             this.#showGameActionButtonsBlock(false);
         }
 
-        if (this.#gameController.isGameFinished() && !this.#gameController.gameDto.isManchu) {
+        const canAnalyze =
+            this.#gameController.isGameFinished() &&
+            this.#moveTreeWidget.getMainBranchNodes().length > 0 &&
+            !this.#gameController.gameDto.isManchu;
+
+        if (canAnalyze) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, 'You can analyse the game with the Analysis Board tool');
@@ -716,7 +722,9 @@ class PlayGamePage extends BasePage {
         } else {
             const tooltip = this.#gameController.gameDto.isManchu
                 ? 'Analysis is not supported for Manchu variant games'
-                : 'Game must be finished before you can analyze it. If you want to analyze this game now, you have to resign first.';
+                : this.#gameController.isGameFinished()
+                    ? 'Games without moves cannot be analyzed.'
+                    : 'Game must be finished before you can analyze it. If you want to analyze this game now, you have to resign first.';
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
                 addToolTip(button, tooltip);
