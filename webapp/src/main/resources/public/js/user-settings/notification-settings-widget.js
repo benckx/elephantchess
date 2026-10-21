@@ -55,6 +55,8 @@ class NotificationSettingsWidget {
     #notificationSettings = [
         new NotificationSetting('newsletter'),
         new NotificationSetting('opponent-joined-game'),
+        new NotificationSetting('user-flagged'),
+        new NotificationSetting('opponent-flagged'),
         new NotificationSetting('opponent-played-move'),
         new NotificationSetting('opponent-resigned'),
         new NotificationSetting('opponent-proposed-draw'),
@@ -69,6 +71,8 @@ class NotificationSettingsWidget {
         let body = {
             'newsletter': this.#findSettingById('newsletter').isChecked,
             'opponentJoinedGame': this.#findSettingById('opponent-joined-game').isChecked,
+            'userFlagged': this.#findSettingById('user-flagged').isChecked,
+            'opponentFlagged': this.#findSettingById('opponent-flagged').isChecked,
             'opponentPlayedMove': this.#findSettingById('opponent-played-move').isChecked,
             'opponentResigned': this.#findSettingById('opponent-resigned').isChecked,
             'opponentProposedDraw': this.#findSettingById('opponent-proposed-draw').isChecked,

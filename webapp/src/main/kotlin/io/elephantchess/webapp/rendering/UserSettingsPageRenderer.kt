@@ -45,6 +45,12 @@ class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private v
                 "Somebody joined a game you created - but you're offline.",
                 dto.opponentJoinedGame,
             ),
+            NotificationRow("user-flagged", "You flagged on time.", dto.userFlagged),
+            NotificationRow(
+                "opponent-flagged",
+                "Your opponent flagged on time - but you're offline.",
+                dto.opponentFlagged,
+            ),
             NotificationRow(
                 "opponent-played-move",
                 "Your opponent played a move - but you're offline.",

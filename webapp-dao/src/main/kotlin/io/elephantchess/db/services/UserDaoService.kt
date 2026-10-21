@@ -69,6 +69,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .set(USER.USER_TYPE, UserType.GUEST)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_FLAGGED, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_FLAGGED, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW, false)
@@ -119,6 +121,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .select(
                 USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER,
                 USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME,
+                USER.EMAIL_NOTIFICATION_ENABLED_USER_FLAGGED,
+                USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_FLAGGED,
                 USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE,
                 USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED,
                 USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW,
@@ -132,6 +136,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 NotificationsSettingsRecord(
                     newsletter = userRecord.emailNotificationEnabledNewsletter,
                     opponentJoinedGame = userRecord.emailNotificationEnabledUserJoinedGame,
+                    userFlagged = userRecord.emailNotificationEnabledUserFlagged,
+                    opponentFlagged = userRecord.emailNotificationEnabledOpponentFlagged,
                     opponentPlayedMove = userRecord.emailNotificationEnabledOpponentPlayedMove,
                     opponentResigned = userRecord.emailNotificationEnabledOpponentResigned,
                     opponentProposedDraw = userRecord.emailNotificationEnabledOpponentProposedDraw,
@@ -144,6 +150,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         userId: String,
         newsletter: Boolean,
         opponentJoinedGame: Boolean,
+        userFlagged: Boolean,
+        opponentFlagged: Boolean,
         opponentPlayedMove: Boolean,
         opponentResigned: Boolean,
         opponentProposedDraw: Boolean,
@@ -156,6 +164,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .update(USER)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, newsletter)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME, opponentJoinedGame)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_FLAGGED, userFlagged)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_FLAGGED, opponentFlagged)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE, opponentPlayedMove)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED, opponentResigned)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW, opponentProposedDraw)
@@ -184,6 +194,8 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .update(USER)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_FLAGGED, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_FLAGGED, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW, false)
