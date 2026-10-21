@@ -42,6 +42,7 @@ class UserProfilePageRenderer(
                 SimpleValueTagResolver("show_pvp_games", userProfileDto.showPvpGamesOnProfile.toString()),
                 SimpleValueTagResolver("show_pvb_games", userProfileDto.showPvbGamesOnProfile.toString()),
                 descriptionMeta(username, description),
+                profilePictureTagResolver(userProfileDto.profilePictureUrl, username),
                 flagPanelTagResolver(countryCode),
                 descriptionDivTagResolver(username, description),
                 gameStatsTableTagResolver(gameStats),
@@ -80,6 +81,25 @@ class UserProfilePageRenderer(
                 }
             }
         }
+
+    private fun profilePictureTagResolver(profilePictureUrl: String?, username: String): TagResolver =
+        CallbackTagResolver("profile_picture_panel") {
+            if (profilePictureUrl != null) {
+                val escapedUsername = escapeHtml(username)
+                """<div class="profile-header-panel profile-picture-header-panel">
+                    |<img id="profile-picture" src="$profilePictureUrl" alt="$escapedUsername profile picture"/>
+                    |</div>
+                """.trimMargin()
+            } else {
+                ""
+            }
+        }
+
+    private fun escapeHtml(s: String): String =
+        s.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
 
     private fun descriptionDivTagResolver(username: String, description: String?): TagResolver =
         KtorHtmlBuilderTagResolver("user_profile_description") {

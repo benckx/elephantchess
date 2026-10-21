@@ -43,6 +43,7 @@ class UserService(
     private val userSessionService: UserSessionService,
     private val tokenManager: TokenManager,
     private val mailService: MailService,
+    private val userProfilePictureService: UserProfilePictureService,
     private val pageViewEventService: PageViewEventService,
     private val settingPreferenceEventService: SettingPreferenceEventService,
     refresherScope: CoroutineScope,
@@ -61,6 +62,7 @@ class UserService(
 
     // password hashing
     private val salt: ByteArray = appConfig.salt.toByteArray()
+    private val profile = appConfig.profile
     private val secretKeyFactory = SecretKeyFactory.getInstance(SALT_ALGO)
 
     private val refreshJob = launchAtFixedRateStartImmediately(
@@ -339,19 +341,19 @@ class UserService(
     }
 
     suspend fun fetchProfile(username: String): UserProfileDto {
-        // TODO: only fetch relevant fields
-        val user = userDaoService.findByUserName(username)
-        return if (user == null) {
+        val record = userDaoService.fetchPublicProfile(username)
+        return if (record == null) {
             throw NotFoundException("User $username could not be found")
         } else {
             UserProfileDto(
-                userId = user.id,
-                username = user.handle,
-                country = normalizeCountry(user.country),
-                profileDescription = user.description,
-                puzzleRating = user.puzzleRating,
-                showPvpGamesOnProfile = user.showPvpGamesOnProfile,
-                showPvbGamesOnProfile = user.showPvbGamesOnProfile,
+                userId = record.id,
+                username = record.handle,
+                country = normalizeCountry(record.country),
+                profileDescription = record.description,
+                puzzleRating = record.puzzleRating,
+                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, record.id, record.profilePictureExtension),
+                showPvpGamesOnProfile = record.showPvpGamesOnProfile,
+                showPvbGamesOnProfile = record.showPvbGamesOnProfile,
             )
         }
     }
@@ -362,6 +364,7 @@ class UserService(
             return ProfileSettingsDto(
                 description = record.description.orEmpty(),
                 country = record.country.orEmpty(),
+                profilePictureUrl = UserProfilePictureService.profilePictureUrl(profile, userId, record.profilePictureExtension),
                 showPvpGamesOnProfile = record.showPvpGamesOnProfile,
                 showPvbGamesOnProfile = record.showPvbGamesOnProfile,
             )
@@ -390,6 +393,11 @@ class UserService(
             showPvpGamesOnProfile = request.showPvpGamesOnProfile,
             showPvbGamesOnProfile = request.showPvbGamesOnProfile,
         )
+    }
+
+    suspend fun uploadProfilePicture(userId: String, originalFileName: String, bytes: ByteArray): ProfilePictureUploadResponse {
+        val url = userProfilePictureService.uploadProfilePicture(userId, originalFileName, bytes)
+        return ProfilePictureUploadResponse(url)
     }
 
     suspend fun fetchNotificationsSettings(userId: String): NotificationsSettingsDto {

@@ -29,6 +29,10 @@ class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private v
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("profile_description", escapeHtml(profile.description)),
                 SimpleValueTagResolver("profile_country", escapeHtmlAttr(profile.country)),
+                SimpleValueTagResolver(
+                    "profile_picture_url",
+                    escapeHtmlAttr(profile.profilePictureUrl ?: "/images/icons/user_profile_smaller.png"),
+                ),
                 SimpleValueTagResolver("show_pvp_games_checked", if (profile.showPvpGamesOnProfile) "checked" else ""),
                 SimpleValueTagResolver("show_pvb_games_checked", if (profile.showPvbGamesOnProfile) "checked" else ""),
                 SimpleValueTagResolver("page_views_retention_days", ARCHIVE_PAGE_VIEW_AFTER_DAYS.toString()),

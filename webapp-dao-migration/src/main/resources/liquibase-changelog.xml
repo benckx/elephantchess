@@ -2883,4 +2883,10 @@
         </comment>
         <dropTable tableName="kubernetes_pod"/>
     </changeSet>
+    <changeSet id="0119" author="benckx">
+        <comment>Store the uploaded profile picture extension for users</comment>
+        <addColumn tableName="user">
+            <column name="profile_picture_extension" type="varchar(10)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

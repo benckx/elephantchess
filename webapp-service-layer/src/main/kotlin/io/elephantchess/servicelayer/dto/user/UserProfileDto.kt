@@ -6,6 +6,7 @@ data class UserProfileDto(
     val country: String?,
     val profileDescription: String?,
     val puzzleRating: Int,
+    val profilePictureUrl: String? = null,
     val showPvpGamesOnProfile: Boolean,
     val showPvbGamesOnProfile: Boolean,
 )

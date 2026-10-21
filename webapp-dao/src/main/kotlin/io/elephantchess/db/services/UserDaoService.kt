@@ -86,6 +86,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .select(
                 USER.DESCRIPTION,
                 USER.COUNTRY,
+                USER.PROFILE_PICTURE_EXTENSION,
                 USER.SHOW_PVP_GAMES_ON_PROFILE,
                 USER.SHOW_PVB_GAMES_ON_PROFILE,
             )
@@ -113,6 +114,34 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 .awaitExecute()
         }
     }
+
+    suspend fun updateProfilePictureExtension(userId: String, extension: String) {
+        dslContext.transactionCoroutine { cfg ->
+            DSL
+                .using(cfg)
+                .update(USER)
+                .set(USER.PROFILE_PICTURE_EXTENSION, extension)
+                .set(USER.LAST_PROFILE_UPDATE, Clock.System.now())
+                .where(USER.ID.eq(userId))
+                .awaitExecute()
+        }
+    }
+
+    suspend fun fetchPublicProfile(username: String): User? =
+        dslContext
+            .select(
+                USER.ID,
+                USER.HANDLE,
+                USER.COUNTRY,
+                USER.DESCRIPTION,
+                USER.PUZZLE_RATING,
+                USER.PROFILE_PICTURE_EXTENSION,
+                USER.SHOW_PVP_GAMES_ON_PROFILE,
+                USER.SHOW_PVB_GAMES_ON_PROFILE,
+            )
+            .from(USER)
+            .where(USER.HANDLE.eqIgnoreCaseTrimmed(username))
+            .awaitSingleMappedRecord<User>()
 
     suspend fun fetchNotificationSettings(userId: String): NotificationsSettingsRecord? =
         dslContext
