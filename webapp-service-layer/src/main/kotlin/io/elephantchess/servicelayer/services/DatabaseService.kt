@@ -447,8 +447,8 @@ class DatabaseService(
         // fetch stats for player alone
         val playerStats = referencePlayerDaoService.fetchGameStats(playerId)
 
-        // find possible duplicates
-        val duplicates = findPossibleDuplicates(playerId)
+        // find confirmed duplicates first; fall back to name-based heuristics
+        val duplicates = findConfirmedDuplicates(playerId).ifEmpty { findPossibleDuplicates(playerId) }
 
         // fetch stats including duplicates if any exist
         val statsWithDuplicates =
@@ -480,6 +480,11 @@ class DatabaseService(
             },
         )
     }
+
+    private suspend fun findConfirmedDuplicates(playerId: String): List<ReferencePlayer> =
+        referencePlayerDaoService
+            .findConfirmedDuplicatesOf(playerId)
+            .mapNotNull { duplicate -> referencePlayerDaoService.findPlayer(duplicate.playerId) }
 
     private suspend fun findPossibleDuplicates(playerId: String): List<ReferencePlayer> {
         val player = referencePlayerDaoService.findPlayer(playerId)
