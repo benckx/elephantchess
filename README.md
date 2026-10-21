@@ -100,13 +100,13 @@ development or learning purposes.
 
 ## TL;DR
 
-You just need Docker to run PostgreSQL and Java 21 to run the app.
+You just need Docker to run PostgreSQL and Java 25 to run the app.
 
 ## Pre-requisites
 
-### Java 21
+### Java 25
 
-You need a JDK installed to run the back-end, version 21 or higher.
+You need a JDK installed to run the back-end, version 25 or higher.
 
 ### Docker
 
