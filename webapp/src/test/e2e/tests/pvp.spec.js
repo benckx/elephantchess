@@ -24,6 +24,7 @@ const {
   gameIdFromUrl,
   joinGame,
   playScriptedGame,
+  captureStep,
 } = require('./helpers');
 
 // A real game that ends in checkmate, taken from the shared test data in
@@ -45,9 +46,16 @@ const CHECKMATE_GAME_MOVES = [
 test.describe('PvP workflow (two remote guests)', () => {
   test('full game: join updates inviter buttons live, checkmate ends game on both sides with Elo update', async ({
     browser,
-  }) => {
+  }, testInfo) => {
     const inviter = await newGuestContext(browser);
     const opponent = await newGuestContext(browser);
+
+    // Screenshots of both players at each milestone are attached to the report
+    // (visible in the Playwright HTML report / workflow artifact).
+    const bothPages = () => [
+      ['inviter', inviter.page],
+      ['opponent', opponent.page],
+    ];
 
     // --- Inviter creates a rated game, playing Red (so Red moves first) ---
     const gameUrl = await createGame(inviter.page, { color: 'red', rated: true });
@@ -64,6 +72,7 @@ test.describe('PvP workflow (two remote guests)', () => {
     await expect(resign).toHaveClass(/disabled-button/);
     await expect(draw).toHaveClass(/disabled-button/);
     await expect(cancel).toHaveClass(/enabled-button/);
+    await captureStep(testInfo, '1-waiting-for-opponent', bothPages());
 
     // --- Opponent opens the shared link and joins ---
     await opponent.page.goto(gameUrl, { waitUntil: 'networkidle' });
@@ -76,6 +85,7 @@ test.describe('PvP workflow (two remote guests)', () => {
     await expect(draw).toHaveClass(/enabled-button/);
     await expect(inviter.page.locator('#game-status')).toHaveText(/Your turn/);
     await expect(opponent.page.locator('#game-status')).toHaveText(/Opponent's turn/);
+    await captureStep(testInfo, '2-opponent-joined', bothPages());
 
     // --- Play the scripted game to checkmate ---
     // Inviter is Red and plays the odd half-moves; opponent is Black.
@@ -94,6 +104,7 @@ test.describe('PvP workflow (two remote guests)', () => {
     await expect(opponent.page.locator('#rating-update-box')).toBeVisible();
     await expect(inviter.page.locator('#user-rating-delta-value-box')).toBeVisible();
     await expect(opponent.page.locator('#user-rating-delta-value-box')).toBeVisible();
+    await captureStep(testInfo, '3-checkmate-modal', bothPages());
 
     // --- Dismiss the modal; the underlying UI reflects the finished game ---
     await inviter.page.click('#ok-button');
@@ -116,6 +127,7 @@ test.describe('PvP workflow (two remote guests)', () => {
     // opponent's page so both finished-game UIs are exercised.
     await expect(inviter.page.locator('#inviter-rating-delta')).toHaveText(/[+-]\d+/);
     await expect(opponent.page.locator('#invitee-rating-delta')).toHaveText(/[+-]\d+/);
+    await captureStep(testInfo, '4-finished-game', bothPages());
 
     await inviter.context.close();
     await opponent.context.close();

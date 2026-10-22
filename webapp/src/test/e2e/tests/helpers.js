@@ -177,6 +177,17 @@ async function playScriptedGame(movers, uciMoves) {
   }
 }
 
+// Capture a screenshot of each given page and attach it to the Playwright
+// report under a readable name, so the milestones of the scenario are visible
+// in the HTML report (and thus in the workflow artifact). `labelByPage` maps a
+// page to the label used for its attachment, e.g. `{ [inviter.page]: 'inviter' }`.
+async function captureStep(testInfo, step, labelByPage) {
+  for (const [label, page] of labelByPage) {
+    const body = await page.screenshot({ fullPage: true });
+    await testInfo.attach(`${step} - ${label}`, { body, contentType: 'image/png' });
+  }
+}
+
 module.exports = {
   stubThirdPartyNoise,
   newGuestContext,
@@ -187,4 +198,5 @@ module.exports = {
   squareIdFromUci,
   playMove,
   playScriptedGame,
+  captureStep,
 };

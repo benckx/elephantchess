@@ -39,6 +39,7 @@ module.exports = defineConfig({
     baseURL,
     trace: 'on-first-retry',
     video: 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
   projects: [
     {
