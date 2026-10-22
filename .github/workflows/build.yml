@@ -114,6 +114,13 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Load dev dataset into Postgres
+        env:
+          PGPASSWORD: postgres
+        run: |
+          pg_restore --no-privileges --no-owner \
+            -h localhost -p 5432 -U postgres -d xiangqi -1 dev_dataset.pgsql
+
       - name: Build webapp jar
         run: ./gradlew :webapp:jar --no-daemon --stacktrace -x test
 
@@ -151,3 +158,29 @@ jobs:
           name: playwright-report
           path: webapp/src/test/e2e/playwright-report/**
           if-no-files-found: ignore
+
+      # Publish the HTML report to GitHub Pages so it can be viewed in the
+      # browser (just click the link) instead of downloading the artifact zip.
+      # Requires Pages to be enabled for the repo (Settings -> Pages -> "GitHub
+      # Actions"). Skipped for pull requests from forks, which cannot deploy.
+      - name: Upload Pages artifact
+        if: always() && github.event.pull_request.head.repo.fork != true
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: webapp/src/test/e2e/playwright-report
+
+  deploy-e2e-report:
+    needs: e2e
+    if: always() && needs.e2e.result != 'skipped' && github.event.pull_request.head.repo.fork != true
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Playwright report to GitHub Pages
+        id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v4

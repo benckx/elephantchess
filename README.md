@@ -764,6 +764,42 @@ node --test
 
 The same command runs in the CI build.
 
+### Page tests (E2E)
+
+End-to-end browser tests live under `webapp/src/test/e2e` and use
+[Playwright](https://playwright.dev). They drive the real front-end in a headless
+Chromium, exercising the full online PvP workflow: two guests, live button
+updates when the opponent joins, a scripted game played out to checkmate, and the
+game-over modal with the Elo update.
+
+Requirements:
+
+- A running app on `http://localhost:8080` (override with `BASE_URL`). See
+  [Run Locally](#run-locally); make sure PostgreSQL is up and the dev dataset is
+  imported (`dev_dataset.pgsql`) so caches such as the puzzle cache are populated.
+- Node 24+.
+
+First time (and whenever dependencies change), install the Node packages and the
+Chromium browser Playwright drives (the `playwright` binary is provided by the
+local `@playwright/test` dependency, so `npm install` must run before
+`npx playwright install`):
+
+```bash
+cd webapp/src/test/e2e
+npm ci                          # or: npm install
+npx playwright install chromium # downloads the browser Playwright drives
+```
+
+Then run the tests (the app must already be running):
+
+```bash
+npm test
+```
+
+Both run in the `e2e` job of the CI build, which spins up PostgreSQL, loads
+`dev_dataset.pgsql`, starts the app, and publishes the HTML report (viewable via
+GitHub Pages and as the `playwright-report` artifact).
+
 ## JavaScript Libraries
 
 Some widgets from the [https://elephantchess.io](https://elephantchess.io) front-end are available as JavaScript
