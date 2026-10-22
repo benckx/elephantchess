@@ -764,35 +764,6 @@ node --test
 
 The same command runs in the CI build.
 
-### Page tests (E2E)
-
-End-to-end browser tests live under `webapp/src/test/e2e` and use
-[Playwright](https://playwright.dev/). They drive a real browser against a running app instance, so they cover the full
-front-end/back-end flow that the JavaScript unit tests cannot.
-
-`tests/pvp.spec.js` plays a complete online PvP game between two remote players. Each player runs in its own browser
-context (its own guest identity). The scenario:
-
-1. the inviter creates a rated game (playing Red, so Red moves first);
-2. the opponent opens the shared link and joins;
-3. the inviter's action buttons update **live** (resign / propose-draw become enabled, the status flips to
-   "Your turn") without a reload, once the opponent joins;
-4. both players play a scripted game (game `mTkvv0GI` from `xiangqi-core-test-utils/src/main/resources/uci.txt`) that
-   ends in checkmate, driven by real board clicks;
-5. the game-over modal appears on both sides (win / loss) with the Elo update;
-6. after dismissing the modal, the finished-game UI is shown (analysis enabled, rating deltas visible).
-
-The app must be running first (see "Run Locally"). Then:
-
-```bash
-cd webapp/src/test/e2e
-npm install
-npm run install-browsers   # one-time: downloads the Playwright browser
-npm test
-```
-
-`BASE_URL` defaults to `http://localhost:8080`; override it to target another instance.
-
 ## JavaScript Libraries
 
 Some widgets from the [https://elephantchess.io](https://elephantchess.io) front-end are available as JavaScript

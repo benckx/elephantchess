@@ -77,3 +77,77 @@ jobs:
           name: test-reports
           path: '**/build/reports/tests/**'
           if-no-files-found: ignore
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:18.4
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: xiangqi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Build webapp jar
+        run: ./gradlew :webapp:jar --no-daemon --stacktrace -x test
+
+      - name: Install e2e dependencies
+        run: npm ci || npm install
+        working-directory: webapp/src/test/e2e
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: webapp/src/test/e2e
+
+      - name: Start webapp
+        run: |
+          java -jar webapp/build/libs/webapp.jar > /tmp/webapp.log 2>&1 &
+          for i in $(seq 1 90); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080)" = "200" ]; then
+              echo "webapp is up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "webapp did not start in time"; cat /tmp/webapp.log; exit 1
+
+      - name: Run Playwright e2e tests
+        run: npm test
+        working-directory: webapp/src/test/e2e
+
+      - name: Print webapp log on failure
+        if: failure()
+        run: cat /tmp/webapp.log || true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: webapp/src/test/e2e/playwright-report/**
+          if-no-files-found: ignore
