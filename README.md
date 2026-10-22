@@ -805,8 +805,9 @@ npx playwright test --debug  # headed + Playwright Inspector, pauses on each ste
 ```
 
 The install and `npm test` steps run in the `e2e` job of the CI build, which spins up PostgreSQL, loads
-`dev_dataset.pgsql`, starts the app, and publishes the HTML report (viewable via
-GitHub Pages and as the `playwright-report` artifact).
+`dev_dataset.pgsql`, starts the app, and publishes the HTML report as the `playwright-report` artifact. The
+`deploy-e2e-report` job then pushes it to the `gh-pages` branch, viewable at
+`https://benckx.github.io/elephantchess/e2e/pr-<number>/` (or `e2e/main/`); the link is in the job summary.
 
 ## JavaScript Libraries
 
