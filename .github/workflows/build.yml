@@ -82,6 +82,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
+    permissions:
+      contents: read
+
     services:
       postgres:
         image: postgres:18.4
@@ -126,7 +129,7 @@ jobs:
         run: ./gradlew :webapp:jar --no-daemon --stacktrace -x test
 
       - name: Install e2e dependencies
-        run: npm ci || npm install
+        run: npm ci
         working-directory: webapp/src/test/e2e
 
       - name: Install Playwright browsers
