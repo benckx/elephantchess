@@ -111,10 +111,11 @@ test.describe('PvP workflow (two remote guests)', () => {
       );
     }
 
-    const inviterDelta = inviter.page.locator('#inviter-rating-delta');
-    const inviteeDelta = inviter.page.locator('#invitee-rating-delta');
-    await expect(inviterDelta).toHaveText(/[+-]\d+/);
-    await expect(inviteeDelta).toHaveText(/[+-]\d+/);
+    // Both players' rating deltas are shown in each player's info panel; check
+    // the inviter delta on the inviter's page and the invitee delta on the
+    // opponent's page so both finished-game UIs are exercised.
+    await expect(inviter.page.locator('#inviter-rating-delta')).toHaveText(/[+-]\d+/);
+    await expect(opponent.page.locator('#invitee-rating-delta')).toHaveText(/[+-]\d+/);
 
     await inviter.context.close();
     await opponent.context.close();

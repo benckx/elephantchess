@@ -119,7 +119,7 @@ async function joinGame(page) {
 
 // Translate a UCI position (e.g. 'h2') into logical board coordinates.
 function coordsFromUci(uciPosition) {
-  return { x: UCI_LETTER.indexOf(uciPosition[0]), y: Number(uciPosition[1]) };
+  return { x: UCI_LETTER.indexOf(uciPosition[0]), y: Number(uciPosition.slice(1)) };
 }
 
 // The board square element id (e.g. 'board-container-square-7-2'). Square ids
