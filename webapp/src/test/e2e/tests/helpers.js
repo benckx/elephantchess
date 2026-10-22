@@ -181,9 +181,11 @@ async function playScriptedGame(movers, uciMoves) {
 // report under a readable name, so the milestones of the scenario are visible
 // in the HTML report (and thus in the workflow artifact). `labelByPage` maps a
 // page to the label used for its attachment, e.g. `{ [inviter.page]: 'inviter' }`.
-async function captureStep(testInfo, step, labelByPage) {
+// Use `fullPage: false` when a modal is open: its fixed overlay only covers the
+// viewport, so a full-page capture would show unblurred content below it.
+async function captureStep(testInfo, step, labelByPage, { fullPage = true } = {}) {
   for (const [label, page] of labelByPage) {
-    const body = await page.screenshot({ fullPage: true });
+    const body = await page.screenshot({ fullPage });
     await testInfo.attach(`${step} - ${label}`, { body, contentType: 'image/png' });
   }
 }

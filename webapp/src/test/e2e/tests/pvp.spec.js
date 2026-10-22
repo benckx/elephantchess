@@ -103,7 +103,7 @@ test.describe('PvP workflow (two remote guests)', () => {
     await expect(opponent.page.locator('#rating-update-box')).toBeVisible();
     await expect(inviter.page.locator('#user-rating-delta-value-box')).toBeVisible();
     await expect(opponent.page.locator('#user-rating-delta-value-box')).toBeVisible();
-    await captureStep(testInfo, '3-checkmate-modal', bothPages());
+    await captureStep(testInfo, '3-checkmate-modal', bothPages(), { fullPage: false });
 
     // --- Dismiss the modal; the underlying UI reflects the finished game ---
     await inviter.page.click('#ok-button');
