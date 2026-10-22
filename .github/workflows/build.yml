@@ -118,8 +118,9 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: |
-          pg_restore --no-privileges --no-owner \
-            -h localhost -p 5432 -U postgres -d xiangqi -1 dev_dataset.pgsql
+          docker exec -i "${{ job.services.postgres.id }}" \
+            pg_restore --no-privileges --no-owner \
+            -U postgres -d xiangqi -1 < dev_dataset.pgsql
 
       - name: Build webapp jar
         run: ./gradlew :webapp:jar --no-daemon --stacktrace -x test
