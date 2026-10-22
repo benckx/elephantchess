@@ -764,43 +764,6 @@ node --test
 
 The same command runs in the CI build.
 
-### Page tests (E2E)
-
-End-to-end browser tests live under `webapp/src/test/e2e` and use
-[Playwright](https://playwright.dev). Playwright is recommended over Selenium here: it has built-in
-auto-waiting/retry, first-class request interception, and — most importantly for this app — cheap
-**browser contexts**, which is how multi-player PvP is tested.
-
-A PvP game is played by two independent remote players. Each player is simply a separate Playwright
-**browser context** (an isolated cookie jar) in the *same* browser. A fresh context that visits any
-page is handed its own guest identity (the `guest.user.token` cookie), so two contexts behave exactly
-like two anonymous visitors playing each other. Separate OS-level browsers are only needed when
-intentionally testing different browser engines, which is not the case here.
-
-`tests/pvp.spec.js` drives the full PvP workflow and asserts the behaviour from issue #901:
-
-- the inviter creates a private game; `Resign` / `Propose draw` start **disabled** (grey) and `Cancel`
-  is enabled while waiting;
-- the private-invite board-mask overlay is shown, and the game does **not** appear in the public lobby;
-- a second guest opens the shared link and joins;
-- the inviter's `Resign` / `Propose draw` buttons become **enabled live, without a page reload**, and
-  the waiting overlay disappears;
-- a chat message is delivered to the opponent and the author name gets its red/black colour class.
-
-The tests expect the app to already be running (they do not start it). First make sure PostgreSQL and
-the web app are up as described in [Build and Run](#build-and-run), then:
-
-```bash
-cd webapp/src/test/e2e
-npm install            # installs Playwright and dayjs (first time only)
-npm run install-browsers   # downloads the Chromium build Playwright uses (first time only)
-npm test               # runs against http://localhost:8080 by default
-```
-
-Point the tests at another host with `BASE_URL`, e.g. `BASE_URL=http://localhost:8080 npm test`.
-Third-party scripts (analytics, reCAPTCHA, tag manager, Ko-fi) are stubbed out and the dayjs CDN is
-served from the local `dayjs` dependency, so the run is hermetic and does not depend on external CDNs.
-
 ## JavaScript Libraries
 
 Some widgets from the [https://elephantchess.io](https://elephantchess.io) front-end are available as JavaScript
