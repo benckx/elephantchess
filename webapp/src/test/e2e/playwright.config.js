@@ -17,34 +17,34 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const { defineConfig, devices } = require('@playwright/test');
+const {defineConfig, devices} = require('@playwright/test');
 
 // The app must already be running (see README "Page tests (E2E)").
 // Override with BASE_URL, e.g. BASE_URL=http://localhost:8080 npm test
 const baseURL = process.env.BASE_URL || 'http://localhost:8080';
 
 module.exports = defineConfig({
-  testDir: './tests',
-  // Each spec drives two players in separate browser contexts, so a single
-  // scenario is inherently sequential; keep workers low to avoid hammering a
-  // single local server.
-  fullyParallel: false,
-  workers: 1,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  timeout: 60_000,
-  expect: { timeout: 15_000 },
-  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
-  use: {
-    baseURL,
-    trace: 'on-first-retry',
-    video: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-  },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+    testDir: './tests',
+    // Each spec drives two players in separate browser contexts, so a single
+    // scenario is inherently sequential; keep workers low to avoid hammering a
+    // single local server.
+    fullyParallel: false,
+    workers: 1,
+    forbidOnly: !!process.env.CI,
+    retries: process.env.CI ? 1 : 0,
+    timeout: 60_000,
+    expect: {timeout: 15_000},
+    reporter: process.env.CI ? [['list'], ['html', {open: 'never'}]] : [['list']],
+    use: {
+        baseURL,
+        trace: 'on-first-retry',
+        video: 'retain-on-failure',
+        screenshot: 'only-on-failure',
     },
-  ],
+    projects: [
+        {
+            name: 'chromium',
+            use: {...devices['Desktop Chrome']},
+        },
+    ],
 });
