@@ -31,7 +31,6 @@ const {
 // `xiangqi-core-test-utils/src/main/resources/uci.txt` (game id `mTkvv0GI`).
 // Red delivers mate on the final (15th) half-move, so the game creator — who
 // picks Red and therefore moves first — wins.
-const CHECKMATE_GAME_ID = 'mTkvv0GI';
 const CHECKMATE_GAME_MOVES = [
   'h2e2', 'h9g7', 'h0g2', 'b7d7', 'i0h0', 'g6g5', 'c3c4', 'b9a7',
   'b2b7', 'h7i7', 'b7g7', 'a9b9', 'e2e6', 'b9b5', 'g7e7',
