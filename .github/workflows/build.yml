@@ -47,7 +47,11 @@ jobs:
         run: ./gradlew ktlintCheck --no-daemon --continue
 
       - name: Run JavaScript parser tests
-        run: node --test
+        run: |
+          mkdir -p build/test-results/js
+          node --test \
+            --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=junit --test-reporter-destination=build/test-results/js/TEST-js.xml
         working-directory: webapp/src/test/js
 
       - name: Verify Docker is available (for Testcontainers)
@@ -70,6 +74,18 @@ jobs:
           updateComment: true
           job_summary: true
 
+      - name: Publish JavaScript test report
+        if: always()
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: 'webapp/src/test/js/build/test-results/js/TEST-*.xml'
+          check_name: 'JavaScript test results'
+          detailed_summary: true
+          include_passed: true
+          require_tests: false
+          annotate_notice: false
+          job_summary: true
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v7
@@ -77,3 +93,133 @@ jobs:
           name: test-reports
           path: '**/build/reports/tests/**'
           if-no-files-found: ignore
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgres:18.4
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: xiangqi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Load dev dataset into Postgres
+        env:
+          PGPASSWORD: postgres
+        run: |
+          docker exec -i -e PGPASSWORD=postgres "${{ job.services.postgres.id }}" \
+            pg_restore --no-privileges --no-owner \
+            -U postgres -d xiangqi -1 < dev_dataset.pgsql
+
+      - name: Build webapp jar
+        run: ./gradlew :webapp:jar --no-daemon --stacktrace -x test
+
+      - name: Install e2e dependencies
+        run: npm ci
+        working-directory: webapp/src/test/e2e
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: webapp/src/test/e2e
+
+      - name: Start webapp
+        run: |
+          java -jar webapp/build/libs/webapp.jar > /tmp/webapp.log 2>&1 &
+          for i in $(seq 1 90); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080)" = "200" ]; then
+              echo "webapp is up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "webapp did not start in time"; cat /tmp/webapp.log; exit 1
+
+      - name: Run Playwright e2e tests
+        run: npm test
+        working-directory: webapp/src/test/e2e
+
+      - name: Print webapp log on failure
+        if: failure()
+        run: cat /tmp/webapp.log || true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: webapp/src/test/e2e/playwright-report/**
+          if-no-files-found: ignore
+
+  # Publish the HTML report to the gh-pages branch so it can be viewed in the
+  # browser instead of downloading the artifact zip. Each PR gets its own folder
+  # (e2e/pr-<number>/), main uses e2e/main/. Requires Pages to serve the
+  # gh-pages branch (Settings -> Pages -> "Deploy from a branch" -> gh-pages).
+  # Skipped for fork PRs, whose token cannot push.
+  deploy-e2e-report:
+    needs: e2e
+    if: always() && needs.e2e.result != 'skipped' && github.event.pull_request.head.repo.fork != true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: gh-pages-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Download Playwright report
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: playwright-report
+          path: playwright-report
+
+      - name: Compute report folder
+        if: steps.download.outcome == 'success'
+        id: folder
+        run: echo "dir=e2e/${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to gh-pages
+        if: steps.download.outcome == 'success'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: playwright-report
+          destination_dir: ${{ steps.folder.outputs.dir }}
+          keep_files: true
+          commit_message: "e2e report: ${{ steps.folder.outputs.dir }}"
+
+      - name: Link report in job summary
+        if: steps.download.outcome == 'success'
+        run: |
+          url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ steps.folder.outputs.dir }}/"
+          echo "Playwright report: $url"
+          echo "### [Playwright report]($url)" >> "$GITHUB_STEP_SUMMARY"
