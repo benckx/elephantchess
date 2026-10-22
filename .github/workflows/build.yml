@@ -121,7 +121,7 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: |
-          docker exec -i "${{ job.services.postgres.id }}" \
+          docker exec -i -e PGPASSWORD=postgres "${{ job.services.postgres.id }}" \
             pg_restore --no-privileges --no-owner \
             -U postgres -d xiangqi -1 < dev_dataset.pgsql
 
