@@ -1144,7 +1144,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         minMoveIndex: Int,
         joinSources: Collection<GameJoinSource>,
         month: YearMonth,
-    ): MatchingTimeStats {
+    ): MatchingTimeStatsRecord {
         val joinedTime = DSL.field(
             DSL
                 .select(DSL.min(GAME_STATUS_EVENT.EVENT_TIME))
@@ -1174,7 +1174,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleRecord()
 
         return if (record == null) {
-            MatchingTimeStats(
+            MatchingTimeStatsRecord(
                 count = 0,
                 minMillis = null,
                 medianMillis = null,
@@ -1184,7 +1184,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 maxMillis = null,
             )
         } else {
-            MatchingTimeStats(
+            MatchingTimeStatsRecord(
                 count = record.get(countField),
                 minMillis = record.get(minField),
                 medianMillis = record.get(p50Field)?.toMillis(),
@@ -1205,7 +1205,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         minMoveIndex: Int,
         joinSources: Collection<GameJoinSource>,
         month: YearMonth,
-    ): Map<TimeControlCategoryGroup, MatchingTimeStats> {
+    ): Map<TimeControlCategoryGroup, MatchingTimeStatsRecord> {
         val joinedTime = DSL.field(
             DSL
                 .select(DSL.min(GAME_STATUS_EVENT.EVENT_TIME))
@@ -1257,7 +1257,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .groupBy(groupField)
             .awaitRecords()
             .associate { record ->
-                TimeControlCategoryGroup.valueOf(record.get(groupField)) to MatchingTimeStats(
+                TimeControlCategoryGroup.valueOf(record.get(groupField)) to MatchingTimeStatsRecord(
                     count = record.get(countField),
                     minMillis = record.get(minField),
                     medianMillis = record.get(p50Field)?.toMillis(),

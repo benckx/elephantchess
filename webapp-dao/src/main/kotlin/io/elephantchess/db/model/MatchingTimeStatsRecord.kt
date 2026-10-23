@@ -6,7 +6,7 @@ package io.elephantchess.db.model
  * no game was joined. Percentiles (p50/median, p90, p95, p99) make the distribution readable despite
  * outliers.
  */
-data class MatchingTimeStats(
+data class MatchingTimeStatsRecord(
     val count: Int,
     val minMillis: Long?,
     val medianMillis: Long?,

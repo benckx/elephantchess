@@ -2,7 +2,7 @@ package io.elephantchess.servicelayer.services.admin
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.IntDimensionValueRecord
-import io.elephantchess.db.model.MatchingTimeStats
+import io.elephantchess.db.model.MatchingTimeStatsRecord
 import io.elephantchess.db.model.MonthlyValueRecord
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
@@ -491,7 +491,7 @@ class AdminAnalyticsService(
         )
     }
 
-    private fun MatchingTimeStats.toDto(): MatchingTimeStat =
+    private fun MatchingTimeStatsRecord.toDto(): MatchingTimeStat =
         MatchingTimeStat(
             count = count,
             minMillis = minMillis,
