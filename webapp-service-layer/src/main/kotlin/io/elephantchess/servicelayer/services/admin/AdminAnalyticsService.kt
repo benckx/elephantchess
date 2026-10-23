@@ -6,17 +6,9 @@ import io.elephantchess.db.model.MatchingTimeStats
 import io.elephantchess.db.model.MonthlyValueRecord
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
-import io.elephantchess.db.services.AnalysisDaoService
-import io.elephantchess.db.services.ArchivedGuestDaoService
-import io.elephantchess.db.services.PageViewEventDaoService
-import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
-import io.elephantchess.db.services.ThrownExceptionDaoService
-import io.elephantchess.db.services.UserStatsDaoService
+import io.elephantchess.db.services.*
 import io.elephantchess.model.GameJoinSource
-import io.elephantchess.model.GameJoinSource.DYNAMIC_MATCHED
-import io.elephantchess.model.GameJoinSource.LINK
-import io.elephantchess.model.GameJoinSource.LOBBY
-import io.elephantchess.model.GameJoinSource.MATCHED
+import io.elephantchess.model.GameJoinSource.*
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.analytics.HourlyAvailableMetric
@@ -491,7 +483,7 @@ class AdminAnalyticsService(
         val linkByCategory = pvpGameDaoService.matchingTimeStatsByCategoryGroupForMonth(MIN_MOVE_INDEX, linkJoinSources, month)
 
         return MatchingTimeStatsResponse(
-            period = period,
+            period = month.toString(),
             lobbyJoinModes = lobby.toDto(),
             linkJoinSource = link.toDto(),
             lobbyJoinModesByCategory = lobbyByCategory.entries.associate { (group, stats) -> group.name to stats.toDto() },
