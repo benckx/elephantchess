@@ -183,8 +183,8 @@ class AdminMatchingTimePage extends BasePage {
     }
 
     /**
-     * Appends a duration cell, formatting the value and color-coding long waits (orange from 10m to
-     * 1h, purple above 24h) so outliers stand out at a glance.
+     * Appends a duration cell, formatting the value and color-coding it by severity (green below 10m,
+     * orange 10m–1h, red 1h–24h, purple above 24h) so outliers stand out at a glance.
      * @param row {HTMLTableRowElement}
      * @param millis {?number}
      */
@@ -215,8 +215,9 @@ function formatMatchingTime(millis) {
 }
 
 /**
- * Returns the CSS class used to color-code a matching-time value: orange between 10m and 1h, purple
- * above 24h, and none (empty string) otherwise or when the value is missing.
+ * Returns the CSS class used to color-code a matching-time value by severity: green below 10m,
+ * orange from 10m to 1h, red from 1h to 24h, purple above 24h. Returns an empty string when the
+ * value is missing.
  * @param millis {?number}
  * @returns {string}
  */
@@ -227,10 +228,13 @@ function matchingTimeColorClass(millis) {
     if (millis > 24 * 60 * 60 * 1_000) {
         return 'duration-very-long';
     }
-    if (millis >= 10 * 60 * 1_000 && millis < 60 * 60 * 1_000) {
+    if (millis >= 60 * 60 * 1_000) {
+        return 'duration-bad';
+    }
+    if (millis >= 10 * 60 * 1_000) {
         return 'duration-long';
     }
-    return '';
+    return 'duration-good';
 }
 
 window.onload = () => new AdminMatchingTimePage();
