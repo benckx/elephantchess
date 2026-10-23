@@ -111,6 +111,13 @@ subprojects {
         maxHeapSize = "1G"
         failOnNoDiscoveredTests = false
     }
+
+    // Netty loads native libraries (System::loadLibrary), a restricted method since JDK 22 (JEP 472).
+    // Covers apps launched via Gradle (e.g. IntelliJ delegating run to Gradle); the webapp jar sets it via its manifest.
+    // An argument provider is used so it is kept even if a launcher reassigns jvmArgs.
+    tasks.withType<JavaExec>().configureEach {
+        jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("--enable-native-access=ALL-UNNAMED") })
+    }
 }
 
 val daoCodeGen = tasks.register("dao-code-gen") {
@@ -347,6 +354,8 @@ project(":webapp") {
     tasks.named<Jar>("jar") {
         manifest {
             attributes["Main-Class"] = "io.elephantchess.webapp.MainKt"
+            // see JavaExec config above: avoids JDK warnings about Netty loading native libraries
+            attributes["Enable-Native-Access"] = "ALL-UNNAMED"
         }
 
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE

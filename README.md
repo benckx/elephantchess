@@ -201,7 +201,9 @@ java -jar webapp/build/libs/webapp.jar
 
 Then you should be able to access the webapp at http://localhost:8080.
 
-Alternatively, you can launch the `Main` from your IDE of choice.
+Alternatively, you can launch the `Main` from your IDE of choice. If your IDE runs it with its own launcher (not via
+Gradle), add the VM option `--enable-native-access=ALL-UNNAMED` to avoid JDK warnings about Netty loading native
+libraries (the jar and Gradle `JavaExec` tasks already set it).
 
 ## Code Style
 
