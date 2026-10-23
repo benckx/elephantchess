@@ -244,6 +244,18 @@ class AdminFeedsPage extends BasePage {
                 dateCell.className = 'label-cell';
                 dateCell.innerText = formatTimestampToDateTime(entry.date);
 
+                const categoriesCell = row.insertCell();
+                categoriesCell.className = 'label-cell';
+                if (entry.categories != null && entry.categories.length > 0) {
+                    categoriesCell.innerText = entry.categories.map(formatEnumValue).join(', ');
+                } else {
+                    categoriesCell.innerText = '--';
+                }
+
+                const puzzleCreatedCell = row.insertCell();
+                puzzleCreatedCell.className = 'label-cell';
+                puzzleCreatedCell.innerText = formatTimestampToDateTime(entry.puzzleCreated);
+
                 if (showUser) {
                     const voteCell = row.insertCell();
                     voteCell.className = 'label-cell';
