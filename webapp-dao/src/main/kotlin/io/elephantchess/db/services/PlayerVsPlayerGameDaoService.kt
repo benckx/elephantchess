@@ -1171,8 +1171,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         } else {
             MatchingTimeStats(
                 count = record.get(countField),
-                minSeconds = record.get(minField)?.toInt(),
-                maxSeconds = record.get(maxField)?.toInt(),
+                minSeconds = record.get(minField),
+                maxSeconds = record.get(maxField),
                 avgSeconds = record.get(avgField)?.toDouble(),
             )
         }
