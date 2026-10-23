@@ -90,6 +90,7 @@ class AdminMatchingTimePage extends BasePage {
      */
     #createCategoryTable(container, category) {
         const heading = document.createElement('h3');
+        heading.className = 'category-group-heading';
         heading.innerText = category;
         heading.style.display = 'none';
 
