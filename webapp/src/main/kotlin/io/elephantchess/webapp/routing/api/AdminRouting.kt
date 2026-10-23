@@ -9,6 +9,7 @@ import io.elephantchess.webapp.ops.requireAdminRole
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import java.net.URLDecoder
+import java.time.YearMonth
 
 fun Route.adminConsoleRoutes() {
     route("/api/admin/analytics") {
@@ -113,6 +114,17 @@ private fun Route.adminAnalyticsRoutes() {
     }
     get("/pvp-join-source-stats") {
         requireAdminRole { adminAnalyticsService.fetchPvpStatsByJoinSource() }
+    }
+    get("/matching-time-periods") {
+        requireAdminRole { adminAnalyticsService.fetchMatchingTimePeriods() }
+    }
+    get("/matching-time-stats") {
+        requireAdminRole { _ ->
+            val period = call.parameters["period"] ?: throw IllegalArgumentException("missing 'period' parameter")
+            val month = YearMonth.parse(period)
+
+            adminAnalyticsService.fetchMatchingTimeStatsForMonth(month)
+        }
     }
     get("/yearly-stats") {
         requireAdminRole { adminAnalyticsService.fetchYearlyStats() }

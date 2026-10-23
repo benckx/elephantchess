@@ -2897,4 +2897,16 @@
             ON user_session_anonymous USING hash (user_agent);
         </sql>
     </changeSet>
+    <changeSet id="0120" author="benckx">
+        <comment>
+            Speed up the admin matching-time query. It runs a correlated subquery
+            MIN(event_time) over game_status_event filtered by (game_id, event_type = 'JOINED'),
+            which previously had no supporting index and scanned the whole table per game.
+        </comment>
+        <createIndex tableName="game_status_event" indexName="game_status_event_game_id_event_type_idx">
+            <column name="game_id"/>
+            <column name="event_type"/>
+            <column name="event_time"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

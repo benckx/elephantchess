@@ -2,20 +2,13 @@ package io.elephantchess.servicelayer.services.admin
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.IntDimensionValueRecord
+import io.elephantchess.db.model.MatchingTimeStatsRecord
 import io.elephantchess.db.model.MonthlyValueRecord
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
-import io.elephantchess.db.services.AnalysisDaoService
-import io.elephantchess.db.services.ArchivedGuestDaoService
-import io.elephantchess.db.services.PageViewEventDaoService
-import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
-import io.elephantchess.db.services.ThrownExceptionDaoService
-import io.elephantchess.db.services.UserStatsDaoService
+import io.elephantchess.db.services.*
 import io.elephantchess.model.GameJoinSource
-import io.elephantchess.model.GameJoinSource.DYNAMIC_MATCHED
-import io.elephantchess.model.GameJoinSource.LINK
-import io.elephantchess.model.GameJoinSource.LOBBY
-import io.elephantchess.model.GameJoinSource.MATCHED
+import io.elephantchess.model.GameJoinSource.*
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.analytics.HourlyAvailableMetric
@@ -453,6 +446,63 @@ class AdminAnalyticsService(
     }
 
     /**
+     * Lists the months (format "YYYY-MM") for which PvP matching-time stats are available.
+     *
+     * Uses the cheap PvP > 3 count-by-month query to derive the month range, so the dedicated
+     * matching-time admin page can then load stats one month at a time.
+     */
+    suspend fun fetchMatchingTimePeriods(): MatchingTimePeriodsResponse {
+        val months = pvpGameDaoService
+            .countGamesOverMoveIndexByMonth(MIN_MOVE_INDEX)
+            .map { it.month }
+            .filter { it >= MATCHING_TIME_FIRST_MONTH }
+            .sorted()
+
+        if (months.isEmpty()) {
+            return MatchingTimePeriodsResponse(emptyList())
+        }
+
+        val periods = rangeOfYearMonths(months.first(), months.last())
+            .map { it.toString() }
+            .reversed()
+        return MatchingTimePeriodsResponse(periods)
+    }
+
+    /**
+     * Matching-time stats (min/max/avg seconds between a PvP > 3 game being created and joined) for a
+     * single [month] (format "YYYY-MM"), split between lobby/matchmaking joins and LINK joins.
+     * DISCORD_NOTIFICATION is intentionally excluded.
+     */
+    suspend fun fetchMatchingTimeStatsForMonth(month: YearMonth): MatchingTimeStatsResponse {
+        val lobbyJoinSources = listOf(LOBBY, MATCHED, DYNAMIC_MATCHED)
+        val linkJoinSources = listOf(LINK)
+
+        val lobby = pvpGameDaoService.matchingTimeStatsForMonth(MIN_MOVE_INDEX, lobbyJoinSources, month)
+        val link = pvpGameDaoService.matchingTimeStatsForMonth(MIN_MOVE_INDEX, linkJoinSources, month)
+        val lobbyByCategory = pvpGameDaoService.matchingTimeStatsByCategoryGroupForMonth(MIN_MOVE_INDEX, lobbyJoinSources, month)
+        val linkByCategory = pvpGameDaoService.matchingTimeStatsByCategoryGroupForMonth(MIN_MOVE_INDEX, linkJoinSources, month)
+
+        return MatchingTimeStatsResponse(
+            period = month.toString(),
+            lobbyJoinModes = lobby.toDto(),
+            linkJoinSource = link.toDto(),
+            lobbyJoinModesByCategory = lobbyByCategory.entries.associate { (group, stats) -> group.name to stats.toDto() },
+            linkJoinSourceByCategory = linkByCategory.entries.associate { (group, stats) -> group.name to stats.toDto() },
+        )
+    }
+
+    private fun MatchingTimeStatsRecord.toDto(): MatchingTimeStat =
+        MatchingTimeStat(
+            count = count,
+            minMillis = minMillis,
+            medianMillis = medianMillis,
+            p90Millis = p90Millis,
+            p95Millis = p95Millis,
+            p99Millis = p99Millis,
+            maxMillis = maxMillis,
+        )
+
+    /**
      * Merges live and archived monthly page-view records. Live guests and archived (deleted) guests are
      * disjoint sets, so counts for the same month and url are summed.
      */
@@ -509,6 +559,8 @@ class AdminAnalyticsService(
     }
 
     private companion object {
+
+        val MATCHING_TIME_FIRST_MONTH: YearMonth = YearMonth.of(2024, 11)
 
         fun fillGapsWithZeros(minMonth: YearMonth, maxMonth: YearMonth, records: List<MonthlyValueRecord>): List<MonthlyValueRecord> =
             rangeOfYearMonths(minMonth, maxMonth).map { month ->

@@ -79,6 +79,7 @@ private val adminPagesMapping = mapOf(
     "/admin/analytics" to "admin/admin_analytics",
     "/admin/analytics-ads" to "admin/admin_analytics_ads",
     "/admin/monthly-metrics" to "admin/admin_monthly_metrics",
+    "/admin/matching-time" to "admin/admin_matching_time",
     "/admin/online-users-stats" to "admin/admin_online_users_stats",
     "/admin/monthly-page-views" to "admin/admin_monthly_page_views",
     "/admin/daily-page-views" to "admin/admin_daily_page_views",
