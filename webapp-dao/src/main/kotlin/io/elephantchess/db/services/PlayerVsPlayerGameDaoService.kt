@@ -1197,15 +1197,15 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     }
 
     /**
-     * Same as [matchingTimeStatsForMonth] but broken down by [TimeControlCategory], so correspondence
-     * games (which naturally wait much longer) do not inflate the percentiles of the faster categories.
-     * Categories with no joined game in the month are omitted from the returned map.
+     * Same as [matchingTimeStatsForMonth] but broken down by [TimeControlCategoryGroup], so
+     * correspondence games (which naturally wait much longer) do not inflate the percentiles of the
+     * faster real-time categories. Groups with no joined game in the month are omitted from the map.
      */
-    suspend fun matchingTimeStatsByCategoryForMonth(
+    suspend fun matchingTimeStatsByCategoryGroupForMonth(
         minMoveIndex: Int,
         joinSources: Collection<GameJoinSource>,
         month: YearMonth,
-    ): Map<TimeControlCategory, MatchingTimeStats> {
+    ): Map<TimeControlCategoryGroup, MatchingTimeStats> {
         val joinedTime = DSL.field(
             DSL
                 .select(DSL.min(GAME_STATUS_EVENT.EVENT_TIME))
@@ -1217,26 +1217,47 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val monthStart = month.atDay(1).atStartOfDay().toUtcInstant()
         val monthEnd = month.plusMonths(1).atDay(1).atStartOfDay().toUtcInstant()
 
-        val countField = DSL.count(diff)
-        val minField = DSL.min(diff)
-        val maxField = DSL.max(diff)
-        val p50Field = DSL.percentileCont(0.5).withinGroupOrderBy(diff)
-        val p90Field = DSL.percentileCont(0.9).withinGroupOrderBy(diff)
-        val p95Field = DSL.percentileCont(0.95).withinGroupOrderBy(diff)
-        val p99Field = DSL.percentileCont(0.99).withinGroupOrderBy(diff)
+        // Assign each game to its category group in a derived table, then aggregate by that group in
+        // the outer query. Grouping on the CASE expression directly is rejected by Postgres, so the
+        // group label is materialized first.
+        val groupLabel = DSL
+            .case_(GAME.TIME_CONTROL_CATEGORY)
+            .mapValues(
+                TimeControlCategory.entries.associateWith { category ->
+                    TimeControlCategoryGroup.of(category).name
+                },
+            )
+            .`as`("category_group")
+        val diffColumn = diff.`as`("matching_time_seconds")
 
-        return dslContext
-            .select(GAME.TIME_CONTROL_CATEGORY, countField, minField, maxField, p50Field, p90Field, p95Field, p99Field)
+        val games = DSL
+            .select(groupLabel, diffColumn)
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(GAME.JOIN_SOURCE.`in`(joinSources))
             .and(GAME.TIME_CONTROL_CATEGORY.isNotNull)
             .and(GAME.CREATED.ge(monthStart))
             .and(GAME.CREATED.lt(monthEnd))
-            .groupBy(GAME.TIME_CONTROL_CATEGORY)
+            .asTable("games")
+
+        val groupField = games.field(groupLabel)!!
+        val diffField = games.field(diffColumn)!!
+
+        val countField = DSL.count(diffField)
+        val minField = DSL.min(diffField)
+        val maxField = DSL.max(diffField)
+        val p50Field = DSL.percentileCont(0.5).withinGroupOrderBy(diffField)
+        val p90Field = DSL.percentileCont(0.9).withinGroupOrderBy(diffField)
+        val p95Field = DSL.percentileCont(0.95).withinGroupOrderBy(diffField)
+        val p99Field = DSL.percentileCont(0.99).withinGroupOrderBy(diffField)
+
+        return dslContext
+            .select(groupField, countField, minField, maxField, p50Field, p90Field, p95Field, p99Field)
+            .from(games)
+            .groupBy(groupField)
             .awaitRecords()
             .associate { record ->
-                record.get(GAME.TIME_CONTROL_CATEGORY) to MatchingTimeStats(
+                TimeControlCategoryGroup.valueOf(record.get(groupField)) to MatchingTimeStats(
                     count = record.get(countField),
                     minSeconds = record.get(minField),
                     medianSeconds = record.get(p50Field)?.toSeconds(),

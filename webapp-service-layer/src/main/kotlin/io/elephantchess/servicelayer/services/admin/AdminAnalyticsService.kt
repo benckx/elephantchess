@@ -17,6 +17,7 @@ import io.elephantchess.model.GameJoinSource.DYNAMIC_MATCHED
 import io.elephantchess.model.GameJoinSource.LINK
 import io.elephantchess.model.GameJoinSource.LOBBY
 import io.elephantchess.model.GameJoinSource.MATCHED
+import io.elephantchess.model.TimeControlCategoryGroup
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.analytics.HourlyAvailableMetric
@@ -466,14 +467,16 @@ class AdminAnalyticsService(
             .filter { it >= MATCHING_TIME_FIRST_MONTH }
             .sorted()
 
+        val categoryGroups = TimeControlCategoryGroup.entries.map { it.name }
+
         if (months.isEmpty()) {
-            return MatchingTimePeriodsResponse(emptyList())
+            return MatchingTimePeriodsResponse(emptyList(), categoryGroups)
         }
 
         val periods = rangeOfYearMonths(months.first(), months.last())
             .map { it.toString() }
             .reversed()
-        return MatchingTimePeriodsResponse(periods)
+        return MatchingTimePeriodsResponse(periods, categoryGroups)
     }
 
     /**
@@ -488,15 +491,15 @@ class AdminAnalyticsService(
 
         val lobby = pvpGameDaoService.matchingTimeStatsForMonth(MIN_MOVE_INDEX, lobbyJoinSources, month)
         val link = pvpGameDaoService.matchingTimeStatsForMonth(MIN_MOVE_INDEX, linkJoinSources, month)
-        val lobbyByCategory = pvpGameDaoService.matchingTimeStatsByCategoryForMonth(MIN_MOVE_INDEX, lobbyJoinSources, month)
-        val linkByCategory = pvpGameDaoService.matchingTimeStatsByCategoryForMonth(MIN_MOVE_INDEX, linkJoinSources, month)
+        val lobbyByCategory = pvpGameDaoService.matchingTimeStatsByCategoryGroupForMonth(MIN_MOVE_INDEX, lobbyJoinSources, month)
+        val linkByCategory = pvpGameDaoService.matchingTimeStatsByCategoryGroupForMonth(MIN_MOVE_INDEX, linkJoinSources, month)
 
         return MatchingTimeStatsResponse(
             period = period,
             lobbyJoinModes = lobby.toDto(),
             linkJoinSource = link.toDto(),
-            lobbyJoinModesByCategory = lobbyByCategory.entries.associate { (category, stats) -> category.name to stats.toDto() },
-            linkJoinSourceByCategory = linkByCategory.entries.associate { (category, stats) -> category.name to stats.toDto() },
+            lobbyJoinModesByCategory = lobbyByCategory.entries.associate { (group, stats) -> group.name to stats.toDto() },
+            linkJoinSourceByCategory = linkByCategory.entries.associate { (group, stats) -> group.name to stats.toDto() },
         )
     }
 

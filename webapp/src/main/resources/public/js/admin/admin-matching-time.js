@@ -65,18 +65,19 @@ class AdminMatchingTimePage extends BasePage {
 
     constructor() {
         super();
-        this.#initCategoryTables();
         this.#fetchPeriodsThenStats();
     }
 
     /**
-     * Pre-creates a hidden table per time control category (in a fixed, stable order) for both the
-     * lobby and link breakdowns. Each table is revealed the first time a month has data for it.
+     * Pre-creates a hidden table per time control category group (in the order provided by the
+     * backend, which comes from the TimeControlCategoryGroup enum) for both the lobby and link
+     * breakdowns. Each table is revealed the first time a month has data for it.
+     * @param categoryGroups {string[]}
      */
-    #initCategoryTables() {
+    #initCategoryTables(categoryGroups) {
         const lobbyContainer = document.getElementById('tables-lobby-by-category');
         const linkContainer = document.getElementById('tables-link-by-category');
-        AdminMatchingTimePage.CATEGORY_ORDER.forEach(category => {
+        categoryGroups.forEach(category => {
             this.#lobbyCategoryTables[category] = this.#createCategoryTable(lobbyContainer, category);
             this.#linkCategoryTables[category] = this.#createCategoryTable(linkContainer, category);
         });
@@ -116,6 +117,7 @@ class AdminMatchingTimePage extends BasePage {
     #fetchPeriodsThenStats() {
         getAndHandle(`${ADMIN_URL_PREFIX}/matching-time-periods`, json => {
             this.#periods = json.periods || [];
+            this.#initCategoryTables(json.categoryGroups || []);
             this.#pendingRequests = this.#periods.length;
             this.#totalRequests = this.#periods.length;
             this.#updateLoadingDisplay();
@@ -226,12 +228,6 @@ class AdminMatchingTimePage extends BasePage {
             loadingStatus.style.display = 'none';
         }
     }
-
-    /**
-     * Time control categories in display order, matching the TimeControlCategory enum.
-     * @type {string[]}
-     */
-    static CATEGORY_ORDER = ['BULLET', 'BLITZ', 'RAPID', 'CLASSICAL', 'SEVERAL_DAYS', 'CORRESPONDENCE'];
 
     /**
      * Format a duration in seconds as a human-readable string (e.g. "42s", "3m 7s", "2h 5m", "2d 1h").
