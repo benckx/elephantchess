@@ -226,15 +226,15 @@ function matchingTimeColorClass(millis) {
         return '';
     }
     if (millis > 24 * 60 * 60 * 1_000) {
-        return 'duration-very-long';
+        return 'duration-critical';
     }
     if (millis >= 60 * 60 * 1_000) {
-        return 'duration-bad';
+        return 'duration-danger';
     }
     if (millis >= 10 * 60 * 1_000) {
-        return 'duration-long';
+        return 'duration-warning';
     }
-    return 'duration-good';
+    return 'duration-ok';
 }
 
 window.onload = () => new AdminMatchingTimePage();
