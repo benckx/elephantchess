@@ -35,23 +35,22 @@
 
 /* Color-coding for matching-time durations by severity: green below 10m, orange 10m–1h, red 1h–24h,
    purple above 24h. */
-.stats-table td.duration-good {
+.stats-table .duration-good {
     color: #2e8b2e;
     font-weight: bold;
 }
 
-.stats-table td.duration-long {
+.stats-table .duration-long {
     color: #e08000;
     font-weight: bold;
 }
 
-.stats-table td.duration-bad {
+.stats-table .duration-bad {
     color: #cc0000;
     font-weight: bold;
 }
 
-.stats-table td.duration-very-long {
+.stats-table .duration-very-long {
     color: #7500ac;
     font-weight: bold;
 }
-
