@@ -478,11 +478,10 @@ class AdminAnalyticsService(
 
     /**
      * Matching-time stats (min/max/avg seconds between a PvP > 3 game being created and joined) for a
-     * single [period] (format "YYYY-MM"), split between lobby/matchmaking joins and LINK joins.
+     * single [month] (format "YYYY-MM"), split between lobby/matchmaking joins and LINK joins.
      * DISCORD_NOTIFICATION is intentionally excluded.
      */
-    suspend fun fetchMatchingTimeStatsForMonth(period: String): MatchingTimeStatsResponse {
-        val month = YearMonth.parse(period)
+    suspend fun fetchMatchingTimeStatsForMonth(month: YearMonth): MatchingTimeStatsResponse {
         val lobbyJoinSources = listOf(LOBBY, MATCHED, DYNAMIC_MATCHED)
         val linkJoinSources = listOf(LINK)
 
