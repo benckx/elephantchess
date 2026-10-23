@@ -1149,16 +1149,16 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .and(GAME_STATUS_EVENT.EVENT_TYPE.eq(JOINED)),
         )
         val diff = diffInSeconds(joinedTime, GAME.CREATED)
-        val monthCondition = DSL
-            .field("to_char({0}, 'YYYY-MM')", String::class.java, GAME.CREATED)
-            .eq(month.toString())
+        val monthStart = month.atDay(1).atStartOfDay().toUtcInstant()
+        val monthEnd = month.plusMonths(1).atDay(1).atStartOfDay().toUtcInstant()
 
         val record = dslContext
             .select(DSL.count(diff), DSL.min(diff), DSL.max(diff), DSL.avg(diff))
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(GAME.JOIN_SOURCE.`in`(joinSources))
-            .and(monthCondition)
+            .and(GAME.CREATED.ge(monthStart))
+            .and(GAME.CREATED.lt(monthEnd))
             .awaitSingleRecord()
 
         return if (record == null) {
