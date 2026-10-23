@@ -60,6 +60,10 @@ class AdminMatchingTimePage extends BasePage {
             this.#updateLoadingDisplay();
 
             if (this.#periods.length === 0) {
+                const loadingStatus = document.getElementById('loading-status');
+                if (loadingStatus) {
+                    loadingStatus.style.display = 'none';
+                }
                 this.#renderCharts();
                 return;
             }
