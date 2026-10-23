@@ -503,12 +503,12 @@ class AdminAnalyticsService(
     private fun MatchingTimeStats.toDto(): MatchingTimeStat =
         MatchingTimeStat(
             count = count,
-            minSeconds = minSeconds,
-            medianSeconds = medianSeconds,
-            p90Seconds = p90Seconds,
-            p95Seconds = p95Seconds,
-            p99Seconds = p99Seconds,
-            maxSeconds = maxSeconds,
+            minMillis = minMillis,
+            medianMillis = medianMillis,
+            p90Millis = p90Millis,
+            p95Millis = p95Millis,
+            p99Millis = p99Millis,
+            maxMillis = maxMillis,
         )
 
     /**

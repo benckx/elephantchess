@@ -150,12 +150,12 @@ class AdminMatchingTimePage extends BasePage {
         monthCell.innerText = period;
 
         this.#appendValueCell(row, stat.count !== undefined && stat.count !== null ? stat.count.toString() : '0');
-        this.#appendValueCell(row, AdminMatchingTimePage.formatSeconds(stat.minSeconds));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatSeconds(stat.medianSeconds));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatSeconds(stat.p90Seconds));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatSeconds(stat.p95Seconds));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatSeconds(stat.p99Seconds));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatSeconds(stat.maxSeconds));
+        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.minMillis));
+        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.medianMillis));
+        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.p90Millis));
+        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.p95Millis));
+        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.p99Millis));
+        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.maxMillis));
     }
 
     /**
@@ -169,17 +169,17 @@ class AdminMatchingTimePage extends BasePage {
     }
 
     /**
-     * Format a duration in seconds as a human-readable string (e.g. "42s", "3m 7s", "2h 5m", "2d 1h"),
-     * delegating to the shared formatDurationShorthand (which works in milliseconds). Returns "n/a"
-     * for missing values (months with no matching game).
-     * @param seconds {?number}
+     * Format a duration in milliseconds as a human-readable string (e.g. "42s", "3m 7s", "2h 5m",
+     * "2d 1h"), delegating to the shared formatDurationShorthand. Returns "n/a" for missing values
+     * (months with no matching game).
+     * @param millis {?number}
      * @returns {string}
      */
-    static formatSeconds(seconds) {
-        if (seconds === null || seconds === undefined) {
+    static formatMillis(millis) {
+        if (millis === null || millis === undefined) {
             return 'n/a';
         }
-        return formatDurationShorthand(seconds * 1_000);
+        return formatDurationShorthand(millis);
     }
 
 }
