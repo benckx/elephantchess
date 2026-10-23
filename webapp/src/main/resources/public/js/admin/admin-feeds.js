@@ -236,6 +236,14 @@ class AdminFeedsPage extends BasePage {
                 puzzleCell.className = 'label-cell';
                 puzzleCell.innerText = entry.puzzleId;
 
+                const outcomeCell = row.insertCell();
+                outcomeCell.className = 'label-cell';
+                outcomeCell.innerText = capitalize(entry.outcome);
+
+                const dateCell = row.insertCell();
+                dateCell.className = 'label-cell';
+                dateCell.innerText = formatTimestampToDateTime(entry.date);
+
                 const categoriesCell = row.insertCell();
                 categoriesCell.className = 'label-cell';
                 if (entry.categories != null && entry.categories.length > 0) {
@@ -247,14 +255,6 @@ class AdminFeedsPage extends BasePage {
                 const puzzleCreatedCell = row.insertCell();
                 puzzleCreatedCell.className = 'label-cell';
                 puzzleCreatedCell.innerText = formatTimestampToDateTime(entry.puzzleCreated);
-
-                const outcomeCell = row.insertCell();
-                outcomeCell.className = 'label-cell';
-                outcomeCell.innerText = capitalize(entry.outcome);
-
-                const dateCell = row.insertCell();
-                dateCell.className = 'label-cell';
-                dateCell.innerText = formatTimestampToDateTime(entry.date);
 
                 if (showUser) {
                     const voteCell = row.insertCell();
