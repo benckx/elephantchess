@@ -142,7 +142,8 @@ class AdminMatchingTimePage extends BasePage {
     }
 
     /**
-     * Format a duration in seconds as a human-readable string (e.g. "42s", "3m 7s").
+     * Format a duration in seconds as a human-readable string (e.g. "42s", "3m 7s", "2h 5m", "2d 1h").
+     * Larger units roll up so very long waits read as days/hours instead of thousands of minutes.
      * @param seconds {?number}
      * @returns {string}
      */
@@ -154,9 +155,19 @@ class AdminMatchingTimePage extends BasePage {
         if (total < 60) {
             return `${total}s`;
         }
-        const minutes = Math.floor(total / 60);
-        const remainingSeconds = total % 60;
-        return `${minutes}m ${remainingSeconds}s`;
+        if (total < 3600) {
+            const minutes = Math.floor(total / 60);
+            const remainingSeconds = total % 60;
+            return `${minutes}m ${remainingSeconds}s`;
+        }
+        if (total < 86400) {
+            const hours = Math.floor(total / 3600);
+            const minutes = Math.floor((total % 3600) / 60);
+            return `${hours}h ${minutes}m`;
+        }
+        const days = Math.floor(total / 86400);
+        const hours = Math.floor((total % 86400) / 3600);
+        return `${days}d ${hours}h`;
     }
 
 }

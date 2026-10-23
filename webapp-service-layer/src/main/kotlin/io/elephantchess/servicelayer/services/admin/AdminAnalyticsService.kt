@@ -463,13 +463,16 @@ class AdminAnalyticsService(
         val months = pvpGameDaoService
             .countGamesOverMoveIndexByMonth(MIN_MOVE_INDEX)
             .map { it.month }
+            .filter { it >= MATCHING_TIME_FIRST_MONTH }
             .sorted()
 
         if (months.isEmpty()) {
             return MatchingTimePeriodsResponse(emptyList())
         }
 
-        val periods = rangeOfYearMonths(months.first(), months.last()).map { it.toString() }
+        val periods = rangeOfYearMonths(months.first(), months.last())
+            .map { it.toString() }
+            .reversed()
         return MatchingTimePeriodsResponse(periods)
     }
 
@@ -561,6 +564,8 @@ class AdminAnalyticsService(
     }
 
     private companion object {
+
+        val MATCHING_TIME_FIRST_MONTH: YearMonth = YearMonth.of(2024, 11)
 
         fun fillGapsWithZeros(minMonth: YearMonth, maxMonth: YearMonth, records: List<MonthlyValueRecord>): List<MonthlyValueRecord> =
             rangeOfYearMonths(minMonth, maxMonth).map { month ->
