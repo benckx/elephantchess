@@ -1,0 +1,22 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Matching Time</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <link rel="stylesheet" href="/css/admin/admin-monthly-metrics.css"/>
+    {{apex_charts}}
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/widgets/matching-time-chart.js"></script>
+    <script defer src="/js/admin/admin-matching-time.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <div id="loading-status" style="text-align: center; margin: 20px 0; font-size: 18px;">
+        Loading: <span id="completed-requests-display">0</span> / <span id="total-requests-display">0</span>
+    </div>
+    <div id="charts-container"></div>
+</div>
+</body>
+</html>

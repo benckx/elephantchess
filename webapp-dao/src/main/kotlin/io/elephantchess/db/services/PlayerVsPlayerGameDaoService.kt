@@ -40,7 +40,7 @@ import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import reactor.core.publisher.Flux
-import java.math.BigDecimal
+import java.time.YearMonth
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -1130,15 +1130,17 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
     }
 
     /**
-     * Average matching time (in seconds) between a game being created and joined, grouped by month.
+     * Matching time (in seconds) between a game being created and joined, for a single [month].
      * Only games with at least [minMoveIndex] moves and a join source in [joinSources] are considered.
-     * The join time is the earliest [JOINED] status event of the game.
+     * The join time is the earliest [JOINED] status event of the game. Games without a join event are ignored.
+     *
+     * Scoped to a single month so each call stays cheap and the admin page can load month by month.
      */
-    suspend fun avgMatchingTimeSecondsByMonthForJoinSources(
+    suspend fun matchingTimeStatsForMonth(
         minMoveIndex: Int,
         joinSources: Collection<GameJoinSource>,
-    ): List<MonthlyValueRecord> {
-        val yearMonthField = GAME.CREATED.yearMonth()
+        month: YearMonth,
+    ): MatchingTimeStats {
         val joinedTime = DSL.field(
             DSL
                 .select(DSL.min(GAME_STATUS_EVENT.EVENT_TIME))
@@ -1146,16 +1148,29 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .where(GAME_STATUS_EVENT.GAME_ID.eq(GAME.ID))
                 .and(GAME_STATUS_EVENT.EVENT_TYPE.eq(JOINED)),
         )
-        val avgMatchingTime = DSL.coalesce(DSL.avg(diffInSeconds(joinedTime, GAME.CREATED)), BigDecimal.ZERO)
-        return dslContext
-            .select(yearMonthField, avgMatchingTime)
+        val diff = diffInSeconds(joinedTime, GAME.CREATED)
+        val monthCondition = DSL
+            .field("to_char({0}, 'YYYY-MM')", String::class.java, GAME.CREATED)
+            .eq(month.toString())
+
+        val record = dslContext
+            .select(DSL.count(diff), DSL.min(diff), DSL.max(diff), DSL.avg(diff))
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(GAME.JOIN_SOURCE.`in`(joinSources))
-            .groupBy(yearMonthField)
-            .orderBy(yearMonthField)
-            .awaitRecords()
-            .map { MonthlyValueRecord.ofBigDecimal(it) }
+            .and(monthCondition)
+            .awaitSingleRecord()
+
+        return if (record == null) {
+            MatchingTimeStats(count = 0, minSeconds = null, maxSeconds = null, avgSeconds = null)
+        } else {
+            MatchingTimeStats(
+                count = (record.get(0) as Number).toInt(),
+                minSeconds = (record.get(1) as Number?)?.toInt(),
+                maxSeconds = (record.get(2) as Number?)?.toInt(),
+                avgSeconds = (record.get(3) as Number?)?.toDouble(),
+            )
+        }
     }
 
     suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {

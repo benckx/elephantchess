@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.services.admin
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.model.IntDimensionValueRecord
+import io.elephantchess.db.model.MatchingTimeStats
 import io.elephantchess.db.model.MonthlyValueRecord
 import io.elephantchess.db.model.analytics.DailyValueRecord
 import io.elephantchess.db.model.analytics.MonthlyPageViewRecord
@@ -394,15 +395,6 @@ class AdminAnalyticsService(
             .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, linkJoinSources)
             .associate { it.month to it.value.toInt() }
 
-        // Query avg matching time (create -> join) by month, for PvP > 3
-        val avgMatchingTimeLobbyByMonth = pvpGameDaoService
-            .avgMatchingTimeSecondsByMonthForJoinSources(MIN_MOVE_INDEX, lobbyJoinSources)
-            .associate { it.month to it.value.toDouble() }
-
-        val avgMatchingTimeLinkByMonth = pvpGameDaoService
-            .avgMatchingTimeSecondsByMonthForJoinSources(MIN_MOVE_INDEX, linkJoinSources)
-            .associate { it.month to it.value.toDouble() }
-
         // Query PvP > 3 by join source and month
         val pvpOver3BySourceAndMonth = pvpGameDaoService
             .countGamesOverMoveIndexByMonthAndJoinSource(MIN_MOVE_INDEX)
@@ -443,14 +435,6 @@ class AdminAnalyticsService(
             if (total > 0) (over3.toDouble() / total * 100) else 0.0
         }
 
-        val avgMatchingTimeLobbyValues = allPeriods.map { month ->
-            avgMatchingTimeLobbyByMonth[month] ?: 0.0
-        }
-
-        val avgMatchingTimeLinkValues = allPeriods.map { month ->
-            avgMatchingTimeLinkByMonth[month] ?: 0.0
-        }
-
         // Build breakdown by join source
         val allSources = GameJoinSource.entries.map { it.name } + "UNKNOWN"
         val joinSourceSeries = allSources.map { source ->
@@ -465,11 +449,57 @@ class AdminAnalyticsService(
             percentageOver3 = percentageValues,
             percentageOver3LobbyJoinModes = lobbyJoinModePercentageValues,
             percentageOver3LinkJoinSource = linkJoinSourcePercentageValues,
-            avgMatchingTimeLobbyJoinModes = avgMatchingTimeLobbyValues,
-            avgMatchingTimeLinkJoinSource = avgMatchingTimeLinkValues,
             joinSourceBreakdown = joinSourceSeries,
         )
     }
+
+    /**
+     * Lists the months (format "YYYY-MM") for which PvP matching-time stats are available.
+     *
+     * Uses the cheap PvP > 3 count-by-month query to derive the month range, so the dedicated
+     * matching-time admin page can then load stats one month at a time.
+     */
+    suspend fun fetchMatchingTimePeriods(): MatchingTimePeriodsResponse {
+        val months = pvpGameDaoService
+            .countGamesOverMoveIndexByMonth(MIN_MOVE_INDEX)
+            .map { it.month }
+            .sorted()
+
+        if (months.isEmpty()) {
+            return MatchingTimePeriodsResponse(emptyList())
+        }
+
+        val periods = rangeOfYearMonths(months.first(), months.last()).map { it.toString() }
+        return MatchingTimePeriodsResponse(periods)
+    }
+
+    /**
+     * Matching-time stats (min/max/avg seconds between a PvP > 3 game being created and joined) for a
+     * single [period] (format "YYYY-MM"), split between lobby/matchmaking joins and LINK joins.
+     * DISCORD_NOTIFICATION is intentionally excluded.
+     */
+    suspend fun fetchMatchingTimeStatsForMonth(period: String): MatchingTimeStatsResponse {
+        val month = YearMonth.parse(period)
+        val lobbyJoinSources = listOf(LOBBY, MATCHED, DYNAMIC_MATCHED)
+        val linkJoinSources = listOf(LINK)
+
+        val lobby = pvpGameDaoService.matchingTimeStatsForMonth(MIN_MOVE_INDEX, lobbyJoinSources, month)
+        val link = pvpGameDaoService.matchingTimeStatsForMonth(MIN_MOVE_INDEX, linkJoinSources, month)
+
+        return MatchingTimeStatsResponse(
+            period = period,
+            lobbyJoinModes = lobby.toDto(),
+            linkJoinSource = link.toDto(),
+        )
+    }
+
+    private fun MatchingTimeStats.toDto(): MatchingTimeStat =
+        MatchingTimeStat(
+            count = count,
+            minSeconds = minSeconds,
+            maxSeconds = maxSeconds,
+            avgSeconds = avgSeconds,
+        )
 
     /**
      * Merges live and archived monthly page-view records. Live guests and archived (deleted) guests are
