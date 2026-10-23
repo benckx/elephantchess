@@ -11,11 +11,6 @@
 {{body_init}}
 <div class="main-container-text-extended-larger">
     {{admin_submenu}}
-    <p>
-        Time between a PvP game (&gt; 3 moves) being created and joined, by join source. Percentiles
-        make the distribution readable despite rare very long waits. Each month is loaded separately
-        and appears as soon as it is ready.
-    </p>
     <div id="loading-status" style="text-align: center; margin: 20px 0; font-size: 18px;">
         Loading: <span id="completed-requests-display">0</span> / <span id="total-requests-display">0</span>
     </div>
@@ -58,7 +53,6 @@
         </tbody>
     </table>
 
-    <h1>Breakdown by time control category</h1>
     <h2>lobby / matchmaking by category (PvP &gt; 3)</h2>
     <hr/>
     <div id="tables-lobby-by-category"></div>
