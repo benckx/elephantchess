@@ -2883,4 +2883,18 @@
         </comment>
         <dropTable tableName="kubernetes_pod"/>
     </changeSet>
+    <changeSet id="0119" author="benckx">
+        <comment>
+            Index user_agent lookups (UserSessionDaoService.findByUserAgent runs on every request).
+            Hash indexes: equality-only lookups, and no btree size limit on long User-Agent strings.
+        </comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS user_session_user_agent_idx
+            ON user_session USING hash (user_agent);
+        </sql>
+        <sql>
+            CREATE INDEX IF NOT EXISTS user_session_anonymous_user_agent_idx
+            ON user_session_anonymous USING hash (user_agent);
+        </sql>
+    </changeSet>
 </databaseChangeLog>
