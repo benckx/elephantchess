@@ -40,6 +40,7 @@ import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import reactor.core.publisher.Flux
+import java.math.BigDecimal
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -1145,7 +1146,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .where(GAME_STATUS_EVENT.GAME_ID.eq(GAME.ID))
                 .and(GAME_STATUS_EVENT.EVENT_TYPE.eq(JOINED)),
         )
-        val avgMatchingTime = DSL.avg(diffInSeconds(joinedTime, GAME.CREATED))
+        val avgMatchingTime = DSL.coalesce(DSL.avg(diffInSeconds(joinedTime, GAME.CREATED)), BigDecimal.ZERO)
         return dslContext
             .select(yearMonthField, avgMatchingTime)
             .from(GAME)
