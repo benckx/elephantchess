@@ -488,11 +488,15 @@ class AdminAnalyticsService(
 
         val lobby = pvpGameDaoService.matchingTimeStatsForMonth(MIN_MOVE_INDEX, lobbyJoinSources, month)
         val link = pvpGameDaoService.matchingTimeStatsForMonth(MIN_MOVE_INDEX, linkJoinSources, month)
+        val lobbyByCategory = pvpGameDaoService.matchingTimeStatsByCategoryForMonth(MIN_MOVE_INDEX, lobbyJoinSources, month)
+        val linkByCategory = pvpGameDaoService.matchingTimeStatsByCategoryForMonth(MIN_MOVE_INDEX, linkJoinSources, month)
 
         return MatchingTimeStatsResponse(
             period = period,
             lobbyJoinModes = lobby.toDto(),
             linkJoinSource = link.toDto(),
+            lobbyJoinModesByCategory = lobbyByCategory.entries.associate { (category, stats) -> category.name to stats.toDto() },
+            linkJoinSourceByCategory = linkByCategory.entries.associate { (category, stats) -> category.name to stats.toDto() },
         )
     }
 

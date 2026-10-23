@@ -1196,6 +1196,58 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
+    /**
+     * Same as [matchingTimeStatsForMonth] but broken down by [TimeControlCategory], so correspondence
+     * games (which naturally wait much longer) do not inflate the percentiles of the faster categories.
+     * Categories with no joined game in the month are omitted from the returned map.
+     */
+    suspend fun matchingTimeStatsByCategoryForMonth(
+        minMoveIndex: Int,
+        joinSources: Collection<GameJoinSource>,
+        month: YearMonth,
+    ): Map<TimeControlCategory, MatchingTimeStats> {
+        val joinedTime = DSL.field(
+            DSL
+                .select(DSL.min(GAME_STATUS_EVENT.EVENT_TIME))
+                .from(GAME_STATUS_EVENT)
+                .where(GAME_STATUS_EVENT.GAME_ID.eq(GAME.ID))
+                .and(GAME_STATUS_EVENT.EVENT_TYPE.eq(JOINED)),
+        )
+        val diff = diffInSeconds(joinedTime, GAME.CREATED)
+        val monthStart = month.atDay(1).atStartOfDay().toUtcInstant()
+        val monthEnd = month.plusMonths(1).atDay(1).atStartOfDay().toUtcInstant()
+
+        val countField = DSL.count(diff)
+        val minField = DSL.min(diff)
+        val maxField = DSL.max(diff)
+        val p50Field = DSL.percentileCont(0.5).withinGroupOrderBy(diff)
+        val p90Field = DSL.percentileCont(0.9).withinGroupOrderBy(diff)
+        val p95Field = DSL.percentileCont(0.95).withinGroupOrderBy(diff)
+        val p99Field = DSL.percentileCont(0.99).withinGroupOrderBy(diff)
+
+        return dslContext
+            .select(GAME.TIME_CONTROL_CATEGORY, countField, minField, maxField, p50Field, p90Field, p95Field, p99Field)
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.JOIN_SOURCE.`in`(joinSources))
+            .and(GAME.TIME_CONTROL_CATEGORY.isNotNull)
+            .and(GAME.CREATED.ge(monthStart))
+            .and(GAME.CREATED.lt(monthEnd))
+            .groupBy(GAME.TIME_CONTROL_CATEGORY)
+            .awaitRecords()
+            .associate { record ->
+                record.get(GAME.TIME_CONTROL_CATEGORY) to MatchingTimeStats(
+                    count = record.get(countField),
+                    minSeconds = record.get(minField),
+                    medianSeconds = record.get(p50Field)?.toSeconds(),
+                    p90Seconds = record.get(p90Field)?.toSeconds(),
+                    p95Seconds = record.get(p95Field)?.toSeconds(),
+                    p99Seconds = record.get(p99Field)?.toSeconds(),
+                    maxSeconds = record.get(maxField),
+                )
+            }
+    }
+
     private fun BigDecimal.toSeconds(): Int =
         setScale(0, RoundingMode.HALF_UP).toInt()
 

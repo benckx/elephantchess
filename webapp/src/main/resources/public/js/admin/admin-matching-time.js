@@ -51,9 +51,66 @@ class AdminMatchingTimePage extends BasePage {
      */
     #linkTable = document.getElementById('table-link');
 
+    /**
+     * Per-category tables for the lobby/matchmaking breakdown, keyed by category name.
+     * @type {Object<string, HTMLTableElement>}
+     */
+    #lobbyCategoryTables = {};
+
+    /**
+     * Per-category tables for the LINK breakdown, keyed by category name.
+     * @type {Object<string, HTMLTableElement>}
+     */
+    #linkCategoryTables = {};
+
     constructor() {
         super();
+        this.#initCategoryTables();
         this.#fetchPeriodsThenStats();
+    }
+
+    /**
+     * Pre-creates a hidden table per time control category (in a fixed, stable order) for both the
+     * lobby and link breakdowns. Each table is revealed the first time a month has data for it.
+     */
+    #initCategoryTables() {
+        const lobbyContainer = document.getElementById('tables-lobby-by-category');
+        const linkContainer = document.getElementById('tables-link-by-category');
+        AdminMatchingTimePage.CATEGORY_ORDER.forEach(category => {
+            this.#lobbyCategoryTables[category] = this.#createCategoryTable(lobbyContainer, category);
+            this.#linkCategoryTables[category] = this.#createCategoryTable(linkContainer, category);
+        });
+    }
+
+    /**
+     * @param container {HTMLElement}
+     * @param category {string}
+     * @returns {HTMLTableElement}
+     */
+    #createCategoryTable(container, category) {
+        const heading = document.createElement('h3');
+        heading.innerText = category;
+        heading.style.display = 'none';
+
+        const table = document.createElement('table');
+        table.className = 'stats-table';
+        table.style.display = 'none';
+        table.innerHTML =
+            '<thead><tr>' +
+            '<th class="label-cell">month</th>' +
+            '<th class="value-cell">count</th>' +
+            '<th class="value-cell">min</th>' +
+            '<th class="value-cell">median</th>' +
+            '<th class="value-cell">p90</th>' +
+            '<th class="value-cell">p95</th>' +
+            '<th class="value-cell">p99</th>' +
+            '<th class="value-cell">max</th>' +
+            '</tr></thead><tbody></tbody>';
+
+        container.appendChild(heading);
+        container.appendChild(table);
+        table.relatedHeading = heading;
+        return table;
     }
 
     #fetchPeriodsThenStats() {
@@ -82,11 +139,40 @@ class AdminMatchingTimePage extends BasePage {
         getAndHandle(url, json => {
             this.#appendRow(this.#lobbyTable, period, json.lobbyJoinModes || {});
             this.#appendRow(this.#linkTable, period, json.linkJoinSource || {});
+            this.#appendCategoryRows(this.#lobbyCategoryTables, period, json.lobbyJoinModesByCategory || {});
+            this.#appendCategoryRows(this.#linkCategoryTables, period, json.linkJoinSourceByCategory || {});
             this.#pendingRequests--;
             this.#updateLoadingDisplay();
             if (index + 1 < this.#periods.length) {
                 this.#fetchMonth(index + 1);
             }
+        });
+    }
+
+    /**
+     * Appends a row to each per-category table that has data for this month, revealing the table the
+     * first time it is used. Categories with no joined game this month are skipped.
+     * @param tablesByCategory {Object<string, HTMLTableElement>}
+     * @param period {string}
+     * @param byCategory {Object<string, Object>}
+     */
+    #appendCategoryRows(tablesByCategory, period, byCategory) {
+        Object.keys(byCategory).forEach(category => {
+            const stat = byCategory[category];
+            if (!stat || !stat.count) {
+                return;
+            }
+            const table = tablesByCategory[category];
+            if (!table) {
+                return;
+            }
+            if (table.style.display === 'none') {
+                table.style.display = '';
+                if (table.relatedHeading) {
+                    table.relatedHeading.style.display = '';
+                }
+            }
+            this.#appendRow(table, period, stat);
         });
     }
 
@@ -140,6 +226,12 @@ class AdminMatchingTimePage extends BasePage {
             loadingStatus.style.display = 'none';
         }
     }
+
+    /**
+     * Time control categories in display order, matching the TimeControlCategory enum.
+     * @type {string[]}
+     */
+    static CATEGORY_ORDER = ['BULLET', 'BLITZ', 'RAPID', 'CLASSICAL', 'SEVERAL_DAYS', 'CORRESPONDENCE'];
 
     /**
      * Format a duration in seconds as a human-readable string (e.g. "42s", "3m 7s", "2h 5m", "2d 1h").

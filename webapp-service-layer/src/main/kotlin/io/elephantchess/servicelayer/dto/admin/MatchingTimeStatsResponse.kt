@@ -8,6 +8,8 @@ data class MatchingTimeStatsResponse(
     val period: String,
     val lobbyJoinModes: MatchingTimeStat,
     val linkJoinSource: MatchingTimeStat,
+    val lobbyJoinModesByCategory: Map<String, MatchingTimeStat>,
+    val linkJoinSourceByCategory: Map<String, MatchingTimeStat>,
 )
 
 data class MatchingTimeStat(
