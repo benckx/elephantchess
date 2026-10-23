@@ -191,46 +191,46 @@ class AdminMatchingTimePage extends BasePage {
     #appendDurationCell(row, millis) {
         const cell = row.insertCell();
         cell.className = 'value-cell';
-        cell.innerText = AdminMatchingTimePage.formatMillis(millis);
-        const colorClass = AdminMatchingTimePage.durationColorClass(millis);
+        cell.innerText = formatMatchingTime(millis);
+        const colorClass = matchingTimeColorClass(millis);
         if (colorClass) {
             cell.classList.add(colorClass);
         }
     }
 
-    /**
-     * Format a duration in milliseconds as a human-readable string (e.g. "42s", "3m 7s", "2h 5m",
-     * "2d 1h"), delegating to the shared formatDurationShorthand. Returns "n/a" for missing values
-     * (months with no matching game).
-     * @param millis {?number}
-     * @returns {string}
-     */
-    static formatMillis(millis) {
-        if (millis === null || millis === undefined) {
-            return 'n/a';
-        }
-        return formatDurationShorthand(millis);
-    }
+}
 
-    /**
-     * Returns the CSS class used to color-code a matching-time value: orange between 10m and 1h,
-     * purple above 24h, and none (empty string) otherwise or when the value is missing.
-     * @param millis {?number}
-     * @returns {string}
-     */
-    static durationColorClass(millis) {
-        if (millis === null || millis === undefined) {
-            return '';
-        }
-        if (millis > 24 * 60 * 60 * 1_000) {
-            return 'duration-very-long';
-        }
-        if (millis >= 10 * 60 * 1_000 && millis < 60 * 60 * 1_000) {
-            return 'duration-long';
-        }
+/**
+ * Format a matching time in milliseconds as a human-readable string (e.g. "42s", "3m 7s", "2h 5m",
+ * "2d 1h"), delegating to the shared formatDurationShorthand. Returns "n/a" for missing values
+ * (months with no matching game).
+ * @param millis {?number}
+ * @returns {string}
+ */
+function formatMatchingTime(millis) {
+    if (millis === null || millis === undefined) {
+        return 'n/a';
+    }
+    return formatDurationShorthand(millis);
+}
+
+/**
+ * Returns the CSS class used to color-code a matching-time value: orange between 10m and 1h, purple
+ * above 24h, and none (empty string) otherwise or when the value is missing.
+ * @param millis {?number}
+ * @returns {string}
+ */
+function matchingTimeColorClass(millis) {
+    if (millis === null || millis === undefined) {
         return '';
     }
-
+    if (millis > 24 * 60 * 60 * 1_000) {
+        return 'duration-very-long';
+    }
+    if (millis >= 10 * 60 * 1_000 && millis < 60 * 60 * 1_000) {
+        return 'duration-long';
+    }
+    return '';
 }
 
 window.onload = () => new AdminMatchingTimePage();
