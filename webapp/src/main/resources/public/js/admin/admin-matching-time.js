@@ -64,17 +64,25 @@ class AdminMatchingTimePage extends BasePage {
                 return;
             }
 
-            this.#periods.forEach(period => this.#fetchMonth(period));
+            this.#fetchMonth(0);
         });
     }
 
-    #fetchMonth(period) {
+    /**
+     * Fetches one month at a time (sequentially) so the expensive per-month query never runs more
+     * than one request at once, keeping load off the server and the browser's connection pool.
+     * @param index {number}
+     */
+    #fetchMonth(index) {
+        const period = this.#periods[index];
         const url = `${ADMIN_URL_PREFIX}/matching-time-stats?period=${encodeURIComponent(period)}`;
         getAndHandle(url, json => {
             this.#statsByPeriod[period] = json;
             this.#pendingRequests--;
             this.#updateLoadingDisplay();
-            if (this.#pendingRequests === 0) {
+            if (index + 1 < this.#periods.length) {
+                this.#fetchMonth(index + 1);
+            } else {
                 this.#renderCharts();
             }
         });

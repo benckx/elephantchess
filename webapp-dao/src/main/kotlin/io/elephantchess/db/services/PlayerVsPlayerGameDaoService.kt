@@ -1152,8 +1152,13 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val monthStart = month.atDay(1).atStartOfDay().toUtcInstant()
         val monthEnd = month.plusMonths(1).atDay(1).atStartOfDay().toUtcInstant()
 
+        val countField = DSL.count(diff)
+        val minField = DSL.min(diff)
+        val maxField = DSL.max(diff)
+        val avgField = DSL.avg(diff)
+
         val record = dslContext
-            .select(DSL.count(diff), DSL.min(diff), DSL.max(diff), DSL.avg(diff))
+            .select(countField, minField, maxField, avgField)
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(GAME.JOIN_SOURCE.`in`(joinSources))
@@ -1165,10 +1170,10 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             MatchingTimeStats(count = 0, minSeconds = null, maxSeconds = null, avgSeconds = null)
         } else {
             MatchingTimeStats(
-                count = (record.get(0) as Number).toInt(),
-                minSeconds = (record.get(1) as Number?)?.toInt(),
-                maxSeconds = (record.get(2) as Number?)?.toInt(),
-                avgSeconds = (record.get(3) as Number?)?.toDouble(),
+                count = record.get(countField),
+                minSeconds = record.get(minField)?.toInt(),
+                maxSeconds = record.get(maxField)?.toInt(),
+                avgSeconds = record.get(avgField)?.toDouble(),
             )
         }
     }
