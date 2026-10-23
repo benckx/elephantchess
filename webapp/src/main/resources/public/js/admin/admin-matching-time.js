@@ -137,9 +137,23 @@ class AdminMatchingTimePage extends BasePage {
     }
 
     /**
+     * Matching-time stats for a single month and join-source (or category group). Every duration is
+     * in milliseconds between a game being created and the earliest JOINED event; the percentiles and
+     * min/max are null when no game was joined that month.
+     * @typedef {Object} MatchingTimeStat
+     * @property {number} count - number of joined games considered this month
+     * @property {?number} minMillis - fastest matching time
+     * @property {?number} medianMillis - p50
+     * @property {?number} p90Millis - 90th percentile
+     * @property {?number} p95Millis - 95th percentile
+     * @property {?number} p99Millis - 99th percentile
+     * @property {?number} maxMillis - slowest matching time
+     */
+
+    /**
      * @param table {HTMLTableElement}
      * @param period {string}
-     * @param stat {Object}
+     * @param stat {MatchingTimeStat}
      */
     #appendRow(table, period, stat) {
         const tbody = table.getElementsByTagName('tbody')[0];
@@ -150,12 +164,12 @@ class AdminMatchingTimePage extends BasePage {
         monthCell.innerText = period;
 
         this.#appendValueCell(row, stat.count !== undefined && stat.count !== null ? stat.count.toString() : '0');
-        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.minMillis));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.medianMillis));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.p90Millis));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.p95Millis));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.p99Millis));
-        this.#appendValueCell(row, AdminMatchingTimePage.formatMillis(stat.maxMillis));
+        this.#appendDurationCell(row, stat.minMillis);
+        this.#appendDurationCell(row, stat.medianMillis);
+        this.#appendDurationCell(row, stat.p90Millis);
+        this.#appendDurationCell(row, stat.p95Millis);
+        this.#appendDurationCell(row, stat.p99Millis);
+        this.#appendDurationCell(row, stat.maxMillis);
     }
 
     /**
@@ -166,6 +180,22 @@ class AdminMatchingTimePage extends BasePage {
         const cell = row.insertCell();
         cell.className = 'value-cell';
         cell.innerText = text;
+    }
+
+    /**
+     * Appends a duration cell, formatting the value and color-coding long waits (orange from 10m to
+     * 1h, purple above 24h) so outliers stand out at a glance.
+     * @param row {HTMLTableRowElement}
+     * @param millis {?number}
+     */
+    #appendDurationCell(row, millis) {
+        const cell = row.insertCell();
+        cell.className = 'value-cell';
+        cell.innerText = AdminMatchingTimePage.formatMillis(millis);
+        const colorClass = AdminMatchingTimePage.durationColorClass(millis);
+        if (colorClass) {
+            cell.classList.add(colorClass);
+        }
     }
 
     /**
@@ -180,6 +210,25 @@ class AdminMatchingTimePage extends BasePage {
             return 'n/a';
         }
         return formatDurationShorthand(millis);
+    }
+
+    /**
+     * Returns the CSS class used to color-code a matching-time value: orange between 10m and 1h,
+     * purple above 24h, and none (empty string) otherwise or when the value is missing.
+     * @param millis {?number}
+     * @returns {string}
+     */
+    static durationColorClass(millis) {
+        if (millis === null || millis === undefined) {
+            return '';
+        }
+        if (millis > 24 * 60 * 60 * 1_000) {
+            return 'duration-very-long';
+        }
+        if (millis >= 10 * 60 * 1_000 && millis < 60 * 60 * 1_000) {
+            return 'duration-long';
+        }
+        return '';
     }
 
 }

@@ -33,3 +33,14 @@
     margin-bottom: 15px;
 }
 
+/* Color-coding for matching-time durations: orange from 10m to 1h, purple above 24h. */
+.stats-table td.duration-long {
+    color: #e08000;
+    font-weight: bold;
+}
+
+.stats-table td.duration-very-long {
+    color: #7500ac;
+    font-weight: bold;
+}
+
