@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services.admin
 
+import io.elephantchess.db.dao.codegen.Tables.PUZZLE
 import io.elephantchess.db.dao.codegen.Tables.PUZZLE_RESULT
 import io.elephantchess.db.dao.codegen.Tables.USER
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
@@ -9,6 +10,7 @@ import io.elephantchess.db.services.ContentSectionVoteDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
+import io.elephantchess.db.utils.toUtcInstant
 import io.elephantchess.db.utils.winnerUserId
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
 import io.elephantchess.model.UserType
@@ -17,6 +19,7 @@ import io.elephantchess.servicelayer.dto.admin.ListContentSectionVoteFeedbackRes
 import io.elephantchess.servicelayer.dto.admin.ListGamesResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastPuzzleByLoggedInUsersResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastUserAnalysisResponse
+import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Variant
@@ -29,6 +32,7 @@ class AdminFeedService(
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
+    private val puzzleCache: PuzzleCache,
     private val userCache: UserCache,
 ) {
     suspend fun listLastPuzzlePlayedByLoggedUsers(): ListLastPuzzleByLoggedInUsersResponse =
@@ -38,15 +42,18 @@ class AdminFeedService(
                 val userId = record.get(USER.ID)
                 val username = userCache.fetchUsername(userId)
                 val userType = userCache.fetchUserType(userId)
+                val puzzleId = record.get(PUZZLE_RESULT.PUZZLE_ID)
 
                 ListLastPuzzleByLoggedInUsersResponse.Entry(
-                    puzzleId = record.get(PUZZLE_RESULT.PUZZLE_ID),
+                    puzzleId = puzzleId,
                     outcome = record.get(PUZZLE_RESULT.OUTCOME),
                     userId = userId,
                     userType = userType,
                     username = username,
                     date = record.get(PUZZLE_RESULT.ENTRY_CREATION).toEpochMilliseconds(),
                     upVoted = record.get(PUZZLE_RESULT.UP_VOTED),
+                    puzzleCreated = record.get(PUZZLE.CREATED_AT).toUtcInstant().toEpochMilliseconds(),
+                    categories = puzzleCache.listCategories(puzzleId),
                 )
             }
             .let { entries ->

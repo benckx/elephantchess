@@ -236,6 +236,18 @@ class AdminFeedsPage extends BasePage {
                 puzzleCell.className = 'label-cell';
                 puzzleCell.innerText = entry.puzzleId;
 
+                const categoriesCell = row.insertCell();
+                categoriesCell.className = 'label-cell';
+                if (entry.categories != null && entry.categories.length > 0) {
+                    categoriesCell.innerText = entry.categories.map(formatEnumValue).join(', ');
+                } else {
+                    categoriesCell.innerText = '--';
+                }
+
+                const puzzleCreatedCell = row.insertCell();
+                puzzleCreatedCell.className = 'label-cell';
+                puzzleCreatedCell.innerText = formatTimestampToDateTime(entry.puzzleCreated);
+
                 const outcomeCell = row.insertCell();
                 outcomeCell.className = 'label-cell';
                 outcomeCell.innerText = capitalize(entry.outcome);
