@@ -65,60 +65,31 @@ class AdminMatchingTimePage extends BasePage {
 
     constructor() {
         super();
+        this.#lobbyCategoryTables = this.#collectCategoryTables('tables-lobby-by-category');
+        this.#linkCategoryTables = this.#collectCategoryTables('tables-link-by-category');
         this.#fetchPeriodsThenStats();
     }
 
     /**
-     * Pre-creates a hidden table per time control category group (in the order provided by the
-     * backend, which comes from the TimeControlCategoryGroup enum) for both the lobby and link
-     * breakdowns. Each table is revealed the first time a month has data for it.
-     * @param categoryGroups {string[]}
+     * Collects the (statically declared) per-category-group tables under the given container, keyed
+     * by category group name. The tables and their headings start hidden and are revealed the first
+     * time a month has data for them.
+     * @param containerId {string}
+     * @returns {Object<string, HTMLTableElement>}
      */
-    #initCategoryTables(categoryGroups) {
-        const lobbyContainer = document.getElementById('tables-lobby-by-category');
-        const linkContainer = document.getElementById('tables-link-by-category');
-        categoryGroups.forEach(category => {
-            this.#lobbyCategoryTables[category] = this.#createCategoryTable(lobbyContainer, category);
-            this.#linkCategoryTables[category] = this.#createCategoryTable(linkContainer, category);
+    #collectCategoryTables(containerId) {
+        const container = document.getElementById(containerId);
+        const tables = {};
+        container.querySelectorAll('table.stats-table').forEach(table => {
+            const category = table.id.substring(table.id.lastIndexOf('-') + 1);
+            tables[category] = table;
         });
-    }
-
-    /**
-     * @param container {HTMLElement}
-     * @param category {string}
-     * @returns {HTMLTableElement}
-     */
-    #createCategoryTable(container, category) {
-        const heading = document.createElement('h3');
-        heading.className = 'category-group-heading';
-        heading.innerText = category;
-        heading.style.display = 'none';
-
-        const table = document.createElement('table');
-        table.className = 'stats-table';
-        table.style.display = 'none';
-        table.innerHTML =
-            '<thead><tr>' +
-            '<th class="label-cell">month</th>' +
-            '<th class="value-cell">count</th>' +
-            '<th class="value-cell">min</th>' +
-            '<th class="value-cell">median</th>' +
-            '<th class="value-cell">p90</th>' +
-            '<th class="value-cell">p95</th>' +
-            '<th class="value-cell">p99</th>' +
-            '<th class="value-cell">max</th>' +
-            '</tr></thead><tbody></tbody>';
-
-        container.appendChild(heading);
-        container.appendChild(table);
-        table.relatedHeading = heading;
-        return table;
+        return tables;
     }
 
     #fetchPeriodsThenStats() {
         getAndHandle(`${ADMIN_URL_PREFIX}/matching-time-periods`, json => {
             this.#periods = json.periods || [];
-            this.#initCategoryTables(json.categoryGroups || []);
             this.#pendingRequests = this.#periods.length;
             this.#totalRequests = this.#periods.length;
             this.#updateLoadingDisplay();
@@ -171,8 +142,9 @@ class AdminMatchingTimePage extends BasePage {
             }
             if (table.style.display === 'none') {
                 table.style.display = '';
-                if (table.relatedHeading) {
-                    table.relatedHeading.style.display = '';
+                const heading = table.previousElementSibling;
+                if (heading) {
+                    heading.style.display = '';
                 }
             }
             this.#appendRow(table, period, stat);

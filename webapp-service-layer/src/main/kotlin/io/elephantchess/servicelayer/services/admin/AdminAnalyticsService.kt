@@ -17,7 +17,6 @@ import io.elephantchess.model.GameJoinSource.DYNAMIC_MATCHED
 import io.elephantchess.model.GameJoinSource.LINK
 import io.elephantchess.model.GameJoinSource.LOBBY
 import io.elephantchess.model.GameJoinSource.MATCHED
-import io.elephantchess.model.TimeControlCategoryGroup
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.analytics.HourlyAvailableMetric
@@ -467,16 +466,14 @@ class AdminAnalyticsService(
             .filter { it >= MATCHING_TIME_FIRST_MONTH }
             .sorted()
 
-        val categoryGroups = TimeControlCategoryGroup.entries.map { it.name }
-
         if (months.isEmpty()) {
-            return MatchingTimePeriodsResponse(emptyList(), categoryGroups)
+            return MatchingTimePeriodsResponse(emptyList())
         }
 
         val periods = rangeOfYearMonths(months.first(), months.last())
             .map { it.toString() }
             .reversed()
-        return MatchingTimePeriodsResponse(periods, categoryGroups)
+        return MatchingTimePeriodsResponse(periods)
     }
 
     /**
