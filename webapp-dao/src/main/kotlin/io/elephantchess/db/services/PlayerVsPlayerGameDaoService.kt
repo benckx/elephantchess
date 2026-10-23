@@ -1128,6 +1128,35 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             }
     }
 
+    /**
+     * Average matching time (in seconds) between a game being created and joined, grouped by month.
+     * Only games with at least [minMoveIndex] moves and a join source in [joinSources] are considered.
+     * The join time is the earliest [JOINED] status event of the game.
+     */
+    suspend fun avgMatchingTimeSecondsByMonthForJoinSources(
+        minMoveIndex: Int,
+        joinSources: Collection<GameJoinSource>,
+    ): List<MonthlyValueRecord> {
+        val yearMonthField = GAME.CREATED.yearMonth()
+        val joinedTime = DSL.field(
+            DSL
+                .select(DSL.min(GAME_STATUS_EVENT.EVENT_TIME))
+                .from(GAME_STATUS_EVENT)
+                .where(GAME_STATUS_EVENT.GAME_ID.eq(GAME.ID))
+                .and(GAME_STATUS_EVENT.EVENT_TYPE.eq(JOINED)),
+        )
+        val avgMatchingTime = DSL.avg(diffInSeconds(joinedTime, GAME.CREATED))
+        return dslContext
+            .select(yearMonthField, avgMatchingTime)
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.JOIN_SOURCE.`in`(joinSources))
+            .groupBy(yearMonthField)
+            .orderBy(yearMonthField)
+            .awaitRecords()
+            .map { MonthlyValueRecord.ofBigDecimal(it) }
+    }
+
     suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
         dslContext.transactionCoroutine { cfg ->
             val transaction = DSL.using(cfg)

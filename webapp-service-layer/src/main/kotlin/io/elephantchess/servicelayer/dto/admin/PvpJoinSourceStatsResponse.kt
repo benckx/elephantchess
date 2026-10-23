@@ -5,6 +5,8 @@ data class PvpJoinSourceStatsResponse(
     val percentageOver3: List<Double>,
     val percentageOver3LobbyJoinModes: List<Double>,
     val percentageOver3LinkJoinSource: List<Double>,
+    val avgMatchingTimeLobbyJoinModes: List<Double>,
+    val avgMatchingTimeLinkJoinSource: List<Double>,
     val joinSourceBreakdown: List<TimeSeries>,
 ) {
 
@@ -16,6 +18,8 @@ data class PvpJoinSourceStatsResponse(
                 percentageOver3 = emptyList(),
                 percentageOver3LobbyJoinModes = emptyList(),
                 percentageOver3LinkJoinSource = emptyList(),
+                avgMatchingTimeLobbyJoinModes = emptyList(),
+                avgMatchingTimeLinkJoinSource = emptyList(),
                 joinSourceBreakdown = emptyList(),
             )
     }

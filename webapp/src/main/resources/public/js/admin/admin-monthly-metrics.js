@@ -218,6 +218,8 @@ class AdminMonthlyMetricsPage extends BasePage {
         this.#renderPvpPercentageChart(container);
         this.#renderPvpLobbyPercentageChart(container);
         this.#renderPvpLinkPercentageChart(container);
+        this.#renderPvpLobbyMatchingTimeChart(container);
+        this.#renderPvpLinkMatchingTimeChart(container);
         this.#renderPvpJoinSourceChart(container);
         this.#renderThrownExceptionsChart(container);
         this.#renderYearlyChart(container);
@@ -413,6 +415,105 @@ class AdminMonthlyMetricsPage extends BasePage {
             yAxisFormatter: (val) => val.toFixed(1) + '%',
             tooltipFormatter: (val) => val.toFixed(1) + '%'
         }).render();
+    }
+
+    /**
+     * Render avg matching time chart (seconds between game create and join) for lobby / matchmaking joins
+     * @param container {HTMLElement}
+     */
+    #renderPvpLobbyMatchingTimeChart(container) {
+        if (!this.#pvpJoinSourceData) return;
+
+        const chartWrapper = document.createElement('div');
+        chartWrapper.style.marginBottom = '40px';
+
+        const title = document.createElement('h2');
+        title.innerText = 'avg matching time (lobby/matchmaking PvP > 3)';
+        chartWrapper.appendChild(title);
+
+        const hr = document.createElement('hr');
+        chartWrapper.appendChild(hr);
+
+        const chartDiv = document.createElement('div');
+        chartDiv.id = 'chart-pvp-lobby-matching-time';
+        chartDiv.style.height = '300px';
+        chartWrapper.appendChild(chartDiv);
+
+        container.appendChild(chartWrapper);
+
+        const periods = this.#pvpJoinSourceData.periods;
+        const values = this.#pvpJoinSourceData.avgMatchingTimeLobbyJoinModes || [];
+        const last12Index = Math.max(0, periods.length - 12);
+        const last12Periods = periods.slice(last12Index);
+        const last12Values = values.slice(last12Index);
+
+        const data = {
+            categories: last12Periods,
+            values: last12Values,
+            projectedIndex: -1
+        };
+
+        new SingleMetricBarChart('chart-pvp-lobby-matching-time', 'avg matching time', data, {
+            yAxisFormatter: (val) => this.#formatSeconds(val),
+            tooltipFormatter: (val) => this.#formatSeconds(val)
+        }).render();
+    }
+
+    /**
+     * Render avg matching time chart (seconds between game create and join) for LINK joins
+     * @param container {HTMLElement}
+     */
+    #renderPvpLinkMatchingTimeChart(container) {
+        if (!this.#pvpJoinSourceData) return;
+
+        const chartWrapper = document.createElement('div');
+        chartWrapper.style.marginBottom = '40px';
+
+        const title = document.createElement('h2');
+        title.innerText = 'avg matching time (LINK PvP > 3)';
+        chartWrapper.appendChild(title);
+
+        const hr = document.createElement('hr');
+        chartWrapper.appendChild(hr);
+
+        const chartDiv = document.createElement('div');
+        chartDiv.id = 'chart-pvp-link-matching-time';
+        chartDiv.style.height = '300px';
+        chartWrapper.appendChild(chartDiv);
+
+        container.appendChild(chartWrapper);
+
+        const periods = this.#pvpJoinSourceData.periods;
+        const values = this.#pvpJoinSourceData.avgMatchingTimeLinkJoinSource || [];
+        const last12Index = Math.max(0, periods.length - 12);
+        const last12Periods = periods.slice(last12Index);
+        const last12Values = values.slice(last12Index);
+
+        const data = {
+            categories: last12Periods,
+            values: last12Values,
+            projectedIndex: -1
+        };
+
+        new SingleMetricBarChart('chart-pvp-link-matching-time', 'avg matching time', data, {
+            yAxisFormatter: (val) => this.#formatSeconds(val),
+            tooltipFormatter: (val) => this.#formatSeconds(val)
+        }).render();
+    }
+
+    /**
+     * Format a duration in seconds as a human-readable string
+     * @param seconds {number}
+     * @returns {string}
+     */
+    #formatSeconds(seconds) {
+        const total = Math.round(seconds);
+        if (total < 60) {
+            return `${total}s`;
+        }
+        const minutes = Math.floor(total / 60);
+        const remainingSeconds = total % 60;
+        return `${minutes}m ${remainingSeconds}s`;
     }
 
     /**

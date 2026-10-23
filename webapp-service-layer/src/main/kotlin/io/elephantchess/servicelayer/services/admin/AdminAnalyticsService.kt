@@ -394,6 +394,15 @@ class AdminAnalyticsService(
             .countGamesOverMoveIndexByMonthForJoinSources(MIN_MOVE_INDEX, linkJoinSources)
             .associate { it.month to it.value.toInt() }
 
+        // Query avg matching time (create -> join) by month, for PvP > 3
+        val avgMatchingTimeLobbyByMonth = pvpGameDaoService
+            .avgMatchingTimeSecondsByMonthForJoinSources(MIN_MOVE_INDEX, lobbyJoinSources)
+            .associate { it.month to it.value.toDouble() }
+
+        val avgMatchingTimeLinkByMonth = pvpGameDaoService
+            .avgMatchingTimeSecondsByMonthForJoinSources(MIN_MOVE_INDEX, linkJoinSources)
+            .associate { it.month to it.value.toDouble() }
+
         // Query PvP > 3 by join source and month
         val pvpOver3BySourceAndMonth = pvpGameDaoService
             .countGamesOverMoveIndexByMonthAndJoinSource(MIN_MOVE_INDEX)
@@ -434,6 +443,14 @@ class AdminAnalyticsService(
             if (total > 0) (over3.toDouble() / total * 100) else 0.0
         }
 
+        val avgMatchingTimeLobbyValues = allPeriods.map { month ->
+            avgMatchingTimeLobbyByMonth[month] ?: 0.0
+        }
+
+        val avgMatchingTimeLinkValues = allPeriods.map { month ->
+            avgMatchingTimeLinkByMonth[month] ?: 0.0
+        }
+
         // Build breakdown by join source
         val allSources = GameJoinSource.entries.map { it.name } + "UNKNOWN"
         val joinSourceSeries = allSources.map { source ->
@@ -448,6 +465,8 @@ class AdminAnalyticsService(
             percentageOver3 = percentageValues,
             percentageOver3LobbyJoinModes = lobbyJoinModePercentageValues,
             percentageOver3LinkJoinSource = linkJoinSourcePercentageValues,
+            avgMatchingTimeLobbyJoinModes = avgMatchingTimeLobbyValues,
+            avgMatchingTimeLinkJoinSource = avgMatchingTimeLinkValues,
             joinSourceBreakdown = joinSourceSeries,
         )
     }
