@@ -32,16 +32,6 @@ class AdminMatchingTimePage extends BasePage {
     #periods = [];
 
     /**
-     * @type {number}
-     */
-    #pendingRequests = 0;
-
-    /**
-     * @type {number}
-     */
-    #totalRequests = 0;
-
-    /**
      * @type {HTMLTableElement}
      */
     #lobbyTable = document.getElementById('table-lobby');
@@ -90,9 +80,6 @@ class AdminMatchingTimePage extends BasePage {
     #fetchPeriodsThenStats() {
         getAndHandle(`${ADMIN_URL_PREFIX}/matching-time-periods`, json => {
             this.#periods = json.periods || [];
-            this.#pendingRequests = this.#periods.length;
-            this.#totalRequests = this.#periods.length;
-            this.#updateLoadingDisplay();
 
             if (this.#periods.length === 0) {
                 return;
@@ -115,8 +102,6 @@ class AdminMatchingTimePage extends BasePage {
             this.#appendRow(this.#linkTable, period, json.linkJoinSource || {});
             this.#appendCategoryRows(this.#lobbyCategoryTables, period, json.lobbyJoinModesByCategory || {});
             this.#appendCategoryRows(this.#linkCategoryTables, period, json.linkJoinSourceByCategory || {});
-            this.#pendingRequests--;
-            this.#updateLoadingDisplay();
             if (index + 1 < this.#periods.length) {
                 this.#fetchMonth(index + 1);
             }
@@ -181,25 +166,6 @@ class AdminMatchingTimePage extends BasePage {
         const cell = row.insertCell();
         cell.className = 'value-cell';
         cell.innerText = text;
-    }
-
-    #updateLoadingDisplay() {
-        const completedDisplay = document.getElementById('completed-requests-display');
-        const totalDisplay = document.getElementById('total-requests-display');
-        const loadingStatus = document.getElementById('loading-status');
-
-        const completedRequests = this.#totalRequests - this.#pendingRequests;
-
-        if (completedDisplay) {
-            completedDisplay.textContent = completedRequests.toString();
-        }
-        if (totalDisplay) {
-            totalDisplay.textContent = this.#totalRequests.toString();
-        }
-
-        if (loadingStatus && this.#pendingRequests === 0) {
-            loadingStatus.style.display = 'none';
-        }
     }
 
     /**
