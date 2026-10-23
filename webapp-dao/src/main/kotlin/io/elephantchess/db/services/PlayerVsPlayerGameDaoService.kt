@@ -16,10 +16,7 @@ import io.elephantchess.db.model.*
 import io.elephantchess.db.model.analytics.PvpJoinSourceRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
-import io.elephantchess.model.AnalysisStatus.CANCELLED
-import io.elephantchess.model.AnalysisStatus.NOT_STARTED
-import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
-import io.elephantchess.model.AnalysisStatus.STARTED
+import io.elephantchess.model.AnalysisStatus.*
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
@@ -1165,7 +1162,15 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val p99Field = DSL.percentileCont(0.99).withinGroupOrderBy(diff)
 
         val record = dslContext
-            .select(countField, minField, maxField, p50Field, p90Field, p95Field, p99Field)
+            .select(
+                countField,
+                minField,
+                maxField,
+                p50Field,
+                p90Field,
+                p95Field,
+                p99Field,
+            )
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(GAME.JOIN_SOURCE.`in`(joinSources))
@@ -1252,7 +1257,16 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val p99Field = DSL.percentileCont(0.99).withinGroupOrderBy(diffField)
 
         return dslContext
-            .select(groupField, countField, minField, maxField, p50Field, p90Field, p95Field, p99Field)
+            .select(
+                groupField,
+                countField,
+                minField,
+                maxField,
+                p50Field,
+                p90Field,
+                p95Field,
+                p99Field,
+            )
             .from(games)
             .groupBy(groupField)
             .awaitRecords()
