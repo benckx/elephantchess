@@ -1196,7 +1196,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    private fun BigDecimal.toSeconds(): Int = setScale(0, RoundingMode.HALF_UP).toInt()
+    private fun BigDecimal.toSeconds(): Int =
+        setScale(0, RoundingMode.HALF_UP).toInt()
 
     suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
         dslContext.transactionCoroutine { cfg ->
