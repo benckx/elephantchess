@@ -40,6 +40,8 @@ import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import reactor.core.publisher.Flux
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.YearMonth
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -1134,7 +1136,9 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
      * Only games with at least [minMoveIndex] moves and a join source in [joinSources] are considered.
      * The join time is the earliest [JOINED] status event of the game. Games without a join event are ignored.
      *
-     * Scoped to a single month so each call stays cheap and the admin page can load month by month.
+     * Reports percentiles (p50/median, p90, p95, p99) alongside min/max so the distribution stays
+     * readable despite rare very long waits. Scoped to a single month so each call stays cheap and the
+     * admin page can load month by month.
      */
     suspend fun matchingTimeStatsForMonth(
         minMoveIndex: Int,
@@ -1155,10 +1159,13 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val countField = DSL.count(diff)
         val minField = DSL.min(diff)
         val maxField = DSL.max(diff)
-        val avgField = DSL.avg(diff)
+        val p50Field = DSL.percentileCont(0.5).withinGroupOrderBy(diff)
+        val p90Field = DSL.percentileCont(0.9).withinGroupOrderBy(diff)
+        val p95Field = DSL.percentileCont(0.95).withinGroupOrderBy(diff)
+        val p99Field = DSL.percentileCont(0.99).withinGroupOrderBy(diff)
 
         val record = dslContext
-            .select(countField, minField, maxField, avgField)
+            .select(countField, minField, maxField, p50Field, p90Field, p95Field, p99Field)
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(GAME.JOIN_SOURCE.`in`(joinSources))
@@ -1167,16 +1174,29 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleRecord()
 
         return if (record == null) {
-            MatchingTimeStats(count = 0, minSeconds = null, maxSeconds = null, avgSeconds = null)
+            MatchingTimeStats(
+                count = 0,
+                minSeconds = null,
+                medianSeconds = null,
+                p90Seconds = null,
+                p95Seconds = null,
+                p99Seconds = null,
+                maxSeconds = null,
+            )
         } else {
             MatchingTimeStats(
                 count = record.get(countField),
                 minSeconds = record.get(minField),
+                medianSeconds = record.get(p50Field)?.toSeconds(),
+                p90Seconds = record.get(p90Field)?.toSeconds(),
+                p95Seconds = record.get(p95Field)?.toSeconds(),
+                p99Seconds = record.get(p99Field)?.toSeconds(),
                 maxSeconds = record.get(maxField),
-                avgSeconds = record.get(avgField)?.toDouble(),
             )
         }
     }
+
+    private fun BigDecimal.toSeconds(): Int = setScale(0, RoundingMode.HALF_UP).toInt()
 
     suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
         dslContext.transactionCoroutine { cfg ->

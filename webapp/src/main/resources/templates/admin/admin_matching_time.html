@@ -4,19 +4,59 @@
     <title>Matching Time</title>
     <link rel="stylesheet" href="/css/admin/admin-console.css"/>
     <link rel="stylesheet" href="/css/admin/admin-monthly-metrics.css"/>
-    {{apex_charts}}
     <script defer src="/js/admin/admin-utils.js"></script>
-    <script defer src="/js/admin/widgets/matching-time-chart.js"></script>
     <script defer src="/js/admin/admin-matching-time.js"></script>
 </head>
 <body>
 {{body_init}}
 <div class="main-container-text-extended-larger">
     {{admin_submenu}}
+    <p>
+        Time between a PvP game (&gt; 3 moves) being created and joined, by join source. Percentiles
+        make the distribution readable despite rare very long waits. Each month is loaded separately
+        and appears as soon as it is ready.
+    </p>
     <div id="loading-status" style="text-align: center; margin: 20px 0; font-size: 18px;">
         Loading: <span id="completed-requests-display">0</span> / <span id="total-requests-display">0</span>
     </div>
-    <div id="charts-container"></div>
+
+    <h2>lobby / matchmaking (PvP &gt; 3)</h2>
+    <hr/>
+    <table id="table-lobby" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">month</th>
+            <th class="value-cell">count</th>
+            <th class="value-cell">min</th>
+            <th class="value-cell">median</th>
+            <th class="value-cell">p90</th>
+            <th class="value-cell">p95</th>
+            <th class="value-cell">p99</th>
+            <th class="value-cell">max</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <h2>LINK (PvP &gt; 3)</h2>
+    <hr/>
+    <table id="table-link" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">month</th>
+            <th class="value-cell">count</th>
+            <th class="value-cell">min</th>
+            <th class="value-cell">median</th>
+            <th class="value-cell">p90</th>
+            <th class="value-cell">p95</th>
+            <th class="value-cell">p99</th>
+            <th class="value-cell">max</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 </div>
 </body>
 </html>

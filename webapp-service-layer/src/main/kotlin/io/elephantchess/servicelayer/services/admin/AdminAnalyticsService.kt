@@ -497,8 +497,11 @@ class AdminAnalyticsService(
         MatchingTimeStat(
             count = count,
             minSeconds = minSeconds,
+            medianSeconds = medianSeconds,
+            p90Seconds = p90Seconds,
+            p95Seconds = p95Seconds,
+            p99Seconds = p99Seconds,
             maxSeconds = maxSeconds,
-            avgSeconds = avgSeconds,
         )
 
     /**
