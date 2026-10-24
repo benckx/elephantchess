@@ -170,7 +170,13 @@ fun Application.exceptionHandler() {
         exception<HttpErrorException> { call, e ->
             logger.debug { e.toString() }
             exceptionService.saveException(e, e.code)
-            call.respond(HttpStatusCode.fromValue(e.code), ValidationErrorsResponse(e))
+            val status = HttpStatusCode.fromValue(e.code)
+            val acceptsHtml = call.request.acceptItems().any { it.value == Html.toString() }
+            if (acceptsHtml && status == HttpStatusCode.NotFound) {
+                call.respondNotFoundPage()
+            } else {
+                call.respond(status, ValidationErrorsResponse(e))
+            }
         }
         exception<IllegalArgumentException> { call, e ->
             logger.error(e) { e.toString() }

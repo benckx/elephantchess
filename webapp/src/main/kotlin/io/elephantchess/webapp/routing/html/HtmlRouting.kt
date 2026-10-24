@@ -3,6 +3,7 @@ package io.elephantchess.webapp.routing.html
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
+import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserService
@@ -145,19 +146,13 @@ private fun Route.puzzlesPage() {
     get("/puzzles") {
         val id = call.parameters["id"]
 
-        if (id != null) {
-            if (!puzzleCache.exists(id)) {
-                call.respondNotFoundPage()
-            } else {
-                call.respondHtml(
-                    simplePageRenderer.renderTemplate("puzzles", resolvers),
-                )
-            }
-        } else {
-            call.respondHtml(
-                simplePageRenderer.renderTemplate("puzzles", resolvers),
-            )
+        if (id != null && !puzzleCache.exists(id)) {
+            throw NotFoundException("Puzzle $id not found")
         }
+
+        call.respondHtml(
+            simplePageRenderer.renderTemplate("puzzles", resolvers),
+        )
     }
 }
 
