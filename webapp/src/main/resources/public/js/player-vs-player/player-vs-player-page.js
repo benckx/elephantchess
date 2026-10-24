@@ -451,6 +451,7 @@ class PlayGamePage extends BasePage {
             this.#updateBoardTurnToPlay();
         } else {
             this.#boardGui.disablePlayerMove();
+            this.#boardGui.colorToPlay = null;
         }
         this.#updateClocksAndChatForSelectedMove();
     }
@@ -511,9 +512,11 @@ class PlayGamePage extends BasePage {
     }
 
     #updateBoardTurnToPlay() {
+        const isInProgress = this.#gameController.isGameInProgress();
         this.#boardGui.isPlayerMoveEnabled =
-            this.#gameController.isGameInProgress() &&
+            isInProgress &&
             this.#gameController.gameState === GameState.USER_TURN;
+        this.#boardGui.colorToPlay = isInProgress ? this.#boardGui.colorToPlayOnBoard : null;
     }
 
     /**
