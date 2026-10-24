@@ -8,7 +8,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 
-val simplePageRenderer by koin<SimplePageRenderer>()
+private val simplePageRenderer by koin<SimplePageRenderer>()
 
 suspend fun SimplePageRenderer.renderTemplateHtml(templateName: String, specificTagResolvers: List<TagResolver> = listOf()): TextContent =
     TextContent(

@@ -5,8 +5,8 @@ import io.elephantchess.servicelayer.exceptions.HttpErrorException
 import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.utils.ResourceUtils
-import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.ops.respondInternalErrorPage
+import io.elephantchess.webapp.ops.respondNotFoundPage
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -85,7 +85,6 @@ internal fun isPathTraversalProbe(t: Throwable): Boolean =
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}
     val exceptionService by koin<ExceptionService>()
-    val simplePageRenderer by koin<SimplePageRenderer>()
     val webSocketUpgradeFailurePhase = PipelinePhase("WebSocketUpgradeFailure")
 
     // StatusPages rethrows exceptions when no response was sent (always the case for a failed WebSocket upgrade),
@@ -106,7 +105,7 @@ fun Application.exceptionHandler() {
     suspend fun ApplicationCall.respondNotFound(uri: String) {
         val acceptsHtml = request.acceptItems().any { it.value == Html.toString() }
         if (acceptsHtml) {
-            respondHtml(htmlContent = simplePageRenderer.renderTemplate("errors/404"), status = HttpStatusCode.NotFound)
+            respondNotFoundPage()
         } else {
             respond(HttpStatusCode.NotFound, ValidationErrorsResponse("Not Found: $uri"))
         }
@@ -114,7 +113,7 @@ fun Application.exceptionHandler() {
 
     // Generic 500 response for unexpected exceptions: the HTML error page for browsers, a JSON error payload
     // otherwise. Never exposes the exception message to the client.
-    suspend fun ApplicationCall.respondServerError() {
+    suspend fun ApplicationCall.respondInternalError() {
         if (response.isCommitted) return
         val acceptsHtml = request.acceptItems().any { it.value == Html.toString() }
         if (acceptsHtml) {
@@ -214,7 +213,7 @@ fun Application.exceptionHandler() {
             } else {
                 logger.error(t) { t.toString() }
                 exceptionService.saveException(t, InternalServerError.value)
-                call.respondServerError()
+                call.respondInternalError()
             }
         }
     }
