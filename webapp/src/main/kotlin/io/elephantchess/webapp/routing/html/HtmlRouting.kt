@@ -161,7 +161,7 @@ private fun Routing.simpleMappings() {
     simplePublicPageMapping.forEach { (path, templateName) ->
         logger.info { "[public] mapping html file $templateName to path $path" }
         get(path) {
-            simplePageRenderer.renderTemplateHtmlToCall(templateName)
+            call.respondHtml(simplePageRenderer.renderTemplate(templateName))
         }
     }
     publicPageRedirection.forEach { (fromPath, toPath) ->
