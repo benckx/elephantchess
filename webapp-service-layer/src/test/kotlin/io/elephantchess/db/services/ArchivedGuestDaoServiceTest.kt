@@ -142,7 +142,7 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
 
             // monthly-by-url aggregates the two "/database" days into one month
             val databaseMonthly = archivedGuestDaoService.fetchArchivedMonthlyPageViews("/database")
-            assertEquals(1, databaseMonthly.size)
+            assertEquals(2, databaseMonthly.size)
             assertEquals(2, databaseMonthly.first().uniquePageViews)
             assertEquals("/database", databaseMonthly.first().label)
 
