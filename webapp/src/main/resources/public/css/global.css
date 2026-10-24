@@ -129,6 +129,10 @@
         width: 96%;
     }
 
+    .pvp-leaderboard {
+        width: 100%;
+    }
+
     .pvp-leaderboard th,
     .pvp-leaderboard td {
         font-size: 28px;
@@ -137,6 +141,22 @@
     .puzzle-leaderboard th,
     .puzzle-leaderboard td {
         font-size: 22px;
+    }
+
+    .pvp-leaderboard .rank-cell {
+        
+    }
+
+    .pvp-leaderboard .user-cell {
+
+    }
+
+    .pvp-leaderboard .rating-cell {
+
+    }
+
+    .pvp-leaderboard .last-played-cell {
+
     }
 
     .global-stats th,
