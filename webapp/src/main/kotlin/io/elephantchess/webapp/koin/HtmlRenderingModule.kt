@@ -17,11 +17,14 @@ private val webAppLogger = KotlinLogging.logger {}
 internal fun htmlRenderingModule() =
     module {
         single {
-            val fragmentTags = listFragmentTags()
-            fragmentTags.forEach { webAppLogger.info { "discovered web fragment: $it" } }
+            val fragmentPaths = listFragmentTags()
+            fragmentPaths.forEach { webAppLogger.info { "discovered web fragment: $it" } }
 
             val appConfig = get<AppConfig>()
-            val webFragmentsTagResolvers = fragmentTags.map { WebFragmentResolver(it) }
+            val webFragmentsTagResolvers =
+                fragmentPaths.map { resourceName ->
+                    WebFragmentResolver(tagName = resourceName.substringAfterLast('/'), resourceName = resourceName)
+                }
 
             val disabledTemplates = mutableListOf<String>()
             if (!appConfig.isGoogleAnalyticsEnabled) {
@@ -62,12 +65,12 @@ private fun listFragmentTags(): List<String> {
     return when (resources.protocol) {
         "file" -> {
             // Local/IDE development
-            File(resources.toURI())
-                .listFiles()
-                ?.filter { it.extension == "html" }
-                ?.map { it.nameWithoutExtension }
-                ?.sorted()
-                ?: emptyList()
+            val root = File(resources.toURI())
+            root.walkTopDown()
+                .filter { it.isFile && it.extension == "html" }
+                .map { it.relativeTo(root).invariantSeparatorsPath.removeSuffix(".html") }
+                .sorted()
+                .toList()
         }
 
         "jar" -> {
@@ -76,8 +79,8 @@ private fun listFragmentTags(): List<String> {
             val jarFile = File(URI(jarPath))
             JarFile(jarFile).use { jar ->
                 jar.entries().asSequence()
-                    .filter { it.name.startsWith("web_fragments/") && it.name.endsWith(".html") }
-                    .map { it.name.substringAfterLast("/").removeSuffix(".html") }
+                    .filter { !it.isDirectory && it.name.startsWith("web_fragments/") && it.name.endsWith(".html") }
+                    .map { it.name.removePrefix("web_fragments/").removeSuffix(".html") }
                     .sorted()
                     .toList()
             }
