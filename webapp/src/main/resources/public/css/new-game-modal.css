@@ -205,4 +205,9 @@
     #create-new-game-modal .standard-radio .label-span label {
         font-size: 34px;
     }
+
+    .modal-content .standard-checkbox {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
 }
