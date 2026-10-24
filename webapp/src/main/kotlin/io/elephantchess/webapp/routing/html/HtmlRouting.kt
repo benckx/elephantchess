@@ -3,7 +3,9 @@ package io.elephantchess.webapp.routing.html
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
+import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.KofiService
+import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
@@ -11,7 +13,7 @@ import io.elephantchess.webapp.rendering.*
 import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
-import io.ktor.http.ContentType.Text.Html
+import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.content.*
@@ -24,9 +26,9 @@ private val logger = logger {}
 internal val simplePageRenderer by koin<SimplePageRenderer>()
 
 private val simplePublicPageMapping = mapOf(
-    "/401" to "401",
-    "/403" to "403",
-    "/404" to "404",
+    "/401" to "errors/401",
+    "/403" to "errors/403",
+    "/404" to "errors/404",
     "/board" to "test_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
@@ -119,7 +121,7 @@ private fun Route.gamePages() {
     get("/game") {
         val gameId = call.parameters["id"]
         if (gameId == null) {
-            call.respondHtml(simplePageRenderer.renderTemplate("404"), NotFound)
+            call.respondNotFoundPage()
         } else {
             call.respondHtml(gamePageRenderer.renderPvpGamePage(gameId))
         }
@@ -128,7 +130,7 @@ private fun Route.gamePages() {
     get("/playbot") {
         val gameId = call.parameters["id"]
         if (gameId == null) {
-            call.respondHtml(simplePageRenderer.renderTemplate("404"), NotFound)
+            call.respondNotFoundPage()
         } else {
             call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId))
         }
@@ -137,15 +139,19 @@ private fun Route.gamePages() {
 
 private fun Route.puzzlesPage() {
     val appConfig by koin<AppConfig>()
+    val puzzleCache by koin<PuzzleCache>()
     val isPuzzlesDebugModeEnabled = appConfig.isPuzzlesDebugModeEnabled
     val resolvers = listOf(SimpleValueTagResolver("puzzles_debug_mode", isPuzzlesDebugModeEnabled.toString()))
 
     get("/puzzles") {
+        val id = call.parameters["id"]
+
+        if (id != null && !puzzleCache.exists(id)) {
+            throw NotFoundException("Puzzle $id not found")
+        }
+
         call.respondHtml(
-            simplePageRenderer.renderTemplate(
-                "puzzles",
-                resolvers,
-            ),
+            simplePageRenderer.renderTemplate("puzzles", resolvers),
         )
     }
 }
@@ -154,7 +160,7 @@ private fun Routing.simpleMappings() {
     simplePublicPageMapping.forEach { (path, templateName) ->
         logger.info { "[public] mapping html file $templateName to path $path" }
         get(path) {
-            call.respond(simplePageRenderer.renderTemplateHtml(templateName))
+            call.respondHtml(simplePageRenderer.renderTemplate(templateName))
         }
     }
     publicPageRedirection.forEach { (fromPath, toPath) ->
@@ -167,7 +173,7 @@ private fun Routing.simpleMappings() {
         logger.info { "[identification] mapping html file $templateName to path $path" }
         get(path) {
             requireIdentification { _ ->
-                simplePageRenderer.renderTemplateHtml(templateName)
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
     }
@@ -175,7 +181,7 @@ private fun Routing.simpleMappings() {
         logger.info { "[authentication] mapping html file $templateName to path $path" }
         get(path) {
             requireAuthentication { _ ->
-                simplePageRenderer.renderTemplateHtml(templateName)
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
     }
@@ -183,7 +189,7 @@ private fun Routing.simpleMappings() {
         logger.info { "[admin] mapping html file $templateName to path $path" }
         get(path) {
             requireAdminRole {
-                simplePageRenderer.renderTemplateHtml(templateName)
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
     }
@@ -235,7 +241,7 @@ private fun Route.userSettingsPage() {
 
     get("/user/settings") {
         requireAuthentication { token ->
-            TextContent(renderer.renderUserSettingsPage(token.userId), Html)
+            TextContent(renderer.renderUserSettingsPage(token.userId), ContentType.Text.Html)
         }
     }
 }

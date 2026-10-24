@@ -34,8 +34,8 @@ class ExceptionHandlerTest {
 
     private val exceptionService = mock<ExceptionService>()
     private val simplePageRenderer = mock<SimplePageRenderer> {
-        on { renderTemplate(eq("404"), any()) } doReturn "<html>not found page</html>"
-        on { renderTemplate(eq("500"), any()) } doReturn "<html>error page</html>"
+        on { renderTemplate(eq("errors/404"), any()) } doReturn "<html>not found page</html>"
+        on { renderTemplate(eq("errors/500"), any()) } doReturn "<html>error page</html>"
     }
 
     private val rootLogger = LoggerFactory.getLogger(ROOT_LOGGER_NAME) as Logger
@@ -188,6 +188,14 @@ class ExceptionHandlerTest {
             "/onboarding",
             "/login",
             "/dashboard/billing",
+            "/dashboard/analytics",
+            "/backoffice",
+            "/deployments",
+            "/pipelines",
+            "/_image?href=/../../../.env",
+            "/ngsw.json",
+            "/sitemap_index.xml",
+            "/%2Fadmin",
             "/public/admin.json",
             "/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200/",
         ],

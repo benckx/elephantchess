@@ -2,7 +2,7 @@ package io.elephantchess.webapp.server
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.ops.respondHtml
+import io.elephantchess.webapp.ops.respondTooManyRequestsPage
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -51,10 +51,7 @@ fun Application.databaseRateLimitModule() {
                     "| User-Agent: ${call.request.headers[HttpHeaders.UserAgent]?.take(100)}"
             }
             call.response.headers.append(HttpHeaders.RetryAfter, windowSeconds.toString())
-            call.respondHtml(
-                simplePageRenderer.renderTemplate("429"),
-                HttpStatusCode.TooManyRequests,
-            )
+            call.respondTooManyRequestsPage()
             finish()
         }
     }
