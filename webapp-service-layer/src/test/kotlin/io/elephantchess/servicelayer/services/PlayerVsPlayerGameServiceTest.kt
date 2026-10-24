@@ -4,6 +4,8 @@ import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.model.AnalysisStatus.COMPLETED
+import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
@@ -1012,6 +1014,37 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 .where(USER.ID.eq(userId))
                 .awaitSingleValue()!!
     }
+
+    @Test
+    fun `list user games exposes pre-analyzed status`() =
+        runTest {
+            val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
+
+            suspend fun fetchEntry() =
+                pvpGameService
+                    .listUserGames(userId1.id, beforeTs = null)
+                    .entries
+                    .find { it.gameId == gameId }
+                    ?: throw AssertionError("Expected game $gameId in list")
+
+            assertFalse(fetchEntry().isPreAnalyzed)
+
+            dslContext
+                .update(GAME)
+                .set(GAME.ANALYSIS_STATUS, PARTIALLY_COMPLETED)
+                .where(GAME.ID.eq(gameId))
+                .awaitExecute()
+
+            assertFalse(fetchEntry().isPreAnalyzed)
+
+            dslContext
+                .update(GAME)
+                .set(GAME.ANALYSIS_STATUS, COMPLETED)
+                .where(GAME.ID.eq(gameId))
+                .awaitExecute()
+
+            assertTrue(fetchEntry().isPreAnalyzed)
+        }
 
     @Nested
     @DisplayName("Game creation limit")
