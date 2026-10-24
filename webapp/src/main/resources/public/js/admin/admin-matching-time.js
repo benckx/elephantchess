@@ -62,8 +62,7 @@ class AdminMatchingTimePage extends BasePage {
 
     /**
      * Collects the (statically declared) per-category-group tables under the given container, keyed
-     * by category group name. The tables and their headings start hidden and are revealed the first
-     * time a month has data for them.
+     * by category group name.
      * @param containerId {string}
      * @returns {Object<string, HTMLTableElement>}
      */
@@ -109,8 +108,8 @@ class AdminMatchingTimePage extends BasePage {
     }
 
     /**
-     * Appends a row to each per-category table that has data for this month, revealing the table the
-     * first time it is used. Categories with no joined game this month are skipped.
+     * Appends a row to each per-category table that has data for this month. Categories with no
+     * joined game this month are skipped.
      * @param tablesByCategory {Object<string, HTMLTableElement>}
      * @param period {string}
      * @param byCategory {Object<string, Object>}
@@ -124,13 +123,6 @@ class AdminMatchingTimePage extends BasePage {
             const table = tablesByCategory[category];
             if (!table) {
                 return;
-            }
-            if (table.style.display === 'none') {
-                table.style.display = '';
-                const heading = table.previousElementSibling;
-                if (heading) {
-                    heading.style.display = '';
-                }
             }
             this.#appendRow(table, period, stat);
         });
