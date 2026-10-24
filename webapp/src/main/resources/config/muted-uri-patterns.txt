@@ -134,19 +134,24 @@ deploy.json
 /app.log
 /application.properties
 /config.ini
+/configuration
 /database.config
 database.yml
 debug.log
+/debug/
+dev/
 /error.log
+/.json
 /.kube/
 /logs/
+/panel=config
 /php_error.log
 /readme.md
 /server.js
-/tmp/
+/temp/
 /test
 /test/
-/dev/
+/tmp/
 
 # --- AI agent / MCP config harvesting ---
 mcp.json
