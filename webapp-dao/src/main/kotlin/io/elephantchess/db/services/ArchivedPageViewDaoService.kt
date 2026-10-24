@@ -2,6 +2,7 @@ package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.model.PageViewRecord
+import io.elephantchess.db.model.analytics.NewsletterLinkClickRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.Condition
@@ -101,6 +102,73 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
                     eventTime = record.get(PAGE_VIEW_EVENT.EVENT_TIME),
                 )
             }
+
+    suspend fun countArchivedNewsletterClicksPerTemplate(): Map<String, Int> {
+        val newsletterTemplateField = DSL.field(
+            "substring({0} from 'medium=newsletter-([^&#]+)')",
+            String::class.java,
+            ARCHIVED_PAGE_VIEW_DAILY.URL,
+        )
+        val clickCountField = DSL.sum(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS).`as`("click_count")
+
+        return dslContext
+            .select(
+                newsletterTemplateField,
+                clickCountField,
+            )
+            .from(ARCHIVED_PAGE_VIEW_DAILY)
+            .where(ARCHIVED_PAGE_VIEW_DAILY.URL.like("%medium=newsletter-%"))
+            .groupBy(newsletterTemplateField)
+            .awaitRecords()
+            .mapNotNull { record ->
+                val templateName = record.get(newsletterTemplateField)
+                if (templateName.isNullOrBlank()) {
+                    null
+                } else {
+                    templateName to (record.get(clickCountField)?.toInt() ?: 0)
+                }
+            }
+            .toMap()
+    }
+
+    suspend fun listArchivedNewsletterClicksPerTemplateAndLink(): List<NewsletterLinkClickRecord> {
+        val newsletterTemplateField = DSL.field(
+            "substring({0} from 'medium=newsletter-([^&#]+)')",
+            String::class.java,
+            ARCHIVED_PAGE_VIEW_DAILY.URL,
+        )
+        val linkField = DSL.field(
+            "substring({0} from '^([^?]+)')",
+            String::class.java,
+            ARCHIVED_PAGE_VIEW_DAILY.URL,
+        )
+        val clickCountField = DSL.sum(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS).`as`("click_count")
+
+        return dslContext
+            .select(
+                newsletterTemplateField,
+                linkField,
+                clickCountField,
+            )
+            .from(ARCHIVED_PAGE_VIEW_DAILY)
+            .where(ARCHIVED_PAGE_VIEW_DAILY.URL.like("%medium=newsletter-%"))
+            .groupBy(newsletterTemplateField, linkField)
+            .orderBy(clickCountField.desc())
+            .awaitRecords()
+            .mapNotNull { record ->
+                val templateName = record.get(newsletterTemplateField)
+                val link = record.get(linkField)
+                if (templateName.isNullOrBlank() || link.isNullOrBlank()) {
+                    null
+                } else {
+                    NewsletterLinkClickRecord(
+                        templateName = templateName,
+                        link = link,
+                        clickCount = record.get(clickCountField)?.toInt() ?: 0,
+                    )
+                }
+            }
+    }
 
     /**
      * Archives the [PAGE_VIEW_EVENT] rows matched by [selector] into [ARCHIVED_PAGE_VIEW_DAILY]. Shared
