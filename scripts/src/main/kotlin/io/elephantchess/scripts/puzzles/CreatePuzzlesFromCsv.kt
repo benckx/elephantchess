@@ -31,7 +31,7 @@ private val logger = KotlinLogging.logger {}
  *
  * Candidates whose reference game already has a puzzle are skipped, so the script is safe to re-run.
  */
-object CreatePuzzlesFromCsv : KoinScriptInit() {
+object CreatePuzzlesFromCsv : KoinScriptInit(appProfile = "prod") {
 
     private const val INPUT_FILE_NAME = "mate_puzzle_candidates.csv"
 
