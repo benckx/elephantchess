@@ -92,13 +92,13 @@ class GlobalStatsPage extends BasePage {
 
     #fetchPuzzleLeaderboardLast12Months() {
         getAndHandle('/api/user/info/puzzles/stats/leaderboard-last-12-months', json => {
-            this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'leaderboard-last-12-months');
+            this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'puzzle-leaderboard-last-12-months');
         });
     }
 
     #fetchPuzzleLeaderboard() {
         getAndHandle('/api/user/info/puzzles/stats/leaderboard', json => {
-            this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'leaderboard');
+            this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'puzzle-leaderboard');
         });
     }
 

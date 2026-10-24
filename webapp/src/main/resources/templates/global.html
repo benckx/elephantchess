@@ -15,6 +15,9 @@
 <body>
 {{body_init}}
 <div class="main-container-text">
+    <p>
+        Leaderboard and general statistics about the app.
+    </p>
     <h1>Player-vs-Player Leaderboard</h1>
     <hr/>
     <div class="pvp-leaderboard-container center-content-div">
@@ -55,42 +58,12 @@
 
     <h1>Puzzles Leaderboard Last 12 Months</h1>
     <hr/>
-    <div class="center-content-div">
-        <table id="leaderboard-last-12-months" class="puzzle-leaderboard">
-            <thead>
-            <tr>
-                <th class="rank-cell">rank</th>
-                <th class="user-cell">user</th>
-                <th class="small-cell">rating</th>
-                <th class="small-cell">max</th>
-                <th class="small-cell">played</th>
-                <th class="date-cell">last played</th>
-                <th class="success-cell only-desktop">success</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
+    {{global_puzzle_leaderboard}}[[{id: 'puzzle-leaderboard-last-12-months'}]]
+
     <h1>Puzzles Leaderboard</h1>
     <hr/>
-    <div class="center-content-div">
-        <table id="leaderboard" class="puzzle-leaderboard">
-            <thead>
-            <tr>
-                <th class="rank-cell">rank</th>
-                <th class="user-cell">user</th>
-                <th class="small-cell">rating</th>
-                <th class="small-cell">max</th>
-                <th class="small-cell">played</th>
-                <th class="date-cell">last played</th>
-                <th class="success-cell only-desktop">success</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
+    {{global_puzzle_leaderboard}}[[{id: 'puzzle-leaderboard'}]]
+
     <h1>Global Puzzle Stats</h1>
     <hr/>
     <table class="global-stats">
@@ -111,6 +84,7 @@
             <td id="puzzles-played-at-least-20x"></td>
         </tr>
     </table>
+
     <h1>Global Game Stats</h1>
     <hr/>
     <table class="global-stats">
@@ -134,8 +108,8 @@
             <th>Total in-app moves</th>
             <td id="total-in-app-moves"></td>
         </tr>
-
     </table>
+
     <h1>Global User Stats</h1>
     <hr/>
     <table class="global-stats">
@@ -152,6 +126,7 @@
             <td id="online-users"></td>
         </tr>
     </table>
+
     <h1>Global App Data</h1>
     <hr/>
     <table class="global-stats">
