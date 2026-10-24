@@ -29,7 +29,7 @@ fun serviceLayerModule(
         single { appConfig }
         single { appConfig.dbConfig }
         single { dslBuilder(get()) }
-        single { enginesPool ?: buildDefaultEnginePool(get()) }
+        single { enginesPool ?: buildDefaultEnginePool(appConfig) }
 
         // all services, DAOs, clients and batches annotated with @KoinSingleton
         registerInjectables(eagerAllowed, "io.elephantchess.servicelayer", "io.elephantchess.db")

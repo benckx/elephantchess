@@ -3,6 +3,9 @@ package io.elephantchess.webapp.rendering
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
+import io.elephantchess.webapp.rendering.resolvers.escapeHtml
+import io.elephantchess.webapp.rendering.resolvers.escapeHtmlAttr
 
 @KoinSingleton(eager = true)
 class FaqPageRenderer(private val simplePageRenderer: SimplePageRenderer) {

@@ -6,6 +6,8 @@ import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
+import io.elephantchess.webapp.rendering.resolvers.escapeHtml
 import kotlinx.html.link
 import kotlinx.html.script
 

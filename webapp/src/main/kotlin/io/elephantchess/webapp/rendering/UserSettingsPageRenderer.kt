@@ -8,6 +8,8 @@ import io.elephantchess.servicelayer.dto.user.NotificationsSettingsDto
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.services.analytics.ARCHIVE_PAGE_VIEW_AFTER_DAYS
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.webapp.rendering.resolvers.escapeHtml
+import io.elephantchess.webapp.rendering.resolvers.escapeHtmlAttr
 import kotlinx.html.checkBoxInput
 import kotlinx.html.div
 import kotlinx.html.id

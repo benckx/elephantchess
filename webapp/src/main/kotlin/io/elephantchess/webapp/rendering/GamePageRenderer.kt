@@ -7,6 +7,8 @@ import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.webapp.rendering.resolvers.escapeHtml
+import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
 import io.elephantchess.xiangqi.Color
 
 @KoinSingleton(eager = true)

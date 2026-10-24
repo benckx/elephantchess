@@ -1,4 +1,4 @@
-package io.elephantchess.webapp.rendering
+package io.elephantchess.webapp.rendering.resolvers
 
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.kofi.LatestSupporter

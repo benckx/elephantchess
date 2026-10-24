@@ -9,6 +9,9 @@ import io.elephantchess.servicelayer.dto.user.UserProfileDto
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
+import io.elephantchess.webapp.rendering.resolvers.WebFragmentResolver
+import io.elephantchess.webapp.rendering.resolvers.toParagraphs
 import io.ktor.http.encodeURLPath
 import kotlinx.html.div
 import kotlinx.html.id
@@ -65,7 +68,7 @@ class UserProfilePageRenderer(
                 content += " - ${cropToFirstNWords(description, 100)}"
             }
 
-            descriptionMeta(content)
+            io.elephantchess.webapp.rendering.resolvers.descriptionMeta(content)
         }
 
     private fun flagPanelTagResolver(countryCode: String?): TagResolver =

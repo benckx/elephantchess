@@ -3,8 +3,8 @@ package io.elephantchess.webapp.koin
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.servicelayer.clients.DigitalOceanSpacesClient
-import io.elephantchess.webapp.rendering.WebFragmentResolver
 import io.elephantchess.webapp.rendering.WebTemplateRenderer
+import io.elephantchess.webapp.rendering.resolvers.WebFragmentResolver
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.koin.dsl.module
