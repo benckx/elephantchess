@@ -4,13 +4,11 @@ import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.ValidationErrorsResponse
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.rendering.SimplePageRenderer
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.request.acceptItems
+import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.server.response.respond
 
 private val simplePageRenderer by koin<SimplePageRenderer>()
 private val supportedErrorPages = listOf(401, 403, 404, 429, 500)

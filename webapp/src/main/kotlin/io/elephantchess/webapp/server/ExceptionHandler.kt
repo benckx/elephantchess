@@ -7,9 +7,7 @@ import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.utils.ResourceUtils
 import io.elephantchess.webapp.ops.respondErrorPage
 import io.elephantchess.webapp.ops.respondInternalError
-import io.elephantchess.webapp.ops.respondInternalErrorPage
 import io.elephantchess.webapp.ops.respondNotFound
-import io.elephantchess.webapp.ops.respondNotFoundPage
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.http.ContentType.Text.Html

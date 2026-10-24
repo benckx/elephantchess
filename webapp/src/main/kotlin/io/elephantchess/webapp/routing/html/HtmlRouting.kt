@@ -2,7 +2,6 @@ package io.elephantchess.webapp.routing.html
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
-import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.KofiService
@@ -14,7 +13,7 @@ import io.elephantchess.webapp.rendering.*
 import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.content.*
