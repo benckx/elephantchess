@@ -1,9 +1,12 @@
 package io.elephantchess.scripts.puzzles
 
+import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME
+import io.elephantchess.db.dao.codegen.Tables.REFERENCE_GAME_HALF_MOVE
 import io.elephantchess.db.dao.codegen.tables.pojos.Puzzle
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleCategoryTag
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleHalfMove
 import io.elephantchess.db.services.PuzzleDaoService
+import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.generateId
 import io.elephantchess.model.Engine
 import io.elephantchess.model.PuzzleAlgo
@@ -14,6 +17,7 @@ import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.xiangqi.Board
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
+import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
 import java.time.LocalDateTime
@@ -39,6 +43,7 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
     private const val RATING_PER_MATE = 400
 
     private val puzzleDaoService by inject<PuzzleDaoService>()
+    private val dslContext by inject<DSLContext>()
 
     /**
      * Creates the full-length puzzle plus every shorter shortened variant for a candidate.
@@ -47,6 +52,25 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
     private suspend fun createPuzzles(candidate: MatePuzzleCandidate): Int {
         val solutionLine = candidate.solutionMoves
         val mate = candidate.mate
+
+        // the reference game history from the standard start position up to the puzzle start position;
+        // the front-end move tree always renders from the standard start, so the stored non-solution
+        // moves must trace back to it (not just the engine's revealed plies)
+        val gameHistory = fetchGameHistory(candidate.refGameSource, candidate.refGameSourceId)
+        if (gameHistory.isEmpty()) {
+            logger.warn { "no game history for ${candidate.refGameSource}/${candidate.refGameSourceId}, skipping" }
+            return 0
+        }
+
+        // the history must reconstruct the candidate start position when replayed from the standard start
+        val reconstructed = Board().apply { gameHistory.forEach { move -> registerMove(move) } }
+        if (positionKey(reconstructed.outputFen()) != positionKey(candidate.startFen)) {
+            logger.warn {
+                "game history for ${candidate.refGameSource}/${candidate.refGameSourceId} does not reconstruct " +
+                    "the candidate start position, skipping"
+            }
+            return 0
+        }
 
         // a clean "mate in N" line has 2N-1 plies (player, opponent, ..., player); if the engine line
         // does not match, only create the full-length puzzle to stay on the safe side
@@ -71,6 +95,10 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
             revealedMoves.forEach { move -> board.registerMove(move) }
             val startFen = board.outputFen()
 
+            // non-solution moves shown in the move tree: the whole game from the standard start, then the
+            // revealed engine plies, so the front-end can translate them from the standard start position
+            val nonSolutionMoves = gameHistory + revealedMoves
+
             val algorithm = if (length == mate) FIND_PATH_TO_MATE else FIND_PATH_TO_MATE_SHORTENED
             val puzzleId = generateId()
             val rating = length * RATING_PER_MATE
@@ -90,22 +118,29 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
                 createdAt = LocalDateTime.now()
             }
 
-            val revealedMovesRecords = revealedMoves
+            val nonSolutionMovesRecords = nonSolutionMoves
                 .mapIndexed { position, uci ->
                     PuzzleHalfMove(puzzleId, position, uci, false)
                 }
 
             val solutionMovesRecords = solutionMoves
                 .mapIndexed { index, uci ->
-                    PuzzleHalfMove(puzzleId, revealedPlies + index, uci, true)
+                    PuzzleHalfMove(puzzleId, nonSolutionMoves.size + index, uci, true)
                 }
 
             val halfMoves =
-                revealedMovesRecords + solutionMovesRecords
+                nonSolutionMovesRecords + solutionMovesRecords
 
             val categories = listOf(
                 PuzzleCategoryTag(puzzleId, PuzzleCategory.findMateInN(length)),
             )
+
+            try {
+                validateSavedMoves(puzzleId, nonSolutionMoves, solutionMoves, startFen)
+            } catch (e: Exception) {
+                logger.warn { "skipping MATE_IN_$length puzzle for ${candidate.refGameSourceId}: ${e.message}" }
+                continue
+            }
 
             puzzleDaoService.save(puzzle, halfMoves, categories)
             created++
@@ -116,6 +151,43 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
 
         return created
     }
+
+    /**
+     * Loads the full reference game move list (standard start position to final position), ordered by ply.
+     */
+    private suspend fun fetchGameHistory(source: String, sourceId: String): List<String> =
+        dslContext
+            .select(REFERENCE_GAME_HALF_MOVE.UCI)
+            .from(REFERENCE_GAME_HALF_MOVE)
+            .join(REFERENCE_GAME).on(REFERENCE_GAME_HALF_MOVE.REFERENCE_GAME_ID.eq(REFERENCE_GAME.ID))
+            .where(REFERENCE_GAME.SOURCE.eq(source))
+            .and(REFERENCE_GAME.SOURCE_ID.eq(sourceId))
+            .orderBy(REFERENCE_GAME_HALF_MOVE.POSITION)
+            .awaitMappedRecords()
+
+    /**
+     * Replays the stored moves from the standard start position to make sure the puzzle is coherent:
+     * every ply must be legal, the non-solution prefix must reach [startFen], and the full line must end
+     * in checkmate. [Board.registerMove] throws on illegal moves, so an invalid puzzle never gets saved.
+     */
+    private fun validateSavedMoves(puzzleId: String, nonSolutionMoves: List<String>, solutionMoves: List<String>, startFen: String) {
+        val board = Board()
+        nonSolutionMoves.forEach { move -> board.registerMove(move) }
+        check(positionKey(board.outputFen()) == positionKey(startFen)) {
+            "puzzle $puzzleId: non-solution moves do not reach the puzzle start position"
+        }
+        solutionMoves.forEach { move -> board.registerMove(move) }
+        check(board.isCheckmated()) {
+            "puzzle $puzzleId: solution line does not end in checkmate"
+        }
+    }
+
+    /**
+     * The comparable part of a FEN: piece placement and side to move, ignoring the move counters, which
+     * differ between a position loaded directly and the same position reconstructed from the start.
+     */
+    private fun positionKey(fen: String): String =
+        fen.trim().split(Regex("\\s+")).take(2).joinToString(" ")
 
     @JvmStatic
     fun main(args: Array<String>) =
