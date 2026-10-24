@@ -65,35 +65,38 @@ class AdminNewsletterService(
             }
     }
 
-    private fun mergeClicksPerTemplate(live: Map<String, Int>, archived: Map<String, Int>): Map<String, Int> {
-        if (archived.isEmpty()) {
-            return live
-        }
+    private companion object {
 
-        val merged = live.toMutableMap()
-        archived.forEach { (templateName, clickCount) ->
-            merged.merge(templateName, clickCount, Int::plus)
-        }
-        return merged
-    }
-
-    private fun mergeLinkClicks(
-        live: List<NewsletterLinkClickRecord>,
-        archived: List<NewsletterLinkClickRecord>,
-    ): List<NewsletterLinkClickRecord> {
-        if (archived.isEmpty()) {
-            return live
-        }
-
-        return (live + archived)
-            .groupBy { it.templateName to it.link }
-            .map { (key, records) ->
-                NewsletterLinkClickRecord(
-                    templateName = key.first,
-                    link = key.second,
-                    clickCount = records.sumOf { it.clickCount },
-                )
+        fun mergeClicksPerTemplate(live: Map<String, Int>, archived: Map<String, Int>): Map<String, Int> {
+            if (archived.isEmpty()) {
+                return live
             }
-            .sortedByDescending { it.clickCount }
+
+            val merged = live.toMutableMap()
+            archived.forEach { (templateName, clickCount) ->
+                merged.merge(templateName, clickCount, Int::plus)
+            }
+            return merged
+        }
+
+        fun mergeLinkClicks(
+            live: List<NewsletterLinkClickRecord>,
+            archived: List<NewsletterLinkClickRecord>,
+        ): List<NewsletterLinkClickRecord> {
+            if (archived.isEmpty()) {
+                return live
+            }
+
+            return (live + archived)
+                .groupBy { it.templateName to it.link }
+                .map { (key, records) ->
+                    NewsletterLinkClickRecord(
+                        templateName = key.first,
+                        link = key.second,
+                        clickCount = records.sumOf { it.clickCount },
+                    )
+                }
+                .sortedByDescending { it.clickCount }
+        }
     }
 }
