@@ -30,7 +30,6 @@ fun Application.staticAssetsModule() {
     install(Compression) {
         gzip {
             matchContentType(
-                ContentType.Text.Html,
                 ContentType.Text.CSS,
                 ContentType.Text.JavaScript,
                 ContentType.Text.Xml,
