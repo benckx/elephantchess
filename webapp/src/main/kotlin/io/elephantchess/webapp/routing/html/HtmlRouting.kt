@@ -4,6 +4,7 @@ import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.KofiService
+import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
@@ -137,16 +138,26 @@ private fun Route.gamePages() {
 
 private fun Route.puzzlesPage() {
     val appConfig by koin<AppConfig>()
+    val puzzleCache by koin<PuzzleCache>()
     val isPuzzlesDebugModeEnabled = appConfig.isPuzzlesDebugModeEnabled
     val resolvers = listOf(SimpleValueTagResolver("puzzles_debug_mode", isPuzzlesDebugModeEnabled.toString()))
 
     get("/puzzles") {
-        call.respondHtml(
-            simplePageRenderer.renderTemplate(
-                "puzzles",
-                resolvers,
-            ),
-        )
+        val id = call.parameters["id"]
+
+        if (id != null) {
+            if (!puzzleCache.exists(id)) {
+                call.respondNotFoundPage()
+            } else {
+                call.respondHtml(
+                    simplePageRenderer.renderTemplate("puzzles", resolvers),
+                )
+            }
+        } else {
+            call.respondHtml(
+                simplePageRenderer.renderTemplate("puzzles", resolvers),
+            )
+        }
     }
 }
 
