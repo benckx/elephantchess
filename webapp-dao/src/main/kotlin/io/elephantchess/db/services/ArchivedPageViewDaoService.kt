@@ -9,18 +9,18 @@ import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
-import kotlin.time.Clock
 import kotlin.time.Duration
 
 /**
- * Archives page views into [ARCHIVED_PAGE_VIEW_DAILY] (the same table used when archiving guests) and
- * deletes the underlying [PAGE_VIEW_EVENT] rows, so the views are no longer tied to a user.
+ * Archives page views into [ARCHIVED_PAGE_VIEW_DAILY] and deletes the underlying [PAGE_VIEW_EVENT] rows,
+ * so the views are no longer tied to a user.
  *
- * Views are aggregated by the day they happened and by url, counting unique viewers per day+url. The
- * "own" / "other" profile view buckets are computed here (while the viewing user still exists) because
- * "own" means the viewed profile's handle equals the viewer's handle, which can't be reconstructed once
- * the user is gone. Mirrors [ArchivedGuestDaoService]'s page-view archiving so both feed the same
- * aggregated metrics.
+ * Views are aggregated by the day they happened and by url, counting unique viewers per day+url.
+ *
+ * The "own" / "other" profile view buckets are computed here (while the viewing user still exists) because "own"
+ * means the viewed profile's handle equals the viewer's handle, which can't be reconstructed once the user is gone.
+ *
+ * Mirrors [ArchivedGuestDaoService]'s page-view archiving so both feed the same aggregated metrics.
  */
 @KoinSingleton
 class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
@@ -215,6 +215,7 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
     }
 
     private companion object {
+
         // matches the archived_page_view_daily.url column width
         const val URL_MAX_LENGTH = 2048
     }

@@ -23,12 +23,12 @@ class AdminNewsletterService(
     suspend fun fetchNewsletterStats(): NewsletterStatsResponse {
         val potentialRecipients = mailService.listNewsLetterRecipientEmails().size
         val clicksPerTemplate = mergeClicksPerTemplate(
-            pageViewEventDaoService.countNewsletterClicksPerTemplate(excludedUserIds),
-            archivedPageViewDaoService.countArchivedNewsletterClicksPerTemplate(),
+            current = pageViewEventDaoService.countNewsletterClicksPerTemplate(excludedUserIds),
+            archived = archivedPageViewDaoService.countArchivedNewsletterClicksPerTemplate(),
         )
         val linkClicksPerTemplate = mergeLinkClicks(
-            pageViewEventDaoService.listNewsletterClicksPerTemplateAndLink(excludedUserIds),
-            archivedPageViewDaoService.listArchivedNewsletterClicksPerTemplateAndLink(),
+            current = pageViewEventDaoService.listNewsletterClicksPerTemplateAndLink(excludedUserIds),
+            archived = archivedPageViewDaoService.listArchivedNewsletterClicksPerTemplateAndLink(),
         )
             .groupBy { it.templateName }
 
@@ -67,12 +67,12 @@ class AdminNewsletterService(
 
     private companion object {
 
-        fun mergeClicksPerTemplate(live: Map<String, Int>, archived: Map<String, Int>): Map<String, Int> {
+        fun mergeClicksPerTemplate(current: Map<String, Int>, archived: Map<String, Int>): Map<String, Int> {
             if (archived.isEmpty()) {
-                return live
+                return current
             }
 
-            val merged = live.toMutableMap()
+            val merged = current.toMutableMap()
             archived.forEach { (templateName, clickCount) ->
                 merged.merge(templateName, clickCount, Int::plus)
             }
@@ -80,14 +80,14 @@ class AdminNewsletterService(
         }
 
         fun mergeLinkClicks(
-            live: List<NewsletterLinkClickRecord>,
+            current: List<NewsletterLinkClickRecord>,
             archived: List<NewsletterLinkClickRecord>,
         ): List<NewsletterLinkClickRecord> {
             if (archived.isEmpty()) {
-                return live
+                return current
             }
 
-            return (live + archived)
+            return (current + archived)
                 .groupBy { it.templateName to it.link }
                 .map { (key, records) ->
                     NewsletterLinkClickRecord(
