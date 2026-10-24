@@ -8,6 +8,7 @@ import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.renderTemplateHtml
 import io.elephantchess.webapp.ops.requireEditorRole
 import io.elephantchess.webapp.ops.respondHtml
+import io.elephantchess.webapp.ops.respondNotFoundPage
 import io.elephantchess.webapp.rendering.DatabasePageRenderer
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -107,7 +108,7 @@ internal fun Routing.databasePages() {
 
         val eventName = databaseService.fetchEventName(eventId)
         if (eventName == null) {
-            call.respondHtml(simplePageRenderer.renderTemplate("404"), HttpStatusCode.NotFound)
+            call.respondNotFoundPage()
         } else {
             val round = call.request.queryParameters["round"]?.toIntOrNull()
             call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, eventName, round))
@@ -117,7 +118,7 @@ internal fun Routing.databasePages() {
         val gameId = call.parameters["id"] ?: throw BadRequestException("id query parameter not provided")
         val summary = databaseService.fetchGameSummary(gameId)
         if (summary == null) {
-            call.respondHtml(simplePageRenderer.renderTemplate("404"), HttpStatusCode.NotFound)
+            call.respondNotFoundPage()
         } else {
             val orientation = call.request.queryParameters["orientation"]
             call.respondHtml(databasePageRenderer.renderGamePage(summary, orientation))

@@ -24,9 +24,9 @@ private val logger = logger {}
 internal val simplePageRenderer by koin<SimplePageRenderer>()
 
 private val simplePublicPageMapping = mapOf(
-    "/401" to "401",
-    "/403" to "403",
-    "/404" to "404",
+    "/401" to "errors/401",
+    "/403" to "errors/403",
+    "/404" to "errors/404",
     "/board" to "test_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
@@ -119,7 +119,7 @@ private fun Route.gamePages() {
     get("/game") {
         val gameId = call.parameters["id"]
         if (gameId == null) {
-            call.respondHtml(simplePageRenderer.renderTemplate("404"), NotFound)
+            call.respondNotFoundPage()
         } else {
             call.respondHtml(gamePageRenderer.renderPvpGamePage(gameId))
         }
@@ -128,7 +128,7 @@ private fun Route.gamePages() {
     get("/playbot") {
         val gameId = call.parameters["id"]
         if (gameId == null) {
-            call.respondHtml(simplePageRenderer.renderTemplate("404"), NotFound)
+            call.respondNotFoundPage()
         } else {
             call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId))
         }
