@@ -28,10 +28,26 @@ suspend fun ApplicationCall.respondNotFoundPage() {
     )
 }
 
+suspend fun ApplicationCall.respondTooManyRequestsPage() {
+    respondText(
+        text = simplePageRenderer.renderTemplate("errors/429"),
+        contentType = ContentType.Text.Html,
+        status = HttpStatusCode.TooManyRequests,
+    )
+}
+
 suspend fun ApplicationCall.respondInternalErrorPage() {
     respondText(
         text = simplePageRenderer.renderTemplate("errors/500"),
         contentType = ContentType.Text.Html,
         status = HttpStatusCode.InternalServerError,
+    )
+}
+
+suspend fun ApplicationCall.respondErrorPage(statusCode: HttpStatusCode) {
+    respondText(
+        text = simplePageRenderer.renderTemplate("errors/${statusCode.value}"),
+        contentType = ContentType.Text.Html,
+        status = statusCode,
     )
 }

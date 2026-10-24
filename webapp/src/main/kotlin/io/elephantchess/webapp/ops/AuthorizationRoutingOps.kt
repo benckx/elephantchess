@@ -14,7 +14,6 @@ import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.*
-import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.request.*
@@ -23,7 +22,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 
 private val opsLogger by lazy { logger {} }
-private val simplePageRenderer by koin<SimplePageRenderer>()
 private val userCache by koin<UserCache>()
 
 /**
@@ -126,8 +124,7 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
 private suspend fun RoutingContext.redirectOrRespond(statusCode: HttpStatusCode) {
     val isHtmlRequest = call.request.accept()?.contains("text/html") ?: false
     if (isHtmlRequest) {
-        val html = simplePageRenderer.renderTemplate(statusCode.value.toString())
-        call.respondText(html, Html)
+        call.respondErrorPage(statusCode)
     } else {
         call.response.status(statusCode)
     }
