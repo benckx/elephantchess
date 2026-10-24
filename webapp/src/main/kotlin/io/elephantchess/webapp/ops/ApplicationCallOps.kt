@@ -15,6 +15,15 @@ import io.ktor.server.response.respond
 private val simplePageRenderer by koin<SimplePageRenderer>()
 private val supportedErrorPages = listOf(401, 403, 404, 429, 500)
 
+suspend fun SimplePageRenderer.renderTemplateHtmlToCall(
+    templateName: String,
+    specificTagResolvers: List<TagResolver> = listOf(),
+): TextContent =
+    TextContent(
+        renderTemplate(templateName, specificTagResolvers),
+        ContentType.Text.Html,
+    )
+
 suspend fun ApplicationCall.respondHtml(htmlContent: String, status: HttpStatusCode? = null) {
     respondText(htmlContent, ContentType.Text.Html, status)
 }

@@ -5,7 +5,7 @@ import io.elephantchess.servicelayer.dto.database.DatabasePlayerProfileEdit
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.DatabaseService
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.ops.renderTemplateHtml
+import io.elephantchess.webapp.ops.renderTemplateHtmlToCall
 import io.elephantchess.webapp.ops.requireEditorRole
 import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.ops.respondNotFoundPage
@@ -24,7 +24,7 @@ internal fun Routing.databasePages() {
 
     get("/userdata/db-edits") {
         requireEditorRole(roleErrorPageRender) { _ ->
-            simplePageRenderer.renderTemplateHtml("userdata/my_db_edits")
+            simplePageRenderer.renderTemplateHtmlToCall("userdata/my_db_edits")
         }
     }
     get("/database/player/{playerName}") {

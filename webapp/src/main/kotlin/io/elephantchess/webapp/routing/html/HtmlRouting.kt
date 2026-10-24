@@ -277,12 +277,3 @@ private fun Route.modals() {
         }
     }
 }
-
-private suspend fun SimplePageRenderer.renderTemplateHtmlToCall(
-    templateName: String,
-    specificTagResolvers: List<TagResolver> = listOf(),
-): TextContent =
-    TextContent(
-        renderTemplate(templateName, specificTagResolvers),
-        ContentType.Text.Html,
-    )
