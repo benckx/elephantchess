@@ -34,6 +34,11 @@ Floor: code, commands, paths, numbers and error strings verbatim; never drop not
 For any HTML/CSS/JS change, render the page and check it before reporting done. Full details: README "Run Locally". Only
 do this if explicitly asked by the user or when working in autopilot on GitHub (not locally).
 
+**Which database:** When working **locally**, run the app against the real local-backup DB instead of the test dataset:
+`java -jar webapp/build/libs/webapp.jar -p local-backup -cl /home/benoit/Projects/elephantchess-deploy/configs`.
+The steps below (dev dataset in the `xiangqi-db` container) are for **GitHub runners**, where the local-backup DB and
+its config are not available.
+
 1. Make sure PostgreSQL runs with the dev dataset:
    ```shell
    # start container if `docker ps` does not show xiangqi-db
