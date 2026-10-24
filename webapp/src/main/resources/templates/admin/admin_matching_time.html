@@ -14,152 +14,36 @@
 
     <h2>lobby / matchmaking (PvP &gt; 3)</h2>
     <hr/>
-    <table id="table-lobby" class="stats-table">
-        <thead>
-        <tr>
-            <th class="label-cell">month</th>
-            <th class="value-cell">count</th>
-            <th class="value-cell">min</th>
-            <th class="value-cell">median</th>
-            <th class="value-cell">p90</th>
-            <th class="value-cell">p95</th>
-            <th class="value-cell">p99</th>
-            <th class="value-cell">max</th>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    {{matching_time_stats_table}}[[{id: 'table-lobby'}]]
 
     <h2>LINK (PvP &gt; 3)</h2>
     <hr/>
-    <table id="table-link" class="stats-table">
-        <thead>
-        <tr>
-            <th class="label-cell">month</th>
-            <th class="value-cell">count</th>
-            <th class="value-cell">min</th>
-            <th class="value-cell">median</th>
-            <th class="value-cell">p90</th>
-            <th class="value-cell">p95</th>
-            <th class="value-cell">p99</th>
-            <th class="value-cell">max</th>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    {{matching_time_stats_table}}[[{id: 'table-link'}]]
 
     <h2>lobby / matchmaking by category (PvP &gt; 3)</h2>
     <hr/>
     <div id="tables-lobby-by-category">
-        <h3 class="category-group-heading" style="display: none;">REAL_TIME</h3>
-        <table id="table-lobby-REAL_TIME" class="stats-table" style="display: none;">
-            <thead>
-            <tr>
-                <th class="label-cell">month</th>
-                <th class="value-cell">count</th>
-                <th class="value-cell">min</th>
-                <th class="value-cell">median</th>
-                <th class="value-cell">p90</th>
-                <th class="value-cell">p95</th>
-                <th class="value-cell">p99</th>
-                <th class="value-cell">max</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <h3 class="category-group-heading" style="display: none;">CLASSICAL</h3>
-        <table id="table-lobby-CLASSICAL" class="stats-table" style="display: none;">
-            <thead>
-            <tr>
-                <th class="label-cell">month</th>
-                <th class="value-cell">count</th>
-                <th class="value-cell">min</th>
-                <th class="value-cell">median</th>
-                <th class="value-cell">p90</th>
-                <th class="value-cell">p95</th>
-                <th class="value-cell">p99</th>
-                <th class="value-cell">max</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <h3 class="category-group-heading" style="display: none;">CORRESPONDENCE</h3>
-        <table id="table-lobby-CORRESPONDENCE" class="stats-table" style="display: none;">
-            <thead>
-            <tr>
-                <th class="label-cell">month</th>
-                <th class="value-cell">count</th>
-                <th class="value-cell">min</th>
-                <th class="value-cell">median</th>
-                <th class="value-cell">p90</th>
-                <th class="value-cell">p95</th>
-                <th class="value-cell">p99</th>
-                <th class="value-cell">max</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+        <h3 class="category-group-heading">REAL_TIME</h3>
+        {{matching_time_stats_table}}[[{id: 'table-lobby-REAL_TIME'}]]
+
+        <h3 class="category-group-heading">CLASSICAL</h3>
+        {{matching_time_stats_table}}[[{id: 'table-lobby-CLASSICAL'}]]
+
+        <h3 class="category-group-heading">CORRESPONDENCE</h3>
+        {{matching_time_stats_table}}[[{id: 'table-lobby-CORRESPONDENCE'}]]
     </div>
 
     <h2>LINK by category (PvP &gt; 3)</h2>
     <hr/>
     <div id="tables-link-by-category">
-        <h3 class="category-group-heading" style="display: none;">REAL_TIME</h3>
-        <table id="table-link-REAL_TIME" class="stats-table" style="display: none;">
-            <thead>
-            <tr>
-                <th class="label-cell">month</th>
-                <th class="value-cell">count</th>
-                <th class="value-cell">min</th>
-                <th class="value-cell">median</th>
-                <th class="value-cell">p90</th>
-                <th class="value-cell">p95</th>
-                <th class="value-cell">p99</th>
-                <th class="value-cell">max</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <h3 class="category-group-heading" style="display: none;">CLASSICAL</h3>
-        <table id="table-link-CLASSICAL" class="stats-table" style="display: none;">
-            <thead>
-            <tr>
-                <th class="label-cell">month</th>
-                <th class="value-cell">count</th>
-                <th class="value-cell">min</th>
-                <th class="value-cell">median</th>
-                <th class="value-cell">p90</th>
-                <th class="value-cell">p95</th>
-                <th class="value-cell">p99</th>
-                <th class="value-cell">max</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <h3 class="category-group-heading" style="display: none;">CORRESPONDENCE</h3>
-        <table id="table-link-CORRESPONDENCE" class="stats-table" style="display: none;">
-            <thead>
-            <tr>
-                <th class="label-cell">month</th>
-                <th class="value-cell">count</th>
-                <th class="value-cell">min</th>
-                <th class="value-cell">median</th>
-                <th class="value-cell">p90</th>
-                <th class="value-cell">p95</th>
-                <th class="value-cell">p99</th>
-                <th class="value-cell">max</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+        <h3 class="category-group-heading">REAL_TIME</h3>
+        {{matching_time_stats_table}}[[{id: 'table-link-REAL_TIME'}]]
+
+        <h3 class="category-group-heading">CLASSICAL</h3>
+        {{matching_time_stats_table}}[[{id: 'table-link-CLASSICAL'}]]
+
+        <h3 class="category-group-heading">CORRESPONDENCE</h3>
+        {{matching_time_stats_table}}[[{id: 'table-link-CORRESPONDENCE'}]]
     </div>
 </div>
 </body>

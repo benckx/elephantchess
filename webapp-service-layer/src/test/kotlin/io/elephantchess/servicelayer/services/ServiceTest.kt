@@ -7,8 +7,8 @@ import io.elephantchess.model.TimeControlMode
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
+import io.elephantchess.servicelayer.koin.serviceLayerModule
 import io.elephantchess.servicelayer.model.UserId
-import io.elephantchess.servicelayer.serviceLayerModule
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.Variant

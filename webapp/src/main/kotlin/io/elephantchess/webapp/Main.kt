@@ -1,7 +1,8 @@
 package io.elephantchess.webapp
 
 import io.elephantchess.config.ArgConfig.Companion.parseArgs
-import io.elephantchess.servicelayer.serviceLayerModule
+import io.elephantchess.servicelayer.koin.serviceLayerModule
+import io.elephantchess.webapp.koin.webAppKoinModule
 import io.elephantchess.webapp.routing.html.htmlRoutingModule
 import io.elephantchess.webapp.routing.sitemapRoutingModule
 import io.elephantchess.webapp.routing.wellKnownRoutingModule
@@ -36,15 +37,14 @@ fun main(args: Array<String>) {
 }
 
 private fun Application.kTorModule() {
-    configureDefaultHeaders()
-    exceptionHandler()
-    databaseRateLimitModule()
-    cachingModule()
-    staticAssetsModule()
-    apiServiceModule()
-    htmlRoutingModule()
-    sitemapRoutingModule()
-    wellKnownRoutingModule()
-    shutdownModule()
-    healthCheckModule()
+    configureDefaultHeaders() // default headers
+    exceptionHandler() // handle exceptions and return proper HTTP status codes
+    databaseRateLimitModule() // rate limits database access (for crawlers)
+    staticAssetsModule() // servers static assets like JS, CSS, images
+    apiServiceModule() // serves endpoints for the front-end API
+    htmlRoutingModule() // renders, maps and serves HTML pages
+    sitemapRoutingModule() // serves sitemap.xml
+    wellKnownRoutingModule() // servers /.well-known requests
+    shutdownModule() // handles graceful shutdown of components
+    healthCheckModule() // serves Kubernetes health probes
 }

@@ -149,6 +149,10 @@
         width: 100%;
     }
 
+    #profile-games-visibility-table .settings-hit-box {
+        width: 90%;
+    }
+
     #email-address,
     #countries {
         font-size: 30px;

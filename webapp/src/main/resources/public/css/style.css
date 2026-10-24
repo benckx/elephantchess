@@ -1226,6 +1226,35 @@ input[type=password].incorrect-data {
     order: 3;
 }
 
+/* used in new game modals */
+.option-button-div {
+    border: 2px solid #605f5f;
+    border-radius: 10px;
+    background-color: #f5eee5;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin: 0 auto;
+    cursor: pointer;
+}
+
+.option-button-div-selected {
+    background-color: #fcfaf8;
+    box-shadow: rgba(0, 0, 0, 0.09) 0 3px 3px, rgba(0, 0, 0, 0.12) 0 3px 3px;
+    font-weight: bold;
+    border-color: #124610;
+    border-width: 3px;
+    outline: 1px solid #124610;
+}
+
+.option-button-div-disabled {
+    background-color: #c6c4c0;
+    cursor: not-allowed;
+    color: #5e5d5d;
+}
+
 /* TODO: make those color a var */
 .red-color {
     color: rgba(222, 7, 7);
@@ -1259,7 +1288,7 @@ input[type=password].incorrect-data {
     cursor: pointer;
 }
 
-table.info-box-table {
+.info-box-table {
     display: table;
     width: 100%;
     color: #2b2b2b;
@@ -1268,31 +1297,31 @@ table.info-box-table {
     font-size: 15px;
 }
 
-table.info-box-table tr.enabled-button {
+.info-box-table tr.enabled-button {
     cursor: pointer;
 }
 
-table.info-box-table tr.disabled-button {
+.info-box-table tr.disabled-button {
     cursor: default;
     opacity: 50%;
 }
 
-table.info-box-table tr.enabled-button td.description-cell,
-table.info-box-table tr.disabled-button td.description-cell {
+.info-box-table tr.enabled-button td.description-cell,
+.info-box-table tr.disabled-button td.description-cell {
     padding-top: 4px;
     padding-bottom: 4px;
 }
 
-table.info-box-table tr.enabled-button td.description-cell:hover {
+.info-box-table tr.enabled-button td.description-cell:hover {
     background-color: #e9dcc8;
 }
 
-table.info-box-table td.icon-cell {
+.info-box-table td.icon-cell {
     width: 12%;
     vertical-align: middle;
 }
 
-table.info-box-table td.icon-cell img {
+.info-box-table td.icon-cell img {
     width: 100%;
     /*height: 100%;*/
     max-width: 30px;
@@ -1301,22 +1330,22 @@ table.info-box-table td.icon-cell img {
     margin-right: auto;
 }
 
-table.info-box-table td.description-cell {
+.info-box-table td.description-cell {
     width: 83%;
     padding-left: 5%;
     line-height: 18px;
 }
 
-table.info-box-sub-table {
+.info-box-sub-table {
     width: 100%;
     border-spacing: 0 2px;
 }
 
-table.info-box-sub-table td {
+.info-box-sub-table td {
     font-size: 15px;
 }
 
-table.info-box-sub-table td.labels {
+.info-box-sub-table td.labels {
     text-align: right;
     vertical-align: middle;
     padding-right: 14px;
@@ -1325,7 +1354,7 @@ table.info-box-sub-table td.labels {
     color: #2f2f2f;
 }
 
-table.info-box-sub-table td.values {
+.info-box-sub-table td.values {
     font-weight: bold;
     text-align: left;
     min-width: 200px;
