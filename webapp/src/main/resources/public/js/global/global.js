@@ -22,8 +22,8 @@ class GlobalStatsPage extends BasePage {
     constructor() {
         super();
         this.#fetchPlayerVsPlayerLeaderboard();
-        this.#fetchLeaderboardLast12Months();
-        this.#fetchLeaderboard();
+        this.#fetchPuzzleLeaderboardLast12Months();
+        this.#fetchPuzzleLeaderboard();
         this.#fetchGlobalPuzzleStats();
         this.#fetchGlobalGameStats();
         this.#fetchGlobalUsersStats();
@@ -90,13 +90,13 @@ class GlobalStatsPage extends BasePage {
             });
     }
 
-    #fetchLeaderboardLast12Months() {
+    #fetchPuzzleLeaderboardLast12Months() {
         getAndHandle('/api/user/info/puzzles/stats/leaderboard-last-12-months', json => {
             this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'leaderboard-last-12-months');
         });
     }
 
-    #fetchLeaderboard() {
+    #fetchPuzzleLeaderboard() {
         getAndHandle('/api/user/info/puzzles/stats/leaderboard', json => {
             this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'leaderboard');
         });
@@ -153,7 +153,9 @@ class GlobalStatsPage extends BasePage {
             successCell.className = 'success-cell';
 
             const successIndicator = new SuccessIndicator(entry.solvedRate, entry.failedRate);
-            successCell.append(successIndicator.render());
+            const successIndicatorContainer = successIndicator.render();
+            successIndicatorContainer.classList.add('only-desktop');
+            successCell.append(successIndicatorContainer);
         });
     }
 

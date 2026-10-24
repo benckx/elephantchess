@@ -140,7 +140,8 @@
 
     .puzzle-leaderboard th,
     .puzzle-leaderboard td {
-        font-size: 22px;
+        font-size: 26px;
+        padding-bottom: 4px;
     }
 
     .pvp-leaderboard .rank-cell {
@@ -159,9 +160,14 @@
         width: 30%;
     }
 
+    .puzzle-leaderboard th.success-cell,
+    .puzzle-leaderboard td.success-cell {
+        width: 0;
+    }
+
     .global-stats th,
     .global-stats td {
-        font-size: 36px;
+        font-size: 32px;
     }
 
     .global-stats th {
