@@ -130,6 +130,24 @@ deploy.json
 # --- Database dump harvesting ---
 .sql
 
+# --- Runtime config / log file harvesting (seen in prod 404 probes) ---
+/app.log
+/application.properties
+/config.ini
+/database.config
+database.yml
+debug.log
+/error.log
+/.kube/
+/logs/
+/php_error.log
+/readme.md
+/server.js
+/tmp/
+/test
+/test/
+/dev/
+
 # --- AI agent / MCP config harvesting ---
 mcp.json
 mcp_config.json

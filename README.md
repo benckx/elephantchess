@@ -274,17 +274,17 @@ fun main(args: Array<String>) {
         .start(wait = true)
 }
 
-// different KTor submodules for different purposes
 private fun Application.kTorModule() {
-    configureDefaultHeaders()
-    exceptionHandler()
-    cachingModule()
-    staticAssetsModule()
-    apiServiceModule() // all the routes defining the endpoints used by the front-end
-    htmlRoutingModule() // all the routes to access the HTML pages
-    sitemapRoutingModule()
-    shutdownModule()
-    healthCheckModule()
+    configureDefaultHeaders() // default headers
+    exceptionHandler() // handle exceptions and return proper HTTP status codes
+    databaseRateLimitModule() // rate limits database access (for crawlers)
+    staticAssetsModule() // serves static assets like JS, CSS, images
+    apiServiceModule() // serves endpoints for the front-end API
+    htmlRoutingModule() // renders, maps and serves HTML pages
+    sitemapRoutingModule() // serves sitemap.xml
+    wellKnownRoutingModule() // serves /.well-known requests
+    shutdownModule() // handles graceful shutdown of components
+    healthCheckModule() // serves Kubernetes health probes
 }
 ```
 
