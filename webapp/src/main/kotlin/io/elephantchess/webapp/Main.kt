@@ -1,7 +1,7 @@
 package io.elephantchess.webapp
 
 import io.elephantchess.config.ArgConfig.Companion.parseArgs
-import io.elephantchess.servicelayer.serviceLayerModule
+import io.elephantchess.servicelayer.koin.serviceLayerModule
 import io.elephantchess.webapp.routing.html.htmlRoutingModule
 import io.elephantchess.webapp.routing.sitemapRoutingModule
 import io.elephantchess.webapp.routing.wellKnownRoutingModule
@@ -40,10 +40,10 @@ private fun Application.kTorModule() {
     exceptionHandler()
     databaseRateLimitModule()
     cachingModule()
-    staticAssetsModule()
-    apiServiceModule()
-    htmlRoutingModule()
-    sitemapRoutingModule()
+    staticAssetsModule() // servers static assets like JS, CSS, images
+    apiServiceModule() // serves endpoints for the front-end API
+    htmlRoutingModule() // renders, maps and serves HTML pages
+    sitemapRoutingModule() // serves sitemap.xml
     wellKnownRoutingModule()
     shutdownModule()
     healthCheckModule()
