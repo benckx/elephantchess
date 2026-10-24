@@ -9,4 +9,5 @@ data class DatabasePlayerProfileEdit(
     val sources: List<DatabasePlayerProfileSource>,
     val editComment: String?,
     val enabled: Boolean,
+    val versionTime: Long? = null,
 )

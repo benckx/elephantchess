@@ -21,6 +21,10 @@ import io.elephantchess.webapp.rendering.resolvers.toParagraphs
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.*
+import java.time.Instant
+import java.time.ZoneOffset.UTC
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.time.Duration.Companion.hours
 
 @KoinSingleton(eager = true)
@@ -46,7 +50,15 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         hasOpeningData: Boolean,
     ): String {
         val description = edit.profileText
-        val editors = fetchEditorsUsername()
+        val contributors = fetchEditorsUsername()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .sorted()
+        val contributorsText = contributors.joinToString(", ")
+        val lastEditDate = edit.versionTime
+            ?.let { Instant.ofEpochMilli(it).atZone(UTC).toLocalDate() }
+            ?.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
 
         val playerNameEncodedResolver = SimpleValueTagResolver("player_name_encoded", databasePlayer.urlName)
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
@@ -77,11 +89,38 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         }
 
         val authorMeta = KtorHtmlBuilderTagResolver("author_meta") {
-            if (editors.isNotEmpty()) {
-                val names = editors.sortedBy { it.lowercase() }.joinToString(", ")
+            if (contributors.isNotEmpty()) {
                 meta {
                     name = "author"
-                    content = names
+                    content = contributorsText
+                }
+            }
+        }
+
+        val profileMetaResolver = KtorHtmlBuilderTagResolver("profile_meta_info") {
+            if (contributors.isNotEmpty()) {
+                span {
+                    b { +"Contributors:" }
+                    +" "
+                    contributors.forEachIndexed { index, username ->
+                        if (index > 0) {
+                            +", "
+                        }
+                        a(href = "/@/${username.encodeURLPath()}") {
+                            +username
+                        }
+                    }
+                }
+            }
+            if (contributors.isNotEmpty() && lastEditDate != null) {
+                span(classes = "profile-meta-separator") {
+                    +" · "
+                }
+            }
+            if (lastEditDate != null) {
+                span {
+                    b { +"Last edit:" }
+                    +" $lastEditDate"
                 }
             }
         }
@@ -117,6 +156,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 sourcesResolver,
                 styleResolver,
                 authorMeta,
+                profileMetaResolver,
                 noIndexMeta,
                 openingsHeadResolver,
                 openingsSectionResolver,
