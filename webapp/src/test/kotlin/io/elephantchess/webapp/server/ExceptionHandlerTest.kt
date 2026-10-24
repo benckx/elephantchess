@@ -26,6 +26,7 @@ import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
+import java.util.concurrent.CancellationException as JavaCancellationException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.*
 
@@ -84,6 +85,7 @@ class ExceptionHandlerTest {
     fun `isClientDisconnectException detects client disconnects in the cause chain`() {
         assertTrue(isClientDisconnectException(ClosedChannelException()))
         assertTrue(isClientDisconnectException(CancellationException("cancelled")))
+        assertTrue(isClientDisconnectException(JavaCancellationException("HTTP upgrade has been cancelled")))
         assertTrue(isClientDisconnectException(IOException("Broken pipe")))
         assertTrue(isClientDisconnectException(IOException("Connection reset by peer")))
         assertTrue(isClientDisconnectException(UnsupportedOperationException("response was already completed")))
@@ -129,6 +131,15 @@ class ExceptionHandlerTest {
     fun `client disconnect wrapped in another exception is not saved`() =
         testExceptionHandler({
             get("/test") { throw RuntimeException("wrapper", IOException("Connection reset by peer")) }
+        }) {
+            runCatching { client.get("/test") }
+            verifyNoInteractions(exceptionService)
+        }
+
+    @Test
+    fun `Java CancellationException from HTTP upgrade cancellation is not saved`() =
+        testExceptionHandler({
+            get("/test") { throw JavaCancellationException("HTTP upgrade has been cancelled") }
         }) {
             runCatching { client.get("/test") }
             verifyNoInteractions(exceptionService)

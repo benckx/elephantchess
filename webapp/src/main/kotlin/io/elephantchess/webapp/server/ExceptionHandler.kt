@@ -21,6 +21,7 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
+import java.util.concurrent.CancellationException as JavaCancellationException
 import kotlin.coroutines.cancellation.CancellationException
 
 private const val MUTED_URI_PATTERNS_RESOURCE = "/config/muted-uri-patterns.txt"
@@ -48,6 +49,7 @@ internal fun isClientDisconnectException(t: Throwable): Boolean {
         if (current is ClosedChannelException ||
             current is ClosedByteChannelException ||
             current is CancellationException ||
+            current is JavaCancellationException ||
             (current is IOException && current.message?.contains("Broken pipe") == true) ||
             (current is IOException && current.message?.contains("Connection reset") == true) ||
             (current is UnsupportedOperationException && current.message?.contains("response was already completed") == true)
@@ -177,9 +179,13 @@ fun Application.exceptionHandler() {
             call.respond(BadRequest, ValidationErrorsResponse("Bad Request"))
         }
         exception<IllegalStateException> { call, e ->
-            logger.error(e) { e.toString() }
-            exceptionService.saveException(e, InternalServerError.value)
-            call.respond(InternalServerError, ValidationErrorsResponse("Server error"))
+            if (isClientDisconnectException(e)) {
+                logger.debug { "Client disconnected during request: ${e.message}" }
+            } else {
+                logger.error(e) { e.toString() }
+                exceptionService.saveException(e, InternalServerError.value)
+                call.respond(InternalServerError, ValidationErrorsResponse("Server error"))
+            }
         }
         exception<io.ktor.server.plugins.BadRequestException> { call, e ->
             if (e.cause is JsonConvertException) {
