@@ -2,7 +2,6 @@ package io.elephantchess.webapp.server
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.ops.respondTooManyRequestsPage
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
