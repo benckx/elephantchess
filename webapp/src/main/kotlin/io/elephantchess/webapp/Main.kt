@@ -36,15 +36,14 @@ fun main(args: Array<String>) {
 }
 
 private fun Application.kTorModule() {
-    configureDefaultHeaders()
-    exceptionHandler()
-    databaseRateLimitModule()
-    cachingModule()
+    configureDefaultHeaders() // default headers
+    exceptionHandler() // handle exceptions and return proper HTTP status codes
+    databaseRateLimitModule() // rate limits database access (for crawlers)
     staticAssetsModule() // servers static assets like JS, CSS, images
     apiServiceModule() // serves endpoints for the front-end API
     htmlRoutingModule() // renders, maps and serves HTML pages
     sitemapRoutingModule() // serves sitemap.xml
-    wellKnownRoutingModule()
-    shutdownModule()
-    healthCheckModule()
+    wellKnownRoutingModule() // servers /.well-known requests
+    shutdownModule() // handles graceful shutdown of components
+    healthCheckModule() // serves Kubernetes health probes
 }
