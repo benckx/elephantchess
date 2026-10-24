@@ -2,6 +2,7 @@ package io.elephantchess.webapp
 
 import io.elephantchess.config.ArgConfig.Companion.parseArgs
 import io.elephantchess.servicelayer.koin.serviceLayerModule
+import io.elephantchess.webapp.koin.webAppKoinModule
 import io.elephantchess.webapp.routing.html.htmlRoutingModule
 import io.elephantchess.webapp.routing.sitemapRoutingModule
 import io.elephantchess.webapp.routing.wellKnownRoutingModule

@@ -1,39 +1,20 @@
-package io.elephantchess.webapp
+package io.elephantchess.webapp.koin
 
-import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.servicelayer.clients.DigitalOceanSpacesClient
-import io.elephantchess.servicelayer.utils.ops.registerInjectables
-import io.elephantchess.webapp.rendering.*
+import io.elephantchess.webapp.rendering.WebFragmentResolver
+import io.elephantchess.webapp.rendering.WebTemplateRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import org.koin.core.module.Module
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.io.File
+import java.net.URI
 import java.util.jar.JarFile
 
 private val webAppLogger = KotlinLogging.logger {}
 
-fun webAppKoinModule(eagerAllowed: Boolean): Module =
-    module {
-        includes(htmlRendering())
-        single(named("wsJsonMapper")) {
-            JsonMapper
-                .builder()
-                .addModule(KotlinModule.Builder().build())
-                .configure(INDENT_OUTPUT, false)
-                .build()
-        }
-
-        // page renderers annotated with @KoinSingleton
-        registerInjectables(eagerAllowed, "io.elephantchess.webapp")
-    }
-
-private fun htmlRendering() =
+internal fun htmlRenderingModule() =
     module {
         single {
             val fragmentTags = listFragmentTags()
@@ -92,7 +73,7 @@ private fun listFragmentTags(): List<String> {
         "jar" -> {
             // JAR or containerized
             val jarPath = resources.path.substringBefore("!")
-            val jarFile = File(java.net.URI(jarPath))
+            val jarFile = File(URI(jarPath))
             JarFile(jarFile).use { jar ->
                 jar.entries().asSequence()
                     .filter { it.name.startsWith("web_fragments/") && it.name.endsWith(".html") }
