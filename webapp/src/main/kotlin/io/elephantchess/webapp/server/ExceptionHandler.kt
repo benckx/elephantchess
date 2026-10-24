@@ -5,6 +5,7 @@ import io.elephantchess.servicelayer.exceptions.HttpErrorException
 import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.utils.ResourceUtils
+import io.elephantchess.webapp.ops.respondErrorPage
 import io.elephantchess.webapp.ops.respondInternalErrorPage
 import io.elephantchess.webapp.ops.respondNotFoundPage
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -172,8 +173,8 @@ fun Application.exceptionHandler() {
             exceptionService.saveException(e, e.code)
             val status = HttpStatusCode.fromValue(e.code)
             val acceptsHtml = call.request.acceptItems().any { it.value == Html.toString() }
-            if (acceptsHtml && status == HttpStatusCode.NotFound) {
-                call.respondNotFoundPage()
+            if (acceptsHtml) {
+                call.respondErrorPage(status)
             } else {
                 call.respond(status, ValidationErrorsResponse(e))
             }

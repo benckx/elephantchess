@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 
 private val simplePageRenderer by koin<SimplePageRenderer>()
+private val supportedErrorPages = listOf(401, 403, 404, 429, 500)
 
 suspend fun SimplePageRenderer.renderTemplateHtml(templateName: String, specificTagResolvers: List<TagResolver> = listOf()): TextContent =
     TextContent(
@@ -45,9 +46,16 @@ suspend fun ApplicationCall.respondInternalErrorPage() {
 }
 
 suspend fun ApplicationCall.respondErrorPage(statusCode: HttpStatusCode) {
+    val actualCode =
+        if (statusCode.value !in supportedErrorPages) {
+            500
+        } else {
+            statusCode.value
+        }
+
     respondText(
-        text = simplePageRenderer.renderTemplate("errors/${statusCode.value}"),
+        text = simplePageRenderer.renderTemplate("errors/$actualCode"),
         contentType = ContentType.Text.Html,
-        status = statusCode,
+        status = HttpStatusCode.fromValue(actualCode),
     )
 }
