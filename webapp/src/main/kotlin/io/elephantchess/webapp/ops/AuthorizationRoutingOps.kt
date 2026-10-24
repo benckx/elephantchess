@@ -11,7 +11,6 @@ import io.elephantchess.servicelayer.model.TokenVerificationResult
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
