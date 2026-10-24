@@ -26,9 +26,9 @@ import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
-import java.util.concurrent.CancellationException as JavaCancellationException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.*
+import java.util.concurrent.CancellationException as JavaCancellationException
 
 class ExceptionHandlerTest {
 

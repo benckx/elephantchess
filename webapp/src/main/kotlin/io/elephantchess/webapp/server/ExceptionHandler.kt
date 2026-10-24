@@ -21,8 +21,8 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
-import java.util.concurrent.CancellationException as JavaCancellationException
 import kotlin.coroutines.cancellation.CancellationException
+import java.util.concurrent.CancellationException as JavaCancellationException
 
 private const val MUTED_URI_PATTERNS_RESOURCE = "/config/muted-uri-patterns.txt"
 
