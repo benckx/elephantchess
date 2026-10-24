@@ -144,19 +144,19 @@
     }
 
     .pvp-leaderboard .rank-cell {
-        
+        width: 15%;
     }
 
     .pvp-leaderboard .user-cell {
-
+        width: 40%;
     }
 
     .pvp-leaderboard .rating-cell {
-
+        width: 15%;
     }
 
     .pvp-leaderboard .last-played-cell {
-
+        width: 30%;
     }
 
     .global-stats th,
