@@ -2,6 +2,7 @@ package io.elephantchess.webapp.routing.html
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
+import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.KofiService
@@ -13,7 +14,7 @@ import io.elephantchess.webapp.rendering.*
 import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
-import io.ktor.http.ContentType.Text.Html
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.content.*
@@ -160,7 +161,7 @@ private fun Routing.simpleMappings() {
     simplePublicPageMapping.forEach { (path, templateName) ->
         logger.info { "[public] mapping html file $templateName to path $path" }
         get(path) {
-            call.respond(simplePageRenderer.renderTemplateHtml(templateName))
+            simplePageRenderer.renderTemplateHtmlToCall(templateName)
         }
     }
     publicPageRedirection.forEach { (fromPath, toPath) ->
@@ -173,7 +174,7 @@ private fun Routing.simpleMappings() {
         logger.info { "[identification] mapping html file $templateName to path $path" }
         get(path) {
             requireIdentification { _ ->
-                simplePageRenderer.renderTemplateHtml(templateName)
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
     }
@@ -181,7 +182,7 @@ private fun Routing.simpleMappings() {
         logger.info { "[authentication] mapping html file $templateName to path $path" }
         get(path) {
             requireAuthentication { _ ->
-                simplePageRenderer.renderTemplateHtml(templateName)
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
     }
@@ -189,7 +190,7 @@ private fun Routing.simpleMappings() {
         logger.info { "[admin] mapping html file $templateName to path $path" }
         get(path) {
             requireAdminRole {
-                simplePageRenderer.renderTemplateHtml(templateName)
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
     }
@@ -241,7 +242,7 @@ private fun Route.userSettingsPage() {
 
     get("/user/settings") {
         requireAuthentication { token ->
-            TextContent(renderer.renderUserSettingsPage(token.userId), Html)
+            TextContent(renderer.renderUserSettingsPage(token.userId), ContentType.Text.Html)
         }
     }
 }
@@ -276,3 +277,12 @@ private fun Route.modals() {
         }
     }
 }
+
+private suspend fun SimplePageRenderer.renderTemplateHtmlToCall(
+    templateName: String,
+    specificTagResolvers: List<TagResolver> = listOf(),
+): TextContent =
+    TextContent(
+        renderTemplate(templateName, specificTagResolvers),
+        ContentType.Text.Html,
+    )
