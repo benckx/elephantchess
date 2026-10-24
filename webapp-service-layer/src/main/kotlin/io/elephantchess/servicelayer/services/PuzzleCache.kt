@@ -28,6 +28,10 @@ class PuzzleCache(
             entries =
                 puzzleDaoService
                     .fetchAll()
+                    .filterNot { puzzleRecord ->
+                        // TODO: quick and dirty fix, new puzzles don't work
+                        puzzleRecord.dataset == "mate_puzzle_candidates.csv"
+                    }
                     .map { puzzleRecord ->
                         val attempts = attemptsMap[puzzleRecord.id] ?: 0
                         val categories = categoriesMap[puzzleRecord.id] ?: emptyList()
