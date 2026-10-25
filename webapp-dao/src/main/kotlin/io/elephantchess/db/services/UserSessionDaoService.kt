@@ -209,8 +209,8 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             .awaitSingleRecord()
 
         return SharedSessionSimilarityRecord(
-            sharedRemoteAddressCount = record?.get(sharedRemoteAddressCountField)?.toInt() ?: 0,
-            sharedFingerprintCount = record?.get(sharedFingerprintCountField)?.toInt() ?: 0,
+            sharedRemoteAddressCount = record?.get(sharedRemoteAddressCountField) ?: 0,
+            sharedFingerprintCount = record?.get(sharedFingerprintCountField) ?: 0,
         )
     }
 
