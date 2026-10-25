@@ -94,8 +94,8 @@ class AdminFeedService(
                 variantsToInclude = listOf(XIANGQI),
             )
             .let { records ->
-                val detectedGameIds = sockPuppetReportDaoService.findDetectedGameIds(records.map { record -> record.id })
-                records.map { record -> mapGameToDto(record, detectedGameIds.contains(record.id)) }
+                val detectionCreationTimes = sockPuppetReportDaoService.findDetectionCreationTimes(records.map { record -> record.id })
+                records.map { record -> mapGameToDto(record, detectionCreationTimes[record.id]?.toEpochMilliseconds()) }
             }
             .let { entries -> ListGamesResponse(entries) }
 
@@ -107,8 +107,8 @@ class AdminFeedService(
                 variantsToInclude = nonXiangqiVariants,
             )
             .let { records ->
-                val detectedGameIds = sockPuppetReportDaoService.findDetectedGameIds(records.map { record -> record.id })
-                records.map { record -> mapGameToDto(record, detectedGameIds.contains(record.id)) }
+                val detectionCreationTimes = sockPuppetReportDaoService.findDetectionCreationTimes(records.map { record -> record.id })
+                records.map { record -> mapGameToDto(record, detectionCreationTimes[record.id]?.toEpochMilliseconds()) }
             }
             .let { entries -> ListGamesResponse(entries) }
 
@@ -168,9 +168,8 @@ class AdminFeedService(
         return ListSockPuppetReportResponse(
             summary = ListSockPuppetReportResponse.Summary(
                 totalDetections = summary.totalDetections,
+                totalUsersInvolved = summary.totalUsersInvolved,
                 distinctUsersInvolved = summary.distinctUsersInvolved,
-                distinctInviters = summary.distinctInviters,
-                distinctInvitees = summary.distinctInvitees,
                 reportedGamesLast30Days = summary.reportedGamesLast30Days,
                 totalPvpGamesLast30Days = summary.totalPvpGamesLast30Days,
                 reportedGamesPercentageLast30Days = summary.reportedGamesRatioLast30Days * 100.0,
@@ -179,7 +178,7 @@ class AdminFeedService(
         )
     }
 
-    private suspend fun mapGameToDto(record: Game, hasSockPuppetDetection: Boolean): ListGamesResponse.Entry =
+    private suspend fun mapGameToDto(record: Game, sockPuppetReportDate: Long?): ListGamesResponse.Entry =
         ListGamesResponse.Entry(
             gameId = record.id,
             inviterUserId = record.inviter,
@@ -198,7 +197,8 @@ class AdminFeedService(
             created = record.created.toEpochMilliseconds(),
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
             sourceType = record.joinSource,
-            hasSockPuppetDetection = hasSockPuppetDetection,
+            hasSockPuppetDetection = sockPuppetReportDate != null,
+            sockPuppetReportDate = sockPuppetReportDate,
             variant = record.variant,
         )
 

@@ -21,9 +21,8 @@ class AdminSockPuppetReportPage extends BasePage {
 
     #table = document.getElementById('sock-puppet-report-table');
     #summaryTotal = document.getElementById('sock-puppet-summary-total');
+    #summaryTotalUsers = document.getElementById('sock-puppet-summary-total-users');
     #summaryUsers = document.getElementById('sock-puppet-summary-users');
-    #summaryInviters = document.getElementById('sock-puppet-summary-inviters');
-    #summaryInvitees = document.getElementById('sock-puppet-summary-invitees');
     #summaryLast30Days = document.getElementById('sock-puppet-summary-last-30-days');
 
     constructor() {
@@ -31,9 +30,8 @@ class AdminSockPuppetReportPage extends BasePage {
 
         getAndHandle(`${ADMIN_URL_PREFIX}/sock-puppet-report`, json => {
             this.#summaryTotal.innerText = json.summary.totalDetections.toString();
+            this.#summaryTotalUsers.innerText = json.summary.totalUsersInvolved.toString();
             this.#summaryUsers.innerText = json.summary.distinctUsersInvolved.toString();
-            this.#summaryInviters.innerText = json.summary.distinctInviters.toString();
-            this.#summaryInvitees.innerText = json.summary.distinctInvitees.toString();
             this.#summaryLast30Days.innerText = `${json.summary.reportedGamesLast30Days} / ${json.summary.totalPvpGamesLast30Days} (${json.summary.reportedGamesPercentageLast30Days.toFixed(2)}%)`;
 
             const tbody = emptyTable(this.#table);

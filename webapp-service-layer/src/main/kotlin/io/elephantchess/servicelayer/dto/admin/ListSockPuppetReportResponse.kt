@@ -3,9 +3,8 @@ package io.elephantchess.servicelayer.dto.admin
 data class ListSockPuppetReportResponse(val summary: Summary, val entries: List<Entry>) {
     data class Summary(
         val totalDetections: Int,
+        val totalUsersInvolved: Int,
         val distinctUsersInvolved: Int,
-        val distinctInviters: Int,
-        val distinctInvitees: Int,
         val reportedGamesLast30Days: Int,
         val totalPvpGamesLast30Days: Int,
         val reportedGamesPercentageLast30Days: Double,

@@ -9,9 +9,9 @@ import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 
 @KoinSingleton
 class SockPuppetReportDaoService(private val dslContext: DSLContext) {
@@ -64,6 +64,28 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             .toSet()
     }
 
+    suspend fun findDetectionCreationTimes(gameIds: Collection<String>): Map<String, Instant> {
+        if (gameIds.isEmpty()) {
+            return emptyMap()
+        }
+
+        return dslContext
+            .select(GAME_SOCK_PUPPET_DETECTION.GAME_ID, GAME_SOCK_PUPPET_DETECTION.CREATED_AT)
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .where(GAME_SOCK_PUPPET_DETECTION.GAME_ID.`in`(gameIds))
+            .awaitRecords()
+            .mapNotNull { record ->
+                val gameId = record.get(GAME_SOCK_PUPPET_DETECTION.GAME_ID)
+                val createdAt = record.get(GAME_SOCK_PUPPET_DETECTION.CREATED_AT)
+                if (gameId != null && createdAt != null) {
+                    gameId to createdAt
+                } else {
+                    null
+                }
+            }
+            .toMap()
+    }
+
     suspend fun listLatestDetections(limit: Int): List<SockPuppetDetectionEntryRecord> =
         dslContext
             .select(
@@ -99,17 +121,7 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             .from(GAME_SOCK_PUPPET_DETECTION)
             .awaitSingleValue() ?: 0
 
-        val distinctInviters = dslContext
-            .select(DSL.countDistinct(GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID))
-            .from(GAME_SOCK_PUPPET_DETECTION)
-            .awaitSingleValue() ?: 0
-
-        val distinctInvitees = dslContext
-            .select(DSL.countDistinct(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID))
-            .from(GAME_SOCK_PUPPET_DETECTION)
-            .awaitSingleValue() ?: 0
-
-        val allUsers = dslContext
+        val allUsersDistinct = dslContext
             .select(GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID.`as`("user_id"))
             .from(GAME_SOCK_PUPPET_DETECTION)
             .union(
@@ -117,9 +129,24 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
                     .select(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID.`as`("user_id"))
                     .from(GAME_SOCK_PUPPET_DETECTION),
             )
-            .asTable("all_users")
+            .asTable("all_users_distinct")
 
         val distinctUsersInvolved = dslContext
+            .selectCount()
+            .from(allUsersDistinct)
+            .awaitSingleValue() ?: 0
+
+        val allUsers = dslContext
+            .select(GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID.`as`("user_id"))
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .unionAll(
+                dslContext
+                    .select(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID.`as`("user_id"))
+                    .from(GAME_SOCK_PUPPET_DETECTION),
+            )
+            .asTable("all_users")
+
+        val totalUsersInvolved = dslContext
             .selectCount()
             .from(allUsers)
             .awaitSingleValue() ?: 0
@@ -147,9 +174,8 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
 
         return SockPuppetDetectionSummaryRecord(
             totalDetections = totalDetections,
+            totalUsersInvolved = totalUsersInvolved,
             distinctUsersInvolved = distinctUsersInvolved,
-            distinctInviters = distinctInviters,
-            distinctInvitees = distinctInvitees,
             reportedGamesLast30Days = reportedGamesLast30Days,
             totalPvpGamesLast30Days = totalPvpGamesLast30Days,
             reportedGamesRatioLast30Days = reportedGamesRatioLast30Days,
