@@ -46,12 +46,6 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
 
-    data class SockPuppetScanCandidate(
-        val gameId: String,
-        val inviterUserId: String,
-        val inviteeUserId: String,
-    )
-
     suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> =
         dslContext
             .select(GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
@@ -197,7 +191,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return games
     }
 
-    suspend fun listGamesPendingSockPuppetScan(limit: Int): List<SockPuppetScanCandidate> =
+    suspend fun listGamesPendingSockPuppetScan(limit: Int): List<SockPuppetScanCandidateRecord> =
         dslContext
             .select(
                 GAME.ID,
@@ -211,7 +205,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .limit(limit)
             .awaitRecords()
             .map { record ->
-                SockPuppetScanCandidate(
+                SockPuppetScanCandidateRecord(
                     gameId = record.get(GAME.ID),
                     inviterUserId = record.get(GAME.INVITER),
                     inviteeUserId = record.get(GAME.INVITEE),
