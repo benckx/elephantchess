@@ -271,16 +271,21 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 )
             }
 
-    suspend fun fetchUserActivitySummary(userId: String): UserActivitySummaryRecord {
+    suspend fun fetchUserActivitySummary(userId: String, minMoveIndex: Int? = null): UserActivitySummaryRecord {
         val firstPlayed = DSL.min(GAME.LAST_UPDATED).`as`("first_played")
         val lastPlayed = DSL.max(GAME.LAST_UPDATED).`as`("last_played")
         val totalPlayed = DSL.count().`as`("total_played")
 
-        val record = dslContext
+        var query = dslContext
             .select(firstPlayed, lastPlayed, totalPlayed)
             .from(GAME)
             .where(isPlaying(userId))
-            .awaitSingleRecord()
+
+        if (minMoveIndex != null) {
+            query = query.and(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+        }
+
+        val record = query.awaitSingleRecord()
 
         return UserActivitySummaryRecord(
             firstPlayed = record?.get(firstPlayed),

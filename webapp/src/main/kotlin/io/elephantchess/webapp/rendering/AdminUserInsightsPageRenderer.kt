@@ -79,7 +79,9 @@ class AdminUserInsightsPageRenderer(
                 }
                 activityRow("puzzles", data.puzzle)
                 activityRow("pvp", data.pvp)
+                activityRow("pvp > 3", data.pvpOver3)
                 activityRow("pvb", data.pvb)
+                activityRow("pvb > 3", data.pvbOver3)
             }
         }
 

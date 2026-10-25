@@ -9,6 +9,7 @@ import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsData
 import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
@@ -28,9 +29,11 @@ class AdminUserInsightsService(
 
         val puzzle = puzzleResultDaoService.fetchUserActivitySummary(user.id)
         val pvp = playerVsPlayerGameDaoService.fetchUserActivitySummary(user.id)
+        val pvpOver3 = playerVsPlayerGameDaoService.fetchUserActivitySummary(user.id, MIN_MOVE_INDEX)
         val pvb = playerVsBotGameDaoService.fetchUserActivitySummary(user.id)
-        val latestPageViews = archivedPageViewDaoService.listPageViewsForUser(user.id, limit = 10, offset = 0)
-        val latestSessions = userSessionDaoService.listAuthenticatedSessionsForUser(user.id, limit = 3, offset = 0)
+        val pvbOver3 = playerVsBotGameDaoService.fetchUserActivitySummary(user.id, MIN_MOVE_INDEX)
+        val latestPageViews = archivedPageViewDaoService.listPageViewsForUser(user.id, limit = 20, offset = 0)
+        val latestSessions = userSessionDaoService.listAuthenticatedSessionsForUser(user.id, limit = 5, offset = 0)
 
         return AdminUserInsightsData(
             userId = user.id,
@@ -42,11 +45,13 @@ class AdminUserInsightsService(
             lastOnlineTime = user.lastOnline?.toEpochMilliseconds(),
             lastProfileUpdateTime = user.lastProfileUpdate?.toEpochMilliseconds(),
             emailConfirmedAtTime = user.emailConfirmedAt?.toEpochMilliseconds(),
-            hasRoleAdmin = user.hasRoleAdmin,
-            hasRoleEditor = user.hasRoleEditor,
+            hasRoleAdmin = user.hasRoleAdmin ?: false,
+            hasRoleEditor = user.hasRoleEditor ?: false,
             puzzle = puzzle.toDto(),
             pvp = pvp.toDto(),
+            pvpOver3 = pvpOver3.toDto(),
             pvb = pvb.toDto(),
+            pvbOver3 = pvbOver3.toDto(),
             latestPageViews = latestPageViews.map { record ->
                 AdminUserInsightsData.PageViewEntry(
                     url = record.url,

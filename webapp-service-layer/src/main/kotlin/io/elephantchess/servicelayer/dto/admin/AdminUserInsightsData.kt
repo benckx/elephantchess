@@ -16,7 +16,9 @@ data class AdminUserInsightsData(
     val hasRoleEditor: Boolean,
     val puzzle: ActivitySummary,
     val pvp: ActivitySummary,
+    val pvpOver3: ActivitySummary,
     val pvb: ActivitySummary,
+    val pvbOver3: ActivitySummary,
     val latestPageViews: List<PageViewEntry>,
     val latestSessions: List<SessionEntry>,
 ) {
