@@ -1,6 +1,7 @@
 package io.elephantchess.db.services
 
 import io.elephantchess.db.utils.awaitExecute
+import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
