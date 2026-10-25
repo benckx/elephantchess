@@ -20,7 +20,7 @@ class DetectSockPuppetGamesBatch(
         element.gameId
 
     override suspend fun fetchAll(): List<SockPuppetScanCandidateRecord> =
-        pvpGameDaoService.listGamesPendingSockPuppetScan(SCAN_LIMIT_PER_RUN)
+        pvpGameDaoService.listGamesPendingSockPuppetScan()
 
     override suspend fun process(element: SockPuppetScanCandidateRecord) {
         val similarity = userSessionDaoService.countSharedSessionSimilarity(
@@ -39,9 +39,5 @@ class DetectSockPuppetGamesBatch(
         }
 
         pvpGameDaoService.markGamesAsSockPuppetScanned(listOf(element.gameId))
-    }
-
-    private companion object {
-        const val SCAN_LIMIT_PER_RUN = 500
     }
 }

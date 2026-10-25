@@ -10,6 +10,7 @@ import io.elephantchess.db.services.ContentSectionVoteDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
+import io.elephantchess.db.services.SockPuppetReportDaoService
 import io.elephantchess.db.utils.toUtcInstant
 import io.elephantchess.db.utils.winnerUserId
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
@@ -30,6 +31,7 @@ class AdminFeedService(
     private val analysisDaoService: AnalysisDaoService,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
+    private val sockPuppetReportDaoService: SockPuppetReportDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
     private val puzzleCache: PuzzleCache,
@@ -90,7 +92,10 @@ class AdminFeedService(
                 statusToExcludes = listOf(AUTO_CANCELED),
                 variantsToInclude = listOf(XIANGQI),
             )
-            .map { record -> mapGameToDto(record) }
+            .let { records ->
+                val detectedGameIds = sockPuppetReportDaoService.findDetectedGameIds(records.map { record -> record.id })
+                records.map { record -> mapGameToDto(record, detectedGameIds.contains(record.id)) }
+            }
             .let { entries -> ListGamesResponse(entries) }
 
     suspend fun listLatestVariantPvpGames(): ListGamesResponse =
@@ -100,7 +105,10 @@ class AdminFeedService(
                 statusToExcludes = listOf(AUTO_CANCELED),
                 variantsToInclude = nonXiangqiVariants,
             )
-            .map { record -> mapGameToDto(record) }
+            .let { records ->
+                val detectedGameIds = sockPuppetReportDaoService.findDetectedGameIds(records.map { record -> record.id })
+                records.map { record -> mapGameToDto(record, detectedGameIds.contains(record.id)) }
+            }
             .let { entries -> ListGamesResponse(entries) }
 
     suspend fun listLatestPvbGames(): ListBotGamesResponse =
@@ -140,7 +148,7 @@ class AdminFeedService(
         return ListContentSectionVoteFeedbackResponse(entries)
     }
 
-    private suspend fun mapGameToDto(record: Game): ListGamesResponse.Entry =
+    private suspend fun mapGameToDto(record: Game, hasSockPuppetDetection: Boolean): ListGamesResponse.Entry =
         ListGamesResponse.Entry(
             gameId = record.id,
             inviterUserId = record.inviter,
@@ -159,6 +167,7 @@ class AdminFeedService(
             created = record.created.toEpochMilliseconds(),
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
             sourceType = record.joinSource,
+            hasSockPuppetDetection = hasSockPuppetDetection,
             variant = record.variant,
         )
 

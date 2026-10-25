@@ -46,6 +46,20 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             .awaitExecute()
     }
 
+    suspend fun findDetectedGameIds(gameIds: Collection<String>): Set<String> {
+        if (gameIds.isEmpty()) {
+            return emptySet()
+        }
+
+        return dslContext
+            .select(GAME_SOCK_PUPPET_DETECTION_GAME_ID)
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .where(GAME_SOCK_PUPPET_DETECTION_GAME_ID.`in`(gameIds))
+            .awaitRecords()
+            .map { record -> record.get(GAME_SOCK_PUPPET_DETECTION_GAME_ID) }
+            .toSet()
+    }
+
     private companion object {
 
         val GAME_SOCK_PUPPET_DETECTION = DSL.table(DSL.name("game_sock_puppet_detection"))

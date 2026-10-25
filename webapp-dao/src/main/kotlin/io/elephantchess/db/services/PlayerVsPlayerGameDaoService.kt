@@ -192,7 +192,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return games
     }
 
-    suspend fun listGamesPendingSockPuppetScan(limit: Int): List<SockPuppetScanCandidateRecord> =
+    suspend fun listGamesPendingSockPuppetScan(): List<SockPuppetScanCandidateRecord> =
         dslContext
             .select(
                 GAME.ID,
@@ -204,7 +204,6 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .and(GAME.INVITEE.isNotNull)
             .and(GAME.CREATED.isWithin(USER_SESSION_TTL))
             .orderBy(GAME.LAST_UPDATED.asc())
-            .limit(limit)
             .awaitRecords()
             .map { record ->
                 SockPuppetScanCandidateRecord(

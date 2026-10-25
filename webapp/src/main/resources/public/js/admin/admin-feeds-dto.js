@@ -35,6 +35,7 @@ class GameAnalyticsDto {
     #created;
     #lastUpdated;
     #sourceType;
+    #hasSockPuppetDetection;
     #variant;
 
     constructor(json) {
@@ -54,6 +55,7 @@ class GameAnalyticsDto {
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
         this.#sourceType = json.sourceType;
+        this.#hasSockPuppetDetection = json.hasSockPuppetDetection;
         this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
@@ -182,6 +184,10 @@ class GameAnalyticsDto {
             default:
                 return '--';
         }
+    }
+
+    get hasSockPuppetDetection() {
+        return this.#hasSockPuppetDetection;
     }
 
     /**
