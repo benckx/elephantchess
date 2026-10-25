@@ -283,7 +283,7 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
 
         val USER_SESSION_TTL = 60.days
 
-        fun mapToRecord(userSession: UserSession): UserSessionRecord =
+        private fun mapToRecord(userSession: UserSession): UserSessionRecord =
             UserSessionRecord(
                 id = userSession.id,
                 userId = userSession.userId,

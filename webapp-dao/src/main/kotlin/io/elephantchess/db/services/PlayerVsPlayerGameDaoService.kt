@@ -14,6 +14,7 @@ import io.elephantchess.db.dao.codegen.tables.records.GameRecord
 import io.elephantchess.db.dao.codegen.tables.records.UserRecord
 import io.elephantchess.db.model.*
 import io.elephantchess.db.model.analytics.PvpJoinSourceRecord
+import io.elephantchess.db.services.UserSessionDaoService.Companion.USER_SESSION_TTL
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.*
@@ -201,7 +202,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .from(GAME)
             .where(DSL.coalesce(GAME_SCANNED, DSL.inline(false)).eq(false))
             .and(GAME.INVITEE.isNotNull)
-            .and(GAME.CREATED.isWithin(UserSessionDaoService.USER_SESSION_TTL))
+            .and(GAME.CREATED.isWithin(USER_SESSION_TTL))
             .orderBy(GAME.LAST_UPDATED.asc())
             .limit(limit)
             .awaitRecords()
