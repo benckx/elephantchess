@@ -1,7 +1,7 @@
 package io.elephantchess.servicelayer.dto.admin
 
-import io.elephantchess.model.UserType
 import io.elephantchess.model.GameType
+import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
 
 data class AdminUserInsightsData(
