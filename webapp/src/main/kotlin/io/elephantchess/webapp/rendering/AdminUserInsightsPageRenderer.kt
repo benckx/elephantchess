@@ -140,7 +140,7 @@ class AdminUserInsightsPageRenderer(
                         tr {
                             td {
                                 a(href = "/admin/user/${entry.userId.encodeURLPath()}") {
-                                    +"${entry.username} (${entry.userId})"
+                                    +formatRelatedUserDisplay(entry)
                                 }
                             }
                             td { +entry.sharedIpCount.toString() }
@@ -310,7 +310,7 @@ class AdminUserInsightsPageRenderer(
             td { +label }
             td { greyOutText(formatTimestampUtc(summary.firstPlayed)) }
             td { greyOutText(formatTimestampWithRelativeAge(summary.lastPlayed)) }
-            td { +summary.totalPlayed.toString() }
+            td { greyOutZeroIfNoActivity(summary) }
         }
     }
 
@@ -319,6 +319,14 @@ class AdminUserInsightsPageRenderer(
             span("na-value") { +value }
         } else {
             +value
+        }
+    }
+
+    private fun TD.greyOutZeroIfNoActivity(summary: AdminUserInsightsData.ActivitySummary) {
+        if (summary.totalPlayed == 0 && summary.firstPlayed == null && summary.lastPlayed == null) {
+            span("na-value") { +"0" }
+        } else {
+            +summary.totalPlayed.toString()
         }
     }
 
@@ -342,6 +350,13 @@ class AdminUserInsightsPageRenderer(
             "no"
         } else {
             "yes ($totalGames)"
+        }
+
+    private fun formatRelatedUserDisplay(entry: AdminUserInsightsData.RelatedUserEntry): String =
+        if (entry.username == entry.userId) {
+            "#${entry.userId}"
+        } else {
+            "${entry.username} (${entry.userId})"
         }
 
     private fun formatTimestampWithRelativeAge(epochMillis: Long?): String {
