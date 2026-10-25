@@ -11,7 +11,6 @@
 <body data-user-identifier="{{identifier}}">
 {{body_init}}
 <div class="main-container-text-extended-smaller">
-    {{admin_submenu}}
     <h1>Chat Messages - {{username}}</h1>
     <p><a href="/admin/user/{{encoded_identifier}}">back to insights</a></p>
     <hr/>
@@ -26,7 +25,7 @@
         <tbody>
         </tbody>
     </table>
-    <p id="admin-user-chat-messages-empty-message" class="hidden">No chat messages found.</p>
+    <p id="admin-user-chat-messages-empty-message" style="display: none;">No chat messages found.</p>
     <div id="is-loading-message" style="display: none;">Loading more chat messages...</div>
     <div id="end-of-pagination-message" style="display: none;">No more chat messages to show</div>
 </div>

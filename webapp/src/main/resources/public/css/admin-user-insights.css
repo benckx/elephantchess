@@ -80,6 +80,16 @@
     margin-top: 8px;
 }
 
+.admin-user-insights-center-link {
+    text-align: center;
+}
+
+.disabled-section-link {
+    color: #888;
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
 #admin-user-latest-chat-messages-table td:nth-child(2) {
     max-width: 600px;
     word-break: break-word;

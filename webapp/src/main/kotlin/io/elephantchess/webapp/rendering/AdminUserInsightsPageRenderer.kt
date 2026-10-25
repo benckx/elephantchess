@@ -27,15 +27,15 @@ class AdminUserInsightsPageRenderer(
             canonicalPath = "/admin/user/$encodedIdentifier",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("username", data.username),
-                SimpleValueTagResolver("page_views_page_url", pageViewsUrl),
-                SimpleValueTagResolver("chat_messages_page_url", chatMessagesUrl),
                 publicProfileLinkTagResolver(data),
                 userMetadataTableTagResolver(data),
                 gameActivityTableTagResolver(data),
                 relatedUsersTableTagResolver(data),
                 savedAnalysisTableTagResolver(data),
                 latestChatMessagesTagResolver(data),
+                fullChatMessagesLinkTagResolver(data, chatMessagesUrl),
                 latestPageViewsTagResolver(data),
+                fullPageViewsLinkTagResolver(data, pageViewsUrl),
                 latestSessionsTagResolver(data),
             ),
         )
@@ -227,6 +227,36 @@ class AdminUserInsightsPageRenderer(
                             td { +formatTimestampUtc(pageViewEntry.time) }
                         }
                     }
+                }
+            }
+        }
+
+    private fun fullChatMessagesLinkTagResolver(data: AdminUserInsightsData, href: String) =
+        KtorHtmlBuilderTagResolver("admin_user_chat_messages_full_link") {
+            if (data.latestChatMessages.isEmpty()) {
+                span("disabled-section-link") {
+                    id = "admin-user-chat-messages-full-link-disabled"
+                    +"view all chat messages"
+                }
+            } else {
+                a(href = href) {
+                    id = "admin-user-chat-messages-full-link"
+                    +"view all chat messages"
+                }
+            }
+        }
+
+    private fun fullPageViewsLinkTagResolver(data: AdminUserInsightsData, href: String) =
+        KtorHtmlBuilderTagResolver("admin_user_page_views_full_link") {
+            if (data.latestPageViews.isEmpty()) {
+                span("disabled-section-link") {
+                    id = "admin-user-page-views-full-link-disabled"
+                    +"view all page views"
+                }
+            } else {
+                a(href = href) {
+                    id = "admin-user-page-views-full-link"
+                    +"view all page views"
                 }
             }
         }

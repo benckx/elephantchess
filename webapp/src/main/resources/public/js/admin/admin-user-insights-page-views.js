@@ -51,7 +51,7 @@ class AdminUserInsightsPageViewsPage extends InfiniteScrollPage {
     }
 
     showNoItem(value) {
-        this.#emptyMessage.classList.toggle('hidden', !value);
+        this.#emptyMessage.style.display = value ? 'block' : 'none';
     }
 
     additionalParameters() {

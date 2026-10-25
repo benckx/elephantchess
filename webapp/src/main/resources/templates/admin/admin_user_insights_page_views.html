@@ -11,7 +11,6 @@
 <body data-user-identifier="{{identifier}}">
 {{body_init}}
 <div class="main-container-text-extended-smaller">
-    {{admin_submenu}}
     <h1>Page Views - {{username}}</h1>
     <p><a href="/admin/user/{{encoded_identifier}}">back to insights</a></p>
     <hr/>
@@ -25,7 +24,7 @@
         <tbody>
         </tbody>
     </table>
-    <p id="admin-user-page-views-empty-message" class="hidden">No page views found.</p>
+    <p id="admin-user-page-views-empty-message" style="display: none;">No page views found.</p>
     <div id="is-loading-message" style="display: none;">Loading more page views...</div>
     <div id="end-of-pagination-message" style="display: none;">No more page views to show</div>
 </div>
