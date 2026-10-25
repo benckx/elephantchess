@@ -7,7 +7,6 @@ import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsData
 import io.elephantchess.servicelayer.services.admin.AdminUserInsightsService
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.webapp.rendering.resolvers.formatTimestampUtc
 import io.ktor.http.*
 import kotlinx.html.*
 
