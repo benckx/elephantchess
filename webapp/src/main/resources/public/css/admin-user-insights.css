@@ -19,9 +19,70 @@
 
 #admin-user-metadata-table,
 #admin-user-game-activity-table,
+#admin-user-related-users-table,
+#admin-user-saved-analysis-table,
+#admin-user-latest-chat-messages-table,
 #admin-user-latest-page-views-table,
 #admin-user-latest-sessions-table {
     margin-left: 8px;
+}
+
+#admin-user-insights-search-box {
+    margin-bottom: 12px;
+}
+
+#insights-user-search {
+    height: 24px;
+    width: 100%;
+}
+
+#admin-user-insights-search-box .search-container,
+#admin-user-insights-search-box .suggestions-box {
+    width: 500px;
+}
+
+#admin-user-insights-search-box .search-label {
+    font-size: 17px;
+    font-weight: bold;
+    color: #2b2b2b;
+}
+
+#admin-user-insights-search-box .suggestions-box {
+    visibility: hidden;
+    position: absolute;
+    z-index: 100;
+}
+
+#admin-user-insights-search-box .suggestions-box-content {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    max-height: 350px;
+    z-index: 100;
+}
+
+#admin-user-insights-search-box .suggestion-element {
+    width: 480px;
+    text-align: left;
+    font-style: italic;
+    color: #2b2b2b;
+    background: #f4f3f3;
+    padding: 4px 6px;
+    font-size: 13px;
+    z-index: 110;
+}
+
+#admin-user-insights-search-box .suggestion-element:hover {
+    cursor: pointer;
+    background: chocolate;
+}
+
+#admin-user-insights-search-actions {
+    margin-top: 8px;
+}
+
+#admin-user-latest-chat-messages-table td:nth-child(2) {
+    max-width: 600px;
+    word-break: break-word;
 }
 
 #admin-user-latest-page-views-table td:first-child {

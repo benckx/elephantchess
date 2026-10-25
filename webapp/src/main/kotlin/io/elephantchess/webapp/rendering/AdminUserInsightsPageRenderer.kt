@@ -19,15 +19,21 @@ class AdminUserInsightsPageRenderer(
     suspend fun renderUserInsightsPage(identifier: String): String {
         val data = adminUserInsightsService.fetchUserInsights(identifier)
         val encodedIdentifier = identifier.encodeURLPath()
+        val pageViewsUrl = "/admin/user/$encodedIdentifier/page-views"
+        val chatMessagesUrl = "/admin/user/$encodedIdentifier/chat-messages"
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/admin/admin_user_insights.html",
             canonicalPath = "/admin/user/$encodedIdentifier",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("username", data.username),
+                SimpleValueTagResolver("page_views_page_url", pageViewsUrl),
+                SimpleValueTagResolver("chat_messages_page_url", chatMessagesUrl),
                 publicProfileLinkTagResolver(data),
                 userMetadataTableTagResolver(data),
                 gameActivityTableTagResolver(data),
+                relatedUsersTableTagResolver(data),
+                savedAnalysisTableTagResolver(data),
                 latestChatMessagesTagResolver(data),
                 latestPageViewsTagResolver(data),
                 latestSessionsTagResolver(data),
@@ -48,6 +54,34 @@ class AdminUserInsightsPageRenderer(
                     +"No public profile for guest users."
                 }
             }
+
+    suspend fun renderUserPageViewsPage(identifier: String): String {
+            val data = adminUserInsightsService.fetchUserInsights(identifier)
+            val encodedIdentifier = identifier.encodeURLPath()
+
+            return htmlRenderer.renderHtml(
+                templatePath = "/templates/admin/admin_user_insights_page_views.html",
+                canonicalPath = "/admin/user/$encodedIdentifier/page-views",
+                specificTagResolvers = listOf(
+                    SimpleValueTagResolver("username", data.username),
+                    SimpleValueTagResolver("identifier", identifier),
+                ),
+            )
+    }
+
+    suspend fun renderUserChatMessagesPage(identifier: String): String {
+            val data = adminUserInsightsService.fetchUserInsights(identifier)
+            val encodedIdentifier = identifier.encodeURLPath()
+
+            return htmlRenderer.renderHtml(
+                templatePath = "/templates/admin/admin_user_insights_chat_messages.html",
+                canonicalPath = "/admin/user/$encodedIdentifier/chat-messages",
+                specificTagResolvers = listOf(
+                    SimpleValueTagResolver("username", data.username),
+                    SimpleValueTagResolver("identifier", identifier),
+                ),
+            )
+    }
         }
 
     private fun userMetadataTableTagResolver(data: AdminUserInsightsData) =
@@ -84,6 +118,62 @@ class AdminUserInsightsPageRenderer(
                 activityRow("PvP > 3", data.pvpOver3)
                 activityRow("PvB", data.pvb)
                 activityRow("PvB > 3", data.pvbOver3)
+            }
+        }
+
+    private fun relatedUsersTableTagResolver(data: AdminUserInsightsData) =
+        KtorHtmlBuilderTagResolver("admin_user_related_users_table") {
+            if (data.relatedUsers.isEmpty()) {
+                p("empty-block-placeholder") { +"No related users detected from recent sessions." }
+            } else {
+                table("nice-table nice-table-striped") {
+                    id = "admin-user-related-users-table"
+                    tr {
+                        th { +"user" }
+                        th { +"shared IPs" }
+                        th { +"last seen" }
+                    }
+                    data.relatedUsers.forEach { entry ->
+                        tr {
+                            td {
+                                a(href = "/admin/user/${entry.userId.encodeURLPath()}") {
+                                    +"${entry.username} (${entry.userId})"
+                                }
+                            }
+                            td { +entry.sharedIpCount.toString() }
+                            td { +formatTimestampUtc(entry.lastSeen) }
+                        }
+                    }
+                }
+            }
+        }
+
+    private fun savedAnalysisTableTagResolver(data: AdminUserInsightsData) =
+        KtorHtmlBuilderTagResolver("admin_user_saved_analysis_table") {
+            if (data.savedAnalysis.isEmpty()) {
+                p("empty-block-placeholder") { +"No saved analysis found." }
+            } else {
+                table("nice-table nice-table-striped") {
+                    id = "admin-user-saved-analysis-table"
+                    tr {
+                        th { +"name" }
+                        th { +"game type" }
+                        th { +"created" }
+                        th { +"last updated" }
+                    }
+                    data.savedAnalysis.forEach { entry ->
+                        tr {
+                            td {
+                                a(href = "/analysis?id=${entry.analysisId.encodeURLQueryComponent()}") {
+                                    +entry.name
+                                }
+                            }
+                            td { +(entry.gameType?.name ?: "n/a") }
+                            td { +formatTimestampUtc(entry.created) }
+                            td { +formatTimestampWithRelativeAge(entry.lastUpdated) }
+                        }
+                    }
+                }
             }
         }
 

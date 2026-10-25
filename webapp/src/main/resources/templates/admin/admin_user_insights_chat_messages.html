@@ -1,0 +1,33 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Chat Messages - {{username}}</title>
+    <link rel="stylesheet" href="/css/common/nice-table.css"/>
+    <link rel="stylesheet" href="/css/admin-user-insights.css"/>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/admin/admin-user-insights-chat-messages.js"></script>
+</head>
+<body data-user-identifier="{{identifier}}">
+{{body_init}}
+<div class="main-container-text-extended-smaller">
+    {{admin_submenu}}
+    <h1>Chat Messages - {{username}}</h1>
+    <p><a href="/admin/user/{{identifier}}">back to insights</a></p>
+    <hr/>
+    <table id="admin-user-chat-messages-table" class="nice-table nice-table-striped">
+        <thead>
+        <tr>
+            <th>game id</th>
+            <th>message</th>
+            <th>time</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <p id="admin-user-chat-messages-empty-message" class="hidden">No chat messages found.</p>
+    <div id="is-loading-message" style="display: none;">Loading more chat messages...</div>
+    <div id="end-of-pagination-message" style="display: none;">No more chat messages to show</div>
+</div>
+</body>
+</html>
