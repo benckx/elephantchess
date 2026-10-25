@@ -10,6 +10,7 @@ import io.elephantchess.db.services.ContentSectionVoteDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
+import io.elephantchess.db.services.SockPuppetReportDaoService
 import io.elephantchess.db.utils.toUtcInstant
 import io.elephantchess.db.utils.winnerUserId
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
@@ -19,6 +20,7 @@ import io.elephantchess.servicelayer.dto.admin.ListContentSectionVoteFeedbackRes
 import io.elephantchess.servicelayer.dto.admin.ListGamesResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastPuzzleByLoggedInUsersResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastUserAnalysisResponse
+import io.elephantchess.servicelayer.dto.admin.ListSockPuppetReportResponse
 import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.utils.di.KoinSingleton
@@ -30,6 +32,7 @@ class AdminFeedService(
     private val analysisDaoService: AnalysisDaoService,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
+    private val sockPuppetReportDaoService: SockPuppetReportDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
     private val puzzleCache: PuzzleCache,
@@ -90,7 +93,10 @@ class AdminFeedService(
                 statusToExcludes = listOf(AUTO_CANCELED),
                 variantsToInclude = listOf(XIANGQI),
             )
-            .map { record -> mapGameToDto(record) }
+            .let { records ->
+                val detectionCreationTimes = sockPuppetReportDaoService.findDetectionCreationTimes(records.map { record -> record.id })
+                records.map { record -> mapGameToDto(record, detectionCreationTimes[record.id]?.toEpochMilliseconds()) }
+            }
             .let { entries -> ListGamesResponse(entries) }
 
     suspend fun listLatestVariantPvpGames(): ListGamesResponse =
@@ -100,7 +106,10 @@ class AdminFeedService(
                 statusToExcludes = listOf(AUTO_CANCELED),
                 variantsToInclude = nonXiangqiVariants,
             )
-            .map { record -> mapGameToDto(record) }
+            .let { records ->
+                val detectionCreationTimes = sockPuppetReportDaoService.findDetectionCreationTimes(records.map { record -> record.id })
+                records.map { record -> mapGameToDto(record, detectionCreationTimes[record.id]?.toEpochMilliseconds()) }
+            }
             .let { entries -> ListGamesResponse(entries) }
 
     suspend fun listLatestPvbGames(): ListBotGamesResponse =
@@ -140,7 +149,45 @@ class AdminFeedService(
         return ListContentSectionVoteFeedbackResponse(entries)
     }
 
-    private suspend fun mapGameToDto(record: Game): ListGamesResponse.Entry =
+    suspend fun listSockPuppetReport(limit: Int = 500): ListSockPuppetReportResponse {
+        val summary = sockPuppetReportDaoService.fetchDetectionsSummary()
+        val entries = sockPuppetReportDaoService.listLatestDetections(limit)
+            .map { record ->
+                ListSockPuppetReportResponse.Entry(
+                    gameId = record.gameId,
+                    inviterUserId = record.inviterUserId,
+                    inviterUsername = userCache.fetchUsernameOrDefault(record.inviterUserId),
+                    inviteeUserId = record.inviteeUserId,
+                    inviteeUsername = userCache.fetchUsernameOrDefault(record.inviteeUserId),
+                    sharedRemoteAddressCount = record.sharedRemoteAddressCount,
+                    sharedFingerprintCount = record.sharedFingerprintCount,
+                    sharedRemoteAddress = record.sharedRemoteAddress,
+                    sharedCountryCode = record.sharedCountryCode,
+                    sharedCountryName = record.sharedCountryName,
+                    sharedRegion = record.sharedRegion,
+                    sharedCity = record.sharedCity,
+                    sharedOperatingSystemName = record.sharedOperatingSystemName,
+                    sharedAgentName = record.sharedAgentName,
+                    sharedAgentClass = record.sharedAgentClass,
+                    sharedUserAgent = record.sharedUserAgent,
+                    gameCreated = record.gameCreated.toEpochMilliseconds(),
+                )
+            }
+
+        return ListSockPuppetReportResponse(
+            summary = ListSockPuppetReportResponse.Summary(
+                totalDetections = summary.totalDetections,
+                totalUsersInvolved = summary.totalUsersInvolved,
+                distinctUsersInvolved = summary.distinctUsersInvolved,
+                reportedGamesLast30Days = summary.reportedGamesLast30Days,
+                totalPvpGamesLast30Days = summary.totalPvpGamesLast30Days,
+                reportedGamesPercentageLast30Days = summary.reportedGamesRatioLast30Days * 100.0,
+            ),
+            entries = entries,
+        )
+    }
+
+    private suspend fun mapGameToDto(record: Game, sockPuppetReportDate: Long?): ListGamesResponse.Entry =
         ListGamesResponse.Entry(
             gameId = record.id,
             inviterUserId = record.inviter,
@@ -159,6 +206,8 @@ class AdminFeedService(
             created = record.created.toEpochMilliseconds(),
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
             sourceType = record.joinSource,
+            hasSockPuppetDetection = sockPuppetReportDate != null,
+            sockPuppetReportDate = sockPuppetReportDate,
             variant = record.variant,
         )
 

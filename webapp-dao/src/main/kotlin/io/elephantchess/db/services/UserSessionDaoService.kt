@@ -4,6 +4,7 @@ import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.UserSessionDao
 import io.elephantchess.db.dao.codegen.tables.pojos.UserSession
 import io.elephantchess.db.model.SharedRemoteAddressUserRecord
+import io.elephantchess.db.model.SharedSessionSimilarityRecord
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
@@ -15,7 +16,6 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Instant
 
 @KoinSingleton
 class UserSessionDaoService(private val dslContext: DSLContext, private val logger: KLogger) {
@@ -148,7 +148,11 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             }
     }
 
-    suspend fun listOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>, limit: Int): List<SharedRemoteAddressUserRecord> {
+    suspend fun listOtherUsersByRemoteAddresses(
+        userId: String,
+        remoteAddresses: Set<String>,
+        limit: Int,
+    ): List<SharedRemoteAddressUserRecord> {
         if (remoteAddresses.isEmpty()) {
             return emptyList()
         }
@@ -176,6 +180,69 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
                     lastSeen = record.get(lastSeenField),
                 )
             }
+    }
+
+    suspend fun countSharedSessionSimilarity(userId1: String, userId2: String): SharedSessionSimilarityRecord {
+        val session1 = USER_SESSION.`as`("session1")
+        val session2 = USER_SESSION.`as`("session2")
+
+        val sharedRemoteAddressCountField = DSL.countDistinct(session1.REMOTE_ADDRESS).`as`("sharedRemoteAddressCount")
+        val fingerprintField = DSL.concat(
+            session1.REMOTE_ADDRESS,
+            DSL.inline("|"),
+            DSL.coalesce(session1.OPERATING_SYSTEM_NAME, DSL.inline("")),
+            DSL.inline("|"),
+            DSL.coalesce(session1.AGENT_NAME, DSL.inline("")),
+        )
+        val sharedFingerprintCountField = DSL.countDistinct(fingerprintField).`as`("sharedFingerprintCount")
+
+        val record = dslContext
+            .select(sharedRemoteAddressCountField, sharedFingerprintCountField)
+            .from(session1)
+            .join(session2)
+            .on(session1.REMOTE_ADDRESS.eq(session2.REMOTE_ADDRESS))
+            .and(session1.OPERATING_SYSTEM_NAME.isNotDistinctFrom(session2.OPERATING_SYSTEM_NAME))
+            .and(session1.AGENT_NAME.isNotDistinctFrom(session2.AGENT_NAME))
+            .where(session1.USER_ID.eq(userId1))
+            .and(session2.USER_ID.eq(userId2))
+            .awaitSingleRecord()
+
+        val latestSharedSession = dslContext
+            .select(
+                session1.REMOTE_ADDRESS,
+                session1.COUNTRY_CODE,
+                session1.COUNTRY_NAME,
+                session1.REGION,
+                session1.CITY,
+                session1.OPERATING_SYSTEM_NAME,
+                session1.AGENT_NAME,
+                session1.AGENT_CLASS,
+                session1.USER_AGENT,
+            )
+            .from(session1)
+            .join(session2)
+            .on(session1.REMOTE_ADDRESS.eq(session2.REMOTE_ADDRESS))
+            .and(session1.OPERATING_SYSTEM_NAME.isNotDistinctFrom(session2.OPERATING_SYSTEM_NAME))
+            .and(session1.AGENT_NAME.isNotDistinctFrom(session2.AGENT_NAME))
+            .where(session1.USER_ID.eq(userId1))
+            .and(session2.USER_ID.eq(userId2))
+            .orderBy(session1.LAST_UPDATED.desc(), session2.LAST_UPDATED.desc())
+            .limit(1)
+            .awaitSingleRecord()
+
+        return SharedSessionSimilarityRecord(
+            sharedRemoteAddressCount = record?.get(sharedRemoteAddressCountField) ?: 0,
+            sharedFingerprintCount = record?.get(sharedFingerprintCountField) ?: 0,
+            sharedRemoteAddress = latestSharedSession?.get(session1.REMOTE_ADDRESS),
+            sharedCountryCode = latestSharedSession?.get(session1.COUNTRY_CODE),
+            sharedCountryName = latestSharedSession?.get(session1.COUNTRY_NAME),
+            sharedRegion = latestSharedSession?.get(session1.REGION),
+            sharedCity = latestSharedSession?.get(session1.CITY),
+            sharedOperatingSystemName = latestSharedSession?.get(session1.OPERATING_SYSTEM_NAME),
+            sharedAgentName = latestSharedSession?.get(session1.AGENT_NAME),
+            sharedAgentClass = latestSharedSession?.get(session1.AGENT_CLASS),
+            sharedUserAgent = latestSharedSession?.get(session1.USER_AGENT),
+        )
     }
 
     suspend fun deleteAuthenticatedSessionsForUser(userId: String, sessionIds: Collection<Int>): Int {
@@ -244,11 +311,11 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
         }
     }
 
-    private companion object {
+    companion object {
 
         val USER_SESSION_TTL = 60.days
 
-        fun mapToRecord(userSession: UserSession): UserSessionRecord =
+        private fun mapToRecord(userSession: UserSession): UserSessionRecord =
             UserSessionRecord(
                 id = userSession.id,
                 userId = userSession.userId,

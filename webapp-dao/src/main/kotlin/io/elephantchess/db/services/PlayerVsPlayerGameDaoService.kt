@@ -14,6 +14,7 @@ import io.elephantchess.db.dao.codegen.tables.records.GameRecord
 import io.elephantchess.db.dao.codegen.tables.records.UserRecord
 import io.elephantchess.db.model.*
 import io.elephantchess.db.model.analytics.PvpJoinSourceRecord
+import io.elephantchess.db.services.UserSessionDaoService.Companion.USER_SESSION_TTL
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
 import io.elephantchess.model.AnalysisStatus.*
@@ -191,6 +192,39 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return games
     }
 
+    suspend fun listGamesPendingSockPuppetScan(): List<SockPuppetScanCandidateRecord> =
+        dslContext
+            .select(
+                GAME.ID,
+                GAME.INVITER,
+                GAME.INVITEE,
+            )
+            .from(GAME)
+            .where(DSL.coalesce(GAME_SCANNED, DSL.inline(false)).eq(false))
+            .and(GAME.INVITEE.isNotNull)
+            .and(GAME.CREATED.isWithin(USER_SESSION_TTL))
+            .orderBy(GAME.LAST_UPDATED.asc())
+            .awaitRecords()
+            .map { record ->
+                SockPuppetScanCandidateRecord(
+                    gameId = record.get(GAME.ID),
+                    inviterUserId = record.get(GAME.INVITER),
+                    inviteeUserId = record.get(GAME.INVITEE),
+                )
+            }
+
+    suspend fun markGamesAsSockPuppetScanned(gameIds: Collection<String>): Int {
+        if (gameIds.isEmpty()) {
+            return 0
+        }
+
+        return dslContext
+            .update(GAME)
+            .set(GAME_SCANNED, true)
+            .where(GAME.ID.`in`(gameIds))
+            .awaitExecute()
+    }
+
     suspend fun listLastGames(limit: Int, statusToExcludes: List<GameEventType> = listOf(), variantsToInclude: List<Variant>): List<Game> {
         val conditions = mutableListOf<Condition>()
         if (statusToExcludes.isNotEmpty()) {
@@ -301,7 +335,10 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .where(
                 GAME.INVITER.eq(userId1)
                     .and(GAME.INVITEE.eq(userId2))
-                    .or(GAME.INVITER.eq(userId2).and(GAME.INVITEE.eq(userId1))),
+                    .or(
+                        GAME.INVITER.eq(userId2)
+                            .and(GAME.INVITEE.eq(userId1)),
+                    ),
             )
             .awaitSingleValue() ?: 0
 
@@ -1224,6 +1261,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
 
     private companion object {
+
+        val GAME_SCANNED = DSL.field(DSL.name("game", "scanned"), Boolean::class.java)
 
         fun findOpponentUserIdField(gamePlayersStatus: GamePlayersStatus, userId: String?): TableField<GameRecord, String>? {
             if (userId == null) {

@@ -90,6 +90,10 @@
     text-decoration: none;
 }
 
+.na-value {
+    color: #888;
+}
+
 #admin-user-latest-chat-messages-table td:nth-child(2) {
     max-width: 600px;
     word-break: break-word;

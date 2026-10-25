@@ -140,7 +140,7 @@ class AdminUserInsightsPageRenderer(
                         tr {
                             td {
                                 a(href = "/admin/user/${entry.userId.encodeURLPath()}") {
-                                    +"${entry.username} (${entry.userId})"
+                                    +formatRelatedUserDisplay(entry)
                                 }
                             }
                             td { +entry.sharedIpCount.toString() }
@@ -172,7 +172,7 @@ class AdminUserInsightsPageRenderer(
                                     +entry.name
                                 }
                             }
-                            td { +(entry.gameType?.name ?: "n/a") }
+                            td { greyOutText(entry.gameType?.name ?: "n/a") }
                             td { +formatTimestampUtc(entry.created) }
                             td { +formatTimestampWithRelativeAge(entry.lastUpdated) }
                         }
@@ -285,9 +285,9 @@ class AdminUserInsightsPageRenderer(
                         tr {
                             td { +entry.os }
                             td { +entry.agentName }
-                            td { +(entry.countryName ?: entry.countryCode ?: "n/a") }
-                            td { +(entry.region ?: "n/a") }
-                            td { +(entry.city ?: "n/a") }
+                            td { greyOutText(entry.countryName ?: entry.countryCode ?: "n/a") }
+                            td { greyOutText(entry.region ?: "n/a") }
+                            td { greyOutText(entry.city ?: "n/a") }
                             td { +entry.remoteAddress }
                             td { +formatSockPuppetSignal(entry.otherUsersOnRemoteAddress) }
                             td { +formatTimestampUtc(entry.created) }
@@ -301,16 +301,32 @@ class AdminUserInsightsPageRenderer(
     private fun TABLE.metadataRow(label: String, value: String) {
         tr {
             th { +label }
-            td { +value }
+            td { greyOutText(value) }
         }
     }
 
     private fun TABLE.activityRow(label: String, summary: AdminUserInsightsData.ActivitySummary) {
         tr {
             td { +label }
-            td { +formatTimestampUtc(summary.firstPlayed) }
-            td { +formatTimestampWithRelativeAge(summary.lastPlayed) }
-            td { +summary.totalPlayed.toString() }
+            td { greyOutText(formatTimestampUtc(summary.firstPlayed)) }
+            td { greyOutText(formatTimestampWithRelativeAge(summary.lastPlayed)) }
+            td { greyOutZeroIfNoActivity(summary) }
+        }
+    }
+
+    private fun TD.greyOutText(value: String) {
+        if (value == "n/a") {
+            span("na-value") { +value }
+        } else {
+            +value
+        }
+    }
+
+    private fun TD.greyOutZeroIfNoActivity(summary: AdminUserInsightsData.ActivitySummary) {
+        if (summary.totalPlayed == 0 && summary.firstPlayed == null && summary.lastPlayed == null) {
+            span("na-value") { +"0" }
+        } else {
+            +summary.totalPlayed.toString()
         }
     }
 
@@ -334,6 +350,13 @@ class AdminUserInsightsPageRenderer(
             "no"
         } else {
             "yes ($totalGames)"
+        }
+
+    private fun formatRelatedUserDisplay(entry: AdminUserInsightsData.RelatedUserEntry): String =
+        if (entry.username == entry.userId) {
+            "#${entry.userId}"
+        } else {
+            "${entry.username} (${entry.userId})"
         }
 
     private fun formatTimestampWithRelativeAge(epochMillis: Long?): String {

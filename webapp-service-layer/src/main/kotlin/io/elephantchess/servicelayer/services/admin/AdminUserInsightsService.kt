@@ -40,7 +40,7 @@ class AdminUserInsightsService(
         val pvb = playerVsBotGameDaoService.fetchUserActivitySummary(user.id)
         val pvbOver3 = playerVsBotGameDaoService.fetchUserActivitySummary(user.id, MIN_MOVE_INDEX)
         val emailValidityStatus = user.email?.let { email -> mailService.getEmailValidityDetails(email) }
-        val latestChatMessages = chatMessageDaoService.listLastMessagesByAuthor(user.id, limit = 10)
+        val latestChatMessages = chatMessageDaoService.listMessagesByAuthor(user.id, limit = 10, offset = null)
         val latestPageViews = archivedPageViewDaoService.listPageViewsForUser(user.id, limit = 10, offset = 0)
         val latestSessions = userSessionDaoService.listAuthenticatedSessionsForUser(user.id, limit = 5, offset = 0)
         val relatedUsers = userSessionDaoService.listOtherUsersByRemoteAddresses(

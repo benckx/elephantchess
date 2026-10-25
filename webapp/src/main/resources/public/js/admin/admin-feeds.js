@@ -72,6 +72,12 @@ class AdminFeedsPage extends BasePage {
                 const gameIdCell = row.insertCell();
                 gameIdCell.append(entry.buildGameAnchor());
 
+                const sockPuppetCell = row.insertCell();
+                sockPuppetCell.innerText = entry.hasSockPuppetDetection ? '[v]' : '[ ]';
+
+                const sockPuppetReportDateCell = row.insertCell();
+                sockPuppetReportDateCell.innerText = entry.formattedSockPuppetReportDate;
+
                 const winnerSpan = document.createElement('span');
                 winnerSpan.innerHTML = HTML_WHITE_SPACE + '[v]';
 
