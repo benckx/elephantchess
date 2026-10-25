@@ -245,7 +245,10 @@ private fun Route.userSettingsPage() {
 
     get("/user/settings") {
         requireAuthentication { token ->
-            TextContent(renderer.renderUserSettingsPage(token.userId), ContentType.Text.Html)
+            TextContent(
+                text = renderer.renderUserSettingsPage(token.userId),
+                contentType = ContentType.Text.Html,
+            )
         }
     }
 }
