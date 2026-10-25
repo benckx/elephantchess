@@ -10,6 +10,7 @@ import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsData
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
+import io.elephantchess.servicelayer.services.MailService
 import io.elephantchess.utils.di.KoinSingleton
 
 @KoinSingleton
@@ -20,6 +21,7 @@ class AdminUserInsightsService(
     private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
     private val archivedPageViewDaoService: ArchivedPageViewDaoService,
     private val userSessionDaoService: UserSessionDaoService,
+    private val mailService: MailService,
 ) {
 
     suspend fun fetchUserInsights(identifier: String): AdminUserInsightsData {
@@ -32,6 +34,7 @@ class AdminUserInsightsService(
         val pvpOver3 = playerVsPlayerGameDaoService.fetchUserActivitySummary(user.id, MIN_MOVE_INDEX)
         val pvb = playerVsBotGameDaoService.fetchUserActivitySummary(user.id)
         val pvbOver3 = playerVsBotGameDaoService.fetchUserActivitySummary(user.id, MIN_MOVE_INDEX)
+        val emailValidityStatus = user.email?.let { email -> mailService.getEmailValidityDetails(email) }
         val latestPageViews = archivedPageViewDaoService.listPageViewsForUser(user.id, limit = 20, offset = 0)
         val latestSessions = userSessionDaoService.listAuthenticatedSessionsForUser(user.id, limit = 5, offset = 0)
 
@@ -45,6 +48,7 @@ class AdminUserInsightsService(
             lastOnlineTime = user.lastOnline?.toEpochMilliseconds(),
             lastProfileUpdateTime = user.lastProfileUpdate?.toEpochMilliseconds(),
             emailConfirmedAtTime = user.emailConfirmedAt?.toEpochMilliseconds(),
+            emailValidityStatus = emailValidityStatus,
             hasRoleAdmin = user.hasRoleAdmin ?: false,
             hasRoleEditor = user.hasRoleEditor ?: false,
             puzzle = puzzle.toDto(),

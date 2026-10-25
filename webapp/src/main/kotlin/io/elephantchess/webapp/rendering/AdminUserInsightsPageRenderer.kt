@@ -62,6 +62,7 @@ class AdminUserInsightsPageRenderer(
                 metadataRow("last online", formatTimestampUtc(data.lastOnlineTime))
                 metadataRow("last profile update", formatTimestampUtc(data.lastProfileUpdateTime))
                 metadataRow("email confirmed", formatTimestampUtc(data.emailConfirmedAtTime))
+                metadataRow("email validity", formatEmailValidityStatus(data))
                 metadataRow("role admin", data.hasRoleAdmin.toString())
                 metadataRow("role editor", data.hasRoleEditor.toString())
             }
@@ -90,7 +91,7 @@ class AdminUserInsightsPageRenderer(
             if (data.latestPageViews.isEmpty()) {
                 p("empty-block-placeholder") { +"No page views found." }
             } else {
-                table("nice-table nice-table-striped nice-table-hover") {
+                table("nice-table nice-table-striped") {
                     id = "admin-user-latest-page-views-table"
                     tr {
                         th { +"url" }
@@ -98,7 +99,11 @@ class AdminUserInsightsPageRenderer(
                     }
                     data.latestPageViews.forEach { pageViewEntry ->
                         tr {
-                            td { +pageViewEntry.url }
+                            td {
+                                a(href = pageViewEntry.url) {
+                                    +pageViewEntry.url
+                                }
+                            }
                             td { +formatTimestampUtc(pageViewEntry.time) }
                         }
                     }
@@ -153,5 +158,13 @@ class AdminUserInsightsPageRenderer(
             td { +formatTimestampUtc(summary.lastPlayed) }
             td { +summary.totalPlayed.toString() }
         }
+    }
+
+    private fun formatEmailValidityStatus(data: AdminUserInsightsData): String {
+        val status = data.emailValidityStatus ?: return "n/a"
+        return status
+            .name
+            .lowercase()
+            .replace('_', ' ')
     }
 }

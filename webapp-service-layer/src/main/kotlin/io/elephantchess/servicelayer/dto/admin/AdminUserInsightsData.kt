@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.dto.admin
 
 import io.elephantchess.model.UserType
+import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
 
 data class AdminUserInsightsData(
     val userId: String,
@@ -12,6 +13,7 @@ data class AdminUserInsightsData(
     val lastOnlineTime: Long?,
     val lastProfileUpdateTime: Long?,
     val emailConfirmedAtTime: Long?,
+    val emailValidityStatus: EmailValidityStatus?,
     val hasRoleAdmin: Boolean,
     val hasRoleEditor: Boolean,
     val puzzle: ActivitySummary,
