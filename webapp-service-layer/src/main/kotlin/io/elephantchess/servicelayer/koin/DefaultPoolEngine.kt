@@ -16,7 +16,6 @@ internal fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
     logger.info { "OS name: $osName" }
     val isMacOs = osName.startsWith("Mac OS")
     if (isMacOs) logger.warn { "engines are disabled on Mac OS" }
-    val processLocator = if (appConfig.isDockerized) DockerizedProcessLocator else LocalProcessLocator
     val configMap = if (!isMacOs && appConfig.isEnginePoolEnabled) {
         mapOf(
             PikafishEngineId to EngineConfig(
@@ -34,6 +33,7 @@ internal fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
         mapOf()
     }
 
+    val processLocator = if (appConfig.isDockerized) DockerizedProcessLocator else LocalProcessLocator
     return EnginePool(
         configMap = configMap,
         executor = Executors.newVirtualThreadPerTaskExecutor(),
