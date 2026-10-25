@@ -13,6 +13,7 @@ import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
 import io.elephantchess.webapp.rendering.resolvers.WebFragmentResolver
 import io.elephantchess.webapp.rendering.resolvers.toParagraphs
 import io.ktor.http.encodeURLPath
+import kotlinx.html.a
 import kotlinx.html.div
 import kotlinx.html.id
 import kotlinx.html.img
@@ -29,7 +30,7 @@ class UserProfilePageRenderer(
     private val userProfileAnalyticsService: UserProfileAnalyticsService,
 ) {
 
-    suspend fun renderUserProfile(userProfileDto: UserProfileDto): String {
+    suspend fun renderUserProfile(userProfileDto: UserProfileDto, isAdmin: Boolean): String {
         val username = userProfileDto.username
         val description = userProfileDto.profileDescription
         val countryCode = userProfileDto.country?.lowercase()
@@ -46,6 +47,7 @@ class UserProfilePageRenderer(
                 SimpleValueTagResolver("show_pvb_games", userProfileDto.showPvbGamesOnProfile.toString()),
                 descriptionMeta(username, description),
                 flagPanelTagResolver(countryCode),
+                adminUserInsightsLinkTagResolver(username, isAdmin),
                 descriptionDivTagResolver(username, description),
                 gameStatsTableTagResolver(gameStats),
             ),
@@ -95,6 +97,21 @@ class UserProfilePageRenderer(
                 div("empty-block-placeholder") {
                     id = "profile-description"
                     +"$username has not filled their description yet."
+                }
+            }
+        }
+
+    private fun adminUserInsightsLinkTagResolver(username: String, isAdmin: Boolean): TagResolver =
+        KtorHtmlBuilderTagResolver("admin_user_insights_link") {
+            if (isAdmin) {
+                div("profile-header-panel") {
+                    a(
+                        href = "/admin/user/${username.encodeURLPath()}",
+                        classes = "action-link",
+                    ) {
+                        id = "admin-user-insights-link"
+                        +"admin insights"
+                    }
                 }
             }
         }

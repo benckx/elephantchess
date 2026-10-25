@@ -11,6 +11,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGameMove
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGameStatusEvent
 import io.elephantchess.db.model.BotGameStatusRecord
+import io.elephantchess.db.model.UserActivitySummaryRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
@@ -147,6 +148,24 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .from(BOT_GAME)
             .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .awaitSingleValue()
+
+    suspend fun fetchUserActivitySummary(userId: String): UserActivitySummaryRecord {
+        val firstPlayed = DSL.min(BOT_GAME.LAST_UPDATED).`as`("first_played")
+        val lastPlayed = DSL.max(BOT_GAME.LAST_UPDATED).`as`("last_played")
+        val totalPlayed = DSL.count().`as`("total_played")
+
+        val record = dslContext
+            .select(firstPlayed, lastPlayed, totalPlayed)
+            .from(BOT_GAME)
+            .where(BOT_GAME.USER_ID.eq(userId))
+            .awaitSingleOrNull()
+
+        return UserActivitySummaryRecord(
+            firstPlayed = record?.get(firstPlayed),
+            lastPlayed = record?.get(lastPlayed),
+            totalPlayed = record?.get(totalPlayed) ?: 0,
+        )
+    }
 
     suspend fun countLiveGames(lastUpdated: Duration, userIds: Set<String>): Int =
         dslContext

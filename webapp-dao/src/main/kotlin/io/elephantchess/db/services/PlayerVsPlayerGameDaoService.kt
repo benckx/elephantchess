@@ -271,6 +271,24 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 )
             }
 
+    suspend fun fetchUserActivitySummary(userId: String): UserActivitySummaryRecord {
+        val firstPlayed = DSL.min(GAME.LAST_UPDATED).`as`("first_played")
+        val lastPlayed = DSL.max(GAME.LAST_UPDATED).`as`("last_played")
+        val totalPlayed = DSL.count().`as`("total_played")
+
+        val record = dslContext
+            .select(firstPlayed, lastPlayed, totalPlayed)
+            .from(GAME)
+            .where(isPlaying(userId))
+            .awaitSingleOrNull()
+
+        return UserActivitySummaryRecord(
+            firstPlayed = record?.get(firstPlayed),
+            lastPlayed = record?.get(lastPlayed),
+            totalPlayed = record?.get(totalPlayed) ?: 0,
+        )
+    }
+
     suspend fun latestGameActivity(minMoveIndex: Int = 0): Instant? =
         dslContext
             .select(DSL.max(GAME.LAST_UPDATED))

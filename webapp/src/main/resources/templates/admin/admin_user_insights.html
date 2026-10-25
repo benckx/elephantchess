@@ -1,0 +1,36 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Admin user insights - {{username}}</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/common/nice-table.css"/>
+    <link rel="stylesheet" href="/css/admin-user-insights.css"/>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-smaller">
+    <h1>Admin User Insights</h1>
+    <hr/>
+    <p>
+        <a id="admin-user-insights-public-profile-link" href="{{public_profile_url}}">Open public profile</a>
+    </p>
+
+    <h2>User metadata</h2>
+    <hr/>
+    {{admin_user_metadata_table}}
+
+    <h2>Game activity</h2>
+    <hr/>
+    {{admin_user_game_activity_table}}
+
+    <h2>Latest page views (10)</h2>
+    <hr/>
+    {{admin_user_latest_page_views_table}}
+
+    <h2>Latest sessions (3)</h2>
+    <hr/>
+    {{admin_user_latest_sessions_table}}
+</div>
+{{footer}}
+</body>
+</html>

@@ -217,6 +217,7 @@ private fun Routing.simpleMappingsWithSupporterBanner() {
 
 private fun Route.userProfile() {
     val renderer by koin<UserProfilePageRenderer>()
+    val adminUserInsightsRenderer by koin<AdminUserInsightsPageRenderer>()
     val userService by koin<UserService>()
 
     get("/@/{username}") {
@@ -224,7 +225,13 @@ private fun Route.userProfile() {
         val isAdmin = isAdmin()
 
         val userProfileResponse = userService.fetchProfile(username)
-        call.respondHtml(renderer.renderUserProfile(userProfileResponse))
+        call.respondHtml(renderer.renderUserProfile(userProfileResponse, isAdmin))
+    }
+    get("/admin/user/{username}") {
+        requireAdminRole { _ ->
+            val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
+            TextContent(adminUserInsightsRenderer.renderUserInsightsPage(username), ContentType.Text.Html)
+        }
     }
     get("/@/{username}/browse-pvp-games") {
         val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
