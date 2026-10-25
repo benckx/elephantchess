@@ -78,10 +78,10 @@ class AdminUserInsightsPageRenderer(
                     th { +"total played" }
                 }
                 activityRow("puzzles", data.puzzle)
-                activityRow("pvp", data.pvp)
-                activityRow("pvp > 3", data.pvpOver3)
-                activityRow("pvb", data.pvb)
-                activityRow("pvb > 3", data.pvbOver3)
+                activityRow("PvP", data.pvp)
+                activityRow("PvP > 3", data.pvpOver3)
+                activityRow("PvB", data.pvb)
+                activityRow("PvB > 3", data.pvbOver3)
             }
         }
 
