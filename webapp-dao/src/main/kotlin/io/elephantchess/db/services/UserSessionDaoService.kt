@@ -4,6 +4,7 @@ import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.UserSessionDao
 import io.elephantchess.db.dao.codegen.tables.pojos.UserSession
 import io.elephantchess.db.model.SharedRemoteAddressUserRecord
+import io.elephantchess.db.model.SharedSessionSimilarityRecord
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
@@ -19,14 +20,6 @@ import kotlin.time.Instant
 
 @KoinSingleton
 class UserSessionDaoService(private val dslContext: DSLContext, private val logger: KLogger) {
-
-    data class SharedRemoteAddressUser(
-        val userId: String,
-        val sharedRemoteAddressCount: Int,
-        val lastSeen: Instant?,
-    )
-
-    data class SharedSessionSimilarity(val sharedRemoteAddressCount: Int, val sharedFingerprintCount: Int)
 
     suspend fun createOrUpdate(record: UserSessionRecord) {
         if (record.userId != null) {
@@ -156,7 +149,11 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             }
     }
 
-    suspend fun listOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>, limit: Int): List<SharedRemoteAddressUserRecord> {
+    suspend fun listOtherUsersByRemoteAddresses(
+        userId: String,
+        remoteAddresses: Set<String>,
+        limit: Int,
+    ): List<SharedRemoteAddressUserRecord> {
         if (remoteAddresses.isEmpty()) {
             return emptyList()
         }
@@ -186,59 +183,7 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             }
     }
 
-    suspend fun countOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>): Map<String, Int> {
-        if (remoteAddresses.isEmpty()) {
-            return emptyMap()
-        }
-
-        return dslContext
-            .select(
-                USER_SESSION.REMOTE_ADDRESS,
-                DSL.countDistinct(USER_SESSION.USER_ID).`as`("distinctUsers"),
-            )
-            .from(USER_SESSION)
-            .where(USER_SESSION.REMOTE_ADDRESS.`in`(remoteAddresses))
-            .and(USER_SESSION.USER_ID.ne(userId))
-            .groupBy(USER_SESSION.REMOTE_ADDRESS)
-            .awaitRecords()
-            .associate { record ->
-                val remoteAddress = record.get(USER_SESSION.REMOTE_ADDRESS)
-                val count = record.get("distinctUsers", Int::class.java) ?: 0
-                remoteAddress to count
-            }
-    }
-
-    suspend fun listOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>, limit: Int): List<SharedRemoteAddressUser> {
-        if (remoteAddresses.isEmpty()) {
-            return emptyList()
-        }
-
-        val sharedIpCountField = DSL.countDistinct(USER_SESSION.REMOTE_ADDRESS).`as`("sharedIpCount")
-        val lastSeenField = DSL.max(USER_SESSION.LAST_UPDATED).`as`("lastSeen")
-
-        return dslContext
-            .select(
-                USER_SESSION.USER_ID,
-                sharedIpCountField,
-                lastSeenField,
-            )
-            .from(USER_SESSION)
-            .where(USER_SESSION.REMOTE_ADDRESS.`in`(remoteAddresses))
-            .and(USER_SESSION.USER_ID.ne(userId))
-            .groupBy(USER_SESSION.USER_ID)
-            .orderBy(sharedIpCountField.desc(), lastSeenField.desc())
-            .limit(limit)
-            .awaitRecords()
-            .map { record ->
-                SharedRemoteAddressUser(
-                    userId = record.get(USER_SESSION.USER_ID),
-                    sharedRemoteAddressCount = record.get(sharedIpCountField)?.toInt() ?: 0,
-                    lastSeen = record.get(lastSeenField),
-                )
-            }
-    }
-
-    suspend fun countSharedSessionSimilarity(userId1: String, userId2: String): SharedSessionSimilarity {
+    suspend fun countSharedSessionSimilarity(userId1: String, userId2: String): SharedSessionSimilarityRecord {
         val session1 = USER_SESSION.`as`("session1")
         val session2 = USER_SESSION.`as`("session2")
 
@@ -263,7 +208,7 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             .and(session2.USER_ID.eq(userId2))
             .awaitSingleRecord()
 
-        return SharedSessionSimilarity(
+        return SharedSessionSimilarityRecord(
             sharedRemoteAddressCount = record?.get(sharedRemoteAddressCountField)?.toInt() ?: 0,
             sharedFingerprintCount = record?.get(sharedFingerprintCountField)?.toInt() ?: 0,
         )
