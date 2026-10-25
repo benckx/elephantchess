@@ -301,10 +301,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .where(
                 GAME.INVITER.eq(userId1)
                     .and(GAME.INVITEE.eq(userId2))
-                    .or(
-                        GAME.INVITER.eq(userId2)
-                            .and(GAME.INVITEE.eq(userId1)),
-                    ),
+                    .or(GAME.INVITER.eq(userId2).and(GAME.INVITEE.eq(userId1))),
             )
             .awaitSingleValue() ?: 0
 

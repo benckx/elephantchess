@@ -124,8 +124,8 @@ class AdminUserInsightsService(
     }
 
     suspend fun listUserSuggestions(contains: String): AutocompleteResponse {
-        val entries = userDaoService.listUsersStartingWith(contains, SUGGESTIONS_LIMIT)
-            .ifEmpty { userDaoService.listUsersContaining(contains, SUGGESTIONS_LIMIT) }
+        val entries = userDaoService.listUsersStartingWithIdentifier(contains, SUGGESTIONS_LIMIT)
+            .ifEmpty { userDaoService.listUsersContainingIdentifier(contains, SUGGESTIONS_LIMIT) }
 
         return AutocompleteResponse(
             entries = entries.map { entry ->

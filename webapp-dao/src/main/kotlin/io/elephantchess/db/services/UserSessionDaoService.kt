@@ -3,6 +3,7 @@ package io.elephantchess.db.services
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.UserSessionDao
 import io.elephantchess.db.dao.codegen.tables.pojos.UserSession
+import io.elephantchess.db.model.SharedRemoteAddressUserRecord
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
@@ -18,12 +19,6 @@ import kotlin.time.Instant
 
 @KoinSingleton
 class UserSessionDaoService(private val dslContext: DSLContext, private val logger: KLogger) {
-
-    data class SharedRemoteAddressUser(
-        val userId: String,
-        val sharedRemoteAddressCount: Int,
-        val lastSeen: Instant?,
-    )
 
     suspend fun createOrUpdate(record: UserSessionRecord) {
         if (record.userId != null) {
@@ -129,7 +124,7 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             .selectCount()
             .from(USER_SESSION)
             .where(USER_SESSION.USER_ID.eq(userId))
-            .awaitSingleValue<Int>() ?: 0
+            .awaitSingleValue() ?: 0
 
     suspend fun countOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>): Map<String, Int> {
         if (remoteAddresses.isEmpty()) {
@@ -153,7 +148,7 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             }
     }
 
-    suspend fun listOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>, limit: Int): List<SharedRemoteAddressUser> {
+    suspend fun listOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>, limit: Int): List<SharedRemoteAddressUserRecord> {
         if (remoteAddresses.isEmpty()) {
             return emptyList()
         }
@@ -175,9 +170,9 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             .limit(limit)
             .awaitRecords()
             .map { record ->
-                SharedRemoteAddressUser(
+                SharedRemoteAddressUserRecord(
                     userId = record.get(USER_SESSION.USER_ID),
-                    sharedRemoteAddressCount = record.get(sharedIpCountField)?.toInt() ?: 0,
+                    sharedRemoteAddressCount = record.get(sharedIpCountField) ?: 0,
                     lastSeen = record.get(lastSeenField),
                 )
             }
