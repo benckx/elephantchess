@@ -7,9 +7,11 @@ import io.elephantchess.db.model.SockPuppetDetectionSummaryRecord
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.db.utils.isWithin
 import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
@@ -153,9 +155,7 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
                 )
             }
 
-    suspend fun fetchDetectionsSummary(): SockPuppetDetectionSummaryRecord {
-        val last30Days = Clock.System.now().minus(30.days)
-
+    suspend fun fetchDetectionsSummary(cutoff: Duration = 30.days): SockPuppetDetectionSummaryRecord {
         val totalDetections = dslContext
             .selectCount()
             .from(GAME_SOCK_PUPPET_DETECTION)
@@ -196,13 +196,13 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             .from(GAME_SOCK_PUPPET_DETECTION)
             .join(GAME)
             .on(GAME.ID.eq(GAME_SOCK_PUPPET_DETECTION.GAME_ID))
-            .where(GAME.CREATED.ge(last30Days))
+            .where(GAME.CREATED.isWithin(cutoff))
             .awaitSingleValue() ?: 0
 
         val totalPvpGamesLast30Days = dslContext
             .selectCount()
             .from(GAME)
-            .where(GAME.CREATED.ge(last30Days))
+            .where(GAME.CREATED.isWithin(cutoff))
             .and(GAME.INVITEE.isNotNull)
             .awaitSingleValue() ?: 0
 
