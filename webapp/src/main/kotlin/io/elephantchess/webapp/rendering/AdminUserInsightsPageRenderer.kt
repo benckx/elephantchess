@@ -40,7 +40,7 @@ class AdminUserInsightsPageRenderer(
             if (data.userType == UserType.AUTHENTICATED && data.username.isNotBlank()) {
                 a(href = "/@/${data.username.encodeURLPath()}") {
                     id = "admin-user-insights-public-profile-link"
-                    +"Open public profile"
+                    +"public profile"
                 }
             } else {
                 span {
@@ -59,9 +59,8 @@ class AdminUserInsightsPageRenderer(
                 metadataRow("email", data.email ?: "n/a")
                 metadataRow("user type", data.userType?.name ?: "n/a")
                 metadataRow("country", data.country ?: "n/a")
-                metadataRow("created", formatTimestampUtc(data.creationTime))
-                metadataRow("account age", formatTimestampToRelativeTime(data.creationTime))
-                metadataRow("last online", formatTimestampUtc(data.lastOnlineTime))
+                metadataRow("created", formatTimestampWithRelativeAge(data.creationTime))
+                metadataRow("last online", formatTimestampWithRelativeAge(data.lastOnlineTime))
                 metadataRow("last profile update", formatTimestampUtc(data.lastProfileUpdateTime))
                 metadataRow("email confirmed", formatTimestampUtc(data.emailConfirmedAtTime))
                 metadataRow("email validity", formatEmailValidityStatus(data))
@@ -97,7 +96,6 @@ class AdminUserInsightsPageRenderer(
                     id = "admin-user-latest-chat-messages-table"
                     tr {
                         th { +"game id" }
-                        th { +"index" }
                         th { +"message" }
                         th { +"time" }
                     }
@@ -108,7 +106,6 @@ class AdminUserInsightsPageRenderer(
                                     +entry.gameId
                                 }
                             }
-                            td { +entry.index.toString() }
                             td { +entry.content }
                             td { +formatTimestampUtc(entry.messageTime) }
                         }
@@ -188,7 +185,7 @@ class AdminUserInsightsPageRenderer(
         tr {
             td { +label }
             td { +formatTimestampUtc(summary.firstPlayed) }
-            td { +formatTimestampUtc(summary.lastPlayed) }
+            td { +formatTimestampWithRelativeAge(summary.lastPlayed) }
             td { +summary.totalPlayed.toString() }
         }
     }
@@ -207,4 +204,10 @@ class AdminUserInsightsPageRenderer(
             otherUsersOnRemoteAddress == 1 -> "possible (1 other user on IP)"
             else -> "possible ($otherUsersOnRemoteAddress other users on IP)"
         }
+
+    private fun formatTimestampWithRelativeAge(epochMillis: Long?): String {
+        val formattedTimestamp = formatTimestampUtc(epochMillis)
+        val relative = formatTimestampToRelativeTime(epochMillis)
+        return if (epochMillis == null) formattedTimestamp else "$formattedTimestamp ($relative)"
+    }
 }
