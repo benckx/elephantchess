@@ -92,21 +92,13 @@ class ChatMessageDaoService(private val dslContext: DSLContext) {
             .limit(limit)
             .awaitMappedRecords()
 
-    suspend fun listLastMessagesByAuthor(userId: String, limit: Int): List<GameChatMessage> =
+    suspend fun listMessagesByAuthor(userId: String, limit: Int, offset: Int? = null): List<GameChatMessage> =
         dslContext
             .selectFrom(GAME_CHAT_MESSAGE)
             .where(GAME_CHAT_MESSAGE.AUTHOR.eq(userId))
             .orderBy(GAME_CHAT_MESSAGE.MESSAGE_TIME.desc())
             .limit(limit)
-            .awaitMappedRecords()
-
-    suspend fun listMessagesByAuthor(userId: String, limit: Int, offset: Int): List<GameChatMessage> =
-        dslContext
-            .selectFrom(GAME_CHAT_MESSAGE)
-            .where(GAME_CHAT_MESSAGE.AUTHOR.eq(userId))
-            .orderBy(GAME_CHAT_MESSAGE.MESSAGE_TIME.desc())
-            .limit(limit)
-            .offset(offset)
+            .apply { if (offset != null) offset(offset) }
             .awaitMappedRecords()
 
     suspend fun countMessages(gameIds: List<String>): Map<String, Int> {
