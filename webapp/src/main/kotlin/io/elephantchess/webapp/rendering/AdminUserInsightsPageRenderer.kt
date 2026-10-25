@@ -54,37 +54,37 @@ class AdminUserInsightsPageRenderer(
                     +"No public profile for guest users."
                 }
             }
+        }
 
     suspend fun renderUserPageViewsPage(identifier: String): String {
-            val data = adminUserInsightsService.fetchUserInsights(identifier)
-            val encodedIdentifier = identifier.encodeURLPath()
+        val data = adminUserInsightsService.fetchUserInsights(identifier)
+        val encodedIdentifier = identifier.encodeURLPath()
 
-            return htmlRenderer.renderHtml(
-                templatePath = "/templates/admin/admin_user_insights_page_views.html",
-                canonicalPath = "/admin/user/$encodedIdentifier/page-views",
-                specificTagResolvers = listOf(
-                    SimpleValueTagResolver("username", data.username),
-                    SimpleValueTagResolver("identifier", identifier),
-                    SimpleValueTagResolver("encoded_identifier", encodedIdentifier),
-                ),
-            )
+        return htmlRenderer.renderHtml(
+            templatePath = "/templates/admin/admin_user_insights_page_views.html",
+            canonicalPath = "/admin/user/$encodedIdentifier/page-views",
+            specificTagResolvers = listOf(
+                SimpleValueTagResolver("username", data.username),
+                SimpleValueTagResolver("identifier", identifier),
+                SimpleValueTagResolver("encoded_identifier", encodedIdentifier),
+            ),
+        )
     }
 
     suspend fun renderUserChatMessagesPage(identifier: String): String {
-            val data = adminUserInsightsService.fetchUserInsights(identifier)
-            val encodedIdentifier = identifier.encodeURLPath()
+        val data = adminUserInsightsService.fetchUserInsights(identifier)
+        val encodedIdentifier = identifier.encodeURLPath()
 
-            return htmlRenderer.renderHtml(
-                templatePath = "/templates/admin/admin_user_insights_chat_messages.html",
-                canonicalPath = "/admin/user/$encodedIdentifier/chat-messages",
-                specificTagResolvers = listOf(
-                    SimpleValueTagResolver("username", data.username),
-                    SimpleValueTagResolver("identifier", identifier),
-                    SimpleValueTagResolver("encoded_identifier", encodedIdentifier),
-                ),
-            )
+        return htmlRenderer.renderHtml(
+            templatePath = "/templates/admin/admin_user_insights_chat_messages.html",
+            canonicalPath = "/admin/user/$encodedIdentifier/chat-messages",
+            specificTagResolvers = listOf(
+                SimpleValueTagResolver("username", data.username),
+                SimpleValueTagResolver("identifier", identifier),
+                SimpleValueTagResolver("encoded_identifier", encodedIdentifier),
+            ),
+        )
     }
-        }
 
     private fun userMetadataTableTagResolver(data: AdminUserInsightsData) =
         KtorHtmlBuilderTagResolver("admin_user_metadata_table") {

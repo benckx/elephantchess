@@ -209,41 +209,41 @@ private fun Route.adminChatRoutes() {
     get("/last-chat-messages") {
         requireAdminRole { adminChatService.listLastChatMessages() }
     }
+}
 
-    private fun Route.adminUserInsightsRoutes() {
-        val adminUserInsightsService by koin<AdminUserInsightsService>()
+private fun Route.adminUserInsightsRoutes() {
+    val adminUserInsightsService by koin<AdminUserInsightsService>()
 
-        get("/user-insights/autocomplete") {
-            requireAdminRole {
-                val contains = call.request.queryParameters["contains"]
-                    ?: throw BadRequestException("missing contains")
+    get("/user-insights/autocomplete") {
+        requireAdminRole {
+            val contains = call.request.queryParameters["contains"]
+                ?: throw BadRequestException("missing contains")
 
-                if (contains.length < 2) {
-                    throw BadRequestException("contains should contain at least 2 chars")
-                }
-
-                adminUserInsightsService.listUserSuggestions(contains)
+            if (contains.length < 2) {
+                throw BadRequestException("contains should contain at least 2 chars")
             }
+
+            adminUserInsightsService.listUserSuggestions(contains)
         }
+    }
 
-        get("/user-insights/{identifier}/page-views") {
-            requireAdminRole {
-                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
-                val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
-                val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+    get("/user-insights/{identifier}/page-views") {
+        requireAdminRole {
+            val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+            val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
+            val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
 
-                adminUserInsightsService.listUserPageViews(identifier, limit, offset)
-            }
+            adminUserInsightsService.listUserPageViews(identifier, limit, offset)
         }
+    }
 
-        get("/user-insights/{identifier}/chat-messages") {
-            requireAdminRole {
-                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
-                val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
-                val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+    get("/user-insights/{identifier}/chat-messages") {
+        requireAdminRole {
+            val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+            val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
+            val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
 
-                adminUserInsightsService.listUserChatMessages(identifier, limit, offset)
-            }
+            adminUserInsightsService.listUserChatMessages(identifier, limit, offset)
         }
     }
 }

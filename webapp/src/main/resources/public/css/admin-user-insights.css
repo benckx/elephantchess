@@ -36,7 +36,7 @@
     width: 100%;
 }
 
-#admin-user-insights-search-box .search-container,
+#admin-user-insights-search-box,
 #admin-user-insights-search-box .suggestions-box {
     width: 500px;
 }
