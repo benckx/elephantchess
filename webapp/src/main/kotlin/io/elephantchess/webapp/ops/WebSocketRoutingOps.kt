@@ -1,6 +1,6 @@
 package io.elephantchess.webapp.ops
 
-import com.fasterxml.jackson.databind.json.JsonMapper
+import tools.jackson.databind.json.JsonMapper
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.server.websocket.*

@@ -15,7 +15,7 @@ import io.elephantchess.webapp.routing.api.pvpGameWsRoutes
 import io.elephantchess.webapp.routing.api.sevenKingdomsGameRoutes
 import io.elephantchess.webapp.routing.api.supporterRoutes
 import io.elephantchess.webapp.routing.api.userRoutes
-import io.ktor.serialization.jackson.*
+import io.ktor.serialization.jackson3.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
