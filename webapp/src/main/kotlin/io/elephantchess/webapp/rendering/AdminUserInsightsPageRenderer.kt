@@ -65,6 +65,7 @@ class AdminUserInsightsPageRenderer(
                 specificTagResolvers = listOf(
                     SimpleValueTagResolver("username", data.username),
                     SimpleValueTagResolver("identifier", identifier),
+                    SimpleValueTagResolver("encoded_identifier", encodedIdentifier),
                 ),
             )
     }
@@ -79,6 +80,7 @@ class AdminUserInsightsPageRenderer(
                 specificTagResolvers = listOf(
                     SimpleValueTagResolver("username", data.username),
                     SimpleValueTagResolver("identifier", identifier),
+                    SimpleValueTagResolver("encoded_identifier", encodedIdentifier),
                 ),
             )
     }

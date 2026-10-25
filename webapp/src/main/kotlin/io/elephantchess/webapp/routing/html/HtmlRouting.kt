@@ -248,6 +248,28 @@ private fun Route.userProfile() {
             )
         }
     }
+    get("/admin/user/{identifier}/page-views") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserPageViewsPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
+    }
+    get("/admin/user/{identifier}/chat-messages") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserChatMessagesPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
+    }
 }
 
 private fun Route.userSettingsPage() {
