@@ -35,6 +35,7 @@ private val logger = KotlinLogging.logger {}
  *
  * Candidates whose reference game already has a puzzle are skipped, so the script is safe to re-run.
  */
+// TODO: the FindMatePuzzleCandidates script didn't include the move history, which is a bit messy to reconstruct from the reference game
 object CreatePuzzlesFromCsv : KoinScriptInit() {
 
     private const val INPUT_FILE_NAME = "mate_puzzle_candidates.csv"
