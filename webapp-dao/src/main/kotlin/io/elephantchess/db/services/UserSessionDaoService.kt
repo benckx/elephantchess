@@ -3,6 +3,7 @@ package io.elephantchess.db.services
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.UserSessionDao
 import io.elephantchess.db.dao.codegen.tables.pojos.UserSession
+import io.elephantchess.db.model.SharedRemoteAddressUserRecord
 import io.elephantchess.db.model.UserSessionRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.UserType
@@ -14,6 +15,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 
 @KoinSingleton
 class UserSessionDaoService(private val dslContext: DSLContext, private val logger: KLogger) {
@@ -122,7 +124,59 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             .selectCount()
             .from(USER_SESSION)
             .where(USER_SESSION.USER_ID.eq(userId))
-            .awaitSingleValue<Int>() ?: 0
+            .awaitSingleValue() ?: 0
+
+    suspend fun countOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>): Map<String, Int> {
+        if (remoteAddresses.isEmpty()) {
+            return emptyMap()
+        }
+
+        return dslContext
+            .select(
+                USER_SESSION.REMOTE_ADDRESS,
+                DSL.countDistinct(USER_SESSION.USER_ID).`as`("distinctUsers"),
+            )
+            .from(USER_SESSION)
+            .where(USER_SESSION.REMOTE_ADDRESS.`in`(remoteAddresses))
+            .and(USER_SESSION.USER_ID.ne(userId))
+            .groupBy(USER_SESSION.REMOTE_ADDRESS)
+            .awaitRecords()
+            .associate { record ->
+                val remoteAddress = record.get(USER_SESSION.REMOTE_ADDRESS)
+                val count = record.get("distinctUsers", Int::class.java) ?: 0
+                remoteAddress to count
+            }
+    }
+
+    suspend fun listOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>, limit: Int): List<SharedRemoteAddressUserRecord> {
+        if (remoteAddresses.isEmpty()) {
+            return emptyList()
+        }
+
+        val sharedIpCountField = DSL.countDistinct(USER_SESSION.REMOTE_ADDRESS).`as`("sharedIpCount")
+        val lastSeenField = DSL.max(USER_SESSION.LAST_UPDATED).`as`("lastSeen")
+
+        return dslContext
+            .select(
+                USER_SESSION.USER_ID,
+                sharedIpCountField,
+                lastSeenField,
+            )
+            .from(USER_SESSION)
+            .where(USER_SESSION.REMOTE_ADDRESS.`in`(remoteAddresses))
+            .and(USER_SESSION.USER_ID.ne(userId))
+            .groupBy(USER_SESSION.USER_ID)
+            .orderBy(sharedIpCountField.desc(), lastSeenField.desc())
+            .limit(limit)
+            .awaitRecords()
+            .map { record ->
+                SharedRemoteAddressUserRecord(
+                    userId = record.get(USER_SESSION.USER_ID),
+                    sharedRemoteAddressCount = record.get(sharedIpCountField) ?: 0,
+                    lastSeen = record.get(lastSeenField),
+                )
+            }
+    }
 
     suspend fun deleteAuthenticatedSessionsForUser(userId: String, sessionIds: Collection<Int>): Int {
         if (sessionIds.isEmpty()) {

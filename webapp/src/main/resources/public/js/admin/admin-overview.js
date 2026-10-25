@@ -32,6 +32,19 @@ class AdminOverviewPage extends BasePage {
 
     #latestExceptionsTable = document.getElementById('latest-exceptions');
 
+    #buildAdminInsightsLink(entry) {
+        const anchor = document.createElement('a');
+        const identifier = entry.userType === UserType.GUEST ? entry.id : (entry.username ?? entry.id);
+        anchor.href = '/admin/user/' + encodeURIComponent(identifier);
+
+        if (entry.userType === UserType.GUEST) {
+            anchor.append(buildGuestUserSpan(entry.id));
+        } else {
+            anchor.innerText = entry.username ?? entry.id ?? '??';
+        }
+        return anchor;
+    }
+
     constructor() {
         super();
         setIntervalNoDelay(() => {
@@ -90,7 +103,7 @@ class AdminOverviewPage extends BasePage {
         return entries
             .sort((a, b) => a.userType.localeCompare(b.userType))
             .map(entry => {
-                const element = buildUsernameSpan(entry.id, entry.username, entry.userType);
+                const element = this.#buildAdminInsightsLink(entry);
                 element.classList.add('user-link');
                 return element;
             });
@@ -104,7 +117,11 @@ class AdminOverviewPage extends BasePage {
     #renderAuthenticatedUsers(entries) {
         return entries
             .map(entry => {
-                const element = buildUsernameSpan(entry.id, entry.username, UserType.AUTHENTICATED);
+                const element = this.#buildAdminInsightsLink({
+                    id: entry.id,
+                    username: entry.username,
+                    userType: UserType.AUTHENTICATED
+                });
                 element.classList.add('user-link');
                 return element;
             });

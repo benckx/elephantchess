@@ -5,6 +5,7 @@ import io.elephantchess.db.dao.codegen.tables.daos.PuzzleResultDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleResult
 import io.elephantchess.db.model.PlayedPuzzleRecord
 import io.elephantchess.db.model.PuzzleResultCountsRecord
+import io.elephantchess.db.model.UserActivitySummaryRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.PuzzleOutcome
 import io.elephantchess.utils.di.KoinSingleton
@@ -78,6 +79,24 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
             .limit(1)
             .awaitSingleValue()
+
+    suspend fun fetchUserActivitySummary(userId: String): UserActivitySummaryRecord {
+        val firstPlayed = DSL.min(PUZZLE_RESULT.ENTRY_CREATION).`as`("first_played")
+        val lastPlayed = DSL.max(PUZZLE_RESULT.ENTRY_CREATION).`as`("last_played")
+        val totalPlayed = DSL.count().`as`("total_played")
+
+        val record = dslContext
+            .select(firstPlayed, lastPlayed, totalPlayed)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.USER_ID.eq(userId))
+            .awaitSingleRecord()
+
+        return UserActivitySummaryRecord(
+            firstPlayed = record?.get(firstPlayed),
+            lastPlayed = record?.get(lastPlayed),
+            totalPlayed = record?.get(totalPlayed) ?: 0,
+        )
+    }
 
     suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCountsRecord> {
         if (userIds.isEmpty()) return emptyList()

@@ -4,6 +4,7 @@ import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.daos.UserDao
 import io.elephantchess.db.dao.codegen.tables.pojos.User
 import io.elephantchess.db.dao.codegen.tables.records.UserRecord
+import io.elephantchess.db.model.EntityIdAndNameRecord
 import io.elephantchess.db.model.NotificationsSettingsRecord
 import io.elephantchess.db.model.PlayerVsPlayerNumberOfGamesAndLastPlayedRecord
 import io.elephantchess.db.model.PuzzleLeaderboardRecord
@@ -238,6 +239,46 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .from(USER)
             .where(USER.HANDLE.eq(username))
             .awaitSingleMappedRecord()
+
+    suspend fun listUsersStartingWithIdentifier(startsWith: String, limit: Int): List<EntityIdAndNameRecord> =
+        dslContext
+            .select(USER.ID, USER.HANDLE)
+            .from(USER)
+            .where(
+                DSL.lower(DSL.coalesce(USER.HANDLE, USER.ID))
+                    .startsWith(startsWith.lowercase()),
+            )
+            .orderBy(DSL.coalesce(USER.HANDLE, USER.ID))
+            .limit(limit)
+            .awaitRecords()
+            .map { record ->
+                val userId = record.get(USER.ID)
+                val handle = record.get(USER.HANDLE)
+                EntityIdAndNameRecord(
+                    id = userId,
+                    name = if (handle.isNullOrBlank()) userId else "$handle ($userId)",
+                )
+            }
+
+    suspend fun listUsersContainingIdentifier(contains: String, limit: Int): List<EntityIdAndNameRecord> =
+        dslContext
+            .select(USER.ID, USER.HANDLE)
+            .from(USER)
+            .where(
+                DSL.lower(DSL.coalesce(USER.HANDLE, USER.ID))
+                    .contains(contains.lowercase()),
+            )
+            .orderBy(DSL.coalesce(USER.HANDLE, USER.ID))
+            .limit(limit)
+            .awaitRecords()
+            .map { record ->
+                val userId = record.get(USER.ID)
+                val handle = record.get(USER.HANDLE)
+                EntityIdAndNameRecord(
+                    id = userId,
+                    name = if (handle.isNullOrBlank()) userId else "$handle ($userId)",
+                )
+            }
 
     /**
      * Case-insensitive and trim-insensitive

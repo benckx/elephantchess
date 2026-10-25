@@ -214,26 +214,61 @@ private fun Routing.simpleMappingsWithSupporterBanner() {
 }
 
 private fun Route.userProfile() {
-    val renderer by koin<UserProfilePageRenderer>()
+    val userProfilePageRenderer by koin<UserProfilePageRenderer>()
+    val adminUserInsightsRenderer by koin<AdminUserInsightsPageRenderer>()
     val userService by koin<UserService>()
 
     get("/@/{username}") {
         val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
+        val isAdmin = isAdmin()
 
         val userProfileResponse = userService.fetchProfile(username)
-        call.respondHtml(renderer.renderUserProfile(userProfileResponse))
+        call.respondHtml(userProfilePageRenderer.renderUserProfile(userProfileResponse, isAdmin))
     }
     get("/@/{username}/browse-pvp-games") {
         val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
 
         userService.validateUserExists(username)
-        call.respondHtml(renderer.renderUserBrowsePvpGames(username))
+        call.respondHtml(userProfilePageRenderer.renderUserBrowsePvpGames(username))
     }
     get("/@/{username}/browse-pvb-games") {
         val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
 
         userService.validateUserExists(username)
-        call.respondHtml(renderer.renderUserBrowsePvbGames(username))
+        call.respondHtml(userProfilePageRenderer.renderUserBrowsePvbGames(username))
+    }
+    get("/admin/user/{identifier}") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserInsightsPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
+    }
+    get("/admin/user/{identifier}/page-views") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserPageViewsPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
+    }
+    get("/admin/user/{identifier}/chat-messages") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserChatMessagesPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
     }
 }
 
@@ -242,7 +277,10 @@ private fun Route.userSettingsPage() {
 
     get("/user/settings") {
         requireAuthentication { token ->
-            TextContent(renderer.renderUserSettingsPage(token.userId), ContentType.Text.Html)
+            TextContent(
+                text = renderer.renderUserSettingsPage(token.userId),
+                contentType = ContentType.Text.Html,
+            )
         }
     }
 }
