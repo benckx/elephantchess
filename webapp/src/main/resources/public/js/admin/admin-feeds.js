@@ -85,7 +85,7 @@ class AdminFeedsPage extends BasePage {
                 inviterCell.classList.add('crop-text-ellipsis');
 
                 inviterCell.append(
-                    buildUsernameSpan(
+                    buildAdminUsernameSpan(
                         entry.inviterUserId,
                         entry.inviterUsername,
                         userTypeFromName(entry.inviterUsername)
@@ -100,7 +100,7 @@ class AdminFeedsPage extends BasePage {
                 inviteeCell.classList.add('crop-text-ellipsis');
                 if (entry.inviteeUsername != null) {
                     inviteeCell.append(
-                        buildUsernameSpan(
+                        buildAdminUsernameSpan(
                             entry.inviteeUserId,
                             entry.inviteeUsername,
                             userTypeFromName(entry.inviteeUsername)
@@ -169,7 +169,7 @@ class AdminFeedsPage extends BasePage {
                     const userCell = row.insertCell();
                     userCell.className = 'label-cell';
                     userCell.append(
-                        buildUsernameSpan(
+                        buildAdminUsernameSpan(
                             entry.userId,
                             entry.username,
                             entry.userType
@@ -234,7 +234,7 @@ class AdminFeedsPage extends BasePage {
                     const userCell = row.insertCell();
                     userCell.className = 'label-cell';
                     userCell.append(
-                        buildUsernameSpan(entry.userId, entry.username, entry.userType)
+                        buildAdminUsernameSpan(entry.userId, entry.username, entry.userType)
                     );
                 }
 
@@ -297,7 +297,7 @@ class AdminFeedsPage extends BasePage {
                 tbody.append(tr);
 
                 // content
-                userCell.append(buildUserLinkDiv(entry.username));
+                userCell.append(buildAdminUsernameSpan(null, entry.username, UserType.AUTHENTICATED));
 
                 const analysisLink = document.createElement('a');
                 analysisLink.href = '/analysis?id=' + entry.analysisId;

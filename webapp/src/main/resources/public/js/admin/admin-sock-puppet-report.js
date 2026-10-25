@@ -46,10 +46,10 @@ class AdminSockPuppetReportPage extends BasePage {
                 gameCell.append(gameLink);
 
                 const inviterCell = row.insertCell();
-                inviterCell.append(buildUsernameSpan(entry.inviterUserId, entry.inviterUsername, userTypeFromName(entry.inviterUsername)));
+                inviterCell.append(buildAdminUsernameSpan(entry.inviterUserId, entry.inviterUsername, userTypeFromName(entry.inviterUsername)));
 
                 const inviteeCell = row.insertCell();
-                inviteeCell.append(buildUsernameSpan(entry.inviteeUserId, entry.inviteeUsername, userTypeFromName(entry.inviteeUsername)));
+                inviteeCell.append(buildAdminUsernameSpan(entry.inviteeUserId, entry.inviteeUsername, userTypeFromName(entry.inviteeUsername)));
 
                 row.insertCell().innerText = entry.sharedRemoteAddressCount.toString();
                 row.insertCell().innerText = entry.sharedFingerprintCount.toString();
