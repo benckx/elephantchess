@@ -21,6 +21,7 @@ data class AdminUserInsightsData(
     val pvpOver3: ActivitySummary,
     val pvb: ActivitySummary,
     val pvbOver3: ActivitySummary,
+    val latestChatMessages: List<ChatMessageEntry>,
     val latestPageViews: List<PageViewEntry>,
     val latestSessions: List<SessionEntry>,
 ) {
@@ -29,6 +30,13 @@ data class AdminUserInsightsData(
         val firstPlayed: Long?,
         val lastPlayed: Long?,
         val totalPlayed: Int,
+    )
+
+    data class ChatMessageEntry(
+        val gameId: String,
+        val index: Int,
+        val messageTime: Long,
+        val content: String,
     )
 
     data class PageViewEntry(val url: String, val time: Long)

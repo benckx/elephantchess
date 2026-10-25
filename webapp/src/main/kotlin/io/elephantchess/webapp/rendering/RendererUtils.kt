@@ -17,3 +17,28 @@ fun formatTimestampUtc(epochMillis: Long?, nullPlaceholder: String = "n/a"): Str
 
         dateTime.format(DateTimeFormatter.ofPattern(pattern).withLocale(Locale.ENGLISH))
     }
+
+fun formatTimestampToRelativeTime(epochMillis: Long?, nullPlaceholder: String = "n/a"): String {
+    if (epochMillis == null) {
+        return nullPlaceholder
+    }
+
+    val elapsed = Instant.now().toEpochMilli() - epochMillis
+    if (elapsed <= 0L) {
+        return "just now"
+    }
+
+    return when {
+        elapsed < 60_000L -> formatRelativeValue(elapsed / 1_000L, "second")
+        elapsed < 3_600_000L -> formatRelativeValue(elapsed / 60_000L, "minute")
+        elapsed < 86_400_000L -> formatRelativeValue(elapsed / 3_600_000L, "hour")
+        elapsed < 2_592_000_000L -> formatRelativeValue(elapsed / 86_400_000L, "day")
+        elapsed < 31_104_000_000L -> formatRelativeValue(elapsed / 2_592_000_000L, "month")
+        else -> formatRelativeValue(elapsed / 31_104_000_000L, "year")
+    }
+}
+
+private fun formatRelativeValue(value: Long, unit: String): String {
+    val suffix = if (value == 1L) unit else "${unit}s"
+    return "$value $suffix ago"
+}

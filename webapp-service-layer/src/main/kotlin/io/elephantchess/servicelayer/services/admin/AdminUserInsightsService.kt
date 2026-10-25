@@ -2,6 +2,7 @@ package io.elephantchess.servicelayer.services.admin
 
 import io.elephantchess.db.model.UserActivitySummaryRecord
 import io.elephantchess.db.services.ArchivedPageViewDaoService
+import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
@@ -19,6 +20,7 @@ class AdminUserInsightsService(
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
     private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
+    private val chatMessageDaoService: ChatMessageDaoService,
     private val archivedPageViewDaoService: ArchivedPageViewDaoService,
     private val userSessionDaoService: UserSessionDaoService,
     private val mailService: MailService,
@@ -35,6 +37,7 @@ class AdminUserInsightsService(
         val pvb = playerVsBotGameDaoService.fetchUserActivitySummary(user.id)
         val pvbOver3 = playerVsBotGameDaoService.fetchUserActivitySummary(user.id, MIN_MOVE_INDEX)
         val emailValidityStatus = user.email?.let { email -> mailService.getEmailValidityDetails(email) }
+        val latestChatMessages = chatMessageDaoService.listLastMessagesByAuthor(user.id, limit = 10)
         val latestPageViews = archivedPageViewDaoService.listPageViewsForUser(user.id, limit = 20, offset = 0)
         val latestSessions = userSessionDaoService.listAuthenticatedSessionsForUser(user.id, limit = 5, offset = 0)
 
@@ -56,6 +59,14 @@ class AdminUserInsightsService(
             pvpOver3 = pvpOver3.toDto(),
             pvb = pvb.toDto(),
             pvbOver3 = pvbOver3.toDto(),
+            latestChatMessages = latestChatMessages.map { record ->
+                AdminUserInsightsData.ChatMessageEntry(
+                    gameId = record.gameId,
+                    index = record.index,
+                    messageTime = record.messageTime.toEpochMilliseconds(),
+                    content = record.content,
+                )
+            },
             latestPageViews = latestPageViews.map { record ->
                 AdminUserInsightsData.PageViewEntry(
                     url = record.url,

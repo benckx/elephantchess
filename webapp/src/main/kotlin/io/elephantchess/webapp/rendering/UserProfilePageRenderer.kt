@@ -104,7 +104,7 @@ class UserProfilePageRenderer(
     private fun adminUserInsightsLinkTagResolver(username: String, isAdmin: Boolean): TagResolver =
         KtorHtmlBuilderTagResolver("admin_user_insights_link") {
             if (isAdmin) {
-                div("profile-header-panel") {
+                div("center-content-div") {
                     a(
                         href = "/admin/user/${username.encodeURLPath()}",
                         classes = "action-link",

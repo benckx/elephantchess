@@ -28,6 +28,7 @@ class AdminUserInsightsPageRenderer(
                 publicProfileLinkTagResolver(data),
                 userMetadataTableTagResolver(data),
                 gameActivityTableTagResolver(data),
+                latestChatMessagesTagResolver(data),
                 latestPageViewsTagResolver(data),
                 latestSessionsTagResolver(data),
             ),
@@ -59,6 +60,7 @@ class AdminUserInsightsPageRenderer(
                 metadataRow("user type", data.userType?.name ?: "n/a")
                 metadataRow("country", data.country ?: "n/a")
                 metadataRow("created", formatTimestampUtc(data.creationTime))
+                metadataRow("account age", formatTimestampToRelativeTime(data.creationTime))
                 metadataRow("last online", formatTimestampUtc(data.lastOnlineTime))
                 metadataRow("last profile update", formatTimestampUtc(data.lastProfileUpdateTime))
                 metadataRow("email confirmed", formatTimestampUtc(data.emailConfirmedAtTime))
@@ -83,6 +85,35 @@ class AdminUserInsightsPageRenderer(
                 activityRow("PvP > 3", data.pvpOver3)
                 activityRow("PvB", data.pvb)
                 activityRow("PvB > 3", data.pvbOver3)
+            }
+        }
+
+    private fun latestChatMessagesTagResolver(data: AdminUserInsightsData) =
+        KtorHtmlBuilderTagResolver("admin_user_latest_chat_messages_table") {
+            if (data.latestChatMessages.isEmpty()) {
+                p("empty-block-placeholder") { +"No chat messages found." }
+            } else {
+                table("nice-table nice-table-striped nice-table-hover") {
+                    id = "admin-user-latest-chat-messages-table"
+                    tr {
+                        th { +"game id" }
+                        th { +"index" }
+                        th { +"message" }
+                        th { +"time" }
+                    }
+                    data.latestChatMessages.forEach { entry ->
+                        tr {
+                            td {
+                                a(href = "/game?id=${entry.gameId.encodeURLQueryComponent()}") {
+                                    +entry.gameId
+                                }
+                            }
+                            td { +entry.index.toString() }
+                            td { +entry.content }
+                            td { +formatTimestampUtc(entry.messageTime) }
+                        }
+                    }
+                }
             }
         }
 
