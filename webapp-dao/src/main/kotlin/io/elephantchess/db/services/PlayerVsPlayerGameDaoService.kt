@@ -294,6 +294,20 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         )
     }
 
+    suspend fun countGamesBetweenUsers(userId1: String, userId2: String): Int =
+        dslContext
+            .selectCount()
+            .from(GAME)
+            .where(
+                GAME.INVITER.eq(userId1)
+                    .and(GAME.INVITEE.eq(userId2))
+                    .or(
+                        GAME.INVITER.eq(userId2)
+                            .and(GAME.INVITEE.eq(userId1)),
+                    ),
+            )
+            .awaitSingleValue() ?: 0
+
     suspend fun latestGameActivity(minMoveIndex: Int = 0): Instant? =
         dslContext
             .select(DSL.max(GAME.LAST_UPDATED))

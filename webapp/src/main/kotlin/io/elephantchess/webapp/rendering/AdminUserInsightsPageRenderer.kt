@@ -133,6 +133,7 @@ class AdminUserInsightsPageRenderer(
                     tr {
                         th { +"user" }
                         th { +"shared IPs" }
+                        th { +"PvP together" }
                         th { +"last seen" }
                     }
                     data.relatedUsers.forEach { entry ->
@@ -143,6 +144,7 @@ class AdminUserInsightsPageRenderer(
                                 }
                             }
                             td { +entry.sharedIpCount.toString() }
+                            td { +formatPvpTogether(entry.pvpGamesWithUser) }
                             td { +formatTimestampUtc(entry.lastSeen) }
                         }
                     }
@@ -325,6 +327,13 @@ class AdminUserInsightsPageRenderer(
             otherUsersOnRemoteAddress <= 0 -> "no"
             otherUsersOnRemoteAddress == 1 -> "possible (1 other user on IP)"
             else -> "possible ($otherUsersOnRemoteAddress other users on IP)"
+        }
+
+    private fun formatPvpTogether(totalGames: Int): String =
+        if (totalGames <= 0) {
+            "no"
+        } else {
+            "yes ($totalGames)"
         }
 
     private fun formatTimestampWithRelativeAge(epochMillis: Long?): String {

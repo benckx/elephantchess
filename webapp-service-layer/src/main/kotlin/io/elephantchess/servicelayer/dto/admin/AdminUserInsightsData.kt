@@ -45,6 +45,7 @@ data class AdminUserInsightsData(
         val userId: String,
         val username: String,
         val sharedIpCount: Int,
+        val pvpGamesWithUser: Int,
         val lastSeen: Long?,
     )
 

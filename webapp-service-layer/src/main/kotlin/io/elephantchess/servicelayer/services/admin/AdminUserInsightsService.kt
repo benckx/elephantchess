@@ -48,6 +48,9 @@ class AdminUserInsightsService(
             remoteAddresses = latestSessions.map { it.remoteAddress }.toSet(),
             limit = 20,
         )
+        val pvpGamesWithRelatedUser = relatedUsers.associate { relatedUser ->
+            relatedUser.userId to playerVsPlayerGameDaoService.countGamesBetweenUsers(user.id, relatedUser.userId)
+        }
         val savedAnalysis = analysisService.listUserAnalysis(user.id, beforeTs = null).entries.take(10)
         val otherUsersByRemoteAddress = userSessionDaoService.countOtherUsersByRemoteAddresses(
             userId = user.id,
@@ -77,6 +80,7 @@ class AdminUserInsightsService(
                     userId = relatedUser.userId,
                     username = userDaoService.findUserNameById(relatedUser.userId) ?: relatedUser.userId,
                     sharedIpCount = relatedUser.sharedRemoteAddressCount,
+                    pvpGamesWithUser = pvpGamesWithRelatedUser[relatedUser.userId] ?: 0,
                     lastSeen = relatedUser.lastSeen?.toEpochMilliseconds(),
                 )
             },
