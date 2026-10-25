@@ -162,7 +162,6 @@ class AdminFeedService(
                     sharedRemoteAddressCount = record.sharedRemoteAddressCount,
                     sharedFingerprintCount = record.sharedFingerprintCount,
                     gameCreated = record.gameCreated.toEpochMilliseconds(),
-                    lastScannedAt = record.lastScannedAt.toEpochMilliseconds(),
                 )
             }
 

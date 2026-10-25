@@ -1,6 +1,7 @@
 package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.GAME
+import io.elephantchess.db.dao.codegen.Tables.GAME_SOCK_PUPPET_DETECTION
 import io.elephantchess.db.model.SockPuppetDetectionEntryRecord
 import io.elephantchess.db.model.SockPuppetDetectionSummaryRecord
 import io.elephantchess.db.utils.awaitExecute
@@ -26,13 +27,12 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
         return dslContext
             .insertInto(
                 GAME_SOCK_PUPPET_DETECTION,
-                GAME_SOCK_PUPPET_DETECTION_GAME_ID,
-                GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID,
-                GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID,
-                GAME_SOCK_PUPPET_DETECTION_SHARED_REMOTE_ADDRESS_COUNT,
-                GAME_SOCK_PUPPET_DETECTION_SHARED_FINGERPRINT_COUNT,
-                GAME_SOCK_PUPPET_DETECTION_CREATED_AT,
-                GAME_SOCK_PUPPET_DETECTION_LAST_SCANNED_AT,
+                GAME_SOCK_PUPPET_DETECTION.GAME_ID,
+                GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
+                GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT,
+                GAME_SOCK_PUPPET_DETECTION.CREATED_AT,
             )
             .values(
                 gameId,
@@ -41,13 +41,11 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
                 sharedRemoteAddressCount,
                 sharedFingerprintCount,
                 now,
-                now,
             )
-            .onConflict(GAME_SOCK_PUPPET_DETECTION_GAME_ID)
+            .onConflict(GAME_SOCK_PUPPET_DETECTION.GAME_ID)
             .doUpdate()
-            .set(GAME_SOCK_PUPPET_DETECTION_SHARED_REMOTE_ADDRESS_COUNT, sharedRemoteAddressCount)
-            .set(GAME_SOCK_PUPPET_DETECTION_SHARED_FINGERPRINT_COUNT, sharedFingerprintCount)
-            .set(GAME_SOCK_PUPPET_DETECTION_LAST_SCANNED_AT, now)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT, sharedRemoteAddressCount)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT, sharedFingerprintCount)
             .awaitExecute()
     }
 
@@ -57,40 +55,38 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
         }
 
         return dslContext
-            .select(GAME_SOCK_PUPPET_DETECTION_GAME_ID)
+            .select(GAME_SOCK_PUPPET_DETECTION.GAME_ID)
             .from(GAME_SOCK_PUPPET_DETECTION)
-            .where(GAME_SOCK_PUPPET_DETECTION_GAME_ID.`in`(gameIds))
+            .where(GAME_SOCK_PUPPET_DETECTION.GAME_ID.`in`(gameIds))
             .awaitRecords()
-            .map { record -> record.get(GAME_SOCK_PUPPET_DETECTION_GAME_ID) }
+            .map { record -> record.get(GAME_SOCK_PUPPET_DETECTION.GAME_ID) }
             .toSet()
     }
 
     suspend fun listLatestDetections(limit: Int): List<SockPuppetDetectionEntryRecord> =
         dslContext
             .select(
-                GAME_SOCK_PUPPET_DETECTION_GAME_ID,
-                GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID,
-                GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID,
-                GAME_SOCK_PUPPET_DETECTION_SHARED_REMOTE_ADDRESS_COUNT,
-                GAME_SOCK_PUPPET_DETECTION_SHARED_FINGERPRINT_COUNT,
+                GAME_SOCK_PUPPET_DETECTION.GAME_ID,
+                GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
+                GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT,
                 GAME.CREATED,
-                GAME_SOCK_PUPPET_DETECTION_LAST_SCANNED_AT,
             )
             .from(GAME_SOCK_PUPPET_DETECTION)
             .join(GAME)
-            .on(GAME.ID.eq(GAME_SOCK_PUPPET_DETECTION_GAME_ID))
+            .on(GAME.ID.eq(GAME_SOCK_PUPPET_DETECTION.GAME_ID))
             .orderBy(GAME.CREATED.desc())
             .limit(limit)
             .awaitRecords()
             .map { record ->
                 SockPuppetDetectionEntryRecord(
-                    gameId = record.get(GAME_SOCK_PUPPET_DETECTION_GAME_ID),
-                    inviterUserId = record.get(GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID),
-                    inviteeUserId = record.get(GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID),
-                    sharedRemoteAddressCount = record.get(GAME_SOCK_PUPPET_DETECTION_SHARED_REMOTE_ADDRESS_COUNT) ?: 0,
-                    sharedFingerprintCount = record.get(GAME_SOCK_PUPPET_DETECTION_SHARED_FINGERPRINT_COUNT) ?: 0,
+                    gameId = record.get(GAME_SOCK_PUPPET_DETECTION.GAME_ID),
+                    inviterUserId = record.get(GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID),
+                    inviteeUserId = record.get(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID),
+                    sharedRemoteAddressCount = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT) ?: 0,
+                    sharedFingerprintCount = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT) ?: 0,
                     gameCreated = record.get(GAME.CREATED),
-                    lastScannedAt = record.get(GAME_SOCK_PUPPET_DETECTION_LAST_SCANNED_AT),
                 )
             }
 
@@ -101,21 +97,21 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue() ?: 0
 
         val distinctInviters = dslContext
-            .select(DSL.countDistinct(GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID))
+            .select(DSL.countDistinct(GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID))
             .from(GAME_SOCK_PUPPET_DETECTION)
             .awaitSingleValue() ?: 0
 
         val distinctInvitees = dslContext
-            .select(DSL.countDistinct(GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID))
+            .select(DSL.countDistinct(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID))
             .from(GAME_SOCK_PUPPET_DETECTION)
             .awaitSingleValue() ?: 0
 
         val allUsers = dslContext
-            .select(GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID.`as`("user_id"))
+            .select(GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID.`as`("user_id"))
             .from(GAME_SOCK_PUPPET_DETECTION)
             .union(
                 dslContext
-                    .select(GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID.`as`("user_id"))
+                    .select(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID.`as`("user_id"))
                     .from(GAME_SOCK_PUPPET_DETECTION),
             )
             .asTable("all_users")
@@ -123,39 +119,13 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
         val distinctUsersInvolved = dslContext
             .selectCount()
             .from(allUsers)
-            .awaitSingleValue<Int>() ?: 0
+            .awaitSingleValue() ?: 0
 
         return SockPuppetDetectionSummaryRecord(
             totalDetections = totalDetections,
             distinctUsersInvolved = distinctUsersInvolved,
             distinctInviters = distinctInviters,
             distinctInvitees = distinctInvitees,
-        )
-    }
-
-    private companion object {
-
-        val GAME_SOCK_PUPPET_DETECTION = DSL.table(DSL.name("game_sock_puppet_detection"))
-        val GAME_SOCK_PUPPET_DETECTION_GAME_ID = DSL.field(DSL.name("game_sock_puppet_detection", "game_id"), String::class.java)
-        val GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID =
-            DSL.field(DSL.name("game_sock_puppet_detection", "inviter_user_id"), String::class.java)
-        val GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID =
-            DSL.field(DSL.name("game_sock_puppet_detection", "invitee_user_id"), String::class.java)
-        val GAME_SOCK_PUPPET_DETECTION_SHARED_REMOTE_ADDRESS_COUNT = DSL.field(
-            DSL.name("game_sock_puppet_detection", "shared_remote_address_count"),
-            Int::class.java,
-        )
-        val GAME_SOCK_PUPPET_DETECTION_SHARED_FINGERPRINT_COUNT = DSL.field(
-            DSL.name("game_sock_puppet_detection", "shared_fingerprint_count"),
-            Int::class.java,
-        )
-        val GAME_SOCK_PUPPET_DETECTION_CREATED_AT = DSL.field(
-            DSL.name("game_sock_puppet_detection", "created_at"),
-            kotlin.time.Instant::class.java,
-        )
-        val GAME_SOCK_PUPPET_DETECTION_LAST_SCANNED_AT = DSL.field(
-            DSL.name("game_sock_puppet_detection", "last_scanned_at"),
-            kotlin.time.Instant::class.java,
         )
     }
 }

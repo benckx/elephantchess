@@ -9,5 +9,4 @@ data class SockPuppetDetectionEntryRecord(
     val sharedRemoteAddressCount: Int,
     val sharedFingerprintCount: Int,
     val gameCreated: Instant,
-    val lastScannedAt: Instant,
 )

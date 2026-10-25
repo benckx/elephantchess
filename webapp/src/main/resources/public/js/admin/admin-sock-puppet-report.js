@@ -53,7 +53,6 @@ class AdminSockPuppetReportPage extends BasePage {
                 row.insertCell().innerText = entry.sharedRemoteAddressCount.toString();
                 row.insertCell().innerText = entry.sharedFingerprintCount.toString();
                 row.insertCell().innerText = formatTimestampDefaultDateFormat(entry.gameCreated);
-                row.insertCell().innerText = formatTimestampDefaultDateFormat(entry.lastScannedAt);
             });
         });
     }

@@ -2667,9 +2667,6 @@
             <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="last_scanned_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
         </createTable>
         <addForeignKeyConstraint
                 baseTableName="game_sock_puppet_detection"
