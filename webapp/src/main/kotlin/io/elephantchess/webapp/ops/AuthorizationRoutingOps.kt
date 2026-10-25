@@ -23,6 +23,11 @@ import io.ktor.util.*
 private val opsLogger by lazy { logger {} }
 private val userCache by koin<UserCache>()
 
+suspend fun RoutingContext.isAdmin(): Boolean {
+    val result = extractAndVerifyToken()
+    return result is AuthenticatedToken && result.hasRole(ADMIN) && verifyInDb(result, ADMIN)
+}
+
 /**
  * Require an authenticated user (not a guest)
  */

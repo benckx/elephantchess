@@ -2,8 +2,10 @@ package io.elephantchess.webapp.routing.html
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
+import io.elephantchess.model.UserRole
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.servicelayer.model.AuthenticatedToken
 import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserService
@@ -219,6 +221,7 @@ private fun Route.userProfile() {
 
     get("/@/{username}") {
         val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
+        val isAdmin = isAdmin()
 
         val userProfileResponse = userService.fetchProfile(username)
         call.respondHtml(renderer.renderUserProfile(userProfileResponse))
