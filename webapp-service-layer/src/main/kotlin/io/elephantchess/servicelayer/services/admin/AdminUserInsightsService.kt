@@ -21,9 +21,10 @@ class AdminUserInsightsService(
     private val userSessionDaoService: UserSessionDaoService,
 ) {
 
-    suspend fun fetchUserInsights(username: String): AdminUserInsightsData {
-        val user = userDaoService.findByUserName(username)
-            ?: throw NotFoundException("User $username could not be found")
+    suspend fun fetchUserInsights(identifier: String): AdminUserInsightsData {
+        val user = userDaoService.findByUserName(identifier)
+            ?: userDaoService.findById(identifier)
+            ?: throw NotFoundException("User $identifier could not be found")
 
         val puzzle = puzzleResultDaoService.fetchUserActivitySummary(user.id)
         val pvp = playerVsPlayerGameDaoService.fetchUserActivitySummary(user.id)
@@ -33,7 +34,7 @@ class AdminUserInsightsService(
 
         return AdminUserInsightsData(
             userId = user.id,
-            username = user.handle,
+            username = user.handle ?: user.id,
             email = user.email,
             userType = user.userType,
             country = user.country,

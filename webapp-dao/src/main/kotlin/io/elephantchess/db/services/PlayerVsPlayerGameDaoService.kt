@@ -285,7 +285,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return UserActivitySummaryRecord(
             firstPlayed = record?.get(firstPlayed),
             lastPlayed = record?.get(lastPlayed),
-            totalPlayed = record?.get(totalPlayed) ?: 0,
+            totalPlayed = record?.get("total_played", Int::class.java) ?: 0,
         )
     }
 

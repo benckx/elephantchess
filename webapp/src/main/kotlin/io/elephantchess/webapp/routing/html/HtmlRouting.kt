@@ -237,10 +237,10 @@ private fun Route.userProfile() {
         userService.validateUserExists(username)
         call.respondHtml(userProfilePageRenderer.renderUserBrowsePvbGames(username))
     }
-    get("/admin/user/{username}") {
+    get("/admin/user/{identifier}") {
         requireAdminRole { _ ->
-            val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
-            TextContent(adminUserInsightsRenderer.renderUserInsightsPage(username), ContentType.Text.Html)
+            val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+            TextContent(adminUserInsightsRenderer.renderUserInsightsPage(identifier), ContentType.Text.Html)
         }
     }
 }

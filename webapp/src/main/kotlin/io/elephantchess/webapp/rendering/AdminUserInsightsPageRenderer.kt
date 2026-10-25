@@ -3,17 +3,13 @@ package io.elephantchess.webapp.rendering
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
+import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsData
 import io.elephantchess.servicelayer.services.admin.AdminUserInsightsService
 import io.elephantchess.utils.di.KoinSingleton
-import io.ktor.http.encodeURLPath
-import kotlinx.html.TABLE
-import kotlinx.html.id
-import kotlinx.html.p
-import kotlinx.html.table
-import kotlinx.html.td
-import kotlinx.html.th
-import kotlinx.html.tr
+import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
+import io.ktor.http.*
+import kotlinx.html.*
 
 @KoinSingleton(eager = true)
 class AdminUserInsightsPageRenderer(
@@ -21,16 +17,16 @@ class AdminUserInsightsPageRenderer(
     private val adminUserInsightsService: AdminUserInsightsService,
 ) {
 
-    suspend fun renderUserInsightsPage(username: String): String {
-        val data = adminUserInsightsService.fetchUserInsights(username)
-        val encodedUsername = data.username.encodeURLPath()
+    suspend fun renderUserInsightsPage(identifier: String): String {
+        val data = adminUserInsightsService.fetchUserInsights(identifier)
+        val encodedIdentifier = identifier.encodeURLPath()
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/admin/admin_user_insights.html",
-            canonicalPath = "/admin/user/$encodedUsername",
+            canonicalPath = "/admin/user/$encodedIdentifier",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("username", data.username),
-                SimpleValueTagResolver("public_profile_url", "/@/$encodedUsername"),
+                publicProfileLinkTagResolver(data),
                 userMetadataTableTagResolver(data),
                 gameActivityTableTagResolver(data),
                 latestPageViewsTagResolver(data),
@@ -38,6 +34,15 @@ class AdminUserInsightsPageRenderer(
             ),
         )
     }
+
+    private fun publicProfileLinkTagResolver(data: AdminUserInsightsData) =
+        CallbackTagResolver("admin_user_public_profile_link") {
+            if (data.userType == UserType.AUTHENTICATED && data.username.isNotBlank()) {
+                """<a id="admin-user-insights-public-profile-link" href="/@/${data.username.encodeURLPath()}">Open public profile</a>"""
+            } else {
+                """<span id="admin-user-insights-public-profile-link">No public profile for guest users.</span>"""
+            }
+        }
 
     private fun userMetadataTableTagResolver(data: AdminUserInsightsData) =
         KtorHtmlBuilderTagResolver("admin_user_metadata_table") {
