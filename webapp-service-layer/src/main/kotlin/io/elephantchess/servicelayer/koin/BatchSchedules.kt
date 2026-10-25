@@ -38,7 +38,7 @@ internal fun batchSchedulesModule() =
                     get<DetectSockPuppetGamesBatch>(),
                     period = 30.minutes,
 //                    delay = 5.minutes,
-                    delay = 30.seconds,
+                    delay = 1.minutes,
                 ),
                 ShardedBatchSchedule(
                     get<FlagGamesBatch>(),
@@ -70,7 +70,7 @@ internal fun batchSchedulesModule() =
                     get<FetchDailyUsersMetricsBatch>(),
                     period = 6.hours,
                     delay = 15.minutes,
-                    podNumber = 0,
+                    podNumber = 1,
                 ),
                 SinglePodBatchSchedule(
                     get<ArchiveOldGuestsBatch>(),
