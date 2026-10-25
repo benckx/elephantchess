@@ -1,16 +1,32 @@
 <html lang="en">
 <head>
-    {{header_init}}
+    {{header_init_admin}}
     <title>Admin user insights - {{username}}</title>
-    {{meta_no_index}}
     <link rel="stylesheet" href="/css/common/nice-table.css"/>
+    <link rel="stylesheet" href="/css/database/database-search.css"/>
     <link rel="stylesheet" href="/css/admin-user-insights.css"/>
+    <script defer src="/js/widgets/database-autocompletion.js"></script>
+    <script defer src="/js/admin/admin-user-insights.js"></script>
 </head>
 <body>
 {{body_init}}
 <div class="main-container-text-extended-smaller">
+    {{admin_submenu}}
     <h1>Admin User Insights</h1>
     <hr/>
+    <div id="admin-user-insights-search-box" class="search-container">
+        <label class="search-label">
+            <span>Search user (handle or guest id)</span>
+            <input id="insights-user-search" type="text" value="{{username}}"/>
+        </label>
+        <div class="suggestions-box">
+            <div class="suggestions-box-content"></div>
+        </div>
+        <div id="admin-user-insights-search-actions">
+            <input id="admin-user-insights-search-button" type="button" class="app-buttons" value="search">
+        </div>
+    </div>
+
     <p>
         {{admin_user_public_profile_link}}
     </p>
@@ -24,10 +40,12 @@
     {{admin_user_game_activity_table}}
 
     <h2>Latest chat messages sent</h2>
+    <p><a id="admin-user-chat-messages-full-link" href="{{chat_messages_page_url}}">view all chat messages</a></p>
     <hr/>
     {{admin_user_latest_chat_messages_table}}
 
     <h2>Latest page views</h2>
+    <p><a id="admin-user-page-views-full-link" href="{{page_views_page_url}}">view all page views</a></p>
     <hr/>
     {{admin_user_latest_page_views_table}}
 

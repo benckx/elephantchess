@@ -14,9 +14,16 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 
 @KoinSingleton
 class UserSessionDaoService(private val dslContext: DSLContext, private val logger: KLogger) {
+
+    data class SharedRemoteAddressUser(
+        val userId: String,
+        val sharedRemoteAddressCount: Int,
+        val lastSeen: Instant?,
+    )
 
     suspend fun createOrUpdate(record: UserSessionRecord) {
         if (record.userId != null) {
@@ -143,6 +150,36 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
                 val remoteAddress = record.get(USER_SESSION.REMOTE_ADDRESS)
                 val count = record.get("distinctUsers", Int::class.java) ?: 0
                 remoteAddress to count
+            }
+    }
+
+    suspend fun listOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>, limit: Int): List<SharedRemoteAddressUser> {
+        if (remoteAddresses.isEmpty()) {
+            return emptyList()
+        }
+
+        val sharedIpCountField = DSL.countDistinct(USER_SESSION.REMOTE_ADDRESS).`as`("sharedIpCount")
+        val lastSeenField = DSL.max(USER_SESSION.LAST_UPDATED).`as`("lastSeen")
+
+        return dslContext
+            .select(
+                USER_SESSION.USER_ID,
+                sharedIpCountField,
+                lastSeenField,
+            )
+            .from(USER_SESSION)
+            .where(USER_SESSION.REMOTE_ADDRESS.`in`(remoteAddresses))
+            .and(USER_SESSION.USER_ID.ne(userId))
+            .groupBy(USER_SESSION.USER_ID)
+            .orderBy(sharedIpCountField.desc(), lastSeenField.desc())
+            .limit(limit)
+            .awaitRecords()
+            .map { record ->
+                SharedRemoteAddressUser(
+                    userId = record.get(USER_SESSION.USER_ID),
+                    sharedRemoteAddressCount = record.get(sharedIpCountField)?.toInt() ?: 0,
+                    lastSeen = record.get(lastSeenField),
+                )
             }
     }
 

@@ -1,6 +1,7 @@
 package io.elephantchess.servicelayer.dto.admin
 
 import io.elephantchess.model.UserType
+import io.elephantchess.model.GameType
 import io.elephantchess.servicelayer.dto.user.EmailValidityStatus
 
 data class AdminUserInsightsData(
@@ -21,6 +22,8 @@ data class AdminUserInsightsData(
     val pvpOver3: ActivitySummary,
     val pvb: ActivitySummary,
     val pvbOver3: ActivitySummary,
+    val relatedUsers: List<RelatedUserEntry>,
+    val savedAnalysis: List<SavedAnalysisEntry>,
     val latestChatMessages: List<ChatMessageEntry>,
     val latestPageViews: List<PageViewEntry>,
     val latestSessions: List<SessionEntry>,
@@ -34,9 +37,23 @@ data class AdminUserInsightsData(
 
     data class ChatMessageEntry(
         val gameId: String,
-        val index: Int,
         val messageTime: Long,
         val content: String,
+    )
+
+    data class RelatedUserEntry(
+        val userId: String,
+        val username: String,
+        val sharedIpCount: Int,
+        val lastSeen: Long?,
+    )
+
+    data class SavedAnalysisEntry(
+        val analysisId: String,
+        val name: String,
+        val gameType: GameType?,
+        val created: Long,
+        val lastUpdated: Long,
     )
 
     data class PageViewEntry(val url: String, val time: Long)

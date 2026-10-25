@@ -8,8 +8,12 @@ import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserSessionDaoService
+import io.elephantchess.servicelayer.dto.AutocompleteResponse
+import io.elephantchess.servicelayer.dto.admin.AdminUserChatMessagesResponse
 import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsData
+import io.elephantchess.servicelayer.dto.admin.AdminUserPageViewsResponse
 import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.servicelayer.services.AnalysisService
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.servicelayer.services.MailService
 import io.elephantchess.utils.di.KoinSingleton
@@ -23,13 +27,12 @@ class AdminUserInsightsService(
     private val chatMessageDaoService: ChatMessageDaoService,
     private val archivedPageViewDaoService: ArchivedPageViewDaoService,
     private val userSessionDaoService: UserSessionDaoService,
+    private val analysisService: AnalysisService,
     private val mailService: MailService,
 ) {
 
     suspend fun fetchUserInsights(identifier: String): AdminUserInsightsData {
-        val user = userDaoService.findByUserName(identifier)
-            ?: userDaoService.findById(identifier)
-            ?: throw NotFoundException("User $identifier could not be found")
+        val user = resolveUser(identifier)
 
         val puzzle = puzzleResultDaoService.fetchUserActivitySummary(user.id)
         val pvp = playerVsPlayerGameDaoService.fetchUserActivitySummary(user.id)
@@ -40,6 +43,12 @@ class AdminUserInsightsService(
         val latestChatMessages = chatMessageDaoService.listLastMessagesByAuthor(user.id, limit = 10)
         val latestPageViews = archivedPageViewDaoService.listPageViewsForUser(user.id, limit = 20, offset = 0)
         val latestSessions = userSessionDaoService.listAuthenticatedSessionsForUser(user.id, limit = 5, offset = 0)
+        val relatedUsers = userSessionDaoService.listOtherUsersByRemoteAddresses(
+            userId = user.id,
+            remoteAddresses = latestSessions.map { it.remoteAddress }.toSet(),
+            limit = 20,
+        )
+        val savedAnalysis = analysisService.listUserAnalysis(user.id, beforeTs = null).entries.take(10)
         val otherUsersByRemoteAddress = userSessionDaoService.countOtherUsersByRemoteAddresses(
             userId = user.id,
             remoteAddresses = latestSessions.map { it.remoteAddress }.toSet(),
@@ -63,10 +72,26 @@ class AdminUserInsightsService(
             pvpOver3 = pvpOver3.toDto(),
             pvb = pvb.toDto(),
             pvbOver3 = pvbOver3.toDto(),
+            relatedUsers = relatedUsers.map { relatedUser ->
+                AdminUserInsightsData.RelatedUserEntry(
+                    userId = relatedUser.userId,
+                    username = userDaoService.findUserNameById(relatedUser.userId) ?: relatedUser.userId,
+                    sharedIpCount = relatedUser.sharedRemoteAddressCount,
+                    lastSeen = relatedUser.lastSeen?.toEpochMilliseconds(),
+                )
+            },
+            savedAnalysis = savedAnalysis.map { analysis ->
+                AdminUserInsightsData.SavedAnalysisEntry(
+                    analysisId = analysis.analysisId,
+                    name = analysis.name,
+                    gameType = analysis.gameType,
+                    created = analysis.created,
+                    lastUpdated = analysis.lastUpdated,
+                )
+            },
             latestChatMessages = latestChatMessages.map { record ->
                 AdminUserInsightsData.ChatMessageEntry(
                     gameId = record.gameId,
-                    index = record.index,
                     messageTime = record.messageTime.toEpochMilliseconds(),
                     content = record.content,
                 )
@@ -94,10 +119,60 @@ class AdminUserInsightsService(
         )
     }
 
+    suspend fun listUserSuggestions(contains: String): AutocompleteResponse {
+        val entries = userDaoService.listUsersStartingWith(contains, SUGGESTIONS_LIMIT)
+            .ifEmpty { userDaoService.listUsersContaining(contains, SUGGESTIONS_LIMIT) }
+
+        return AutocompleteResponse(
+            entries = entries.map { entry ->
+                AutocompleteResponse.Entry(
+                    id = entry.id,
+                    name = entry.name,
+                )
+            },
+        )
+    }
+
+    suspend fun listUserPageViews(identifier: String, limit: Int, offset: Int): AdminUserPageViewsResponse {
+        val user = resolveUser(identifier)
+        val entries = archivedPageViewDaoService.listPageViewsForUser(user.id, limit, offset)
+            .map { record ->
+                AdminUserPageViewsResponse.Entry(
+                    url = record.url,
+                    time = record.eventTime.toEpochMilliseconds(),
+                )
+            }
+
+        return AdminUserPageViewsResponse(entries)
+    }
+
+    suspend fun listUserChatMessages(identifier: String, limit: Int, offset: Int): AdminUserChatMessagesResponse {
+        val user = resolveUser(identifier)
+        val entries = chatMessageDaoService.listMessagesByAuthor(user.id, limit, offset)
+            .map { record ->
+                AdminUserChatMessagesResponse.Entry(
+                    gameId = record.gameId,
+                    messageTime = record.messageTime.toEpochMilliseconds(),
+                    content = record.content,
+                )
+            }
+
+        return AdminUserChatMessagesResponse(entries)
+    }
+
+    private suspend fun resolveUser(identifier: String) =
+        userDaoService.findByUserName(identifier)
+            ?: userDaoService.findById(identifier)
+            ?: throw NotFoundException("User $identifier could not be found")
+
     private fun UserActivitySummaryRecord.toDto(): AdminUserInsightsData.ActivitySummary =
         AdminUserInsightsData.ActivitySummary(
             firstPlayed = firstPlayed?.toEpochMilliseconds(),
             lastPlayed = lastPlayed?.toEpochMilliseconds(),
             totalPlayed = totalPlayed,
         )
+
+    private companion object {
+        const val SUGGESTIONS_LIMIT = 50
+    }
 }
