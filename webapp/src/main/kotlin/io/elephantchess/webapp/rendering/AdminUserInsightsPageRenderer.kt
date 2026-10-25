@@ -7,7 +7,7 @@ import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsData
 import io.elephantchess.servicelayer.services.admin.AdminUserInsightsService
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
+import io.elephantchess.webapp.rendering.resolvers.formatTimestampUtc
 import io.ktor.http.*
 import kotlinx.html.*
 
@@ -36,11 +36,17 @@ class AdminUserInsightsPageRenderer(
     }
 
     private fun publicProfileLinkTagResolver(data: AdminUserInsightsData) =
-        CallbackTagResolver("admin_user_public_profile_link") {
+        KtorHtmlBuilderTagResolver("admin_user_public_profile_link") {
             if (data.userType == UserType.AUTHENTICATED && data.username.isNotBlank()) {
-                """<a id="admin-user-insights-public-profile-link" href="/@/${data.username.encodeURLPath()}">Open public profile</a>"""
+                a(href = "/@/${data.username.encodeURLPath()}") {
+                    id = "admin-user-insights-public-profile-link"
+                    +"Open public profile"
+                }
             } else {
-                """<span id="admin-user-insights-public-profile-link">No public profile for guest users.</span>"""
+                span {
+                    id = "admin-user-insights-public-profile-link"
+                    +"No public profile for guest users."
+                }
             }
         }
 
