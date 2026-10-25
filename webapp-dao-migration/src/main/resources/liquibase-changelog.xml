@@ -2920,7 +2920,7 @@
                 <constraints nullable="false"/>
             </column>
         </addColumn>
-        <createTable tableName="sock_puppet_report">
+        <createTable tableName="game_sock_puppet_detection">
             <column name="game_id" type="varchar(12)">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
@@ -2944,31 +2944,31 @@
             </column>
         </createTable>
         <addForeignKeyConstraint
-                baseTableName="sock_puppet_report"
+                baseTableName="game_sock_puppet_detection"
                 baseColumnNames="game_id"
-                constraintName="sock_puppet_report_game_fk"
+                constraintName="game_sock_puppet_detection_game_fk"
                 referencedTableName="game"
                 referencedColumnNames="id"/>
         <addForeignKeyConstraint
-                baseTableName="sock_puppet_report"
+                baseTableName="game_sock_puppet_detection"
                 baseColumnNames="inviter_user_id"
-                constraintName="sock_puppet_report_inviter_user_fk"
+                constraintName="game_sock_puppet_detection_inviter_user_fk"
                 referencedTableName="user"
                 referencedColumnNames="id"/>
         <addForeignKeyConstraint
-                baseTableName="sock_puppet_report"
+                baseTableName="game_sock_puppet_detection"
                 baseColumnNames="invitee_user_id"
-                constraintName="sock_puppet_report_invitee_user_fk"
+                constraintName="game_sock_puppet_detection_invitee_user_fk"
                 referencedTableName="user"
                 referencedColumnNames="id"/>
         <createIndex tableName="game" indexName="game_scanned_idx">
             <column name="scanned"/>
             <column name="last_updated"/>
         </createIndex>
-        <createIndex tableName="sock_puppet_report" indexName="sock_puppet_report_inviter_idx">
+        <createIndex tableName="game_sock_puppet_detection" indexName="game_sock_puppet_detection_inviter_idx">
             <column name="inviter_user_id"/>
         </createIndex>
-        <createIndex tableName="sock_puppet_report" indexName="sock_puppet_report_invitee_idx">
+        <createIndex tableName="game_sock_puppet_detection" indexName="game_sock_puppet_detection_invitee_idx">
             <column name="invitee_user_id"/>
         </createIndex>
     </changeSet>
