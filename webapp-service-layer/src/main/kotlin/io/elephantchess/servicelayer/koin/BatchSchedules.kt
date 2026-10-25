@@ -36,9 +36,8 @@ internal fun batchSchedulesModule() =
                 ),
                 ShardedBatchSchedule(
                     get<DetectSockPuppetGamesBatch>(),
-                    period = 30.minutes,
-//                    delay = 5.minutes,
-                    delay = 1.minutes,
+                    period = 15.minutes,
+                    delay = 5.minutes,
                 ),
                 ShardedBatchSchedule(
                     get<FlagGamesBatch>(),
