@@ -36,6 +36,11 @@ class DetectSockPuppetGamesBatch(
                 sharedRemoteAddressCount = similarity.sharedRemoteAddressCount,
                 sharedFingerprintCount = similarity.sharedFingerprintCount,
             )
+
+            logger.info {
+                "game ${element.gameId} detected as sock puppet for ${similarity.sharedRemoteAddressCount} shared report addresses " +
+                    "and ${similarity.sharedFingerprintCount} shared fingerprints"
+            }
         }
 
         pvpGameDaoService.markGamesAsSockPuppetScanned(listOf(element.gameId))
