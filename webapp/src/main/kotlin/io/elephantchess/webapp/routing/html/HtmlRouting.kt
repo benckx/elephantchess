@@ -239,8 +239,13 @@ private fun Route.userProfile() {
     }
     get("/admin/user/{identifier}") {
         requireAdminRole { _ ->
-            val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
-            TextContent(adminUserInsightsRenderer.renderUserInsightsPage(identifier), ContentType.Text.Html)
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserInsightsPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
         }
     }
 }

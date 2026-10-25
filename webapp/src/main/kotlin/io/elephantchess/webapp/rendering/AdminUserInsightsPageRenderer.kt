@@ -52,7 +52,7 @@ class AdminUserInsightsPageRenderer(
 
     private fun userMetadataTableTagResolver(data: AdminUserInsightsData) =
         KtorHtmlBuilderTagResolver("admin_user_metadata_table") {
-            table("nice-table nice-table-striped nice-table-hover") {
+            table("nice-table nice-table-striped") {
                 id = "admin-user-metadata-table"
                 metadataRow("user id", data.userId)
                 metadataRow("username", data.username)
@@ -71,7 +71,7 @@ class AdminUserInsightsPageRenderer(
 
     private fun gameActivityTableTagResolver(data: AdminUserInsightsData) =
         KtorHtmlBuilderTagResolver("admin_user_game_activity_table") {
-            table("nice-table nice-table-striped nice-table-hover") {
+            table("nice-table nice-table-striped") {
                 id = "admin-user-game-activity-table"
                 tr {
                     th { +"mode" }
@@ -92,7 +92,7 @@ class AdminUserInsightsPageRenderer(
             if (data.latestChatMessages.isEmpty()) {
                 p("empty-block-placeholder") { +"No chat messages found." }
             } else {
-                table("nice-table nice-table-striped nice-table-hover") {
+                table("nice-table nice-table-striped") {
                     id = "admin-user-latest-chat-messages-table"
                     tr {
                         th { +"game id" }
@@ -144,7 +144,7 @@ class AdminUserInsightsPageRenderer(
             if (data.latestSessions.isEmpty()) {
                 p("empty-block-placeholder") { +"No sessions found." }
             } else {
-                table("nice-table nice-table-striped nice-table-hover") {
+                table("nice-table nice-table-striped") {
                     id = "admin-user-latest-sessions-table"
                     tr {
                         th { +"os" }
