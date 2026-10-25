@@ -172,7 +172,7 @@ class AdminUserInsightsPageRenderer(
                                     +entry.name
                                 }
                             }
-                            td { naAwareText(entry.gameType?.name ?: "n/a") }
+                            td { greyOutText(entry.gameType?.name ?: "n/a") }
                             td { +formatTimestampUtc(entry.created) }
                             td { +formatTimestampWithRelativeAge(entry.lastUpdated) }
                         }
@@ -285,9 +285,9 @@ class AdminUserInsightsPageRenderer(
                         tr {
                             td { +entry.os }
                             td { +entry.agentName }
-                            td { naAwareText(entry.countryName ?: entry.countryCode ?: "n/a") }
-                            td { naAwareText(entry.region ?: "n/a") }
-                            td { naAwareText(entry.city ?: "n/a") }
+                            td { greyOutText(entry.countryName ?: entry.countryCode ?: "n/a") }
+                            td { greyOutText(entry.region ?: "n/a") }
+                            td { greyOutText(entry.city ?: "n/a") }
                             td { +entry.remoteAddress }
                             td { +formatSockPuppetSignal(entry.otherUsersOnRemoteAddress) }
                             td { +formatTimestampUtc(entry.created) }
@@ -301,20 +301,20 @@ class AdminUserInsightsPageRenderer(
     private fun TABLE.metadataRow(label: String, value: String) {
         tr {
             th { +label }
-            td { naAwareText(value) }
+            td { greyOutText(value) }
         }
     }
 
     private fun TABLE.activityRow(label: String, summary: AdminUserInsightsData.ActivitySummary) {
         tr {
             td { +label }
-            td { naAwareText(formatTimestampUtc(summary.firstPlayed)) }
-            td { naAwareText(formatTimestampWithRelativeAge(summary.lastPlayed)) }
+            td { greyOutText(formatTimestampUtc(summary.firstPlayed)) }
+            td { greyOutText(formatTimestampWithRelativeAge(summary.lastPlayed)) }
             td { +summary.totalPlayed.toString() }
         }
     }
 
-    private fun TD.naAwareText(value: String) {
+    private fun TD.greyOutText(value: String) {
         if (value == "n/a") {
             span("na-value") { +value }
         } else {
