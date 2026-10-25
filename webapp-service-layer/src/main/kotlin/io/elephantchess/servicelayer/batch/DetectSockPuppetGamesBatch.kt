@@ -1,9 +1,10 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.db.model.SockPuppetScanCandidateRecord
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.SockPuppetReportDaoService
 import io.elephantchess.db.services.UserSessionDaoService
-import io.elephantchess.servicelayer.batch.definitions.SinglePodBatch
+import io.elephantchess.servicelayer.batch.definitions.ShardedBatch
 import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 
@@ -13,46 +14,31 @@ class DetectSockPuppetGamesBatch(
     private val userSessionDaoService: UserSessionDaoService,
     private val sockPuppetReportDaoService: SockPuppetReportDaoService,
     override val logger: KLogger,
-) : SinglePodBatch {
+) : ShardedBatch<SockPuppetScanCandidateRecord>() {
 
-    override suspend fun run() {
-        val candidates = pvpGameDaoService.listGamesPendingSockPuppetScan(SCAN_LIMIT_PER_RUN)
-        if (candidates.isEmpty()) {
-            return
+    override fun shardKey(element: SockPuppetScanCandidateRecord): String =
+        element.gameId
+
+    override suspend fun fetchAll(): List<SockPuppetScanCandidateRecord> =
+        pvpGameDaoService.listGamesPendingSockPuppetScan(SCAN_LIMIT_PER_RUN)
+
+    override suspend fun process(element: SockPuppetScanCandidateRecord) {
+        val similarity = userSessionDaoService.countSharedSessionSimilarity(
+            element.inviterUserId,
+            element.inviteeUserId,
+        )
+
+        if (similarity.sharedFingerprintCount > 0) {
+            sockPuppetReportDaoService.upsertGameReport(
+                gameId = element.gameId,
+                inviterUserId = element.inviterUserId,
+                inviteeUserId = element.inviteeUserId,
+                sharedRemoteAddressCount = similarity.sharedRemoteAddressCount,
+                sharedFingerprintCount = similarity.sharedFingerprintCount,
+            )
         }
 
-        val scannedGameIds = mutableListOf<String>()
-        var flaggedGames = 0
-
-        candidates.forEach { candidate ->
-            try {
-                val similarity = userSessionDaoService.countSharedSessionSimilarity(
-                    candidate.inviterUserId,
-                    candidate.inviteeUserId,
-                )
-
-                if (similarity.sharedFingerprintCount > 0) {
-                    sockPuppetReportDaoService.upsertGameReport(
-                        gameId = candidate.gameId,
-                        inviterUserId = candidate.inviterUserId,
-                        inviteeUserId = candidate.inviteeUserId,
-                        sharedRemoteAddressCount = similarity.sharedRemoteAddressCount,
-                        sharedFingerprintCount = similarity.sharedFingerprintCount,
-                    )
-                    flaggedGames += 1
-                }
-
-                scannedGameIds += candidate.gameId
-            } catch (e: Exception) {
-                logger.warn(e) { "error scanning game ${candidate.gameId} for sock puppet signal" }
-            }
-        }
-
-        if (scannedGameIds.isNotEmpty()) {
-            pvpGameDaoService.markGamesAsSockPuppetScanned(scannedGameIds)
-        }
-
-        logger.info { "sock puppet scan: scanned=${scannedGameIds.size}, flagged=$flaggedGames" }
+        pvpGameDaoService.markGamesAsSockPuppetScanned(listOf(element.gameId))
     }
 
     private companion object {

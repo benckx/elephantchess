@@ -16,7 +16,6 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Instant
 
 @KoinSingleton
 class UserSessionDaoService(private val dslContext: DSLContext, private val logger: KLogger) {
@@ -280,7 +279,7 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
         }
     }
 
-    private companion object {
+    companion object {
 
         val USER_SESSION_TTL = 60.days
 

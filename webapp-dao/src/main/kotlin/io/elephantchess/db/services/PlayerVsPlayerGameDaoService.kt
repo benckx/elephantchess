@@ -201,6 +201,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .from(GAME)
             .where(DSL.coalesce(GAME_SCANNED, DSL.inline(false)).eq(false))
             .and(GAME.INVITEE.isNotNull)
+            .and(GAME.CREATED.isWithin(UserSessionDaoService.USER_SESSION_TTL))
             .orderBy(GAME.LAST_UPDATED.asc())
             .limit(limit)
             .awaitRecords()

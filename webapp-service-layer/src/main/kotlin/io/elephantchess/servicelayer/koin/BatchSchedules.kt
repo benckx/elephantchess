@@ -34,11 +34,10 @@ internal fun batchSchedulesModule() =
                     get<FetchUserSessionGeographicDataBatch>(),
                     period = 15.minutes,
                 ),
-                SinglePodBatchSchedule(
+                ShardedBatchSchedule(
                     get<DetectSockPuppetGamesBatch>(),
                     period = 30.minutes,
-                    delay = 90.seconds,
-                    podNumber = 0,
+                    delay = 5.minutes,
                 ),
                 ShardedBatchSchedule(
                     get<FlagGamesBatch>(),
