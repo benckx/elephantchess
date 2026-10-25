@@ -105,9 +105,12 @@ h2 {
 .admin-submenu {
     margin-top: 16px;
     margin-bottom: 20px;
-    margin-left: auto;
-    margin-right: auto;
     font-size: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    column-gap: 20px;
+    row-gap: 12px;
 }
 
 .admin-submenu > div {
@@ -123,19 +126,17 @@ h2 {
 }
 
 .admin-submenu-cell {
-    vertical-align: top;
-    padding-right: 20px;
     text-align: center;
-}
-
-.admin-submenu-cell:last-child {
-    padding-right: 0;
+    align-self: flex-start;
 }
 
 .admin-submenu-link {
+    display: inline-block;
     text-decoration: none;
     margin-left: 4px;
     margin-right: 4px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .admin-submenu-link.active {
@@ -148,8 +149,12 @@ h2 {
         font-size: 30px;
     }
 
+    .admin-submenu-cell {
+        width: calc((100% - 40px) / 3);
+    }
+
     .admin-submenu-category {
-        width: 160px;
+        width: auto;
     }
 }
 
