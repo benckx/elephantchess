@@ -24,11 +24,16 @@ fun serviceLayerModule(
     enginesPool: EnginePool? = null,
 ) =
     module {
+        // config
         val appConfig = loadAppConfig(argConfig)
         single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
         single { appConfig }
+
+        // db access
         single { appConfig.dbConfig }
         single { dslBuilder(get()) }
+
+        // engines
         single { enginesPool ?: buildDefaultEnginePool(appConfig) }
 
         // all services, DAOs, clients and batches annotated with @KoinSingleton
