@@ -6,6 +6,7 @@ import io.elephantchess.servicelayer.batch.AutoCancelCreatedGamesFromOfflineUser
 import io.elephantchess.servicelayer.batch.AutoResignIdleBotGamesBatch
 import io.elephantchess.servicelayer.batch.BackgroundGameAnalysisBatch
 import io.elephantchess.servicelayer.batch.CheckEmailListVerifyCreditBatch
+import io.elephantchess.servicelayer.batch.DetectSockPuppetGamesBatch
 import io.elephantchess.servicelayer.batch.FetchDailyUsersMetricsBatch
 import io.elephantchess.servicelayer.batch.FetchMinutesUsersMetricsBatch
 import io.elephantchess.servicelayer.batch.FetchUserSessionGeographicDataBatch
@@ -32,6 +33,12 @@ internal fun batchSchedulesModule() =
                 ShardedBatchSchedule(
                     get<FetchUserSessionGeographicDataBatch>(),
                     period = 15.minutes,
+                ),
+                SinglePodBatchSchedule(
+                    get<DetectSockPuppetGamesBatch>(),
+                    period = 30.minutes,
+                    delay = 90.seconds,
+                    podNumber = 0,
                 ),
                 ShardedBatchSchedule(
                     get<FlagGamesBatch>(),

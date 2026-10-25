@@ -25,6 +25,8 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
         val lastSeen: Instant?,
     )
 
+    data class SharedSessionSimilarity(val sharedRemoteAddressCount: Int, val sharedFingerprintCount: Int)
+
     suspend fun createOrUpdate(record: UserSessionRecord) {
         if (record.userId != null) {
             val userSession = UserSession()
@@ -181,6 +183,37 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
                     lastSeen = record.get(lastSeenField),
                 )
             }
+    }
+
+    suspend fun countSharedSessionSimilarity(userId1: String, userId2: String): SharedSessionSimilarity {
+        val session1 = USER_SESSION.`as`("session1")
+        val session2 = USER_SESSION.`as`("session2")
+
+        val sharedRemoteAddressCountField = DSL.countDistinct(session1.REMOTE_ADDRESS).`as`("sharedRemoteAddressCount")
+        val fingerprintField = DSL.concat(
+            session1.REMOTE_ADDRESS,
+            DSL.inline("|"),
+            DSL.coalesce(session1.OPERATING_SYSTEM_NAME, DSL.inline("")),
+            DSL.inline("|"),
+            DSL.coalesce(session1.AGENT_NAME, DSL.inline("")),
+        )
+        val sharedFingerprintCountField = DSL.countDistinct(fingerprintField).`as`("sharedFingerprintCount")
+
+        val record = dslContext
+            .select(sharedRemoteAddressCountField, sharedFingerprintCountField)
+            .from(session1)
+            .join(session2)
+            .on(session1.REMOTE_ADDRESS.eq(session2.REMOTE_ADDRESS))
+            .and(session1.OPERATING_SYSTEM_NAME.isNotDistinctFrom(session2.OPERATING_SYSTEM_NAME))
+            .and(session1.AGENT_NAME.isNotDistinctFrom(session2.AGENT_NAME))
+            .where(session1.USER_ID.eq(userId1))
+            .and(session2.USER_ID.eq(userId2))
+            .awaitSingleRecord()
+
+        return SharedSessionSimilarity(
+            sharedRemoteAddressCount = record?.get(sharedRemoteAddressCountField)?.toInt() ?: 0,
+            sharedFingerprintCount = record?.get(sharedFingerprintCountField)?.toInt() ?: 0,
+        )
     }
 
     suspend fun deleteAuthenticatedSessionsForUser(userId: String, sessionIds: Collection<Int>): Int {
