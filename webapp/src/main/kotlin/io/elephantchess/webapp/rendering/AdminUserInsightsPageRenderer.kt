@@ -14,9 +14,6 @@ import kotlinx.html.table
 import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.tr
-import java.time.Instant
-import java.time.ZoneOffset.UTC
-import java.time.format.DateTimeFormatter
 
 @KoinSingleton(eager = true)
 class AdminUserInsightsPageRenderer(
@@ -51,10 +48,10 @@ class AdminUserInsightsPageRenderer(
                 metadataRow("email", data.email ?: "n/a")
                 metadataRow("user type", data.userType?.name ?: "n/a")
                 metadataRow("country", data.country ?: "n/a")
-                metadataRow("created", formatTimestamp(data.creationTime))
-                metadataRow("last online", formatTimestamp(data.lastOnlineTime))
-                metadataRow("last profile update", formatTimestamp(data.lastProfileUpdateTime))
-                metadataRow("email confirmed", formatTimestamp(data.emailConfirmedAtTime))
+                metadataRow("created", formatTimestampUtc(data.creationTime))
+                metadataRow("last online", formatTimestampUtc(data.lastOnlineTime))
+                metadataRow("last profile update", formatTimestampUtc(data.lastProfileUpdateTime))
+                metadataRow("email confirmed", formatTimestampUtc(data.emailConfirmedAtTime))
                 metadataRow("role admin", data.hasRoleAdmin.toString())
                 metadataRow("role editor", data.hasRoleEditor.toString())
             }
@@ -90,7 +87,7 @@ class AdminUserInsightsPageRenderer(
                     data.latestPageViews.forEach { pageViewEntry ->
                         tr {
                             td { +pageViewEntry.url }
-                            td { +formatTimestamp(pageViewEntry.time) }
+                            td { +formatTimestampUtc(pageViewEntry.time) }
                         }
                     }
                 }
@@ -122,8 +119,8 @@ class AdminUserInsightsPageRenderer(
                             td { +(entry.region ?: "n/a") }
                             td { +(entry.city ?: "n/a") }
                             td { +entry.remoteAddress }
-                            td { +formatTimestamp(entry.created) }
-                            td { +formatTimestamp(entry.updated) }
+                            td { +formatTimestampUtc(entry.created) }
+                            td { +formatTimestampUtc(entry.updated) }
                         }
                     }
                 }
@@ -140,21 +137,9 @@ class AdminUserInsightsPageRenderer(
     private fun TABLE.activityRow(label: String, summary: AdminUserInsightsData.ActivitySummary) {
         tr {
             td { +label }
-            td { +formatTimestamp(summary.firstPlayed) }
-            td { +formatTimestamp(summary.lastPlayed) }
+            td { +formatTimestampUtc(summary.firstPlayed) }
+            td { +formatTimestampUtc(summary.lastPlayed) }
             td { +summary.totalPlayed.toString() }
         }
     }
-
-    private fun formatTimestamp(epochMillis: Long?): String =
-        if (epochMillis == null) {
-            "n/a"
-        } else {
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
-                Instant
-                    .ofEpochMilli(epochMillis)
-                    .atZone(UTC)
-                    .toLocalDateTime(),
-            ) + " UTC"
-        }
 }
