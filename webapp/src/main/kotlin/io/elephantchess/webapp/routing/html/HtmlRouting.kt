@@ -2,10 +2,8 @@ package io.elephantchess.webapp.routing.html
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
-import io.elephantchess.model.UserRole
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
-import io.elephantchess.servicelayer.model.AuthenticatedToken
 import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserService
@@ -216,7 +214,7 @@ private fun Routing.simpleMappingsWithSupporterBanner() {
 }
 
 private fun Route.userProfile() {
-    val renderer by koin<UserProfilePageRenderer>()
+    val userProfilePageRenderer by koin<UserProfilePageRenderer>()
     val adminUserInsightsRenderer by koin<AdminUserInsightsPageRenderer>()
     val userService by koin<UserService>()
 
@@ -225,25 +223,25 @@ private fun Route.userProfile() {
         val isAdmin = isAdmin()
 
         val userProfileResponse = userService.fetchProfile(username)
-        call.respondHtml(renderer.renderUserProfile(userProfileResponse, isAdmin))
+        call.respondHtml(userProfilePageRenderer.renderUserProfile(userProfileResponse, isAdmin))
+    }
+    get("/@/{username}/browse-pvp-games") {
+        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
+
+        userService.validateUserExists(username)
+        call.respondHtml(userProfilePageRenderer.renderUserBrowsePvpGames(username))
+    }
+    get("/@/{username}/browse-pvb-games") {
+        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
+
+        userService.validateUserExists(username)
+        call.respondHtml(userProfilePageRenderer.renderUserBrowsePvbGames(username))
     }
     get("/admin/user/{username}") {
         requireAdminRole { _ ->
             val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
             TextContent(adminUserInsightsRenderer.renderUserInsightsPage(username), ContentType.Text.Html)
         }
-    }
-    get("/@/{username}/browse-pvp-games") {
-        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
-
-        userService.validateUserExists(username)
-        call.respondHtml(renderer.renderUserBrowsePvpGames(username))
-    }
-    get("/@/{username}/browse-pvb-games") {
-        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
-
-        userService.validateUserExists(username)
-        call.respondHtml(renderer.renderUserBrowsePvbGames(username))
     }
 }
 

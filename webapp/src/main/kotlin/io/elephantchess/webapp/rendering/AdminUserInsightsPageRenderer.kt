@@ -7,6 +7,7 @@ import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsResponse
 import io.elephantchess.servicelayer.services.admin.AdminUserInsightsService
 import io.elephantchess.utils.di.KoinSingleton
 import io.ktor.http.encodeURLPath
+import kotlinx.html.TABLE
 import kotlinx.html.id
 import kotlinx.html.p
 import kotlinx.html.table
@@ -129,14 +130,14 @@ class AdminUserInsightsPageRenderer(
             }
         }
 
-    private fun kotlinx.html.TABLE.metadataRow(label: String, value: String) {
+    private fun TABLE.metadataRow(label: String, value: String) {
         tr {
             th { +label }
             td { +value }
         }
     }
 
-    private fun kotlinx.html.TABLE.activityRow(label: String, summary: AdminUserInsightsResponse.ActivitySummary) {
+    private fun TABLE.activityRow(label: String, summary: AdminUserInsightsResponse.ActivitySummary) {
         tr {
             td { +label }
             td { +formatTimestamp(summary.firstPlayed) }
