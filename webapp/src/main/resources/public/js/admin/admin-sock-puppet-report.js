@@ -53,16 +53,12 @@ class AdminSockPuppetReportPage extends BasePage {
                 row.insertCell().innerText = entry.sharedRemoteAddressCount.toString();
                 row.insertCell().innerText = entry.sharedFingerprintCount.toString();
                 row.insertCell().innerText = this.#displayValue(entry.sharedRemoteAddress);
-                row.insertCell().innerText = this.#displayValue(entry.sharedCountryName, entry.sharedCountryCode);
+                row.insertCell().innerText = this.#displayValue(entry.sharedCountryName);
                 row.insertCell().innerText = this.#displayValue(entry.sharedRegion);
                 row.insertCell().innerText = this.#displayValue(entry.sharedCity);
                 row.insertCell().innerText = this.#displayValue(entry.sharedOperatingSystemName);
                 row.insertCell().innerText = this.#displayValue(entry.sharedAgentName);
                 row.insertCell().innerText = this.#displayValue(entry.sharedAgentClass);
-
-                const userAgentCell = row.insertCell();
-                userAgentCell.classList.add('long-label-cell');
-                userAgentCell.innerText = this.#displayValue(entry.sharedUserAgent);
 
                 row.insertCell().innerText = formatTimestampDefaultDateFormat(entry.gameCreated);
             });
