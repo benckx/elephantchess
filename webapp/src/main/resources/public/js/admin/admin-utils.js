@@ -68,6 +68,7 @@ function buildAdminUsernameSpan(userId, username, userType, maxLength = null, re
     }
 
     const link = document.createElement('a');
+    link.className = 'admin-user-link';
     link.href = '/admin/user/' + encodeURIComponent(identifier);
     link.append(label);
     return link;
