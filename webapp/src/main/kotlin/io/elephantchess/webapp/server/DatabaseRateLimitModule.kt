@@ -3,7 +3,6 @@ package io.elephantchess.webapp.server
 import io.elephantchess.config.AppConfig
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.respondTooManyRequestsPage
-import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -13,7 +12,6 @@ import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
 private val appConfig by koin<AppConfig>()
-private val simplePageRenderer by koin<SimplePageRenderer>()
 
 /**
  * Installs a per-IP rate limiter in front of the public reference-database HTML pages to throttle
