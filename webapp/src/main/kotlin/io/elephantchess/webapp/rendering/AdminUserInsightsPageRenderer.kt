@@ -156,6 +156,7 @@ class AdminUserInsightsPageRenderer(
                         th { +"region" }
                         th { +"city" }
                         th { +"IP" }
+                        th { +"sock puppet" }
                         th { +"created" }
                         th { +"updated" }
                     }
@@ -167,6 +168,7 @@ class AdminUserInsightsPageRenderer(
                             td { +(entry.region ?: "n/a") }
                             td { +(entry.city ?: "n/a") }
                             td { +entry.remoteAddress }
+                            td { +formatSockPuppetSignal(entry.otherUsersOnRemoteAddress) }
                             td { +formatTimestampUtc(entry.created) }
                             td { +formatTimestampUtc(entry.updated) }
                         }
@@ -198,4 +200,11 @@ class AdminUserInsightsPageRenderer(
             .lowercase()
             .replace('_', ' ')
     }
+
+    private fun formatSockPuppetSignal(otherUsersOnRemoteAddress: Int): String =
+        when {
+            otherUsersOnRemoteAddress <= 0 -> "no"
+            otherUsersOnRemoteAddress == 1 -> "possible (1 other user on IP)"
+            else -> "possible ($otherUsersOnRemoteAddress other users on IP)"
+        }
 }

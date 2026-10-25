@@ -40,6 +40,10 @@ class AdminUserInsightsService(
         val latestChatMessages = chatMessageDaoService.listLastMessagesByAuthor(user.id, limit = 10)
         val latestPageViews = archivedPageViewDaoService.listPageViewsForUser(user.id, limit = 20, offset = 0)
         val latestSessions = userSessionDaoService.listAuthenticatedSessionsForUser(user.id, limit = 5, offset = 0)
+        val otherUsersByRemoteAddress = userSessionDaoService.countOtherUsersByRemoteAddresses(
+            userId = user.id,
+            remoteAddresses = latestSessions.map { it.remoteAddress }.toSet(),
+        )
 
         return AdminUserInsightsData(
             userId = user.id,
@@ -82,6 +86,7 @@ class AdminUserInsightsService(
                     region = record.region,
                     city = record.city,
                     remoteAddress = record.remoteAddress,
+                    otherUsersOnRemoteAddress = otherUsersByRemoteAddress[record.remoteAddress] ?: 0,
                     created = record.created?.toEpochMilliseconds(),
                     updated = record.lastUpdated?.toEpochMilliseconds(),
                 )

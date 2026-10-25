@@ -124,6 +124,28 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             .where(USER_SESSION.USER_ID.eq(userId))
             .awaitSingleValue<Int>() ?: 0
 
+    suspend fun countOtherUsersByRemoteAddresses(userId: String, remoteAddresses: Set<String>): Map<String, Int> {
+        if (remoteAddresses.isEmpty()) {
+            return emptyMap()
+        }
+
+        return dslContext
+            .select(
+                USER_SESSION.REMOTE_ADDRESS,
+                DSL.countDistinct(USER_SESSION.USER_ID).`as`("distinctUsers"),
+            )
+            .from(USER_SESSION)
+            .where(USER_SESSION.REMOTE_ADDRESS.`in`(remoteAddresses))
+            .and(USER_SESSION.USER_ID.ne(userId))
+            .groupBy(USER_SESSION.REMOTE_ADDRESS)
+            .awaitRecords()
+            .associate { record ->
+                val remoteAddress = record.get(USER_SESSION.REMOTE_ADDRESS)
+                val count = record.get("distinctUsers", Int::class.java) ?: 0
+                remoteAddress to count
+            }
+    }
+
     suspend fun deleteAuthenticatedSessionsForUser(userId: String, sessionIds: Collection<Int>): Int {
         if (sessionIds.isEmpty()) {
             return 0

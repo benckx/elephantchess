@@ -49,6 +49,7 @@ data class AdminUserInsightsData(
         val region: String?,
         val city: String?,
         val remoteAddress: String,
+        val otherUsersOnRemoteAddress: Int,
         val created: Long?,
         val updated: Long?,
     )
