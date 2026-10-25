@@ -46,12 +46,6 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
     private val logger = KotlinLogging.logger {}
 
-    data class SockPuppetScanCandidate(
-        val gameId: String,
-        val inviterUserId: String,
-        val inviteeUserId: String,
-    )
-
     suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> =
         dslContext
             .select(GAME.ANALYSIS_STATUS, DSL.count().`as`("count"))
@@ -344,6 +338,40 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                         GAME.INVITER.eq(userId2)
                             .and(GAME.INVITEE.eq(userId1)),
                     ),
+            )
+            .awaitSingleValue() ?: 0
+
+    suspend fun fetchUserActivitySummary(userId: String, minMoveIndex: Int? = null): UserActivitySummaryRecord {
+        val firstPlayed = DSL.min(GAME.LAST_UPDATED).`as`("first_played")
+        val lastPlayed = DSL.max(GAME.LAST_UPDATED).`as`("last_played")
+        val totalPlayed = DSL.count().`as`("total_played")
+
+        var query = dslContext
+            .select(firstPlayed, lastPlayed, totalPlayed)
+            .from(GAME)
+            .where(isPlaying(userId))
+
+        if (minMoveIndex != null) {
+            query = query.and(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+        }
+
+        val record = query.awaitSingleRecord()
+
+        return UserActivitySummaryRecord(
+            firstPlayed = record?.get(firstPlayed),
+            lastPlayed = record?.get(lastPlayed),
+            totalPlayed = record?.get(totalPlayed) ?: 0,
+        )
+    }
+
+    suspend fun countGamesBetweenUsers(userId1: String, userId2: String): Int =
+        dslContext
+            .selectCount()
+            .from(GAME)
+            .where(
+                GAME.INVITER.eq(userId1)
+                    .and(GAME.INVITEE.eq(userId2))
+                    .or(GAME.INVITER.eq(userId2).and(GAME.INVITEE.eq(userId1))),
             )
             .awaitSingleValue() ?: 0
 

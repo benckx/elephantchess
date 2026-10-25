@@ -240,7 +240,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .where(USER.HANDLE.eq(username))
             .awaitSingleMappedRecord()
 
-    suspend fun listUsersStartingWith(startsWith: String, limit: Int): List<EntityIdAndNameRecord> =
+    suspend fun listUsersStartingWithIdentifier(startsWith: String, limit: Int): List<EntityIdAndNameRecord> =
         dslContext
             .select(USER.ID, USER.HANDLE)
             .from(USER)
@@ -260,7 +260,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
                 )
             }
 
-    suspend fun listUsersContaining(contains: String, limit: Int): List<EntityIdAndNameRecord> =
+    suspend fun listUsersContainingIdentifier(contains: String, limit: Int): List<EntityIdAndNameRecord> =
         dslContext
             .select(USER.ID, USER.HANDLE)
             .from(USER)
