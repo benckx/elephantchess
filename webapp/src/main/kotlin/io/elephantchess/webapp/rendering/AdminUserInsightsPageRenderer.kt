@@ -3,7 +3,7 @@ package io.elephantchess.webapp.rendering
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
-import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsResponse
+import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsData
 import io.elephantchess.servicelayer.services.admin.AdminUserInsightsService
 import io.elephantchess.utils.di.KoinSingleton
 import io.ktor.http.encodeURLPath
@@ -42,7 +42,7 @@ class AdminUserInsightsPageRenderer(
         )
     }
 
-    private fun userMetadataTableTagResolver(data: AdminUserInsightsResponse) =
+    private fun userMetadataTableTagResolver(data: AdminUserInsightsData) =
         KtorHtmlBuilderTagResolver("admin_user_metadata_table") {
             table("nice-table nice-table-striped nice-table-hover") {
                 id = "admin-user-metadata-table"
@@ -60,7 +60,7 @@ class AdminUserInsightsPageRenderer(
             }
         }
 
-    private fun gameActivityTableTagResolver(data: AdminUserInsightsResponse) =
+    private fun gameActivityTableTagResolver(data: AdminUserInsightsData) =
         KtorHtmlBuilderTagResolver("admin_user_game_activity_table") {
             table("nice-table nice-table-striped nice-table-hover") {
                 id = "admin-user-game-activity-table"
@@ -76,7 +76,7 @@ class AdminUserInsightsPageRenderer(
             }
         }
 
-    private fun latestPageViewsTagResolver(data: AdminUserInsightsResponse) =
+    private fun latestPageViewsTagResolver(data: AdminUserInsightsData) =
         KtorHtmlBuilderTagResolver("admin_user_latest_page_views_table") {
             if (data.latestPageViews.isEmpty()) {
                 p("empty-block-placeholder") { +"No page views found." }
@@ -87,17 +87,17 @@ class AdminUserInsightsPageRenderer(
                         th { +"url" }
                         th { +"time" }
                     }
-                    data.latestPageViews.forEach { entry ->
+                    data.latestPageViews.forEach { pageViewEntry ->
                         tr {
-                            td { +entry.url }
-                            td { +formatTimestamp(entry.time) }
+                            td { +pageViewEntry.url }
+                            td { +formatTimestamp(pageViewEntry.time) }
                         }
                     }
                 }
             }
         }
 
-    private fun latestSessionsTagResolver(data: AdminUserInsightsResponse) =
+    private fun latestSessionsTagResolver(data: AdminUserInsightsData) =
         KtorHtmlBuilderTagResolver("admin_user_latest_sessions_table") {
             if (data.latestSessions.isEmpty()) {
                 p("empty-block-placeholder") { +"No sessions found." }
@@ -137,7 +137,7 @@ class AdminUserInsightsPageRenderer(
         }
     }
 
-    private fun TABLE.activityRow(label: String, summary: AdminUserInsightsResponse.ActivitySummary) {
+    private fun TABLE.activityRow(label: String, summary: AdminUserInsightsData.ActivitySummary) {
         tr {
             td { +label }
             td { +formatTimestamp(summary.firstPlayed) }

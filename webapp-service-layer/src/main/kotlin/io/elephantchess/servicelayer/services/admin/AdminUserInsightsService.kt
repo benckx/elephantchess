@@ -7,7 +7,7 @@ import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserSessionDaoService
-import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsResponse
+import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsData
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.utils.di.KoinSingleton
 
@@ -21,7 +21,7 @@ class AdminUserInsightsService(
     private val userSessionDaoService: UserSessionDaoService,
 ) {
 
-    suspend fun fetchUserInsights(username: String): AdminUserInsightsResponse {
+    suspend fun fetchUserInsights(username: String): AdminUserInsightsData {
         val user = userDaoService.findByUserName(username)
             ?: throw NotFoundException("User $username could not be found")
 
@@ -31,7 +31,7 @@ class AdminUserInsightsService(
         val latestPageViews = archivedPageViewDaoService.listPageViewsForUser(user.id, limit = 10, offset = 0)
         val latestSessions = userSessionDaoService.listAuthenticatedSessionsForUser(user.id, limit = 3, offset = 0)
 
-        return AdminUserInsightsResponse(
+        return AdminUserInsightsData(
             userId = user.id,
             username = user.handle,
             email = user.email,
@@ -47,13 +47,13 @@ class AdminUserInsightsService(
             pvp = pvp.toDto(),
             pvb = pvb.toDto(),
             latestPageViews = latestPageViews.map { record ->
-                AdminUserInsightsResponse.PageViewEntry(
+                AdminUserInsightsData.PageViewEntry(
                     url = record.url,
                     time = record.eventTime.toEpochMilliseconds(),
                 )
             },
             latestSessions = latestSessions.map { record ->
-                AdminUserInsightsResponse.SessionEntry(
+                AdminUserInsightsData.SessionEntry(
                     os = record.operatingSystemName,
                     agentName = record.agentName,
                     countryCode = record.countryCode,
@@ -68,8 +68,8 @@ class AdminUserInsightsService(
         )
     }
 
-    private fun UserActivitySummaryRecord.toDto(): AdminUserInsightsResponse.ActivitySummary =
-        AdminUserInsightsResponse.ActivitySummary(
+    private fun UserActivitySummaryRecord.toDto(): AdminUserInsightsData.ActivitySummary =
+        AdminUserInsightsData.ActivitySummary(
             firstPlayed = firstPlayed?.toEpochMilliseconds(),
             lastPlayed = lastPlayed?.toEpochMilliseconds(),
             totalPlayed = totalPlayed,

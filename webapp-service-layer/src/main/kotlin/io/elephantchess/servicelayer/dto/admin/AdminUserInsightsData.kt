@@ -2,7 +2,7 @@ package io.elephantchess.servicelayer.dto.admin
 
 import io.elephantchess.model.UserType
 
-data class AdminUserInsightsResponse(
+data class AdminUserInsightsData(
     val userId: String,
     val username: String,
     val email: String?,
@@ -27,10 +27,7 @@ data class AdminUserInsightsResponse(
         val totalPlayed: Int,
     )
 
-    data class PageViewEntry(
-        val url: String,
-        val time: Long,
-    )
+    data class PageViewEntry(val url: String, val time: Long)
 
     data class SessionEntry(
         val os: String,
