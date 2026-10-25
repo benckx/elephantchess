@@ -27,6 +27,8 @@ private val kLogger = logger {}
  */
 fun Module.registerInjectables(eagerAllowed: Boolean, vararg packages: String) {
     ClassGraph()
+        .enableClasspath()
+        .enableClassInfo()
         .enableAnnotationInfo()
         .acceptPackages(*packages)
         .scan()
