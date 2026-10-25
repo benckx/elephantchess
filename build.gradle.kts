@@ -242,7 +242,6 @@ project(":seven-kingdoms-core") {
 project(":seven-kingdoms-core-test-utils") {
     dependencies {
         implementation(project(":seven-kingdoms-core"))
-        api(rootLibs.jackson.datatype.jsr310)
         api(rootLibs.jackson.module.kotlin)
     }
 }
@@ -338,7 +337,6 @@ project(":webapp") {
         implementation(rootLibs.ktor.serialization.kotlinx.json)
         implementation(rootLibs.ktor.server.websockets)
         implementation(rootLibs.ktor.server.compression)
-        implementation(rootLibs.jackson.datatype.jsr310)
         implementation(rootLibs.jackson.module.kotlin)
         implementation(rootLibs.cache4k)
         testImplementation(rootLibs.ktor.server.test.host)

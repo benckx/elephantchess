@@ -1,12 +1,12 @@
 package io.elephantchess.webapp.koin
 
-import tools.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import tools.jackson.databind.json.JsonMapper
-import tools.jackson.module.kotlin.KotlinModule
 import io.elephantchess.servicelayer.utils.ops.registerInjectables
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import tools.jackson.databind.SerializationFeature.INDENT_OUTPUT
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 fun webAppKoinModule(eagerAllowed: Boolean): Module =
     module {

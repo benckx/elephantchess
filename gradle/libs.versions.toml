@@ -47,7 +47,6 @@ coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", ve
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
-jackson-datatype-jsr310 = { module = "tools.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 java-jwt = { module = "com.auth0:java-jwt", version.ref = "javaJwt" }
 javax-mail = { module = "com.sun.mail:javax.mail", version.ref = "javaxMail" }
