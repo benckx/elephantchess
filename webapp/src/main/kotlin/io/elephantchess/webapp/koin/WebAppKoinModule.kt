@@ -1,12 +1,13 @@
 package io.elephantchess.webapp.koin
 
-import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.elephantchess.servicelayer.utils.ops.registerInjectables
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import tools.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS
+import tools.jackson.databind.SerializationFeature.INDENT_OUTPUT
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 fun webAppKoinModule(eagerAllowed: Boolean): Module =
     module {
@@ -15,6 +16,7 @@ fun webAppKoinModule(eagerAllowed: Boolean): Module =
             JsonMapper
                 .builder()
                 .addModule(KotlinModule.Builder().build())
+                .configure(ACCEPT_CASE_INSENSITIVE_ENUMS, true)
                 .configure(INDENT_OUTPUT, false)
                 .build()
         }
