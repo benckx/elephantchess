@@ -11,7 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 
 private val simplePageRenderer by koin<SimplePageRenderer>()
-private val supportedErrorPages = listOf(401, 403, 404, 429, 500)
+private val supportedErrorPages = listOf(400, 401, 403, 404, 429, 500)
 
 suspend fun SimplePageRenderer.renderTemplateHtmlToCall(
     templateName: String,
@@ -26,28 +26,20 @@ suspend fun ApplicationCall.respondHtml(htmlContent: String, status: HttpStatusC
     respondText(htmlContent, ContentType.Text.Html, status)
 }
 
+suspend fun ApplicationCall.respondBadRequestPage() {
+    respondErrorPage(HttpStatusCode.BadRequest)
+}
+
 suspend fun ApplicationCall.respondNotFoundPage() {
-    respondText(
-        text = simplePageRenderer.renderTemplate("errors/404"),
-        contentType = ContentType.Text.Html,
-        status = HttpStatusCode.NotFound,
-    )
+    respondErrorPage(HttpStatusCode.NotFound)
 }
 
 suspend fun ApplicationCall.respondTooManyRequestsPage() {
-    respondText(
-        text = simplePageRenderer.renderTemplate("errors/429"),
-        contentType = ContentType.Text.Html,
-        status = HttpStatusCode.TooManyRequests,
-    )
+    respondErrorPage(HttpStatusCode.TooManyRequests)
 }
 
 suspend fun ApplicationCall.respondInternalErrorPage() {
-    respondText(
-        text = simplePageRenderer.renderTemplate("errors/500"),
-        contentType = ContentType.Text.Html,
-        status = HttpStatusCode.InternalServerError,
-    )
+    respondErrorPage(HttpStatusCode.InternalServerError)
 }
 
 suspend fun ApplicationCall.respondErrorPage(statusCode: HttpStatusCode) {
