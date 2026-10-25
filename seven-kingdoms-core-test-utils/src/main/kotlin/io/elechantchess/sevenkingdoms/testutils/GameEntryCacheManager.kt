@@ -1,5 +1,6 @@
 package io.elechantchess.sevenkingdoms.testutils
 
+import tools.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS
 import tools.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.KotlinModule
@@ -9,6 +10,7 @@ object GameEntryCacheManager {
     private val mapper = JsonMapper
         .builder()
         .addModule(KotlinModule.Builder().build())
+        .configure(ACCEPT_CASE_INSENSITIVE_ENUMS, true)
         .configure(INDENT_OUTPUT, false)
         .build()
 

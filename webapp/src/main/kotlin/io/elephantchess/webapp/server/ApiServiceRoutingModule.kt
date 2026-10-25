@@ -20,11 +20,14 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import tools.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS
 import kotlin.time.Duration.Companion.seconds
 
 fun Application.apiServiceModule() {
     install(ContentNegotiation) {
-        jackson()
+        jackson {
+            enable(ACCEPT_CASE_INSENSITIVE_ENUMS)
+        }
     }
     install(WebSockets) {
         pingPeriod = 20.seconds
