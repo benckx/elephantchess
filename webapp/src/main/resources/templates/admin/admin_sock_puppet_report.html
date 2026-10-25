@@ -1,0 +1,53 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Sock Puppet Report</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-sock-puppet-report.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Sock Puppet Report</h1>
+    <hr/>
+
+    <table id="sock-puppet-report-summary" class="stats-table">
+        <thead>
+        <tr>
+            <th>total detections</th>
+            <th>distinct users</th>
+            <th>distinct inviters</th>
+            <th>distinct invitees</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td id="sock-puppet-summary-total">--</td>
+            <td id="sock-puppet-summary-users">--</td>
+            <td id="sock-puppet-summary-inviters">--</td>
+            <td id="sock-puppet-summary-invitees">--</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>Latest detections (by game created desc)</h2>
+    <table id="sock-puppet-report-table" class="stats-table">
+        <thead>
+        <tr>
+            <th class="label-cell">PvP game</th>
+            <th class="label-cell">inviter</th>
+            <th class="label-cell">invitee</th>
+            <th class="value-cell">shared IPs</th>
+            <th class="value-cell">shared session fingerprints</th>
+            <th class="label-cell">game created</th>
+            <th class="label-cell">last scanned</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

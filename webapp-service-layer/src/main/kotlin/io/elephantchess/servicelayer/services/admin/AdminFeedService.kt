@@ -20,6 +20,7 @@ import io.elephantchess.servicelayer.dto.admin.ListContentSectionVoteFeedbackRes
 import io.elephantchess.servicelayer.dto.admin.ListGamesResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastPuzzleByLoggedInUsersResponse
 import io.elephantchess.servicelayer.dto.admin.ListLastUserAnalysisResponse
+import io.elephantchess.servicelayer.dto.admin.ListSockPuppetReportResponse
 import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.utils.di.KoinSingleton
@@ -146,6 +147,34 @@ class AdminFeedService(
                 )
             }
         return ListContentSectionVoteFeedbackResponse(entries)
+    }
+
+    suspend fun listSockPuppetReport(limit: Int = 500): ListSockPuppetReportResponse {
+        val summary = sockPuppetReportDaoService.fetchDetectionsSummary()
+        val entries = sockPuppetReportDaoService.listLatestDetections(limit)
+            .map { record ->
+                ListSockPuppetReportResponse.Entry(
+                    gameId = record.gameId,
+                    inviterUserId = record.inviterUserId,
+                    inviterUsername = userCache.fetchUsernameOrDefault(record.inviterUserId),
+                    inviteeUserId = record.inviteeUserId,
+                    inviteeUsername = userCache.fetchUsernameOrDefault(record.inviteeUserId),
+                    sharedRemoteAddressCount = record.sharedRemoteAddressCount,
+                    sharedFingerprintCount = record.sharedFingerprintCount,
+                    gameCreated = record.gameCreated.toEpochMilliseconds(),
+                    lastScannedAt = record.lastScannedAt.toEpochMilliseconds(),
+                )
+            }
+
+        return ListSockPuppetReportResponse(
+            summary = ListSockPuppetReportResponse.Summary(
+                totalDetections = summary.totalDetections,
+                distinctUsersInvolved = summary.distinctUsersInvolved,
+                distinctInviters = summary.distinctInviters,
+                distinctInvitees = summary.distinctInvitees,
+            ),
+            entries = entries,
+        )
     }
 
     private suspend fun mapGameToDto(record: Game, hasSockPuppetDetection: Boolean): ListGamesResponse.Entry =

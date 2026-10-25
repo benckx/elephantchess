@@ -100,6 +100,12 @@ private fun Route.adminFeedsRoutes() {
     get("/content-section-feedback") {
         requireAdminRole { adminFeedService.listLatestFeedback() }
     }
+    get("/sock-puppet-report") {
+        requireAdminRole { _ ->
+            val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 500
+            adminFeedService.listSockPuppetReport(limit)
+        }
+    }
 }
 
 private fun Route.adminAnalyticsRoutes() {

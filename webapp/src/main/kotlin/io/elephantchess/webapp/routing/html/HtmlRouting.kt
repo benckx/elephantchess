@@ -76,6 +76,7 @@ private val authenticatedRequiredPagesMapping = mapOf(
 private val adminPagesMapping = mapOf(
     "/admin" to "admin/admin_overview",
     "/admin/feeds" to "admin/admin_feeds",
+    "/admin/sock-puppet-report" to "admin/admin_sock_puppet_report",
     "/admin/variant-feeds" to "admin/admin_variant_feeds",
     "/admin/elo-stats" to "admin/admin_user_elo_stats",
     "/admin/content-section-feedback" to "admin/admin_content_section_feedback",

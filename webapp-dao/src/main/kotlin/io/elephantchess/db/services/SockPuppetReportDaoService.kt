@@ -1,7 +1,11 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.db.dao.codegen.Tables.GAME
+import io.elephantchess.db.model.SockPuppetDetectionEntryRecord
+import io.elephantchess.db.model.SockPuppetDetectionSummaryRecord
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitRecords
+import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -59,6 +63,74 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             .awaitRecords()
             .map { record -> record.get(GAME_SOCK_PUPPET_DETECTION_GAME_ID) }
             .toSet()
+    }
+
+    suspend fun listLatestDetections(limit: Int): List<SockPuppetDetectionEntryRecord> =
+        dslContext
+            .select(
+                GAME_SOCK_PUPPET_DETECTION_GAME_ID,
+                GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID,
+                GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID,
+                GAME_SOCK_PUPPET_DETECTION_SHARED_REMOTE_ADDRESS_COUNT,
+                GAME_SOCK_PUPPET_DETECTION_SHARED_FINGERPRINT_COUNT,
+                GAME.CREATED,
+                GAME_SOCK_PUPPET_DETECTION_LAST_SCANNED_AT,
+            )
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .join(GAME)
+            .on(GAME.ID.eq(GAME_SOCK_PUPPET_DETECTION_GAME_ID))
+            .orderBy(GAME.CREATED.desc())
+            .limit(limit)
+            .awaitRecords()
+            .map { record ->
+                SockPuppetDetectionEntryRecord(
+                    gameId = record.get(GAME_SOCK_PUPPET_DETECTION_GAME_ID),
+                    inviterUserId = record.get(GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID),
+                    inviteeUserId = record.get(GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID),
+                    sharedRemoteAddressCount = record.get(GAME_SOCK_PUPPET_DETECTION_SHARED_REMOTE_ADDRESS_COUNT) ?: 0,
+                    sharedFingerprintCount = record.get(GAME_SOCK_PUPPET_DETECTION_SHARED_FINGERPRINT_COUNT) ?: 0,
+                    gameCreated = record.get(GAME.CREATED),
+                    lastScannedAt = record.get(GAME_SOCK_PUPPET_DETECTION_LAST_SCANNED_AT),
+                )
+            }
+
+    suspend fun fetchDetectionsSummary(): SockPuppetDetectionSummaryRecord {
+        val totalDetections = dslContext
+            .selectCount()
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .awaitSingleValue() ?: 0
+
+        val distinctInviters = dslContext
+            .select(DSL.countDistinct(GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID))
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .awaitSingleValue() ?: 0
+
+        val distinctInvitees = dslContext
+            .select(DSL.countDistinct(GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID))
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .awaitSingleValue() ?: 0
+
+        val allUsers = dslContext
+            .select(GAME_SOCK_PUPPET_DETECTION_INVITER_USER_ID.`as`("user_id"))
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .union(
+                dslContext
+                    .select(GAME_SOCK_PUPPET_DETECTION_INVITEE_USER_ID.`as`("user_id"))
+                    .from(GAME_SOCK_PUPPET_DETECTION),
+            )
+            .asTable("all_users")
+
+        val distinctUsersInvolved = dslContext
+            .selectCount()
+            .from(allUsers)
+            .awaitSingleValue<Int>() ?: 0
+
+        return SockPuppetDetectionSummaryRecord(
+            totalDetections = totalDetections,
+            distinctUsersInvolved = distinctUsersInvolved,
+            distinctInviters = distinctInviters,
+            distinctInvitees = distinctInvitees,
+        )
     }
 
     private companion object {
