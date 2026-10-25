@@ -11,6 +11,7 @@ import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 
 @KoinSingleton
 class SockPuppetReportDaoService(private val dslContext: DSLContext) {
@@ -91,6 +92,8 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             }
 
     suspend fun fetchDetectionsSummary(): SockPuppetDetectionSummaryRecord {
+        val last30Days = Clock.System.now().minus(30.days)
+
         val totalDetections = dslContext
             .selectCount()
             .from(GAME_SOCK_PUPPET_DETECTION)
@@ -121,11 +124,35 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             .from(allUsers)
             .awaitSingleValue() ?: 0
 
+        val reportedGamesLast30Days = dslContext
+            .selectCount()
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .join(GAME)
+            .on(GAME.ID.eq(GAME_SOCK_PUPPET_DETECTION.GAME_ID))
+            .where(GAME.CREATED.ge(last30Days))
+            .awaitSingleValue() ?: 0
+
+        val totalPvpGamesLast30Days = dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.CREATED.ge(last30Days))
+            .and(GAME.INVITEE.isNotNull)
+            .awaitSingleValue() ?: 0
+
+        val reportedGamesRatioLast30Days = if (totalPvpGamesLast30Days == 0) {
+            0.0
+        } else {
+            reportedGamesLast30Days.toDouble() / totalPvpGamesLast30Days.toDouble()
+        }
+
         return SockPuppetDetectionSummaryRecord(
             totalDetections = totalDetections,
             distinctUsersInvolved = distinctUsersInvolved,
             distinctInviters = distinctInviters,
             distinctInvitees = distinctInvitees,
+            reportedGamesLast30Days = reportedGamesLast30Days,
+            totalPvpGamesLast30Days = totalPvpGamesLast30Days,
+            reportedGamesRatioLast30Days = reportedGamesRatioLast30Days,
         )
     }
 }

@@ -6,6 +6,9 @@ data class ListSockPuppetReportResponse(val summary: Summary, val entries: List<
         val distinctUsersInvolved: Int,
         val distinctInviters: Int,
         val distinctInvitees: Int,
+        val reportedGamesLast30Days: Int,
+        val totalPvpGamesLast30Days: Int,
+        val reportedGamesPercentageLast30Days: Double,
     )
 
     data class Entry(

@@ -24,6 +24,7 @@ class AdminSockPuppetReportPage extends BasePage {
     #summaryUsers = document.getElementById('sock-puppet-summary-users');
     #summaryInviters = document.getElementById('sock-puppet-summary-inviters');
     #summaryInvitees = document.getElementById('sock-puppet-summary-invitees');
+    #summaryLast30Days = document.getElementById('sock-puppet-summary-last-30-days');
 
     constructor() {
         super();
@@ -33,6 +34,7 @@ class AdminSockPuppetReportPage extends BasePage {
             this.#summaryUsers.innerText = json.summary.distinctUsersInvolved.toString();
             this.#summaryInviters.innerText = json.summary.distinctInviters.toString();
             this.#summaryInvitees.innerText = json.summary.distinctInvitees.toString();
+            this.#summaryLast30Days.innerText = `${json.summary.reportedGamesLast30Days} / ${json.summary.totalPvpGamesLast30Days} (${json.summary.reportedGamesPercentageLast30Days.toFixed(2)}%)`;
 
             const tbody = emptyTable(this.#table);
             json.entries.forEach(entry => {

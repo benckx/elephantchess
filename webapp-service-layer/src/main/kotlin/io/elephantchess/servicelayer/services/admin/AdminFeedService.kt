@@ -171,6 +171,9 @@ class AdminFeedService(
                 distinctUsersInvolved = summary.distinctUsersInvolved,
                 distinctInviters = summary.distinctInviters,
                 distinctInvitees = summary.distinctInvitees,
+                reportedGamesLast30Days = summary.reportedGamesLast30Days,
+                totalPvpGamesLast30Days = summary.totalPvpGamesLast30Days,
+                reportedGamesPercentageLast30Days = summary.reportedGamesRatioLast30Days * 100.0,
             ),
             entries = entries,
         )
