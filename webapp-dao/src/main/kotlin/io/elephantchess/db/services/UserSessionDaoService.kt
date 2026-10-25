@@ -207,9 +207,41 @@ class UserSessionDaoService(private val dslContext: DSLContext, private val logg
             .and(session2.USER_ID.eq(userId2))
             .awaitSingleRecord()
 
+        val latestSharedSession = dslContext
+            .select(
+                session1.REMOTE_ADDRESS,
+                session1.COUNTRY_CODE,
+                session1.COUNTRY_NAME,
+                session1.REGION,
+                session1.CITY,
+                session1.OPERATING_SYSTEM_NAME,
+                session1.AGENT_NAME,
+                session1.AGENT_CLASS,
+                session1.USER_AGENT,
+            )
+            .from(session1)
+            .join(session2)
+            .on(session1.REMOTE_ADDRESS.eq(session2.REMOTE_ADDRESS))
+            .and(session1.OPERATING_SYSTEM_NAME.isNotDistinctFrom(session2.OPERATING_SYSTEM_NAME))
+            .and(session1.AGENT_NAME.isNotDistinctFrom(session2.AGENT_NAME))
+            .where(session1.USER_ID.eq(userId1))
+            .and(session2.USER_ID.eq(userId2))
+            .orderBy(session1.LAST_UPDATED.desc(), session2.LAST_UPDATED.desc())
+            .limit(1)
+            .awaitSingleRecord()
+
         return SharedSessionSimilarityRecord(
             sharedRemoteAddressCount = record?.get(sharedRemoteAddressCountField) ?: 0,
             sharedFingerprintCount = record?.get(sharedFingerprintCountField) ?: 0,
+            sharedRemoteAddress = latestSharedSession?.get(session1.REMOTE_ADDRESS),
+            sharedCountryCode = latestSharedSession?.get(session1.COUNTRY_CODE),
+            sharedCountryName = latestSharedSession?.get(session1.COUNTRY_NAME),
+            sharedRegion = latestSharedSession?.get(session1.REGION),
+            sharedCity = latestSharedSession?.get(session1.CITY),
+            sharedOperatingSystemName = latestSharedSession?.get(session1.OPERATING_SYSTEM_NAME),
+            sharedAgentName = latestSharedSession?.get(session1.AGENT_NAME),
+            sharedAgentClass = latestSharedSession?.get(session1.AGENT_CLASS),
+            sharedUserAgent = latestSharedSession?.get(session1.USER_AGENT),
         )
     }
 

@@ -35,6 +35,15 @@ class DetectSockPuppetGamesBatch(
                 inviteeUserId = element.inviteeUserId,
                 sharedRemoteAddressCount = similarity.sharedRemoteAddressCount,
                 sharedFingerprintCount = similarity.sharedFingerprintCount,
+                sharedRemoteAddress = similarity.sharedRemoteAddress,
+                sharedCountryCode = similarity.sharedCountryCode,
+                sharedCountryName = similarity.sharedCountryName,
+                sharedRegion = similarity.sharedRegion,
+                sharedCity = similarity.sharedCity,
+                sharedOperatingSystemName = similarity.sharedOperatingSystemName,
+                sharedAgentName = similarity.sharedAgentName,
+                sharedAgentClass = similarity.sharedAgentClass,
+                sharedUserAgent = similarity.sharedUserAgent,
             )
 
             logger.info {

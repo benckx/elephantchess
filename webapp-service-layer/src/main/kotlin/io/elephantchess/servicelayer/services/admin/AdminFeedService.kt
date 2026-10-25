@@ -161,6 +161,15 @@ class AdminFeedService(
                     inviteeUsername = userCache.fetchUsernameOrDefault(record.inviteeUserId),
                     sharedRemoteAddressCount = record.sharedRemoteAddressCount,
                     sharedFingerprintCount = record.sharedFingerprintCount,
+                    sharedRemoteAddress = record.sharedRemoteAddress,
+                    sharedCountryCode = record.sharedCountryCode,
+                    sharedCountryName = record.sharedCountryName,
+                    sharedRegion = record.sharedRegion,
+                    sharedCity = record.sharedCity,
+                    sharedOperatingSystemName = record.sharedOperatingSystemName,
+                    sharedAgentName = record.sharedAgentName,
+                    sharedAgentClass = record.sharedAgentClass,
+                    sharedUserAgent = record.sharedUserAgent,
                     gameCreated = record.gameCreated.toEpochMilliseconds(),
                 )
             }

@@ -2664,6 +2664,15 @@
             <column name="shared_fingerprint_count" type="int" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
+            <column name="shared_remote_address" type="varchar(50)"/>
+            <column name="shared_country_code" type="varchar(4)"/>
+            <column name="shared_country_name" type="varchar(100)"/>
+            <column name="shared_region" type="varchar(100)"/>
+            <column name="shared_city" type="varchar(100)"/>
+            <column name="shared_operating_system_name" type="varchar(50)"/>
+            <column name="shared_agent_name" type="varchar(50)"/>
+            <column name="shared_agent_class" type="varchar(50)"/>
+            <column name="shared_user_agent" type="text"/>
             <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>

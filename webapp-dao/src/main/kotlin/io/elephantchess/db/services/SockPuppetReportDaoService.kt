@@ -22,6 +22,15 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
         inviteeUserId: String,
         sharedRemoteAddressCount: Int,
         sharedFingerprintCount: Int,
+        sharedRemoteAddress: String?,
+        sharedCountryCode: String?,
+        sharedCountryName: String?,
+        sharedRegion: String?,
+        sharedCity: String?,
+        sharedOperatingSystemName: String?,
+        sharedAgentName: String?,
+        sharedAgentClass: String?,
+        sharedUserAgent: String?,
     ): Int {
         val now = Clock.System.now()
 
@@ -33,6 +42,15 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
                 GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
                 GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT,
                 GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_REGION,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_CITY,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT,
                 GAME_SOCK_PUPPET_DETECTION.CREATED_AT,
             )
             .values(
@@ -41,27 +59,31 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
                 inviteeUserId,
                 sharedRemoteAddressCount,
                 sharedFingerprintCount,
+                sharedRemoteAddress,
+                sharedCountryCode,
+                sharedCountryName,
+                sharedRegion,
+                sharedCity,
+                sharedOperatingSystemName,
+                sharedAgentName,
+                sharedAgentClass,
+                sharedUserAgent,
                 now,
             )
             .onConflict(GAME_SOCK_PUPPET_DETECTION.GAME_ID)
             .doUpdate()
             .set(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT, sharedRemoteAddressCount)
             .set(GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT, sharedFingerprintCount)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS, sharedRemoteAddress)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE, sharedCountryCode)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME, sharedCountryName)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_REGION, sharedRegion)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_CITY, sharedCity)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME, sharedOperatingSystemName)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME, sharedAgentName)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS, sharedAgentClass)
+            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT, sharedUserAgent)
             .awaitExecute()
-    }
-
-    suspend fun findDetectedGameIds(gameIds: Collection<String>): Set<String> {
-        if (gameIds.isEmpty()) {
-            return emptySet()
-        }
-
-        return dslContext
-            .select(GAME_SOCK_PUPPET_DETECTION.GAME_ID)
-            .from(GAME_SOCK_PUPPET_DETECTION)
-            .where(GAME_SOCK_PUPPET_DETECTION.GAME_ID.`in`(gameIds))
-            .awaitRecords()
-            .map { record -> record.get(GAME_SOCK_PUPPET_DETECTION.GAME_ID) }
-            .toSet()
     }
 
     suspend fun findDetectionCreationTimes(gameIds: Collection<String>): Map<String, Instant> {
@@ -94,6 +116,15 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
                 GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
                 GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT,
                 GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_REGION,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_CITY,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT,
                 GAME.CREATED,
             )
             .from(GAME_SOCK_PUPPET_DETECTION)
@@ -109,6 +140,15 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
                     inviteeUserId = record.get(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID),
                     sharedRemoteAddressCount = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT) ?: 0,
                     sharedFingerprintCount = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT) ?: 0,
+                    sharedRemoteAddress = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS),
+                    sharedCountryCode = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE),
+                    sharedCountryName = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME),
+                    sharedRegion = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REGION),
+                    sharedCity = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_CITY),
+                    sharedOperatingSystemName = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME),
+                    sharedAgentName = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME),
+                    sharedAgentClass = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS),
+                    sharedUserAgent = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT),
                     gameCreated = record.get(GAME.CREATED),
                 )
             }
