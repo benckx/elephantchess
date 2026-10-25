@@ -17,6 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// noinspection JSDeprecatedSymbols
 class AdminSockPuppetReportPage extends BasePage {
 
     #table = document.getElementById('sock-puppet-report-table');
@@ -58,7 +59,6 @@ class AdminSockPuppetReportPage extends BasePage {
                 row.insertCell().innerText = this.#displayValue(entry.sharedCity);
                 row.insertCell().innerText = this.#displayValue(entry.sharedOperatingSystemName);
                 row.insertCell().innerText = this.#displayValue(entry.sharedAgentName);
-                row.insertCell().innerText = this.#displayValue(entry.sharedAgentClass);
 
                 row.insertCell().innerText = formatTimestampDefaultDateFormat(entry.gameCreated);
             });
