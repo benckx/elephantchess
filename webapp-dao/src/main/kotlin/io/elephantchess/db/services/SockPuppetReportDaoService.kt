@@ -206,11 +206,12 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             .and(GAME.INVITEE.isNotNull)
             .awaitSingleValue() ?: 0
 
-        val reportedGamesRatioLast30Days = if (totalPvpGamesLast30Days == 0) {
-            0.0
-        } else {
-            reportedGamesLast30Days.toDouble() / totalPvpGamesLast30Days.toDouble()
-        }
+        val reportedGamesRatioLast30Days =
+            if (totalPvpGamesLast30Days == 0) {
+                0.0
+            } else {
+                reportedGamesLast30Days.toDouble() / totalPvpGamesLast30Days.toDouble()
+            }
 
         return SockPuppetDetectionSummaryRecord(
             totalDetections = totalDetections,
