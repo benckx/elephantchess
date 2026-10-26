@@ -31,6 +31,7 @@ class AdminUserInsightsPageRenderer(
                 userMetadataTableTagResolver(data),
                 gameActivityTableTagResolver(data),
                 relatedUsersTableTagResolver(data),
+                sockPuppetGamesTableTagResolver(data),
                 savedAnalysisTableTagResolver(data),
                 latestChatMessagesTagResolver(data),
                 fullChatMessagesLinkTagResolver(data, chatMessagesUrl),
@@ -146,6 +147,59 @@ class AdminUserInsightsPageRenderer(
                             td { +entry.sharedIpCount.toString() }
                             td { +formatPvpTogether(entry.pvpGamesWithUser) }
                             td { +formatTimestampUtc(entry.lastSeen) }
+                        }
+                    }
+                }
+            }
+        }
+
+    private fun sockPuppetGamesTableTagResolver(data: AdminUserInsightsData) =
+        KtorHtmlBuilderTagResolver("admin_user_sock_puppet_games_table") {
+            if (data.sockPuppetGames.isEmpty()) {
+                p("empty-block-placeholder") { +"No game sock puppet reports found." }
+            } else {
+                table("nice-table nice-table-striped") {
+                    id = "admin-user-sock-puppet-games-table"
+                    tr {
+                        th { +"PvP game" }
+                        th { +"inviter" }
+                        th { +"invitee" }
+                        th { +"shared IPs" }
+                        th { +"shared session fingerprints" }
+                        th { +"shared IP" }
+                        th { +"country" }
+                        th { +"region" }
+                        th { +"city" }
+                        th { +"os" }
+                        th { +"agent" }
+                        th { +"game created" }
+                    }
+                    data.sockPuppetGames.forEach { entry ->
+                        tr {
+                            td {
+                                a(href = "/game?id=${entry.gameId.encodeURLQueryComponent()}") {
+                                    +entry.gameId
+                                }
+                            }
+                            td {
+                                a(href = "/admin/user/${entry.inviterUserId.encodeURLPath()}") {
+                                    +formatUsernameAndId(entry.inviterUsername, entry.inviterUserId)
+                                }
+                            }
+                            td {
+                                a(href = "/admin/user/${entry.inviteeUserId.encodeURLPath()}") {
+                                    +formatUsernameAndId(entry.inviteeUsername, entry.inviteeUserId)
+                                }
+                            }
+                            td { +entry.sharedRemoteAddressCount.toString() }
+                            td { +entry.sharedFingerprintCount.toString() }
+                            td { greyOutText(entry.sharedRemoteAddress ?: "n/a") }
+                            td { greyOutText(entry.sharedCountryName ?: "n/a") }
+                            td { greyOutText(entry.sharedRegion ?: "n/a") }
+                            td { greyOutText(entry.sharedCity ?: "n/a") }
+                            td { greyOutText(entry.sharedOperatingSystemName ?: "n/a") }
+                            td { greyOutText(entry.sharedAgentName ?: "n/a") }
+                            td { +formatTimestampUtc(entry.gameCreated) }
                         }
                     }
                 }
@@ -358,6 +412,9 @@ class AdminUserInsightsPageRenderer(
         } else {
             "${entry.username} (${entry.userId})"
         }
+
+    private fun formatUsernameAndId(username: String, userId: String): String =
+        if (username == userId) "#$userId" else "$username ($userId)"
 
     private fun formatTimestampWithRelativeAge(epochMillis: Long?): String {
         val formattedTimestamp = formatTimestampUtc(epochMillis)

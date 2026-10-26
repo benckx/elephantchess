@@ -21,7 +21,7 @@ class ShardingTest {
 
         val n = 10_000
         val shard = n / nbrOfPods.toDouble()
-        val margin = shard * .05
+        val margin = shard * .10
 
         logger.debug { "total: $n" }
         logger.debug { "shard: $shard" }

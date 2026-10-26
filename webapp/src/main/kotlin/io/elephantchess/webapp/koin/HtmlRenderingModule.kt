@@ -17,13 +17,16 @@ private val webAppLogger = KotlinLogging.logger {}
 internal fun htmlRenderingModule() =
     module {
         single {
-            val fragmentPaths = listFragmentTags()
-            fragmentPaths.forEach { webAppLogger.info { "discovered web fragment: $it" } }
+            val webFragmentPaths = listWebFragmentsPaths()
+            webFragmentPaths.forEach { webAppLogger.info { "discovered web fragment: $it" } }
 
             val appConfig = get<AppConfig>()
             val webFragmentsTagResolvers =
-                fragmentPaths.map { resourceName ->
-                    WebFragmentResolver(tagName = resourceName.substringAfterLast('/'), resourceName = resourceName)
+                webFragmentPaths.map { resourceName ->
+                    WebFragmentResolver(
+                        tagName = resourceName.substringAfterLast('/'),
+                        resourceName = resourceName,
+                    )
                 }
 
             val disabledTemplates = mutableListOf<String>()
@@ -57,7 +60,14 @@ internal fun htmlRenderingModule() =
         }
     }
 
-private fun listFragmentTags(): List<String> {
+/**
+ * The "web fragments" are a collection of small HTML templates that can be included in other templates.
+ * They are stored in the `resources/web_fragments` directory. This function lists all the paths of these fragments,
+ * regardless of whether the application is running in a local development environment or from a JAR file.
+ *
+ * Examples: footer.html, top_bar.html, etc.
+ */
+private fun listWebFragmentsPaths(): List<String> {
     val resourcePath = "/web_fragments"
     val resources = object {}.javaClass.getResource(resourcePath)
         ?: throw IllegalStateException("Resource directory not found: $resourcePath")

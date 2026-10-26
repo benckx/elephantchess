@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.batch
 
+import io.elephantchess.db.dao.codegen.tables.pojos.GameSockPuppetDetection
 import io.elephantchess.db.model.SockPuppetScanCandidateRecord
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.SockPuppetReportDaoService
@@ -29,21 +30,23 @@ class DetectSockPuppetGamesBatch(
         )
 
         if (similarity.sharedFingerprintCount > 0) {
-            sockPuppetReportDaoService.upsertGameReport(
-                gameId = element.gameId,
-                inviterUserId = element.inviterUserId,
-                inviteeUserId = element.inviteeUserId,
-                sharedRemoteAddressCount = similarity.sharedRemoteAddressCount,
-                sharedFingerprintCount = similarity.sharedFingerprintCount,
-                sharedRemoteAddress = similarity.sharedRemoteAddress,
-                sharedCountryCode = similarity.sharedCountryCode,
-                sharedCountryName = similarity.sharedCountryName,
-                sharedRegion = similarity.sharedRegion,
-                sharedCity = similarity.sharedCity,
-                sharedOperatingSystemName = similarity.sharedOperatingSystemName,
-                sharedAgentName = similarity.sharedAgentName,
-                sharedAgentClass = similarity.sharedAgentClass,
-                sharedUserAgent = similarity.sharedUserAgent,
+            sockPuppetReportDaoService.insert(
+                GameSockPuppetDetection().apply {
+                    gameId = element.gameId
+                    inviterUserId = element.inviterUserId
+                    inviteeUserId = element.inviteeUserId
+                    sharedRemoteAddressCount = similarity.sharedRemoteAddressCount
+                    sharedFingerprintCount = similarity.sharedFingerprintCount
+                    sharedRemoteAddress = similarity.sharedRemoteAddress
+                    sharedCountryCode = similarity.sharedCountryCode
+                    sharedCountryName = similarity.sharedCountryName
+                    sharedRegion = similarity.sharedRegion
+                    sharedCity = similarity.sharedCity
+                    sharedOperatingSystemName = similarity.sharedOperatingSystemName
+                    sharedAgentName = similarity.sharedAgentName
+                    sharedAgentClass = similarity.sharedAgentClass
+                    sharedUserAgent = similarity.sharedUserAgent
+                },
             )
 
             logger.info {
