@@ -1,7 +1,6 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.webapp.rendering.resolvers.pageTocTagResolver
 
 @KoinSingleton(eager = true)
 class FaqPageRenderer(private val simplePageRenderer: SimplePageRenderer) {

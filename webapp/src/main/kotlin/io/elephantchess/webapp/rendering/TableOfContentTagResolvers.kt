@@ -1,9 +1,8 @@
-package io.elephantchess.webapp.rendering.resolvers
+package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.utils.ResourceUtils.resourceAsString
-import io.elephantchess.webapp.rendering.escapeHtml
-import io.elephantchess.webapp.rendering.escapeHtmlAttr
+import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
 import kotlin.text.RegexOption.DOT_MATCHES_ALL
 import kotlin.text.RegexOption.IGNORE_CASE
 

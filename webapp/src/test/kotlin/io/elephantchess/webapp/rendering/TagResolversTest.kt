@@ -1,8 +1,6 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.servicelayer.dto.kofi.LatestSupporter
-import io.elephantchess.webapp.rendering.resolvers.categorizedPageTocTagResolver
-import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.test.runTest
 import java.time.LocalDate

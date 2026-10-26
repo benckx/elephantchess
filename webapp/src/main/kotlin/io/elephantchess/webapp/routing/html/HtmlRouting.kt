@@ -10,7 +10,7 @@ import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
 import io.elephantchess.webapp.rendering.*
-import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
+import io.elephantchess.webapp.rendering.latestSupporterTagResolver
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.*

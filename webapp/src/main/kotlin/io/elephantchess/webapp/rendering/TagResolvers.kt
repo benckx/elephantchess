@@ -1,7 +1,8 @@
-package io.elephantchess.webapp.rendering.resolvers
+package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.kofi.LatestSupporter
+import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
@@ -93,7 +94,7 @@ fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
             val description = formatDescription(latestSupporter)
 
             """<p>Our latest donation was offered to us by <b>$username</b>. $description Many thanks to them!</p>""" +
-                """<p>Do you want to see <b>your name</b> featured as our latest supporter? <b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> and with just 5€ finance the platform for an entire day!</p>"""
+                    """<p>Do you want to see <b>your name</b> featured as our latest supporter? <b><a href="https://ko-fi.com/elephantchess" target="_blank">You, too, can help us</a></b> and with just 5€ finance the platform for an entire day!</p>"""
         } else {
             ""
         }

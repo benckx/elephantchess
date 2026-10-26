@@ -1,4 +1,4 @@
-package io.elephantchess.webapp.rendering.resolvers
+package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.model.Outcome

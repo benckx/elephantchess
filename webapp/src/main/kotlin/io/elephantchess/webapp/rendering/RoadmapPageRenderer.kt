@@ -1,7 +1,6 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.webapp.rendering.resolvers.categorizedPageTocTagResolver
 
 @KoinSingleton(eager = true)
 class RoadmapPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
