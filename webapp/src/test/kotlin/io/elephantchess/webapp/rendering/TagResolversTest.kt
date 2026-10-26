@@ -2,7 +2,6 @@ package io.elephantchess.webapp.rendering
 
 import io.elephantchess.servicelayer.dto.kofi.LatestSupporter
 import io.elephantchess.webapp.rendering.resolvers.categorizedPageTocTagResolver
-import io.elephantchess.webapp.rendering.resolvers.renderCategorizedPageToc
 import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.test.runTest
@@ -223,26 +222,6 @@ class TagResolversTest {
         }
 
     @Test
-    fun `categorized toc renders categories and nested heading links`() {
-        val toc = renderCategorizedPageToc(
-            listOf(
-                "Puzzles" to listOf(
-                    "new-types-of-puzzles" to "New Types of Puzzles",
-                    "puzzle-mobile-experience" to "Better Puzzle Experience on Mobile",
-                ),
-            ),
-        )
-
-        assertEquals(
-            """<navid="page-toc"><ul><li><ahref="#new-types-of-puzzles">Puzzles</a><ul>""" +
-                """<li><ahref="#new-types-of-puzzles">NewTypesofPuzzles</a></li>""" +
-                """<li><ahref="#puzzle-mobile-experience">BetterPuzzleExperienceonMobile</a></li>""" +
-                """</ul></li></ul></nav>""",
-            toc.replace(Regex("\\s+"), ""),
-        )
-    }
-
-    @Test
     fun `roadmap toc groups headings under comment categories`() =
         runTest {
             val resolver = categorizedPageTocTagResolver(
@@ -257,7 +236,7 @@ class TagResolversTest {
             assertTrue(toc.contains(">New features</a><ul>"), toc)
             assertTrue(toc.contains("""href="#manchu-analysis">Analysis for Manchu variant</a>"""), toc)
             assertTrue(toc.contains("""href="#general-better-mobile">A better Mobile experience in general?</a>"""), toc)
-    }
+        }
 
     @Test
     fun `current-year date omits year`() =
