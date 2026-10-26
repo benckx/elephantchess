@@ -10,7 +10,7 @@ import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
 import io.elephantchess.webapp.rendering.*
-import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
+import io.elephantchess.webapp.rendering.latestSupporterTagResolver
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.*
@@ -40,7 +40,6 @@ private val simplePublicPageMapping = mapOf(
     "/recovery" to "password_recovery1",
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
-    "/about/roadmap" to "about/roadmap",
     "/about/datasets" to "about/datasets",
     "/contact" to "contact_form",
     "/how-to-play-xiangqi" to "how_to_play_xiangqi",
@@ -289,7 +288,11 @@ private fun Route.userSettingsPage() {
 private fun Route.aboutPages() {
     val changelogPageRenderer by koin<ChangelogPageRenderer>()
     val faqPageRenderer by koin<FaqPageRenderer>()
+    val roadmapPageRenderer by koin<RoadmapPageRenderer>()
 
+    get("/about/roadmap") {
+        call.respondHtml(roadmapPageRenderer.renderRoadmapPage())
+    }
     get("/about/faq") {
         call.respondHtml(faqPageRenderer.renderFaqPage())
     }

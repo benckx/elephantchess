@@ -1,7 +1,6 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.servicelayer.dto.kofi.LatestSupporter
-import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.test.runTest
 import java.time.LocalDate
@@ -218,6 +217,23 @@ class TagResolversTest {
                 out.contains("entire days") || out.contains("entire day"),
                 "Expected days-based message for lower-case eur: $out",
             )
+        }
+
+    @Test
+    fun `roadmap toc groups headings under comment categories`() =
+        runTest {
+            val resolver = categorizedPageTocTagResolver(
+                tagName = "roadmap_toc",
+                templatePath = "/templates/about/roadmap.html",
+            )
+            val toc = resolver.resolveContent().joinToString("")
+
+            assertTrue(toc.contains(">Variants</a><ul>"), toc)
+            assertTrue(toc.contains(">Puzzles</a><ul>"), toc)
+            assertTrue(toc.contains(">Board - PvP and PvB</a><ul>"), toc)
+            assertTrue(toc.contains(">New features</a><ul>"), toc)
+            assertTrue(toc.contains("""href="#manchu-analysis">Analysis for Manchu variant</a>"""), toc)
+            assertTrue(toc.contains("""href="#general-better-mobile">A better Mobile experience in general?</a>"""), toc)
         }
 
     @Test

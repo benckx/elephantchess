@@ -7,8 +7,6 @@ import io.elephantchess.servicelayer.services.KofiService
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.webapp.rendering.resolvers.escapeHtml
-import io.elephantchess.webapp.rendering.resolvers.latestSupporterTagResolver
 import io.elephantchess.xiangqi.Color
 
 @KoinSingleton(eager = true)
@@ -47,18 +45,20 @@ class GamePageRenderer(
 
     private suspend fun fetchPvpTitle(gameId: String): String {
         val game = pvpGameService.fetchGame(gameId)
-        val title = runCatching {
-            formatPvpPageTitle(game.inviterUsername, game.inviteeUsername, game.inviterColor)
-        }.getOrDefault(DEFAULT_PVP_TITLE)
+        val title =
+            runCatching {
+                formatPvpPageTitle(game.inviterUsername, game.inviteeUsername, game.inviterColor)
+            }.getOrDefault(DEFAULT_PVP_TITLE)
 
         return escapeHtml(title)
     }
 
     private suspend fun fetchPvbTitle(gameId: String): String {
         val game = pvbGameService.fetchGameData(gameId)
-        val title = runCatching {
-            formatPvbPageTitle(game.username, game.userColor, game.engine, game.depth)
-        }.getOrDefault(DEFAULT_PVB_TITLE)
+        val title =
+            runCatching {
+                formatPvbPageTitle(game.username, game.userColor, game.engine, game.depth)
+            }.getOrDefault(DEFAULT_PVB_TITLE)
 
         return escapeHtml(title)
     }

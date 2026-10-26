@@ -1,25 +1,23 @@
 package io.elephantchess.webapp.rendering
 
-import io.elephantchess.htmlrenderer.TagResolver
-import io.elephantchess.utils.ResourceUtils.resourceAsString
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
-import io.elephantchess.webapp.rendering.resolvers.escapeHtml
-import io.elephantchess.webapp.rendering.resolvers.escapeHtmlAttr
 
 @KoinSingleton(eager = true)
 class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
-    suspend fun renderChangelogPage(): String =
-        simplePageRenderer.renderTemplate(CHANGELOG_TEMPLATE_NAME, listOf(changelogTocTagResolver()))
+    suspend fun renderChangelogPage(): String {
+        val tocResolver =
+            pageTocTagResolver(
+                tagName = "changelog_toc",
+                templatePath = CHANGELOG_TEMPLATE_PATH,
+                extractEntries = ::changelogEntries,
+            )
 
-    private fun changelogTocTagResolver(): TagResolver =
-        CallbackTagResolver("changelog_toc") {
-            val html = resourceAsString(CHANGELOG_TEMPLATE_PATH)
-                ?: throw IllegalStateException("Changelog template not found at $CHANGELOG_TEMPLATE_PATH")
-
-            renderChangelogToc(html)
-        }
+        return simplePageRenderer.renderTemplate(
+            CHANGELOG_TEMPLATE_NAME,
+            listOf(tocResolver),
+        )
+    }
 
     companion object {
 
@@ -36,7 +34,7 @@ class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) 
          * month section belonging to that quarter in document order (i.e. the most recent month
          * of the quarter, since the changelog is reverse-chronological).
          */
-        fun renderChangelogToc(html: String): String {
+        private fun changelogEntries(html: String): List<Pair<String, String>> {
             val quarters = linkedMapOf<Pair<Int, Int>, String>() // (year, quarter) -> first month id
             H1_MONTH_WITH_ID_REGEX.findAll(html).forEach { match ->
                 val year = match.groupValues[1].toInt()
@@ -49,13 +47,10 @@ class ChangelogPageRenderer(private val simplePageRenderer: SimplePageRenderer) 
                 }
             }
 
-            if (quarters.isEmpty()) return ""
-            val items = quarters.entries.joinToString("\n") { (key, id) ->
+            return quarters.entries.map { (key, id) ->
                 val (year, quarter) = key
-                val label = "Q$quarter $year"
-                """<li><a href="#${escapeHtmlAttr(id)}">${escapeHtml(label)}</a></li>"""
+                id to "Q$quarter $year"
             }
-            return """<nav id="page-toc"><ul>$items</ul></nav>"""
         }
     }
 }
