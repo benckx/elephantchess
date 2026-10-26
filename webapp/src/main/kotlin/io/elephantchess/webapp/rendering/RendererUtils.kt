@@ -1,10 +1,13 @@
 package io.elephantchess.webapp.rendering
 
+import io.elephantchess.utils.stripHtml
+import kotlinx.html.meta
+import kotlinx.html.stream.createHTML
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.util.*
 
 fun formatTimestampUtc(epochMillis: Long?, nullPlaceholder: String = "n/a"): String =
     if (epochMillis == null) {
@@ -42,3 +45,33 @@ private fun formatRelativeValue(value: Long, unit: String): String {
     val suffix = if (value == 1L) unit else "${unit}s"
     return "$value $suffix ago"
 }
+
+/**
+ * HTML-escapes a string so it can be safely inlined as text content.
+ */
+fun escapeHtml(s: String): String =
+    s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+
+/**
+ * HTML-escapes a string so it can be safely used as an attribute value.
+ */
+fun escapeHtmlAttr(s: String): String =
+    escapeHtml(s).replace("\"", "&quot;")
+
+fun String.toParagraphs(): List<String> =
+    this
+        .split("\n\n")
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+
+fun descriptionMeta(description: String): String =
+    createHTML().meta {
+        name = "description"
+        content = stripHtml(
+            description
+                .replace("\n", " ")
+                .replace("\r", ""),
+        )
+    }
