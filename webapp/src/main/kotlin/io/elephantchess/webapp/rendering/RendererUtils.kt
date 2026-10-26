@@ -9,6 +9,13 @@ import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+private const val SECOND_IN_MILLIS = 1_000L
+private const val MINUTE_IN_MILLIS = 60 * SECOND_IN_MILLIS
+private const val HOUR_IN_MILLIS = 60 * MINUTE_IN_MILLIS
+private const val DAY_IN_MILLIS = 24 * HOUR_IN_MILLIS
+private const val MONTH_IN_MILLIS = 30 * DAY_IN_MILLIS
+private const val YEAR_IN_MILLIS = 12 * MONTH_IN_MILLIS
+
 fun formatTimestampUtc(epochMillis: Long?, nullPlaceholder: String = "n/a"): String =
     if (epochMillis == null) {
         nullPlaceholder
@@ -32,12 +39,12 @@ fun formatTimestampToRelativeTime(epochMillis: Long?, nullPlaceholder: String = 
     }
 
     return when {
-        elapsed < 60_000L -> formatRelativeValue(elapsed / 1_000L, "second")
-        elapsed < 3_600_000L -> formatRelativeValue(elapsed / 60_000L, "minute")
-        elapsed < 86_400_000L -> formatRelativeValue(elapsed / 3_600_000L, "hour")
-        elapsed < 2_592_000_000L -> formatRelativeValue(elapsed / 86_400_000L, "day")
-        elapsed < 31_104_000_000L -> formatRelativeValue(elapsed / 2_592_000_000L, "month")
-        else -> formatRelativeValue(elapsed / 31_104_000_000L, "year")
+        elapsed < MINUTE_IN_MILLIS -> formatRelativeValue(elapsed / SECOND_IN_MILLIS, "second")
+        elapsed < HOUR_IN_MILLIS -> formatRelativeValue(elapsed / MINUTE_IN_MILLIS, "minute")
+        elapsed < DAY_IN_MILLIS -> formatRelativeValue(elapsed / HOUR_IN_MILLIS, "hour")
+        elapsed < MONTH_IN_MILLIS -> formatRelativeValue(elapsed / DAY_IN_MILLIS, "day")
+        elapsed < YEAR_IN_MILLIS -> formatRelativeValue(elapsed / MONTH_IN_MILLIS, "month")
+        else -> formatRelativeValue(elapsed / YEAR_IN_MILLIS, "year")
     }
 }
 
