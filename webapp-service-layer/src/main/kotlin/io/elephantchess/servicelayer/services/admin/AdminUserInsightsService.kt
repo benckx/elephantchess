@@ -6,6 +6,7 @@ import io.elephantchess.db.services.ChatMessageDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
+import io.elephantchess.db.services.SockPuppetReportDaoService
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.servicelayer.dto.AutocompleteResponse
@@ -23,6 +24,7 @@ class AdminUserInsightsService(
     private val userDaoService: UserDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
+    private val sockPuppetReportDaoService: SockPuppetReportDaoService,
     private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
     private val chatMessageDaoService: ChatMessageDaoService,
     private val archivedPageViewDaoService: ArchivedPageViewDaoService,
@@ -48,6 +50,7 @@ class AdminUserInsightsService(
             remoteAddresses = latestSessions.map { it.remoteAddress }.toSet(),
             limit = 20,
         )
+        val sockPuppetGames = sockPuppetReportDaoService.listDetectionsForUser(user.id)
         val pvpGamesWithRelatedUser = relatedUsers.associate { relatedUser ->
             relatedUser.userId to playerVsPlayerGameDaoService.countGamesBetweenUsers(user.id, relatedUser.userId)
         }
@@ -82,6 +85,24 @@ class AdminUserInsightsService(
                     sharedIpCount = relatedUser.sharedRemoteAddressCount,
                     pvpGamesWithUser = pvpGamesWithRelatedUser[relatedUser.userId] ?: 0,
                     lastSeen = relatedUser.lastSeen?.toEpochMilliseconds(),
+                )
+            },
+            sockPuppetGames = sockPuppetGames.map { report ->
+                AdminUserInsightsData.SockPuppetGameEntry(
+                    gameId = report.gameId,
+                    inviterUserId = report.inviterUserId,
+                    inviterUsername = userDaoService.findUserNameById(report.inviterUserId) ?: report.inviterUserId,
+                    inviteeUserId = report.inviteeUserId,
+                    inviteeUsername = userDaoService.findUserNameById(report.inviteeUserId) ?: report.inviteeUserId,
+                    sharedRemoteAddressCount = report.sharedRemoteAddressCount,
+                    sharedFingerprintCount = report.sharedFingerprintCount,
+                    sharedRemoteAddress = report.sharedRemoteAddress,
+                    sharedCountryName = report.sharedCountryName,
+                    sharedRegion = report.sharedRegion,
+                    sharedCity = report.sharedCity,
+                    sharedOperatingSystemName = report.sharedOperatingSystemName,
+                    sharedAgentName = report.sharedAgentName,
+                    gameCreated = report.gameCreated.toEpochMilliseconds(),
                 )
             },
             savedAnalysis = savedAnalysis.map { analysis ->

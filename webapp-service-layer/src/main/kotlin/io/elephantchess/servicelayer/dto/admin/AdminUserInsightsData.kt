@@ -23,6 +23,7 @@ data class AdminUserInsightsData(
     val pvb: ActivitySummary,
     val pvbOver3: ActivitySummary,
     val relatedUsers: List<RelatedUserEntry>,
+    val sockPuppetGames: List<SockPuppetGameEntry>,
     val savedAnalysis: List<SavedAnalysisEntry>,
     val latestChatMessages: List<ChatMessageEntry>,
     val latestPageViews: List<PageViewEntry>,
@@ -47,6 +48,23 @@ data class AdminUserInsightsData(
         val sharedIpCount: Int,
         val pvpGamesWithUser: Int,
         val lastSeen: Long?,
+    )
+
+    data class SockPuppetGameEntry(
+        val gameId: String,
+        val inviterUserId: String,
+        val inviterUsername: String,
+        val inviteeUserId: String,
+        val inviteeUsername: String,
+        val sharedRemoteAddressCount: Int,
+        val sharedFingerprintCount: Int,
+        val sharedRemoteAddress: String?,
+        val sharedCountryName: String?,
+        val sharedRegion: String?,
+        val sharedCity: String?,
+        val sharedOperatingSystemName: String?,
+        val sharedAgentName: String?,
+        val gameCreated: Long,
     )
 
     data class SavedAnalysisEntry(

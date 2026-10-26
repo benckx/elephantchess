@@ -10,6 +10,7 @@ import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.db.utils.isWithin
 import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
+import org.jooq.Record
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -17,6 +18,25 @@ import kotlin.time.Instant
 
 @KoinSingleton
 class SockPuppetReportDaoService(private val dslContext: DSLContext) {
+
+    private val detectionFields =
+        arrayOf(
+            GAME_SOCK_PUPPET_DETECTION.GAME_ID,
+            GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
+            GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_REGION,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_CITY,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS,
+            GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT,
+            GAME.CREATED,
+        )
 
     suspend fun upsertGameReport(
         gameId: String,
@@ -112,48 +132,28 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
 
     suspend fun listLatestDetections(limit: Int): List<SockPuppetDetectionEntryRecord> =
         dslContext
-            .select(
-                GAME_SOCK_PUPPET_DETECTION.GAME_ID,
-                GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
-                GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_REGION,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_CITY,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT,
-                GAME.CREATED,
-            )
+            .select(*detectionFields)
             .from(GAME_SOCK_PUPPET_DETECTION)
             .join(GAME)
             .on(GAME.ID.eq(GAME_SOCK_PUPPET_DETECTION.GAME_ID))
             .orderBy(GAME.CREATED.desc())
             .limit(limit)
             .awaitRecords()
-            .map { record ->
-                SockPuppetDetectionEntryRecord(
-                    gameId = record.get(GAME_SOCK_PUPPET_DETECTION.GAME_ID),
-                    inviterUserId = record.get(GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID),
-                    inviteeUserId = record.get(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID),
-                    sharedRemoteAddressCount = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT) ?: 0,
-                    sharedFingerprintCount = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT) ?: 0,
-                    sharedRemoteAddress = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS),
-                    sharedCountryCode = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE),
-                    sharedCountryName = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME),
-                    sharedRegion = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REGION),
-                    sharedCity = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_CITY),
-                    sharedOperatingSystemName = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME),
-                    sharedAgentName = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME),
-                    sharedAgentClass = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS),
-                    sharedUserAgent = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT),
-                    gameCreated = record.get(GAME.CREATED),
-                )
-            }
+            .map(::mapDetectionRecord)
+
+    suspend fun listDetectionsForUser(userId: String): List<SockPuppetDetectionEntryRecord> =
+        dslContext
+            .select(*detectionFields)
+            .from(GAME_SOCK_PUPPET_DETECTION)
+            .join(GAME)
+            .on(GAME.ID.eq(GAME_SOCK_PUPPET_DETECTION.GAME_ID))
+            .where(
+                GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID.eq(userId)
+                    .or(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID.eq(userId)),
+            )
+            .orderBy(GAME.CREATED.desc())
+            .awaitRecords()
+            .map(::mapDetectionRecord)
 
     suspend fun fetchDetectionsSummary(cutoff: Duration = 30.days): SockPuppetDetectionSummaryRecord {
         val totalDetections = dslContext
@@ -221,5 +221,27 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             totalPvpGamesLast30Days = totalPvpGamesLast30Days,
             reportedGamesRatioLast30Days = reportedGamesRatioLast30Days,
         )
+    }
+
+    private companion object {
+
+        private fun mapDetectionRecord(record: Record): SockPuppetDetectionEntryRecord =
+            SockPuppetDetectionEntryRecord(
+                gameId = record.get(GAME_SOCK_PUPPET_DETECTION.GAME_ID),
+                inviterUserId = record.get(GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID),
+                inviteeUserId = record.get(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID),
+                sharedRemoteAddressCount = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT) ?: 0,
+                sharedFingerprintCount = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT) ?: 0,
+                sharedRemoteAddress = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS),
+                sharedCountryCode = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE),
+                sharedCountryName = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME),
+                sharedRegion = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_REGION),
+                sharedCity = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_CITY),
+                sharedOperatingSystemName = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME),
+                sharedAgentName = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME),
+                sharedAgentClass = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS),
+                sharedUserAgent = record.get(GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT),
+                gameCreated = record.get(GAME.CREATED),
+            )
     }
 }
