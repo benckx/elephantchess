@@ -2,16 +2,18 @@ package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.GAME
 import io.elephantchess.db.dao.codegen.Tables.GAME_SOCK_PUPPET_DETECTION
+import io.elephantchess.db.dao.codegen.tables.daos.GameSockPuppetDetectionDao
+import io.elephantchess.db.dao.codegen.tables.pojos.GameSockPuppetDetection
 import io.elephantchess.db.model.SockPuppetDetectionEntryRecord
 import io.elephantchess.db.model.SockPuppetDetectionSummaryRecord
-import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.awaitSingleValue
+import io.elephantchess.db.utils.insertReactive
 import io.elephantchess.db.utils.isWithin
 import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.Record
-import kotlin.time.Clock
+import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
@@ -38,74 +40,11 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
             GAME.CREATED,
         )
 
-    suspend fun upsertGameReport(
-        gameId: String,
-        inviterUserId: String,
-        inviteeUserId: String,
-        sharedRemoteAddressCount: Int,
-        sharedFingerprintCount: Int,
-        sharedRemoteAddress: String?,
-        sharedCountryCode: String?,
-        sharedCountryName: String?,
-        sharedRegion: String?,
-        sharedCity: String?,
-        sharedOperatingSystemName: String?,
-        sharedAgentName: String?,
-        sharedAgentClass: String?,
-        sharedUserAgent: String?,
-    ): Int {
-        val now = Clock.System.now()
-
-        return dslContext
-            .insertInto(
-                GAME_SOCK_PUPPET_DETECTION,
-                GAME_SOCK_PUPPET_DETECTION.GAME_ID,
-                GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
-                GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_REGION,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_CITY,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS,
-                GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT,
-                GAME_SOCK_PUPPET_DETECTION.CREATED_AT,
-            )
-            .values(
-                gameId,
-                inviterUserId,
-                inviteeUserId,
-                sharedRemoteAddressCount,
-                sharedFingerprintCount,
-                sharedRemoteAddress,
-                sharedCountryCode,
-                sharedCountryName,
-                sharedRegion,
-                sharedCity,
-                sharedOperatingSystemName,
-                sharedAgentName,
-                sharedAgentClass,
-                sharedUserAgent,
-                now,
-            )
-            .onConflict(GAME_SOCK_PUPPET_DETECTION.GAME_ID)
-            .doUpdate()
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT, sharedRemoteAddressCount)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT, sharedFingerprintCount)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS, sharedRemoteAddress)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE, sharedCountryCode)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME, sharedCountryName)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_REGION, sharedRegion)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_CITY, sharedCity)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME, sharedOperatingSystemName)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME, sharedAgentName)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS, sharedAgentClass)
-            .set(GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT, sharedUserAgent)
-            .awaitExecute()
+    suspend fun insert(gameSockPuppetDetection: GameSockPuppetDetection) {
+        dslContext.transactionCoroutine { cfg ->
+            GameSockPuppetDetectionDao(cfg)
+                .insertReactive(gameSockPuppetDetection)
+        }
     }
 
     suspend fun findDetectionCreationTimes(gameIds: Collection<String>): Map<String, Instant> {
