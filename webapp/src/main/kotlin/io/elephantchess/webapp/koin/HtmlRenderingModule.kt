@@ -17,12 +17,12 @@ private val webAppLogger = KotlinLogging.logger {}
 internal fun htmlRenderingModule() =
     module {
         single {
-            val fragmentPaths = listFragmentTags()
-            fragmentPaths.forEach { webAppLogger.info { "discovered web fragment: $it" } }
+            val webFragmentPaths = listWebFragmentsPaths()
+            webFragmentPaths.forEach { webAppLogger.info { "discovered web fragment: $it" } }
 
             val appConfig = get<AppConfig>()
             val webFragmentsTagResolvers =
-                fragmentPaths.map { resourceName ->
+                webFragmentPaths.map { resourceName ->
                     WebFragmentResolver(tagName = resourceName.substringAfterLast('/'), resourceName = resourceName)
                 }
 
@@ -57,7 +57,7 @@ internal fun htmlRenderingModule() =
         }
     }
 
-private fun listFragmentTags(): List<String> {
+private fun listWebFragmentsPaths(): List<String> {
     val resourcePath = "/web_fragments"
     val resources = object {}.javaClass.getResource(resourcePath)
         ?: throw IllegalStateException("Resource directory not found: $resourcePath")
