@@ -7,7 +7,11 @@ import io.elephantchess.webapp.rendering.resolvers.categorizedPageTocTagResolver
 class RoadmapPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
     suspend fun renderRoadmapPage(): String {
-        val tocResolver = categorizedPageTocTagResolver("roadmap_toc", ROADMAP_TEMPLATE_PATH)
+        val tocResolver =
+            categorizedPageTocTagResolver(
+                tagName = "roadmap_toc",
+                templatePath = ROADMAP_TEMPLATE_PATH,
+            )
 
         return simplePageRenderer.renderTemplate(
             templateName = ROADMAP_TEMPLATE_NAME,
