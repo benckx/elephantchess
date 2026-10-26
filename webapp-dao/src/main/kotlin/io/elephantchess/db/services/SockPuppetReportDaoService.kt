@@ -11,8 +11,10 @@ import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.db.utils.insertReactive
 import io.elephantchess.db.utils.isWithin
 import io.elephantchess.utils.di.KoinSingleton
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
+import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -20,25 +22,6 @@ import kotlin.time.Instant
 
 @KoinSingleton
 class SockPuppetReportDaoService(private val dslContext: DSLContext) {
-
-    private val detectionFields =
-        arrayOf(
-            GAME_SOCK_PUPPET_DETECTION.GAME_ID,
-            GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
-            GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_REGION,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_CITY,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS,
-            GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT,
-            GAME.CREATED,
-        )
 
     suspend fun insert(gameSockPuppetDetection: GameSockPuppetDetection) {
         dslContext.transactionCoroutine { cfg ->
@@ -70,27 +53,39 @@ class SockPuppetReportDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun listLatestDetections(limit: Int): List<SockPuppetDetectionEntryRecord> =
-        dslContext
-            .select(*detectionFields)
-            .from(GAME_SOCK_PUPPET_DETECTION)
-            .join(GAME)
-            .on(GAME.ID.eq(GAME_SOCK_PUPPET_DETECTION.GAME_ID))
-            .orderBy(GAME.CREATED.desc())
-            .limit(limit)
-            .awaitRecords()
-            .map(::mapDetectionRecord)
+        listDetections(condition = DSL.trueCondition(), limit = limit)
 
     suspend fun listDetectionsForUser(userId: String): List<SockPuppetDetectionEntryRecord> =
+        listDetections(
+            GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID.eq(userId)
+                .or(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID.eq(userId)),
+        )
+
+    private suspend fun listDetections(condition: Condition, limit: Int? = null): List<SockPuppetDetectionEntryRecord> =
         dslContext
-            .select(*detectionFields)
+            .select(
+                GAME_SOCK_PUPPET_DETECTION.GAME_ID,
+                GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
+                GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS_COUNT,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_FINGERPRINT_COUNT,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_REMOTE_ADDRESS,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_CODE,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_COUNTRY_NAME,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_REGION,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_CITY,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_OPERATING_SYSTEM_NAME,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_NAME,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_AGENT_CLASS,
+                GAME_SOCK_PUPPET_DETECTION.SHARED_USER_AGENT,
+                GAME.CREATED,
+            )
             .from(GAME_SOCK_PUPPET_DETECTION)
             .join(GAME)
             .on(GAME.ID.eq(GAME_SOCK_PUPPET_DETECTION.GAME_ID))
-            .where(
-                GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID.eq(userId)
-                    .or(GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID.eq(userId)),
-            )
+            .where(condition)
             .orderBy(GAME.CREATED.desc())
+            .apply { if (limit != null) limit(limit) }
             .awaitRecords()
             .map(::mapDetectionRecord)
 
