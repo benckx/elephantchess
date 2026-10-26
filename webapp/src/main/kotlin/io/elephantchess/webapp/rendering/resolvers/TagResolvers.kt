@@ -2,6 +2,9 @@ package io.elephantchess.webapp.rendering.resolvers
 
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.kofi.LatestSupporter
+import io.elephantchess.utils.ResourceUtils.resourceAsString
+import io.elephantchess.webapp.rendering.escapeHtml
+import io.elephantchess.webapp.rendering.escapeHtmlAttr
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
@@ -9,8 +12,48 @@ import java.time.format.DateTimeFormatter.ofPattern
 import java.util.*
 import kotlin.math.floor
 
+private val headingWithIdRegex =
+    Regex("""<h1\b[^>]*\bid\s*=\s*"([^"]+)"[^>]*>([\s\S]*?)</h1>""", RegexOption.IGNORE_CASE)
+private val innerTagRegex = Regex("<[^>]+>")
+private val whitespaceRegex = Regex("\\s+")
+
 private const val COST_IN_EUR_PER_DAY = 5
 private val supportedCurrencies = setOf("USD", "EUR", "GBP")
+
+fun pageTocTagResolver(
+    tagName: String,
+    templatePath: String,
+    extractEntries: (String) -> List<Pair<String, String>> = ::headingTocEntries,
+): TagResolver =
+    CallbackTagResolver(tagName) {
+        val html = resourceAsString(templatePath)
+            ?: throw IllegalStateException("Template not found at $templatePath")
+
+        renderPageToc(extractEntries(html))
+    }
+
+private fun headingTocEntries(html: String): List<Pair<String, String>> =
+    headingWithIdRegex.findAll(html)
+        .map { match ->
+            val id = match.groupValues[1].trim()
+            val title = match.groupValues[2]
+                .replace(innerTagRegex, "")
+                .replace(whitespaceRegex, " ")
+                .trim()
+
+            id to title
+        }
+        .filter { (id, title) -> id.isNotEmpty() && title.isNotEmpty() }
+        .toList()
+
+fun renderPageToc(entries: List<Pair<String, String>>): String {
+    if (entries.isEmpty()) return ""
+
+    val items = entries.joinToString("\n") { (id, title) ->
+        """<li><a href="#${escapeHtmlAttr(id)}">${escapeHtml(title)}</a></li>"""
+    }
+    return """<nav id="page-toc"><ul>$items</ul></nav>"""
+}
 
 fun latestSupporterTagResolver(latestSupporter: LatestSupporter?): TagResolver {
     fun mapCurrencyToSymbol(currency: String): String =
