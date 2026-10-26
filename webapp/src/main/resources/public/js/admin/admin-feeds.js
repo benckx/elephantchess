@@ -179,7 +179,7 @@ class AdminFeedsPage extends BasePage {
 
                 const engineCell = row.insertCell();
                 engineCell.className = 'label-cell';
-                engineCell.innerText = formatEngineName(entry.engine);
+                engineCell.innerText = entry.engine;
 
                 const depthCell = row.insertCell();
                 depthCell.className = 'value-cell';

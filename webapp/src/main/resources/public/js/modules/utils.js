@@ -408,7 +408,7 @@ function formatEngineName(engine) {
         case 'FAIRYSTOCKFISH':
             return 'Fairy Stockfish';
         default:
-            return '??';
+            return engine;
     }
 }
 
