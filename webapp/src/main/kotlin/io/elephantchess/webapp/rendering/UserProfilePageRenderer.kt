@@ -11,18 +11,8 @@ import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
 import io.elephantchess.webapp.rendering.resolvers.WebFragmentResolver
-import io.elephantchess.webapp.rendering.resolvers.toParagraphs
-import io.ktor.http.encodeURLPath
-import kotlinx.html.a
-import kotlinx.html.div
-import kotlinx.html.id
-import kotlinx.html.img
-import kotlinx.html.p
-import kotlinx.html.span
-import kotlinx.html.table
-import kotlinx.html.td
-import kotlinx.html.th
-import kotlinx.html.tr
+import io.ktor.http.*
+import kotlinx.html.*
 
 @KoinSingleton(eager = true)
 class UserProfilePageRenderer(
@@ -70,7 +60,7 @@ class UserProfilePageRenderer(
                 content += " - ${cropToFirstNWords(description, 100)}"
             }
 
-            io.elephantchess.webapp.rendering.resolvers.descriptionMeta(content)
+            descriptionMeta(content)
         }
 
     private fun flagPanelTagResolver(countryCode: String?): TagResolver =
