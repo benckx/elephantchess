@@ -1,13 +1,13 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.webapp.rendering.resolvers.pageTocTagResolver
+import io.elephantchess.webapp.rendering.resolvers.categorizedPageTocTagResolver
 
 @KoinSingleton(eager = true)
 class RoadmapPageRenderer(private val simplePageRenderer: SimplePageRenderer) {
 
     suspend fun renderRoadmapPage(): String {
-        val tocResolver = pageTocTagResolver("roadmap_toc", ROADMAP_TEMPLATE_PATH)
+        val tocResolver = categorizedPageTocTagResolver("roadmap_toc", ROADMAP_TEMPLATE_PATH)
 
         return simplePageRenderer.renderTemplate(
             templateName = ROADMAP_TEMPLATE_NAME,

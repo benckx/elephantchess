@@ -14,6 +14,7 @@ import kotlin.math.floor
 
 private val headingWithIdRegex =
     Regex("""<h1\b[^>]*\bid\s*=\s*"([^"]+)"[^>]*>([\s\S]*?)</h1>""", RegexOption.IGNORE_CASE)
+private val commentedSectionRegex = Regex("""<!--\s*(.*?)\s*-->(.*?)(?=<!--|$)""", RegexOption.DOT_MATCHES_ALL)
 private val innerTagRegex = Regex("<[^>]+>")
 private val whitespaceRegex = Regex("\\s+")
 
@@ -32,6 +33,14 @@ fun pageTocTagResolver(
         renderPageToc(extractEntries(html))
     }
 
+fun categorizedPageTocTagResolver(tagName: String, templatePath: String): TagResolver =
+    CallbackTagResolver(tagName) {
+        val html = resourceAsString(templatePath)
+            ?: throw IllegalStateException("Template not found at $templatePath")
+
+        renderCategorizedPageToc(commentedPageTocEntries(html))
+    }
+
 private fun headingTocEntries(html: String): List<Pair<String, String>> =
     headingWithIdRegex.findAll(html)
         .map { match ->
@@ -46,11 +55,42 @@ private fun headingTocEntries(html: String): List<Pair<String, String>> =
         .filter { (id, title) -> id.isNotEmpty() && title.isNotEmpty() }
         .toList()
 
+private fun commentedPageTocEntries(html: String): List<Pair<String, List<Pair<String, String>>>> =
+    commentedSectionRegex.findAll(html)
+        .mapNotNull { match ->
+            val category = match.groupValues[1].trim()
+            val entries = headingTocEntries(match.groupValues[2])
+            if (category.isEmpty() || entries.isEmpty()) {
+                null
+            } else {
+                category.replaceFirstChar { it.uppercase() } to entries
+            }
+        }
+        .toList()
+
 fun renderPageToc(entries: List<Pair<String, String>>): String {
     if (entries.isEmpty()) return ""
 
     val items = entries.joinToString("\n") { (id, title) ->
         """<li><a href="#${escapeHtmlAttr(id)}">${escapeHtml(title)}</a></li>"""
+    }
+    return """<nav id="page-toc"><ul>$items</ul></nav>"""
+}
+
+fun renderCategorizedPageToc(entries: List<Pair<String, List<Pair<String, String>>>>): String {
+    if (entries.isEmpty()) return ""
+
+    val items = entries.joinToString("\n") { (category, children) ->
+        val categoryLink = children.firstOrNull()?.first
+        val categoryLabel = if (categoryLink == null) {
+            escapeHtml(category)
+        } else {
+            """<a href="#${escapeHtmlAttr(categoryLink)}">${escapeHtml(category)}</a>"""
+        }
+        val childItems = children.joinToString("\n") { (id, title) ->
+            """<li><a href="#${escapeHtmlAttr(id)}">${escapeHtml(title)}</a></li>"""
+        }
+        """<li>$categoryLabel<ul>$childItems</ul></li>"""
     }
     return """<nav id="page-toc"><ul>$items</ul></nav>"""
 }
