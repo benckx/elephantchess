@@ -10,14 +10,7 @@ import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.formatWithChineseName
-import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
-import io.elephantchess.webapp.rendering.resolvers.WebFragmentResolver
-import io.elephantchess.webapp.rendering.resolvers.escapeHtml
-import io.elephantchess.webapp.rendering.resolvers.escapeHtmlAttr
-import io.elephantchess.webapp.rendering.resolvers.eventGamesListTagResolver
-import io.elephantchess.webapp.rendering.resolvers.eventsTableTagResolver
-import io.elephantchess.webapp.rendering.resolvers.playersTableTagResolver
-import io.elephantchess.webapp.rendering.resolvers.toParagraphs
+import io.elephantchess.webapp.rendering.resolvers.*
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.*
@@ -253,7 +246,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 templatePath = "/templates/database/database_event.html",
                 specificTagResolvers = listOf(
                     SimpleValueTagResolver("page_title", event.name),
-                    SimpleValueTagResolver("description_meta", io.elephantchess.webapp.rendering.resolvers.descriptionMeta(description)),
+                    SimpleValueTagResolver("description_meta", descriptionMeta(description)),
                     eventGamesListTagResolver(event),
                 ),
                 canonicalPath = "/database/event?id=${event.id}",
@@ -384,7 +377,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             templatePath = "/templates/database/database_game_viewer.html",
             specificTagResolvers = listOf(
                 SimpleValueTagResolver("page_title", title),
-                SimpleValueTagResolver("description_meta", io.elephantchess.webapp.rendering.resolvers.descriptionMeta(description)),
+                SimpleValueTagResolver("description_meta", descriptionMeta(description)),
                 SimpleValueTagResolver("players_info", playersInfoHtml),
                 SimpleValueTagResolver("game_date_info", dateInfoHtml),
                 SimpleValueTagResolver("game_event_info", eventInfoHtml),
@@ -421,7 +414,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                     cropToFirstNWords(profileText, 100)
                 }
 
-                io.elephantchess.webapp.rendering.resolvers.descriptionMeta(metaContent)
+                descriptionMeta(metaContent)
             }
 
         fun databasePlayerTitle(databasePlayer: DatabasePlayer, suffix: String = ""): TagResolver =
