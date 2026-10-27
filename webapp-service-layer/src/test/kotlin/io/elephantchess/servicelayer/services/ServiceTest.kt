@@ -73,9 +73,10 @@ abstract class ServiceTest :
         guestUserId: String? = null,
     ): Pair<SignUpRequest, String> {
         val password = insecure().nextAlphanumeric(10)
+        val testUserIdentifier = "$i-${insecure().nextAlphanumeric(6)}"
         val request = SignUpRequest(
-            username = "test$i",
-            email = "test$i@gmail.com",
+            username = "test$testUserIdentifier",
+            email = "test$testUserIdentifier@gmail.com",
             password = password,
             transferGuestData = transferGuestData,
         )
