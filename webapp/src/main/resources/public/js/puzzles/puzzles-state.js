@@ -32,6 +32,13 @@ class PuzzleState extends PuzzleDto {
         this.#board.loadFen(this.startFen);
     }
 
+    reset() {
+        this.#board.loadFen(this.startFen);
+        this.#playedMoves = [];
+        this.#preRecordedSolutionMovesIndex = 0;
+        this.outcome = null;
+    }
+
     get moveHistoryIndex() {
         return super.moves.length + this.#playedMoves.length - 1;
     }
