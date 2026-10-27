@@ -54,9 +54,6 @@ img.less-dark-icons {
     opacity: 80%;
 }
 
-#try-again-button img.less-dark-icons {
-    opacity: 100%;
-}
 
 table.puzzle-state-info-box-table {
     display: none;
