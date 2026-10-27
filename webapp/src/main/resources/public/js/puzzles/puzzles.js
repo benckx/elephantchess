@@ -213,7 +213,7 @@ class PuzzlesPage extends BasePage {
         }
 
         setInfoBoxButtonEnabled(this.#revealSolutionButton, true);
-        setInfoBoxButtonEnabled(this.#tryAgainButton, true);
+        setInfoBoxButtonEnabled(this.#tryAgainButton, this.#puzzleState.hasPlayedMoves());
         this.#renderNextPuzzleButtonAsSkipPuzzle();
         this.#displayVoteButtons(false);
 

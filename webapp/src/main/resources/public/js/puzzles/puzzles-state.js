@@ -86,6 +86,10 @@ class PuzzleState extends PuzzleDto {
         this.#playedMoves.push(move);
     }
 
+    hasPlayedMoves() {
+        return this.#playedMoves.length > 0;
+    }
+
     outputFen() {
         return this.#board.outputFen();
     }
