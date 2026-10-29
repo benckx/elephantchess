@@ -76,10 +76,11 @@ class PgnParser extends MoveParser {
             return value.length > 0 && value[0].toUpperCase() === value[0];
         }
 
-        let board = new Board();
-        board.loadFen(DEFAULT_START_FEN);
+        let resultCandidates = [new ResultCandidate()];
+        let color = Color.RED;
+        let annotations = [];
 
-        return this.tokenize().map(token => {
+        this.tokenize().forEach(token => {
             // strip trailing check (+) / mate (#) indicators, e.g. "Cb0+", "Rxf9+", "Hd3#"
             let move = token.move;
             while (move.length > 0 && (move.endsWith('+') || move.endsWith('#'))) {
@@ -89,6 +90,8 @@ class PgnParser extends MoveParser {
             if (move.length > 5) {
                 throw new Error('Invalid move: ' + move);
             }
+
+            annotations.push(token.annotation);
 
             let to = Position.parseUci(move.slice(-2));
             let piece = null;
@@ -125,49 +128,64 @@ class PgnParser extends MoveParser {
                 piece = 'b';
             }
 
-            switch (board.getColorToPlay()) {
+            let pieceWithColor;
+            switch (color) {
                 case Color.RED:
-                    piece = piece.toUpperCase();
+                    pieceWithColor = piece.toUpperCase();
                     break;
                 case Color.BLACK:
-                    piece = piece.toLowerCase();
+                    pieceWithColor = piece.toLowerCase();
                     break;
             }
 
-            let candidates =
-                board
-                    .listPositionsForPiece(piece)
-                    .map(from => new HalfMove(from, to));
+            let newCandidates = [];
 
-            if (fileChar != null) {
-                candidates = candidates.filter(move => move.from.file === fileChar);
-            }
+            resultCandidates.forEach(resultCandidate => {
+                let candidates =
+                    resultCandidate
+                        .listPositionsForPiece(pieceWithColor)
+                        .map(from => new HalfMove(from, to));
 
-            if (rankDigit != null) {
-                candidates = candidates.filter(move => move.from.rank === rankDigit);
-            }
+                if (fileChar != null) {
+                    candidates = candidates.filter(move => move.from.file === fileChar);
+                }
 
-            if (candidates.length > 1) {
-                candidates = candidates.filter(move => board.isLegalMove(move));
-            }
+                if (rankDigit != null) {
+                    candidates = candidates.filter(move => move.from.rank === rankDigit);
+                }
 
-            switch (candidates.length) {
-                case 0:
-                    board.printBoard();
-                    console.warn('token: ' + token);
-                    console.warn('piece: ' + piece);
-                    console.warn('rankDigit: ' + rankDigit);
-                    console.warn('fileChar: ' + fileChar);
-                    throw new Error(`No legal move found for ${token.move} (${board.getColorToPlay()} to play)`);
-                case 1:
-                    // console.log('-> ' + candidates[0].toAlgebraic());
-                    board.registerMove(candidates[0]);
-                    return new MoveAndAnnotation(candidates[0], token.annotation);
-                default:
-                    board.printBoard();
-                    throw new Error(`Ambiguous move for ${token.move} (${board.getColorToPlay()} to play)`);
-            }
+                candidates = candidates.filter(move => {
+                    let legalMoves = resultCandidate.listLegalMovesFrom(move.from);
+                    return legalMoves.some(lm => Position.areEquals(lm.to, move.to));
+                });
+
+                if (candidates.length === 1) {
+                    resultCandidate.attemptToAddMove(candidates[0]);
+                } else if (candidates.length > 1) {
+                    newCandidates.push(...resultCandidate.copyForMoves(candidates));
+                    resultCandidate.invalidate();
+                } else {
+                    resultCandidate.invalidate();
+                }
+            });
+
+            resultCandidates.push(...newCandidates);
+            resultCandidates = resultCandidates.filter(rc => rc.isValid());
+            color = reverseColor(color);
         });
+
+        resultCandidates = resultCandidates
+            .filter(rc => rc.listMoves().length > 0);
+
+        switch (resultCandidates.length) {
+            case 0:
+                throw new Error('No valid result found');
+            default:
+                if (resultCandidates.length > 1) {
+                    console.warn(`found ${resultCandidates.length} candidates, returning the first one`);
+                }
+                return resultCandidates[0].listMoves().map((ma, i) => new MoveAndAnnotation(ma.move, annotations[i]));
+        }
     }
 
 }
