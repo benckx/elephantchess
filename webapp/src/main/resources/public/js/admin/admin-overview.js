@@ -90,7 +90,7 @@ class AdminOverviewPage extends BasePage {
         return entries
             .sort((a, b) => a.userType.localeCompare(b.userType))
             .map(entry => {
-                const element = buildUsernameSpan(entry.id, entry.username, entry.userType);
+                const element = buildAdminUsernameSpan(entry.id, entry.username, entry.userType);
                 element.classList.add('user-link');
                 return element;
             });
@@ -104,7 +104,7 @@ class AdminOverviewPage extends BasePage {
     #renderAuthenticatedUsers(entries) {
         return entries
             .map(entry => {
-                const element = buildUsernameSpan(entry.id, entry.username, UserType.AUTHENTICATED);
+                const element = buildAdminUsernameSpan(entry.id, entry.username, UserType.AUTHENTICATED);
                 element.classList.add('user-link');
                 return element;
             });

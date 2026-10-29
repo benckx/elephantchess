@@ -1,0 +1,50 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Matching Time</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <link rel="stylesheet" href="/css/admin/admin-matching-time.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-matching-time.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+
+    <h2>lobby / matchmaking (PvP &gt; 3)</h2>
+    <hr/>
+    {{matching_time_stats_table}}[[{id: 'table-lobby'}]]
+
+    <h2>LINK (PvP &gt; 3)</h2>
+    <hr/>
+    {{matching_time_stats_table}}[[{id: 'table-link'}]]
+
+    <h2>lobby / matchmaking by category (PvP &gt; 3)</h2>
+    <hr/>
+    <div id="tables-lobby-by-category">
+        <h3 class="category-group-heading">REAL_TIME</h3>
+        {{matching_time_stats_table}}[[{id: 'table-lobby-REAL_TIME'}]]
+
+        <h3 class="category-group-heading">CLASSICAL</h3>
+        {{matching_time_stats_table}}[[{id: 'table-lobby-CLASSICAL'}]]
+
+        <h3 class="category-group-heading">CORRESPONDENCE</h3>
+        {{matching_time_stats_table}}[[{id: 'table-lobby-CORRESPONDENCE'}]]
+    </div>
+
+    <h2>LINK by category (PvP &gt; 3)</h2>
+    <hr/>
+    <div id="tables-link-by-category">
+        <h3 class="category-group-heading">REAL_TIME</h3>
+        {{matching_time_stats_table}}[[{id: 'table-link-REAL_TIME'}]]
+
+        <h3 class="category-group-heading">CLASSICAL</h3>
+        {{matching_time_stats_table}}[[{id: 'table-link-CLASSICAL'}]]
+
+        <h3 class="category-group-heading">CORRESPONDENCE</h3>
+        {{matching_time_stats_table}}[[{id: 'table-link-CORRESPONDENCE'}]]
+    </div>
+</div>
+</body>
+</html>

@@ -5,9 +5,10 @@ import io.elephantchess.servicelayer.dto.database.DatabasePlayerProfileEdit
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.DatabaseService
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.ops.renderTemplateHtml
+import io.elephantchess.webapp.ops.renderTemplateHtmlToCall
 import io.elephantchess.webapp.ops.requireEditorRole
 import io.elephantchess.webapp.ops.respondHtml
+import io.elephantchess.webapp.ops.respondNotFoundPage
 import io.elephantchess.webapp.rendering.DatabasePageRenderer
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -23,7 +24,7 @@ internal fun Routing.databasePages() {
 
     get("/userdata/db-edits") {
         requireEditorRole(roleErrorPageRender) { _ ->
-            simplePageRenderer.renderTemplateHtml("userdata/my_db_edits")
+            simplePageRenderer.renderTemplateHtmlToCall("userdata/my_db_edits")
         }
     }
     get("/database/player/{playerName}") {
@@ -107,7 +108,7 @@ internal fun Routing.databasePages() {
 
         val eventName = databaseService.fetchEventName(eventId)
         if (eventName == null) {
-            call.respondHtml(simplePageRenderer.renderTemplate("404"), HttpStatusCode.NotFound)
+            call.respondNotFoundPage()
         } else {
             val round = call.request.queryParameters["round"]?.toIntOrNull()
             call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, eventName, round))
@@ -117,7 +118,7 @@ internal fun Routing.databasePages() {
         val gameId = call.parameters["id"] ?: throw BadRequestException("id query parameter not provided")
         val summary = databaseService.fetchGameSummary(gameId)
         if (summary == null) {
-            call.respondHtml(simplePageRenderer.renderTemplate("404"), HttpStatusCode.NotFound)
+            call.respondNotFoundPage()
         } else {
             val orientation = call.request.queryParameters["orientation"]
             call.respondHtml(databasePageRenderer.renderGamePage(summary, orientation))
@@ -132,10 +133,7 @@ private suspend fun RoutingContext.resolveDatabasePlayer(render: suspend (Databa
     val databasePlayer = databaseService.resolvePlayerByName(playerName)
     if (databasePlayer == null) {
         // player not found, render 404 page
-        call.respondHtml(
-            simplePageRenderer.renderTemplate("404"),
-            HttpStatusCode.NotFound,
-        )
+        call.respondNotFoundPage()
     } else if (databasePlayer.urlName != playerName.replace(" ", "_")) {
         // reconstruct the correct URL path by replacing the playerName segment
         val originalPath = call.request.path()

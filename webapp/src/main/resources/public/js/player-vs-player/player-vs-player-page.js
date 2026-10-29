@@ -154,6 +154,9 @@ class PlayGamePage extends BasePage {
                 () => {
                     this.#boardGui.flipToColor(this.#gameController.gameDto.colorUserPlaysWith);
                     this.#updatePlayersInfo();
+                    // refresh the action buttons (resign / propose draw / cancel) so they
+                    // reflect the now in-progress game without requiring a page reload
+                    this.#updateGui();
                     if (this.#gameController.gameDto.userStatus !== UserStatus.INVITEE) {
                         UI.pushInfoNotification(`${this.#gameController.gameDto.inviteeUsername} has joined the game`, 4_000);
                         if (this.#settingsManager.isPlaySoundsEnabled) {

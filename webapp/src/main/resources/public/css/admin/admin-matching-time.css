@@ -1,0 +1,45 @@
+/*
+ * Copyright (C) 2026  Encelade SRL
+ * Copyright (C) 2026  elephantchess.io
+ * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+.category-group-heading {
+    margin-top: 40px;
+    margin-bottom: 15px;
+}
+
+/* Color-coding for matching-time durations by severity: green below 10m, orange 10m–1h, red 1h–24h,
+   purple above 24h. */
+.stats-table .duration-ok {
+    color: #2e8b2e;
+    font-weight: bold;
+}
+
+.stats-table .duration-warning {
+    color: #e08000;
+    font-weight: bold;
+}
+
+.stats-table .duration-danger {
+    color: #cc0000;
+    font-weight: bold;
+}
+
+.stats-table .duration-critical {
+    color: #7500ac;
+    font-weight: bold;
+}

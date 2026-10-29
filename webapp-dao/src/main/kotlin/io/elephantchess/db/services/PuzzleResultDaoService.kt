@@ -5,14 +5,16 @@ import io.elephantchess.db.dao.codegen.tables.daos.PuzzleResultDao
 import io.elephantchess.db.dao.codegen.tables.pojos.PuzzleResult
 import io.elephantchess.db.model.PlayedPuzzleRecord
 import io.elephantchess.db.model.PuzzleResultCountsRecord
+import io.elephantchess.db.model.UserActivitySummaryRecord
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.PuzzleOutcome
 import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jooq.DSLContext
-import org.jooq.Record5
+import org.jooq.Record6
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
+import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
@@ -77,6 +79,24 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
             .limit(1)
             .awaitSingleValue()
+
+    suspend fun fetchUserActivitySummary(userId: String): UserActivitySummaryRecord {
+        val firstPlayed = DSL.min(PUZZLE_RESULT.ENTRY_CREATION).`as`("first_played")
+        val lastPlayed = DSL.max(PUZZLE_RESULT.ENTRY_CREATION).`as`("last_played")
+        val totalPlayed = DSL.count().`as`("total_played")
+
+        val record = dslContext
+            .select(firstPlayed, lastPlayed, totalPlayed)
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.USER_ID.eq(userId))
+            .awaitSingleRecord()
+
+        return UserActivitySummaryRecord(
+            firstPlayed = record?.get(firstPlayed),
+            lastPlayed = record?.get(lastPlayed),
+            totalPlayed = record?.get(totalPlayed) ?: 0,
+        )
+    }
 
     suspend fun fetchPuzzleResultCounts(userIds: List<String>): List<PuzzleResultCountsRecord> {
         if (userIds.isEmpty()) return emptyList()
@@ -264,7 +284,7 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record5<String, PuzzleOutcome, String, Instant, Boolean>> =
+    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record6<String, PuzzleOutcome, String, Instant, Boolean, LocalDateTime>> =
         dslContext
             .select(
                 PUZZLE_RESULT.PUZZLE_ID,
@@ -272,9 +292,11 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
                 USER.ID,
                 PUZZLE_RESULT.ENTRY_CREATION,
                 PUZZLE_RESULT.UP_VOTED,
+                PUZZLE.CREATED_AT,
             )
-            .from(PUZZLE_RESULT, USER)
+            .from(PUZZLE_RESULT, USER, PUZZLE)
             .where(PUZZLE_RESULT.USER_ID.eq(USER.ID))
+            .and(PUZZLE_RESULT.PUZZLE_ID.eq(PUZZLE.ID))
             .orderBy(PUZZLE_RESULT.ENTRY_CREATION.desc())
             .limit(n)
             .awaitRecords()

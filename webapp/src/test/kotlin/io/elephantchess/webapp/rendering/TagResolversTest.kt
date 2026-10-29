@@ -220,6 +220,23 @@ class TagResolversTest {
         }
 
     @Test
+    fun `roadmap toc groups headings under comment categories`() =
+        runTest {
+            val resolver = categorizedPageTocTagResolver(
+                tagName = "roadmap_toc",
+                templatePath = "/templates/about/roadmap.html",
+            )
+            val toc = resolver.resolveContent().joinToString("")
+
+            assertTrue(toc.contains(">Variants</a><ul>"), toc)
+            assertTrue(toc.contains(">Puzzles</a><ul>"), toc)
+            assertTrue(toc.contains(">Board - PvP and PvB</a><ul>"), toc)
+            assertTrue(toc.contains(">New features</a><ul>"), toc)
+            assertTrue(toc.contains("""href="#manchu-analysis">Analysis for Manchu variant</a>"""), toc)
+            assertTrue(toc.contains("""href="#general-better-mobile">A better Mobile experience in general?</a>"""), toc)
+        }
+
+    @Test
     fun `current-year date omits year`() =
         runTest {
             val now = LocalDate.now(UTC)

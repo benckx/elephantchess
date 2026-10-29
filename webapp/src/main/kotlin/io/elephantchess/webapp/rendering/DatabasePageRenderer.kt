@@ -10,6 +10,7 @@ import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.formatWithChineseName
+import io.elephantchess.webapp.rendering.resolvers.*
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.*

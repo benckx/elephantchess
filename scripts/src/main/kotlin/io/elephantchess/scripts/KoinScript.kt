@@ -4,7 +4,7 @@ import io.elephantchess.config.ArgConfig
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.scripts.utils.ScriptConfig.Companion.loadScriptConfig
 import io.elephantchess.scripts.utils.getScriptDslContext
-import io.elephantchess.servicelayer.serviceLayerModule
+import io.elephantchess.servicelayer.koin.serviceLayerModule
 import org.koin.core.component.KoinComponent
 import org.koin.core.context.startKoin
 

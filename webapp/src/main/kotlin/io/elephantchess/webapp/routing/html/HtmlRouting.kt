@@ -3,14 +3,17 @@ package io.elephantchess.webapp.routing.html
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.servicelayer.exceptions.BadRequestException
+import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.KofiService
+import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
 import io.elephantchess.webapp.rendering.*
+import io.elephantchess.webapp.rendering.latestSupporterTagResolver
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
-import io.ktor.http.ContentType.Text.Html
+import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.content.*
@@ -23,9 +26,10 @@ private val logger = logger {}
 internal val simplePageRenderer by koin<SimplePageRenderer>()
 
 private val simplePublicPageMapping = mapOf(
-    "/401" to "401",
-    "/403" to "403",
-    "/404" to "404",
+    "/400" to "errors/400",
+    "/401" to "errors/401",
+    "/403" to "errors/403",
+    "/404" to "errors/404",
     "/board" to "test_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
@@ -36,7 +40,6 @@ private val simplePublicPageMapping = mapOf(
     "/recovery" to "password_recovery1",
     "/recovery/finalize" to "password_recovery2",
     "/about" to "about/about",
-    "/about/roadmap" to "about/roadmap",
     "/about/datasets" to "about/datasets",
     "/contact" to "contact_form",
     "/how-to-play-xiangqi" to "how_to_play_xiangqi",
@@ -72,6 +75,7 @@ private val authenticatedRequiredPagesMapping = mapOf(
 private val adminPagesMapping = mapOf(
     "/admin" to "admin/admin_overview",
     "/admin/feeds" to "admin/admin_feeds",
+    "/admin/sock-puppet-report" to "admin/admin_sock_puppet_report",
     "/admin/variant-feeds" to "admin/admin_variant_feeds",
     "/admin/elo-stats" to "admin/admin_user_elo_stats",
     "/admin/content-section-feedback" to "admin/admin_content_section_feedback",
@@ -79,6 +83,7 @@ private val adminPagesMapping = mapOf(
     "/admin/analytics" to "admin/admin_analytics",
     "/admin/analytics-ads" to "admin/admin_analytics_ads",
     "/admin/monthly-metrics" to "admin/admin_monthly_metrics",
+    "/admin/matching-time" to "admin/admin_matching_time",
     "/admin/online-users-stats" to "admin/admin_online_users_stats",
     "/admin/monthly-page-views" to "admin/admin_monthly_page_views",
     "/admin/daily-page-views" to "admin/admin_daily_page_views",
@@ -117,7 +122,7 @@ private fun Route.gamePages() {
     get("/game") {
         val gameId = call.parameters["id"]
         if (gameId == null) {
-            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+            call.respondBadRequestPage()
         } else {
             call.respondHtml(gamePageRenderer.renderPvpGamePage(gameId))
         }
@@ -126,7 +131,7 @@ private fun Route.gamePages() {
     get("/playbot") {
         val gameId = call.parameters["id"]
         if (gameId == null) {
-            call.respond(TextContent(simplePageRenderer.renderTemplate("404"), Html))
+            call.respondBadRequestPage()
         } else {
             call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId))
         }
@@ -135,15 +140,19 @@ private fun Route.gamePages() {
 
 private fun Route.puzzlesPage() {
     val appConfig by koin<AppConfig>()
+    val puzzleCache by koin<PuzzleCache>()
     val isPuzzlesDebugModeEnabled = appConfig.isPuzzlesDebugModeEnabled
     val resolvers = listOf(SimpleValueTagResolver("puzzles_debug_mode", isPuzzlesDebugModeEnabled.toString()))
 
     get("/puzzles") {
+        val id = call.parameters["id"]
+
+        if (id != null && !puzzleCache.exists(id)) {
+            throw NotFoundException("Puzzle $id not found")
+        }
+
         call.respondHtml(
-            simplePageRenderer.renderTemplate(
-                "puzzles",
-                resolvers,
-            ),
+            simplePageRenderer.renderTemplate("puzzles", resolvers),
         )
     }
 }
@@ -152,7 +161,7 @@ private fun Routing.simpleMappings() {
     simplePublicPageMapping.forEach { (path, templateName) ->
         logger.info { "[public] mapping html file $templateName to path $path" }
         get(path) {
-            call.respond(simplePageRenderer.renderTemplateHtml(templateName))
+            call.respondHtml(simplePageRenderer.renderTemplate(templateName))
         }
     }
     publicPageRedirection.forEach { (fromPath, toPath) ->
@@ -165,7 +174,7 @@ private fun Routing.simpleMappings() {
         logger.info { "[identification] mapping html file $templateName to path $path" }
         get(path) {
             requireIdentification { _ ->
-                simplePageRenderer.renderTemplateHtml(templateName)
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
     }
@@ -173,7 +182,7 @@ private fun Routing.simpleMappings() {
         logger.info { "[authentication] mapping html file $templateName to path $path" }
         get(path) {
             requireAuthentication { _ ->
-                simplePageRenderer.renderTemplateHtml(templateName)
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
     }
@@ -181,7 +190,7 @@ private fun Routing.simpleMappings() {
         logger.info { "[admin] mapping html file $templateName to path $path" }
         get(path) {
             requireAdminRole {
-                simplePageRenderer.renderTemplateHtml(templateName)
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
     }
@@ -205,29 +214,61 @@ private fun Routing.simpleMappingsWithSupporterBanner() {
 }
 
 private fun Route.userProfile() {
-    val renderer by koin<UserProfilePageRenderer>()
+    val userProfilePageRenderer by koin<UserProfilePageRenderer>()
+    val adminUserInsightsRenderer by koin<AdminUserInsightsPageRenderer>()
     val userService by koin<UserService>()
 
     get("/@/{username}") {
-        val username = call.parameters["username"]
-            ?: throw BadRequestException("username not provided")
+        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
+        val isAdmin = isAdmin()
 
         val userProfileResponse = userService.fetchProfile(username)
-        call.respondHtml(renderer.renderUserProfile(userProfileResponse))
+        call.respondHtml(userProfilePageRenderer.renderUserProfile(userProfileResponse, isAdmin))
     }
     get("/@/{username}/browse-pvp-games") {
-        val username = call.parameters["username"]
-            ?: throw BadRequestException("username not provided")
+        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
 
         userService.validateUserExists(username)
-        call.respondHtml(renderer.renderUserBrowsePvpGames(username))
+        call.respondHtml(userProfilePageRenderer.renderUserBrowsePvpGames(username))
     }
     get("/@/{username}/browse-pvb-games") {
-        val username = call.parameters["username"]
-            ?: throw BadRequestException("username not provided")
+        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
 
         userService.validateUserExists(username)
-        call.respondHtml(renderer.renderUserBrowsePvbGames(username))
+        call.respondHtml(userProfilePageRenderer.renderUserBrowsePvbGames(username))
+    }
+    get("/admin/user/{identifier}") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserInsightsPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
+    }
+    get("/admin/user/{identifier}/page-views") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserPageViewsPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
+    }
+    get("/admin/user/{identifier}/chat-messages") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserChatMessagesPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
     }
 }
 
@@ -236,7 +277,10 @@ private fun Route.userSettingsPage() {
 
     get("/user/settings") {
         requireAuthentication { token ->
-            TextContent(renderer.renderUserSettingsPage(token.userId), Html)
+            TextContent(
+                text = renderer.renderUserSettingsPage(token.userId),
+                contentType = ContentType.Text.Html,
+            )
         }
     }
 }
@@ -244,7 +288,11 @@ private fun Route.userSettingsPage() {
 private fun Route.aboutPages() {
     val changelogPageRenderer by koin<ChangelogPageRenderer>()
     val faqPageRenderer by koin<FaqPageRenderer>()
+    val roadmapPageRenderer by koin<RoadmapPageRenderer>()
 
+    get("/about/roadmap") {
+        call.respondHtml(roadmapPageRenderer.renderRoadmapPage())
+    }
     get("/about/faq") {
         call.respondHtml(faqPageRenderer.renderFaqPage())
     }

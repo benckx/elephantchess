@@ -2625,4 +2625,85 @@
         </comment>
         <dropTable tableName="kubernetes_pod"/>
     </changeSet>
+    <changeSet id="0120" author="benckx">
+        <comment>
+            Speed up the admin matching-time query. It runs a correlated subquery
+            MIN(event_time) over game_status_event filtered by (game_id, event_type = 'JOINED'),
+            which previously had no supporting index and scanned the whole table per game.
+        </comment>
+        <createIndex tableName="game_status_event" indexName="game_status_event_game_id_event_type_idx">
+            <column name="game_id"/>
+            <column name="event_type"/>
+            <column name="event_time"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="0121" author="benckx">
+        <comment>
+            Sock puppet scan bookkeeping:
+            - mark each PvP game as scanned once processed by the detector batch;
+            - persist flagged games with similarity evidence for admin investigation.
+        </comment>
+        <addColumn tableName="game">
+            <column name="scanned" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <createTable tableName="game_sock_puppet_detection">
+            <column name="game_id" type="varchar(12)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="inviter_user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invitee_user_id" type="varchar(12)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_remote_address_count" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_fingerprint_count" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_remote_address" type="varchar(50)"/>
+            <column name="shared_country_code" type="varchar(4)"/>
+            <column name="shared_country_name" type="varchar(100)"/>
+            <column name="shared_region" type="varchar(100)"/>
+            <column name="shared_city" type="varchar(100)"/>
+            <column name="shared_operating_system_name" type="varchar(50)"/>
+            <column name="shared_agent_name" type="varchar(50)"/>
+            <column name="shared_agent_class" type="varchar(50)"/>
+            <column name="shared_user_agent" type="text"/>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="game_sock_puppet_detection"
+                baseColumnNames="game_id"
+                constraintName="game_sock_puppet_detection_game_fk"
+                referencedTableName="game"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="game_sock_puppet_detection"
+                baseColumnNames="inviter_user_id"
+                constraintName="game_sock_puppet_detection_inviter_user_fk"
+                referencedTableName="user"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="game_sock_puppet_detection"
+                baseColumnNames="invitee_user_id"
+                constraintName="game_sock_puppet_detection_invitee_user_fk"
+                referencedTableName="user"
+                referencedColumnNames="id"/>
+        <createIndex tableName="game" indexName="game_scanned_idx">
+            <column name="scanned"/>
+            <column name="last_updated"/>
+        </createIndex>
+        <createIndex tableName="game_sock_puppet_detection" indexName="game_sock_puppet_detection_inviter_idx">
+            <column name="inviter_user_id"/>
+        </createIndex>
+        <createIndex tableName="game_sock_puppet_detection" indexName="game_sock_puppet_detection_invitee_idx">
+            <column name="invitee_user_id"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

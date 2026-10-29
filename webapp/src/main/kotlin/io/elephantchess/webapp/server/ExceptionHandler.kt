@@ -5,13 +5,14 @@ import io.elephantchess.servicelayer.exceptions.HttpErrorException
 import io.elephantchess.servicelayer.services.ExceptionService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.utils.ResourceUtils
-import io.elephantchess.webapp.rendering.SimplePageRenderer
+import io.elephantchess.webapp.ops.respondErrorPage
+import io.elephantchess.webapp.ops.respondInternalError
+import io.elephantchess.webapp.ops.respondNotFound
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
-import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
@@ -22,6 +23,7 @@ import io.ktor.utils.io.*
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
 import kotlin.coroutines.cancellation.CancellationException
+import java.util.concurrent.CancellationException as JavaCancellationException
 
 private const val MUTED_URI_PATTERNS_RESOURCE = "/config/muted-uri-patterns.txt"
 
@@ -48,6 +50,7 @@ internal fun isClientDisconnectException(t: Throwable): Boolean {
         if (current is ClosedChannelException ||
             current is ClosedByteChannelException ||
             current is CancellationException ||
+            current is JavaCancellationException ||
             (current is IOException && current.message?.contains("Broken pipe") == true) ||
             (current is IOException && current.message?.contains("Connection reset") == true) ||
             (current is UnsupportedOperationException && current.message?.contains("response was already completed") == true)
@@ -82,7 +85,6 @@ internal fun isPathTraversalProbe(t: Throwable): Boolean =
 fun Application.exceptionHandler() {
     val logger = KotlinLogging.logger {}
     val exceptionService by koin<ExceptionService>()
-    val simplePageRenderer by koin<SimplePageRenderer>()
     val webSocketUpgradeFailurePhase = PipelinePhase("WebSocketUpgradeFailure")
 
     // StatusPages rethrows exceptions when no response was sent (always the case for a failed WebSocket upgrade),
@@ -95,29 +97,6 @@ fun Application.exceptionHandler() {
         } catch (e: NullPointerException) {
             if (!isClientDisconnectDuringWebSocketUpgrade(call, e)) throw e
             logger.debug { "client disconnected during WebSocket upgrade: ${call.request.uri}" }
-        }
-    }
-
-    // Renders the proper 404 response: the HTML template for browsers (clients whose Accept header
-    // prefers text/html), a JSON error payload for API clients / bots.
-    suspend fun ApplicationCall.respondNotFound(uri: String) {
-        val acceptsHtml = request.acceptItems().any { it.value == Html.toString() }
-        if (acceptsHtml) {
-            respond(TextContent(simplePageRenderer.renderTemplate("404"), Html, HttpStatusCode.NotFound))
-        } else {
-            respond(HttpStatusCode.NotFound, ValidationErrorsResponse("Not Found: $uri"))
-        }
-    }
-
-    // Generic 500 response for unexpected exceptions: the HTML error page for browsers, a JSON error payload
-    // otherwise. Never exposes the exception message to the client.
-    suspend fun ApplicationCall.respondServerError() {
-        if (response.isCommitted) return
-        val acceptsHtml = request.acceptItems().any { it.value == Html.toString() }
-        if (acceptsHtml) {
-            respond(TextContent(simplePageRenderer.renderTemplate("500"), Html, InternalServerError))
-        } else {
-            respond(InternalServerError, ValidationErrorsResponse("Server error"))
         }
     }
 
@@ -169,7 +148,13 @@ fun Application.exceptionHandler() {
         exception<HttpErrorException> { call, e ->
             logger.debug { e.toString() }
             exceptionService.saveException(e, e.code)
-            call.respond(HttpStatusCode.fromValue(e.code), ValidationErrorsResponse(e))
+            val status = HttpStatusCode.fromValue(e.code)
+            val acceptsHtml = call.request.acceptItems().any { it.value == Html.toString() }
+            if (acceptsHtml) {
+                call.respondErrorPage(status)
+            } else {
+                call.respond(status, ValidationErrorsResponse(e))
+            }
         }
         exception<IllegalArgumentException> { call, e ->
             logger.error(e) { e.toString() }
@@ -177,9 +162,13 @@ fun Application.exceptionHandler() {
             call.respond(BadRequest, ValidationErrorsResponse("Bad Request"))
         }
         exception<IllegalStateException> { call, e ->
-            logger.error(e) { e.toString() }
-            exceptionService.saveException(e, InternalServerError.value)
-            call.respond(InternalServerError, ValidationErrorsResponse("Server error"))
+            if (isClientDisconnectException(e)) {
+                logger.debug { "Client disconnected during request: ${e.message}" }
+            } else {
+                logger.error(e) { e.toString() }
+                exceptionService.saveException(e, InternalServerError.value)
+                call.respond(InternalServerError, ValidationErrorsResponse("Server error"))
+            }
         }
         exception<io.ktor.server.plugins.BadRequestException> { call, e ->
             if (e.cause is JsonConvertException) {
@@ -207,7 +196,7 @@ fun Application.exceptionHandler() {
             } else {
                 logger.error(t) { t.toString() }
                 exceptionService.saveException(t, InternalServerError.value)
-                call.respondServerError()
+                call.respondInternalError()
             }
         }
     }

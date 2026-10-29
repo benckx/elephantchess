@@ -1,4 +1,4 @@
-package io.elephantchess.webapp.rendering
+package io.elephantchess.webapp.rendering.resolvers
 
 import io.elephantchess.htmlrenderer.TagResolver
 

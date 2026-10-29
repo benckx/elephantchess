@@ -72,6 +72,12 @@ class AdminFeedsPage extends BasePage {
                 const gameIdCell = row.insertCell();
                 gameIdCell.append(entry.buildGameAnchor());
 
+                const sockPuppetCell = row.insertCell();
+                sockPuppetCell.innerText = entry.hasSockPuppetDetection ? '[v]' : '[ ]';
+
+                const sockPuppetReportDateCell = row.insertCell();
+                sockPuppetReportDateCell.innerText = entry.formattedSockPuppetReportDate;
+
                 const winnerSpan = document.createElement('span');
                 winnerSpan.innerHTML = HTML_WHITE_SPACE + '[v]';
 
@@ -79,7 +85,7 @@ class AdminFeedsPage extends BasePage {
                 inviterCell.classList.add('crop-text-ellipsis');
 
                 inviterCell.append(
-                    buildUsernameSpan(
+                    buildAdminUsernameSpan(
                         entry.inviterUserId,
                         entry.inviterUsername,
                         userTypeFromName(entry.inviterUsername)
@@ -94,7 +100,7 @@ class AdminFeedsPage extends BasePage {
                 inviteeCell.classList.add('crop-text-ellipsis');
                 if (entry.inviteeUsername != null) {
                     inviteeCell.append(
-                        buildUsernameSpan(
+                        buildAdminUsernameSpan(
                             entry.inviteeUserId,
                             entry.inviteeUsername,
                             userTypeFromName(entry.inviteeUsername)
@@ -163,7 +169,7 @@ class AdminFeedsPage extends BasePage {
                     const userCell = row.insertCell();
                     userCell.className = 'label-cell';
                     userCell.append(
-                        buildUsernameSpan(
+                        buildAdminUsernameSpan(
                             entry.userId,
                             entry.username,
                             entry.userType
@@ -173,7 +179,7 @@ class AdminFeedsPage extends BasePage {
 
                 const engineCell = row.insertCell();
                 engineCell.className = 'label-cell';
-                engineCell.innerText = formatEngineName(entry.engine);
+                engineCell.innerText = entry.engine;
 
                 const depthCell = row.insertCell();
                 depthCell.className = 'value-cell';
@@ -228,7 +234,7 @@ class AdminFeedsPage extends BasePage {
                     const userCell = row.insertCell();
                     userCell.className = 'label-cell';
                     userCell.append(
-                        buildUsernameSpan(entry.userId, entry.username, entry.userType)
+                        buildAdminUsernameSpan(entry.userId, entry.username, entry.userType)
                     );
                 }
 
@@ -243,6 +249,18 @@ class AdminFeedsPage extends BasePage {
                 const dateCell = row.insertCell();
                 dateCell.className = 'label-cell';
                 dateCell.innerText = formatTimestampToDateTime(entry.date);
+
+                const categoriesCell = row.insertCell();
+                categoriesCell.className = 'label-cell';
+                if (entry.categories != null && entry.categories.length > 0) {
+                    categoriesCell.innerText = entry.categories.map(formatEnumValue).join(', ');
+                } else {
+                    categoriesCell.innerText = '--';
+                }
+
+                const puzzleCreatedCell = row.insertCell();
+                puzzleCreatedCell.className = 'label-cell';
+                puzzleCreatedCell.innerText = formatTimestampToDateTime(entry.puzzleCreated);
 
                 if (showUser) {
                     const voteCell = row.insertCell();
@@ -279,7 +297,7 @@ class AdminFeedsPage extends BasePage {
                 tbody.append(tr);
 
                 // content
-                userCell.append(buildUserLinkDiv(entry.username));
+                userCell.append(buildAdminUsernameSpan(null, entry.username, UserType.AUTHENTICATED));
 
                 const analysisLink = document.createElement('a');
                 analysisLink.href = '/analysis?id=' + entry.analysisId;

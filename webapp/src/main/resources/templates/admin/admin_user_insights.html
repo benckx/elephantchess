@@ -1,0 +1,68 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Admin user insights - {{username}}</title>
+    <link rel="stylesheet" href="/css/common/nice-table.css"/>
+    <link rel="stylesheet" href="/css/database/database-search.css"/>
+    <link rel="stylesheet" href="/css/admin-user-insights.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/widgets/database-autocompletion.js"></script>
+    <script defer src="/js/admin/admin-user-insights.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-smaller">
+    <h1>Admin User Insights</h1>
+    <hr/>
+    <div id="admin-user-insights-search-box" class="search-container">
+        <label class="search-label">
+            <span>Search user (handle or guest id)</span>
+            <input id="insights-user-search" type="text" value="{{username}}"/>
+        </label>
+        <div class="suggestions-box">
+            <div class="suggestions-box-content"></div>
+        </div>
+        <div id="admin-user-insights-search-actions">
+            <input id="admin-user-insights-search-button" type="button" class="app-buttons" value="search">
+        </div>
+    </div>
+
+    <p>
+        {{admin_user_public_profile_link}}
+    </p>
+
+    <h2>User Metadata</h2>
+    <hr/>
+    {{admin_user_metadata_table}}
+
+    <h2>Game Activity</h2>
+    <hr/>
+    {{admin_user_game_activity_table}}
+
+    <h2>Related Users / Sock Puppet</h2>
+    <hr/>
+    {{admin_user_related_users_table}}
+    <h3>Game Sock Puppet Report</h3>
+    {{admin_user_sock_puppet_games_table}}
+
+    <h2>Saved Analysis</h2>
+    <hr/>
+    {{admin_user_saved_analysis_table}}
+
+    <h2>Chat Messages</h2>
+    <hr/>
+    {{admin_user_latest_chat_messages_table}}
+    <p class="admin-user-insights-center-link">{{admin_user_chat_messages_full_link}}</p>
+
+    <h2>Page Views</h2>
+    <hr/>
+    {{admin_user_latest_page_views_table}}
+    <p class="admin-user-insights-center-link">{{admin_user_page_views_full_link}}</p>
+
+    <h2>User Sessions</h2>
+    <hr/>
+    {{admin_user_latest_sessions_table}}
+</div>
+{{footer}}
+</body>
+</html>

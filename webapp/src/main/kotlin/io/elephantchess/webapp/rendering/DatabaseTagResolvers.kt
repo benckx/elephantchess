@@ -68,13 +68,13 @@ fun playersTableTagResolver(playerStandings: PlayersListResponse) =
                 }
             }
             tbody {
-                for (entry in playerStandings.entries) {
+                for ((_, name, slug, wins, draws, losses, totalGames) in playerStandings.entries) {
                     tr {
-                        td { a(href = "/database/player/${entry.slug}") { +entry.name } }
-                        td { +entry.wins.toString() }
-                        td { +entry.draws.toString() }
-                        td { +entry.losses.toString() }
-                        td { +entry.totalGames.toString() }
+                        td { a(href = "/database/player/$slug") { +name } }
+                        td { +wins.toString() }
+                        td { +draws.toString() }
+                        td { +losses.toString() }
+                        td { +totalGames.toString() }
                     }
                 }
             }

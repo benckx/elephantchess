@@ -100,13 +100,13 @@ development or learning purposes.
 
 ## TL;DR
 
-You just need Docker to run PostgreSQL and Java 21 to run the app.
+You just need Docker to run PostgreSQL and Java 25 to run the app.
 
 ## Pre-requisites
 
-### Java 21
+### Java 25
 
-You need a JDK installed to run the back-end, version 21 or higher.
+You need a JDK installed to run the back-end, version 25 or higher.
 
 ### Docker
 
@@ -209,8 +209,11 @@ Kotlin code is formatted with [ktlint](https://pinterest.github.io/ktlint/) (rul
 The CI fails if the formatting is not respected.
 
 ```shell
-./gradlew ktlintCheck   # check formatting
-./gradlew ktlintFormat  # fix formatting
+# check formatting
+./gradlew ktlintCheck
+
+# fix formatting
+./gradlew ktlintFormat
 ```
 
 ## Common Issues
@@ -271,16 +274,26 @@ fun main(args: Array<String>) {
         .start(wait = true)
 }
 
-// different KTor submodules for different purposes
 private fun Application.kTorModule() {
+    // default headers
     configureDefaultHeaders()
+    // handle exceptions and return proper HTTP status codes and error pages
     exceptionHandler()
-    cachingModule()
+    // rate limits database access (for crawlers)
+    databaseRateLimitModule()
+    // serves static assets like JS, CSS, images
     staticAssetsModule()
-    apiServiceModule() // all the routes defining the endpoints used by the front-end
-    htmlRoutingModule() // all the routes to access the HTML pages
+    // serves endpoints for the front-end API
+    apiServiceModule()
+    // renders, maps and serves HTML pages
+    htmlRoutingModule()
+    // serves sitemap.xml
     sitemapRoutingModule()
+    // serves /.well-known requests
+    wellKnownRoutingModule()
+    // handles graceful shutdown of components
     shutdownModule()
+    // serves Kubernetes health probes
     healthCheckModule()
 }
 ```
@@ -760,6 +773,51 @@ node --test
 ```
 
 The same command runs in the CI build.
+
+### Page tests (E2E)
+
+End-to-end browser tests live under `webapp/src/test/e2e` and use
+[Playwright](https://playwright.dev). They drive the real front-end in a headless
+Chromium, exercising the full online PvP workflow: two guests, live button
+updates when the opponent joins, a scripted game played out to checkmate, and the
+game-over modal with the Elo update.
+
+Requirements:
+
+- A running app on `http://localhost:8080` (override with `BASE_URL`). See
+  [Run Locally](#run-locally); make sure PostgreSQL is up and the dev dataset is
+  imported (`dev_dataset.pgsql`) so caches such as the puzzle cache are populated.
+- Node 24+.
+
+First time (and whenever dependencies change), install the Node packages and the
+Chromium browser Playwright drives (the `playwright` binary is provided by the
+local `@playwright/test` dependency, so `npm install` must run before
+`npx playwright install`):
+
+```bash
+cd webapp/src/test/e2e
+npm ci                          # or: npm install
+npx playwright install chromium # downloads the browser Playwright drives
+```
+
+Then run the tests (the app must already be running):
+
+```bash
+npm test
+```
+
+To watch the browsers while the tests run (each spec opens two windows, one per player):
+
+```bash
+npm run test:headed          # headed browsers
+npx playwright test --ui     # interactive runner: watch, re-run, time-travel through steps
+npx playwright test --debug  # headed + Playwright Inspector, pauses on each step
+```
+
+The install and `npm test` steps run in the `e2e` job of the CI build, which spins up PostgreSQL, loads
+`dev_dataset.pgsql`, starts the app, and publishes the HTML report as the `playwright-report` artifact. The
+`deploy-e2e-report` job then pushes it to the `gh-pages` branch, viewable at
+`https://benckx.github.io/elephantchess/e2e/pr-<number>/` (or `e2e/main/`); the link is in the job summary.
 
 ## JavaScript Libraries
 
