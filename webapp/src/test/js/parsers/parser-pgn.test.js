@@ -86,3 +86,19 @@ test('PGN-1 resolves every game in the davide2022 collection', () => {
         assert.ok(moves.length > 0, `game ${index} should yield moves`);
     });
 });
+
+test('PGN-0 resolves ambiguous cannon move Ce2 (both cannons can reach e2)', () => {
+    // From the start position both red cannons (b2 and h2) can reach e2 along rank 2,
+    // so "Ce2" is ambiguous.  Before the fix the parser threw on ambiguous moves.
+    // A subsequent unambiguous move (2. Ch5 or 2. Cb5) prunes the wrong branch.
+
+    // Branch resolved by 2. Ch5: h-cannon was still at h2 → b-cannon moved to e2.
+    const movesB = new ctx.PgnParser('1. Ce2 Nc7 2. Ch5', true).parse();
+    assert.equal(movesB.length, 3);
+    assert.deepEqual(toUciList(movesB), ['b2e2', 'b9c7', 'h2h5']);
+
+    // Branch resolved by 2. Cb5: b-cannon was still at b2 → h-cannon moved to e2.
+    const movesH = new ctx.PgnParser('1. Ce2 Nc7 2. Cb5', true).parse();
+    assert.equal(movesH.length, 3);
+    assert.deepEqual(toUciList(movesH), ['h2e2', 'b9c7', 'b2b5']);
+});
