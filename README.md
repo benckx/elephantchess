@@ -132,13 +132,20 @@ repository, download the binaries from their repositories and copying them in th
 
 ```
 $ tree engines
-engines
+engines/
 ├── fairy
 │   ├── 11.2
 │   │   └── fairy-stockfish
 │   └── 14.0.1
 │       └── fairy-stockfish
 └── pikafish
+    ├── 2023-03-05
+    │   ├── pikafish-modern
+    │   └── pikafish.nnue
+    ├── 2026-01-02
+    │   ├── pikafish-apple-silicon
+    │   ├── pikafish-sse41-popcnt
+    │   └── pikafish.nnue
     └── 2026-09-06
         ├── Pikafish-Linux-x86-64-universal
         ├── Pikafish-MacOS-universal
