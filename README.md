@@ -125,9 +125,8 @@ Docker version 29.4.2, build 055a478
 _Note: for the sake of simplicity, the engine binaries have been added to this repo, so you don't have anything else to
 do to be able to run the webapp locally with the engines features. Nevertheless, this section covers engine set-up._
 
-_Note: The bundled Pikafish binary targets x86-64 Linux and does not work on ARM64 machines. Pikafish publishes several
-x86-64 binaries optimized for different CPU instruction sets; elephantchess uses the `sse41-popcnt` build for broad
-compatibility._
+_Note: The bundled Pikafish binary targets x86-64 Linux. Apple Silicon Macs can use Pikafish's native
+`pikafish-apple-silicon` executable; Fairy Stockfish remains disabled on macOS._
 
 The webapp assumes engine binaries can be found locally. So you need to create folder `engines` at the root of this
 repository, download the binaries from their repositories and copying them in this format:
@@ -143,11 +142,14 @@ engines
 └── pikafish
     └── 2026-01-02
         ├── pikafish-sse41-popcnt
+        ├── pikafish-apple-silicon
         └── pikafish.nnue
 ```
 
 Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. As of now,
-[elephantchess](https://elephantchess.io) uses Pikafish 2026-01-02 with the `sse41-popcnt` binary.
+[elephantchess](https://elephantchess.io) uses Pikafish 2026-01-02 with `sse41-popcnt` on Linux and
+`pikafish-apple-silicon` on Apple Silicon macOS. Extract `MacOS/pikafish-apple-silicon` from the release archive into
+the version folder shown above.
 
 Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now
 [elephantchess](https://elephantchess.io) uses 11.2 but is planning to upgrade to 14.0.1.

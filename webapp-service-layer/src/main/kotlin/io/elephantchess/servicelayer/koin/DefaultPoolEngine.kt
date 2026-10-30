@@ -3,6 +3,7 @@ package io.elephantchess.servicelayer.koin
 import io.elephantchess.config.AppConfig
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.engines.process.EngineConfig
+import io.elephantchess.engines.process.EngineId
 import io.elephantchess.engines.process.FairyStockfishEngineId
 import io.elephantchess.engines.process.PikafishEngineId
 import io.elephantchess.engines.protocol.commands.LocalProcessLocator
@@ -13,10 +14,22 @@ import java.util.concurrent.Executors
 internal fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
     val logger = KotlinLogging.logger("io.elephantchess.servicelayer.koin.buildDefaultEnginePool")
     val osName = System.getProperty("os.name")
+    val osArch = System.getProperty("os.arch")
     logger.info { "OS name: $osName" }
     val isMacOs = osName.startsWith("Mac OS")
-    if (isMacOs) logger.warn { "engines are disabled on Mac OS" }
-    val configMap = if (!isMacOs && appConfig.isEnginePoolEnabled) {
+    val isAppleSilicon = isMacOs && osArch in setOf("aarch64", "arm64")
+    if (isMacOs && !isAppleSilicon) logger.warn { "engines are disabled on Intel Mac OS" }
+    val configMap: Map<EngineId, EngineConfig> = if (appConfig.isEnginePoolEnabled && isAppleSilicon) {
+        mapOf(
+            PikafishEngineId to EngineConfig(
+                version = appConfig.pikafishVersion,
+                poolSize = 1,
+                numberOfThreads = appConfig.enginesThreads,
+                osName = osName,
+                osArch = osArch,
+            ),
+        )
+    } else if (appConfig.isEnginePoolEnabled && !isMacOs) {
         mapOf(
             PikafishEngineId to EngineConfig(
                 version = appConfig.pikafishVersion,
