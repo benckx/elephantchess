@@ -27,11 +27,15 @@ object PikafishEngineId : EngineId() {
         val executableName = when {
             releaseDate >= universalReleaseDate && effectiveOsName.startsWith("Mac OS") ->
                 "Pikafish-MacOS-universal"
+
             releaseDate >= universalReleaseDate ->
                 "Pikafish-Linux-x86-64-universal"
+
             effectiveOsName.startsWith("Mac OS") && effectiveOsArch in setOf("aarch64", "arm64") ->
                 "pikafish-apple-silicon"
+
             releaseDate.year >= 2026 -> "pikafish-sse41-popcnt"
+
             else -> "pikafish-modern"
         }
 
