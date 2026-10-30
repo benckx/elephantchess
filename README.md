@@ -125,8 +125,7 @@ Docker version 29.4.2, build 055a478
 _Note: for the sake of simplicity, the engine binaries have been added to this repo, so you don't have anything else to
 do to be able to run the webapp locally with the engines features. Nevertheless, this section covers engine set-up._
 
-_Note: The bundled Pikafish binary targets x86-64 Linux. Apple Silicon Macs can use Pikafish's native
-`pikafish-apple-silicon` executable; Fairy Stockfish remains disabled on macOS._
+_Note: Pikafish 2026-09-06 provides universal Linux x86-64 and macOS binaries. Fairy Stockfish remains disabled on macOS._
 
 The webapp assumes engine binaries can be found locally. So you need to create folder `engines` at the root of this
 repository, download the binaries from their repositories and copying them in this format:
@@ -140,16 +139,15 @@ engines
 │   └── 14.0.1
 │       └── fairy-stockfish
 └── pikafish
-    └── 2026-01-02
-        ├── pikafish-sse41-popcnt
-        ├── pikafish-apple-silicon
+    └── 2026-09-06
+        ├── Pikafish-Linux-x86-64-universal
+        ├── Pikafish-MacOS-universal
         └── pikafish.nnue
 ```
 
 Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. As of now,
-[elephantchess](https://elephantchess.io) uses Pikafish 2026-01-02 with `sse41-popcnt` on Linux and
-`pikafish-apple-silicon` on Apple Silicon macOS. Extract `MacOS/pikafish-apple-silicon` from the release archive into
-the version folder shown above.
+[elephantchess](https://elephantchess.io) uses Pikafish 2026-09-06. Extract the Linux and macOS universal binaries and
+the matching `pikafish.nnue` from the release archive into the version folder shown above.
 
 Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now
 [elephantchess](https://elephantchess.io) uses 11.2 but is planning to upgrade to 14.0.1.
@@ -485,8 +483,9 @@ one version:
 ```
 engines
 └── pikafish
-    └── 2026-01-02
-        ├── pikafish-sse41-popcnt
+    └── 2026-09-06
+        ├── Pikafish-Linux-x86-64-universal
+        ├── Pikafish-MacOS-universal
         └── pikafish.nnue
 ```
 
@@ -503,8 +502,9 @@ object DockerizedProcessLocator : EngineProcessLocator {
 ```
 
 Pikafish binaries can be found at https://github.com/official-pikafish/Pikafish/releases. Releases before 2026 use the
-`pikafish-modern` executable name in this project; releases from 2026 onward use `pikafish-sse41-popcnt`. As of now,
-[elephantchess](https://elephantchess.io) uses Pikafish 2026-01-02.
+`pikafish-modern` executable name in this project; Pikafish 2026-01-02 uses `pikafish-sse41-popcnt` on Linux and
+`pikafish-apple-silicon` on Apple Silicon macOS. Pikafish 2026-09-06 uses universal Linux x86-64 and macOS binaries.
+As of now, [elephantchess](https://elephantchess.io) uses Pikafish 2026-09-06.
 
 Fairy Stockfish binaries can be found at https://github.com/fairy-stockfish/Fairy-Stockfish/releases. As of now
 [elephantchess](https://elephantchess.io) supports versions 11.2 and 14.0.1, stored under the `fairy/<version>` folder.

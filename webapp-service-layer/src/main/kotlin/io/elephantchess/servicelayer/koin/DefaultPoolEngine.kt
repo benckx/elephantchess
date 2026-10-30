@@ -19,10 +19,11 @@ internal fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
 
     val isMacOs = osName.startsWith("Mac OS")
     val isAppleSilicon = isMacOs && osArch in setOf("aarch64", "arm64")
-    if (isMacOs && !isAppleSilicon) logger.warn { "engines are disabled on Intel Mac OS" }
+    val canRunMacPikafish = isAppleSilicon || PikafishEngineId.supportsMacOs(appConfig.pikafishVersion)
+    if (isMacOs && !canRunMacPikafish) logger.warn { "engines are disabled on Intel Mac OS for this Pikafish version" }
 
     val configMap: Map<EngineId, EngineConfig> =
-        if (appConfig.isEnginePoolEnabled && isAppleSilicon) {
+        if (appConfig.isEnginePoolEnabled && isMacOs && canRunMacPikafish) {
             mapOf(
                 PikafishEngineId to EngineConfig(
                     version = appConfig.pikafishVersion,

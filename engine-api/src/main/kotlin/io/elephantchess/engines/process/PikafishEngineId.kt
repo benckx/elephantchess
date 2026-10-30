@@ -25,6 +25,10 @@ object PikafishEngineId : EngineId() {
         val effectiveOsName = osName ?: System.getProperty("os.name")
         val effectiveOsArch = osArch ?: System.getProperty("os.arch")
         val executableName = when {
+            releaseDate >= universalReleaseDate && effectiveOsName.startsWith("Mac OS") ->
+                "Pikafish-MacOS-universal"
+            releaseDate >= universalReleaseDate ->
+                "Pikafish-Linux-x86-64-universal"
             effectiveOsName.startsWith("Mac OS") && effectiveOsArch in setOf("aarch64", "arm64") ->
                 "pikafish-apple-silicon"
             releaseDate.year >= 2026 -> "pikafish-sse41-popcnt"
@@ -42,4 +46,9 @@ object PikafishEngineId : EngineId() {
             osName = config.osName,
             osArch = config.osArch,
         )
+
+    fun supportsMacOs(version: String?): Boolean =
+        version?.let { runCatching { LocalDate.parse(it) }.getOrNull() }?.let { it >= universalReleaseDate } ?: false
+
+    private val universalReleaseDate = LocalDate.parse("2026-09-06")
 }
