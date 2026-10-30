@@ -2374,7 +2374,7 @@
 
             -- Pikafish after the 2024-04-28 upgrade
             UPDATE bot_game
-            SET engine_version = '2026-09-06'
+            SET engine_version = '2023-03-05'
             WHERE engine = 'PIKAFISH'
             AND (created AT TIME ZONE 'UTC')::date > DATE '2024-04-28';
 
