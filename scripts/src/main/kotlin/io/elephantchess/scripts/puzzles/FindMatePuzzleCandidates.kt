@@ -52,7 +52,7 @@ object FindMatePuzzleCandidates : KoinScript {
         val enginePool = EnginePool(
             configMap = mapOf(
                 PikafishEngineId to EngineConfig(
-                    version = "2023-03-05",
+                    version = "2026-09-06",
                     poolSize = 1,
                     numberOfThreads = ENGINE_THREADS,
                 ),

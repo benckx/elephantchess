@@ -461,20 +461,14 @@ engines
 │   └── 14.0.1
 │       └── fairy-stockfish
 └── pikafish
-    ├── 2022-12-26
-    │   ├── pikafish-modern
-    │   └── pikafish.nnue
-    ├── 2023-02-16
-    │   ├── pikafish-modern
-    │   └── pikafish.nnue
-    ├── 2023-03-05
-    │   ├── pikafish-modern
-    │   └── pikafish.nnue
-    └── 2026-01-02
-        ├── pikafish-sse41-popcnt
-        └── pikafish.nnue
+   ├── 2022-12-26
+   │   ├── pikafish-modern
+   │   └── pikafish.nnue
+   └── 2026-01-02
+       ├── pikafish-sse41-popcnt
+       └── pikafish.nnue
 
-8 directories, 10 files
+6 directories, 8 files
 ```
 
 In the above example, multiple binaries and versions are available, but you can use the `engine-api` library with just
