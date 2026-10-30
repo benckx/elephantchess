@@ -15,36 +15,39 @@ internal fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
     val logger = KotlinLogging.logger("io.elephantchess.servicelayer.koin.buildDefaultEnginePool")
     val osName = System.getProperty("os.name")
     val osArch = System.getProperty("os.arch")
-    logger.info { "OS name: $osName" }
+    logger.info { "OS name: $osName, OS architecture: $osArch" }
+
     val isMacOs = osName.startsWith("Mac OS")
     val isAppleSilicon = isMacOs && osArch in setOf("aarch64", "arm64")
     if (isMacOs && !isAppleSilicon) logger.warn { "engines are disabled on Intel Mac OS" }
-    val configMap: Map<EngineId, EngineConfig> = if (appConfig.isEnginePoolEnabled && isAppleSilicon) {
-        mapOf(
-            PikafishEngineId to EngineConfig(
-                version = appConfig.pikafishVersion,
-                poolSize = 1,
-                numberOfThreads = appConfig.enginesThreads,
-                osName = osName,
-                osArch = osArch,
-            ),
-        )
-    } else if (appConfig.isEnginePoolEnabled && !isMacOs) {
-        mapOf(
-            PikafishEngineId to EngineConfig(
-                version = appConfig.pikafishVersion,
-                poolSize = 1,
-                numberOfThreads = appConfig.enginesThreads,
-            ),
-            FairyStockfishEngineId to EngineConfig(
-                version = appConfig.fairyStockfishVersion,
-                poolSize = 1,
-                numberOfThreads = appConfig.enginesThreads,
-            ),
-        )
-    } else {
-        mapOf()
-    }
+
+    val configMap: Map<EngineId, EngineConfig> =
+        if (appConfig.isEnginePoolEnabled && isAppleSilicon) {
+            mapOf(
+                PikafishEngineId to EngineConfig(
+                    version = appConfig.pikafishVersion,
+                    poolSize = 1,
+                    numberOfThreads = appConfig.enginesThreads,
+                    osName = osName,
+                    osArch = osArch,
+                ),
+            )
+        } else if (appConfig.isEnginePoolEnabled && !isMacOs) {
+            mapOf(
+                PikafishEngineId to EngineConfig(
+                    version = appConfig.pikafishVersion,
+                    poolSize = 1,
+                    numberOfThreads = appConfig.enginesThreads,
+                ),
+                FairyStockfishEngineId to EngineConfig(
+                    version = appConfig.fairyStockfishVersion,
+                    poolSize = 1,
+                    numberOfThreads = appConfig.enginesThreads,
+                ),
+            )
+        } else {
+            mapOf()
+        }
 
     val processLocator = if (appConfig.isDockerized) DockerizedProcessLocator else LocalProcessLocator
     return EnginePool(
