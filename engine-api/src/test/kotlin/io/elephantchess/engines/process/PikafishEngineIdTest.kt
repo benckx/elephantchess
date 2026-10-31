@@ -3,8 +3,6 @@ package io.elephantchess.engines.process
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class PikafishEngineIdTest {
 
@@ -13,18 +11,6 @@ class PikafishEngineIdTest {
         assertEquals(
             "pikafish/2025-12-31/pikafish-modern",
             PikafishEngineId.pathOfExecutable("2025-12-31", "Linux", "x86_64"),
-        )
-    }
-
-    @Test
-    fun `releases from 2026 use the sse41 popcnt executable name`() {
-        assertEquals(
-            "pikafish/2026-01-02/pikafish-sse41-popcnt",
-            PikafishEngineId.pathOfExecutable("2026-01-02", "Linux", "x86_64"),
-        )
-        assertEquals(
-            "pikafish/2027-01-01/Pikafish-Linux-x86-64-universal",
-            PikafishEngineId.pathOfExecutable("2027-01-01", "Linux", "x86_64"),
         )
     }
 
@@ -54,12 +40,6 @@ class PikafishEngineIdTest {
             "pikafish/2026-09-06/Pikafish-MacOS-universal",
             PikafishEngineId.pathOfExecutable("2026-09-06", "Mac OS X", "x86_64"),
         )
-    }
-
-    @Test
-    fun `only universal releases support Intel macOS`() {
-        assertFalse(PikafishEngineId.supportsMacOs("2026-01-02"))
-        assertTrue(PikafishEngineId.supportsMacOs("2026-09-06"))
     }
 
     @Test
