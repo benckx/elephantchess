@@ -783,7 +783,9 @@ End-to-end browser tests live under `webapp/src/test/e2e` and use
 [Playwright](https://playwright.dev). They drive the real front-end in a headless
 Chromium, exercising the full online PvP workflow: two guests, live button
 updates when the opponent joins, a scripted game played out to checkmate, and the
-game-over modal with the Elo update.
+game-over modal with the Elo update. They also cover the PvB workflow: a guest
+creates a game against each engine (Pikafish and Fairy Stockfish), plays 2 moves,
+and finds the game in "my bot games".
 
 Requirements:
 
