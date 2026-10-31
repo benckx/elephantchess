@@ -58,6 +58,8 @@ object PikafishEngineId : EngineId() {
             osArch = config.osArch,
         )
 
-    fun supportsMacOs(version: String?): Boolean =
-        version?.let { runCatching { LocalDate.parse(it) }.isSuccess && it >= "2026-09-06" } ?: false
+    // 2026-09-06 has a MacOs-universal executable,
+    // while 2026-01-02 has a apple-silicon executable
+    fun supportsMacOs(version: String, osArch: String): Boolean =
+        version == "2026-09-06" || (version == "2026-01-02" && osArch in setOf("aarch64", "arm64"))
 }

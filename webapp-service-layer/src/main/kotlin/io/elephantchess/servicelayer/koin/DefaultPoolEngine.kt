@@ -6,6 +6,7 @@ import io.elephantchess.engines.process.EngineConfig
 import io.elephantchess.engines.process.EngineId
 import io.elephantchess.engines.process.FairyStockfishEngineId
 import io.elephantchess.engines.process.PikafishEngineId
+import io.elephantchess.engines.process.PikafishEngineId.supportsMacOs
 import io.elephantchess.engines.protocol.commands.LocalProcessLocator
 import io.elephantchess.servicelayer.utils.DockerizedProcessLocator
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -18,9 +19,15 @@ internal fun buildDefaultEnginePool(appConfig: AppConfig): EnginePool {
     logger.info { "OS name: $osName, OS architecture: $osArch" }
 
     val isMacOs = osName.startsWith("Mac OS")
-    val isAppleSilicon = isMacOs && osArch in setOf("aarch64", "arm64")
-    val canRunMacPikafish = isAppleSilicon || PikafishEngineId.supportsMacOs(appConfig.pikafishVersion)
-    if (isMacOs && !canRunMacPikafish) logger.warn { "engines are disabled on Intel Mac OS for this Pikafish version" }
+    val canRunMacPikafish = supportsMacOs(appConfig.pikafishVersion, osArch)
+    if (isMacOs && !canRunMacPikafish) {
+        logger.warn {
+            "can not run this version, " +
+                "osName: $osName, " +
+                "osArch: $osArch, " +
+                "version: ${appConfig.pikafishVersion}"
+        }
+    }
 
     val configMap: Map<EngineId, EngineConfig> =
         if (appConfig.isEnginePoolEnabled && isMacOs && canRunMacPikafish) {
