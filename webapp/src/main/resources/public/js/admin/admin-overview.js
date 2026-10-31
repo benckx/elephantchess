@@ -111,7 +111,7 @@ class AdminOverviewPage extends BasePage {
     }
 
     #fetchLatestExceptions() {
-        getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-thrown-exceptions?limit=10&codeFilter=5xx`, json => {
+        getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-thrown-exceptions?limit=30`, json => {
             const tbody = emptyTable(this.#latestExceptionsTable);
 
             json.entries.forEach(entry => {
