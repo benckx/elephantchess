@@ -43,6 +43,7 @@ test.describe('PvB workflow (guest vs bot)', () => {
             // --- Create the game from the lobby modal: Red, depth 1, chosen engine ---
             await page.goto('/?pvb', {waitUntil: 'networkidle'});
             await page.waitForSelector('#play-bot-modal', {state: 'visible'});
+            await captureStep(testInfo, `0-${engine.name}-new-game-modal`, [['player', page]], {fullPage: false});
             await page.click('#variant-xiangqi-bot');
             await page.click('#play-as-red');
             await page.click(engine.optionId);
@@ -56,13 +57,17 @@ test.describe('PvB workflow (guest vs bot)', () => {
             await expect(page.locator('#info-depth')).toHaveText('1');
 
             // --- Play 2 moves; the server answers each one with the bot's reply ---
-            for (const uci of USER_MOVES) {
+            for (let i = 0; i < USER_MOVES.length; i++) {
+                const uci = USER_MOVES[i];
                 const response = page.waitForResponse(/\/api\/botgame\/play-move/);
                 await playMove(page, uci);
                 const json = await (await response).json();
                 expect(json.botMove).toMatch(/^[a-i]\d[a-i]\d$/);
+                if (i === 0) {
+                    await captureStep(testInfo, `1-${engine.name}-move-1`, [['player', page]]);
+                }
             }
-            await captureStep(testInfo, `1-${engine.name}-game`, [['player', page]]);
+            await captureStep(testInfo, `2-${engine.name}-game`, [['player', page]]);
 
             // --- The game shows up in "my bot games" with the right engine and state ---
             await page.goto('/userdata/botgames', {waitUntil: 'networkidle'});
@@ -71,7 +76,7 @@ test.describe('PvB workflow (guest vs bot)', () => {
             await expect(item.locator('.opponent')).toHaveText(`${engine.name} (1)`);
             await expect(item.locator('.game-status')).toHaveText('ongoing');
             await expect(item.locator('.move-index')).toHaveText(`move ${USER_MOVES.length}`);
-            await captureStep(testInfo, `2-${engine.name}-my-bot-games`, [['player', page]]);
+            await captureStep(testInfo, `3-${engine.name}-my-bot-games`, [['player', page]]);
 
             await player.context.close();
         });
