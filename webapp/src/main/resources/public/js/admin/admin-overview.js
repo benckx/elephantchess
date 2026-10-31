@@ -116,7 +116,12 @@ class AdminOverviewPage extends BasePage {
 
             json.entries.forEach(entry => {
                 const row = tbody.insertRow();
-                renderExceptionRow(entry, row, {showFullyQualifiedClassName: false});
+                renderExceptionRow(entry, row,
+                    {
+                        showFullyQualifiedClassName: false,
+                        maxMessageLength: 100
+                    }
+                );
             });
         });
     }
