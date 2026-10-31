@@ -24,17 +24,25 @@ object PikafishEngineId : EngineId() {
         }
         val effectiveOsName = osName ?: System.getProperty("os.name")
         val effectiveOsArch = osArch ?: System.getProperty("os.arch")
-        val executableName = when {
-            requiredVersion >= "2026-09-06" && effectiveOsName.startsWith("Mac OS") ->
-                "Pikafish-MacOS-universal"
 
-            requiredVersion >= "2026-09-06" -> "Pikafish-Linux-x86-64-universal"
+        val executableName = when (requiredVersion) {
+            "2026-01-02" -> {
+                if (effectiveOsName.startsWith("Mac OS") && effectiveOsArch in setOf("aarch64", "arm64")) {
+                    "pikafish-apple-silicon"
+                } else {
+                    "pikafish-sse41-popcnt"
+                }
+            }
 
-            requiredVersion >= "2026-01-02" && effectiveOsName.startsWith("Mac OS") &&
-                effectiveOsArch in setOf("aarch64", "arm64") -> "pikafish-apple-silicon"
+            "2026-09-06" -> {
+                if (effectiveOsName.startsWith("Mac OS")) {
+                    "Pikafish-MacOS-universal"
+                } else {
+                    "Pikafish-Linux-x86-64-universal"
+                }
+            }
 
-            requiredVersion >= "2026-01-02" -> "pikafish-sse41-popcnt"
-
+            // in 2023-03-05
             else -> "pikafish-modern"
         }
 
