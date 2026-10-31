@@ -21,5 +21,7 @@ object FairyStockfishEngineId : EngineId() {
             locator = engineProcessLocator,
             version = config.version,
             numberOfThreads = config.numberOfThreads,
+            osName = config.osName,
+            osArch = config.osArch,
         )
 }
