@@ -29,6 +29,7 @@ const PuzzleStateBoxes = Object.freeze({
 const USER_RATING_DELTA_VALUE_BOX_NEGATIVE_CLASS = 'user-rating-delta-value-box-negative';
 const USER_RATING_DELTA_VALUE_BOX_POSITIVE_CLASS = 'user-rating-delta-value-box-positive';
 
+// FIXME: kinda weird we adding and removing after moveListeners between 2 puzzles
 class PuzzlesPage extends BasePage {
 
     /**
@@ -322,6 +323,7 @@ class PuzzlesPage extends BasePage {
 
     #renderNoSolutionFound(submittedMove) {
         setInfoBoxButtonEnabled(this.#tryAgainButton, true);
+
         // update move history
         this.#moveTreeWidget.addSubmittedMove(submittedMove);
         this.#moveTreeWidget.renderSubmittedMovesAsErroneous();
