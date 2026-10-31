@@ -15,29 +15,27 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import tools.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS
-import tools.jackson.databind.cfg.EnumFeature.READ_ENUMS_USING_TO_STRING
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
-class JacksonEnumDeserializationTest {
+class JacksonEnumConfigTest {
 
     @Test
-    fun `API parses CreateBotGameRequest sent by frontend`() =
+    fun `API parses CreateBotGameRequest sent by frontend and writes enums by name`() =
         testApplication {
             var receivedRequest: CreateBotGameRequest? = null
 
             application {
                 install(ContentNegotiation) {
                     jackson {
-                        enable(ACCEPT_CASE_INSENSITIVE_ENUMS)
-                        disable(READ_ENUMS_USING_TO_STRING)
+                        configureEnums()
                     }
                 }
                 routing {
                     post("/engine") {
                         receivedRequest = call.receive<CreateBotGameRequest>()
-                        call.respondText("ok")
+                        call.respond(receivedRequest!!)
                     }
                 }
             }
@@ -59,7 +57,6 @@ class JacksonEnumDeserializationTest {
             }
 
             assertEquals(HttpStatusCode.OK, response.status)
-            assertEquals("ok", response.bodyAsText())
             assertEquals(
                 CreateBotGameRequest(
                     color = Color.RED,
@@ -71,5 +68,9 @@ class JacksonEnumDeserializationTest {
                 ),
                 receivedRequest,
             )
+            // enums must be written using their names (not toString), as expected by the frontend
+            val body = response.bodyAsText()
+            assertContains(body, "\"engine\":\"FAIRYSTOCKFISH\"")
+            assertContains(body, "\"color\":\"RED\"")
         }
 }

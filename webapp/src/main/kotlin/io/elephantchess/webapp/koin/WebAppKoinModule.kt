@@ -1,12 +1,11 @@
 package io.elephantchess.webapp.koin
 
 import io.elephantchess.servicelayer.utils.ops.registerInjectables
+import io.elephantchess.webapp.server.configureEnums
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import tools.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS
 import tools.jackson.databind.SerializationFeature.INDENT_OUTPUT
-import tools.jackson.databind.cfg.EnumFeature.READ_ENUMS_USING_TO_STRING
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.KotlinModule
 
@@ -17,8 +16,7 @@ fun webAppKoinModule(eagerAllowed: Boolean): Module =
             JsonMapper
                 .builder()
                 .addModule(KotlinModule.Builder().build())
-                .configure(ACCEPT_CASE_INSENSITIVE_ENUMS, true)
-                .configure(READ_ENUMS_USING_TO_STRING, false)
+                .configureEnums()
                 .configure(INDENT_OUTPUT, false)
                 .build()
         }
