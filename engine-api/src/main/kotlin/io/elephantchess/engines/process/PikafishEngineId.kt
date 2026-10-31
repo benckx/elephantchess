@@ -10,19 +10,40 @@ object PikafishEngineId : EngineId() {
 
     override val displayName: String = "Pikafish"
 
-    override fun pathOfExecutable(version: String?): String {
+    override fun pathOfExecutable(version: String?): String =
+        pathOfExecutable(version, null, null)
+
+    override fun pathOfExecutable(version: String?, osName: String?, osArch: String?): String {
         val requiredVersion = requireNotNull(version) {
             "Pikafish engine version must be provided in yyyy-MM-dd format to resolve the executable path."
         }
-        val releaseDate = try {
+        try {
             LocalDate.parse(requiredVersion)
         } catch (_: DateTimeParseException) {
             throw IllegalArgumentException("Pikafish engine version must use yyyy-MM-dd format.")
         }
-        val executableName = if (releaseDate.year >= 2026) {
-            "pikafish-sse41-popcnt"
-        } else {
-            "pikafish-modern"
+        val effectiveOsName = osName ?: System.getProperty("os.name")
+        val effectiveOsArch = osArch ?: System.getProperty("os.arch")
+
+        val executableName = when (requiredVersion) {
+            "2026-01-02" -> {
+                if (effectiveOsName.startsWith("Mac OS") && effectiveOsArch in setOf("aarch64", "arm64")) {
+                    "pikafish-apple-silicon"
+                } else {
+                    "pikafish-sse41-popcnt"
+                }
+            }
+
+            "2026-09-06" -> {
+                if (effectiveOsName.startsWith("Mac OS")) {
+                    "Pikafish-MacOS-universal"
+                } else {
+                    "Pikafish-Linux-x86-64-universal"
+                }
+            }
+
+            // in 2023-03-05
+            else -> "pikafish-modern"
         }
 
         return "pikafish/$requiredVersion/$executableName"
@@ -33,5 +54,12 @@ object PikafishEngineId : EngineId() {
             locator = engineProcessLocator,
             version = config.version,
             numberOfThreads = config.numberOfThreads,
+            osName = config.osName,
+            osArch = config.osArch,
         )
+
+    // 2026-09-06 has a MacOs-universal executable,
+    // while 2026-01-02 has a apple-silicon executable
+    fun supportsMacOs(version: String, osArch: String): Boolean =
+        version == "2026-09-06" || (version == "2026-01-02" && osArch in setOf("aarch64", "arm64"))
 }
