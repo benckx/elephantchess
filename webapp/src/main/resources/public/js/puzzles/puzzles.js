@@ -68,6 +68,7 @@ class PuzzlesPage extends BasePage {
     #nextPuzzleButton = document.getElementById('next-puzzle-button');
     #nextPuzzleButtonLabel = document.getElementById('next-puzzle-button-label');
     #revealSolutionButton = document.getElementById('reveal-solution-button');
+    #tryAgainButton = document.getElementById('try-again-button');
 
     #puzzleIdLabel = document.getElementById('puzzle-id');
     #puzzleDisabledIcon = document.getElementById('puzzle-disabled-icon');
@@ -136,6 +137,8 @@ class PuzzlesPage extends BasePage {
             isDownloadButtonEnabled: true
         });
         this.#moveTreeWidget.boardWidget = this.#boardGui;
+        this.#moveTreeWidget.addClickedNodeListener(() => this.#handleNavigationEvent());
+        this.#moveTreeWidget.addNavigationListener(() => this.#handleNavigationEvent());
         new SettingsGui(this.#boardGui, this.#moveTreeWidget);
 
         // add listeners
@@ -143,6 +146,11 @@ class PuzzlesPage extends BasePage {
         this.#revealSolutionButton.addEventListener('click', (e) => {
             if (isInfoBoxButtonEnabled(e)) {
                 this.#handleRevealSolutionButtonClicked();
+            }
+        });
+        this.#tryAgainButton.addEventListener('click', (e) => {
+            if (isInfoBoxButtonEnabled(e)) {
+                this.#puzzlesController.retry();
             }
         });
 
@@ -173,14 +181,15 @@ class PuzzlesPage extends BasePage {
         this.#boardGui.flipToColor(this.#puzzleState.playerColor);
         this.#boardGui.loadFen(this.#puzzleState.startFen, animate);
         this.#boardGui.enablePlayerMove();
+        this.#boardGui.clearAllAfterMovesListeners();
         this.#boardGui.addAfterMoveListener((submittedMove) => {
+            setInfoBoxButtonEnabled(this.#tryAgainButton, false);
             this.#puzzlesController.submitSolution(submittedMove);
         });
 
         this.#moveTreeWidget.resetFlaggedAsRevealed();
+        this.#moveTreeWidget.clear();
         this.#moveTreeWidget.setMoves(this.#puzzleState.moves);
-        this.#moveTreeWidget.addClickedNodeListener(() => this.#handleNavigationEvent());
-        this.#moveTreeWidget.addNavigationListener(() => this.#handleNavigationEvent());
 
         // update UI info
         this.#puzzleIdLabel.textContent = '#' + this.#puzzleState.id;
@@ -205,6 +214,7 @@ class PuzzlesPage extends BasePage {
         }
 
         setInfoBoxButtonEnabled(this.#revealSolutionButton, true);
+        setInfoBoxButtonEnabled(this.#tryAgainButton, this.#puzzleState.hasPlayedMoves());
         this.#renderNextPuzzleButtonAsSkipPuzzle();
         this.#displayVoteButtons(false);
 
@@ -292,7 +302,8 @@ class PuzzlesPage extends BasePage {
         this.#moveTreeWidget.addSubmittedMove(nextOpponentMove);
         this.#boardGui.registerOpponentMove(nextOpponentMove, true, () => {
             this.#moveTreeWidget.selectLastNode();
-            this.#boardGui.enablePlayerMove();
+            this.#handleNavigationEvent();
+            setInfoBoxButtonEnabled(this.#tryAgainButton, true);
             this.#highlightNextMoveDebug();
         });
     }
@@ -311,6 +322,8 @@ class PuzzlesPage extends BasePage {
     }
 
     #renderNoSolutionFound(submittedMove) {
+        setInfoBoxButtonEnabled(this.#tryAgainButton, true);
+
         // update move history
         this.#moveTreeWidget.addSubmittedMove(submittedMove);
         this.#moveTreeWidget.renderSubmittedMovesAsErroneous();
@@ -349,6 +362,7 @@ class PuzzlesPage extends BasePage {
 
             this.#boardGui.clearAllAfterMovesListeners();
             this.#boardGui.updateHighlightedChecks();
+            setInfoBoxButtonEnabled(this.#tryAgainButton, true);
 
             // debug
             this.#hideDebugHighlight();
@@ -386,7 +400,7 @@ class PuzzlesPage extends BasePage {
         if (this.#puzzleState == null) {
             return;
         }
-        if (this.#puzzleState.hasOutcome() || !this.#skipConfirmationEnabled) {
+        if (this.#puzzleState.hasOutcome() || this.#puzzlesController.hasRecordedOutcome() || !this.#skipConfirmationEnabled) {
             this.#puzzlesController.skip();
         } else {
             this.#showRatingLossConfirmationModal(
@@ -401,7 +415,7 @@ class PuzzlesPage extends BasePage {
         if (this.#puzzleState == null) {
             return;
         }
-        if (this.#puzzleState.hasOutcome() || !this.#revealConfirmationEnabled) {
+        if (this.#puzzleState.hasOutcome() || this.#puzzlesController.hasRecordedOutcome() || !this.#revealConfirmationEnabled) {
             this.#revealSolution();
         } else {
             this.#showRatingLossConfirmationModal(
