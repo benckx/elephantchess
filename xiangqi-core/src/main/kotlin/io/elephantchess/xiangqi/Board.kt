@@ -269,8 +269,8 @@ class Board(
                 SOLDIER -> {
                     val result = mutableListOf<Position>()
                     result += when (color) {
-                       WHITE, RED -> piecePosition.getTop()
-                       BLACK -> piecePosition.getBottom()
+                        WHITE, RED -> piecePosition.getTop()
+                        BLACK -> piecePosition.getBottom()
                     }
                     if (hasCrossedTheRiver()) {
                         result += listOf(piecePosition.getLeft(), piecePosition.getRight())

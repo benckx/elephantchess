@@ -7,6 +7,7 @@ enum class Color {
 
     WHITE,
     BLACK,
+
     @Deprecated("Use WHITE for engine-side play; map to Red/Blue only in the UI.")
     RED,
     ;
