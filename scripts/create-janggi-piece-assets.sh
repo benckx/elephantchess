@@ -156,10 +156,10 @@ expected = {
 piece_fill = {"red": "#c0392b", "blue": "#1a4a86"}
 ring_fill = {"red": "#b03328", "blue": "#153e71"}
 piece_scale = {
-    "general": 0.085,
-    "advisor": 0.101,
-    "cannon": 0.096,
-    "default": 0.092,
+    "general": 1.02,
+    "advisor": 1.42,
+    "cannon": 1.30,
+    "default": 1.18,
 }
 y_shift = 2.4
 
@@ -238,7 +238,7 @@ create_style() {
     local svg
     for svg in "${svg_dir}"/*.svg; do
         local png="${style_dir}/$(basename "${svg}" .svg).png"
-        rsvg-convert --width "${SIZE}" --height "${SIZE}" "${svg}" -o "${png}"
+        rsvg-convert --background-color "transparent" --width "${SIZE}" --height "${SIZE}" "${svg}" -o "${png}"
         converted=$((converted + 1))
     done
 
