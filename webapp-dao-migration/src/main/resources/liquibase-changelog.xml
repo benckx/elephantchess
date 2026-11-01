@@ -2978,4 +2978,30 @@
             <column name="invitee_user_id"/>
         </createIndex>
     </changeSet>
+    <changeSet id="0122" author="benckx">
+        <comment>
+            Xiangqi color normalization:
+            migrate persisted color labels from RED/BLACK to WHITE/BLACK where Xiangqi Color is stored.
+        </comment>
+        <update tableName="game">
+            <column name="inviter_color" value="WHITE"/>
+            <where>inviter_color = 'RED'</where>
+        </update>
+        <update tableName="bot_game">
+            <column name="user_color" value="WHITE"/>
+            <where>user_color = 'RED'</where>
+        </update>
+        <update tableName="puzzle">
+            <column name="player_color" value="WHITE"/>
+            <where>player_color = 'RED'</where>
+        </update>
+        <update tableName="reference_game_search_query">
+            <column name="player_color" value="WHITE"/>
+            <where>player_color = 'RED'</where>
+        </update>
+        <update tableName="opening_pre_calculation_cache_reference_player">
+            <column name="color" value="WHITE"/>
+            <where>color = 'RED'</where>
+        </update>
+    </changeSet>
 </databaseChangeLog>
