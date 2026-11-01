@@ -45,33 +45,43 @@ declare -A BLUE_CHARS=(
 )
 
 declare -A STYLE_FONT=(
-    [janggi_cursive]="AR PL UKai CN, STKaiti, KaiTi, serif"
+    [janggi_cursive]="STKaiti, KaiTi, Kaiti SC, AR PL UKai CN, serif"
     [janggi_modern]="Noto Sans CJK KR, Noto Sans CJK SC, sans-serif"
 )
 
 declare -A STYLE_WEIGHT=(
     [janggi_cursive]="700"
-    [janggi_modern]="900"
+    [janggi_modern]="800"
 )
 
 declare -A STYLE_TEXT_SIZE=(
-    [janggi_cursive]="58"
-    [janggi_modern]="62"
+    [janggi_cursive]="50"
+    [janggi_modern]="54"
 )
 
 declare -A STYLE_TEXT_Y=(
-    [janggi_cursive]="71"
-    [janggi_modern]="73"
+    [janggi_cursive]="68"
+    [janggi_modern]="69"
+)
+
+declare -A STYLE_TEXT_TRANSFORM=(
+    [janggi_cursive]="translate(50 50) skewX(-12) translate(-50 -50)"
+    [janggi_modern]="none"
+)
+
+declare -A STYLE_TEXT_STROKE_WIDTH=(
+    [janggi_cursive]="0.9"
+    [janggi_modern]="0"
 )
 
 declare -A COLOR_TEXT=(
     [red]="#c0392b"
-    [blue]="#1f5fbf"
+    [blue]="#1a4a86"
 )
 
 declare -A COLOR_RING=(
     [red]="#b03328"
-    [blue]="#1a4ea0"
+    [blue]="#153e71"
 )
 
 write_piece_svg() {
@@ -87,12 +97,13 @@ write_piece_svg() {
     local font_weight="${STYLE_WEIGHT[${style}]}"
     local text_size="${STYLE_TEXT_SIZE[${style}]}"
     local text_y="${STYLE_TEXT_Y[${style}]}"
+    local text_transform="${STYLE_TEXT_TRANSFORM[${style}]}"
+    local text_stroke_width="${STYLE_TEXT_STROKE_WIDTH[${style}]}"
 
     cat > "${svg_path}" <<EOF
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256">
-  <polygon points="50,4 89,27 89,73 50,96 11,73 11,27" fill="#fffaf0" stroke="${ring_color}" stroke-width="3.5"/>
-  <polygon points="50,12 82,31 82,69 50,88 18,69 18,31" fill="none" stroke="${ring_color}" stroke-width="1.8"/>
-  <text x="50" y="${text_y}" font-family="${font_family}" font-weight="${font_weight}" font-size="${text_size}" fill="${text_color}" text-anchor="middle">${glyph}</text>
+  <polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="#fffaf0" stroke="${ring_color}" stroke-width="2"/>
+  <text x="50" y="${text_y}" font-family="${font_family}" font-weight="${font_weight}" font-size="${text_size}" fill="${text_color}" stroke="${text_color}" stroke-width="${text_stroke_width}" text-anchor="middle" transform="${text_transform}">${glyph}</text>
 </svg>
 EOF
 }
