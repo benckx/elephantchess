@@ -150,7 +150,8 @@ expected = {
 
 piece_fill = {"red": "#c0392b", "blue": "#1a4a86"}
 ring_fill = {"red": "#b03328", "blue": "#153e71"}
-scale = 1.22
+scale = 1.12
+y_shift = 3.0
 
 def nearest(color: str, ex: float, ey: float):
     options = [c for c in candidates if c["color"] == color]
@@ -164,7 +165,7 @@ svg_template = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" 
   </defs>
   <polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="#fffaf0" stroke="{ring_color}" stroke-width="2"/>
   <g clip-path="url(#piece-clip)">
-    <g transform="translate(50 50) scale({scale}) translate(-{cx:.3f} -{cy:.3f})">
+    <g transform="translate(50 50) translate(0 {y_shift:.3f}) scale({scale}) translate(-{cx:.3f} -{cy:.3f})">
       <path d="{path_data}" fill="{piece_color}"/>
     </g>
   </g>
@@ -179,6 +180,7 @@ for (color, piece), (ex, ey) in expected.items():
             ring_color=ring_fill[color],
             piece_color=piece_fill[color],
             scale=scale,
+            y_shift=y_shift,
             cx=item["cx"],
             cy=item["cy"],
             path_data=item["d"],
