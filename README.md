@@ -125,7 +125,8 @@ Docker version 29.4.2, build 055a478
 _Note: for the sake of simplicity, the engine binaries have been added to this repo, so you don't have anything else to
 do to be able to run the webapp locally with the engines features. Nevertheless, this section covers engine set-up._
 
-_Note: Pikafish 2026-09-06 provides universal Linux x86-64 and macOS binaries. Fairy Stockfish remains disabled on macOS._
+_Note: Pikafish 2026-09-06 provides universal Linux x86-64 and macOS binaries. Fairy Stockfish remains disabled on
+macOS._
 
 The webapp assumes engine binaries can be found locally. So you need to create folder `engines` at the root of this
 repository, download the binaries from their repositories and copying them in this format:
@@ -779,13 +780,8 @@ The same command runs in the CI build.
 
 ### Page tests (E2E)
 
-End-to-end browser tests live under `webapp/src/test/e2e` and use
-[Playwright](https://playwright.dev). They drive the real front-end in a headless
-Chromium, exercising the full online PvP workflow: two guests, live button
-updates when the opponent joins, a scripted game played out to checkmate, and the
-game-over modal with the Elo update. They also cover the PvB workflow: a guest
-creates a game against each engine (Pikafish and Fairy Stockfish), plays 2 moves,
-and finds the game in "my bot games".
+End-to-end browser tests live under `webapp/src/test/e2e` and use [Playwright](https://playwright.dev). They drive the
+real front-end in a headless Chromium, to test the basic flows of the web app.
 
 Requirements:
 
