@@ -246,7 +246,10 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             conditions += if (playerColor != null) {
                 // only one color
                 when (playerColor) {
-                    Color.RED -> REFERENCE_GAME.RED_PLAYER.`in`(playerIds)
+                    Color.WHITE,
+                    Color.RED,
+                    -> REFERENCE_GAME.RED_PLAYER.`in`(playerIds)
+
                     Color.BLACK -> REFERENCE_GAME.BLACK_PLAYER.`in`(playerIds)
                 }
             } else {

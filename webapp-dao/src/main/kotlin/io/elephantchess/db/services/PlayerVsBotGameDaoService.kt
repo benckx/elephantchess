@@ -448,8 +448,12 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                     .set(BOT_GAME.LAST_UPDATED, eventTime)
 
             update = when (winnerColor) {
-                Color.RED -> update.set(BOT_GAME.OUTCOME, Outcome.RED_WINS)
+                Color.WHITE,
+                Color.RED,
+                -> update.set(BOT_GAME.OUTCOME, Outcome.RED_WINS)
+
                 Color.BLACK -> update.set(BOT_GAME.OUTCOME, Outcome.BLACK_WINS)
+
                 null -> update
             }
 
