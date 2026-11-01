@@ -150,25 +150,18 @@ expected = {
 
 piece_fill = {"red": "#c0392b", "blue": "#1a4a86"}
 ring_fill = {"red": "#b03328", "blue": "#153e71"}
-base_scale = 1.12
-piece_scale = {"advisor": 1.24, "cannon": 1.18}
-y_shift = 3.0
+base_scale = 1.18
+piece_scale = {"general": 1.00, "advisor": 1.30, "cannon": 1.24}
+y_shift = 2.4
 
 def nearest(color: str, ex: float, ey: float):
     options = [c for c in candidates if c["color"] == color]
     return min(options, key=lambda c: (c["cx"] - ex) ** 2 + (c["cy"] - ey) ** 2)
 
 svg_template = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256">
-  <defs>
-    <clipPath id="piece-clip">
-      <polygon points="50,10 84,30 84,70 50,90 16,70 16,30"/>
-    </clipPath>
-  </defs>
   <polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="#fffaf0" stroke="{ring_color}" stroke-width="2"/>
-  <g clip-path="url(#piece-clip)">
-    <g transform="translate(50 50) translate(0 {y_shift:.3f}) scale({scale}) translate(-{cx:.3f} -{cy:.3f})">
-      <path d="{path_data}" fill="{piece_color}"/>
-    </g>
+  <g transform="translate(50 50) translate(0 {y_shift:.3f}) scale({scale}) translate(-{cx:.3f} -{cy:.3f})">
+    <path d="{path_data}" fill="{piece_color}"/>
   </g>
 </svg>
 """
@@ -203,9 +196,23 @@ write_piece_svg() {
     local ring_color="${COLOR_RING[${color}]}"
     local font_family="${STYLE_FONT[${style}]}"
     local font_weight="${STYLE_WEIGHT[${style}]}"
-    local text_size="${STYLE_TEXT_SIZE[${style}]}"
-    local text_y="${STYLE_TEXT_Y[${style}]}"
+    local text_size
+    local text_y
     local font_style="${STYLE_FONT_STYLE[${style}]}"
+
+    if [ "${style}" = "janggi_modern" ]; then
+        case "${piece}" in
+            general) text_size="50"; text_y="67" ;;
+            advisor) text_size="58"; text_y="71" ;;
+            cannon) text_size="58"; text_y="71" ;;
+            soldier) text_size="56"; text_y="70" ;;
+            elephant) text_size="53"; text_y="69" ;;
+            *) text_size="54"; text_y="69" ;;
+        esac
+    else
+        text_size="${STYLE_TEXT_SIZE[${style}]}"
+        text_y="${STYLE_TEXT_Y[${style}]}"
+    fi
 
     cat > "${svg_path}" <<EOF
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256">
