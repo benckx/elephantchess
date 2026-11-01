@@ -150,7 +150,8 @@ expected = {
 
 piece_fill = {"red": "#c0392b", "blue": "#1a4a86"}
 ring_fill = {"red": "#b03328", "blue": "#153e71"}
-scale = 1.12
+base_scale = 1.12
+piece_scale = {"advisor": 1.24, "cannon": 1.18}
 y_shift = 3.0
 
 def nearest(color: str, ex: float, ey: float):
@@ -174,6 +175,7 @@ svg_template = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" 
 
 for (color, piece), (ex, ey) in expected.items():
     item = nearest(color, ex, ey)
+    scale = piece_scale.get(piece, base_scale)
     output = svg_dir / f"{color}_{piece}.svg"
     output.write_text(
         svg_template.format(
