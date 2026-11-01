@@ -670,11 +670,14 @@ repositories {
 Then you can use the dependencies:
 
 ```Groovy
-implementation "com.github.benckx.elephantchess:xiangqi-core:2.1.1"
-implementation "com.github.benckx.elephantchess:engine-api:2.1.1"
-implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.1.1"
-implementation "com.github.benckx.elephantchess:csv-dump-parser:2.1.1"
+implementation "com.github.benckx.elephantchess:xiangqi-core:2.1.2"
+implementation "com.github.benckx.elephantchess:engine-api:2.1.2"
+implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.1.2"
+implementation "com.github.benckx.elephantchess:csv-dump-parser:2.1.2"
 ```
+
+Version 2.1.2 requires Java 25. The `seven-kingdoms-core-test-utils` artifact now uses Jackson 3
+(`tools.jackson` packages).
 
 We added a sample project that uses the libraries
 https://github.com/benckx/elephantchess-library-usage

@@ -74,9 +74,11 @@ subprojects {
 
         // Align all transitive Netty modules via the Netty BOM, so the Netty version used by
         // ktor-server-netty is pinned consistently across modules.
-        val nettyBom = enforcedPlatform(rootLibs.netty.bom)
-        implementation(nettyBom)
-        testImplementation(nettyBom)
+        if (project.name !in publishableModules) {
+            val nettyBom = enforcedPlatform(rootLibs.netty.bom)
+            implementation(nettyBom)
+            testImplementation(nettyBom)
+        }
 
         // Logging and coroutines pollute the published library classpath, so only
         // non-publishable modules get them by default. Publishable libraries declare
