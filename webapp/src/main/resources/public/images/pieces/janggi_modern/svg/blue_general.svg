@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256">
+  <polygon points="50,4 89,27 89,73 50,96 11,73 11,27" fill="#fffaf0" stroke="#1a4ea0" stroke-width="3.5"/>
+  <polygon points="50,12 82,31 82,69 50,88 18,69 18,31" fill="none" stroke="#1a4ea0" stroke-width="1.8"/>
+  <text x="50" y="73" font-family="Noto Sans CJK KR, Noto Sans CJK SC, sans-serif" font-weight="900" font-size="62" fill="#1f5fbf" text-anchor="middle">楚</text>
+</svg>

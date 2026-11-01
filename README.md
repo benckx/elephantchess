@@ -843,3 +843,21 @@ class fields out of the box.
 The task looks for `node` and `npm` on the `PATH` as well as common install locations (nvm, fnm, asdf,
 Homebrew). If they live somewhere else (or aren't picked up when running from an IDE), point the task at
 them explicitly with the `NODE_BIN` and `NPM_BIN` environment variables.
+
+## Piece assets
+
+Piece styles can be authored as SVG then rasterized to PNG so board rendering
+does not depend on client font availability.
+
+Existing SVG styles can be re-converted with:
+
+```bash
+./scripts/convert-piece-svgs.sh
+```
+
+Janggi hex pieces (flat, red/blue, cursive + modern styles) can be generated
+with:
+
+```bash
+./scripts/create-janggi-piece-assets.sh
+```
