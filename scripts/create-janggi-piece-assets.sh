@@ -129,7 +129,12 @@ for group in root.findall(".//svg:g", ns):
     path = paths[0]
     style = path.attrib.get("style", "")
     color = "red" if "#DD1F26" in style else "blue"
-    candidates.append({"color": color, "cx": cx, "cy": cy, "d": path.attrib["d"]})
+    candidates.append({
+        "color": color,
+        "cx": cx,
+        "cy": cy,
+        "d": path.attrib["d"],
+    })
 
 expected = {
     ("red", "chariot"): (37, 37),
@@ -150,8 +155,12 @@ expected = {
 
 piece_fill = {"red": "#c0392b", "blue": "#1a4a86"}
 ring_fill = {"red": "#b03328", "blue": "#153e71"}
-base_scale = 1.18
-piece_scale = {"general": 1.00, "advisor": 1.30, "cannon": 1.24}
+piece_scale = {
+    "general": 0.085,
+    "advisor": 0.101,
+    "cannon": 0.096,
+    "default": 0.092,
+}
 y_shift = 2.4
 
 def nearest(color: str, ex: float, ey: float):
@@ -168,7 +177,7 @@ svg_template = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" 
 
 for (color, piece), (ex, ey) in expected.items():
     item = nearest(color, ex, ey)
-    scale = piece_scale.get(piece, base_scale)
+    scale = piece_scale.get(piece, piece_scale["default"])
     output = svg_dir / f"{color}_{piece}.svg"
     output.write_text(
         svg_template.format(
@@ -196,23 +205,9 @@ write_piece_svg() {
     local ring_color="${COLOR_RING[${color}]}"
     local font_family="${STYLE_FONT[${style}]}"
     local font_weight="${STYLE_WEIGHT[${style}]}"
-    local text_size
-    local text_y
+    local text_size="${STYLE_TEXT_SIZE[${style}]}"
+    local text_y="${STYLE_TEXT_Y[${style}]}"
     local font_style="${STYLE_FONT_STYLE[${style}]}"
-
-    if [ "${style}" = "janggi_modern" ]; then
-        case "${piece}" in
-            general) text_size="50"; text_y="67" ;;
-            advisor) text_size="58"; text_y="71" ;;
-            cannon) text_size="58"; text_y="71" ;;
-            soldier) text_size="56"; text_y="70" ;;
-            elephant) text_size="53"; text_y="69" ;;
-            *) text_size="54"; text_y="69" ;;
-        esac
-    else
-        text_size="${STYLE_TEXT_SIZE[${style}]}"
-        text_y="${STYLE_TEXT_Y[${style}]}"
-    fi
 
     cat > "${svg_path}" <<EOF
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256">
