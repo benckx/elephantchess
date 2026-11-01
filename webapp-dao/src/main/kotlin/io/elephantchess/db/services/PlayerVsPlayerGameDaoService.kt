@@ -98,7 +98,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
 
         query = when (inviterColor) {
             WHITE -> query.and(GAME.INVITER_COLOR.eq(BLACK))
-            BLACK -> query.and(GAME.INVITER_COLOR.eq(RED))
+            BLACK -> query.and(GAME.INVITER_COLOR.eq(WHITE))
             else -> query
         }
 
@@ -486,19 +486,19 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val isUserPlaying = isInviter.or(isInvitee)
 
         val inviterWinCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(RED_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
 
         val inviteeWinCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(BLACK_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
 
         val inviterLossCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(BLACK_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
 
         val inviteeLossCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(RED_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
 
         val winCondition = isInviter.and(inviterWinCondition).or(isInvitee.and(inviteeWinCondition))
