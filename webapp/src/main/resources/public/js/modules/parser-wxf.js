@@ -42,7 +42,7 @@ class WxfParser extends MoveParser {
      */
     #resultCandidates = [];
 
-    #color = 'RED';
+    #color = Color.RED;
 
     constructor(input) {
         super(input);
@@ -163,7 +163,7 @@ class WxfParser extends MoveParser {
      * @return {HalfMove[]}
      */
     #filterCandidates(direction, from, legalMoves) {
-        if (this.#color === 'BLACK') {
+        if (this.#color === Color.BLACK) {
             direction = -direction;
         }
 
@@ -211,7 +211,7 @@ class WxfParser extends MoveParser {
         }
 
         let piece = extractPieceChar(this.#token);
-        if (this.#color === 'RED') {
+        if (this.#color === Color.RED) {
             return piece.toUpperCase();
         } else {
             return piece;
