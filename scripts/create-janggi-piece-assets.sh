@@ -157,8 +157,9 @@ piece_fill = {"red": "#c0392b", "blue": "#1a4a86"}
 ring_fill = {"red": "#b03328", "blue": "#153e71"}
 piece_scale = {
     "general": 1.02,
-    "advisor": 1.42,
+    "advisor": 1.52,
     "cannon": 1.30,
+    "soldier": 1.34,
     "default": 1.18,
 }
 y_shift = 2.4
