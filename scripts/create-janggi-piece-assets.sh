@@ -45,33 +45,28 @@ declare -A BLUE_CHARS=(
 )
 
 declare -A STYLE_FONT=(
-    [janggi_cursive]="STKaiti, KaiTi, Kaiti SC, AR PL UKai CN, serif"
+    [janggi_cursive]="KaiTi, STKaiti, Kaiti SC, AR PL UKai CN, Noto Serif CJK KR, serif"
     [janggi_modern]="Noto Sans CJK KR, Noto Sans CJK SC, sans-serif"
 )
 
 declare -A STYLE_WEIGHT=(
-    [janggi_cursive]="700"
+    [janggi_cursive]="600"
     [janggi_modern]="800"
 )
 
 declare -A STYLE_TEXT_SIZE=(
-    [janggi_cursive]="50"
+    [janggi_cursive]="52"
     [janggi_modern]="54"
 )
 
 declare -A STYLE_TEXT_Y=(
-    [janggi_cursive]="68"
+    [janggi_cursive]="69"
     [janggi_modern]="69"
 )
 
-declare -A STYLE_TEXT_TRANSFORM=(
-    [janggi_cursive]="translate(50 50) skewX(-12) translate(-50 -50)"
-    [janggi_modern]="none"
-)
-
-declare -A STYLE_TEXT_STROKE_WIDTH=(
-    [janggi_cursive]="0.9"
-    [janggi_modern]="0"
+declare -A STYLE_FONT_STYLE=(
+    [janggi_cursive]="italic"
+    [janggi_modern]="normal"
 )
 
 declare -A COLOR_TEXT=(
@@ -97,13 +92,12 @@ write_piece_svg() {
     local font_weight="${STYLE_WEIGHT[${style}]}"
     local text_size="${STYLE_TEXT_SIZE[${style}]}"
     local text_y="${STYLE_TEXT_Y[${style}]}"
-    local text_transform="${STYLE_TEXT_TRANSFORM[${style}]}"
-    local text_stroke_width="${STYLE_TEXT_STROKE_WIDTH[${style}]}"
+    local font_style="${STYLE_FONT_STYLE[${style}]}"
 
     cat > "${svg_path}" <<EOF
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256">
   <polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="#fffaf0" stroke="${ring_color}" stroke-width="2"/>
-  <text x="50" y="${text_y}" font-family="${font_family}" font-weight="${font_weight}" font-size="${text_size}" fill="${text_color}" stroke="${text_color}" stroke-width="${text_stroke_width}" text-anchor="middle" transform="${text_transform}">${glyph}</text>
+  <text x="50" y="${text_y}" font-family="${font_family}" font-style="${font_style}" font-weight="${font_weight}" font-size="${text_size}" fill="${text_color}" text-anchor="middle">${glyph}</text>
 </svg>
 EOF
 }
