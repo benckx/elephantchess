@@ -59,6 +59,7 @@ private val CSV_HEADER = arrayOf(
     "red_user_type",
     "black_account_age",
     "black_user_type",
+    "has_sock_puppet_report",
 )
 
 object ExtractPvpMovesToCsv : KoinScriptInit() {
@@ -87,6 +88,13 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 .and(GAME_STATUS_EVENT.EVENT_TYPE.eq(JOINED)),
         )
         val matchingTimeSeconds = diffInSeconds(joinedTime, GAME.CREATED)
+        val hasSockPuppetReport = DSL.field(
+            DSL.exists(
+                DSL.selectOne()
+                    .from(GAME_SOCK_PUPPET_DETECTION)
+                    .where(GAME_SOCK_PUPPET_DETECTION.GAME_ID.eq(GAME.ID)),
+            ),
+        )
 
         val rows = dslContext
             .select(
@@ -118,6 +126,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 inviteeUser.CREATION,
                 inviteeUser.USER_TYPE,
                 matchingTimeSeconds,
+                hasSockPuppetReport,
             )
             .from(GAME)
             .join(GAME_MOVE).on(GAME_MOVE.GAME_ID.eq(GAME.ID))
@@ -299,6 +308,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 redUserType?.name ?: "",
                                 blackAccountAge,
                                 blackUserType?.name ?: "",
+                                row.get(hasSockPuppetReport).toString(),
                             ),
                         )
                     }
