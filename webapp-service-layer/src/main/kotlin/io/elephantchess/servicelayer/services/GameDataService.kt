@@ -32,7 +32,7 @@ import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
@@ -648,7 +648,7 @@ class GameDataService(
         val blackUserType: UserType?
         val isUserOnline = onlineUserIds.contains(record.userId)
 
-        if (record.userColor == RED) {
+        if (record.userColor == WHITE) {
             redUserId = record.userId
             redPlayerName = fetchUserName(record.userId)
             redPlayerRating = null

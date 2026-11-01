@@ -45,7 +45,7 @@ class JacksonEnumConfigTest {
                 setBody(
                     """
                     {
-                      "color": "RED",
+                      "color": "WHITE",
                       "depth": 6,
                       "engine": "FAIRYSTOCKFISH",
                       "startFen": null,
@@ -59,7 +59,7 @@ class JacksonEnumConfigTest {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(
                 CreateBotGameRequest(
-                    color = Color.RED,
+                    color = Color.WHITE,
                     depth = 6,
                     engine = Engine.FAIRYSTOCKFISH,
                     startFen = null,
@@ -71,6 +71,6 @@ class JacksonEnumConfigTest {
             // enums must be written using their names (not toString), as expected by the frontend
             val body = response.bodyAsText()
             assertContains(body, "\"engine\":\"FAIRYSTOCKFISH\"")
-            assertContains(body, "\"color\":\"RED\"")
+            assertContains(body, "\"color\":\"WHITE\"")
         }
 }

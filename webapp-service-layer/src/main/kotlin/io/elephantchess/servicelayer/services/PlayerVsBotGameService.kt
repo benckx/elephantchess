@@ -46,7 +46,6 @@ import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Board.Companion.validateFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
@@ -437,7 +436,7 @@ class PlayerVsBotGameService(
             )
 
         suspend fun findAlternativeMove(bestMove: String): String? {
-            val cpMultiplier = if (botColor == RED) 1 else -1
+            val cpMultiplier = if (botColor == WHITE) 1 else -1
             val movesEvaluation = Board(fen)
                 .listLegalMoves(botColor)
                 .filterNot { move -> move.toUci() == bestMove }
@@ -475,10 +474,7 @@ class PlayerVsBotGameService(
                         .takeLast(POSITIONS_TO_CONSIDER_TO_AVOID_REPETITIONS)
                         .map { resetFullMoveCount(it) }
                     val botFens = when (botColor) {
-                        WHITE,
-                        RED,
-                        -> historyFens.filter { it.contains(" b ") }
-
+                        WHITE -> historyFens.filter { it.contains(" b ") }
                         BLACK -> historyFens.filter { it.contains(" w ") }
                     }
                     val hasRepetition = botFens.contains(bestMoveFen)

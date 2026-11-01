@@ -27,7 +27,7 @@ import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
@@ -97,7 +97,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
 
         query = when (inviterColor) {
-            RED -> query.and(GAME.INVITER_COLOR.eq(BLACK))
+            WHITE -> query.and(GAME.INVITER_COLOR.eq(BLACK))
             BLACK -> query.and(GAME.INVITER_COLOR.eq(RED))
             else -> query
         }

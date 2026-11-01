@@ -25,7 +25,7 @@ data class PlayMoveBotGameCallbackResult(
     }
 
     private fun updateWinningColor(color: Color): PlayMoveBotGameCallbackResult =
-        if (color == Color.RED) {
+        if (color == Color.WHITE) {
             copy(outcome = RED_WINS)
         } else {
             copy(outcome = BLACK_WINS)

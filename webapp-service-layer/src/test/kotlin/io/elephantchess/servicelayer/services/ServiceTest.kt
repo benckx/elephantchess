@@ -10,7 +10,7 @@ import io.elephantchess.servicelayer.dto.user.SignUpRequest
 import io.elephantchess.servicelayer.koin.serviceLayerModule
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.xiangqi.Color
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.testutils.GameMovesDtoCache
 import io.elephantchess.xiangqi.testutils.ManchuGameMovesDtoCache
@@ -86,7 +86,7 @@ abstract class ServiceTest :
     protected suspend fun createAndJoinGame(
         inviter: UserId,
         invitee: UserId,
-        inviterColor: Color = RED,
+        inviterColor: Color = WHITE,
         isRated: Boolean = true,
         timeControlBase: Int = 30.minutes.inWholeSeconds.toInt(),
         timeControlIncrement: Int? = null,

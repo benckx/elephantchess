@@ -2,7 +2,6 @@ package io.elephantchess.xiangqi
 
 import io.elephantchess.xiangqi.AbstractPieceType.*
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.Position.Companion.getAllPositions
@@ -33,13 +32,13 @@ class Board(
     }
 
     fun isCheckmated(): Boolean =
-        isCheckmated(RED) || isCheckmated(BLACK)
+        isCheckmated(WHITE) || isCheckmated(BLACK)
 
     fun isCheckmated(color: Color): Boolean =
         color.isWhiteSide() == colorToPlay.isWhiteSide() && isInCheck(color) && allMovesAreIllegal(color)
 
     fun isStalemated(): Boolean =
-        isStalemated(RED) || isStalemated(BLACK)
+        isStalemated(WHITE) || isStalemated(BLACK)
 
     fun isStalemated(color: Color): Boolean =
         color.isWhiteSide() == colorToPlay.isWhiteSide() && !isInCheck(color) && allMovesAreIllegal(color)
@@ -56,7 +55,7 @@ class Board(
     }
 
     private fun areGeneralsFacing(): Boolean {
-        val red = findGeneral(RED)
+        val red = findGeneral(WHITE)
         val black = findGeneral(BLACK)
         fun noPieceInBetweenGenerals() =
             (red!!.position.y + 1 until black!!.position.y)
@@ -166,19 +165,19 @@ class Board(
 
         fun filterInItsPalace(positions: List<Position>): List<Position> =
             when (color) {
-                WHITE, RED -> positions.filter { it.isInRedPalace() }
+                WHITE -> positions.filter { it.isInRedPalace() }
                 BLACK -> positions.filter { it.isInBlackPalace() }
             }
 
         fun hasCrossedTheRiver(): Boolean =
             when (color) {
-                WHITE, RED -> piecePosition.y >= 5
+                WHITE -> piecePosition.y >= 5
                 BLACK -> piecePosition.y <= 4
             }
 
         fun isAcrossTheRiver(position: Position): Boolean =
             when (color) {
-                WHITE, RED -> position.y >= 5
+                WHITE -> position.y >= 5
                 BLACK -> position.y <= 4
             }
 
@@ -269,7 +268,7 @@ class Board(
                 SOLDIER -> {
                     val result = mutableListOf<Position>()
                     result += when (color) {
-                        WHITE, RED -> piecePosition.getTop()
+                        WHITE -> piecePosition.getTop()
                         BLACK -> piecePosition.getBottom()
                     }
                     if (hasCrossedTheRiver()) {

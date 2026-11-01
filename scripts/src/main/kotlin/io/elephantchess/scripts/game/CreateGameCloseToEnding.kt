@@ -66,7 +66,7 @@ object CreateGameCloseToEnding : KoinScriptInit() {
 
                 val request =
                     CreateGameRequest(
-                        inviterColor = Color.RED,
+                        inviterColor = Color.WHITE,
                         isRated = true,
                         timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                         timeControlIncrement = null,

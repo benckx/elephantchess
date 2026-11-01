@@ -27,6 +27,5 @@ class BoardTest {
         assertEquals(Color.WHITE, Color.BLACK.reverse())
         assertEquals(Color.WHITE, Color.fromChar('R'))
         assertEquals(Color.BLACK, Color.fromChar('b'))
-        assertEquals(Color.BLACK, Color.RED.reverse())
     }
 }

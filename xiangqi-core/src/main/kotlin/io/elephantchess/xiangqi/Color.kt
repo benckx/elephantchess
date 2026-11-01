@@ -7,23 +7,20 @@ enum class Color {
 
     WHITE,
     BLACK,
-
-    @Deprecated("Use WHITE for engine-side play; map to Red/Blue only in the UI.")
-    RED,
     ;
 
     fun isWhiteSide(): Boolean =
-        this == WHITE || this == RED
+        this == WHITE
 
     fun toUci(): Char =
         when (this) {
-            WHITE, RED -> 'w'
+            WHITE -> 'w'
             BLACK -> 'b'
         }
 
     fun reverse(): Color =
         when (this) {
-            WHITE, RED -> BLACK
+            WHITE -> BLACK
             BLACK -> WHITE
         }
 
