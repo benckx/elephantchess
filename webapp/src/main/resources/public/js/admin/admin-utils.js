@@ -78,10 +78,11 @@ function buildAdminUsernameSpan(userId, username, userType, maxLength = null, re
  * Renders exception entries into a table row
  * @param entry - The exception entry object with properties: exceptionTime, httpCode, exceptionClass, exceptionMessage
  * @param row - The table row to populate
- * @param options - Optional configuration: { showFullyQualifiedClassName: boolean }
+ * @param options - Optional configuration: { showFullyQualifiedClassName: boolean, maxMessageLength: number }
  */
 function renderExceptionRow(entry, row, options = {}) {
     const showFullyQualifiedClassName = options.showFullyQualifiedClassName ?? true;
+    const maxMessageLength = options.maxMessageLength ?? 1_000;
 
     // exception time
     const timeCell = row.insertCell();
@@ -126,8 +127,8 @@ function renderExceptionRow(entry, row, options = {}) {
         details.className = 'exception-trace';
 
         const summary = document.createElement('summary');
-        summary.innerText = entry.exceptionMessage;
-        summary.title = entry.exceptionMessage;
+        summary.innerText = cropText(entry.exceptionMessage, maxMessageLength);
+        summary.title = cropText(entry.exceptionMessage, maxMessageLength);
         details.appendChild(summary);
 
         const trace = document.createElement('pre');

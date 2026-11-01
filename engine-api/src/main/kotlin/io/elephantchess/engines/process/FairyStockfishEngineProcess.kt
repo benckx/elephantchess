@@ -9,7 +9,9 @@ class FairyStockfishEngineProcess(
     locator: EngineProcessLocator = LocalProcessLocator,
     version: String?,
     private val numberOfThreads: Int,
-) : EngineProcess(locator, FairyStockfishEngineId, version) {
+    osName: String? = null,
+    osArch: String? = null,
+) : EngineProcess(locator, FairyStockfishEngineId, version, osName, osArch) {
 
     override val logger = KotlinLogging.logger {}
 

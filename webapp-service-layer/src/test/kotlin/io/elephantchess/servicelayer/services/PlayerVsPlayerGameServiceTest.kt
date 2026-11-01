@@ -901,7 +901,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 }
 
                 logger.info { "expected exception $e2" }
-                assertEquals("Move 'not a valid move' can not be parsed", e2.message)
+                assertEquals("Move 'not a valid move' can not be parsed in game $gameId", e2.message)
 
                 // user attempts to play illegal move
                 val e3 = assertFailsWith<BadRequestException> {
@@ -915,7 +915,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 }
 
                 logger.info { "expected exception $e3" }
-                assertEquals("Move 'a1b3' is illegal", e3.message)
+                assertEquals("Move 'a1b3' is illegal in game $gameId", e3.message)
             }
 
         /**
@@ -945,7 +945,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 }
 
                 logger.info { "expected exception $e" }
-                assertEquals("Move 'g4e4' is illegal", e.message)
+                assertEquals("Move 'g4e4' is illegal in game $gameId", e.message)
             }
 
         /**

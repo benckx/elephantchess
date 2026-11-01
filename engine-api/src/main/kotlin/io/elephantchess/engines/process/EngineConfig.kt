@@ -6,4 +6,6 @@ data class EngineConfig(
     val poolSize: Int = 1,
     // threads per engine process
     val numberOfThreads: Int = 1,
+    val osName: String? = null,
+    val osArch: String? = null,
 )
