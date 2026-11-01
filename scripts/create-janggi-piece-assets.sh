@@ -103,6 +103,72 @@ if not source_svg.exists():
 
 ns = {"svg": "http://www.w3.org/2000/svg"}
 number_re = re.compile(r"-?\d+(?:\.\d+)?")
+token_re = re.compile(r"[MmCcLlHhVvZz]|-?\d*\.?\d+(?:[eE][-+]?\d+)?")
+command_re = re.compile(r"[A-Za-z]")
+
+def path_bbox(d: str):
+    """Tight bounding box of an SVG path using only M/L/C (abs+rel) and Z."""
+    tokens = token_re.findall(d)
+    i = 0
+    cx = cy = sx = sy = 0.0
+    minx = miny = float("inf")
+    maxx = maxy = float("-inf")
+    cmd = None
+
+    def include(x, y):
+        nonlocal minx, miny, maxx, maxy
+        minx = min(minx, x)
+        miny = min(miny, y)
+        maxx = max(maxx, x)
+        maxy = max(maxy, y)
+
+    def cubic(x0, y0, x1, y1, x2, y2, x3, y3):
+        for k in range(21):
+            t = k / 20.0
+            mt = 1.0 - t
+            x = mt**3 * x0 + 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t**3 * x3
+            y = mt**3 * y0 + 3 * mt * mt * t * y1 + 3 * mt * t * t * y2 + t**3 * y3
+            include(x, y)
+
+    while i < len(tokens):
+        if command_re.match(tokens[i]):
+            cmd = tokens[i]
+            i += 1
+            if cmd in ("z", "Z"):
+                cx, cy = sx, sy
+                cmd = None
+                continue
+        if cmd in ("M", "m"):
+            x, y = float(tokens[i]), float(tokens[i + 1])
+            i += 2
+            if cmd == "m":
+                x += cx
+                y += cy
+            cx, cy = sx, sy = x, y
+            include(cx, cy)
+            cmd = "l" if cmd == "m" else "L"
+        elif cmd in ("L", "l"):
+            x, y = float(tokens[i]), float(tokens[i + 1])
+            i += 2
+            if cmd == "l":
+                x += cx
+                y += cy
+            cx, cy = x, y
+            include(cx, cy)
+        elif cmd in ("C", "c"):
+            vals = [float(v) for v in tokens[i:i + 6]]
+            i += 6
+            x1, y1, x2, y2, x3, y3 = vals
+            if cmd == "c":
+                x1 += cx; y1 += cy
+                x2 += cx; y2 += cy
+                x3 += cx; y3 += cy
+            cubic(cx, cy, x1, y1, x2, y2, x3, y3)
+            cx, cy = x3, y3
+        else:
+            i += 1
+
+    return minx, miny, maxx, maxy
 
 def parse_center(points: str):
     vals = [float(v) for v in number_re.findall(points)]
@@ -155,14 +221,12 @@ expected = {
 
 piece_fill = {"red": "#c0392b", "blue": "#1a4a86"}
 ring_fill = {"red": "#b03328", "blue": "#153e71"}
-piece_scale = {
-    "general": 1.02,
-    "advisor": 1.52,
-    "cannon": 1.30,
-    "soldier": 1.34,
-    "default": 1.18,
-}
-y_shift = 2.4
+# Scale each glyph so its bounding box fills the octagon as much as possible
+# while keeping its corners inside the octagon's slanted edges. The corner cuts
+# lie on the line x+y=37.8 (and symmetric), so a bbox centered at (50, 50) stays
+# inside when halfWidth + halfHeight <= ~60. Fitting to this limit gives every
+# piece a uniform, near-maximal fill regardless of its native glyph size.
+fill_half_extent = 60.0
 
 def nearest(color: str, ex: float, ey: float):
     options = [c for c in candidates if c["color"] == color]
@@ -178,16 +242,19 @@ svg_template = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" 
 
 for (color, piece), (ex, ey) in expected.items():
     item = nearest(color, ex, ey)
-    scale = piece_scale.get(piece, piece_scale["default"])
+    minx, miny, maxx, maxy = path_bbox(item["d"])
+    glyph_w, glyph_h = maxx - minx, maxy - miny
+    glyph_cx, glyph_cy = (minx + maxx) / 2.0, (miny + maxy) / 2.0
+    scale = 2.0 * fill_half_extent / (glyph_w + glyph_h)
     output = svg_dir / f"{color}_{piece}.svg"
     output.write_text(
         svg_template.format(
             ring_color=ring_fill[color],
             piece_color=piece_fill[color],
             scale=scale,
-            y_shift=y_shift,
-            cx=item["cx"],
-            cy=item["cy"],
+            y_shift=0.0,
+            cx=glyph_cx,
+            cy=glyph_cy,
             path_data=item["d"],
         ),
         encoding="utf-8",
