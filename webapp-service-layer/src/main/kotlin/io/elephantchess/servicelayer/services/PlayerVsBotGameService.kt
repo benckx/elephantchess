@@ -47,6 +47,7 @@ import io.elephantchess.xiangqi.Board.Companion.validateFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
@@ -474,7 +475,10 @@ class PlayerVsBotGameService(
                         .takeLast(POSITIONS_TO_CONSIDER_TO_AVOID_REPETITIONS)
                         .map { resetFullMoveCount(it) }
                     val botFens = when (botColor) {
-                        RED -> historyFens.filter { it.contains(" b ") }
+                        WHITE,
+                        RED,
+                        -> historyFens.filter { it.contains(" b ") }
+
                         BLACK -> historyFens.filter { it.contains(" w ") }
                     }
                     val hasRepetition = botFens.contains(bestMoveFen)
