@@ -195,6 +195,7 @@ module.exports = {
     createGame,
     gameIdFromUrl,
     joinGame,
+    playMove,
     playScriptedGame,
     captureStep,
 };

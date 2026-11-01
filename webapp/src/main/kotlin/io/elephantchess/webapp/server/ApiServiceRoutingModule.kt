@@ -20,15 +20,12 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import tools.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS
-import tools.jackson.databind.cfg.EnumFeature.READ_ENUMS_USING_TO_STRING
 import kotlin.time.Duration.Companion.seconds
 
 fun Application.apiServiceModule() {
     install(ContentNegotiation) {
         jackson {
-            enable(ACCEPT_CASE_INSENSITIVE_ENUMS)
-            disable(READ_ENUMS_USING_TO_STRING)
+            configureEnums()
         }
     }
     install(WebSockets) {
