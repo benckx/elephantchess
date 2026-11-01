@@ -469,18 +469,23 @@ engines
 │   └── 14.0.1
 │       └── fairy-stockfish
 └── pikafish
-   ├── 2022-12-26
-   │   ├── pikafish-modern
-   │   └── pikafish.nnue
-   └── 2026-01-02
-       ├── pikafish-sse41-popcnt
-       └── pikafish.nnue
+    ├── 2023-03-05
+    │   ├── pikafish-modern
+    │   └── pikafish.nnue
+    ├── 2026-01-02
+    │   ├── pikafish-apple-silicon
+    │   ├── pikafish-sse41-popcnt
+    │   └── pikafish.nnue
+    └── 2026-09-06
+        ├── Pikafish-Linux-x86-64-universal
+        ├── Pikafish-MacOS-universal
+        └── pikafish.nnue
 
-6 directories, 8 files
+8 directories, 10 files
 ```
 
 In the above example, multiple binaries and versions are available, but you can use the `engine-api` library with just
-one version:
+one version. Picking the correct executables in the different Pikafish versions folder is managed in `PikafishEngineId`.
 
 ```
 engines
