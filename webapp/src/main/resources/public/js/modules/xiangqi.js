@@ -34,9 +34,12 @@ const MANCHU_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/M1BAKAB2
 // Piece color enum. Lives here (rather than in enums.js) so that xiangqi.js
 // can be used standalone (together with board-gui.js) without pulling in the
 // rest of the webapp's modules.
+// Under the hood we keep engine-side colors neutral (WHITE/BLACK); legacy RED
+// aliases map to WHITE for backwards compatibility.
 const Color = Object.freeze({
-    RED: 'RED',
-    BLACK: 'BLACK'
+    WHITE: 'WHITE',
+    BLACK: 'BLACK',
+    RED: 'WHITE'
 });
 
 /**

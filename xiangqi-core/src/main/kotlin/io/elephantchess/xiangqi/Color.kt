@@ -5,25 +5,30 @@ import java.util.*
 // TODO: this is used in DTO - is it best practice?
 enum class Color {
 
-    RED,
+    WHITE,
     BLACK,
+    @Deprecated("Use WHITE for engine-side play; map to Red/Blue only in the UI.")
+    RED,
     ;
+
+    fun isWhiteSide(): Boolean =
+        this == WHITE || this == RED
 
     fun toUci(): Char =
         when (this) {
-            RED -> 'w'
+            WHITE, RED -> 'w'
             BLACK -> 'b'
         }
 
     fun reverse(): Color =
         when (this) {
-            RED -> BLACK
-            BLACK -> RED
+            WHITE, RED -> BLACK
+            BLACK -> WHITE
         }
 
     companion object {
 
-        val UPPERCASE_COLOR = RED
+        val UPPERCASE_COLOR = WHITE
         val LOWERCASE_COLOR = BLACK
 
         fun fromChar(char: Char): Color =
@@ -37,9 +42,9 @@ enum class Color {
          * Color that has to play after the given half move position
          */
         fun fromPosition(position: Int): Color =
-            if (position % 2 == 0) BLACK else RED
+            if (position % 2 == 0) BLACK else WHITE
 
         fun random(): Color =
-            if (Random().nextBoolean()) BLACK else RED
+            if (Random().nextBoolean()) BLACK else WHITE
     }
 }
