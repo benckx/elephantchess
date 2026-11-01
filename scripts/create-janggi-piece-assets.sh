@@ -169,7 +169,7 @@ def nearest(color: str, ex: float, ey: float):
     return min(options, key=lambda c: (c["cx"] - ex) ** 2 + (c["cy"] - ey) ** 2)
 
 svg_template = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256">
-  <polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="#fffaf0" stroke="{ring_color}" stroke-width="2"/>
+  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="#fffaf0" stroke="{ring_color}" stroke-width="2"/>
   <g transform="translate(50 50) translate(0 {y_shift:.3f}) scale({scale}) translate(-{cx:.3f} -{cy:.3f})">
     <path d="{path_data}" fill="{piece_color}"/>
   </g>
@@ -212,7 +212,7 @@ write_piece_svg() {
 
     cat > "${svg_path}" <<EOF
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256">
-  <polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="#fffaf0" stroke="${ring_color}" stroke-width="2"/>
+  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="#fffaf0" stroke="${ring_color}" stroke-width="2"/>
   <text x="50" y="${text_y}" font-family="${font_family}" font-style="${font_style}" font-weight="${font_weight}" font-size="${text_size}" fill="${text_color}" text-anchor="middle">${glyph}</text>
 </svg>
 EOF
