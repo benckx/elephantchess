@@ -497,7 +497,7 @@ engines
 ```
 
 You can create your own `EngineProcessLocator`. For example, on [elephantchess](https://elephantchess.io), we use this
-Dockerized version:
+Dockerized version (while binFileName is resolved in the different `EngineId` implementations):
 
 ```kotlin
 object DockerizedProcessLocator : EngineProcessLocator {
