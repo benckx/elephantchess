@@ -50,7 +50,7 @@ class WesternizedPieceAssetsTest(unittest.TestCase):
                 with self.subTest(color=color, piece=name):
                     svg = STYLE / "svg" / f"{color}_{name}.svg"
                     root = ET.parse(svg).getroot()
-                    self.assertEqual(root.get("viewBox"), "0 0 100 100")
+                    self.assertEqual(root.get("viewBox"), "5 5 90 90")
                     self.assertIsNone(root.find(".//svg:image", NAMESPACE))
                     polygons = root.findall(".//svg:polygon", NAMESPACE)
                     self.assertEqual(len(polygons), 1)
@@ -61,6 +61,7 @@ class WesternizedPieceAssetsTest(unittest.TestCase):
                         vector = render(svg)
                         self.assertEqual(vector.size, png.size)
                         self.assertIsNone(ImageChops.difference(png, vector).getbbox())
+                        self.assertEqual(png.getchannel("A").getbbox(), (0, 0, 512, 512))
                         self.assertEqual(png.getpixel((10, 10))[3], 0)
                         self.assertEqual(png.getpixel((256, 41)), (255, 250, 240, 255))
                         self.assertEqual(png.getpixel((41, 256)), (255, 250, 240, 255))
@@ -74,13 +75,12 @@ class WesternizedPieceAssetsTest(unittest.TestCase):
                     left, top, right, bottom = mask.getbbox()
                     self.assertLess(abs((left + right) / 2 - 256), 3)
                     self.assertLess(abs((top + bottom) / 2 - 256), 3)
-                    self.assertGreater(max(right - left, bottom - top), 285)
-                    self.assertLess(max(right - left, bottom - top), 342)
+                    self.assertAlmostEqual(max(right - left, bottom - top), 377, delta=5)
                     self.assertGreater(right - left + bottom - top, 490)
                     for y in range(512):
                         for x in range(512):
                             if mask.getpixel((x, y)):
-                                self.assertLess(abs(x - 256) + abs(y - 256), 262)
+                                self.assertLess(abs(x - 256) + abs(y - 256), 334)
 
     def test_piece_names_keep_original_pictograms(self):
         for name in NAMES:

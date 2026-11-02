@@ -333,7 +333,7 @@ for piece, glyph_id in glyph_ids.items():
 
     # Measure the rendered vector, including its inherited transforms/strokes.
     probe = ET.Element(f"{{{namespace}}}svg", {
-        "viewBox": "0 0 600 660", "width": "1200", "height": "1320",
+        "viewBox": "0 0 600 660", "width": "2400", "height": "2640",
     })
     probe.append(copy.deepcopy(glyph))
     data = ET.tostring(probe)
@@ -345,23 +345,15 @@ for piece, glyph_id in glyph_ids.items():
         from cairosvg import svg2png
         rendered = svg2png(bytestring=data)
     with Image.open(io.BytesIO(rendered)) as image:
-        alpha = image.getchannel("A")
+        alpha = image.getchannel("A").point(lambda value: 255 if value > 128 else 0)
         bounds = alpha.getbbox()
     if bounds is None:
         raise ValueError(f"empty source pictogram: {glyph_id}")
-    minx, miny, maxx, maxy = (value / 2 for value in bounds)
+    minx, miny, maxx, maxy = (value / 4 for value in bounds)
     width, height = maxx - minx, maxy - miny
     cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
-    cropped = alpha.crop(bounds)
-    pixels = cropped.load()
-    # Fit the actual silhouette, not empty corners of its bounding box.
-    diagonal = max(
-        abs((x + .5) / 2 - width / 2) + abs((y + .5) / 2 - height / 2)
-        for y in range(cropped.height)
-        for x in range(cropped.width)
-        if pixels[x, y]
-    )
-    scale = 0.85 * min(78 / width, 78 / height, 60 / diagonal)
+    # Give every pictogram the same longest edge, preserving its proportions.
+    scale = 0.85 * 78 / max(width, height)
 
     for color, colors in palette.items():
         pictogram = copy.deepcopy(glyph)
@@ -373,7 +365,7 @@ for piece, glyph_id in glyph_ids.items():
                         node.attrib[attr], flags=re.IGNORECASE,
                     )
         svg = ET.Element(f"{{{namespace}}}svg", {
-            "viewBox": "0 0 100 100", "width": "512", "height": "512",
+            "viewBox": "5 5 90 90", "width": "512", "height": "512",
         })
         ET.SubElement(svg, f"{{{namespace}}}polygon", {
             "points": "31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8",
