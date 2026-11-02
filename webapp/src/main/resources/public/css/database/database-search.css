@@ -120,6 +120,7 @@ input[type=text].datepicker-field {
 
 .database-search-right {
     flex-shrink: 0;
+    min-width: 280px;
 }
 
 .my-game-item {
@@ -170,7 +171,6 @@ input[type=text].datepicker-field {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    min-height: 280px;
 }
 
 #randomize-featured-players-container {
