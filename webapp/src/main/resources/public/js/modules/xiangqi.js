@@ -23,6 +23,7 @@ const UCI_LETTER = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
 const PIECES_CHARS = ['c', 'r', 'n', 'b', 'a', 'k', 'p', 'm'];
 
 const DEFAULT_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0';
+const JANGGI_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0';
 
 /**
  * Manchu chess (Yitong) start FEN.
