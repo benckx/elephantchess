@@ -2,9 +2,10 @@
 #
 # Generate Janggi piece assets as SVG and PNG.
 #
-# Creates two styles under images/pieces:
-# - janggi_cursive (calligraphic/cursive font)
-# - janggi_modern  (modern sans font)
+# Creates three styles under images/pieces:
+# - janggi_cursive    (calligraphic/cursive font)
+# - janggi_modern     (modern sans font)
+# - janggi_westernized (re-used xiangqi westernized glyphs in octagons)
 #
 # Output naming uses red_* and blue_* files.
 #
@@ -53,26 +54,31 @@ declare -A BLUE_CHARS=(
 declare -A STYLE_FONT=(
     [janggi_cursive]="KaiTi, STKaiti, Kaiti SC, AR PL UKai CN, Noto Serif CJK KR, serif"
     [janggi_modern]="Noto Sans CJK KR, Noto Sans CJK SC, sans-serif"
+    [janggi_westernized]="Noto Sans CJK KR, Noto Sans CJK SC, sans-serif"
 )
 
 declare -A STYLE_WEIGHT=(
     [janggi_cursive]="600"
     [janggi_modern]="800"
+    [janggi_westernized]="800"
 )
 
 declare -A STYLE_TEXT_SIZE=(
     [janggi_cursive]="52"
     [janggi_modern]="54"
+    [janggi_westernized]="54"
 )
 
 declare -A STYLE_TEXT_Y=(
     [janggi_cursive]="69"
     [janggi_modern]="69"
+    [janggi_westernized]="69"
 )
 
 declare -A STYLE_FONT_STYLE=(
     [janggi_cursive]="italic"
     [janggi_modern]="normal"
+    [janggi_westernized]="normal"
 )
 
 declare -A COLOR_TEXT=(
@@ -285,6 +291,81 @@ write_piece_svg() {
 EOF
 }
 
+create_westernized_piece_pngs() {
+    local style_dir="${PIECES_DIR}/janggi_westernized"
+    local source_dir="${PIECES_DIR}/romanized_rounded"
+
+    mkdir -p "${style_dir}/svg"
+    python3 - "${style_dir}" "${source_dir}" <<'PY'
+import sys
+from pathlib import Path
+from PIL import Image, ImageDraw
+
+style_dir = Path(sys.argv[1])
+source_dir = Path(sys.argv[2])
+
+piece_names = [
+    "general", "advisor", "elephant", "horse", "chariot", "cannon", "soldier"
+]
+palette = {
+    "red": {"main": (192, 57, 43), "ring": (176, 51, 40), "base": (255, 250, 240)},
+    "blue": {"main": (26, 74, 134), "ring": (21, 62, 113), "base": (255, 250, 240)},
+}
+
+for color, target in [("red", (192, 57, 43)), ("blue", (26, 74, 134))]:
+    for piece in piece_names:
+        src_name = f"{'red' if color == 'red' else 'black'}_{piece}.png"
+        src_path = source_dir / src_name
+        if not src_path.exists():
+            raise FileNotFoundError(f"missing source piece: {src_path}")
+
+        with Image.open(src_path).convert("RGBA") as src:
+            rgba = src.load()
+            w, h = src.size
+            recolored = Image.new("RGBA", src.size, (0, 0, 0, 0))
+            pix = recolored.load()
+
+            for y in range(h):
+                for x in range(w):
+                    r, g, b, a = rgba[x, y]
+                    if a == 0:
+                        continue
+                    if r > 200 and g > 180 and b > 120:
+                        pix[x, y] = (254, 218, 164, 255)
+                    elif r < 40 and g < 40 and b < 40:
+                        pix[x, y] = target + (255,)
+                    elif r > 120 and g < 110 and b < 110:
+                        pix[x, y] = target + (255,)
+                    else:
+                        mix_r = min(255, max(0, target[0] + (r - 170) // 2))
+                        mix_g = min(255, max(0, target[1] + (g - 170) // 2))
+                        mix_b = min(255, max(0, target[2] + (b - 170) // 2))
+                        pix[x, y] = (mix_r, mix_g, mix_b, 255)
+
+            canvas = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(canvas)
+            octagon = [
+                (31.8, 6), (68.2, 6), (94, 31.8), (94, 68.2),
+                (68.2, 94), (31.8, 94), (6, 68.2), (6, 31.8),
+            ]
+            pts = [(x / 100 * 512, y / 100 * 512) for x, y in octagon]
+            draw.polygon(pts, fill=(255, 250, 240, 255), outline=palette[color]["ring"], width=8)
+            scale = 0.72
+            scaled = recolored.resize((int(w * scale), int(h * scale)))
+            offset = (512 - scaled.width) // 2, (512 - scaled.height) // 2
+            canvas.alpha_composite(scaled, offset)
+            out = style_dir / f"{color}_{piece}.png"
+            canvas.save(out)
+
+            svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="#fffaf0" stroke="{palette[color]['ring']}" stroke-width="8" transform="scale(5.12)"/>
+  <image href="file://{out}" x="0" y="0" width="512" height="512"/>
+</svg>'''
+            (style_dir / "svg").mkdir(exist_ok=True)
+            (style_dir / "svg" / f"{color}_{piece}.svg").write_text(svg, encoding="utf-8")
+PY
+}
+
 create_style() {
     local style="$1"
     local style_dir="${PIECES_DIR}/${style}"
@@ -294,6 +375,8 @@ create_style() {
 
     if [ "${style}" = "janggi_cursive" ]; then
         create_cursive_svg_from_source "${svg_dir}" "${SOURCE_SVG}"
+    elif [ "${style}" = "janggi_westernized" ]; then
+        create_westernized_piece_pngs
     else
         local piece
         for piece in "${!RED_CHARS[@]}"; do
@@ -315,5 +398,6 @@ create_style() {
 
 create_style "janggi_cursive"
 create_style "janggi_modern"
+create_style "janggi_westernized"
 
 echo "done: generated Janggi SVG + PNG assets under ${PIECES_DIR}"
