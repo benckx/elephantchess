@@ -8,10 +8,13 @@
 # - janggi_westernized (re-used xiangqi westernized glyphs in octagons)
 #
 # Output naming uses red_* and blue_* files.
+# Usage: scripts/create-janggi-piece-assets.sh [size] [style]
+# Omit style to generate all three styles.
 #
 # Requirements:
 # - rsvg-convert (Debian/Ubuntu package: librsvg2-bin)
 # - CJK fonts (e.g. fonts-noto-cjk, fonts-arphic-ukai)
+# - Pillow (Python package, for westernized pictogram bounds)
 #
 set -euo pipefail
 
@@ -286,95 +289,103 @@ write_piece_svg() {
 EOF
 }
 
-create_westernized_piece_pngs() {
-    local style_dir="${PIECES_DIR}/janggi_westernized"
-    local source_dir="${PIECES_DIR}/romanized_rounded"
+create_westernized_piece_svgs() {
+    local svg_dir="$1"
+    local source_svg="${PIECES_DIR}/wip/xiangqi_board_romanized.svg"
 
-    mkdir -p "${style_dir}/svg"
-    python3 - "${style_dir}" "${source_dir}" <<'PY'
-import base64
+    python3 - "${svg_dir}" "${source_svg}" <<'PY'
+import copy
 import io
+import re
+import shutil
+import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image
 
-style_dir = Path(sys.argv[1])
-source_dir = Path(sys.argv[2])
+svg_dir = Path(sys.argv[1])
+source_svg = Path(sys.argv[2])
+namespace = "http://www.w3.org/2000/svg"
+ET.register_namespace("", namespace)
+source = ET.parse(source_svg).getroot()
 
-piece_names = [
-    "general", "advisor", "elephant", "horse", "chariot", "cannon", "soldier"
-]
+# The final red row contains the rounded westernized pictograms, separately
+# from their circular frames and backgrounds.
+glyph_ids = {
+    "chariot": "path1868-1-2-6-7",
+    "cannon": "g1970-1-8-9-6",
+    "horse": "g1814-6-2-8-2",
+    "elephant": "g1312-3-4-3-7",
+    "advisor": "path2466-7",
+    "general": "path2116-7-9-0-3",
+    "soldier": "path1982-5-7-0-0-0",
+}
 palette = {
-    "red": {"main": (192, 57, 43), "ring": (176, 51, 40), "base": (255, 250, 240)},
-    "blue": {"main": (26, 74, 134), "ring": (21, 62, 113), "base": (255, 250, 240)},
+    "red": {"main": "#c0392b", "ring": "#b03328"},
+    "blue": {"main": "#1a4a86", "ring": "#153e71"},
 }
 
-for color, target in [("red", (192, 57, 43)), ("blue", (26, 74, 134))]:
-    for piece in piece_names:
-        src_name = f"{'red' if color == 'red' else 'black'}_{piece}.png"
-        src_path = source_dir / src_name
-        if not src_path.exists():
-            raise FileNotFoundError(f"missing source piece: {src_path}")
+for piece, glyph_id in glyph_ids.items():
+    glyph = source.find(f".//*[@id='{glyph_id}']")
+    if glyph is None:
+        raise ValueError(f"missing source pictogram: {glyph_id}")
 
-        with Image.open(src_path).convert("RGBA") as src:
-            rgba = src.load()
-            w, h = src.size
-            recolored = Image.new("RGBA", src.size, (0, 0, 0, 0))
-            pix = recolored.load()
+    # Measure the rendered vector, including its inherited transforms/strokes.
+    probe = ET.Element(f"{{{namespace}}}svg", {
+        "viewBox": "0 0 600 660", "width": "1200", "height": "1320",
+    })
+    probe.append(copy.deepcopy(glyph))
+    data = ET.tostring(probe)
+    if shutil.which("rsvg-convert"):
+        rendered = subprocess.run(
+            ["rsvg-convert"], input=data, capture_output=True, check=True,
+        ).stdout
+    else:
+        from cairosvg import svg2png
+        rendered = svg2png(bytestring=data)
+    with Image.open(io.BytesIO(rendered)) as image:
+        alpha = image.getchannel("A")
+        bounds = alpha.getbbox()
+    if bounds is None:
+        raise ValueError(f"empty source pictogram: {glyph_id}")
+    minx, miny, maxx, maxy = (value / 2 for value in bounds)
+    width, height = maxx - minx, maxy - miny
+    cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
+    cropped = alpha.crop(bounds)
+    pixels = cropped.load()
+    # Fit the actual silhouette, not empty corners of its bounding box.
+    diagonal = max(
+        abs((x + .5) / 2 - width / 2) + abs((y + .5) / 2 - height / 2)
+        for y in range(cropped.height)
+        for x in range(cropped.width)
+        if pixels[x, y]
+    )
+    scale = min(78 / width, 78 / height, 60 / diagonal)
 
-            for y in range(h):
-                for x in range(w):
-                    r, g, b, a = rgba[x, y]
-                    if a == 0:
-                        continue
-                    if r > 200 and g > 180 and b > 120:
-                        pix[x, y] = (254, 218, 164, 255)
-                    else:
-                        lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                        if lum < 80 or (r < 32 and g < 32 and b < 32):
-                            pix[x, y] = target + (255,)
-                        else:
-                            mix_r = min(255, max(0, target[0] + (r - 170) // 2))
-                            mix_g = min(255, max(0, target[1] + (g - 170) // 2))
-                            mix_b = min(255, max(0, target[2] + (b - 170) // 2))
-                            pix[x, y] = (mix_r, mix_g, mix_b, 255)
-
-            for y in range(h):
-                for x in range(w):
-                    r, g, b, a = recolored.getpixel((x, y))
-                    if a == 0:
-                        continue
-                    if r < 32 and g < 32 and b < 32:
-                        recolored.putpixel((x, y), target + (255,))
-
-            source_size = 1024
-            canvas = Image.new("RGBA", (source_size, source_size), (0, 0, 0, 0))
-            draw = ImageDraw.Draw(canvas)
-            octagon = [
-                (31.8, 6), (68.2, 6), (94, 31.8), (94, 68.2),
-                (68.2, 94), (31.8, 94), (6, 68.2), (6, 31.8),
-            ]
-            pts = [(x / 100 * source_size, y / 100 * source_size) for x, y in octagon]
-            draw.polygon(pts, fill=(0, 0, 0, 0), outline=palette[color]["ring"], width=16)
-            scale = 0.92
-            scaled = recolored.resize((int(w * scale * 2), int(h * scale * 2)))
-            offset = (source_size - scaled.width) // 2, (source_size - scaled.height) // 2
-            canvas.alpha_composite(scaled, offset)
-
-            png_canvas = canvas.resize((512, 512), Image.Resampling.LANCZOS)
-            out = style_dir / f"{color}_{piece}.png"
-            png_canvas.save(out)
-
-            encoded = io.BytesIO()
-            canvas.save(encoded, format="PNG")
-            ring_hex = "#{:02x}{:02x}{:02x}".format(*palette[color]["ring"])
-            data_uri = "data:image/png;base64," + base64.b64encode(encoded.getvalue()).decode("ascii")
-            svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="none" stroke="{ring_hex}" stroke-width="16"/>
-  <image href="{data_uri}" x="0" y="0" width="1024" height="1024" preserveAspectRatio="xMidYMid meet"/>
-</svg>'''
-            (style_dir / "svg").mkdir(exist_ok=True)
-            (style_dir / "svg" / f"{color}_{piece}.svg").write_text(svg, encoding="utf-8")
+    for color, colors in palette.items():
+        pictogram = copy.deepcopy(glyph)
+        for node in pictogram.iter():
+            for attr in ("style", "fill", "stroke"):
+                if attr in node.attrib:
+                    node.attrib[attr] = re.sub(
+                        r"#(?:ad0000|000000)\b", colors["main"],
+                        node.attrib[attr], flags=re.IGNORECASE,
+                    )
+        svg = ET.Element(f"{{{namespace}}}svg", {
+            "viewBox": "0 0 100 100", "width": "256", "height": "256",
+        })
+        ET.SubElement(svg, f"{{{namespace}}}polygon", {
+            "points": "31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8",
+            "fill": "#fffaf0", "stroke": colors["ring"], "stroke-width": "2",
+        })
+        group = ET.SubElement(svg, f"{{{namespace}}}g", {
+            "transform": f"translate(50 50) scale({scale:.8f}) translate(-{cx:.3f} -{cy:.3f})",
+            "fill": colors["main"],
+        })
+        group.append(pictogram)
+        ET.indent(svg)
+        (svg_dir / f"{color}_{piece}.svg").write_bytes(ET.tostring(svg))
 PY
 }
 
@@ -388,20 +399,13 @@ create_style() {
     if [ "${style}" = "janggi_cursive" ]; then
         create_cursive_svg_from_source "${svg_dir}" "${SOURCE_SVG}"
     elif [ "${style}" = "janggi_westernized" ]; then
-        create_westernized_piece_pngs
+        create_westernized_piece_svgs "${svg_dir}"
     else
         local piece
         for piece in "${!RED_CHARS[@]}"; do
             write_piece_svg "${style}" "red" "${piece}" "${RED_CHARS[${piece}]}" "${svg_dir}/red_${piece}.svg"
             write_piece_svg "${style}" "blue" "${piece}" "${BLUE_CHARS[${piece}]}" "${svg_dir}/blue_${piece}.svg"
         done
-    fi
-
-    if [ "${style}" = "janggi_westernized" ]; then
-        local png_count
-        png_count=$(find "${style_dir}" -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')
-        echo "${style}: generated ${png_count} PNG file(s)"
-        return
     fi
 
     local converted=0
@@ -411,13 +415,14 @@ create_style() {
         if command -v rsvg-convert >/dev/null 2>&1; then
             rsvg-convert --background-color "transparent" --width "${SIZE}" --height "${SIZE}" "${svg}" -o "${png}"
         else
-            python3 - "${svg}" "${png}" <<'PY'
+            python3 - "${svg}" "${png}" "${SIZE}" <<'PY'
 import sys
 from cairosvg import svg2png
 from pathlib import Path
 svg_path = Path(sys.argv[1])
 png_path = Path(sys.argv[2])
-svg2png(url=str(svg_path), write_to=str(png_path), output_width=512, output_height=512)
+size = int(sys.argv[3])
+svg2png(url=str(svg_path), write_to=str(png_path), output_width=size, output_height=size)
 PY
         fi
         converted=$((converted + 1))
@@ -426,8 +431,20 @@ PY
     echo "${style}: generated ${converted} PNG file(s)"
 }
 
-create_style "janggi_cursive"
-create_style "janggi_modern"
-create_style "janggi_westernized"
+if [ "$#" -gt 1 ]; then
+    case "$2" in
+        janggi_cursive|janggi_modern|janggi_westernized)
+            create_style "$2"
+            ;;
+        *)
+            echo "error: unknown Janggi piece style: $2" >&2
+            exit 1
+            ;;
+    esac
+else
+    create_style "janggi_cursive"
+    create_style "janggi_modern"
+    create_style "janggi_westernized"
+fi
 
 echo "done: generated Janggi SVG + PNG assets under ${PIECES_DIR}"
