@@ -380,39 +380,36 @@ class GameThumb {
             lastUpdatedEl.innerHTML = formatTimestampToRelativeTime(update.lastUpdated);
         }
 
-        // outcome (blue star)
-        const redPlayerWinsElement = this.#findFirst('red-player-wins');
-        const blackPlayerWinsElement = this.#findFirst('black-player-wins');
-        if (redPlayerWinsElement != null && blackPlayerWinsElement != null) {
-            redPlayerWinsElement.innerHTML = '';
-            blackPlayerWinsElement.innerHTML = '';
-            switch (update.outcome) {
-                case Outcome.RED_WINS:
-                    redPlayerWinsElement.innerHTML = WINNER_BLUE_STAR_HTML;
-                    break;
-                case Outcome.BLACK_WINS:
-                    blackPlayerWinsElement.innerHTML = WINNER_BLUE_STAR_HTML;
-                    break;
-                default:
-                    break;
-            }
-        }
+        this.#setWinnerStar(update.outcome);
+        this.#setOnlineStatus(update.isRedOnline, update.isBlackOnline);
+    }
 
-        // online status
-        const redPlayerStatusIndicator = this.#findFirst('red-player-status-indicator');
-        const blackPlayerStatusIndicator = this.#findFirst('black-player-status-indicator');
-        if (redPlayerStatusIndicator != null && blackPlayerStatusIndicator != null) {
-            if (update.isRedOnline) {
-                redPlayerStatusIndicator.classList.add(IS_ONLINE_CSS_CLASS);
-            } else {
-                redPlayerStatusIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
-            }
-            if (update.isBlackOnline) {
-                blackPlayerStatusIndicator.classList.add(IS_ONLINE_CSS_CLASS);
-            } else {
-                blackPlayerStatusIndicator.classList.remove(IS_ONLINE_CSS_CLASS);
-            }
+    /**
+     * @param outcome {string|null}
+     */
+    #setWinnerStar(outcome) {
+        const redEl = this.#findFirst('red-player-wins');
+        const blackEl = this.#findFirst('black-player-wins');
+        if (redEl == null || blackEl == null) return;
+        redEl.innerHTML = '';
+        blackEl.innerHTML = '';
+        if (outcome === Outcome.RED_WINS) {
+            redEl.innerHTML = WINNER_BLUE_STAR_HTML;
+        } else if (outcome === Outcome.BLACK_WINS) {
+            blackEl.innerHTML = WINNER_BLUE_STAR_HTML;
         }
+    }
+
+    /**
+     * @param isRedOnline {boolean}
+     * @param isBlackOnline {boolean}
+     */
+    #setOnlineStatus(isRedOnline, isBlackOnline) {
+        const redEl = this.#findFirst('red-player-status-indicator');
+        const blackEl = this.#findFirst('black-player-status-indicator');
+        if (redEl == null || blackEl == null) return;
+        redEl.classList.toggle(IS_ONLINE_CSS_CLASS, isRedOnline);
+        blackEl.classList.toggle(IS_ONLINE_CSS_CLASS, isBlackOnline);
     }
 
     /**
