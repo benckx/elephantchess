@@ -716,8 +716,8 @@ class GameDataService(
     private suspend fun mapDatabaseGameToDto(game: ReferenceGame, paginationOffset: Int?): GameMetadataDto =
         GameMetadataDto(
             gameId = GameId(DB, game.id),
-            redPlayerId = game.redPlayer,
-            redPlayerName = databaseService.playerIdToCanonicalName(game.redPlayer),
+            redPlayerId = game.whitePlayer,
+            redPlayerName = databaseService.playerIdToCanonicalName(game.whitePlayer),
             blackPlayerId = game.blackPlayer,
             blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
             finalFen = game.finalFen ?: DEFAULT_START_FEN,
