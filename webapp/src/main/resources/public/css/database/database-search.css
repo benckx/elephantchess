@@ -121,7 +121,6 @@ input[type=text].datepicker-field {
     flex-shrink: 0;
     width: 440px;
     padding-left: 30px;
-    border-left: 1px solid #d0d0d0;
     box-sizing: border-box;
 }
 
