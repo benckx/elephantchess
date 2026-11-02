@@ -329,15 +329,23 @@ for color, target in [("red", (192, 57, 43)), ("blue", (26, 74, 134))]:
                         continue
                     if r > 200 and g > 180 and b > 120:
                         pix[x, y] = (254, 218, 164, 255)
-                    elif r < 40 and g < 40 and b < 40:
-                        pix[x, y] = target + (255,)
-                    elif r > 120 and g < 110 and b < 110:
-                        pix[x, y] = target + (255,)
                     else:
-                        mix_r = min(255, max(0, target[0] + (r - 170) // 2))
-                        mix_g = min(255, max(0, target[1] + (g - 170) // 2))
-                        mix_b = min(255, max(0, target[2] + (b - 170) // 2))
-                        pix[x, y] = (mix_r, mix_g, mix_b, 255)
+                        lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+                        if lum < 80 or (r < 32 and g < 32 and b < 32):
+                            pix[x, y] = target + (255,)
+                        else:
+                            mix_r = min(255, max(0, target[0] + (r - 170) // 2))
+                            mix_g = min(255, max(0, target[1] + (g - 170) // 2))
+                            mix_b = min(255, max(0, target[2] + (b - 170) // 2))
+                            pix[x, y] = (mix_r, mix_g, mix_b, 255)
+
+            for y in range(h):
+                for x in range(w):
+                    r, g, b, a = recolored.getpixel((x, y))
+                    if a == 0:
+                        continue
+                    if r < 32 and g < 32 and b < 32:
+                        recolored.putpixel((x, y), target + (255,))
 
             canvas = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
             draw = ImageDraw.Draw(canvas)
@@ -383,6 +391,13 @@ create_style() {
             write_piece_svg "${style}" "red" "${piece}" "${RED_CHARS[${piece}]}" "${svg_dir}/red_${piece}.svg"
             write_piece_svg "${style}" "blue" "${piece}" "${BLUE_CHARS[${piece}]}" "${svg_dir}/blue_${piece}.svg"
         done
+    fi
+
+    if [ "${style}" = "janggi_westernized" ]; then
+        local png_count
+        png_count=$(find "${style_dir}" -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')
+        echo "${style}: generated ${png_count} PNG file(s)"
+        return
     fi
 
     local converted=0
