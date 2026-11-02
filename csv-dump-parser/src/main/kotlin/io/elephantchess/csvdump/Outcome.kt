@@ -16,7 +16,6 @@ enum class Outcome {
             when (val trimmed = value.trim().uppercase()) {
                 "" -> null
                 "RED_WINS" -> WHITE_WINS
-                "WHITE_WINS" -> WHITE_WINS
                 "BLACK_WINS" -> BLACK_WINS
                 "DRAW" -> DRAW
                 else -> throw IllegalArgumentException("unknown outcome: '$trimmed'")
