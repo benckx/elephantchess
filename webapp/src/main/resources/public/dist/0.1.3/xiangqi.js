@@ -34,9 +34,10 @@ const MANCHU_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/M1BAKAB2
 // Piece color enum. Lives here (rather than in enums.js) so that xiangqi.js
 // can be used standalone (together with board-gui.js) without pulling in the
 // rest of the webapp's modules.
+// Under the hood we keep engine-side colors neutral (WHITE/BLACK).
 const Color = Object.freeze({
-    RED: 'RED',
-    BLACK: 'BLACK'
+    WHITE: 'WHITE',
+    BLACK: 'BLACK',
 });
 
 /**
@@ -64,7 +65,7 @@ function charToPieceColor(char) {
         throw new Error('Not a single char: ' + char);
     } else {
         if (isRedPiece(char)) {
-            return Color.RED;
+            return Color.WHITE;
         } else if (isBlackPiece(char)) {
             return Color.BLACK;
         } else {
@@ -75,10 +76,10 @@ function charToPieceColor(char) {
 
 function reverseColor(color) {
     switch (color.toUpperCase()) {
-        case Color.RED:
+        case Color.WHITE:
             return Color.BLACK;
         case Color.BLACK:
-            return Color.RED;
+            return Color.WHITE;
         default:
             throw Error('Illegal argument color ' + color);
     }
@@ -86,7 +87,7 @@ function reverseColor(color) {
 
 function colorToUci(color) {
     switch (color.toUpperCase()) {
-        case Color.RED:
+        case Color.WHITE:
             return 'w';
         case Color.BLACK:
             return 'b';
@@ -107,9 +108,9 @@ function validateStartFen(fen) {
     let board = new Board();
     board.loadFen(fen);
 
-    if (board.isCheckmate(Color.RED) || board.isCheckmate(Color.BLACK)) {
+    if (board.isCheckmate(Color.WHITE) || board.isCheckmate(Color.BLACK)) {
         throw new Error('Start position is checkmate');
-    } else if (board.isStalemate(Color.RED) || board.isStalemate(Color.BLACK)) {
+    } else if (board.isStalemate(Color.WHITE) || board.isStalemate(Color.BLACK)) {
         throw new Error('Start position is stalemate');
     }
 }
@@ -164,9 +165,9 @@ function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEF
 
         let checkIndicator = '';
         if (renderCheckIndicators) {
-            if (board.isCheckmate(Color.RED) || board.isCheckmate(Color.BLACK)) {
+            if (board.isCheckmate(Color.WHITE) || board.isCheckmate(Color.BLACK)) {
                 checkIndicator += '#';
-            } else if (board.isInCheck(Color.RED) || board.isInCheck(Color.BLACK)) {
+            } else if (board.isInCheck(Color.WHITE) || board.isInCheck(Color.BLACK)) {
                 checkIndicator += '+';
             }
         }
@@ -213,7 +214,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
      */
     function fileAsWxf(color, file) {
         switch (color) {
-            case Color.RED:
+            case Color.WHITE:
                 return BOARD_WIDTH - file;
             case Color.BLACK:
                 return file + 1;
@@ -228,7 +229,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
      * @return {string} e.g. Direction indicator sign (+ or -)
      */
     function verticalMoveDirectionChar(color, move) {
-        if ((color === Color.BLACK && move.from.y > move.to.y) || (color === Color.RED && move.from.y < move.to.y)) {
+        if ((color === Color.BLACK && move.from.y > move.to.y) || (color === Color.WHITE && move.from.y < move.to.y)) {
             return '+';
         } else {
             return '-';
@@ -272,7 +273,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
                 otherFileY = allSimilarPiecesOnFile[0].position.y;
             }
 
-            let isOnTop = (currentFileY > otherFileY && color === Color.RED)
+            let isOnTop = (currentFileY > otherFileY && color === Color.WHITE)
                 || (currentFileY < otherFileY && color === Color.BLACK);
 
             return isOnTop ? '+' : '-';
@@ -943,7 +944,7 @@ class Board {
 
     getColorToPlay() {
         if (this.#redToPlay) {
-            return Color.RED;
+            return Color.WHITE;
         } else {
             return Color.BLACK;
         }
@@ -954,14 +955,14 @@ class Board {
      * @return {boolean}
      */
     isColorToPlay(piece) {
-        return (piece.color === Color.RED && this.#redToPlay) || (piece.color === Color.BLACK && !this.#redToPlay);
+        return (piece.color === Color.WHITE && this.#redToPlay) || (piece.color === Color.BLACK && !this.#redToPlay);
     }
 
     /**
      * @param color {string}
      */
     forceColorToPlay(color) {
-        this.#redToPlay = (color === Color.RED);
+        this.#redToPlay = (color === Color.WHITE);
     }
 
     /**
@@ -1023,9 +1024,9 @@ class Board {
     }
 
     isMated() {
-        return this.isCheckmate(Color.RED) ||
+        return this.isCheckmate(Color.WHITE) ||
             this.isCheckmate(Color.BLACK) ||
-            this.isStalemate(Color.RED) ||
+            this.isStalemate(Color.WHITE) ||
             this.isStalemate(Color.BLACK);
     }
 
@@ -1052,7 +1053,7 @@ class Board {
     }
 
     #areGeneralsFacing() {
-        let red = this.findGeneral(Color.RED);
+        let red = this.findGeneral(Color.WHITE);
         let black = this.findGeneral(Color.BLACK);
         if (red == null || black == null) {
             return false;
@@ -1409,7 +1410,7 @@ class Board {
      * @return {boolean}
      */
     #hasRedPieceAt(position) {
-        return this.#hasPieceOfColorAt(Color.RED, position);
+        return this.#hasPieceOfColorAt(Color.WHITE, position);
     }
 
     /**
