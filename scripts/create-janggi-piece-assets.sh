@@ -2,15 +2,19 @@
 #
 # Generate Janggi piece assets as SVG and PNG.
 #
-# Creates two styles under images/pieces:
-# - janggi_cursive (calligraphic/cursive font)
-# - janggi_modern  (modern sans font)
+# Creates three styles under images/pieces:
+# - janggi_cursive    (calligraphic/cursive font)
+# - janggi_modern     (modern sans font)
+# - janggi_westernized (re-used xiangqi westernized glyphs in octagons)
 #
 # Output naming uses red_* and blue_* files.
+# Usage: scripts/create-janggi-piece-assets.sh [size] [style]
+# Omit style to generate all three styles.
 #
 # Requirements:
 # - rsvg-convert (Debian/Ubuntu package: librsvg2-bin)
 # - CJK fonts (e.g. fonts-noto-cjk, fonts-arphic-ukai)
+# - Pillow (Python package, for westernized pictogram bounds)
 #
 set -euo pipefail
 
@@ -19,11 +23,6 @@ cd "$(dirname "$0")/.."
 PIECES_DIR="webapp/src/main/resources/public/images/pieces"
 SOURCE_SVG="webapp/src/main/resources/public/images/Janggi.svg"
 SIZE="${1:-512}"
-
-if ! command -v rsvg-convert >/dev/null 2>&1; then
-    echo "error: rsvg-convert not found (install the librsvg2-bin package)" >&2
-    exit 1
-fi
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "error: python3 not found (required to extract cursive paths from ${SOURCE_SVG})" >&2
@@ -53,26 +52,31 @@ declare -A BLUE_CHARS=(
 declare -A STYLE_FONT=(
     [janggi_cursive]="KaiTi, STKaiti, Kaiti SC, AR PL UKai CN, Noto Serif CJK KR, serif"
     [janggi_modern]="Noto Sans CJK KR, Noto Sans CJK SC, sans-serif"
+    [janggi_westernized]="Noto Sans CJK KR, Noto Sans CJK SC, sans-serif"
 )
 
 declare -A STYLE_WEIGHT=(
     [janggi_cursive]="600"
     [janggi_modern]="800"
+    [janggi_westernized]="800"
 )
 
 declare -A STYLE_TEXT_SIZE=(
     [janggi_cursive]="52"
     [janggi_modern]="54"
+    [janggi_westernized]="54"
 )
 
 declare -A STYLE_TEXT_Y=(
     [janggi_cursive]="69"
     [janggi_modern]="69"
+    [janggi_westernized]="69"
 )
 
 declare -A STYLE_FONT_STYLE=(
     [janggi_cursive]="italic"
     [janggi_modern]="normal"
+    [janggi_westernized]="normal"
 )
 
 declare -A COLOR_TEXT=(
@@ -285,6 +289,98 @@ write_piece_svg() {
 EOF
 }
 
+create_westernized_piece_svgs() {
+    local svg_dir="$1"
+    local source_svg="${PIECES_DIR}/wip/xiangqi_board_romanized.svg"
+
+    python3 - "${svg_dir}" "${source_svg}" <<'PY'
+import copy
+import io
+import re
+import shutil
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+from pathlib import Path
+from PIL import Image
+
+svg_dir = Path(sys.argv[1])
+source_svg = Path(sys.argv[2])
+namespace = "http://www.w3.org/2000/svg"
+ET.register_namespace("", namespace)
+source = ET.parse(source_svg).getroot()
+
+# The final red row contains the rounded westernized pictograms, separately
+# from their circular frames and backgrounds.
+glyph_ids = {
+    "chariot": "path1868-1-2-6-7",
+    "cannon": "g1970-1-8-9-6",
+    "horse": "g1814-6-2-8-2",
+    "elephant": "g1312-3-4-3-7",
+    "advisor": "path2466-7",
+    "general": "path2116-7-9-0-3",
+    "soldier": "path1982-5-7-0-0-0",
+}
+palette = {
+    "red": {"main": "#c0392b", "ring": "#b03328"},
+    "blue": {"main": "#1a4a86", "ring": "#153e71"},
+}
+
+for piece, glyph_id in glyph_ids.items():
+    glyph = source.find(f".//*[@id='{glyph_id}']")
+    if glyph is None:
+        raise ValueError(f"missing source pictogram: {glyph_id}")
+
+    # Measure the rendered vector, including its inherited transforms/strokes.
+    probe = ET.Element(f"{{{namespace}}}svg", {
+        "viewBox": "0 0 600 660", "width": "2400", "height": "2640",
+    })
+    probe.append(copy.deepcopy(glyph))
+    data = ET.tostring(probe)
+    if shutil.which("rsvg-convert"):
+        rendered = subprocess.run(
+            ["rsvg-convert"], input=data, capture_output=True, check=True,
+        ).stdout
+    else:
+        from cairosvg import svg2png
+        rendered = svg2png(bytestring=data)
+    with Image.open(io.BytesIO(rendered)) as image:
+        alpha = image.getchannel("A").point(lambda value: 255 if value > 128 else 0)
+        bounds = alpha.getbbox()
+    if bounds is None:
+        raise ValueError(f"empty source pictogram: {glyph_id}")
+    minx, miny, maxx, maxy = (value / 4 for value in bounds)
+    width, height = maxx - minx, maxy - miny
+    cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
+    # Give every pictogram the same longest edge, preserving its proportions.
+    scale = 0.765 * 78 / max(width, height)
+
+    for color, colors in palette.items():
+        pictogram = copy.deepcopy(glyph)
+        for node in pictogram.iter():
+            for attr in ("style", "fill", "stroke"):
+                if attr in node.attrib:
+                    node.attrib[attr] = re.sub(
+                        r"#(?:ad0000|000000)\b", colors["main"],
+                        node.attrib[attr], flags=re.IGNORECASE,
+                    )
+        svg = ET.Element(f"{{{namespace}}}svg", {
+            "viewBox": "5 5 90 90", "width": "512", "height": "512",
+        })
+        ET.SubElement(svg, f"{{{namespace}}}polygon", {
+            "points": "31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8",
+            "fill": "#fffaf0", "stroke": colors["ring"], "stroke-width": "2",
+        })
+        group = ET.SubElement(svg, f"{{{namespace}}}g", {
+            "transform": f"translate(50 50) scale({scale:.8f}) translate(-{cx:.3f} -{cy:.3f})",
+            "fill": colors["main"],
+        })
+        group.append(pictogram)
+        ET.indent(svg)
+        (svg_dir / f"{color}_{piece}.svg").write_bytes(ET.tostring(svg))
+PY
+}
+
 create_style() {
     local style="$1"
     local style_dir="${PIECES_DIR}/${style}"
@@ -294,6 +390,8 @@ create_style() {
 
     if [ "${style}" = "janggi_cursive" ]; then
         create_cursive_svg_from_source "${svg_dir}" "${SOURCE_SVG}"
+    elif [ "${style}" = "janggi_westernized" ]; then
+        create_westernized_piece_svgs "${svg_dir}"
     else
         local piece
         for piece in "${!RED_CHARS[@]}"; do
@@ -306,14 +404,39 @@ create_style() {
     local svg
     for svg in "${svg_dir}"/*.svg; do
         local png="${style_dir}/$(basename "${svg}" .svg).png"
-        rsvg-convert --background-color "transparent" --width "${SIZE}" --height "${SIZE}" "${svg}" -o "${png}"
+        if command -v rsvg-convert >/dev/null 2>&1; then
+            rsvg-convert --background-color "transparent" --width "${SIZE}" --height "${SIZE}" "${svg}" -o "${png}"
+        else
+            python3 - "${svg}" "${png}" "${SIZE}" <<'PY'
+import sys
+from cairosvg import svg2png
+from pathlib import Path
+svg_path = Path(sys.argv[1])
+png_path = Path(sys.argv[2])
+size = int(sys.argv[3])
+svg2png(url=str(svg_path), write_to=str(png_path), output_width=size, output_height=size)
+PY
+        fi
         converted=$((converted + 1))
     done
 
     echo "${style}: generated ${converted} PNG file(s)"
 }
 
-create_style "janggi_cursive"
-create_style "janggi_modern"
+if [ "$#" -gt 1 ]; then
+    case "$2" in
+        janggi_cursive|janggi_modern|janggi_westernized)
+            create_style "$2"
+            ;;
+        *)
+            echo "error: unknown Janggi piece style: $2" >&2
+            exit 1
+            ;;
+    esac
+else
+    create_style "janggi_cursive"
+    create_style "janggi_modern"
+    create_style "janggi_westernized"
+fi
 
 echo "done: generated Janggi SVG + PNG assets under ${PIECES_DIR}"
