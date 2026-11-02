@@ -35,13 +35,13 @@ class Board(
         isCheckmated(WHITE) || isCheckmated(BLACK)
 
     fun isCheckmated(color: Color): Boolean =
-        color.isWhiteSide() == colorToPlay.isWhiteSide() && isInCheck(color) && allMovesAreIllegal(color)
+        color == colorToPlay && isInCheck(color) && allMovesAreIllegal(color)
 
     fun isStalemated(): Boolean =
         isStalemated(WHITE) || isStalemated(BLACK)
 
     fun isStalemated(color: Color): Boolean =
-        color.isWhiteSide() == colorToPlay.isWhiteSide() && !isInCheck(color) && allMovesAreIllegal(color)
+        color == colorToPlay && !isInCheck(color) && allMovesAreIllegal(color)
 
     private fun allMovesAreIllegal(color: Color): Boolean =
         listAllPieces(color)
