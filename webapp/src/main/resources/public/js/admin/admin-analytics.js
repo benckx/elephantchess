@@ -156,7 +156,7 @@ class AdminAnalyticsPage extends BasePage {
                 tbody.append(tr);
 
                 // content
-                userCell.append(buildUserLinkDiv(entry.username));
+                userCell.append(buildAdminUsernameSpan(null, entry.username, UserType.AUTHENTICATED));
                 countCell.innerText = entry.count;
                 lastUpdated.innerText = formatTimestampToDateTime(entry.lastUpdated);
             });

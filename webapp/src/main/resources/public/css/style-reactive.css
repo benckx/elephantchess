@@ -476,30 +476,30 @@
         margin-bottom: 20px;
     }
 
-    table.info-box-table {
+    .info-box-table {
         font-size: 26px;
         border-spacing: 0 20px;
     }
 
-    table.info-box-table td.description-cell {
+    .info-box-table td.description-cell {
         font-size: 34px;
         line-height: 40px;
     }
 
-    table.info-box-table td.icon-cell img {
+    .info-box-table td.icon-cell img {
         max-width: 60px;
     }
 
-    table.info-box-sub-table td {
+    .info-box-sub-table td {
         font-size: 32px;
     }
 
-    table.info-box-sub-table td.labels {
+    .info-box-sub-table td.labels {
         font-size: 34px;
     }
 
-    table.info-box-table tr.enabled-button td.description-cell,
-    table.info-box-table tr.disabled-button td.description-cell {
+    .info-box-table tr.enabled-button td.description-cell,
+    .info-box-table tr.disabled-button td.description-cell {
         padding-top: 10px;
         padding-bottom: 10px;
     }

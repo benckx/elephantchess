@@ -1015,13 +1015,13 @@ class PlayerVsPlayerGameService(
                 parseMoveFromUci(request.move)
             } catch (_: Exception) {
                 logger.warn { "[${request.gameId}] Move '${request.move}' can not be parsed" }
-                throw BadRequestException("Move '${request.move}' can not be parsed")
+                throw BadRequestException("Move '${request.move}' can not be parsed in game ${request.gameId}")
             }
 
             // validate move is legal
             if (!isMoveLegal(gameRecord.currentFen, request.move)) {
                 logger.warn { "[${request.gameId}] Move '${request.move}' is illegal" }
-                throw BadRequestException("Move '${request.move}' is illegal")
+                throw BadRequestException("Move '${request.move}' is illegal in game ${request.gameId}")
             }
 
             // validate that it is user's turn to play

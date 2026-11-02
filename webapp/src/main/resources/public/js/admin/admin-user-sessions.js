@@ -147,7 +147,7 @@ class AdminUserSessionsPage extends BasePage {
                 userCell.innerText = '--';
             } else {
                 userCell.append(
-                    buildUsernameSpan(
+                    buildAdminUsernameSpan(
                         entry.userId,
                         entry.username,
                         userTypeFromName(entry.username)

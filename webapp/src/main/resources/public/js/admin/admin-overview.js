@@ -90,7 +90,7 @@ class AdminOverviewPage extends BasePage {
         return entries
             .sort((a, b) => a.userType.localeCompare(b.userType))
             .map(entry => {
-                const element = buildUsernameSpan(entry.id, entry.username, entry.userType);
+                const element = buildAdminUsernameSpan(entry.id, entry.username, entry.userType);
                 element.classList.add('user-link');
                 return element;
             });
@@ -104,19 +104,24 @@ class AdminOverviewPage extends BasePage {
     #renderAuthenticatedUsers(entries) {
         return entries
             .map(entry => {
-                const element = buildUsernameSpan(entry.id, entry.username, UserType.AUTHENTICATED);
+                const element = buildAdminUsernameSpan(entry.id, entry.username, UserType.AUTHENTICATED);
                 element.classList.add('user-link');
                 return element;
             });
     }
 
     #fetchLatestExceptions() {
-        getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-thrown-exceptions?limit=10&codeFilter=5xx`, json => {
+        getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-thrown-exceptions?limit=30`, json => {
             const tbody = emptyTable(this.#latestExceptionsTable);
 
             json.entries.forEach(entry => {
                 const row = tbody.insertRow();
-                renderExceptionRow(entry, row, {showFullyQualifiedClassName: false});
+                renderExceptionRow(entry, row,
+                    {
+                        showFullyQualifiedClassName: false,
+                        maxMessageLength: 100
+                    }
+                );
             });
         });
     }

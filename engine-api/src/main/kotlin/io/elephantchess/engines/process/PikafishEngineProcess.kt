@@ -9,7 +9,9 @@ class PikafishEngineProcess(
     locator: EngineProcessLocator = LocalProcessLocator,
     version: String?,
     private val numberOfThreads: Int,
-) : EngineProcess(locator, PikafishEngineId, version) {
+    osName: String? = null,
+    osArch: String? = null,
+) : EngineProcess(locator, PikafishEngineId, version, osName, osArch) {
 
     override val logger = KotlinLogging.logger {}
 

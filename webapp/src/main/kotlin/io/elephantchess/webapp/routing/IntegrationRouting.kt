@@ -17,6 +17,9 @@ private val json = Json {
     isLenient = true
 }
 
+/**
+ * When we get a donation on Ko-Fi, this allows to register that event and feature the user in the "Support Us" banners.
+ */
 fun Routing.integrationRoutes() {
     val kofiService by koin<KofiService>()
 

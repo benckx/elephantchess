@@ -28,7 +28,7 @@ class AdminContentSectionFeedbackPage extends BasePage {
             const tbody = emptyTable(this.#table);
             json.entries.forEach(entry => {
                 const row = tbody.insertRow();
-                row.insertCell().append(buildUsernameSpan(entry.userId, entry.username, entry.userType));
+                row.insertCell().append(buildAdminUsernameSpan(entry.userId, entry.username, entry.userType));
                 row.insertCell().innerText = entry.pageId;
                 row.insertCell().innerText = entry.sectionId;
                 row.insertCell().innerText = entry.upVoted ? 'up' : 'down';

@@ -1,0 +1,32 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Page Views - {{username}}</title>
+    <link rel="stylesheet" href="/css/common/nice-table.css"/>
+    <link rel="stylesheet" href="/css/admin-user-insights.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/infinite-scroll-page.js"></script>
+    <script defer src="/js/admin/admin-user-insights-page-views.js"></script>
+</head>
+<body data-user-identifier="{{identifier}}">
+{{body_init}}
+<div class="main-container-text-extended-smaller">
+    <h1>Page Views - {{username}}</h1>
+    <hr/>
+    <p><a href="/admin/user/{{encoded_identifier}}">back to insights</a></p>
+    <table id="admin-user-page-views-table" class="nice-table nice-table-striped">
+        <thead>
+        <tr>
+            <th>url</th>
+            <th>time</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <p id="admin-user-page-views-empty-message" style="display: none;">No page views found.</p>
+    <div id="is-loading-message" style="display: none;">Loading more page views...</div>
+    <div id="end-of-pagination-message" style="display: none;">No more page views to show</div>
+</div>
+</body>
+</html>

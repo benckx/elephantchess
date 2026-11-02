@@ -24,6 +24,8 @@ abstract class EngineProcess(
     private val locator: EngineProcessLocator,
     val engineId: EngineId,
     val version: String?,
+    private val osName: String? = null,
+    private val osArch: String? = null,
 ) : Runnable {
 
     abstract val logger: KLogger
@@ -156,7 +158,7 @@ abstract class EngineProcess(
             lineListener?.receivedLine(line)
         }
 
-        val launchCommand = locator.launchCommand(engineId.pathOfExecutable(version))
+        val launchCommand = locator.launchCommand(engineId.pathOfExecutable(version, osName, osArch))
         logger.info { "running ${engineId.displayName} engine, launching $launchCommand" }
         process = ProcessBuilder(launchCommand.split(" ")).start()
         input = process.outputStream.bufferedWriter()

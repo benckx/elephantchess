@@ -17,16 +17,23 @@ class MoveAnnotationCalculationTest {
     }
 
     @Test
-    fun `calculateCpl requires matching depth of at least 18`() {
+    fun `calculateCpl requires comparable depth of at least 14`() {
         assertNull(
             calculateCpl(
-                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 20),
-                actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 18),
+                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 13),
+                actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 13),
             ),
         )
         assertNull(
             calculateCpl(
-                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 17),
+                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 14),
+                actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 18),
+            ),
+        )
+        assertEquals(
+            300,
+            calculateCpl(
+                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 20),
                 actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 17),
             ),
         )
