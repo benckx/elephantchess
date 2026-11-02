@@ -95,15 +95,15 @@ test.describe('PvP workflow (two remote guests)', () => {
         await expect(opponent.page.locator('#game-status')).toHaveText(/Opponent's turn/);
         await captureStep(testInfo, '2-opponent-joined', bothPages());
 
-        // --- Spectator opens the lobby to watch the live game thumb ---
-        // The spectator opens the lobby after the game has started. The lobby polls
-        // every second for updates; the spectator never reloads the page.
-        const spectator = await newGuestContext(browser);
-        await spectator.page.goto('/', {waitUntil: 'networkidle'});
-
         // --- Play the first half of the scripted game ---
         // Inviter (Red) plays odd indices; opponent (Black) plays even indices.
         await playScriptedGame([inviter.page, opponent.page], CHECKMATE_MOVES_FIRST_HALF);
+
+        // --- Spectator opens the lobby to watch the live game thumb ---
+        // The latest-games list omits games with fewer than six plies, so open the
+        // lobby after the first half. newGuestContext loads it once; keep it open
+        // through checkmate to verify polling without a reload.
+        const spectator = await newGuestContext(browser);
 
         // --- Spectator mid-game: lobby thumb must show the live indicator ---
         // After the first moves the game is live and recently updated, so the thumb
