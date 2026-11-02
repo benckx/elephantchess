@@ -159,17 +159,10 @@ input[type=text].datepicker-field {
 }
 
 /* Featured players list */
-.featured-players-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
 .database-search-right h2 {
     font-size: 20px;
     margin-top: 0;
-    margin-bottom: 0;
+    margin-bottom: 16px;
     color: #2b2b2b;
 }
 
@@ -177,6 +170,11 @@ input[type=text].datepicker-field {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+    min-height: 280px;
+}
+
+#randomize-featured-players-container {
+    margin-top: 10px;
 }
 
 .featured-player-link {
@@ -217,10 +215,6 @@ input[type=text].datepicker-field {
     }
 
     .database-search-right h2 {
-        font-size: 36px;
-    }
-
-    #randomize-featured-players-button {
         font-size: 36px;
     }
 

@@ -57,8 +57,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         this.#fetchTotalGames();
         this.#fetchFeaturedPlayers();
 
-        this.#randomizeFeaturedPlayersButton.addEventListener('click', (e) => {
-            e.preventDefault();
+        this.#randomizeFeaturedPlayersButton.addEventListener('click', () => {
             this.#fetchFeaturedPlayers();
         });
 
