@@ -53,7 +53,7 @@ class AdminSearchQueriesPage extends BasePage {
 
             // user
             const userCell = row.insertCell();
-            userCell.append(buildUsernameSpan(entry.userId, entry.username, entry.userType));
+            userCell.append(buildAdminUsernameSpan(entry.userId, entry.username, entry.userType));
 
             // start date
             const startCell = row.insertCell();

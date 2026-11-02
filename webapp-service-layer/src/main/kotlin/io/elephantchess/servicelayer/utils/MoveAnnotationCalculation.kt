@@ -14,7 +14,11 @@ private const val MAX_ABS_CP = 7_706
 
 // This is the minimum depth for any comparable annotation calculation; callers can still
 // apply stricter reporting filters separately (for example, the script's depth-20 split).
-private const val MIN_COMPARABLE_ANALYSIS_DEPTH = 18
+private const val MIN_COMPARABLE_ANALYSIS_DEPTH = 14
+
+// The two analysis lines do not have to reach the exact same depth, but their depths must stay
+// within this tolerance so a shallow line is never compared against a much deeper one.
+private const val MAX_COMPARABLE_DEPTH_DIFFERENCE = 3
 
 /**
  * Replays the game move list from [startFen] and returns the backend annotation details for each
@@ -162,8 +166,8 @@ private fun heuristicCp(infoLineResult: InfoLineResultDto): Int? {
 /**
  * Checks whether two engine info lines are safe to compare for annotation purposes.
  *
- * Both lines must have a depth, reach the minimum comparable depth, match each other's depth, and
- * expose a heuristic score after cp/mate normalization.
+ * Both lines must have a depth, reach the minimum comparable depth, stay within the allowed depth
+ * difference of each other, and expose a heuristic score after cp/mate normalization.
  */
 fun hasComparableAnalysisData(engineBest: InfoLineResultDto, actualMove: InfoLineResultDto): Boolean {
     val engineDepth = engineBest.depth ?: return false
@@ -171,7 +175,7 @@ fun hasComparableAnalysisData(engineBest: InfoLineResultDto, actualMove: InfoLin
 
     return engineDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
         actualDepth >= MIN_COMPARABLE_ANALYSIS_DEPTH &&
-        engineDepth == actualDepth &&
+        abs(engineDepth - actualDepth) <= MAX_COMPARABLE_DEPTH_DIFFERENCE &&
         heuristicCp(engineBest) != null &&
         heuristicCp(actualMove) != null
 }

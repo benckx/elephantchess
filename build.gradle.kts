@@ -61,7 +61,7 @@ subprojects {
     }
 
     extensions.configure<KotlinJvmProjectExtension> {
-        jvmToolchain(21)
+        jvmToolchain(25)
     }
 
     repositories {
@@ -74,9 +74,11 @@ subprojects {
 
         // Align all transitive Netty modules via the Netty BOM, so the Netty version used by
         // ktor-server-netty is pinned consistently across modules.
-        val nettyBom = enforcedPlatform(rootLibs.netty.bom)
-        implementation(nettyBom)
-        testImplementation(nettyBom)
+        if (project.name !in publishableModules) {
+            val nettyBom = enforcedPlatform(rootLibs.netty.bom)
+            implementation(nettyBom)
+            testImplementation(nettyBom)
+        }
 
         // Logging and coroutines pollute the published library classpath, so only
         // non-publishable modules get them by default. Publishable libraries declare
@@ -242,7 +244,6 @@ project(":seven-kingdoms-core") {
 project(":seven-kingdoms-core-test-utils") {
     dependencies {
         implementation(project(":seven-kingdoms-core"))
-        api(rootLibs.jackson.datatype.jsr310)
         api(rootLibs.jackson.module.kotlin)
     }
 }
@@ -338,7 +339,6 @@ project(":webapp") {
         implementation(rootLibs.ktor.serialization.kotlinx.json)
         implementation(rootLibs.ktor.server.websockets)
         implementation(rootLibs.ktor.server.compression)
-        implementation(rootLibs.jackson.datatype.jsr310)
         implementation(rootLibs.jackson.module.kotlin)
         implementation(rootLibs.cache4k)
         testImplementation(rootLibs.ktor.server.test.host)

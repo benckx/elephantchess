@@ -67,12 +67,12 @@ class AdminMonthlyMetricsPage extends BasePage {
     }
 
     #fetchAllData() {
-        this.#pendingRequests = 4; // monthly stats, online users, pvp join source, thrown exceptions
+        this.#pendingRequests = 3; // monthly stats, pvp join source, thrown exceptions
         this.#totalRequests = this.#pendingRequests;
         this.#updateLoadingDisplay();
 
         this.#fetchMonthlyData();
-        this.#fetchOnlineUsersData();
+        // this.#fetchOnlineUsersData();
         this.#fetchPvpJoinSourceData();
         this.#fetchThrownExceptionsData();
     }
@@ -86,6 +86,7 @@ class AdminMonthlyMetricsPage extends BasePage {
         });
     }
 
+    // disabled for now because the data is not reliable and will be reset
     #fetchOnlineUsersData() {
         getAndHandle(`${ADMIN_URL_PREFIX}/online-users-stats-by-month?months=12`, json => {
             this.#onlineUsersData = json;
@@ -134,7 +135,7 @@ class AdminMonthlyMetricsPage extends BasePage {
     }
 
     #renderChartsIfReady() {
-        if (this.#monthlyData && this.#onlineUsersData && this.#pvpJoinSourceData && this.#thrownExceptionsData) {
+        if (this.#monthlyData && this.#pvpJoinSourceData && this.#thrownExceptionsData) {
             this.#renderAllCharts();
         }
     }
@@ -211,8 +212,8 @@ class AdminMonthlyMetricsPage extends BasePage {
     #renderAllCharts() {
         const container = document.getElementById('charts-container');
 
-        this.#renderOnlineUserChart(container, 'online users (avg)', 'chart-online-avg', this.#extractOnlineUsersData('avgTotal'));
-        this.#renderOnlineUserChart(container, 'online users (max)', 'chart-online-max', this.#extractOnlineUsersData('maxTotal'));
+        // this.#renderOnlineUserChart(container, 'online users (avg)', 'chart-online-avg', this.#extractOnlineUsersData('avgTotal'));
+        // this.#renderOnlineUserChart(container, 'online users (max)', 'chart-online-max', this.#extractOnlineUsersData('maxTotal'));
         this.#renderCombinedPvPPvBChart(container);
         this.#metrics.forEach((metricName, index) => this.#renderMetricChart(container, metricName, index));
         this.#renderPvpPercentageChart(container);

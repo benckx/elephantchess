@@ -67,7 +67,15 @@ class PuzzleNumbersBarChart extends ApexChartWidget {
                     },
                 },
                 stroke: {width: 0},
-                xaxis: {categories: historyDto.daysCategories},
+                xaxis: {type: 'category', categories: historyDto.daysCategories},
+                yaxis: {
+                    labels: {
+                        trim: false,
+                        minWidth: 90,
+                        maxWidth: 160,
+                        style: {fontSize: '12px'}
+                    }
+                },
                 fill: {opacity: 1},
                 legend: {show: false}
             };

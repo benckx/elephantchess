@@ -24,6 +24,8 @@ data class ListGamesResponse(val entries: List<Entry>) {
         val created: Long,
         val lastUpdated: Long,
         val sourceType: GameJoinSource?,
+        val hasSockPuppetDetection: Boolean,
+        val sockPuppetReportDate: Long?,
         val variant: Variant?,
     )
 }

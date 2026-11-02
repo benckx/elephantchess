@@ -130,6 +130,29 @@ deploy.json
 # --- Database dump harvesting ---
 .sql
 
+# --- Runtime config / log file harvesting (seen in prod 404 probes) ---
+/app.log
+/application.properties
+/config.ini
+/configuration
+/database.config
+database.yml
+debug.log
+/debug/
+dev/
+/error.log
+/.json
+/.kube/
+/logs/
+/panel=config
+/php_error.log
+/readme.md
+/server.js
+/temp/
+/test
+/test/
+/tmp/
+
 # --- AI agent / MCP config harvesting ---
 mcp.json
 mcp_config.json
@@ -163,6 +186,7 @@ asset-manifest.json
 ..;/
 ....//
 %2e
+%2f
 /@fs/
 /var/run/secrets
 /latest/meta-data
@@ -189,7 +213,7 @@ statamic
 pimcore
 /redmine/
 __vite
-/_next/
+/_next
 .astro.mjs
 main.js.map
 index.js.map
@@ -198,6 +222,9 @@ index.js.map
 /api/console/api_server
 /ipfs/
 actpt_5g.data
+/_image
+ngsw.json
+sitemap_index
 
 # --- API discovery probes (this app exposes no OpenAPI / GraphQL / SOAP endpoint) ---
 openapi.json
@@ -265,6 +292,50 @@ com_jce
 /studio
 /checkout
 /public/admin.json
+
+# --- SaaS / dev-platform / cloud-console path scans ---
+# A second burst from scanners enumerating a generic SaaS / dev-platform / cloud
+# console (again carrying the `x-middleware-subrequest` middleware-bypass header).
+# This app ships none of these pages, so every one of them is a scanner 404.
+/signin
+/signup
+/register
+/account
+/auth
+/console
+/backoffice
+/portal
+/panel
+/dashboard
+/organization
+/billing
+/tokens
+/keys
+/projects
+/members
+/team
+/agents
+/prompts
+/models
+/flows
+/analytics
+/integrations
+/infrastructure
+/deployments
+/clusters
+/environments
+/pipelines
+/releases
+/builds
+/monitoring
+/alerts
+/incidents
+/logs
+/storage
+/buckets
+/databases
+/security
+/docs
 
 # --- Benign automatic client / OS probes ---
 apple-touch-icon

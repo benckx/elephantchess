@@ -25,13 +25,64 @@ function userTypeFromName(name) {
 }
 
 /**
+ * Builds a link to the admin user insights page.
+ *
+ * @param userId {string|null}
+ * @param username {string|null}
+ * @param userType {string}
+ * @param maxLength {number|null}
+ * @param removeGuestPrefix {boolean}
+ * @returns {HTMLElement}
+ */
+function buildAdminUsernameSpan(userId, username, userType, maxLength = null, removeGuestPrefix = false) {
+    let identifier = null;
+    let label = null;
+
+    switch (userType) {
+        case UserType.AUTHENTICATED:
+            identifier = username ?? userId;
+            if (identifier != null) {
+                const span = document.createElement('span');
+                span.innerText = maxLength != null ? cropText(identifier, maxLength) : identifier;
+                label = span;
+            }
+            break;
+        case UserType.GUEST:
+            identifier = userId;
+            if (userId != null) {
+                if (removeGuestPrefix) {
+                    const span = document.createElement('span');
+                    span.className = 'guest-name';
+                    const rawId = String(userId).replace(/^guest\s+/i, '').trim();
+                    span.innerText = '#' + (maxLength != null ? cropText(rawId, maxLength) : rawId);
+                    label = span;
+                } else {
+                    label = buildGuestUserSpan(userId, maxLength);
+                }
+            }
+            break;
+    }
+
+    if (identifier == null || label == null) {
+        return buildUsernameSpan(userId, username, userType, maxLength, removeGuestPrefix);
+    }
+
+    const link = document.createElement('a');
+    link.className = 'admin-user-link';
+    link.href = '/admin/user/' + encodeURIComponent(identifier);
+    link.append(label);
+    return link;
+}
+
+/**
  * Renders exception entries into a table row
  * @param entry - The exception entry object with properties: exceptionTime, httpCode, exceptionClass, exceptionMessage
  * @param row - The table row to populate
- * @param options - Optional configuration: { showFullyQualifiedClassName: boolean }
+ * @param options - Optional configuration: { showFullyQualifiedClassName: boolean, maxMessageLength: number }
  */
 function renderExceptionRow(entry, row, options = {}) {
     const showFullyQualifiedClassName = options.showFullyQualifiedClassName ?? true;
+    const maxMessageLength = options.maxMessageLength ?? 1_000;
 
     // exception time
     const timeCell = row.insertCell();
@@ -76,8 +127,8 @@ function renderExceptionRow(entry, row, options = {}) {
         details.className = 'exception-trace';
 
         const summary = document.createElement('summary');
-        summary.innerText = entry.exceptionMessage;
-        summary.title = entry.exceptionMessage;
+        summary.innerText = cropText(entry.exceptionMessage, maxMessageLength);
+        summary.title = cropText(entry.exceptionMessage, maxMessageLength);
         details.appendChild(summary);
 
         const trace = document.createElement('pre');

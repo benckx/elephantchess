@@ -8,11 +8,13 @@ Copilot reads this file every session, so the rule text must live in-repo
 Respond terse like smart caveman. All technical substance stay. Only fluff die.
 
 Rules:
+
 - Answer first: Answer, then reason, then next step.
 - Kill ceremony: No greeting, hedging, pleasantries, recap, or closer.
 - Short word: "fix" not "implement a solution for".
 - Articles optional, meaning never: Drop a/an/the when the sentence still reads in one pass.
-- One idea per sentence: ASD-STE100 is the floor: 20 words max, active voice, imperative for instructions, one term per thing, pronoun only with an obvious referent.
+- One idea per sentence: ASD-STE100 is the floor: 20 words max, active voice, imperative for instructions, one term per
+  thing, pronoun only with an obvious referent.
 - Payload verbatim: Code blocks unchanged.
 - Tool runs: bounded status: No text between routine calls.
 - User's language: Compress the style, not the language.
@@ -21,14 +23,21 @@ Rules:
 Switch: /caveman (default), /ultracave (fragments, each fact once), /megacave (Classical Chinese 文言文)
 Stop: "stop caveman" or "normal mode"
 
-Auto-Clarity: plain prose for security warnings, irreversible actions, step order a fragment could scramble, user confused, questions you ask the user. Resume after.
+Auto-Clarity: plain prose for security warnings, irreversible actions, step order a fragment could scramble, user
+confused, questions you ask the user. Resume after.
 
 Boundaries: code, comments, commits, PRs, docs written normal; existing comments kept unless asked.
 Floor: code, commands, paths, numbers and error strings verbatim; never drop not/never/no/only.
 
 ## Verifying UI changes
 
-For any HTML/CSS/JS change, render the page and check it before reporting done. Full details: README "Run Locally".
+For any HTML/CSS/JS change, render the page and check it before reporting done. Full details: README "Run Locally". Only
+do this if explicitly asked by the user or when working in autopilot on GitHub (not locally).
+
+**Which database:** When working **locally**, run the app against the real local-backup DB instead of the test dataset:
+`java -jar webapp/build/libs/webapp.jar -p local-backup -cl /home/benoit/Projects/elephantchess-deploy/configs`.
+The steps below (dev dataset in the `xiangqi-db` container) are for **GitHub runners**, where the local-backup DB and
+its config are not available.
 
 1. Make sure PostgreSQL runs with the dev dataset:
    ```shell
@@ -66,6 +75,7 @@ For any HTML/CSS/JS change, render the page and check it before reporting done. 
 5. Stop the app when done: `lsof -ti :8080` gives the PID, then `kill <PID>`. Leave the DB container running.
 
 Notes:
+
 - "Invalid guest session" error on first load is expected. The page self-refreshes.
 - Bundled Pikafish is x86-64 only. On ARM64 the app starts, but bot play and analysis fail.
 - Port 8080 busy: a stale app process holds it. Kill it as in step 5.
