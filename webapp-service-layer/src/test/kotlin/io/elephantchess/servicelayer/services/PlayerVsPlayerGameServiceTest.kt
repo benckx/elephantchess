@@ -8,7 +8,7 @@ import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
@@ -724,11 +724,11 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val expectedLoserRating = 1_000 - 8
 
                 val inviterWins =
-                    (gameData.outcome == RED_WINS && inviterColor == WHITE) ||
+                    (gameData.outcome == WHITE_WINS && inviterColor == WHITE) ||
                         (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
 
                 val inviteeWins =
-                    (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
+                    (gameData.outcome == WHITE_WINS && inviterColor == BLACK) ||
                         (gameData.outcome == BLACK_WINS && inviterColor == WHITE)
 
                 when {
@@ -811,11 +811,11 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val expectedLoserRating = 1_000 - 8
 
                 val inviterWins =
-                    (gameData.outcome == RED_WINS && inviterColor == WHITE) ||
+                    (gameData.outcome == WHITE_WINS && inviterColor == WHITE) ||
                         (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
 
                 val inviteeWins =
-                    (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
+                    (gameData.outcome == WHITE_WINS && inviterColor == BLACK) ||
                         (gameData.outcome == BLACK_WINS && inviterColor == WHITE)
 
                 when {

@@ -298,7 +298,7 @@ function millisToRelativeTimeShorthand(elapsed) {
 // TODO: rename to PGN
 function formatOutcome(outcome) {
     switch (outcome) {
-        case Outcome.RED_WINS:
+        case Outcome.WHITE_WINS:
             return '1 - 0';
         case Outcome.BLACK_WINS:
             return '0 - 1'

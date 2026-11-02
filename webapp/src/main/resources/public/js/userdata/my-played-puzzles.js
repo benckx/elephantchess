@@ -232,7 +232,7 @@ class PlayedPuzzlesPage extends InfiniteScrollPage {
                         const gameMetadata = metadata.gameMetadata;
                         let color = null;
                         switch (gameMetadata.outcome) {
-                            case Outcome.RED_WINS:
+                            case Outcome.WHITE_WINS:
                                 color = Color.RED;
                                 break;
                             case Outcome.BLACK_WINS:

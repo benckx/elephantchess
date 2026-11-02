@@ -129,12 +129,12 @@ class PlayerVsBotController {
                 if (this.#botGameDto.userColor === Color.RED) {
                     this.#botGameDto.outcome = Outcome.BLACK_WINS;
                 } else {
-                    this.#botGameDto.outcome = Outcome.RED_WINS;
+                    this.#botGameDto.outcome = Outcome.WHITE_WINS;
                 }
                 this.#botWinsCallback();
             } else if (response.isUserVictory()) {
                 if (this.#botGameDto.userColor === Color.RED) {
-                    this.#botGameDto.outcome = Outcome.RED_WINS;
+                    this.#botGameDto.outcome = Outcome.WHITE_WINS;
                 } else {
                     this.#botGameDto.outcome = Outcome.BLACK_WINS;
                 }
@@ -162,7 +162,7 @@ class PlayerVsBotController {
             if (this.#botGameDto.userColor === Color.RED) {
                 this.#botGameDto.outcome = Outcome.BLACK_WINS;
             } else {
-                this.#botGameDto.outcome = Outcome.RED_WINS;
+                this.#botGameDto.outcome = Outcome.WHITE_WINS;
             }
             callback();
         });
@@ -281,7 +281,7 @@ class PlayerVsBotController {
         }
 
         switch (dto.outcome) {
-            case Outcome.RED_WINS:
+            case Outcome.WHITE_WINS:
                 metadata.set('Result', '1-0');
                 break;
             case Outcome.BLACK_WINS:

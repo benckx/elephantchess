@@ -5,7 +5,7 @@ package io.elephantchess.csvdump
  * [PvpGame] level rather than as an enum constant.
  */
 enum class Outcome {
-    RED_WINS,
+    WHITE_WINS,
     BLACK_WINS,
     DRAW,
     ;
@@ -15,7 +15,8 @@ enum class Outcome {
         fun fromCsvOrNull(value: String): Outcome? =
             when (val trimmed = value.trim().uppercase()) {
                 "" -> null
-                "RED_WINS" -> RED_WINS
+                "RED_WINS" -> WHITE_WINS
+                "WHITE_WINS" -> WHITE_WINS
                 "BLACK_WINS" -> BLACK_WINS
                 "DRAW" -> DRAW
                 else -> throw IllegalArgumentException("unknown outcome: '$trimmed'")

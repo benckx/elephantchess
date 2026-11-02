@@ -799,14 +799,14 @@ class GameDto {
 
     userHasWon() {
         const userColor = this.colorUserPlaysWith;
-        return (userColor === Color.RED && this.#outcome === Outcome.RED_WINS) ||
+        return (userColor === Color.RED && this.#outcome === Outcome.WHITE_WINS) ||
             (userColor === Color.BLACK && this.#outcome === Outcome.BLACK_WINS);
     }
 
     userHasLost() {
         const userColor = this.colorUserPlaysWith;
         return (userColor === Color.RED && this.#outcome === Outcome.BLACK_WINS) ||
-            (userColor === Color.BLACK && this.#outcome === Outcome.RED_WINS);
+            (userColor === Color.BLACK && this.#outcome === Outcome.WHITE_WINS);
     }
 
     get hasRatingUpdate() {
@@ -839,7 +839,7 @@ class GameDto {
         }
 
         switch (this.outcome) {
-            case Outcome.RED_WINS:
+            case Outcome.WHITE_WINS:
                 metadata.set('Result', '1-0');
                 break;
             case Outcome.BLACK_WINS:

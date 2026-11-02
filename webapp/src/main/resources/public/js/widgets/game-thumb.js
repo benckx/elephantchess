@@ -256,7 +256,7 @@ class GameThumb {
         blackPlayerWinsElement.innerHTML = '';
 
         switch (gameMetadataDto.outcome) {
-            case Outcome.RED_WINS:
+            case Outcome.WHITE_WINS:
                 redPlayerWinsElement.innerHTML = WINNER_BLUE_STAR_HTML;
                 break;
             case Outcome.BLACK_WINS:
@@ -277,7 +277,7 @@ class GameThumb {
             } else {
                 if (playerNameHighlight != null) {
                     if (playerNameHighlight === gameMetadataDto.redPlayerName) {
-                        if (gameMetadataDto.outcome === Outcome.RED_WINS) {
+                        if (gameMetadataDto.outcome === Outcome.WHITE_WINS) {
                             statusDiv.innerHTML = 'win';
                         } else {
                             statusDiv.innerHTML = 'loss';
@@ -291,7 +291,7 @@ class GameThumb {
                     }
                 } else {
                     switch (gameMetadataDto.outcome) {
-                        case Outcome.RED_WINS:
+                        case Outcome.WHITE_WINS:
                             statusDiv.innerHTML = 'red wins';
                             break;
                         case Outcome.BLACK_WINS:

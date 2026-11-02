@@ -76,7 +76,7 @@ fun MoveAnalysis.setGameId(gameId: GameId) {
 }
 
 fun Color.asWinnerOutcome(): Outcome =
-    if (this == Color.WHITE) Outcome.RED_WINS else Outcome.BLACK_WINS
+    if (this == Color.WHITE) Outcome.WHITE_WINS else Outcome.BLACK_WINS
 
 fun Color.asLoserOutcome(): Outcome =
     this.reverse().asWinnerOutcome()
@@ -137,7 +137,7 @@ fun Game.userOutcome(userId: String): UserOutcome? =
             when (userColor(userId)) {
                 Color.WHITE -> {
                     when (this.outcome) {
-                        Outcome.RED_WINS -> UserOutcome.WIN
+                        Outcome.WHITE_WINS -> UserOutcome.WIN
                         Outcome.BLACK_WINS -> UserOutcome.LOSS
                         Outcome.DRAW -> UserOutcome.DRAW
                         else -> null
@@ -146,7 +146,7 @@ fun Game.userOutcome(userId: String): UserOutcome? =
 
                 Color.BLACK -> {
                     when (this.outcome) {
-                        Outcome.RED_WINS -> UserOutcome.LOSS
+                        Outcome.WHITE_WINS -> UserOutcome.LOSS
                         Outcome.BLACK_WINS -> UserOutcome.WIN
                         Outcome.DRAW -> UserOutcome.DRAW
                         else -> null

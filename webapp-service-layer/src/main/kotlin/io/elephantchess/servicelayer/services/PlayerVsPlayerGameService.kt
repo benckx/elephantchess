@@ -16,7 +16,7 @@ import io.elephantchess.model.*
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
@@ -1203,7 +1203,7 @@ class PlayerVsPlayerGameService(
             if (gameRecord.isRated && outcome != Outcome.DRAW) {
                 val k = gameRecord.kValue
                 val isInviterWinner =
-                    (outcome == RED_WINS && gameRecord.inviterColor == WHITE) ||
+                    (outcome == WHITE_WINS && gameRecord.inviterColor == WHITE) ||
                         (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
 
                 if (isInviterWinner) {

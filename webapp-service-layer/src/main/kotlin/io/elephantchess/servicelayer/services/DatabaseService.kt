@@ -524,7 +524,7 @@ class DatabaseService(
 
         gameRecords.forEach { game ->
             when (game.outcome) {
-                RED_WINS -> scores[game.redPlayer] = scores[game.redPlayer]!! + 2
+                WHITE_WINS -> scores[game.redPlayer] = scores[game.redPlayer]!! + 2
 
                 BLACK_WINS -> scores[game.blackPlayer] = scores[game.blackPlayer]!! + 2
 

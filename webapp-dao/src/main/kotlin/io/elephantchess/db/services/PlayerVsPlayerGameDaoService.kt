@@ -22,7 +22,7 @@ import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
@@ -486,19 +486,19 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val isUserPlaying = isInviter.or(isInvitee)
 
         val inviterWinCondition =
-            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(RED_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(WHITE_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
 
         val inviteeWinCondition =
             GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(BLACK_WINS))
-                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(WHITE_WINS)))
 
         val inviterLossCondition =
             GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(BLACK_WINS))
-                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(WHITE_WINS)))
 
         val inviteeLossCondition =
-            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(RED_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(WHITE_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
 
         val winCondition = isInviter.and(inviterWinCondition).or(isInvitee.and(inviteeWinCondition))

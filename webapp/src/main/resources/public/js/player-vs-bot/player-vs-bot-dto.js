@@ -300,7 +300,7 @@ class BotGameDto {
                 this.#outcome = Outcome.BLACK_WINS;
                 break;
             case Color.BLACK:
-                this.#outcome = Outcome.RED_WINS;
+                this.#outcome = Outcome.WHITE_WINS;
                 break;
         }
     }

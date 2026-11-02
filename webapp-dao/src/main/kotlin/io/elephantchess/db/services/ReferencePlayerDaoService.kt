@@ -199,7 +199,7 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
         }
 
         // count wins
-        val winsAsRed = outcomeField(REFERENCE_GAME.RED_PLAYER, RED_WINS)
+        val winsAsRed = outcomeField(REFERENCE_GAME.RED_PLAYER, WHITE_WINS)
         val winsAsBlack = outcomeField(REFERENCE_GAME.BLACK_PLAYER, BLACK_WINS)
         val totalWins = winsAsRed.plus(winsAsBlack).`as`("total_wins")
 
@@ -210,7 +210,7 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
 
         // count losses
         val lossesAsRed = outcomeField(REFERENCE_GAME.RED_PLAYER, BLACK_WINS)
-        val lossesAsBlack = outcomeField(REFERENCE_GAME.BLACK_PLAYER, RED_WINS)
+        val lossesAsBlack = outcomeField(REFERENCE_GAME.BLACK_PLAYER, WHITE_WINS)
         val totalLosses = lossesAsRed.plus(lossesAsBlack).`as`("total_losses")
 
         // total games expression for HAVING clause (can't use aliases, must use the actual expressions)
@@ -390,11 +390,11 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
 
         val records = dslContext
             .select(
-                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.RED_PLAYER, RED_WINS),
+                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.RED_PLAYER, WHITE_WINS),
                 createPlayerOutcomeSum(playerIds, REFERENCE_GAME.RED_PLAYER, BLACK_WINS),
                 createPlayerOutcomeSum(playerIds, REFERENCE_GAME.RED_PLAYER, DRAW),
                 createPlayerOutcomeSum(playerIds, REFERENCE_GAME.BLACK_PLAYER, BLACK_WINS),
-                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.BLACK_PLAYER, RED_WINS),
+                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.BLACK_PLAYER, WHITE_WINS),
                 createPlayerOutcomeSum(playerIds, REFERENCE_GAME.BLACK_PLAYER, DRAW),
             )
             .from(REFERENCE_GAME)

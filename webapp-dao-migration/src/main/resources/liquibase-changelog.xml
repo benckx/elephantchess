@@ -3004,4 +3004,22 @@
             <where>color = 'RED'</where>
         </update>
     </changeSet>
+    <changeSet id="0123" author="benckx">
+        <comment>
+            Xiangqi outcome normalization:
+            migrate persisted outcome values from RED_WINS/BLACK_WINS to WHITE_WINS/BLACK_WINS.
+        </comment>
+        <update tableName="game">
+            <column name="outcome" value="WHITE_WINS"/>
+            <where>outcome = 'RED_WINS'</where>
+        </update>
+        <update tableName="bot_game">
+            <column name="outcome" value="WHITE_WINS"/>
+            <where>outcome = 'RED_WINS'</where>
+        </update>
+        <update tableName="reference_game">
+            <column name="outcome" value="WHITE_WINS"/>
+            <where>outcome = 'RED_WINS'</where>
+        </update>
+    </changeSet>
 </databaseChangeLog>

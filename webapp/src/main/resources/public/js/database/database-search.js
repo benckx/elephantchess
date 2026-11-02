@@ -358,7 +358,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             } else {
                 // use the Outcome enum for proper type checking
                 switch (entry.outcome) {
-                    case Outcome.RED_WINS:
+                    case Outcome.WHITE_WINS:
                         outcomeDiv.textContent = 'RED';
                         outcomeDiv.classList.add('outcome-label-red-wins');
                         break;

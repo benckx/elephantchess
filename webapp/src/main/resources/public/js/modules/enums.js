@@ -45,7 +45,7 @@ const UserOutcome = Object.freeze({
 });
 
 const Outcome = Object.freeze({
-    RED_WINS: 'RED_WINS',
+    WHITE_WINS: 'WHITE_WINS',
     BLACK_WINS: 'BLACK_WINS',
     DRAW: 'DRAW'
 });
@@ -122,7 +122,7 @@ function gameOutcomeToUserOutcome(userColor, gameOutcome) {
     switch (gameOutcome) {
         case Outcome.DRAW:
             return UserOutcome.DRAW;
-        case Outcome.RED_WINS:
+        case Outcome.WHITE_WINS:
             return userColor === Color.RED ? UserOutcome.WIN : UserOutcome.LOSS;
         case Outcome.BLACK_WINS:
             return userColor === Color.BLACK ? UserOutcome.WIN : UserOutcome.LOSS;
@@ -138,7 +138,7 @@ function gameOutcomeToUserOutcome(userColor, gameOutcome) {
 function winnerColorToOutcome(color) {
     switch (color) {
         case Color.RED:
-            return Outcome.RED_WINS;
+            return Outcome.WHITE_WINS;
         case Color.BLACK:
             return Outcome.BLACK_WINS;
         default:
@@ -155,7 +155,7 @@ function loserColorToOutcome(color) {
         case Color.RED:
             return Outcome.BLACK_WINS;
         case Color.BLACK:
-            return Outcome.RED_WINS;
+            return Outcome.WHITE_WINS;
         default:
             throw new Error('Invalid color ' + color);
     }
