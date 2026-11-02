@@ -366,9 +366,16 @@ class GameThumb {
     refresh(update) {
         this.boardGui.loadFen(update.fen, true);
 
+        const isPvb = this.metadata != null && this.metadata.gameId.type === GameType.PVB;
+        const inProgress = isStatusInProgress(update.status) || (isPvb && update.status === GameEventType.CREATED);
+        const isLive = inProgress
+            && update.isRedOnline
+            && update.isBlackOnline
+            && (new Date().getTime() - update.lastUpdated) <= 180_000;
+
         const lastUpdatedDiv = this.#findFirst('game-thumb-status');
         if (lastUpdatedDiv != null) {
-            if (this.metadata != null && this.metadata.isLive()) {
+            if (isLive) {
                 lastUpdatedDiv.innerHTML = LIVE_HTML;
             } else {
                 lastUpdatedDiv.innerHTML = formatGameStatus(update.status);
