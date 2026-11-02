@@ -793,10 +793,7 @@ class Board {
 
     #detectVariantFromFen(fen) {
         const trimmed = fen.trim();
-        if (trimmed === JANGGI_START_FEN || trimmed === JANGGI_ALTERNATE_START_FEN) {
-            return VARIANT_JANGGI;
-        }
-        return VARIANT_XIANGQI;
+        return JANGGI_START_FENS.includes(trimmed) ? VARIANT_JANGGI : VARIANT_XIANGQI;
     }
 
     // TODO: update "full moves count" accordingly
@@ -1209,9 +1206,6 @@ class Board {
         result = result.concat(this.#filterMovesForCannon(position, position.getAllBottom()));
         result = result.concat(this.#filterMovesForCannon(position, position.getAllLeft()));
         result = result.concat(this.#filterMovesForCannon(position, position.getAllRight()));
-        if (this.isJanggiVariantBoard()) {
-            result = result.concat(this.#filterMovesForPalaceDiagonals(position));
-        }
         return result;
     }
 
@@ -1246,9 +1240,6 @@ class Board {
         result = result.concat(this.#filterMovesForChariot(position, position.getAllBottom()));
         result = result.concat(this.#filterMovesForChariot(position, position.getAllLeft()));
         result = result.concat(this.#filterMovesForChariot(position, position.getAllRight()));
-        if (this.isJanggiVariantBoard()) {
-            result = result.concat(this.#filterMovesForPalaceDiagonals(position));
-        }
         return result;
     }
 
@@ -1342,28 +1333,32 @@ class Board {
 
     #listMovesForAdvisor(position) {
         let result = [];
-        result.push(position.getTop());
-        result.push(position.getBottom());
-        result.push(position.getLeft());
-        result.push(position.getRight());
-        result.push(position.getTopLeft());
-        result.push(position.getTopRight());
-        result.push(position.getBottomRight());
-        result.push(position.getBottomLeft());
-        return this.#filterMovesInItsPalace(position, result);
+        const stepTargets = [
+            position.getTop(),
+            position.getBottom(),
+            position.getLeft(),
+            position.getRight(),
+            position.getTopLeft(),
+            position.getTopRight(),
+            position.getBottomRight(),
+            position.getBottomLeft(),
+        ];
+        return this.#filterMovesInItsPalace(position, stepTargets);
     }
 
     #listMovesForGeneral(position) {
         let result = [];
-        result.push(position.getTop());
-        result.push(position.getBottom());
-        result.push(position.getLeft());
-        result.push(position.getRight());
-        result.push(position.getTopLeft());
-        result.push(position.getTopRight());
-        result.push(position.getBottomRight());
-        result.push(position.getBottomLeft());
-        return this.#filterMovesInItsPalace(position, result);
+        const stepTargets = [
+            position.getTop(),
+            position.getBottom(),
+            position.getLeft(),
+            position.getRight(),
+            position.getTopLeft(),
+            position.getTopRight(),
+            position.getBottomRight(),
+            position.getBottomLeft(),
+        ];
+        return this.#filterMovesInItsPalace(position, stepTargets);
     }
 
     #filterMovesInItsPalace(position, allTargetPosition) {
@@ -1372,18 +1367,26 @@ class Board {
                 if (!target.existsOnBoard()) {
                     return false;
                 }
-                const inPalace = target.isInRedPalace();
-                const canStepAlongPalaceDiagonal = this.isJanggiVariantBoard() && target.isInAnyPalace() && !this.#hasRedPieceAt(target);
-                return (inPalace || canStepAlongPalaceDiagonal) && !this.#hasRedPieceAt(target);
+                if (this.#hasRedPieceAt(target)) {
+                    return false;
+                }
+                if (this.isJanggiVariantBoard()) {
+                    return target.isInRedPalace() || target.isInBlackPalace();
+                }
+                return target.isInRedPalace();
             });
         } else if (this.#hasBlackPieceAt(position)) {
             return allTargetPosition.filter(target => {
                 if (!target.existsOnBoard()) {
                     return false;
                 }
-                const inPalace = target.isInBlackPalace();
-                const canStepAlongPalaceDiagonal = this.isJanggiVariantBoard() && target.isInAnyPalace() && !this.#hasBlackPieceAt(target);
-                return (inPalace || canStepAlongPalaceDiagonal) && !this.#hasBlackPieceAt(target);
+                if (this.#hasBlackPieceAt(target)) {
+                    return false;
+                }
+                if (this.isJanggiVariantBoard()) {
+                    return target.isInRedPalace() || target.isInBlackPalace();
+                }
+                return target.isInBlackPalace();
             });
         } else {
             console.error("we should never pass here")

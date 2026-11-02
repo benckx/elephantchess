@@ -60,3 +60,42 @@ test('settings and test-board surface the Janggi option', () => {
     assert.match(testBoardSource, /document\.getElementById\('janggi-explanation'\)\.style\.display = 'block';/);
     assert.match(testBoardSource, /const isJanggi = variant === 'janggi';/);
 });
+
+test('xiangqi.js detects Janggi start FENs and keeps Janggi movement rules', () => {
+    const context = {
+        console,
+        Object,
+        Array,
+        Number,
+        String,
+        Date,
+        Map,
+        Set,
+        Error,
+        Math,
+    };
+    vm.createContext(context);
+    const mod = vm.runInContext('(() => {' + xiangqiSource + '; return {Board, Position, Color, JANGGI_START_FEN, JANGGI_ALTERNATE_START_FEN, DEFAULT_START_FEN}; })();', context);
+
+    const Board = mod.Board;
+    const Position = mod.Position;
+    const board = new Board();
+    board.loadFen(mod.JANGGI_START_FEN);
+    assert.equal(board.isJanggiVariantBoard(), true);
+
+    board.forceColorToPlay(mod.Color.RED);
+    const redGeneralMoves = board.listLegalMovesFrom(new Position(4, 0)).map(move => move.toAlgebraic());
+    assert.ok(redGeneralMoves.includes('e1d2'));
+    assert.ok(redGeneralMoves.includes('e1f2'));
+
+    const altBoard = new Board();
+    altBoard.loadFen(mod.JANGGI_ALTERNATE_START_FEN);
+    assert.equal(altBoard.isJanggiVariantBoard(), true);
+    altBoard.forceColorToPlay(mod.Color.RED);
+    const altMoves = altBoard.listLegalMovesFrom(new Position(4, 0)).map(move => move.toAlgebraic());
+    assert.ok(altMoves.includes('e1d2'));
+
+    const riverBoard = new Board();
+    riverBoard.loadFen(mod.DEFAULT_START_FEN);
+    assert.equal(riverBoard.isJanggiVariantBoard(), false);
+});
