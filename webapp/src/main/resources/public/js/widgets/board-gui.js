@@ -73,6 +73,57 @@ pieceImageNames.set('p', 'black_soldier.png');
 // Manchu super-chariot (combines chariot + horse + cannon powers), red only, displayed as chariot
 pieceImageNames.set('M', 'red_chariot.png');
 
+const janggiPieceImageNames = new Map();
+janggiPieceImageNames.set('K', 'red_general.png');
+janggiPieceImageNames.set('k', 'blue_general.png');
+janggiPieceImageNames.set('A', 'red_advisor.png');
+janggiPieceImageNames.set('a', 'blue_advisor.png');
+janggiPieceImageNames.set('B', 'red_elephant.png');
+janggiPieceImageNames.set('b', 'blue_elephant.png');
+janggiPieceImageNames.set('N', 'red_horse.png');
+janggiPieceImageNames.set('n', 'blue_horse.png');
+janggiPieceImageNames.set('C', 'red_cannon.png');
+janggiPieceImageNames.set('c', 'blue_cannon.png');
+janggiPieceImageNames.set('R', 'red_chariot.png');
+janggiPieceImageNames.set('r', 'blue_chariot.png');
+janggiPieceImageNames.set('P', 'red_soldier.png');
+janggiPieceImageNames.set('p', 'blue_soldier.png');
+// Manchu super-chariot (red only), shown using the red chariot asset in Janggi as well.
+janggiPieceImageNames.set('M', 'red_chariot.png');
+
+function resolvePieceStyleFolder(pieceStyle) {
+    switch (pieceStyle) {
+        case PieceStyleSetting.TRADITIONAL:
+            return 'traditional';
+        case PieceStyleSetting.ROMANIZED_ROUNDED:
+            return 'romanized_rounded';
+        case PieceStyleSetting.MODERN:
+            return 'modern';
+        case PieceStyleSetting.INK_BRUSH:
+            return 'ink_brush';
+        case PieceStyleSetting.JANGGI_CURSIVE:
+            return 'janggi_cursive';
+        case PieceStyleSetting.JANGGI_MODERN:
+            return 'janggi_modern';
+        case PieceStyleSetting.JANGGI_WESTERNIZED:
+            return 'janggi_westernized';
+        default:
+            return resolvePieceStyleFolder(PieceStyleSetting.DEFAULT);
+    }
+}
+
+function resolvePieceImageFilename(pieceChar, pieceStyle) {
+    const imageName = (resolvePieceStyleFolder(pieceStyle).startsWith('janggi_'))
+        ? janggiPieceImageNames.get(pieceChar)
+        : pieceImageNames.get(pieceChar);
+    return imageName ?? pieceImageNames.get(pieceChar) ?? 'red_general.png';
+}
+
+if (typeof globalThis !== 'undefined') {
+    globalThis.resolvePieceStyleFolder = resolvePieceStyleFolder;
+    globalThis.resolvePieceImageFilename = resolvePieceImageFilename;
+}
+
 const diagonalDescending = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="0" x2="100" y2="100" vector-effect="non-scaling-stroke" stroke="black" /></svg>';
 const diagonalRising = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="100" x2="100" y2="0" vector-effect="non-scaling-stroke" stroke="black"/></svg>';
 
@@ -167,6 +218,9 @@ const PieceStyleSetting = Object.freeze({
     ROMANIZED_ROUNDED: 'ROMANIZED_ROUNDED',
     MODERN: 'MODERN',
     INK_BRUSH: 'INK_BRUSH',
+    JANGGI_CURSIVE: 'JANGGI_CURSIVE',
+    JANGGI_MODERN: 'JANGGI_MODERN',
+    JANGGI_WESTERNIZED: 'JANGGI_WESTERNIZED',
     DEFAULT: 'TRADITIONAL',
 });
 
