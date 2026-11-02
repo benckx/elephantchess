@@ -118,14 +118,14 @@ class PuzzleService(
         val entries = request.puzzleIds.mapNotNull { puzzleId ->
             val puzzleRecords = records.filter { record -> record.get(PUZZLE.ID) == puzzleId }
             val referenceGameId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.ID) }.firstOrNull()
-            val redPlayerId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.WHITE_PLAYER) }.firstOrNull()
+            val whitePlayerId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.WHITE_PLAYER) }.firstOrNull()
             val blackPlayerId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.BLACK_PLAYER) }.firstOrNull()
             val outcome = puzzleRecords.map { record -> record.get(REFERENCE_GAME.OUTCOME) }.firstOrNull()
             val date = puzzleRecords.map { record -> record.get(REFERENCE_GAME.DATE) }.firstOrNull()
             val puzzleRating = puzzleRecords.map { record -> record.get(PUZZLE.RATING) }.firstOrNull()
 
-            val redPlayerName = puzzleRecords
-                .filter { redPlayerId != null && it.get(REFERENCE_PLAYER.ID) == redPlayerId }
+            val whitePlayerName = puzzleRecords
+                .filter { whitePlayerId != null && it.get(REFERENCE_PLAYER.ID) == whitePlayerId }
                 .map { record -> record.get(REFERENCE_PLAYER.CANONICAL_NAME) }
                 .firstOrNull()
 
@@ -137,8 +137,8 @@ class PuzzleService(
             if (referenceGameId != null) {
                 val metadata = GameMetadataDto(
                     gameId = GameId(GameType.DB, referenceGameId),
-                    redPlayerId = redPlayerId,
-                    redPlayerName = redPlayerName,
+                    redPlayerId = whitePlayerId,
+                    redPlayerName = whitePlayerName,
                     blackPlayerId = blackPlayerId,
                     blackPlayerName = blackPlayerName,
                     finalFen = puzzleRecords.map { record -> record.get(REFERENCE_GAME.FINAL_FEN) }.first(),
