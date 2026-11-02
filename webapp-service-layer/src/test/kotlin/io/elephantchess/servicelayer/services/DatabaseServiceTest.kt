@@ -57,7 +57,7 @@ class DatabaseServiceTest : ServiceTest() {
                 .set(REFERENCE_GAME.NUMBER_OF_HALF_MOVES, 0)
                 .set(REFERENCE_GAME.DATE, LocalDate.of(2026, 1, 1))
                 .set(REFERENCE_GAME.YEAR, 2026)
-                .set(REFERENCE_GAME.RED_PLAYER, "p_red")
+                .set(REFERENCE_GAME.WHITE_PLAYER, "p_red")
                 .set(REFERENCE_GAME.BLACK_PLAYER, "p_blk")
                 .set(REFERENCE_GAME.OUTCOME, Outcome.DRAW)
                 .set(

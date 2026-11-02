@@ -3022,4 +3022,10 @@
             <where>outcome = 'RED_WINS'</where>
         </update>
     </changeSet>
+    <changeSet id="0124" author="benckx">
+        <comment>Reference game player column normalization: rename red_player to white_player.</comment>
+        <renameColumn tableName="reference_game"
+                      oldColumnName="red_player"
+                      newColumnName="white_player"/>
+    </changeSet>
 </databaseChangeLog>

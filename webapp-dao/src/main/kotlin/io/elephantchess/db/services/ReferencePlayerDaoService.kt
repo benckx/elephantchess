@@ -147,7 +147,7 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
     }
 
     suspend fun listByMostNumberOfGames(limit: Int): List<NumberOfGamesRecord> {
-        val gamesAsRed = DSL.`when`(REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.RED_PLAYER), 1).otherwise(0)
+        val gamesAsRed = DSL.`when`(REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.WHITE_PLAYER), 1).otherwise(0)
         val gamesAsBlack = DSL.`when`(REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.BLACK_PLAYER), 1).otherwise(0)
         val totalGames = DSL.sum(gamesAsRed).plus(DSL.sum(gamesAsBlack)).`as`("total_games")
 
@@ -164,7 +164,7 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
             .from(REFERENCE_PLAYER)
             .join(REFERENCE_GAME)
             .on(
-                REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.RED_PLAYER)
+                REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.WHITE_PLAYER)
                     .or(REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.BLACK_PLAYER)),
             )
             .groupBy(
@@ -199,7 +199,7 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
         }
 
         // count wins
-        val winsAsRed = outcomeField(REFERENCE_GAME.RED_PLAYER, WHITE_WINS)
+        val winsAsRed = outcomeField(REFERENCE_GAME.WHITE_PLAYER, WHITE_WINS)
         val winsAsBlack = outcomeField(REFERENCE_GAME.BLACK_PLAYER, BLACK_WINS)
         val totalWins = winsAsRed.plus(winsAsBlack).`as`("total_wins")
 
@@ -209,7 +209,7 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
         val totalDraws = drawsExpr.`as`("total_draws")
 
         // count losses
-        val lossesAsRed = outcomeField(REFERENCE_GAME.RED_PLAYER, BLACK_WINS)
+        val lossesAsRed = outcomeField(REFERENCE_GAME.WHITE_PLAYER, BLACK_WINS)
         val lossesAsBlack = outcomeField(REFERENCE_GAME.BLACK_PLAYER, WHITE_WINS)
         val totalLosses = lossesAsRed.plus(lossesAsBlack).`as`("total_losses")
 
@@ -232,7 +232,7 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
                 REFERENCE_GAME,
             )
             .where(
-                REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.RED_PLAYER)
+                REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.WHITE_PLAYER)
                     .or(REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.BLACK_PLAYER)),
             )
             .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
@@ -390,16 +390,16 @@ class ReferencePlayerDaoService(private val dslContext: DSLContext) {
 
         val records = dslContext
             .select(
-                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.RED_PLAYER, WHITE_WINS),
-                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.RED_PLAYER, BLACK_WINS),
-                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.RED_PLAYER, DRAW),
+                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.WHITE_PLAYER, WHITE_WINS),
+                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.WHITE_PLAYER, BLACK_WINS),
+                createPlayerOutcomeSum(playerIds, REFERENCE_GAME.WHITE_PLAYER, DRAW),
                 createPlayerOutcomeSum(playerIds, REFERENCE_GAME.BLACK_PLAYER, BLACK_WINS),
                 createPlayerOutcomeSum(playerIds, REFERENCE_GAME.BLACK_PLAYER, WHITE_WINS),
                 createPlayerOutcomeSum(playerIds, REFERENCE_GAME.BLACK_PLAYER, DRAW),
             )
             .from(REFERENCE_GAME)
             .where(
-                REFERENCE_GAME.RED_PLAYER.`in`(playerIds)
+                REFERENCE_GAME.WHITE_PLAYER.`in`(playerIds)
                     .or(REFERENCE_GAME.BLACK_PLAYER.`in`(playerIds)),
             )
             .awaitRecords()

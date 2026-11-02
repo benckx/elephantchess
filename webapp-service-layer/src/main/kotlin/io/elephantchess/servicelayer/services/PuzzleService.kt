@@ -118,7 +118,7 @@ class PuzzleService(
         val entries = request.puzzleIds.mapNotNull { puzzleId ->
             val puzzleRecords = records.filter { record -> record.get(PUZZLE.ID) == puzzleId }
             val referenceGameId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.ID) }.firstOrNull()
-            val redPlayerId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.RED_PLAYER) }.firstOrNull()
+            val redPlayerId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.WHITE_PLAYER) }.firstOrNull()
             val blackPlayerId = puzzleRecords.map { record -> record.get(REFERENCE_GAME.BLACK_PLAYER) }.firstOrNull()
             val outcome = puzzleRecords.map { record -> record.get(REFERENCE_GAME.OUTCOME) }.firstOrNull()
             val date = puzzleRecords.map { record -> record.get(REFERENCE_GAME.DATE) }.firstOrNull()
