@@ -23,7 +23,11 @@ const UCI_LETTER = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
 const PIECES_CHARS = ['c', 'r', 'n', 'b', 'a', 'k', 'p', 'm'];
 
 const DEFAULT_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0';
-const JANGGI_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0';
+const JANGGI_START_FEN = 'rheakaehr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RHEAKAEHR w - - 0 0';
+const JANGGI_ALTERNATE_START_FEN = 'rehakaher/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/REHAKAHER w - - 0 0';
+const JANGGI_START_FENS = Object.freeze([JANGGI_START_FEN, JANGGI_ALTERNATE_START_FEN]);
+const VARIANT_XIANGQI = 'XIANGQI';
+const VARIANT_JANGGI = 'JANGGI';
 
 /**
  * Manchu chess (Yitong) start FEN.
@@ -1258,6 +1262,7 @@ class Board {
 
     #listMovesForElephant(position) {
         let result = [];
+        const mustNotCrossRiver = this.#isJanggiVariantPosition(position) ? false : true;
         let topLeft = position.getTopLeft();
         let topRight = position.getTopRight();
         let bottomRight = position.getBottomRight();
@@ -1279,7 +1284,7 @@ class Board {
         return result.filter(targetPosition =>
             targetPosition.existsOnBoard() &&
             !this.containSameColors(position, targetPosition) &&
-            !this.#areOnOppositeSidesOfTheRiver(position, targetPosition)
+            (!mustNotCrossRiver || !this.#areOnOppositeSidesOfTheRiver(position, targetPosition))
         );
     }
 
@@ -1319,14 +1324,12 @@ class Board {
     #listMovesForSoldier(position) {
         let result = [];
         if (this.#hasRedPieceAt(position)) {
-            // is red
             result.push(position.getTop());
             if (this.#areOnOppositeSidesOfTheRiver(position, Position.redGeneralStartingPosition)) {
                 result.push(position.getLeft());
                 result.push(position.getRight());
             }
         } else if (this.#hasBlackPieceAt(position)) {
-            // is black
             result.push(position.getBottom());
             if (this.#areOnOppositeSidesOfTheRiver(position, Position.blackGeneralStartingPosition)) {
                 result.push(position.getLeft());
@@ -1335,6 +1338,13 @@ class Board {
         } else {
             console.warn("we should never pass here")
             return [];
+        }
+
+        if (this.#isJanggiVariantBoard()) {
+            result = result.filter(targetPosition =>
+                targetPosition.existsOnBoard() && !this.containSameColors(position, targetPosition)
+            );
+            return result;
         }
 
         return result.filter(targetPosition =>
@@ -1424,6 +1434,17 @@ class Board {
     #hasPieceOfColorAt(color, position) {
         let piece = this.getPieceAt(position);
         return piece != null && piece.color === color;
+    }
+
+    #isJanggiVariantBoard() {
+        return this.listPiecePositions().some(piecePosition => {
+            const char = piecePosition.piece.pieceChar;
+            return char === 'k' || char === 'K' || char === 'a' || char === 'A' || char === 'e' || char === 'E';
+        }) && this.outputFen().includes('k') && this.outputFen().includes('K');
+    }
+
+    #isJanggiVariantPosition(position) {
+        return this.#isJanggiVariantBoard() && position.y >= 4 && position.y <= 5;
     }
 
     #areOnOppositeSidesOfTheRiver(p1, p2) {
