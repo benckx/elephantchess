@@ -347,7 +347,7 @@ for color, target in [("red", (192, 57, 43)), ("blue", (26, 74, 134))]:
             ]
             pts = [(x / 100 * 512, y / 100 * 512) for x, y in octagon]
             draw.polygon(pts, fill=(0, 0, 0, 0), outline=palette[color]["ring"], width=8)
-            scale = 0.72
+            scale = 0.92
             scaled = recolored.resize((int(w * scale), int(h * scale)))
             offset = (512 - scaled.width) // 2, (512 - scaled.height) // 2
             canvas.alpha_composite(scaled, offset)
