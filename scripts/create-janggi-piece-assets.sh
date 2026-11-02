@@ -347,27 +347,31 @@ for color, target in [("red", (192, 57, 43)), ("blue", (26, 74, 134))]:
                     if r < 32 and g < 32 and b < 32:
                         recolored.putpixel((x, y), target + (255,))
 
-            canvas = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+            source_size = 1024
+            canvas = Image.new("RGBA", (source_size, source_size), (0, 0, 0, 0))
             draw = ImageDraw.Draw(canvas)
             octagon = [
                 (31.8, 6), (68.2, 6), (94, 31.8), (94, 68.2),
                 (68.2, 94), (31.8, 94), (6, 68.2), (6, 31.8),
             ]
-            pts = [(x / 100 * 512, y / 100 * 512) for x, y in octagon]
-            draw.polygon(pts, fill=(0, 0, 0, 0), outline=palette[color]["ring"], width=8)
+            pts = [(x / 100 * source_size, y / 100 * source_size) for x, y in octagon]
+            draw.polygon(pts, fill=(0, 0, 0, 0), outline=palette[color]["ring"], width=16)
             scale = 0.92
-            scaled = recolored.resize((int(w * scale), int(h * scale)))
-            offset = (512 - scaled.width) // 2, (512 - scaled.height) // 2
+            scaled = recolored.resize((int(w * scale * 2), int(h * scale * 2)))
+            offset = (source_size - scaled.width) // 2, (source_size - scaled.height) // 2
             canvas.alpha_composite(scaled, offset)
+
+            png_canvas = canvas.resize((512, 512), Image.Resampling.LANCZOS)
             out = style_dir / f"{color}_{piece}.png"
-            canvas.save(out)
+            png_canvas.save(out)
 
             encoded = io.BytesIO()
             canvas.save(encoded, format="PNG")
+            ring_hex = "#{:02x}{:02x}{:02x}".format(*palette[color]["ring"])
             data_uri = "data:image/png;base64," + base64.b64encode(encoded.getvalue()).decode("ascii")
-            svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="none" stroke="{palette[color]['ring']}" stroke-width="8"/>
-  <image href="{data_uri}" x="0" y="0" width="512" height="512" preserveAspectRatio="xMidYMid meet"/>
+            svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="none" stroke="{ring_hex}" stroke-width="16"/>
+  <image href="{data_uri}" x="0" y="0" width="1024" height="1024" preserveAspectRatio="xMidYMid meet"/>
 </svg>'''
             (style_dir / "svg").mkdir(exist_ok=True)
             (style_dir / "svg" / f"{color}_{piece}.svg").write_text(svg, encoding="utf-8")
