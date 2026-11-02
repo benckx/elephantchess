@@ -162,7 +162,7 @@ function renderAnalysisSummaryReport(
     const summaryBlock = document.getElementById('analysis-summary')
 
     if (isEngineDataComplete(nodes, analysisMap)) {
-        const counterRed = countMoveAnnotationTypesByColor(Color.RED);
+        const counterRed = countMoveAnnotationTypesByColor(Color.WHITE);
         const counterBlack = countMoveAnnotationTypesByColor(Color.BLACK);
 
         for (let symbolType of moveAnnotationSymbolTypesArray) {

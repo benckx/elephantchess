@@ -252,7 +252,7 @@ class PlayBotModalHandler extends ModalHandler {
     #getSelectedColor() {
         return document.getElementById('play-as-black').classList.contains(BOT_OPTION_BUTTON_SELECTED_CLASS)
             ? Color.BLACK
-            : Color.RED;
+            : Color.WHITE;
     }
 
     /**

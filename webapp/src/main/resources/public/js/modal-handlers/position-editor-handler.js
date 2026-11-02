@@ -196,7 +196,7 @@ class PositionEditorHandler extends ModalHandler {
         this.#refreshToPlayRadios();
         this.#redToPlayRadio.addEventListener('change', () => {
             if (this.#redToPlayRadio.checked) {
-                this.#applyBoardUpdate(board => board.forceColorToPlay(Color.RED));
+                this.#applyBoardUpdate(board => board.forceColorToPlay(Color.WHITE));
             }
         });
         this.#blackToPlayRadio.addEventListener('change', () => {
@@ -493,7 +493,7 @@ class PositionEditorHandler extends ModalHandler {
      */
     #refreshToPlayRadios() {
         const color = this.#editorBoardGui.board.getColorToPlay();
-        this.#redToPlayRadio.checked = (color === Color.RED);
+        this.#redToPlayRadio.checked = (color === Color.WHITE);
         this.#blackToPlayRadio.checked = (color === Color.BLACK);
     }
 

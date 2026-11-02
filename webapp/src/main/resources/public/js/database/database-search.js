@@ -395,7 +395,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
 
         // miniboard
         if (entry.finalFen != null) {
-            addMiniboardDiv(gameItem, entry.gameId.id, entry.finalFen, Color.RED);
+            addMiniboardDiv(gameItem, entry.gameId.id, entry.finalFen, Color.WHITE);
         }
 
         return gameItem;
@@ -419,13 +419,13 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             return null;
         }
 
-        if (entry.userColor === Color.RED || entry.userColor === Color.BLACK) {
+        if (entry.userColor === Color.WHITE || entry.userColor === Color.BLACK) {
             return entry.userColor;
         }
 
         if (this.#currentPlayerIds.length > 0) {
             if (entry.redPlayerId != null && this.#currentPlayerIds.includes(entry.redPlayerId)) {
-                return Color.RED;
+                return Color.WHITE;
             }
             if (entry.blackPlayerId != null && this.#currentPlayerIds.includes(entry.blackPlayerId)) {
                 return Color.BLACK;
@@ -436,14 +436,14 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         const redPlayerName = this.#normalizePlayerName(entry.redPlayerName);
         const blackPlayerName = this.#normalizePlayerName(entry.blackPlayerName);
         if (redPlayerName === searchedPlayerName) {
-            return Color.RED;
+            return Color.WHITE;
         }
         if (blackPlayerName === searchedPlayerName) {
             return Color.BLACK;
         }
 
         if (this.#currentPlayerColor === 'red') {
-            return Color.RED;
+            return Color.WHITE;
         }
         if (this.#currentPlayerColor === 'black') {
             return Color.BLACK;

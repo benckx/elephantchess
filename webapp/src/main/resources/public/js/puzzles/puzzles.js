@@ -197,7 +197,7 @@ class PuzzlesPage extends BasePage {
         this.#attempts.textContent = this.#puzzleState.attempts.toString();
 
         switch (this.#puzzleState.playerColor) {
-            case Color.RED:
+            case Color.WHITE:
                 this.#showPuzzleStateBox(PuzzleStateBoxes.PLAYING_RED);
                 break;
             case Color.BLACK:

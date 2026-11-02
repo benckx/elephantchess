@@ -285,7 +285,7 @@ class BotGameDto {
      * @return {boolean}
      */
     hasUserPlayed() {
-        return this.#moveIndex > 0 && this.#userColor === Color.RED ||
+        return this.#moveIndex > 0 && this.#userColor === Color.WHITE ||
             this.#moveIndex > 1 && this.#userColor === Color.BLACK;
     }
 
@@ -296,7 +296,7 @@ class BotGameDto {
     resign() {
         this.#status = GameEventType.RESIGNED;
         switch (this.#userColor) {
-            case Color.RED:
+            case Color.WHITE:
                 this.#outcome = Outcome.BLACK_WINS;
                 break;
             case Color.BLACK:

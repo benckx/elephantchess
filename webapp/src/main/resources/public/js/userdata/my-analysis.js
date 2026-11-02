@@ -212,7 +212,7 @@ class MyAnalysisPage extends InfiniteScrollPage {
 
             this.#myGameItems.append(item);
             if (entry.selectedNodeFen != null) {
-                addMiniboardDiv(item, entry.analysisId, entry.selectedNodeFen, Color.RED);
+                addMiniboardDiv(item, entry.analysisId, entry.selectedNodeFen, Color.WHITE);
             }
 
             // left pane

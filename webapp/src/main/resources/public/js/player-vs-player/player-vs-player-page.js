@@ -393,7 +393,7 @@ class PlayGamePage extends BasePage {
         }
 
         // update clock orientation
-        const colorUserPlaysWith = this.#gameController.gameDto.colorUserPlaysWith || Color.RED;
+        const colorUserPlaysWith = this.#gameController.gameDto.colorUserPlaysWith || Color.WHITE;
         this.#updateClocksOrientation(colorUserPlaysWith);
 
         // update clocks
@@ -564,7 +564,7 @@ class PlayGamePage extends BasePage {
             let inviteeDiv = null;
 
             switch (gameDto.inviterColor) {
-                case Color.RED:
+                case Color.WHITE:
                     inviterDiv = this.#redPlayerInfo;
                     inviteeDiv = this.#blackPlayerInfo;
                     this.#redPlayerInfo.style.display = 'block';
@@ -633,7 +633,7 @@ class PlayGamePage extends BasePage {
     #updateGameStatusInfo() {
         function colorToStatusText(color) {
             switch (color) {
-                case Color.RED:
+                case Color.WHITE:
                     return 'Red to play';
                 case Color.BLACK:
                     return 'Black to play';
@@ -771,7 +771,7 @@ class PlayGamePage extends BasePage {
         }
 
         switch (color) {
-            case Color.RED:
+            case Color.WHITE:
                 this.#topCounter.classList.add('black-counter');
                 this.#bottomCounter.classList.add('red-counter');
                 this.#miniTopCounter.classList.add('black-counter');

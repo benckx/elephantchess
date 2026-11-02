@@ -255,7 +255,7 @@ class PerpetualCheckingTracker {
     constructor(startFen = DEFAULT_START_FEN) {
         this.#startFen = startFen;
         this.#board.loadFen(startFen);
-        this.#historyByColor.set(Color.RED, new PerpetualCheckingHistoryForColor(Color.RED));
+        this.#historyByColor.set(Color.WHITE, new PerpetualCheckingHistoryForColor(Color.WHITE));
         this.#historyByColor.set(Color.BLACK, new PerpetualCheckingHistoryForColor(Color.BLACK));
     }
 
@@ -342,7 +342,7 @@ class PerpetualCheckingTrackerWidget {
         const element = document.getElementById(this.#elementId);
         const boxes = element.getElementsByClassName(PERPETUAL_CHECKING_INFO_BOX_SUB_BOXES);
         if (boxes.length === 2) {
-            this.#renderForColor(Color.RED, boxes[0]);
+            this.#renderForColor(Color.WHITE, boxes[0]);
             this.#renderForColor(Color.BLACK, boxes[1]);
         }
     }

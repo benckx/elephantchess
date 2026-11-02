@@ -191,7 +191,7 @@ class GameThumb {
         blackPlayerNameElement.innerHTML = '';
 
         switch (gameMetadataDto.userColor) {
-            case Color.RED:
+            case Color.WHITE:
                 // PvB game, user plays RED
                 redPlayerNameElement.append(buildRedUsername());
                 blackPlayerNameElement.innerText = gameMetadataDto.blackPlayerName;

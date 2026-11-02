@@ -201,7 +201,7 @@ private suspend fun updateCache(transaction: DSLContext, id: Int, record: Openin
     transaction
         .update(OPENING_PRE_CALCULATION_CACHE)
         .set(OPENING_PRE_CALCULATION_CACHE.OCCURRENCES, record.occurrences)
-        .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_WHITE_WINS, record.outcomeRedWins)
+        .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_RED_WINS, record.outcomeRedWins)
         .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_BLACK_WINS, record.outcomeBlackWins)
         .set(OPENING_PRE_CALCULATION_CACHE.OUTCOME_DRAWS, record.outcomeDraws)
         .set(OPENING_PRE_CALCULATION_CACHE.ENTRY_UPDATE, record.entryUpdate)

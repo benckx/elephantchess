@@ -85,10 +85,10 @@ const Role = Object.freeze({
 
 function oppositeColor(color) {
     switch (color) {
-        case Color.RED:
+        case Color.WHITE:
             return Color.BLACK;
         case Color.BLACK:
-            return Color.RED;
+            return Color.WHITE;
         default:
             throw new Error('Invalid color ' + color);
     }
@@ -123,7 +123,7 @@ function gameOutcomeToUserOutcome(userColor, gameOutcome) {
         case Outcome.DRAW:
             return UserOutcome.DRAW;
         case Outcome.WHITE_WINS:
-            return userColor === Color.RED ? UserOutcome.WIN : UserOutcome.LOSS;
+            return userColor === Color.WHITE ? UserOutcome.WIN : UserOutcome.LOSS;
         case Outcome.BLACK_WINS:
             return userColor === Color.BLACK ? UserOutcome.WIN : UserOutcome.LOSS;
         default:
@@ -137,7 +137,7 @@ function gameOutcomeToUserOutcome(userColor, gameOutcome) {
  */
 function winnerColorToOutcome(color) {
     switch (color) {
-        case Color.RED:
+        case Color.WHITE:
             return Outcome.WHITE_WINS;
         case Color.BLACK:
             return Outcome.BLACK_WINS;
@@ -152,7 +152,7 @@ function winnerColorToOutcome(color) {
  */
 function loserColorToOutcome(color) {
     switch (color) {
-        case Color.RED:
+        case Color.WHITE:
             return Outcome.BLACK_WINS;
         case Color.BLACK:
             return Outcome.WHITE_WINS;
