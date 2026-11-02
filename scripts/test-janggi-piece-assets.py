@@ -15,10 +15,13 @@ COLORS = {"red": (192, 57, 43), "blue": (26, 74, 134)}
 NAMES = ("general", "advisor", "elephant", "horse", "chariot", "cannon", "soldier")
 
 
-def render(svg, size):
+def render(svg, size=None):
     if shutil.which("rsvg-convert"):
+        command = ["rsvg-convert"]
+        if size is not None:
+            command += ["--width", str(size), "--height", str(size)]
         data = subprocess.run(
-            ["rsvg-convert", "--width", str(size), "--height", str(size)],
+            command,
             input=svg.read_bytes(), capture_output=True, check=True,
         ).stdout
     else:
@@ -55,12 +58,14 @@ class WesternizedPieceAssetsTest(unittest.TestCase):
                     with Image.open(STYLE / f"{color}_{name}.png") as png:
                         png = png.convert("RGBA")
                         self.assertEqual(png.size, (512, 512))
-                        self.assertIsNone(ImageChops.difference(png, render(svg, 512)).getbbox())
+                        vector = render(svg)
+                        self.assertEqual(vector.size, png.size)
+                        self.assertIsNone(ImageChops.difference(png, vector).getbbox())
                         self.assertEqual(png.getpixel((10, 10))[3], 0)
                         self.assertEqual(png.getpixel((256, 41)), (255, 250, 240, 255))
                         self.assertEqual(png.getpixel((41, 256)), (255, 250, 240, 255))
 
-    def test_pictograms_are_large_centered_and_inside_octagon(self):
+    def test_pictograms_are_centered_with_margin_inside_octagon(self):
         for color, rgb in COLORS.items():
             for name in NAMES:
                 with self.subTest(color=color, piece=name):
@@ -69,12 +74,13 @@ class WesternizedPieceAssetsTest(unittest.TestCase):
                     left, top, right, bottom = mask.getbbox()
                     self.assertLess(abs((left + right) / 2 - 256), 3)
                     self.assertLess(abs((top + bottom) / 2 - 256), 3)
-                    self.assertGreater(max(right - left, bottom - top), 340)
-                    self.assertGreater(right - left + bottom - top, 580)
+                    self.assertGreater(max(right - left, bottom - top), 285)
+                    self.assertLess(max(right - left, bottom - top), 342)
+                    self.assertGreater(right - left + bottom - top, 490)
                     for y in range(512):
                         for x in range(512):
                             if mask.getpixel((x, y)):
-                                self.assertLess(abs(x - 256) + abs(y - 256), 308)
+                                self.assertLess(abs(x - 256) + abs(y - 256), 262)
 
     def test_piece_names_keep_original_pictograms(self):
         for name in NAMES:

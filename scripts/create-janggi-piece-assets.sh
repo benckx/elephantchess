@@ -361,7 +361,7 @@ for piece, glyph_id in glyph_ids.items():
         for x in range(cropped.width)
         if pixels[x, y]
     )
-    scale = min(78 / width, 78 / height, 60 / diagonal)
+    scale = 0.85 * min(78 / width, 78 / height, 60 / diagonal)
 
     for color, colors in palette.items():
         pictogram = copy.deepcopy(glyph)
@@ -373,7 +373,7 @@ for piece, glyph_id in glyph_ids.items():
                         node.attrib[attr], flags=re.IGNORECASE,
                     )
         svg = ET.Element(f"{{{namespace}}}svg", {
-            "viewBox": "0 0 100 100", "width": "256", "height": "256",
+            "viewBox": "0 0 100 100", "width": "512", "height": "512",
         })
         ET.SubElement(svg, f"{{{namespace}}}polygon", {
             "points": "31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8",
