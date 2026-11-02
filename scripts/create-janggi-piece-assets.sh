@@ -297,6 +297,8 @@ create_westernized_piece_pngs() {
 
     mkdir -p "${style_dir}/svg"
     python3 - "${style_dir}" "${source_dir}" <<'PY'
+import base64
+import io
 import sys
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -357,9 +359,12 @@ for color, target in [("red", (192, 57, 43)), ("blue", (26, 74, 134))]:
             out = style_dir / f"{color}_{piece}.png"
             canvas.save(out)
 
+            encoded = io.BytesIO()
+            canvas.save(encoded, format="PNG")
+            data_uri = "data:image/png;base64," + base64.b64encode(encoded.getvalue()).decode("ascii")
             svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="#fffaf0" stroke="{palette[color]['ring']}" stroke-width="8" transform="scale(5.12)"/>
-  <image href="file://{out}" x="0" y="0" width="512" height="512"/>
+  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="#fffaf0" stroke="{palette[color]['ring']}" stroke-width="8"/>
+  <image href="{data_uri}" x="0" y="0" width="512" height="512" preserveAspectRatio="xMidYMid meet"/>
 </svg>'''
             (style_dir / "svg").mkdir(exist_ok=True)
             (style_dir / "svg" / f"{color}_{piece}.svg").write_text(svg, encoding="utf-8")
