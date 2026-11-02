@@ -4,6 +4,7 @@ import io.elephantchess.xiangqi.Board
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -16,13 +17,13 @@ class PvpMovesCsvParserTest {
 
     @Test
     fun `parseRows reads every data row of the CSV`() {
-        // 7669 lines in the file minus the header line.
-        assertEquals(7668, rows.size)
+        // 9486 lines in the file minus the header line.
+        assertEquals(9485, rows.size)
     }
 
     @Test
     fun `parseGames reads every distinct game`() {
-        assertEquals(167, games.size)
+        assertEquals(200, games.size)
     }
 
     @Test
@@ -51,11 +52,11 @@ class PvpMovesCsvParserTest {
 
     @Test
     fun `a known game exposes its metadata, players and parsed moves`() {
-        val game = games.first { it.gameId == "BhBxaEr3QaEp" }
+        val game = games.first { it.gameId == "Vc04CIAc6UWQ" }
 
         // players
-        assertEquals("xV3gi1vIi8f5", game.redPlayer.name)
-        assertEquals("9hJAL2t7Xodm", game.blackPlayer.name)
+        assertEquals("LiLirzVBoGG9", game.redPlayer.name)
+        assertEquals("QYTp8qCX6Xb8", game.blackPlayer.name)
         assertEquals(27.days, game.redPlayer.accountAge)
         assertEquals(UserType.GUEST, game.redPlayer.userType)
 
@@ -71,6 +72,8 @@ class PvpMovesCsvParserTest {
         assertEquals(RatingMode.RATED, game.ratingMode)
         assertEquals(Outcome.RED_WINS, game.outcome)
         assertEquals(GameJoinSource.LINK, game.gameJoinSource)
+        assertEquals(17.seconds, game.matchingTime)
+        assertEquals(false, game.hasSockPuppetReport)
 
         val firstMove = game.moves.first()
         assertEquals("h2h6", firstMove.moveUci)
@@ -88,7 +91,7 @@ class PvpMovesCsvParserTest {
 
     @Test
     fun `approximate account creation subtracts account age from the game start`() {
-        val game = games.first { it.gameId == "BhBxaEr3QaEp" }
+        val game = games.first { it.gameId == "Vc04CIAc6UWQ" }
 
         // Game starts at the first move's timestamp.
         assertEquals(Instant.parse("2026-07-07T08:31:02.894710Z"), game.startTime)
@@ -129,19 +132,99 @@ class PvpMovesCsvParserTest {
     }
 
     @Test
+    fun `game report and matching time come from the lowest move index`() {
+        val game = PvpGame.fromCsvRows(
+            listOf(
+                gameRow(moveIndex = 1, matchingTime = "99", report = "false"),
+                gameRow(moveIndex = 0, matchingTime = " 42 ", report = " true "),
+            ),
+        ).single()
+        assertEquals(42.seconds, game.matchingTime)
+        assertTrue(game.hasSockPuppetReport)
+    }
+
+    @Test
+    fun `game without report parses false and blank matching time parses null`() {
+        val game = PvpGame.fromCsvRows(listOf(gameRow(matchingTime = " ", report = "false"))).single()
+        assertNull(game.matchingTime)
+        assertEquals(false, game.hasSockPuppetReport)
+    }
+
+    @Test
+    fun `zero matching time is not treated as missing`() {
+        val game = PvpGame.fromCsvRows(listOf(gameRow(matchingTime = "0"))).single()
+        assertEquals(0.seconds, game.matchingTime)
+    }
+
+    @Test
+    fun `invalid report and matching time fail explicitly`() {
+        listOf("", "yes").forEach { report ->
+            assertFailsWith<IllegalArgumentException> {
+                PvpGame.fromCsvRows(listOf(gameRow(report = report)))
+            }
+        }
+        assertFailsWith<NumberFormatException> {
+            PvpGame.fromCsvRows(listOf(gameRow(matchingTime = "invalid")))
+        }
+    }
+
+    @Test
+    fun `exported game metadata matches every move row`() {
+        val gamesById = games.associateBy { it.gameId }
+        rows.forEach { row ->
+            val game = gamesById.getValue(row.value("game_id"))
+            assertEquals(row.value("has_sock_puppet_report").toBooleanStrict(), game.hasSockPuppetReport)
+            assertEquals(row.intOrNull("matching_time_seconds")?.seconds, game.matchingTime)
+        }
+    }
+
+    @Test
     fun `parseRowsFromZip reads rows from every CSV inside the archive`() {
         val rows = PvpMovesCsvParser.parseRowsFromZip(zipPath())
-        assertEquals(20177, rows.size)
+        assertEquals(21375, rows.size)
     }
 
     @Test
     fun `parseGamesFromZip aggregates games across every CSV inside the archive`() {
         val games = PvpMovesCsvParser.parseGamesFromZip(zipPath())
         assertEquals(400, games.size)
-        assertEquals(20177, games.sumOf { game -> game.moveCount })
+        assertEquals(21375, games.sumOf { game -> game.moveCount })
+        assertEquals(72, games.count { it.hasSockPuppetReport })
+        assertEquals(328, games.count { !it.hasSockPuppetReport })
     }
 
     companion object {
+
+        private fun gameRow(moveIndex: Int = 0, matchingTime: String = "42", report: String = "true"): CsvRow =
+            CsvRow(
+                mapOf(
+                    "game_id" to "game",
+                    "timestamp" to "2026-07-07T08:31:02.894710Z",
+                    "move_index" to moveIndex.toString(),
+                    "move" to "h2h6",
+                    "red_player" to "red",
+                    "black_player" to "black",
+                    "red_account_age" to "",
+                    "black_account_age" to "",
+                    "red_user_type" to "GUEST",
+                    "black_user_type" to "GUEST",
+                    "red_elo_before" to "",
+                    "red_elo_after" to "",
+                    "black_elo_before" to "",
+                    "black_elo_after" to "",
+                    "time_control" to "1800+0",
+                    "time_control_category" to "RAPID",
+                    "rating_mode" to "rated",
+                    "game_status" to "CHECKMATED",
+                    "outcome" to "RED_WINS",
+                    "game_join_source" to "LINK",
+                    "move_analysis" to "",
+                    "engine_analysis" to "",
+                    "cpl" to "",
+                    "matching_time_seconds" to matchingTime,
+                    "has_sock_puppet_report" to report,
+                ),
+            )
 
         private fun csvPath(): String =
             File(

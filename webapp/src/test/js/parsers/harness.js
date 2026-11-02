@@ -83,8 +83,10 @@ function loadParsers() {
         clearTimeout: clearTimeout,
         // utils.js calls dayjs.extend(...) at load time; the parsers never use
         // dayjs, so a no-op stub is enough to evaluate the file.
-        dayjs: Object.assign(() => ({}), {extend: () => {
-        }}),
+        dayjs: Object.assign(() => ({}), {
+            extend: () => {
+            }
+        }),
         dayjs_plugin_utc: {}
     };
     sandbox.globalThis = sandbox;

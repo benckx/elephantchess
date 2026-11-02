@@ -55,33 +55,6 @@
     height: 45px;
 }
 
-#create-new-game-modal .option-button-div {
-    border: 2px solid #605f5f;
-    border-radius: 10px;
-    background-color: #f5eee5;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    margin: 0 auto;
-    cursor: pointer;
-}
-
-#create-new-game-modal .option-button-div-selected {
-    background-color: #fcfaf8;
-    box-shadow: rgba(0, 0, 0, 0.09) 0 3px 3px, rgba(0, 0, 0, 0.12) 0 3px 3px;
-    font-weight: bold;
-    border-color: #124610;
-    border-width: 3px;
-}
-
-#create-new-game-modal .option-button-div-disabled {
-    background-color: #c6c4c0;
-    cursor: not-allowed;
-    color: #5e5d5d;
-}
-
 #create-new-game-modal #additional-options-box {
     display: flex;
     align-items: center;
@@ -204,5 +177,10 @@
     #create-new-game-modal .standard-checkbox .label-span label,
     #create-new-game-modal .standard-radio .label-span label {
         font-size: 34px;
+    }
+
+    .modal-content .standard-checkbox {
+        margin-top: 5px;
+        margin-bottom: 5px;
     }
 }

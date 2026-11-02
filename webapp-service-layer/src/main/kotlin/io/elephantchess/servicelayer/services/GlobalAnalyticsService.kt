@@ -216,7 +216,7 @@ class GlobalAnalyticsService(
     private fun computeGlobalAppData(): GlobalAppDataResponse {
         val lastDeploy =
             if (isDockerized) {
-                podService.getLastRedeployTime() ?: Clock.System.now()
+                podService.getLastRedeployTime()
             } else {
                 Clock.System.now().minusHours(4L)
             }

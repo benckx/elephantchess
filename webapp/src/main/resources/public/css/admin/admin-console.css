@@ -80,6 +80,10 @@ h2 {
     margin-top: 2px;
 }
 
+.admin-user-link .guest-name {
+    color: #7d09a6;
+}
+
 #users-analysis {
     border-spacing: 0 5px;
 }
@@ -106,6 +110,11 @@ h2 {
     margin-top: 16px;
     margin-bottom: 20px;
     font-size: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    column-gap: 20px;
+    row-gap: 12px;
 }
 
 .admin-submenu > div {
@@ -120,10 +129,18 @@ h2 {
     margin-right: 8px;
 }
 
+.admin-submenu-cell {
+    text-align: center;
+    align-self: flex-start;
+}
+
 .admin-submenu-link {
+    display: inline-block;
     text-decoration: none;
     margin-left: 4px;
     margin-right: 4px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .admin-submenu-link.active {
@@ -136,8 +153,12 @@ h2 {
         font-size: 30px;
     }
 
+    .admin-submenu-cell {
+        width: calc((100% - 40px) / 3);
+    }
+
     .admin-submenu-category {
-        width: 160px;
+        width: auto;
     }
 }
 

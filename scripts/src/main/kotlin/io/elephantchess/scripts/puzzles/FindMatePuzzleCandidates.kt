@@ -33,6 +33,7 @@ private val logger = KotlinLogging.logger {}
  *
  * The CSV is then consumed by [CreatePuzzlesFromCsv] to create the actual puzzles.
  */
+// TODO: the FindMatePuzzleCandidates script didn't include the move history, which is a bit messy to reconstruct from the reference game
 object FindMatePuzzleCandidates : KoinScript {
 
     private const val DEPTH = 22
@@ -51,7 +52,7 @@ object FindMatePuzzleCandidates : KoinScript {
         val enginePool = EnginePool(
             configMap = mapOf(
                 PikafishEngineId to EngineConfig(
-                    version = "2023-03-05",
+                    version = "2026-09-06",
                     poolSize = 1,
                     numberOfThreads = ENGINE_THREADS,
                 ),

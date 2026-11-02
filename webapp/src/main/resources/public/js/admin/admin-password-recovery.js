@@ -107,7 +107,7 @@ class AdminPasswordRecovery extends BasePage {
             // user
             const userCell = row.insertCell();
             if (entry.userId != null && entry.username != null && entry.recoveryTime != null) {
-                userCell.append(buildUsernameSpan(entry.userId, entry.username, UserType.AUTHENTICATED));
+                userCell.append(buildAdminUsernameSpan(entry.userId, entry.username, UserType.AUTHENTICATED));
             } else {
                 userCell.innerText = '--';
             }

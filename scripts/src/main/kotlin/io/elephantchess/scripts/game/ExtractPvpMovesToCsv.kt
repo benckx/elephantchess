@@ -3,6 +3,8 @@ package io.elephantchess.scripts.game
 import com.opencsv.CSVWriter
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitRecords
+import io.elephantchess.db.utils.diffInSeconds
+import io.elephantchess.model.GameEventType.JOINED
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameJoinSource
 import io.elephantchess.model.GameType.PVP
@@ -17,6 +19,7 @@ import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.koin.core.component.inject
 import java.io.File
 import java.time.LocalDate
@@ -48,6 +51,7 @@ private val CSV_HEADER = arrayOf(
     "game_status",
     "outcome",
     "game_join_source",
+    "matching_time_seconds",
     "move_analysis",
     "engine_analysis",
     "cpl",
@@ -55,6 +59,7 @@ private val CSV_HEADER = arrayOf(
     "red_user_type",
     "black_account_age",
     "black_user_type",
+    "has_sock_puppet_report",
 )
 
 object ExtractPvpMovesToCsv : KoinScriptInit() {
@@ -74,6 +79,22 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     private suspend fun exportCsv(outputPath: String, mustAnonymize: Boolean, variant: Variant) {
         val inviterUser = USER.`as`("inviter_user")
         val inviteeUser = USER.`as`("invitee_user")
+
+        val joinedTime = DSL.field(
+            DSL
+                .select(DSL.min(GAME_STATUS_EVENT.EVENT_TIME))
+                .from(GAME_STATUS_EVENT)
+                .where(GAME_STATUS_EVENT.GAME_ID.eq(GAME.ID))
+                .and(GAME_STATUS_EVENT.EVENT_TYPE.eq(JOINED)),
+        )
+        val matchingTimeSeconds = diffInSeconds(joinedTime, GAME.CREATED)
+        val hasSockPuppetReport = DSL.field(
+            DSL.exists(
+                DSL.selectOne()
+                    .from(GAME_SOCK_PUPPET_DETECTION)
+                    .where(GAME_SOCK_PUPPET_DETECTION.GAME_ID.eq(GAME.ID)),
+            ),
+        )
 
         val rows = dslContext
             .select(
@@ -104,6 +125,8 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 inviteeUser.HANDLE,
                 inviteeUser.CREATION,
                 inviteeUser.USER_TYPE,
+                matchingTimeSeconds,
+                hasSockPuppetReport,
             )
             .from(GAME)
             .join(GAME_MOVE).on(GAME_MOVE.GAME_ID.eq(GAME.ID))
@@ -277,6 +300,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 row.get(GAME.GAME_STATUS)?.name ?: "",
                                 row.get(GAME.OUTCOME)?.name ?: "",
                                 simplifiedJoinSource,
+                                row.get(matchingTimeSeconds)?.toString() ?: "",
                                 actualMoveAnalysis?.line ?: "",
                                 engineBestAnalysis?.line ?: "",
                                 cpl?.toString() ?: "",
@@ -284,6 +308,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 redUserType?.name ?: "",
                                 blackAccountAge,
                                 blackUserType?.name ?: "",
+                                row.get(hasSockPuppetReport).toString(),
                             ),
                         )
                     }

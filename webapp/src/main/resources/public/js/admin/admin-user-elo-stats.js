@@ -81,16 +81,9 @@ class AdminUserEloStatsPage extends BasePage {
             return;
         }
 
-        if (username) {
-            const link = document.createElement('a');
-            link.href = `/@/${username}`;
-            link.innerText = username;
-            cell.appendChild(link);
-        } else if (userId) {
-            const guestName = document.createElement('span');
-            guestName.className = 'guest-name';
-            guestName.innerText = `guest #${userId}`;
-            cell.appendChild(guestName);
+        if (username || userId) {
+            const userType = username ? UserType.AUTHENTICATED : UserType.GUEST;
+            cell.appendChild(buildAdminUsernameSpan(userId, username, userType));
         } else {
             cell.innerText = '-';
             return;
