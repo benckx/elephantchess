@@ -21,11 +21,16 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const boardGuiSource = fs.readFileSync(
     path.resolve(__dirname, '../../main/resources/public/js/widgets/board-gui.js'),
+    'utf8'
+);
+const xiangqiSource = fs.readFileSync(
+    path.resolve(__dirname, '../../main/resources/public/js/modules/xiangqi.js'),
     'utf8'
 );
 const settingsSource = fs.readFileSync(

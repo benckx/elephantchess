@@ -1229,7 +1229,7 @@ class BoardGui {
                 legalMovePlaceHolder.id = this.#positionToElementId('legal_move', renderPosition);
                 pieceHolder.appendChild(legalMovePlaceHolder);
 
-                if (y === 5) {
+                if (y === 5 && !this.#board.isJanggiVariantBoard()) {
                     if (x === 0) {
                         const river = buildDivWithClass('large-river');
                         river.classList.add('board-area-river');

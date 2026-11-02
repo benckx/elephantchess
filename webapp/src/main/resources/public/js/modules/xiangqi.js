@@ -800,7 +800,7 @@ class Board {
     }
 
     // TODO: update "full moves count" accordingly
-    loadFen(fen) {
+    loadFen(fen, variant = null) {
         const split = fen.split(' ');
         const positionsFen = split[0];
         const gameStateFen = split[1];
@@ -808,7 +808,15 @@ class Board {
         if (fenLines.length !== BOARD_HEIGHT) {
             throw new Error('Invalid FEN: wrong number of component');
         }
-        this.#variant = this.#detectVariantFromFen(fen);
+
+        const detectedVariant = this.#detectVariantFromFen(fen);
+        if (variant != null) {
+            this.#variant = variant;
+        } else if (this.#variant === VARIANT_JANGGI || detectedVariant === VARIANT_JANGGI) {
+            this.#variant = VARIANT_JANGGI;
+        } else {
+            this.#variant = VARIANT_XIANGQI;
+        }
         this.clearBoard();
         for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
             this.#loadFenLine(fenLines[BOARD_HEIGHT - 1 - y], y);
@@ -1068,13 +1076,17 @@ class Board {
         let boardCopy = this.copy();
         if (boardCopy.#isPossibleMove(move)) {
             boardCopy.registerMove(move);
-            return boardCopy.#areGeneralsFacing() || boardCopy.isInCheck(color);
+            const facingGeneralsIsIllegal = !boardCopy.isJanggiVariantBoard() && boardCopy.#areGeneralsFacing();
+            return facingGeneralsIsIllegal || boardCopy.isInCheck(color);
         } else {
             return true;
         }
     }
 
     #areGeneralsFacing() {
+        if (this.isJanggiVariantBoard()) {
+            return false;
+        }
         let red = this.findGeneral(Color.RED);
         let black = this.findGeneral(Color.BLACK);
         if (red == null || black == null) {
@@ -1173,8 +1185,10 @@ class Board {
             case 'r':
                 return this.#listMovesForChariot(position);
             case 'n':
+            case 'h':
                 return this.#listMovesForHorse(position);
             case 'b':
+            case 'e':
                 return this.#listMovesForElephant(position);
             case 'a':
                 return this.#listMovesForAdvisor(position);
