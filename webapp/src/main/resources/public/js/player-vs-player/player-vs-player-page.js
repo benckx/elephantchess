@@ -667,7 +667,7 @@ class PlayGamePage extends BasePage {
         if (this.#gameController.isGameFinished()) {
             statusText = dto.formattedStatusOfFinishedGame;
             if (dto.outcome != null) {
-                outcomeText = formatEnumValue(dto.outcome);
+                outcomeText = formatXiangqiOutcome(dto.outcome);
                 if (dto.userHasWon()) {
                     outcomeText += ' (you won)';
                 } else if (dto.userHasLost()) {

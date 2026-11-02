@@ -396,6 +396,23 @@ function formatEnumValue(value) {
 }
 
 /**
+ * @param value {string}
+ * @return {string}
+ */
+function formatXiangqiOutcome(value) {
+    switch (value) {
+        case 'WHITE_WINS':
+            return 'Red wins';
+        case 'BLACK_WINS':
+            return 'Black wins';
+        case 'DRAW':
+            return 'Draw';
+        default:
+            return formatEnumValue(value);
+    }
+}
+
+/**
  * @param engine {string}
  * @return {string}
  */
