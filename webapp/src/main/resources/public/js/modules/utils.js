@@ -401,11 +401,11 @@ function formatEnumValue(value) {
  */
 function formatXiangqiOutcome(value) {
     switch (value) {
-        case 'WHITE_WINS':
+        case Outcome.WHITE_WINS:
             return 'Red wins';
-        case 'BLACK_WINS':
+        case Outcome.BLACK_WINS:
             return 'Black wins';
-        case 'DRAW':
+        case Outcome.DRAW:
             return 'Draw';
         default:
             return formatEnumValue(value);
