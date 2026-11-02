@@ -20,7 +20,7 @@
 const BOARD_WIDTH = 9;
 const BOARD_HEIGHT = 10;
 const UCI_LETTER = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
-const PIECES_CHARS = ['c', 'r', 'n', 'b', 'a', 'k', 'p', 'm'];
+const PIECES_CHARS = ['c', 'r', 'n', 'h', 'b', 'e', 'a', 'k', 'p', 'm'];
 
 const DEFAULT_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0';
 const JANGGI_START_FEN = 'rheakaehr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RHEAKAEHR w - - 0 0';
@@ -772,6 +772,7 @@ class Board {
     #redToPlay = true;
     #enforceColorTurn = true;
     #fullMovesCounts = 0;
+    #variant = VARIANT_XIANGQI;
 
     constructor() {
         for (let x = 0; x < BOARD_WIDTH; x++) {
@@ -780,6 +781,22 @@ class Board {
                 this.#content[x][y] = null;
             }
         }
+    }
+
+    setVariant(variant) {
+        this.#variant = variant;
+    }
+
+    isJanggiVariantBoard() {
+        return this.#variant === VARIANT_JANGGI;
+    }
+
+    #detectVariantFromFen(fen) {
+        const trimmed = fen.trim();
+        if (trimmed === JANGGI_START_FEN || trimmed === JANGGI_ALTERNATE_START_FEN) {
+            return VARIANT_JANGGI;
+        }
+        return VARIANT_XIANGQI;
     }
 
     // TODO: update "full moves count" accordingly
@@ -791,6 +808,7 @@ class Board {
         if (fenLines.length !== BOARD_HEIGHT) {
             throw new Error('Invalid FEN: wrong number of component');
         }
+        this.#variant = this.#detectVariantFromFen(fen);
         this.clearBoard();
         for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
             this.#loadFenLine(fenLines[BOARD_HEIGHT - 1 - y], y);
@@ -1177,6 +1195,9 @@ class Board {
         result = result.concat(this.#filterMovesForCannon(position, position.getAllBottom()));
         result = result.concat(this.#filterMovesForCannon(position, position.getAllLeft()));
         result = result.concat(this.#filterMovesForCannon(position, position.getAllRight()));
+        if (this.isJanggiVariantBoard()) {
+            result = result.concat(this.#filterMovesForPalaceDiagonals(position));
+        }
         return result;
     }
 
@@ -1211,7 +1232,24 @@ class Board {
         result = result.concat(this.#filterMovesForChariot(position, position.getAllBottom()));
         result = result.concat(this.#filterMovesForChariot(position, position.getAllLeft()));
         result = result.concat(this.#filterMovesForChariot(position, position.getAllRight()));
+        if (this.isJanggiVariantBoard()) {
+            result = result.concat(this.#filterMovesForPalaceDiagonals(position));
+        }
         return result;
+    }
+
+    #filterMovesForPalaceDiagonals(position) {
+        const palaceTargets = [
+            position.getTopLeft(),
+            position.getTopRight(),
+            position.getBottomLeft(),
+            position.getBottomRight(),
+        ];
+        return palaceTargets.filter(target => {
+            return target.existsOnBoard()
+                && !this.containSameColors(position, target)
+                && target.isInAnyPalace();
+        });
     }
 
     #filterMovesForChariot(position, allTargetPositions) {
@@ -1262,7 +1300,7 @@ class Board {
 
     #listMovesForElephant(position) {
         let result = [];
-        const mustNotCrossRiver = this.#isJanggiVariantPosition(position) ? false : true;
+        const mustNotCrossRiver = this.isJanggiVariantBoard() ? false : true;
         let topLeft = position.getTopLeft();
         let topRight = position.getTopRight();
         let bottomRight = position.getBottomRight();
@@ -1290,6 +1328,10 @@ class Board {
 
     #listMovesForAdvisor(position) {
         let result = [];
+        result.push(position.getTop());
+        result.push(position.getBottom());
+        result.push(position.getLeft());
+        result.push(position.getRight());
         result.push(position.getTopLeft());
         result.push(position.getTopRight());
         result.push(position.getBottomRight());
@@ -1303,18 +1345,32 @@ class Board {
         result.push(position.getBottom());
         result.push(position.getLeft());
         result.push(position.getRight());
+        result.push(position.getTopLeft());
+        result.push(position.getTopRight());
+        result.push(position.getBottomRight());
+        result.push(position.getBottomLeft());
         return this.#filterMovesInItsPalace(position, result);
     }
 
     #filterMovesInItsPalace(position, allTargetPosition) {
         if (this.#hasRedPieceAt(position)) {
-            return allTargetPosition.filter(target =>
-                target.existsOnBoard() && target.isInRedPalace() && !this.#hasRedPieceAt(target)
-            );
+            return allTargetPosition.filter(target => {
+                if (!target.existsOnBoard()) {
+                    return false;
+                }
+                const inPalace = target.isInRedPalace();
+                const canStepAlongPalaceDiagonal = this.isJanggiVariantBoard() && target.isInAnyPalace() && !this.#hasRedPieceAt(target);
+                return (inPalace || canStepAlongPalaceDiagonal) && !this.#hasRedPieceAt(target);
+            });
         } else if (this.#hasBlackPieceAt(position)) {
-            return allTargetPosition.filter(target =>
-                target.existsOnBoard() && target.isInBlackPalace() && !this.#hasBlackPieceAt(target)
-            );
+            return allTargetPosition.filter(target => {
+                if (!target.existsOnBoard()) {
+                    return false;
+                }
+                const inPalace = target.isInBlackPalace();
+                const canStepAlongPalaceDiagonal = this.isJanggiVariantBoard() && target.isInAnyPalace() && !this.#hasBlackPieceAt(target);
+                return (inPalace || canStepAlongPalaceDiagonal) && !this.#hasBlackPieceAt(target);
+            });
         } else {
             console.error("we should never pass here")
             return [];
@@ -1325,26 +1381,33 @@ class Board {
         let result = [];
         if (this.#hasRedPieceAt(position)) {
             result.push(position.getTop());
-            if (this.#areOnOppositeSidesOfTheRiver(position, Position.redGeneralStartingPosition)) {
+            if (this.isJanggiVariantBoard()) {
+                result.push(position.getLeft());
+                result.push(position.getRight());
+                if (position.isInRedPalace()) {
+                    result.push(position.getTopLeft());
+                    result.push(position.getTopRight());
+                }
+            } else if (this.#areOnOppositeSidesOfTheRiver(position, Position.redGeneralStartingPosition)) {
                 result.push(position.getLeft());
                 result.push(position.getRight());
             }
         } else if (this.#hasBlackPieceAt(position)) {
             result.push(position.getBottom());
-            if (this.#areOnOppositeSidesOfTheRiver(position, Position.blackGeneralStartingPosition)) {
+            if (this.isJanggiVariantBoard()) {
+                result.push(position.getLeft());
+                result.push(position.getRight());
+                if (position.isInBlackPalace()) {
+                    result.push(position.getBottomLeft());
+                    result.push(position.getBottomRight());
+                }
+            } else if (this.#areOnOppositeSidesOfTheRiver(position, Position.blackGeneralStartingPosition)) {
                 result.push(position.getLeft());
                 result.push(position.getRight());
             }
         } else {
             console.warn("we should never pass here")
             return [];
-        }
-
-        if (this.#isJanggiVariantBoard()) {
-            result = result.filter(targetPosition =>
-                targetPosition.existsOnBoard() && !this.containSameColors(position, targetPosition)
-            );
-            return result;
         }
 
         return result.filter(targetPosition =>
@@ -1436,15 +1499,12 @@ class Board {
         return piece != null && piece.color === color;
     }
 
-    #isJanggiVariantBoard() {
-        return this.listPiecePositions().some(piecePosition => {
-            const char = piecePosition.piece.pieceChar;
-            return char === 'k' || char === 'K' || char === 'a' || char === 'A' || char === 'e' || char === 'E';
-        }) && this.outputFen().includes('k') && this.outputFen().includes('K');
+    isJanggiVariantBoard() {
+        return this.#variant === VARIANT_JANGGI;
     }
 
     #isJanggiVariantPosition(position) {
-        return this.#isJanggiVariantBoard() && position.y >= 4 && position.y <= 5;
+        return this.isJanggiVariantBoard() && position.y >= 4 && position.y <= 5;
     }
 
     #areOnOppositeSidesOfTheRiver(p1, p2) {
