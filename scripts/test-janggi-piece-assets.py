@@ -75,12 +75,12 @@ class WesternizedPieceAssetsTest(unittest.TestCase):
                     left, top, right, bottom = mask.getbbox()
                     self.assertLess(abs((left + right) / 2 - 256), 3)
                     self.assertLess(abs((top + bottom) / 2 - 256), 3)
-                    self.assertAlmostEqual(max(right - left, bottom - top), 377, delta=5)
+                    self.assertAlmostEqual(max(right - left, bottom - top), 339, delta=5)
                     self.assertGreater(right - left + bottom - top, 490)
                     for y in range(512):
                         for x in range(512):
                             if mask.getpixel((x, y)):
-                                self.assertLess(abs(x - 256) + abs(y - 256), 334)
+                                self.assertLess(abs(x - 256) + abs(y - 256), 301)
 
     def test_piece_names_keep_original_pictograms(self):
         for name in NAMES:

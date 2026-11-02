@@ -353,7 +353,7 @@ for piece, glyph_id in glyph_ids.items():
     width, height = maxx - minx, maxy - miny
     cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
     # Give every pictogram the same longest edge, preserving its proportions.
-    scale = 0.85 * 78 / max(width, height)
+    scale = 0.765 * 78 / max(width, height)
 
     for color, colors in palette.items():
         pictogram = copy.deepcopy(glyph)
