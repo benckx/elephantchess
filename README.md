@@ -818,9 +818,8 @@ npm test
 To watch the browsers while the tests run (each spec opens two windows, one per player):
 
 ```bash
-npm run test:headed          # headed browsers
-npx playwright test --ui     # interactive runner: watch, re-run, time-travel through steps
-npx playwright test --debug  # headed + Playwright Inspector, pauses on each step
+npm run test:headed                      # headed browsers
+npm run test:headed -- tests/pvp.spec.js # run a specific test
 ```
 
 The install and `npm test` steps run in the `e2e` job of the CI build, which spins up PostgreSQL, loads
