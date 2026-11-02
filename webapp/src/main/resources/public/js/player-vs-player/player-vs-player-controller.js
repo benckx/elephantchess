@@ -611,7 +611,7 @@ class GameController {
             this.#updateForFlagged(Color.BLACK, ratingUpdate);
         } else if (redMillis > blackMillis) {
             // red wins
-            this.#updateForFlagged(Color.RED, ratingUpdate);
+            this.#updateForFlagged(Color.WHITE, ratingUpdate);
         } else {
             console.warn('equal remaining counter, case not handled');
         }

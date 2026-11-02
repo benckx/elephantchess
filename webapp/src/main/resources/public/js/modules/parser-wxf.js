@@ -42,7 +42,7 @@ class WxfParser extends MoveParser {
      */
     #resultCandidates = [];
 
-    #color = 'RED';
+    #color = Color.WHITE;
 
     constructor(input) {
         super(input);
@@ -136,9 +136,9 @@ class WxfParser extends MoveParser {
         if (isCharDigit(fileChar)) {
             let fileAsUci = this.#wxfFileToUciLetter(parseInt(fileChar));
             candidatePositions.push(...this.#findPositionFromFile(fileAsUci, resultCandidate));
-        } else if ((fileChar === '+' && this.#color === Color.RED) || (fileChar === '-' && this.#color === Color.BLACK)) {
+        } else if ((fileChar === '+' && this.#color === Color.WHITE) || (fileChar === '-' && this.#color === Color.BLACK)) {
             candidatePositions.push(this.#findTopPosition(resultCandidate));
-        } else if ((fileChar === '-' && this.#color === Color.RED) || (fileChar === '+' && this.#color === Color.BLACK)) {
+        } else if ((fileChar === '-' && this.#color === Color.WHITE) || (fileChar === '+' && this.#color === Color.BLACK)) {
             candidatePositions.push(this.#findBottomPosition(resultCandidate));
         }
 
@@ -163,8 +163,12 @@ class WxfParser extends MoveParser {
      * @return {HalfMove[]}
      */
     #filterCandidates(direction, from, legalMoves) {
-        if (this.#color === 'BLACK') {
+        if (this.#color === Color.BLACK) {
             direction = -direction;
+        }
+
+        if (this.#color === Color.WHITE) {
+            direction = direction;
         }
 
         if (this.#isGeneral() || this.#isChariot() || this.#isSoldier() || this.#isCannon()) {
@@ -211,7 +215,7 @@ class WxfParser extends MoveParser {
         }
 
         let piece = extractPieceChar(this.#token);
-        if (this.#color === 'RED') {
+        if (this.#color === Color.WHITE) {
             return piece.toUpperCase();
         } else {
             return piece;
@@ -256,7 +260,7 @@ class WxfParser extends MoveParser {
      */
     #wxfFileToUciLetter(n) {
         switch (this.#color) {
-            case Color.RED:
+            case Color.WHITE:
                 return UCI_LETTER.slice().reverse()[n - 1];
             case Color.BLACK:
                 return UCI_LETTER[n - 1];

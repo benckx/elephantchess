@@ -95,10 +95,10 @@ private fun listNextMovesAndCount(moves: List<String>): List<NextMoveOccurrenceC
 
 private fun countByOutcome(moves: List<String>): Map<Outcome, Int> {
     val subset = memoryCache.filter { dto -> dto.moves.take(moves.size) == moves }
-    val redWins = subset.count { dto -> dto.outcome == RED_WINS }
+    val redWins = subset.count { dto -> dto.outcome == WHITE_WINS }
     val blackWins = subset.count { dto -> dto.outcome == BLACK_WINS }
     val draws = subset.count { dto -> dto.outcome == DRAW }
-    return mapOf(RED_WINS to redWins, BLACK_WINS to blackWins, DRAW to draws)
+    return mapOf(WHITE_WINS to redWins, BLACK_WINS to blackWins, DRAW to draws)
 }
 
 private fun listMatchingGameIds(moves: List<String>): List<String> =
@@ -124,7 +124,7 @@ private suspend fun refreshCache(moves: List<String>) {
                 openingCacheRecord.numberOfMoves = nextSequenceOfMoves.size
                 openingCacheRecord.moves = movesKey
                 openingCacheRecord.occurrences = occurrences
-                openingCacheRecord.outcomeRedWins = outcome[RED_WINS] ?: 0
+                openingCacheRecord.outcomeRedWins = outcome[WHITE_WINS] ?: 0
                 openingCacheRecord.outcomeBlackWins = outcome[BLACK_WINS] ?: 0
                 openingCacheRecord.outcomeDraws = outcome[DRAW] ?: 0
 

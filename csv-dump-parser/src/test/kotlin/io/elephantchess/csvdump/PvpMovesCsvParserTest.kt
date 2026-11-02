@@ -70,7 +70,7 @@ class PvpMovesCsvParserTest {
 
         // other attributes
         assertEquals(RatingMode.RATED, game.ratingMode)
-        assertEquals(Outcome.RED_WINS, game.outcome)
+        assertEquals(Outcome.WHITE_WINS, game.outcome)
         assertEquals(GameJoinSource.LINK, game.gameJoinSource)
         assertEquals(17.seconds, game.matchingTime)
         assertEquals(false, game.hasSockPuppetReport)
@@ -163,6 +163,9 @@ class PvpMovesCsvParserTest {
                 PvpGame.fromCsvRows(listOf(gameRow(report = report)))
             }
         }
+        assertFailsWith<IllegalArgumentException> {
+            PvpGame.fromCsvRows(listOf(gameRow(outcome = "WHITE_WINS")))
+        }
         assertFailsWith<NumberFormatException> {
             PvpGame.fromCsvRows(listOf(gameRow(matchingTime = "invalid")))
         }
@@ -195,7 +198,12 @@ class PvpMovesCsvParserTest {
 
     companion object {
 
-        private fun gameRow(moveIndex: Int = 0, matchingTime: String = "42", report: String = "true"): CsvRow =
+        private fun gameRow(
+            moveIndex: Int = 0,
+            matchingTime: String = "42",
+            report: String = "true",
+            outcome: String = "RED_WINS",
+        ): CsvRow =
             CsvRow(
                 mapOf(
                     "game_id" to "game",
@@ -216,7 +224,7 @@ class PvpMovesCsvParserTest {
                     "time_control_category" to "RAPID",
                     "rating_mode" to "rated",
                     "game_status" to "CHECKMATED",
-                    "outcome" to "RED_WINS",
+                    "outcome" to outcome,
                     "game_join_source" to "LINK",
                     "move_analysis" to "",
                     "engine_analysis" to "",

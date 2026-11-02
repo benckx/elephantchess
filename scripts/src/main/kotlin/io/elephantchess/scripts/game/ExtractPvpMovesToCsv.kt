@@ -219,7 +219,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         val inviterColor = row.get(GAME.INVITER_COLOR)
                         val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
                         val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
-                        val inviterIsRed = inviterColor == Color.RED
+                        val inviterIsRed = inviterColor == Color.WHITE
                         val redHandle = if (inviterIsRed) inviterHandle else inviteeHandle
                         val blackHandle = if (inviterIsRed) inviteeHandle else inviterHandle
                         val redPlayerName = anonymizedNames[redHandle] ?: redHandle

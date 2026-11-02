@@ -105,7 +105,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
 
             // mini board overview when a FEN was searched
             if (entry.fen !== null && entry.fen.trim().length > 0) {
-                const orientation = entry.playerColor === Color.BLACK ? Color.BLACK : Color.RED;
+                const orientation = entry.playerColor === Color.BLACK ? Color.BLACK : Color.WHITE;
                 const fen = entry.fen.trim();
                 // Stored FENs may be abridged (board layout only); complete them so loadFen accepts them.
                 const fullFen = fen.includes(' ') ? fen : `${fen} w - - 0 1`;
@@ -165,7 +165,7 @@ class MyDbSearchesPage extends InfiniteScrollPage {
         if (entry.playerName !== null && entry.playerName.trim().length > 0) {
             const playerSpan = document.createElement('span');
             playerSpan.innerText = entry.playerName;
-            if (entry.playerColor === Color.RED) {
+            if (entry.playerColor === Color.WHITE) {
                 playerSpan.classList.add('red-color');
             } else if (entry.playerColor === Color.BLACK) {
                 playerSpan.classList.add('black-color');

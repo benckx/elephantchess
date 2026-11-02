@@ -126,15 +126,15 @@ class PlayerVsBotController {
             }
 
             if (response.isBotVictory()) {
-                if (this.#botGameDto.userColor === Color.RED) {
+                if (this.#botGameDto.userColor === Color.WHITE) {
                     this.#botGameDto.outcome = Outcome.BLACK_WINS;
                 } else {
-                    this.#botGameDto.outcome = Outcome.RED_WINS;
+                    this.#botGameDto.outcome = Outcome.WHITE_WINS;
                 }
                 this.#botWinsCallback();
             } else if (response.isUserVictory()) {
-                if (this.#botGameDto.userColor === Color.RED) {
-                    this.#botGameDto.outcome = Outcome.RED_WINS;
+                if (this.#botGameDto.userColor === Color.WHITE) {
+                    this.#botGameDto.outcome = Outcome.WHITE_WINS;
                 } else {
                     this.#botGameDto.outcome = Outcome.BLACK_WINS;
                 }
@@ -159,10 +159,10 @@ class PlayerVsBotController {
     resign(callback) {
         this.#botGameClient.resign(() => {
             this.#botGameDto.status = GameEventType.RESIGNED;
-            if (this.#botGameDto.userColor === Color.RED) {
+            if (this.#botGameDto.userColor === Color.WHITE) {
                 this.#botGameDto.outcome = Outcome.BLACK_WINS;
             } else {
-                this.#botGameDto.outcome = Outcome.RED_WINS;
+                this.#botGameDto.outcome = Outcome.WHITE_WINS;
             }
             callback();
         });
@@ -270,7 +270,7 @@ class PlayerVsBotController {
         metadata.set('Date', formatTimestampToPgnDate(dto.lastUpdatedMillis));
 
         switch (dto.userColor) {
-            case Color.RED:
+            case Color.WHITE:
                 metadata.set('White', dto.username);
                 metadata.set('Black', `${dto.formattedEngine} (depth ${dto.depth})`);
                 break;
@@ -281,7 +281,7 @@ class PlayerVsBotController {
         }
 
         switch (dto.outcome) {
-            case Outcome.RED_WINS:
+            case Outcome.WHITE_WINS:
                 metadata.set('Result', '1-0');
                 break;
             case Outcome.BLACK_WINS:

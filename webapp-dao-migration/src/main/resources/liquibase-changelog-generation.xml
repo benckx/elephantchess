@@ -2706,4 +2706,54 @@
             <column name="invitee_user_id"/>
         </createIndex>
     </changeSet>
+    <changeSet id="0122" author="benckx">
+        <comment>
+            Xiangqi color normalization:
+            migrate persisted color labels from RED/BLACK to WHITE/BLACK where Xiangqi Color is stored.
+        </comment>
+        <update tableName="game">
+            <column name="inviter_color" value="WHITE"/>
+            <where>inviter_color = 'RED'</where>
+        </update>
+        <update tableName="bot_game">
+            <column name="user_color" value="WHITE"/>
+            <where>user_color = 'RED'</where>
+        </update>
+        <update tableName="puzzle">
+            <column name="player_color" value="WHITE"/>
+            <where>player_color = 'RED'</where>
+        </update>
+        <update tableName="reference_game_search_query">
+            <column name="player_color" value="WHITE"/>
+            <where>player_color = 'RED'</where>
+        </update>
+        <update tableName="opening_pre_calculation_cache_reference_player">
+            <column name="color" value="WHITE"/>
+            <where>color = 'RED'</where>
+        </update>
+    </changeSet>
+    <changeSet id="0123" author="benckx">
+        <comment>
+            Xiangqi outcome normalization:
+            migrate persisted outcome values from RED_WINS/BLACK_WINS to WHITE_WINS/BLACK_WINS.
+        </comment>
+        <update tableName="game">
+            <column name="outcome" value="WHITE_WINS"/>
+            <where>outcome = 'RED_WINS'</where>
+        </update>
+        <update tableName="bot_game">
+            <column name="outcome" value="WHITE_WINS"/>
+            <where>outcome = 'RED_WINS'</where>
+        </update>
+        <update tableName="reference_game">
+            <column name="outcome" value="WHITE_WINS"/>
+            <where>outcome = 'RED_WINS'</where>
+        </update>
+    </changeSet>
+    <changeSet id="0124" author="benckx">
+        <comment>Reference game player column normalization: rename red_player to white_player.</comment>
+        <renameColumn tableName="reference_game"
+                      oldColumnName="red_player"
+                      newColumnName="white_player"/>
+    </changeSet>
 </databaseChangeLog>

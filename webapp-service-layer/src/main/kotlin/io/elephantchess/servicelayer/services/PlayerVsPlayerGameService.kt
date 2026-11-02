@@ -16,7 +16,7 @@ import io.elephantchess.model.*
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
@@ -43,7 +43,7 @@ import io.elephantchess.xiangqi.Board.Companion.isMoveLegal
 import io.elephantchess.xiangqi.Board.Companion.isStalemated
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.PerpetualCheckingRule.Companion.defaultPerpetualCheckingRules
 import io.elephantchess.xiangqi.Variant
@@ -800,7 +800,7 @@ class PlayerVsPlayerGameService(
 
         if (timeRemaining.red <= 0L && timeRemaining.red < timeRemaining.black) {
             logger.info { "$logTag red has flagged!" }
-            flagByColor(gameId, RED)
+            flagByColor(gameId, WHITE)
         } else if (timeRemaining.black <= 0L && timeRemaining.black < timeRemaining.red) {
             logger.info { "$logTag black has flagged!" }
             flagByColor(gameId, BLACK)
@@ -1203,7 +1203,7 @@ class PlayerVsPlayerGameService(
             if (gameRecord.isRated && outcome != Outcome.DRAW) {
                 val k = gameRecord.kValue
                 val isInviterWinner =
-                    (outcome == RED_WINS && gameRecord.inviterColor == RED) ||
+                    (outcome == WHITE_WINS && gameRecord.inviterColor == WHITE) ||
                         (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
 
                 if (isInviterWinner) {

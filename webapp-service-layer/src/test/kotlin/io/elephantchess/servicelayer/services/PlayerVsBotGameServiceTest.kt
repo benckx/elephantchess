@@ -11,7 +11,7 @@ import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.botgame.CreateBotGameRequest
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
@@ -51,7 +51,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
 
             val request = CreateBotGameRequest(
-                color = RED,
+                color = WHITE,
                 depth = 5,
                 engine = Engine.FAIRYSTOCKFISH,
                 startFen = null,
@@ -72,7 +72,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
 
             val request = CreateBotGameRequest(
-                color = RED,
+                color = WHITE,
                 depth = 5,
                 engine = Engine.PIKAFISH,
                 startFen = null,
@@ -93,7 +93,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
 
             val request = CreateBotGameRequest(
-                color = RED,
+                color = WHITE,
                 depth = 15,
                 engine = Engine.PIKAFISH,
                 startFen = null,
@@ -112,7 +112,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
 
             val request = CreateBotGameRequest(
-                color = RED,
+                color = WHITE,
                 depth = 7,
                 engine = Engine.PIKAFISH,
                 startFen = null,

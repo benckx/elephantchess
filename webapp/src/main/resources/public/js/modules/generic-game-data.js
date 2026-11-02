@@ -364,7 +364,7 @@ class GameMetadataDto {
      */
     toStringOutcome() {
         switch (this.#outcome) {
-            case Outcome.RED_WINS:
+            case Outcome.WHITE_WINS:
                 let redPlayerName = '';
                 if (this.#gameId.type === GameType.PVB && this.#redPlayerId == null && this.#engine != null) {
                     redPlayerName = formatEngineName(this.#engine);
