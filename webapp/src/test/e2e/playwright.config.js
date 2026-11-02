@@ -31,7 +31,10 @@ module.exports = defineConfig({
     fullyParallel: false,
     workers: 1,
     forbidOnly: !!process.env.CI,
+    // The CI retry only exists to record a trace ('on-first-retry'); a test
+    // that passes on retry is still reported as flaky and fails the run.
     retries: process.env.CI ? 1 : 0,
+    failOnFlakyTests: !!process.env.CI,
     timeout: 60_000,
     expect: {timeout: 15_000},
     reporter: process.env.CI ? [['list'], ['html', {open: 'never'}]] : [['list']],
