@@ -408,13 +408,11 @@ class SettingsGui {
         const pieceStyleValues = [
             PieceStyleSetting.TRADITIONAL,
             PieceStyleSetting.ROMANIZED_ROUNDED,
-            PieceStyleSetting.MODERN,
-            PieceStyleSetting.INK_BRUSH,
         ];
         const applyPieceStyle = (pieceStyle) => {
             this.#settingsManager.pieceStyle = pieceStyle;
             this.#boardGuis.forEach(boardGui => boardGui.updatePieceStyle(pieceStyle));
-            if (pieceStyleValues.includes(pieceStyle)) {
+            if (Object.values(PieceStyleSetting).includes(pieceStyle)) {
                 this.#pieceStyleSelect.value = pieceStyle;
             }
         };
@@ -428,7 +426,7 @@ class SettingsGui {
         addToolTip(this.#selectPieceStyleRomanizedRounded, "Select 'Romanized Rounded' piece style");
 
         // piece style (advanced settings: all options)
-        const currentPieceStyle = pieceStyleValues.includes(this.#settingsManager.pieceStyle)
+        const currentPieceStyle = Object.values(PieceStyleSetting).includes(this.#settingsManager.pieceStyle)
             ? this.#settingsManager.pieceStyle
             : PieceStyleSetting.DEFAULT;
         this.#pieceStyleSelect.value = currentPieceStyle;

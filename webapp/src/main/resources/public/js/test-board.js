@@ -22,8 +22,10 @@ class TestBoardPage extends BasePage {
     constructor() {
         super();
         const boardGui = createWebappBoardGui();
-        const isManchu = getQueryParam('variant') === 'manchu';
-        boardGui.loadFen(isManchu ? MANCHU_START_FEN : DEFAULT_START_FEN);
+        const variant = getQueryParam('variant');
+        const isManchu = variant === 'manchu';
+        const isJanggi = variant === 'janggi';
+        boardGui.loadFen(isManchu ? MANCHU_START_FEN : isJanggi ? JANGGI_START_FEN : DEFAULT_START_FEN);
 
         const moveTreeWidget = new MoveTreeWidget({
             containerId: 'move-tree-container',
@@ -47,6 +49,9 @@ class TestBoardPage extends BasePage {
 
         if (isManchu) {
             document.getElementById('manchu-explanation').style.display = 'block';
+        }
+        if (isJanggi) {
+            document.getElementById('janggi-explanation').style.display = 'block';
         }
     }
 
