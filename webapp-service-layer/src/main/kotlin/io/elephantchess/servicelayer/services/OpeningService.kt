@@ -17,7 +17,7 @@ class OpeningService(
 ) {
     private fun parsePlayerColorOrThrow(color: String): Color =
         when (color.uppercase()) {
-            "WHITE", "RED" -> Color.WHITE
+            "WHITE" -> Color.WHITE
             "BLACK" -> Color.BLACK
             else -> throw BadRequestException("Invalid player color: $color")
         }

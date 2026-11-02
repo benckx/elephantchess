@@ -22,7 +22,7 @@ import io.ktor.server.routing.*
 private const val MIN_LETTERS_TO_SEARCH = 2
 private fun parsePlayerColorOrThrow(color: String): Color =
     when (color.uppercase()) {
-        "WHITE", "RED" -> Color.WHITE
+        "WHITE" -> Color.WHITE
         "BLACK" -> Color.BLACK
         else -> throw BadRequestException("Invalid playerColor: $color")
     }
