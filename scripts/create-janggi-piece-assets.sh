@@ -21,11 +21,6 @@ PIECES_DIR="webapp/src/main/resources/public/images/pieces"
 SOURCE_SVG="webapp/src/main/resources/public/images/Janggi.svg"
 SIZE="${1:-512}"
 
-if ! command -v rsvg-convert >/dev/null 2>&1; then
-    echo "error: rsvg-convert not found (install the librsvg2-bin package)" >&2
-    exit 1
-fi
-
 if ! command -v python3 >/dev/null 2>&1; then
     echo "error: python3 not found (required to extract cursive paths from ${SOURCE_SVG})" >&2
     exit 1
@@ -351,7 +346,7 @@ for color, target in [("red", (192, 57, 43)), ("blue", (26, 74, 134))]:
                 (68.2, 94), (31.8, 94), (6, 68.2), (6, 31.8),
             ]
             pts = [(x / 100 * 512, y / 100 * 512) for x, y in octagon]
-            draw.polygon(pts, fill=(255, 250, 240, 255), outline=palette[color]["ring"], width=8)
+            draw.polygon(pts, fill=(0, 0, 0, 0), outline=palette[color]["ring"], width=8)
             scale = 0.72
             scaled = recolored.resize((int(w * scale), int(h * scale)))
             offset = (512 - scaled.width) // 2, (512 - scaled.height) // 2
@@ -363,7 +358,7 @@ for color, target in [("red", (192, 57, 43)), ("blue", (26, 74, 134))]:
             canvas.save(encoded, format="PNG")
             data_uri = "data:image/png;base64," + base64.b64encode(encoded.getvalue()).decode("ascii")
             svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="#fffaf0" stroke="{palette[color]['ring']}" stroke-width="8"/>
+  <polygon points="31.8,6 68.2,6 94,31.8 94,68.2 68.2,94 31.8,94 6,68.2 6,31.8" fill="none" stroke="{palette[color]['ring']}" stroke-width="8"/>
   <image href="{data_uri}" x="0" y="0" width="512" height="512" preserveAspectRatio="xMidYMid meet"/>
 </svg>'''
             (style_dir / "svg").mkdir(exist_ok=True)
@@ -394,7 +389,18 @@ create_style() {
     local svg
     for svg in "${svg_dir}"/*.svg; do
         local png="${style_dir}/$(basename "${svg}" .svg).png"
-        rsvg-convert --background-color "transparent" --width "${SIZE}" --height "${SIZE}" "${svg}" -o "${png}"
+        if command -v rsvg-convert >/dev/null 2>&1; then
+            rsvg-convert --background-color "transparent" --width "${SIZE}" --height "${SIZE}" "${svg}" -o "${png}"
+        else
+            python3 - "${svg}" "${png}" <<'PY'
+import sys
+from cairosvg import svg2png
+from pathlib import Path
+svg_path = Path(sys.argv[1])
+png_path = Path(sys.argv[2])
+svg2png(url=str(svg_path), write_to=str(png_path), output_width=512, output_height=512)
+PY
+        fi
         converted=$((converted + 1))
     done
 
