@@ -20,6 +20,12 @@ import io.ktor.server.routing.*
  * and not specifically the SQL database.
  */
 private const val MIN_LETTERS_TO_SEARCH = 2
+private fun parsePlayerColorOrThrow(color: String): Color =
+    when (color.uppercase()) {
+        "WHITE", "RED" -> Color.WHITE
+        "BLACK" -> Color.BLACK
+        else -> throw BadRequestException("Invalid playerColor: $color")
+    }
 
 fun Route.databaseRoutes() {
     val databaseService by koin<DatabaseService>()
@@ -98,11 +104,7 @@ fun Route.databaseRoutes() {
                 val playerName = call.request.queryParameters["playerName"]
                 val playerIds = call.request.queryParameters.getAll("playerIds") ?: emptyList()
                 val playerColor = call.request.queryParameters["playerColor"]?.let {
-                    try {
-                        Color.valueOf(it.uppercase())
-                    } catch (_: IllegalArgumentException) {
-                        throw BadRequestException("Invalid playerColor: $it")
-                    }
+                    parsePlayerColorOrThrow(it)
                 }
                 val eventName = call.request.queryParameters["eventName"]
                 val eventIds = call.request.queryParameters.getAll("eventIds") ?: emptyList()
