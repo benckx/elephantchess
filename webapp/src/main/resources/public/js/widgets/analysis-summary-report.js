@@ -188,7 +188,7 @@ function renderAnalysisSummaryReport(
         if (outcome != null) {
             switch (outcome) {
                 case Outcome.WHITE_WINS:
-                    document.getElementById('analysis-summary-red-player-wins').innerHTML = WINNER_BLUE_STAR_HTML;
+                    document.getElementById('analysis-summary-white-player-wins').innerHTML = WINNER_BLUE_STAR_HTML;
                     break;
                 case Outcome.BLACK_WINS:
                     document.getElementById('analysis-summary-black-player-wins').innerHTML = WINNER_BLUE_STAR_HTML;
