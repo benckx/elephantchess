@@ -44,7 +44,7 @@ const Color = Object.freeze({
  * @param char {string}
  * @return {boolean}
  */
-function isRedPiece(char) {
+function isWhitePiece(char) {
     return char.length === 1 && char.toUpperCase() === char;
 }
 
@@ -64,7 +64,7 @@ function charToPieceColor(char) {
     if (char.length !== 1) {
         throw new Error('Not a single char: ' + char);
     } else {
-        if (isRedPiece(char)) {
+        if (isWhitePiece(char)) {
             return Color.WHITE;
         } else if (isBlackPiece(char)) {
             return Color.BLACK;
@@ -765,7 +765,7 @@ class HalfMove {
 class Board {
 
     #content = [];
-    #redToPlay = true;
+    #whiteToPlay = true;
     #enforceColorTurn = true;
     #fullMovesCounts = 0;
 
@@ -795,10 +795,10 @@ class Board {
         switch (gameStateFen.toLowerCase().trim()[0]) {
             case 'w':
             case 'r':
-                this.#redToPlay = true;
+                this.#whiteToPlay = true;
                 break;
             case 'b':
-                this.#redToPlay = false;
+                this.#whiteToPlay = false;
                 break;
             default:
                 throw new Error('Invalid FEN: can not determine which side plays next');
@@ -943,7 +943,7 @@ class Board {
     }
 
     getColorToPlay() {
-        if (this.#redToPlay) {
+        if (this.#whiteToPlay) {
             return Color.WHITE;
         } else {
             return Color.BLACK;
@@ -955,14 +955,14 @@ class Board {
      * @return {boolean}
      */
     isColorToPlay(piece) {
-        return (piece.color === Color.WHITE && this.#redToPlay) || (piece.color === Color.BLACK && !this.#redToPlay);
+        return (piece.color === Color.WHITE && this.#whiteToPlay) || (piece.color === Color.BLACK && !this.#whiteToPlay);
     }
 
     /**
      * @param color {string}
      */
     forceColorToPlay(color) {
-        this.#redToPlay = (color === Color.WHITE);
+        this.#whiteToPlay = (color === Color.WHITE);
     }
 
     /**
@@ -992,7 +992,7 @@ class Board {
         let targetPiece = this.getPieceAt(move.to);
         this.removePieceFrom(move.from);
         this.#setPieceAt(piece, move.to);
-        this.#redToPlay = !this.#redToPlay;
+        this.#whiteToPlay = !this.#whiteToPlay;
         if (piece.color === Color.BLACK) {
             this.#fullMovesCounts++;
         }
