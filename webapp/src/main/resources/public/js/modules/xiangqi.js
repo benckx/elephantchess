@@ -1627,7 +1627,7 @@ class JanggiBoard extends Board {
 
             if (!foundPivot) {
                 if (piece == null) {
-                    continue;
+                    // do nothing
                 } else if (piece.pieceChar.toLowerCase() === 'c') {
                     return result;
                 } else {
