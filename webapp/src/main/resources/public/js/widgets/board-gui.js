@@ -1163,6 +1163,8 @@ class BoardGui {
                 .filter(crosshair => crosshair !== null);
         }
 
+        const mustDrawRiverAndWritings = this.#options.variant === Variant.XIANGQI && this.#options.variant === Variant.MANCHU;
+
         for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
             // draw rows
             let row = document.createElement('div');
@@ -1194,7 +1196,7 @@ class BoardGui {
                 legalMovePlaceHolder.id = this.#positionToElementId('legal_move', renderPosition);
                 pieceHolder.appendChild(legalMovePlaceHolder);
 
-                if (y === 5) {
+                if (y === 5 && mustDrawRiverAndWritings) {
                     if (x === 0) {
                         const river = buildDivWithClass('large-river');
                         river.classList.add('board-area-river');
