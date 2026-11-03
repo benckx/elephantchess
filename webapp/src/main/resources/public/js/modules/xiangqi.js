@@ -1000,7 +1000,15 @@ class AbstractBoard {
     }
 
     isPossibleMove(move) {
-        return false;
+        return this.listAllMovesFromAsPositions(move.from)
+            .some(targetPosition => Position.areEquals(move.to, targetPosition));
+    }
+
+    /**
+     * @returns {Position[]}
+     */
+    listAllMovesFromAsPositions(position) {
+        return [];
     }
 
     /**
@@ -1127,11 +1135,6 @@ class AbstractBoard {
 }
 
 class XiangqiBoard extends AbstractBoard {
-
-    isPossibleMove(move) {
-        return this.listAllMovesFromAsPositions(move.from)
-            .some(targetPosition => Position.areEquals(move.to, targetPosition));
-    }
 
     /**
      * @param color {string}
