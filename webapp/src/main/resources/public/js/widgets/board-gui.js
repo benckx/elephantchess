@@ -73,6 +73,22 @@ pieceImageNames.set('p', 'black_soldier.png');
 // Manchu super-chariot (combines chariot + horse + cannon powers), red only, displayed as chariot
 pieceImageNames.set('M', 'red_chariot.png');
 
+const janggiPieceImageNames = new Map();
+janggiPieceImageNames.set('K', 'blue_general.png');
+janggiPieceImageNames.set('k', 'red_general.png');
+janggiPieceImageNames.set('A', 'blue_advisor.png');
+janggiPieceImageNames.set('a', 'red_advisor.png');
+janggiPieceImageNames.set('B', 'blue_elephant.png');
+janggiPieceImageNames.set('b', 'red_elephant.png');
+janggiPieceImageNames.set('N', 'blue_horse.png');
+janggiPieceImageNames.set('n', 'red_horse.png');
+janggiPieceImageNames.set('C', 'blue_cannon.png');
+janggiPieceImageNames.set('c', 'red_cannon.png');
+janggiPieceImageNames.set('R', 'blue_chariot.png');
+janggiPieceImageNames.set('r', 'red_chariot.png');
+janggiPieceImageNames.set('P', 'blue_soldier.png');
+janggiPieceImageNames.set('p', 'red_soldier.png');
+
 const diagonalDescending = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="0" x2="100" y2="100" vector-effect="non-scaling-stroke" stroke="black" /></svg>';
 const diagonalRising = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="100" x2="100" y2="0" vector-effect="non-scaling-stroke" stroke="black"/></svg>';
 
@@ -1424,6 +1440,7 @@ class BoardGui {
      */
     getPieceImageSource(pieceChar) {
         let location = this.#options.pieceStyle.toLowerCase();
+        let imageName = pieceImageNames.get(pieceChar);
 
         if (this.#options.variant === Variant.JANGGI) {
             switch (this.#options.pieceStyle) {
@@ -1437,9 +1454,11 @@ class BoardGui {
                     location = 'janggi_modern';
                     break;
             }
+
+            imageName = janggiPieceImageNames.get(pieceChar);
         }
 
-        return `${this.#options.assetsBaseUrl}/images/pieces/${location}/${pieceImageNames.get(pieceChar)}`;
+        return `${this.#options.assetsBaseUrl}/images/pieces/${location}/${imageName}`;
     }
 
     /**
