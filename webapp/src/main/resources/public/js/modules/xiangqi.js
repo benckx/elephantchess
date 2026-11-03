@@ -437,6 +437,39 @@ function calculateFen(moves, startFen = DEFAULT_START_FEN) {
     return board.outputFen();
 }
 
+/**
+ * @param board {Board}
+ * @param position {Position}
+ * @returns {Position[]}
+ */
+function listHorseMoves(board, position) {
+    let result = [];
+    let top = position.getTop();
+    let bottom = position.getBottom();
+    let left = position.getLeft();
+    let right = position.getRight();
+    if (top.existsOnBoard() && !board.hasPieceAt(top)) {
+        result.push(top.getTopLeft());
+        result.push(top.getTopRight());
+    }
+    if (bottom.existsOnBoard() && !board.hasPieceAt(bottom)) {
+        result.push(bottom.getBottomLeft());
+        result.push(bottom.getBottomRight());
+    }
+    if (left.existsOnBoard() && !board.hasPieceAt(left)) {
+        result.push(left.getTopLeft());
+        result.push(left.getBottomLeft());
+    }
+    if (right.existsOnBoard() && !board.hasPieceAt(right)) {
+        result.push(right.getTopRight());
+        result.push(right.getBottomRight());
+    }
+
+    return result.filter(targetPosition =>
+        targetPosition.existsOnBoard() && !board.containSameColors(targetPosition, position)
+    );
+}
+
 class Position {
 
     constructor(x, y) {
@@ -555,35 +588,12 @@ class Position {
     }
 
     /**
-     * @param board {Board}
-     * @returns {Position[]}
+     * @param xOffset {number}
+     * @param yOffset {number}
+     * @returns {Position}
      */
-    listHorseMoves(board) {
-        let result = [];
-        let top = this.getTop();
-        let bottom = this.getBottom();
-        let left = this.getLeft();
-        let right = this.getRight();
-        if (top.existsOnBoard() && !board.hasPieceAt(top)) {
-            result.push(top.getTopLeft());
-            result.push(top.getTopRight());
-        }
-        if (bottom.existsOnBoard() && !board.hasPieceAt(bottom)) {
-            result.push(bottom.getBottomLeft());
-            result.push(bottom.getBottomRight());
-        }
-        if (left.existsOnBoard() && !board.hasPieceAt(left)) {
-            result.push(left.getTopLeft());
-            result.push(left.getBottomLeft());
-        }
-        if (right.existsOnBoard() && !board.hasPieceAt(right)) {
-            result.push(right.getTopRight());
-            result.push(right.getBottomRight());
-        }
-
-        return result.filter(targetPosition =>
-            targetPosition.existsOnBoard() && !board.containSameColors(targetPosition, this)
-        );
+    offset(xOffset, yOffset) {
+        return new Position(this.x + xOffset, this.y + yOffset);
     }
 
     isEqualsTo(other) {
@@ -1356,7 +1366,7 @@ class XiangqiBoard extends Board {
      * @returns {Position[]} Target positions reachable by the horse.
      */
     #listMovesForHorse(position) {
-        return position.listHorseMoves(this);
+        return listHorseMoves(this, position);
     }
 
     /**
@@ -1685,7 +1695,7 @@ class JanggiBoard extends Board {
     }
 
     #listMovesForHorse(position) {
-        return position.listHorseMoves(this);
+        return listHorseMoves(this, position);
     }
 
     #listMovesForElephant(position) {
@@ -1698,13 +1708,13 @@ class JanggiBoard extends Board {
         ];
 
         moves.forEach(move => {
-            const firstStep = this.#offset(position, move.orthogonalStep[0], move.orthogonalStep[1]);
+            const firstStep = position.offset(move.orthogonalStep[0], move.orthogonalStep[1]);
             if (!firstStep.existsOnBoard() || this.hasPieceAt(firstStep)) {
                 return;
             }
             move.firstDiagonalSteps.forEach(diagonalStep => {
-                const secondStep = this.#offset(firstStep, diagonalStep[0], diagonalStep[1]);
-                const target = this.#offset(secondStep, diagonalStep[0], diagonalStep[1]);
+                const secondStep = firstStep.offset(diagonalStep[0], diagonalStep[1]);
+                const target = secondStep.offset(diagonalStep[0], diagonalStep[1]);
                 if (
                     secondStep.existsOnBoard() &&
                     !this.hasPieceAt(secondStep) &&
@@ -1779,8 +1789,8 @@ class JanggiBoard extends Board {
     #listForwardPalaceDiagonalMoves(position, color) {
         const yOffset = color === Color.WHITE ? 1 : -1;
         const candidates = [
-            this.#offset(position, -1, yOffset),
-            this.#offset(position, 1, yOffset),
+            position.offset(-1, yOffset),
+            position.offset(1, yOffset),
         ];
         return candidates.filter(candidate => this.#areConnectedByPalaceDiagonal(position, candidate));
     }
@@ -1853,10 +1863,6 @@ class JanggiBoard extends Board {
             new Position(3, centerY + 1),
             new Position(5, centerY + 1),
         ];
-    }
-
-    #offset(position, xOffset, yOffset) {
-        return new Position(position.x + xOffset, position.y + yOffset);
     }
 
 }
