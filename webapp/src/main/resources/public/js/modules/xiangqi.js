@@ -1584,10 +1584,8 @@ class JanggiBoard extends Board {
                 targets = this.#listMovesForElephant(from);
                 break;
             case 'a':
-                targets = this.#listMovesForAdvisor(from);
-                break;
             case 'k':
-                targets = this.#listMovesForGeneral(from);
+                targets = this.#listMovesForGeneralOrAdvisors(from);
                 break;
             case 'p':
                 targets = this.#listMovesForSoldier(from);
@@ -1737,15 +1735,7 @@ class JanggiBoard extends Board {
         return result;
     }
 
-    #listMovesForAdvisor(position) {
-        return this.#listMovesForPalaceStepPiece(position);
-    }
-
-    #listMovesForGeneral(position) {
-        return this.#listMovesForPalaceStepPiece(position);
-    }
-
-    #listMovesForPalaceStepPiece(position) {
+    #listMovesForGeneralOrAdvisors(position) {
         let result = [];
         result.push(position.getTop());
         result.push(position.getBottom());
