@@ -1252,6 +1252,13 @@ class XiangqiBoard extends AbstractBoard {
     }
 
     listMovesForCannon(position) {
+        if (this.getPieceAt(position)?.pieceChar.toLowerCase() !== 'c') {
+            return [];
+        }
+        return this.listMovesAsCannon(position);
+    }
+
+    listMovesAsCannon(position) {
         let result = [];
         result = result.concat(this.filterMovesForCannon(position, position.getAllTop()));
         result = result.concat(this.filterMovesForCannon(position, position.getAllBottom()));
@@ -1286,6 +1293,13 @@ class XiangqiBoard extends AbstractBoard {
     }
 
     listMovesForChariot(position) {
+        if (this.getPieceAt(position)?.pieceChar.toLowerCase() !== 'r') {
+            return [];
+        }
+        return this.listMovesAsChariot(position);
+    }
+
+    listMovesAsChariot(position) {
         let result = [];
         result = result.concat(this.filterMovesForChariot(position, position.getAllTop()));
         result = result.concat(this.filterMovesForChariot(position, position.getAllBottom()));
@@ -1313,6 +1327,13 @@ class XiangqiBoard extends AbstractBoard {
     }
 
     listMovesForHorse(position) {
+        if (this.getPieceAt(position)?.pieceChar.toLowerCase() !== 'n') {
+            return [];
+        }
+        return this.listMovesAsHorse(position);
+    }
+
+    listMovesAsHorse(position) {
         let result = [];
         let top = position.getTop();
         let bottom = position.getBottom();
@@ -1443,34 +1464,10 @@ class ManchuBoard extends XiangqiBoard {
 
     listMovesForSuperChariot(position) {
         let result = [];
-        result = result.concat(this.filterMovesForChariot(position, position.getAllTop()));
-        result = result.concat(this.filterMovesForChariot(position, position.getAllBottom()));
-        result = result.concat(this.filterMovesForChariot(position, position.getAllLeft()));
-        result = result.concat(this.filterMovesForChariot(position, position.getAllRight()));
-        result = result.concat(this.filterMovesForCannon(position, position.getAllTop()));
-        result = result.concat(this.filterMovesForCannon(position, position.getAllBottom()));
-        result = result.concat(this.filterMovesForCannon(position, position.getAllLeft()));
-        result = result.concat(this.filterMovesForCannon(position, position.getAllRight()));
-
-        const top = position.getTop();
-        const bottom = position.getBottom();
-        const left = position.getLeft();
-        const right = position.getRight();
-        if (top.existsOnBoard() && !this.hasPieceAt(top)) {
-            result.push(top.getTopLeft(), top.getTopRight());
-        }
-        if (bottom.existsOnBoard() && !this.hasPieceAt(bottom)) {
-            result.push(bottom.getBottomLeft(), bottom.getBottomRight());
-        }
-        if (left.existsOnBoard() && !this.hasPieceAt(left)) {
-            result.push(left.getTopLeft(), left.getBottomLeft());
-        }
-        if (right.existsOnBoard() && !this.hasPieceAt(right)) {
-            result.push(right.getTopRight(), right.getBottomRight());
-        }
-        return result.filter(targetPosition =>
-            targetPosition.existsOnBoard() && !this.containSameColors(position, targetPosition)
-        );
+        result = result.concat(this.listMovesAsChariot(position));
+        result = result.concat(this.listMovesAsCannon(position));
+        result = result.concat(this.listMovesAsHorse(position));
+        return result;
     }
 
 }

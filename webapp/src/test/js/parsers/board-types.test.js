@@ -61,3 +61,12 @@ test('Xiangqi and Manchu still generate legal moves', () => {
     manchu.loadFen(ctx.MANCHU_START_FEN);
     assert.ok(manchu.listLegalMovesFrom(new ctx.Position(0, 0)).length > 0);
 });
+
+test('piece-specific move generators return no moves for other piece types', () => {
+    const board = new ctx.XiangqiBoard();
+    board.loadFen(ctx.DEFAULT_START_FEN);
+
+    assert.equal(board.listMovesForCannon(new ctx.Position(1, 0)).length, 0);
+    assert.equal(board.listMovesForChariot(new ctx.Position(1, 2)).length, 0);
+    assert.equal(board.listMovesForHorse(new ctx.Position(0, 0)).length, 0);
+});
