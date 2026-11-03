@@ -1564,11 +1564,322 @@ class JanggiBoard extends Board {
      * @returns {HalfMove[]} Moves from the position, including moves that leave the player in check.
      */
     listAllMovesFrom(from) {
-        throw new Error('Not implemented yet');
+        const piece = this.getPieceAt(from);
+        if (piece == null) {
+            return [];
+        }
+
+        let targets = [];
+        switch (piece.pieceChar.toLowerCase()) {
+            case 'c':
+                targets = this.#listMovesForCannon(from);
+                break;
+            case 'r':
+                targets = this.#listMovesForChariot(from);
+                break;
+            case 'n':
+                targets = this.#listMovesForHorse(from);
+                break;
+            case 'b':
+                targets = this.#listMovesForElephant(from);
+                break;
+            case 'a':
+                targets = this.#listMovesForAdvisor(from);
+                break;
+            case 'k':
+                targets = this.#listMovesForGeneral(from);
+                break;
+            case 'p':
+                targets = this.#listMovesForSoldier(from);
+                break;
+            default:
+                throw new Error('Not implemented for ' + piece.pieceChar);
+        }
+
+        return targets.map(to => new HalfMove(from, to));
     }
 
     copy() {
-        throw new Error('Not implemented yet');
+        const copy = new JanggiBoard();
+        copy.loadFen(this.outputFen());
+        return copy;
+    }
+
+    #listMovesForCannon(position) {
+        let result = [];
+        result = result.concat(this.#filterMovesForCannon(position, position.getAllTop()));
+        result = result.concat(this.#filterMovesForCannon(position, position.getAllBottom()));
+        result = result.concat(this.#filterMovesForCannon(position, position.getAllLeft()));
+        result = result.concat(this.#filterMovesForCannon(position, position.getAllRight()));
+        this.#listPalaceDiagonalLines(position).forEach(line => {
+            result = result.concat(this.#filterMovesForCannon(position, line));
+        });
+        return result;
+    }
+
+    #filterMovesForCannon(position, allTargetPositions) {
+        let result = [];
+        let foundPivot = false;
+
+        for (let i = 0; i < allTargetPositions.length; i++) {
+            const targetPosition = allTargetPositions[i];
+            const piece = this.getPieceAt(targetPosition);
+
+            if (!foundPivot) {
+                if (piece == null) {
+                    continue;
+                } else if (piece.pieceChar.toLowerCase() === 'c') {
+                    return result;
+                } else {
+                    foundPivot = true;
+                }
+            } else {
+                if (piece == null) {
+                    result.push(targetPosition);
+                } else if (piece.pieceChar.toLowerCase() === 'c' || this.containSameColors(position, targetPosition)) {
+                    return result;
+                } else if (this.containOppositeColors(position, targetPosition)) {
+                    result.push(targetPosition);
+                    return result;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    #listMovesForChariot(position) {
+        let result = [];
+        result = result.concat(this.#filterMovesForChariot(position, position.getAllTop()));
+        result = result.concat(this.#filterMovesForChariot(position, position.getAllBottom()));
+        result = result.concat(this.#filterMovesForChariot(position, position.getAllLeft()));
+        result = result.concat(this.#filterMovesForChariot(position, position.getAllRight()));
+        this.#listPalaceDiagonalLines(position).forEach(line => {
+            result = result.concat(this.#filterMovesForChariot(position, line));
+        });
+        return result;
+    }
+
+    #filterMovesForChariot(position, allTargetPositions) {
+        let result = [];
+
+        for (let i = 0; i < allTargetPositions.length; i++) {
+            const targetPosition = allTargetPositions[i];
+            if (!this.hasPieceAt(targetPosition)) {
+                result.push(targetPosition);
+            } else if (this.containOppositeColors(position, targetPosition)) {
+                result.push(targetPosition);
+                return result;
+            } else if (this.containSameColors(position, targetPosition)) {
+                return result;
+            }
+        }
+
+        return result;
+    }
+
+    #listMovesForHorse(position) {
+        let result = [];
+        let top = position.getTop();
+        let bottom = position.getBottom();
+        let left = position.getLeft();
+        let right = position.getRight();
+        if (top.existsOnBoard() && !this.hasPieceAt(top)) {
+            result.push(top.getTopLeft());
+            result.push(top.getTopRight());
+        }
+        if (bottom.existsOnBoard() && !this.hasPieceAt(bottom)) {
+            result.push(bottom.getBottomLeft());
+            result.push(bottom.getBottomRight());
+        }
+        if (left.existsOnBoard() && !this.hasPieceAt(left)) {
+            result.push(left.getTopLeft());
+            result.push(left.getBottomLeft());
+        }
+        if (right.existsOnBoard() && !this.hasPieceAt(right)) {
+            result.push(right.getTopRight());
+            result.push(right.getBottomRight());
+        }
+
+        return result.filter(targetPosition =>
+            targetPosition.existsOnBoard() && !this.containSameColors(targetPosition, position)
+        );
+    }
+
+    #listMovesForElephant(position) {
+        let result = [];
+        const moves = [
+            {orthogonalStep: [0, 1], firstDiagonalSteps: [[-1, 1], [1, 1]]},
+            {orthogonalStep: [0, -1], firstDiagonalSteps: [[-1, -1], [1, -1]]},
+            {orthogonalStep: [1, 0], firstDiagonalSteps: [[1, -1], [1, 1]]},
+            {orthogonalStep: [-1, 0], firstDiagonalSteps: [[-1, -1], [-1, 1]]},
+        ];
+
+        moves.forEach(move => {
+            const firstStep = this.#offset(position, move.orthogonalStep[0], move.orthogonalStep[1]);
+            if (!firstStep.existsOnBoard() || this.hasPieceAt(firstStep)) {
+                return;
+            }
+            move.firstDiagonalSteps.forEach(diagonalStep => {
+                const secondStep = this.#offset(firstStep, diagonalStep[0], diagonalStep[1]);
+                const target = this.#offset(secondStep, diagonalStep[0], diagonalStep[1]);
+                if (
+                    secondStep.existsOnBoard() &&
+                    !this.hasPieceAt(secondStep) &&
+                    target.existsOnBoard() &&
+                    !this.containSameColors(position, target)
+                ) {
+                    result.push(target);
+                }
+            });
+        });
+
+        return result;
+    }
+
+    #listMovesForAdvisor(position) {
+        let result = [];
+        result.push(position.getTop());
+        result.push(position.getBottom());
+        result.push(position.getLeft());
+        result.push(position.getRight());
+        result = result.concat(this.#listPalaceDiagonalNeighbors(position));
+        return this.#filterMovesInItsPalace(position, result);
+    }
+
+    #listMovesForGeneral(position) {
+        let result = [];
+        result.push(position.getTop());
+        result.push(position.getBottom());
+        result.push(position.getLeft());
+        result.push(position.getRight());
+        result = result.concat(this.#listPalaceDiagonalNeighbors(position));
+        return this.#filterMovesInItsPalace(position, result);
+    }
+
+    #filterMovesInItsPalace(position, allTargetPosition) {
+        if (this.hasWhitePieceAt(position)) {
+            return allTargetPosition.filter(target =>
+                target.existsOnBoard() &&
+                target.isInWhitePalace() &&
+                !this.hasWhitePieceAt(target)
+            );
+        } else if (this.hasBlackPieceAt(position)) {
+            return allTargetPosition.filter(target =>
+                target.existsOnBoard() &&
+                target.isInBlackPalace() &&
+                !this.hasBlackPieceAt(target)
+            );
+        } else {
+            console.error('we should never pass here');
+            return [];
+        }
+    }
+
+    #listMovesForSoldier(position) {
+        let result = [position.getLeft(), position.getRight()];
+
+        if (this.hasWhitePieceAt(position)) {
+            result.push(position.getTop());
+            if (position.isInBlackPalace()) {
+                result = result.concat(this.#listForwardPalaceDiagonalMoves(position, Color.WHITE));
+            }
+        } else if (this.hasBlackPieceAt(position)) {
+            result.push(position.getBottom());
+            if (position.isInWhitePalace()) {
+                result = result.concat(this.#listForwardPalaceDiagonalMoves(position, Color.BLACK));
+            }
+        } else {
+            console.error('we should never pass here');
+            return [];
+        }
+
+        return result.filter(targetPosition =>
+            targetPosition.existsOnBoard() && !this.containSameColors(position, targetPosition)
+        );
+    }
+
+    #listForwardPalaceDiagonalMoves(position, color) {
+        const yOffset = color === Color.WHITE ? 1 : -1;
+        const candidates = [
+            this.#offset(position, -1, yOffset),
+            this.#offset(position, 1, yOffset),
+        ];
+        return candidates.filter(candidate => this.#areConnectedByPalaceDiagonal(position, candidate));
+    }
+
+    #listPalaceDiagonalLines(position) {
+        const palaceCenter = this.#getPalaceCenter(position);
+        if (palaceCenter == null) {
+            return [];
+        }
+
+        const corners = this.#getPalaceCorners(palaceCenter.y);
+        if (position.isEqualsTo(palaceCenter)) {
+            return corners.map(corner => [corner]);
+        }
+
+        const isCorner = corners.some(corner => corner.isEqualsTo(position));
+        if (!isCorner) {
+            return [];
+        }
+
+        const oppositeCorner = new Position(2 * palaceCenter.x - position.x, 2 * palaceCenter.y - position.y);
+        return [[palaceCenter, oppositeCorner]];
+    }
+
+    #listPalaceDiagonalNeighbors(position) {
+        const palaceCenter = this.#getPalaceCenter(position);
+        if (palaceCenter == null) {
+            return [];
+        }
+
+        if (position.isEqualsTo(palaceCenter)) {
+            return this.#getPalaceCorners(palaceCenter.y);
+        }
+
+        const corners = this.#getPalaceCorners(palaceCenter.y);
+        if (corners.some(corner => corner.isEqualsTo(position))) {
+            return [palaceCenter];
+        }
+        return [];
+    }
+
+    #areConnectedByPalaceDiagonal(from, to) {
+        if (
+            !from.existsOnBoard() ||
+            !to.existsOnBoard() ||
+            !from.isInAnyPalace() ||
+            !to.isInAnyPalace() ||
+            from.isInWhitePalace() !== to.isInWhitePalace() ||
+            from.isInBlackPalace() !== to.isInBlackPalace()
+        ) {
+            return false;
+        }
+        return this.#listPalaceDiagonalNeighbors(from).some(candidate => candidate.isEqualsTo(to));
+    }
+
+    #getPalaceCenter(position) {
+        if (position.isInWhitePalace()) {
+            return new Position(4, 1);
+        } else if (position.isInBlackPalace()) {
+            return new Position(4, 8);
+        } else {
+            return null;
+        }
+    }
+
+    #getPalaceCorners(centerY) {
+        return [
+            new Position(3, centerY - 1),
+            new Position(5, centerY - 1),
+            new Position(3, centerY + 1),
+            new Position(5, centerY + 1),
+        ];
+    }
+
+    #offset(position, xOffset, yOffset) {
+        return new Position(position.x + xOffset, position.y + yOffset);
     }
 
 }
