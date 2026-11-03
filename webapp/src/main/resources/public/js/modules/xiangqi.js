@@ -1134,6 +1134,7 @@ class Board {
     }
 
     /**
+     * @param from {Position}
      * @returns {HalfMove[]} Moves from the position, including moves that leave the player in check.
      */
     #listAllMovesFrom(from) {
