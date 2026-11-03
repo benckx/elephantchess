@@ -1005,6 +1005,13 @@ class AbstractBoard {
     }
 
     /**
+     * @returns {HalfMove[]}
+     */
+    listLegalMovesFrom(position) {
+        return [];
+    }
+
+    /**
      * @returns {Position[]}
      */
     listAllMovesFromAsPositions(position) {
@@ -1476,14 +1483,6 @@ class ManchuBoard extends XiangqiBoard {
 }
 
 class JanggiBoard extends AbstractBoard {
-
-    /**
-     * @returns {HalfMove[]}
-     */
-    listLegalMovesFrom(position) {
-        return [];
-    }
-
 }
 
 // Keep existing browser callers working while board selection is wired to variants.

@@ -48,6 +48,7 @@ test('Janggi move listing remains empty until its rules are implemented', () => 
     const board = new ctx.JanggiBoard();
     board.loadFen(ctx.DEFAULT_START_FEN);
 
+    assert.equal(Object.hasOwn(ctx.JanggiBoard.prototype, 'listLegalMovesFrom'), false);
     assert.equal(board.listLegalMovesFrom(new ctx.Position(0, 3)).length, 0);
     assert.equal(board.listAllMovesFromAsPositions(new ctx.Position(0, 3)).length, 0);
     assert.equal(board.listAllLegalMoves().length, 0);
