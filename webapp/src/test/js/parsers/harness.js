@@ -114,6 +114,7 @@ function loadParsers() {
         'IccsParser',
         'WxfParser',
         'Board',
+        'XiangqiBoard',
         'Position',
         'HalfMove',
         'Color',

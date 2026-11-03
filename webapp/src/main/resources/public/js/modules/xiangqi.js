@@ -902,7 +902,7 @@ class Board {
     listPiecePositions() {
         return Position
             .getAll()
-            .filter(position => this.#hasPieceAt(position))
+            .filter(position => this.hasPieceAt(position))
             .map(position => new PieceAtPosition(this.getPieceAt(position), position));
     }
 
@@ -935,7 +935,7 @@ class Board {
      */
     isAllowedToPlayPieceAt(position) {
         if (this.#enforceColorTurn) {
-            return this.#hasPieceAt(position) && this.isColorToPlay(this.getPieceAt(position));
+            return this.hasPieceAt(position) && this.isColorToPlay(this.getPieceAt(position));
         } else {
             // FIXME: here we don't check it's not empty? doesn't seem consistent
             return true;
@@ -975,7 +975,7 @@ class Board {
         } else if (this.#enforceColorTurn && !this.isColorToPlay(piece)) {
             throw new Error(`It is ${this.getColorToPlay()}'s turn to play`);
         } else {
-            if (this.#isPossibleMove(move)) {
+            if (this.isPossibleMove(move)) {
                 return this.#registerMove(piece, move)
             } else {
                 throw new Error(`Move ${move} is not possible for ${piece.pieceChar}`);
@@ -1043,39 +1043,7 @@ class Board {
     }
 
     isMoveIllegal(move, color) {
-        let boardCopy = this.copy();
-        if (boardCopy.#isPossibleMove(move)) {
-            boardCopy.registerMove(move);
-            return boardCopy.#areGeneralsFacing() || boardCopy.isInCheck(color);
-        } else {
-            return true;
-        }
-    }
-
-    #areGeneralsFacing() {
-        let red = this.findGeneral(Color.WHITE);
-        let black = this.findGeneral(Color.BLACK);
-        if (red == null || black == null) {
-            return false;
-        } else {
-            let redGeneralPosition = red.position;
-            let blackGeneralPosition = black.position;
-            return red.position.x === black.position.x && this.#noPieceOnFileBetween(redGeneralPosition, blackGeneralPosition);
-        }
-    }
-
-    #noPieceOnFileBetween(p1, p2) {
-        if (p1.x !== p2.x) {
-            return false;
-        } else {
-            for (let y = p1.y + 1; y < p2.y; y++) {
-                let position = new Position(p1.x, y);
-                if (this.#hasPieceAt(position)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        throw new Error('Abstract method, should be implemented in subclass');
     }
 
     #listAllMovesForColor(color) {
@@ -1085,10 +1053,10 @@ class Board {
             .flatMap(piecePosition => this.listAllMovesFrom(piecePosition.position));
     }
 
-    #isPossibleMove(move) {
+    isPossibleMove(move) {
         return this
-            .#listAllMovesFromAsPositions(move.from)
-            .some(targetPosition => Position.areEquals(move.to, targetPosition));
+            .listAllMovesFrom(move.from)
+            .some(candidate => Position.areEquals(move.to, candidate.to));
     }
 
     isLegalMove(move) {
@@ -1131,6 +1099,136 @@ class Board {
             }
         }
         return moves;
+    }
+
+    /**
+     * @param from {Position}
+     * @returns {HalfMove[]} Moves from the position, including moves that leave the player in check.
+     */
+    listAllMovesFrom(from) {
+        throw new Error('Abstract method, should be implemented in subclass');
+    }
+
+    /**
+     * @param position {Position}
+     * @returns {null|string}
+     */
+    getColorAt(position) {
+        let piece = this.getPieceAt(position);
+        if (piece != null) {
+            return piece.color;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param position {Position}
+     * @return {boolean}
+     */
+    hasPieceAt(position) {
+        return this.#content[position.x][position.y] != null;
+    }
+
+    /**
+     * @param position {Position}
+     * @return {boolean}
+     */
+    hasWhitePieceAt(position) {
+        return this.#hasPieceOfColorAt(Color.WHITE, position);
+    }
+
+    /**
+     * @param position {Position}
+     * @return {boolean}
+     */
+    hasBlackPieceAt(position) {
+        return this.#hasPieceOfColorAt(Color.BLACK, position);
+    }
+
+    #hasPieceOfColorAt(color, position) {
+        let piece = this.getPieceAt(position);
+        return piece != null && piece.color === color;
+    }
+
+    containSameColors(p1, p2) {
+        return (this.hasWhitePieceAt(p1) && this.hasWhitePieceAt(p2))
+            || (this.hasBlackPieceAt(p1) && this.hasBlackPieceAt(p2));
+    }
+
+    containOppositeColors(p1, p2) {
+        return (this.hasWhitePieceAt(p1) && this.hasBlackPieceAt(p2))
+            || (this.hasWhitePieceAt(p2) && this.hasBlackPieceAt(p1));
+    }
+
+    printBoardToLines() {
+        let lines = [];
+        for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
+            let row = '';
+            for (let x = 0; x < BOARD_WIDTH; x++) {
+                let piece = this.getPieceAt(new Position(x, y));
+                if (piece == null) {
+                    row += '  ';
+                } else {
+                    row += piece.pieceChar + ' ';
+                }
+            }
+            lines.push(row);
+        }
+        return lines;
+    }
+
+    printBoard() {
+        let oneLine = '';
+        this.printBoardToLines().forEach(line => oneLine += line + '\n');
+        console.log(oneLine);
+    }
+
+    /**
+     * @return {Board}
+     */
+    copy() {
+        throw new Error('Abstract method, should be implemented in subclass');
+    }
+
+}
+
+class XiangqiBoard extends Board {
+
+    isMoveIllegal(move, color) {
+        let boardCopy = this.copy();
+        if (boardCopy.isPossibleMove(move)) {
+            boardCopy.registerMove(move);
+            return boardCopy.#areGeneralsFacing() || boardCopy.isInCheck(color);
+        } else {
+            return true;
+        }
+    }
+
+    #areGeneralsFacing() {
+        let red = this.findGeneral(Color.WHITE);
+        let black = this.findGeneral(Color.BLACK);
+        if (red == null || black == null) {
+            return false;
+        } else {
+            let redGeneralPosition = red.position;
+            let blackGeneralPosition = black.position;
+            return red.position.x === black.position.x && this.#noPieceOnFileBetween(redGeneralPosition, blackGeneralPosition);
+        }
+    }
+
+    #noPieceOnFileBetween(p1, p2) {
+        if (p1.x !== p2.x) {
+            return false;
+        } else {
+            for (let y = p1.y + 1; y < p2.y; y++) {
+                let position = new Position(p1.x, y);
+                if (this.hasPieceAt(position)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -1187,7 +1285,7 @@ class Board {
         for (let i = 0; i < allTargetPosition.length; i++) {
             let targetPosition = allTargetPosition[i];
             if (!foundPivot) {
-                if (!this.#hasPieceAt(targetPosition)) {
+                if (!this.hasPieceAt(targetPosition)) {
                     result.push(targetPosition);
                 } else {
                     foundPivot = true;
@@ -1223,7 +1321,7 @@ class Board {
 
         for (let i = 0; i < allTargetPositions.length; i++) {
             let targetPosition = allTargetPositions[i];
-            if (!this.#hasPieceAt(targetPosition)) {
+            if (!this.hasPieceAt(targetPosition)) {
                 result.push(targetPosition);
             } else if (this.containOppositeColors(position, targetPosition)) {
                 result.push(targetPosition);
@@ -1246,19 +1344,19 @@ class Board {
         let bottom = position.getBottom();
         let left = position.getLeft();
         let right = position.getRight();
-        if (top.existsOnBoard() && !this.#hasPieceAt(top)) {
+        if (top.existsOnBoard() && !this.hasPieceAt(top)) {
             result.push(top.getTopLeft());
             result.push(top.getTopRight());
         }
-        if (bottom.existsOnBoard() && !this.#hasPieceAt(bottom)) {
+        if (bottom.existsOnBoard() && !this.hasPieceAt(bottom)) {
             result.push(bottom.getBottomLeft());
             result.push(bottom.getBottomRight());
         }
-        if (left.existsOnBoard() && !this.#hasPieceAt(left)) {
+        if (left.existsOnBoard() && !this.hasPieceAt(left)) {
             result.push(left.getTopLeft());
             result.push(left.getBottomLeft());
         }
-        if (right.existsOnBoard() && !this.#hasPieceAt(right)) {
+        if (right.existsOnBoard() && !this.hasPieceAt(right)) {
             result.push(right.getTopRight());
             result.push(right.getBottomRight());
         }
@@ -1279,16 +1377,16 @@ class Board {
         let bottomRight = position.getBottomRight();
         let bottomLeft = position.getBottomLeft();
 
-        if (topLeft.existsOnBoard() && !this.#hasPieceAt(topLeft)) {
+        if (topLeft.existsOnBoard() && !this.hasPieceAt(topLeft)) {
             result.push(topLeft.getTopLeft());
         }
-        if (topRight.existsOnBoard() && !this.#hasPieceAt(topRight)) {
+        if (topRight.existsOnBoard() && !this.hasPieceAt(topRight)) {
             result.push(topRight.getTopRight());
         }
-        if (bottomRight.existsOnBoard() && !this.#hasPieceAt(bottomRight)) {
+        if (bottomRight.existsOnBoard() && !this.hasPieceAt(bottomRight)) {
             result.push(bottomRight.getBottomRight());
         }
-        if (bottomLeft.existsOnBoard() && !this.#hasPieceAt(bottomLeft)) {
+        if (bottomLeft.existsOnBoard() && !this.hasPieceAt(bottomLeft)) {
             result.push(bottomLeft.getBottomLeft());
         }
 
@@ -1326,13 +1424,17 @@ class Board {
     }
 
     #filterMovesInItsPalace(position, allTargetPosition) {
-        if (this.#hasWhitePieceAt(position)) {
+        if (this.hasWhitePieceAt(position)) {
             return allTargetPosition.filter(target =>
-                target.existsOnBoard() && target.isInWhitePalace() && !this.#hasWhitePieceAt(target)
+                target.existsOnBoard() &&
+                target.isInWhitePalace() &&
+                !this.hasWhitePieceAt(target)
             );
-        } else if (this.#hasBlackPieceAt(position)) {
+        } else if (this.hasBlackPieceAt(position)) {
             return allTargetPosition.filter(target =>
-                target.existsOnBoard() && target.isInBlackPalace() && !this.#hasBlackPieceAt(target)
+                target.existsOnBoard() &&
+                target.isInBlackPalace() &&
+                !this.hasBlackPieceAt(target)
             );
         } else {
             console.error("we should never pass here")
@@ -1346,14 +1448,14 @@ class Board {
      */
     #listMovesForSoldier(position) {
         let result = [];
-        if (this.#hasWhitePieceAt(position)) {
+        if (this.hasWhitePieceAt(position)) {
             // is red
             result.push(position.getTop());
             if (this.#areOnOppositeSidesOfTheRiver(position, Position.redGeneralStartingPosition)) {
                 result.push(position.getLeft());
                 result.push(position.getRight());
             }
-        } else if (this.#hasBlackPieceAt(position)) {
+        } else if (this.hasBlackPieceAt(position)) {
             // is black
             result.push(position.getBottom());
             if (this.#areOnOppositeSidesOfTheRiver(position, Position.blackGeneralStartingPosition)) {
@@ -1392,95 +1494,9 @@ class Board {
         );
     }
 
-    /**
-     * @param position {Position}
-     * @returns {null|string}
-     */
-    getColorAt(position) {
-        let piece = this.getPieceAt(position);
-        if (piece != null) {
-            return piece.color;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @param position {Position}
-     * @return {boolean}
-     */
-    #hasPieceAt(position) {
-        return this.#content[position.x][position.y] != null;
-    }
-
-    /**
-     * @param position {Position}
-     * @return {boolean}
-     */
-    #hasWhitePieceAt(position) {
-        return this.#hasPieceOfColorAt(Color.WHITE, position);
-    }
-
-    /**
-     * @param position {Position}
-     * @return {boolean}
-     */
-    #hasBlackPieceAt(position) {
-        return this.#hasPieceOfColorAt(Color.BLACK, position);
-    }
-
-    #hasPieceOfColorAt(color, position) {
-        let piece = this.getPieceAt(position);
-        return piece != null && piece.color === color;
-    }
-
     #areOnOppositeSidesOfTheRiver(p1, p2) {
         return (p1.y <= 4 && p2.y >= 5) || (p2.y <= 4 && p1.y >= 5);
     }
-
-    containSameColors(p1, p2) {
-        return (this.#hasWhitePieceAt(p1) && this.#hasWhitePieceAt(p2))
-            || (this.#hasBlackPieceAt(p1) && this.#hasBlackPieceAt(p2));
-    }
-
-    containOppositeColors(p1, p2) {
-        return (this.#hasWhitePieceAt(p1) && this.#hasBlackPieceAt(p2))
-            || (this.#hasWhitePieceAt(p2) && this.#hasBlackPieceAt(p1));
-    }
-
-    printBoardToLines() {
-        let lines = [];
-        for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
-            let row = '';
-            for (let x = 0; x < BOARD_WIDTH; x++) {
-                let piece = this.getPieceAt(new Position(x, y));
-                if (piece == null) {
-                    row += '  ';
-                } else {
-                    row += piece.pieceChar + ' ';
-                }
-            }
-            lines.push(row);
-        }
-        return lines;
-    }
-
-    printBoard() {
-        let oneLine = '';
-        this.printBoardToLines().forEach(line => oneLine += line + '\n');
-        console.log(oneLine);
-    }
-
-    /**
-     * @return {Board}
-     */
-    copy() {
-        throw new Error('Abstract method, should be implemented in subclass');
-    }
-
-}
-
-class XiangqiBoard extends Board {
 
     /**
      * @return {XiangqiBoard}
