@@ -1448,6 +1448,7 @@ class BoardGui {
         if (this.#options.variant === Variant.JANGGI) {
             switch (this.#options.pieceStyle) {
                 case PieceStyleSetting.TRADITIONAL:
+                case PieceStyleSetting.INK_BRUSH:
                     location = 'janggi_cursive';
                     break;
                 case PieceStyleSetting.ROMANIZED_ROUNDED:
