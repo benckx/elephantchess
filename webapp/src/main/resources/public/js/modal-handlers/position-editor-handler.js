@@ -45,16 +45,16 @@ const BOARD_PIECE_DRAG_MIME = 'application/x-xiangqi-board-piece-from';
  * @return {boolean}
  */
 function isValidPiecePlacement(pieceChar, position) {
-    const isRed = pieceChar === pieceChar.toUpperCase();
+    const isWhitePiece = pieceChar === pieceChar.toUpperCase();
     const lower = pieceChar.toLowerCase();
 
     switch (lower) {
         case 'k':
         case 'a':
-            return isRed ? position.isInRedPalace() : position.isInBlackPalace();
+            return isWhitePiece ? position.isInWhitePalace() : position.isInBlackPalace();
         case 'b':
             // elephant must stay on its own side (no crossing the river)
-            return isRed ? position.y <= 4 : position.y >= 5;
+            return isWhitePiece ? position.y <= 4 : position.y >= 5;
         default:
             return true;
     }

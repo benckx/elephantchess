@@ -462,7 +462,7 @@ class Position {
             this.y < BOARD_HEIGHT;
     }
 
-    isInRedPalace() {
+    isInWhitePalace() {
         return this.x >= 3 &&
             this.x <= 5 &&
             this.y <= 2;
@@ -475,7 +475,7 @@ class Position {
     }
 
     isInAnyPalace() {
-        return this.isInRedPalace() || this.isInBlackPalace();
+        return this.isInWhitePalace() || this.isInBlackPalace();
     }
 
     getTop() {
@@ -1327,7 +1327,7 @@ class Board {
     #filterMovesInItsPalace(position, allTargetPosition) {
         if (this.#hasRedPieceAt(position)) {
             return allTargetPosition.filter(target =>
-                target.existsOnBoard() && target.isInRedPalace() && !this.#hasRedPieceAt(target)
+                target.existsOnBoard() && target.isInWhitePalace() && !this.#hasRedPieceAt(target)
             );
         } else if (this.#hasBlackPieceAt(position)) {
             return allTargetPosition.filter(target =>
