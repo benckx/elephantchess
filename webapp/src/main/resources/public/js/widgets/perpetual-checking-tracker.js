@@ -118,7 +118,7 @@ class AttackMap {
 
     constructor(color, startFen, moves, onlyGenerals) {
         // init
-        let board = new Board();
+        let board = new XiangqiBoard();
         board.loadFen(startFen);
         moves.forEach(move => board.registerMove(move));
         board.forceColorToPlay(color);
@@ -243,7 +243,7 @@ class PerpetualCheckingTracker {
 
     #moves = [];
     #startFen;
-    #board = new Board();
+    #board = new XiangqiBoard();
     #index = 0;
     #rulesSet = DEFAULT_RULES_SET;
 

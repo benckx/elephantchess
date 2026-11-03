@@ -85,7 +85,7 @@ class PlayerVsBotController {
                     if (this.#botGameDto.isInProgress()) {
                         // load all moves but one
                         let lastMove = moves.pop();
-                        let board = new Board();
+                        let board = new XiangqiBoard();
                         board.loadFen(this.#botGameDto.startFen);
                         moves.forEach(move => board.registerMove(move));
                         loadFenCallback(board.outputFen());

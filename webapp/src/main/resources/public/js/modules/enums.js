@@ -19,7 +19,8 @@
 
 const Variant = Object.freeze({
     XIANGQI: 'XIANGQI',
-    MANCHU: 'MANCHU'
+    MANCHU: 'MANCHU',
+    JANGGI: 'JANGGI'
 });
 
 const GameEventType = Object.freeze({

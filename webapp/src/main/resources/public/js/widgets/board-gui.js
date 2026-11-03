@@ -216,7 +216,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
 
 class BoardGui {
 
-    #board = new Board();
+    #board = new XiangqiBoard();
     #boardContainer;
     #currentShowingLegalMovesFor = null;
     #selectedPiecePosition = null;
@@ -363,7 +363,7 @@ class BoardGui {
 
         // compute the target piece layout via a temp board (no DOM side-effects,
         // and no mutation of the real model yet)
-        const targetBoard = new Board();
+        const targetBoard = new XiangqiBoard();
         targetBoard.loadFen(targetFen);
         const targetPieces = targetBoard.listPiecePositions();
 

@@ -105,7 +105,7 @@ function resetFenFullMovesCount(fen) {
 }
 
 function validateStartFen(fen) {
-    let board = new Board();
+    let board = new XiangqiBoard();
     board.loadFen(fen);
 
     if (board.isCheckmate(Color.WHITE) || board.isCheckmate(Color.BLACK)) {
@@ -142,7 +142,7 @@ function toSingleLinePgn(movesAsPgn) {
 function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEFAULT_START_FEN) {
     let movesAsPgn = [];
 
-    let board = new Board();
+    let board = new XiangqiBoard();
     board.loadFen(startFen);
 
     moves.forEach(move => {
@@ -186,7 +186,7 @@ function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEF
  */
 function translateMovesToPrefixedAlgebraic(moves, startFen = DEFAULT_START_FEN) {
     const formattedMoves = [];
-    const board = new Board();
+    const board = new XiangqiBoard();
     board.loadFen(startFen);
 
     moves.forEach(move => {
@@ -283,7 +283,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
     }
 
     let formattedMoves = [];
-    let board = new Board();
+    let board = new XiangqiBoard();
     board.loadFen(startFen);
 
     moves.forEach(move => {
@@ -428,7 +428,7 @@ function exportMovesToPgnLine(moves) {
  * @return {string}
  */
 function calculateFen(moves, startFen = DEFAULT_START_FEN) {
-    const board = new Board();
+    const board = new XiangqiBoard();
     board.loadFen(startFen);
     moves.forEach(move => board.registerMove(move));
     return board.outputFen();
@@ -1475,7 +1475,18 @@ class Board {
      * @return {Board}
      */
     copy() {
-        let copy = new Board();
+        throw new Error('Abstract method, should be implemented in subclass');
+    }
+
+}
+
+class XiangqiBoard extends Board {
+
+    /**
+     * @return {XiangqiBoard}
+     */
+    copy() {
+        let copy = new XiangqiBoard();
         copy.loadFen(this.outputFen());
         return copy
     }
