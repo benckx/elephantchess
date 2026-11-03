@@ -437,20 +437,6 @@ function calculateFen(moves, startFen = DEFAULT_START_FEN) {
     return board.outputFen();
 }
 
-/**
- * @return {Position} White general's starting position in Xiangqi.
- */
-function xiangqiWhiteGeneralStartingPosition() {
-    return new Position(Math.floor(BOARD_WIDTH / 2), 0);
-}
-
-/**
- * @return {Position} Black general's starting position in Xiangqi.
- */
-function xiangqiBlackGeneralStartingPosition() {
-    return new Position(Math.floor(BOARD_WIDTH / 2), BOARD_HEIGHT - 1);
-}
-
 class Position {
 
     constructor(x, y) {
@@ -1446,6 +1432,20 @@ class XiangqiBoard extends Board {
      * @returns {Position[]} Target positions reachable by the soldier.
      */
     #listMovesForSoldier(position) {
+        /**
+         * @return {Position} White general's starting position in Xiangqi.
+         */
+        function xiangqiWhiteGeneralStartingPosition() {
+            return new Position(Math.floor(BOARD_WIDTH / 2), 0);
+        }
+
+        /**
+         * @return {Position} Black general's starting position in Xiangqi.
+         */
+        function xiangqiBlackGeneralStartingPosition() {
+            return new Position(Math.floor(BOARD_WIDTH / 2), BOARD_HEIGHT - 1);
+        }
+
         let result = [];
         if (this.hasWhitePieceAt(position)) {
             // is red
