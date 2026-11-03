@@ -434,10 +434,21 @@ function calculateFen(moves, startFen = DEFAULT_START_FEN) {
     return board.outputFen();
 }
 
-class Position {
+/**
+ * @return {Position} White general's starting position in Xiangqi.
+ */
+function xiangqiWhiteGeneralStartingPosition() {
+    return new Position(Math.floor(BOARD_WIDTH / 2), 0);
+}
 
-    static redGeneralStartingPosition = new Position(Math.floor(BOARD_WIDTH / 2), 0);
-    static blackGeneralStartingPosition = new Position(Math.floor(BOARD_WIDTH / 2), BOARD_HEIGHT - 1);
+/**
+ * @return {Position} Black general's starting position in Xiangqi.
+ */
+function xiangqiBlackGeneralStartingPosition() {
+    return new Position(Math.floor(BOARD_WIDTH / 2), BOARD_HEIGHT - 1);
+}
+
+class Position {
 
     constructor(x, y) {
         this.x = x;
@@ -1451,14 +1462,14 @@ class XiangqiBoard extends Board {
         if (this.hasWhitePieceAt(position)) {
             // is red
             result.push(position.getTop());
-            if (this.#areOnOppositeSidesOfTheRiver(position, Position.redGeneralStartingPosition)) {
+            if (this.#areOnOppositeSidesOfTheRiver(position, xiangqiWhiteGeneralStartingPosition())) {
                 result.push(position.getLeft());
                 result.push(position.getRight());
             }
         } else if (this.hasBlackPieceAt(position)) {
             // is black
             result.push(position.getBottom());
-            if (this.#areOnOppositeSidesOfTheRiver(position, Position.blackGeneralStartingPosition)) {
+            if (this.#areOnOppositeSidesOfTheRiver(position, xiangqiBlackGeneralStartingPosition())) {
                 result.push(position.getLeft());
                 result.push(position.getRight());
             }
