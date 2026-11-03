@@ -1745,6 +1745,11 @@ class JanggiBoard extends Board {
         return this.#filterMovesInItsPalace(position, result);
     }
 
+    /**
+     * @param position {Position}
+     * @param allTargetPosition {Position[]}
+     * @returns {Position[]}
+     */
     #filterMovesInItsPalace(position, allTargetPosition) {
         if (this.hasWhitePieceAt(position)) {
             return allTargetPosition.filter(target =>
