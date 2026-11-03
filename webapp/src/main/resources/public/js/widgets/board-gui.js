@@ -1163,7 +1163,8 @@ class BoardGui {
                 .filter(crosshair => crosshair !== null);
         }
 
-        const mustDrawRiverAndWritings = this.#options.variant === Variant.XIANGQI && this.#options.variant === Variant.MANCHU;
+        const mustDrawRiverAndWritings =
+            this.#options.variant === Variant.XIANGQI || this.#options.variant === Variant.MANCHU;
 
         for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
             // draw rows
