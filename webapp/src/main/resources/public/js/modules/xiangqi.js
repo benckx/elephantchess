@@ -1325,9 +1325,9 @@ class Board {
     }
 
     #filterMovesInItsPalace(position, allTargetPosition) {
-        if (this.#hasRedPieceAt(position)) {
+        if (this.#hasWhitePieceAt(position)) {
             return allTargetPosition.filter(target =>
-                target.existsOnBoard() && target.isInWhitePalace() && !this.#hasRedPieceAt(target)
+                target.existsOnBoard() && target.isInWhitePalace() && !this.#hasWhitePieceAt(target)
             );
         } else if (this.#hasBlackPieceAt(position)) {
             return allTargetPosition.filter(target =>
@@ -1345,7 +1345,7 @@ class Board {
      */
     #listMovesForSoldier(position) {
         let result = [];
-        if (this.#hasRedPieceAt(position)) {
+        if (this.#hasWhitePieceAt(position)) {
             // is red
             result.push(position.getTop());
             if (this.#areOnOppositeSidesOfTheRiver(position, Position.redGeneralStartingPosition)) {
@@ -1416,7 +1416,7 @@ class Board {
      * @param position {Position}
      * @return {boolean}
      */
-    #hasRedPieceAt(position) {
+    #hasWhitePieceAt(position) {
         return this.#hasPieceOfColorAt(Color.WHITE, position);
     }
 
@@ -1438,13 +1438,13 @@ class Board {
     }
 
     containSameColors(p1, p2) {
-        return (this.#hasRedPieceAt(p1) && this.#hasRedPieceAt(p2))
+        return (this.#hasWhitePieceAt(p1) && this.#hasWhitePieceAt(p2))
             || (this.#hasBlackPieceAt(p1) && this.#hasBlackPieceAt(p2));
     }
 
     containOppositeColors(p1, p2) {
-        return (this.#hasRedPieceAt(p1) && this.#hasBlackPieceAt(p2))
-            || (this.#hasRedPieceAt(p2) && this.#hasBlackPieceAt(p1));
+        return (this.#hasWhitePieceAt(p1) && this.#hasBlackPieceAt(p2))
+            || (this.#hasWhitePieceAt(p2) && this.#hasBlackPieceAt(p1));
     }
 
     printBoardToLines() {
