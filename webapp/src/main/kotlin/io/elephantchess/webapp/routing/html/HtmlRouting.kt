@@ -31,6 +31,7 @@ private val simplePublicPageMapping = mapOf(
     "/403" to "errors/403",
     "/404" to "errors/404",
     "/board" to "test_board",
+    "/janggi-test-board" to "test_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
     "/browse/player-vs-player" to "browse_pvp_games",

@@ -195,6 +195,7 @@ const PieceStyleSetting = Object.freeze({
  * @property {boolean}     [showColoredAreas]       - if true, river/palace areas are highlighted.
  * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
  *                                                    file numbers are rendered in WXF mode.
+ * @property {string}     [variant]                - one of {@link Variant}; selects the chess variant.
  */
 
 /** @type {Readonly<Required<BoardGuiOptions>>} */
@@ -212,6 +213,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     flipOpponentPieces: false,
     showColoredAreas: false,
     fileNumbersStyle: FileNumbersStyle.DEFAULT,
+    variant: Variant.XIANGQI,
 });
 
 class BoardGui {
@@ -577,7 +579,8 @@ class BoardGui {
         // nothing to animate: bail out early; return a no-op cancel function
         if (animatedMoves.length === 0 && toRemove.length === 0 && toAdd.length === 0) {
             onDone();
-            return () => {};
+            return () => {
+            };
         }
 
         const transitionStr = `transform ${durationMs}ms ease, opacity ${durationMs}ms ease`;
