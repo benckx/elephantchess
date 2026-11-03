@@ -1020,7 +1020,7 @@ class Board {
     }
 
     #allMovesAreIllegal(color) {
-        return this.#listAllMovesForColor(color).every(move => this.#isMoveIllegal(move, color));
+        return this.#listAllMovesForColor(color).every(move => this.isMoveIllegal(move, color));
     }
 
     isMated() {
@@ -1042,7 +1042,7 @@ class Board {
             );
     }
 
-    #isMoveIllegal(move, color) {
+    isMoveIllegal(move, color) {
         let boardCopy = this.copy();
         if (boardCopy.#isPossibleMove(move)) {
             boardCopy.registerMove(move);
@@ -1082,7 +1082,7 @@ class Board {
         return this
             .listPiecePositions()
             .filter(piecePosition => piecePosition.isColor(color))
-            .flatMap(piecePosition => this.#listAllMovesFrom(piecePosition.position));
+            .flatMap(piecePosition => this.listAllMovesFrom(piecePosition.position));
     }
 
     #isPossibleMove(move) {
@@ -1096,7 +1096,7 @@ class Board {
         if (color == null) {
             return false;
         } else {
-            return !this.#isMoveIllegal(move, color);
+            return !this.isMoveIllegal(move, color);
         }
     }
 
@@ -1109,7 +1109,7 @@ class Board {
         if (color == null) {
             return [];
         } else {
-            return this.#listAllMovesFrom(position).filter(move => !this.#isMoveIllegal(move, color));
+            return this.listAllMovesFrom(position).filter(move => !this.isMoveIllegal(move, color));
         }
     }
 
@@ -1137,7 +1137,7 @@ class Board {
      * @param from {Position}
      * @returns {HalfMove[]} Moves from the position, including moves that leave the player in check.
      */
-    #listAllMovesFrom(from) {
+    listAllMovesFrom(from) {
         return this
             .#listAllMovesFromAsPositions(from)
             .map(to => new HalfMove(from, to));
