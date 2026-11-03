@@ -1219,32 +1219,6 @@ class XiangqiBoard extends Board {
         }
     }
 
-    #areGeneralsFacing() {
-        let red = this.findGeneral(Color.WHITE);
-        let black = this.findGeneral(Color.BLACK);
-        if (red == null || black == null) {
-            return false;
-        } else {
-            let redGeneralPosition = red.position;
-            let blackGeneralPosition = black.position;
-            return red.position.x === black.position.x && this.#noPieceOnFileBetween(redGeneralPosition, blackGeneralPosition);
-        }
-    }
-
-    #noPieceOnFileBetween(p1, p2) {
-        if (p1.x !== p2.x) {
-            return false;
-        } else {
-            for (let y = p1.y + 1; y < p2.y; y++) {
-                let position = new Position(p1.x, y);
-                if (this.hasPieceAt(position)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     /**
      * @param from {Position}
      * @returns {HalfMove[]} Moves from the position, including moves that leave the player in check.
@@ -1510,6 +1484,32 @@ class XiangqiBoard extends Board {
 
     #areOnOppositeSidesOfTheRiver(p1, p2) {
         return (p1.y <= 4 && p2.y >= 5) || (p2.y <= 4 && p1.y >= 5);
+    }
+
+    #areGeneralsFacing() {
+        let red = this.findGeneral(Color.WHITE);
+        let black = this.findGeneral(Color.BLACK);
+        if (red == null || black == null) {
+            return false;
+        } else {
+            let redGeneralPosition = red.position;
+            let blackGeneralPosition = black.position;
+            return red.position.x === black.position.x && this.#noPieceOnFileBetween(redGeneralPosition, blackGeneralPosition);
+        }
+    }
+
+    #noPieceOnFileBetween(p1, p2) {
+        if (p1.x !== p2.x) {
+            return false;
+        } else {
+            for (let y = p1.y + 1; y < p2.y; y++) {
+                let position = new Position(p1.x, y);
+                if (this.hasPieceAt(position)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
