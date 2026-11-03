@@ -1101,7 +1101,8 @@ class Board {
     }
 
     /**
-     * @returns {HalfMove[]}
+     * @param position {Position}
+     * @returns {HalfMove[]} Legal moves from the position.
      */
     listLegalMovesFrom(position) {
         let color = this.getColorAt(position);
@@ -1117,7 +1118,7 @@ class Board {
      * color whose turn it is to play).
      *
      * @param color {string} optional, defaults to {@link getColorToPlay}
-     * @returns {HalfMove[]}
+     * @returns {HalfMove[]} Legal moves for the color.
      */
     listAllLegalMoves(color = this.getColorToPlay()) {
         const moves = [];
@@ -1133,7 +1134,7 @@ class Board {
     }
 
     /**
-     * @returns Array of {@class HalfMove} one can go to from {@param from}. Includes illegal moves (e.g. that would put player in check)
+     * @returns {HalfMove[]} Moves from the position, including moves that leave the player in check.
      */
     #listAllMovesFrom(from) {
         return this
@@ -1141,9 +1142,7 @@ class Board {
             .map(to => new HalfMove(from, to));
     }
 
-    /**
-     * @returns {Position[]} one can go to from {@param position}. Includes illegal moves (e.g. that would put player in check)
-     */
+    /** @returns {Position[]} Target positions, including moves that leave the player in check. */
     #listAllMovesFromAsPositions(position) {
         switch (this.getPieceAt(position).pieceChar.toLowerCase()) {
             case 'c':
@@ -1167,6 +1166,10 @@ class Board {
         }
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the cannon.
+     */
     #listMovesForCannon(position) {
         let result = [];
         result = result.concat(this.#filterMovesForCannon(position, position.getAllTop()));
@@ -1201,6 +1204,10 @@ class Board {
         return result;
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the chariot.
+     */
     #listMovesForChariot(position) {
         let result = [];
         result = result.concat(this.#filterMovesForChariot(position, position.getAllTop()));
@@ -1228,6 +1235,10 @@ class Board {
         return result;
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the horse.
+     */
     #listMovesForHorse(position) {
         let result = [];
         let top = position.getTop();
@@ -1256,6 +1267,10 @@ class Board {
         );
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the elephant.
+     */
     #listMovesForElephant(position) {
         let result = [];
         let topLeft = position.getTopLeft();
@@ -1283,6 +1298,10 @@ class Board {
         );
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the advisor.
+     */
     #listMovesForAdvisor(position) {
         let result = [];
         result.push(position.getTopLeft());
@@ -1292,6 +1311,10 @@ class Board {
         return this.#filterMovesInItsPalace(position, result);
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the general.
+     */
     #listMovesForGeneral(position) {
         let result = [];
         result.push(position.getTop());
@@ -1316,6 +1339,10 @@ class Board {
         }
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the soldier.
+     */
     #listMovesForSoldier(position) {
         let result = [];
         if (this.#hasRedPieceAt(position)) {
@@ -1344,40 +1371,20 @@ class Board {
 
     /**
      * Super-chariot (Manchu Banner): combines the powers of the chariot, horse, and cannon.
+     * @param position {Position}
+     * @returns {Position[]} Unique target positions reachable by the super-chariot.
      */
     #listMovesForSuperChariot(position) {
         let result = [];
-        // Chariot moves
-        result = result.concat(this.#filterMovesForChariot(position, position.getAllTop()));
-        result = result.concat(this.#filterMovesForChariot(position, position.getAllBottom()));
-        result = result.concat(this.#filterMovesForChariot(position, position.getAllLeft()));
-        result = result.concat(this.#filterMovesForChariot(position, position.getAllRight()));
-        // Cannon moves
-        result = result.concat(this.#filterMovesForCannon(position, position.getAllTop()));
-        result = result.concat(this.#filterMovesForCannon(position, position.getAllBottom()));
-        result = result.concat(this.#filterMovesForCannon(position, position.getAllLeft()));
-        result = result.concat(this.#filterMovesForCannon(position, position.getAllRight()));
-        // Horse moves
-        const top = position.getTop();
-        const bottom = position.getBottom();
-        const left = position.getLeft();
-        const right = position.getRight();
-        if (top.existsOnBoard() && !this.#hasPieceAt(top)) {
-            result.push(top.getTopLeft());
-            result.push(top.getTopRight());
-        }
-        if (bottom.existsOnBoard() && !this.#hasPieceAt(bottom)) {
-            result.push(bottom.getBottomLeft());
-            result.push(bottom.getBottomRight());
-        }
-        if (left.existsOnBoard() && !this.#hasPieceAt(left)) {
-            result.push(left.getTopLeft());
-            result.push(left.getBottomLeft());
-        }
-        if (right.existsOnBoard() && !this.#hasPieceAt(right)) {
-            result.push(right.getTopRight());
-            result.push(right.getBottomRight());
-        }
+        result = result.concat(this.#listMovesForChariot(position));
+        result = result.concat(this.#listMovesForCannon(position));
+        result = result.concat(this.#listMovesForHorse(position));
+
+        // de-duplicate
+        result = result.filter((targetPosition, index) =>
+            result.findIndex(candidate => candidate.isEqualsTo(targetPosition)) === index
+        );
+
         // Filter: must be on board and not capture same-color pieces
         return result.filter(targetPosition =>
             targetPosition.existsOnBoard() && !this.containSameColors(position, targetPosition)
