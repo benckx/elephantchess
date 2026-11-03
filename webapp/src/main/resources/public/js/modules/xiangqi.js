@@ -1621,6 +1621,10 @@ class JanggiBoard extends Board {
         return copy;
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]}
+     */
     #listMovesForCannon(position) {
         let result = [];
         result = result.concat(this.#filterMovesForCannon(position, position.getAllTop()));
@@ -1633,6 +1637,11 @@ class JanggiBoard extends Board {
         return result;
     }
 
+    /**
+     * @param position {Position}
+     * @param allTargetPositions {Position[]}
+     * @returns {Position[]}
+     */
     #filterMovesForCannon(position, allTargetPositions) {
         let result = [];
         let foundPivot = false;
@@ -1664,6 +1673,10 @@ class JanggiBoard extends Board {
         return result;
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]}
+     */
     #listMovesForChariot(position) {
         let result = [];
         result = result.concat(this.#filterMovesForChariot(position, position.getAllTop()));
@@ -1676,6 +1689,11 @@ class JanggiBoard extends Board {
         return result;
     }
 
+    /**
+     * @param position {Position}
+     * @param allTargetPositions {Position[]}
+     * @returns {Position[]}
+     */
     #filterMovesForChariot(position, allTargetPositions) {
         let result = [];
 
@@ -1694,10 +1712,18 @@ class JanggiBoard extends Board {
         return result;
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]}
+     */
     #listMovesForHorse(position) {
         return listHorseMoves(this, position);
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]}
+     */
     #listMovesForElephant(position) {
         let result = [];
         const moves = [
@@ -1729,6 +1755,10 @@ class JanggiBoard extends Board {
         return result;
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]}
+     */
     #listMovesForGeneralOrAdvisors(position) {
         let result = [];
         result.push(position.getTop());
@@ -1763,6 +1793,10 @@ class JanggiBoard extends Board {
         }
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]}
+     */
     #listMovesForSoldier(position) {
         let result = [position.getLeft(), position.getRight()];
 
@@ -1786,6 +1820,11 @@ class JanggiBoard extends Board {
         );
     }
 
+    /**
+     * @param position {Position}
+     * @param color {string}
+     * @returns {Position[]}
+     */
     #listForwardPalaceDiagonalMoves(position, color) {
         const yOffset = color === Color.WHITE ? 1 : -1;
         const candidates = [
@@ -1795,6 +1834,10 @@ class JanggiBoard extends Board {
         return candidates.filter(candidate => this.#areConnectedByPalaceDiagonal(position, candidate));
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[][]}
+     */
     #listPalaceDiagonalLines(position) {
         const palaceCenter = this.#getPalaceCenter(position);
         if (palaceCenter == null) {
@@ -1815,6 +1858,10 @@ class JanggiBoard extends Board {
         return [[palaceCenter, oppositeCorner]];
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]}
+     */
     #listPalaceDiagonalNeighbors(position) {
         const palaceCenter = this.#getPalaceCenter(position);
         if (palaceCenter == null) {
@@ -1832,6 +1879,11 @@ class JanggiBoard extends Board {
         return [];
     }
 
+    /**
+     * @param from {Position}
+     * @param to {Position}
+     * @returns {boolean}
+     */
     #areConnectedByPalaceDiagonal(from, to) {
         if (
             !from.existsOnBoard() ||
@@ -1846,6 +1898,10 @@ class JanggiBoard extends Board {
         return this.#listPalaceDiagonalNeighbors(from).some(candidate => candidate.isEqualsTo(to));
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position|null}
+     */
     #getPalaceCenter(position) {
         if (position.isInWhitePalace()) {
             return new Position(4, 1);
@@ -1856,6 +1912,10 @@ class JanggiBoard extends Board {
         }
     }
 
+    /**
+     * @param centerY {number}
+     * @returns {Position[]}
+     */
     #getPalaceCorners(centerY) {
         return [
             new Position(3, centerY - 1),
