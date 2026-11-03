@@ -437,39 +437,6 @@ function calculateFen(moves, startFen = DEFAULT_START_FEN) {
     return board.outputFen();
 }
 
-/**
- * @param board {Board}
- * @param position {Position}
- * @returns {Position[]}
- */
-function listHorseMoves(board, position) {
-    let result = [];
-    let top = position.getTop();
-    let bottom = position.getBottom();
-    let left = position.getLeft();
-    let right = position.getRight();
-    if (top.existsOnBoard() && !board.hasPieceAt(top)) {
-        result.push(top.getTopLeft());
-        result.push(top.getTopRight());
-    }
-    if (bottom.existsOnBoard() && !board.hasPieceAt(bottom)) {
-        result.push(bottom.getBottomLeft());
-        result.push(bottom.getBottomRight());
-    }
-    if (left.existsOnBoard() && !board.hasPieceAt(left)) {
-        result.push(left.getTopLeft());
-        result.push(left.getBottomLeft());
-    }
-    if (right.existsOnBoard() && !board.hasPieceAt(right)) {
-        result.push(right.getTopRight());
-        result.push(right.getBottomRight());
-    }
-
-    return result.filter(targetPosition =>
-        targetPosition.existsOnBoard() && !board.containSameColors(targetPosition, position)
-    );
-}
-
 class Position {
 
     constructor(x, y) {
@@ -585,6 +552,38 @@ class Position {
 
     getBottomRight() {
         return new Position(this.x + 1, this.y - 1);
+    }
+
+    /**
+     * @param board {Board}
+     * @returns {Position[]}
+     */
+    listHorseMoves(board) {
+        let result = [];
+        let top = this.getTop();
+        let bottom = this.getBottom();
+        let left = this.getLeft();
+        let right = this.getRight();
+        if (top.existsOnBoard() && !board.hasPieceAt(top)) {
+            result.push(top.getTopLeft());
+            result.push(top.getTopRight());
+        }
+        if (bottom.existsOnBoard() && !board.hasPieceAt(bottom)) {
+            result.push(bottom.getBottomLeft());
+            result.push(bottom.getBottomRight());
+        }
+        if (left.existsOnBoard() && !board.hasPieceAt(left)) {
+            result.push(left.getTopLeft());
+            result.push(left.getBottomLeft());
+        }
+        if (right.existsOnBoard() && !board.hasPieceAt(right)) {
+            result.push(right.getTopRight());
+            result.push(right.getBottomRight());
+        }
+
+        return result.filter(targetPosition =>
+            targetPosition.existsOnBoard() && !board.containSameColors(targetPosition, this)
+        );
     }
 
     isEqualsTo(other) {
@@ -1357,7 +1356,7 @@ class XiangqiBoard extends Board {
      * @returns {Position[]} Target positions reachable by the horse.
      */
     #listMovesForHorse(position) {
-        return listHorseMoves(this, position);
+        return position.listHorseMoves(this);
     }
 
     /**
@@ -1686,7 +1685,7 @@ class JanggiBoard extends Board {
     }
 
     #listMovesForHorse(position) {
-        return listHorseMoves(this, position);
+        return position.listHorseMoves(this);
     }
 
     #listMovesForElephant(position) {
