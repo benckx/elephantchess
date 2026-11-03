@@ -139,7 +139,7 @@ a.board-outer-container-link-mask {
     transform: rotate(180deg);
 }
 
-.board-container.flip-opponent-pieces-red .piece-image-red {
+.board-container.flip-opponent-pieces-red .piece-image-white {
     transform: rotate(180deg);
 }
 

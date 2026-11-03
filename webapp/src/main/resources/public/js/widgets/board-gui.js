@@ -1482,7 +1482,7 @@ class BoardGui {
         if (isBlackPiece(pieceChar)) {
             img.classList.add('piece-image-black');
         } else if (isWhitePiece(pieceChar)) {
-            img.classList.add('piece-image-red');
+            img.classList.add('piece-image-white');
         }
         if (this.#options.variant === Variant.JANGGI) {
             img.classList.add('piece-image-janggi');
