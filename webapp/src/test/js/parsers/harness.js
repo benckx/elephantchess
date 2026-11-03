@@ -114,10 +114,15 @@ function loadParsers() {
         'IccsParser',
         'WxfParser',
         'Board',
+        'AbstractBoard',
+        'XiangqiBoard',
+        'ManchuBoard',
+        'JanggiBoard',
         'Position',
         'HalfMove',
         'Color',
-        'DEFAULT_START_FEN'
+        'DEFAULT_START_FEN',
+        'MANCHU_START_FEN'
     ];
 
     const combinedCode = SCRIPT_LOAD_ORDER
