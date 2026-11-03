@@ -1067,6 +1067,11 @@ class Board {
             .flatMap(piecePosition => this.listAllMovesFrom(piecePosition.position));
     }
 
+    // TODO: strange naming, more like "pseudo-legal move"
+    /**
+     * @param move {HalfMove}
+     * @returns {boolean}
+     */
     isPossibleMove(move) {
         return this
             .listAllMovesFrom(move.from)
@@ -1209,8 +1214,14 @@ class Board {
 
 class XiangqiBoard extends Board {
 
+    /**
+     *
+     * @param move {HalfMove}
+     * @param color {string}
+     * @returns {boolean}
+     */
     isMoveIllegal(move, color) {
-        let boardCopy = this.copy();
+        const boardCopy = this.copy();
         if (boardCopy.isPossibleMove(move)) {
             boardCopy.registerMove(move);
             return boardCopy.#areGeneralsFacing() || boardCopy.isInCheck(color);
@@ -1486,18 +1497,26 @@ class XiangqiBoard extends Board {
         return (p1.y <= 4 && p2.y >= 5) || (p2.y <= 4 && p1.y >= 5);
     }
 
+    /**
+     * @returns {boolean}
+     */
     #areGeneralsFacing() {
-        let red = this.findGeneral(Color.WHITE);
-        let black = this.findGeneral(Color.BLACK);
+        const red = this.findGeneral(Color.WHITE);
+        const black = this.findGeneral(Color.BLACK);
         if (red == null || black == null) {
             return false;
         } else {
-            let redGeneralPosition = red.position;
-            let blackGeneralPosition = black.position;
+            const redGeneralPosition = red.position;
+            const blackGeneralPosition = black.position;
             return red.position.x === black.position.x && this.#noPieceOnFileBetween(redGeneralPosition, blackGeneralPosition);
         }
     }
 
+    /**
+     * @param p1 {Position}
+     * @param p2 {Position}
+     * @returns {boolean}
+     */
     #noPieceOnFileBetween(p1, p2) {
         if (p1.x !== p2.x) {
             return false;
@@ -1519,6 +1538,37 @@ class XiangqiBoard extends Board {
         let copy = new XiangqiBoard();
         copy.loadFen(this.outputFen());
         return copy
+    }
+
+}
+
+class JanggiBoard extends Board {
+
+    /**
+     * @param move {HalfMove}
+     * @param color {string}
+     * @returns {boolean}
+     */
+    isMoveIllegal(move, color) {
+        const boardCopy = this.copy();
+        if (boardCopy.isPossibleMove(move)) {
+            boardCopy.registerMove(move);
+            return boardCopy.isInCheck(color);
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * @param from {Position}
+     * @returns {HalfMove[]} Moves from the position, including moves that leave the player in check.
+     */
+    listAllMovesFrom(from) {
+        throw new Error('Not implemented yet');
+    }
+
+    copy() {
+        throw new Error('Not implemented yet');
     }
 
 }
