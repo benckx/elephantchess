@@ -1738,16 +1738,14 @@ class JanggiBoard extends Board {
     }
 
     #listMovesForAdvisor(position) {
-        let result = [];
-        result.push(position.getTop());
-        result.push(position.getBottom());
-        result.push(position.getLeft());
-        result.push(position.getRight());
-        result = result.concat(this.#listPalaceDiagonalNeighbors(position));
-        return this.#filterMovesInItsPalace(position, result);
+        return this.#listMovesForPalaceStepPiece(position);
     }
 
     #listMovesForGeneral(position) {
+        return this.#listMovesForPalaceStepPiece(position);
+    }
+
+    #listMovesForPalaceStepPiece(position) {
         let result = [];
         result.push(position.getTop());
         result.push(position.getBottom());
