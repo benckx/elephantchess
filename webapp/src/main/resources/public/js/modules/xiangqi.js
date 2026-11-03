@@ -1615,12 +1615,6 @@ class JanggiBoard extends Board {
         return targets.map(to => new HalfMove(from, to));
     }
 
-    copy() {
-        const copy = new JanggiBoard();
-        copy.loadFen(this.outputFen());
-        return copy;
-    }
-
     /**
      * @param position {Position}
      * @returns {Position[]}
@@ -1923,6 +1917,15 @@ class JanggiBoard extends Board {
             new Position(3, centerY + 1),
             new Position(5, centerY + 1),
         ];
+    }
+
+    /**
+     * @returns {JanggiBoard}
+     */
+    copy() {
+        const copy = new JanggiBoard();
+        copy.loadFen(this.outputFen());
+        return copy;
     }
 
 }
