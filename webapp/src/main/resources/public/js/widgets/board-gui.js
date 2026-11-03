@@ -1484,6 +1484,18 @@ class BoardGui {
         } else if (isWhitePiece(pieceChar)) {
             img.classList.add('piece-image-red');
         }
+        if (this.#options.variant === Variant.JANGGI) {
+            img.classList.add('piece-image-janggi');
+            switch (pieceChar.toLowerCase()) {
+                case 'k':
+                    img.classList.add('piece-image-janggi-general');
+                    break;
+                case 'a':
+                case 'p':
+                    img.classList.add('piece-image-janggi-small');
+                    break;
+            }
+        }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
         img.addEventListener('click', () => this.#clickedOnPiece(position));
         img.addEventListener('dragstart', (e) => this.#dragStart(e, position));
