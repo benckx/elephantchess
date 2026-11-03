@@ -1423,8 +1423,23 @@ class BoardGui {
      * @return {string}
      */
     getPieceImageSource(pieceChar) {
-        const style = this.#options.pieceStyle.toLowerCase();
-        return `${this.#options.assetsBaseUrl}/images/pieces/${style}/${pieceImageNames.get(pieceChar)}`;
+        let location = this.#options.pieceStyle.toLowerCase();
+
+        if (this.#options.variant === Variant.JANGGI) {
+            switch (this.#options.pieceStyle) {
+                case PieceStyleSetting.TRADITIONAL:
+                    location = 'janggi_cursive';
+                    break;
+                case PieceStyleSetting.ROMANIZED_ROUNDED:
+                    location = 'janggi_westernized';
+                    break;
+                case PieceStyleSetting.MODERN:
+                    location = 'janggi_modern';
+                    break;
+            }
+        }
+
+        return `${this.#options.assetsBaseUrl}/images/pieces/${location}/${pieceImageNames.get(pieceChar)}`;
     }
 
     /**
