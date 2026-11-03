@@ -1448,7 +1448,7 @@ class XiangqiBoard extends Board {
 
         let result = [];
         if (this.hasWhitePieceAt(position)) {
-            // is red
+            // is white (i.e. red)
             result.push(position.getTop());
             if (this.#areOnOppositeSidesOfTheRiver(position, xiangqiWhiteGeneralStartingPosition())) {
                 result.push(position.getLeft());
