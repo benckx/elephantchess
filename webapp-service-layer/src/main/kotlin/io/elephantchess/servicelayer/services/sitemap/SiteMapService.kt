@@ -28,6 +28,7 @@ class SiteMapService(
     private val howToPlayXiangqiLastPageChange = LocalDate.of(2026, 5, 24)
     private val howToPlayJanggiLastPageChange = LocalDate.of(2026, 11, 4)
     private val xiangqiTestBoardLastChange = LocalDate.of(2026, 5, 23)
+    private val manchuTestBoardLastChange = LocalDate.of(2026, 11, 4)
     private val janggiTestBoardLastChange = LocalDate.of(2026, 11, 4)
     private val sevenKingdomLastChange = LocalDate.of(2025, 12, 10)
 
@@ -120,8 +121,14 @@ class SiteMapService(
             priority = 0.8,
         ),
         SitemapEntry(
-            loc = "$webHostTrimmed/board",
+            loc = "$webHostTrimmed/xiangqi-test-board",
             lastmod = xiangqiTestBoardLastChange,
+            changefreq = MONTHLY,
+            priority = 0.8,
+        ),
+        SitemapEntry(
+            loc = "$webHostTrimmed/manchu-test-board",
+            lastmod = manchuTestBoardLastChange,
             changefreq = MONTHLY,
             priority = 0.8,
         ),
