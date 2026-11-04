@@ -33,6 +33,12 @@ object GenerateJanggiGames {
         "i9i7",
     )
 
+    private enum class GameResult {
+        CHECKMATE,
+        STALEMATE,
+        DRAW,
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         val totalGames = args.firstOrNull { it.startsWith("--games=") }?.substringAfter("=")?.toIntOrNull() ?: TOTAL_GAMES
@@ -54,7 +60,7 @@ object GenerateJanggiGames {
         outputFile.writeText(
             games.joinToString("\n") { game -> "${game.id};${game.moves.joinToString(",")}" },
         )
-        println("Wrote ${games.size} Janggi games to $OUTPUT_PATH")
+        println("Wrote ${games.size} unique Janggi games to $OUTPUT_PATH")
     }
 
     private fun findDefaultEnginePath(): String? {
@@ -79,17 +85,22 @@ object GenerateJanggiGames {
     private fun generateSyntheticGames(totalGames: Int, maxMoves: Int): List<GeneratedGame> =
         buildList {
             while (size < totalGames) {
-                val gameLength = random.nextInt(MIN_MOVES_PER_GAME, maxMoves.coerceAtLeast(MIN_MOVES_PER_GAME) + 1)
-                val moves = buildList {
-                    repeat(gameLength) {
-                        add(movePool.random())
-                    }
-                }
-                if (moves.size >= MIN_MOVES_PER_GAME) {
-                    add(GeneratedGame(randomId(), moves))
-                }
+                val game = generateSyntheticGame(maxMoves)
+                if (game.moves.size >= MIN_MOVES_PER_GAME) add(game)
             }
         }
+
+    private fun generateSyntheticGame(maxMoves: Int): GeneratedGame {
+        val result = GameResult.entries.random()
+        val targetLength = random.nextInt(MIN_MOVES_PER_GAME, maxMoves.coerceAtLeast(MIN_MOVES_PER_GAME) + 1)
+        val moves = mutableListOf<String>()
+        while (moves.size < targetLength) {
+            val candidate = movePool.random()
+            if (moves.size > 0 && moves.last() == candidate && random.nextDouble() < 0.25) continue
+            moves.add(candidate)
+        }
+        return GeneratedGame(randomId(), moves, result)
+    }
 
     private fun generateSelfPlayGame(enginePath: String, maxMoves: Int): GeneratedGame {
         val process = ProcessBuilder(enginePath)
@@ -149,11 +160,15 @@ object GenerateJanggiGames {
         process.waitFor()
         input.close()
         output.close()
-        return GeneratedGame(randomId(), history)
+        return GeneratedGame(randomId(), history, GameResult.entries.random())
     }
 
     private fun randomId(): String =
         UUID.randomUUID().toString().replace("-", "").take(8)
 
-    private data class GeneratedGame(val id: String, val moves: List<String>)
+    private data class GeneratedGame(
+        val id: String,
+        val moves: List<String>,
+        val result: GameResult,
+    )
 }
