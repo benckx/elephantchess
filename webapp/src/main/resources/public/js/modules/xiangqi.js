@@ -842,10 +842,6 @@ class HalfMove {
         return m1 != null && m2 != null && Position.areEquals(m1.from, m2.from) && Position.areEquals(m1.to, m2.to);
     }
 
-    static uciToAlgebraic(uci) {
-        return HalfMove.parseUci(uci).toAlgebraic();
-    }
-
 }
 
 class AbstractXiangqiBoard {
