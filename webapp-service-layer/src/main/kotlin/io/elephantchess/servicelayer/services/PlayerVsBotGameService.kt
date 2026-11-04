@@ -126,6 +126,10 @@ class PlayerVsBotGameService(
     }
 
     suspend fun create(userId: UserId, request: CreateBotGameRequest): CreateBotGameResponse {
+        if (request.variant == Variant.JANGGI) {
+            throw BadRequestException("Janggi games are not supported yet")
+        }
+
         if (request.depth !in 1..14) {
             throw BadRequestException("Depth must be between 1 and 14")
         }

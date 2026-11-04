@@ -1308,6 +1308,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_MANCHU_SEVERAL_DAYS
                     TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_MANCHU_CORRESPONDENCE
                 }
+
+                Variant.JANGGI -> error("Janggi ratings are not supported yet")
             }
 
         fun isPlaying(userId: String): Condition =

@@ -337,6 +337,10 @@ class PlayerVsPlayerGameService(
             }
 
     suspend fun createGame(userId: UserId, request: CreateGameRequest): CreateGameResponse {
+        if (request.variant == Variant.JANGGI) {
+            throw BadRequestException("Janggi games are not supported yet")
+        }
+
         // validation
         if (request.timeControlMode == TimeControlMode.MOVE_TIME) {
             if (request.timeControlIncrement != null) {

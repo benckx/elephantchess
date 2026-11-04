@@ -54,6 +54,8 @@ fun User.rating(timeControlCategory: TimeControlCategory, variant: Variant = Var
             TimeControlCategory.SEVERAL_DAYS -> gameRatingManchuSeveralDays
             TimeControlCategory.CORRESPONDENCE -> gameRatingManchuCorrespondence
         }
+
+        Variant.JANGGI -> error("Janggi ratings are not supported yet")
     }
 
 fun Analysis.gameId(): GameId? =

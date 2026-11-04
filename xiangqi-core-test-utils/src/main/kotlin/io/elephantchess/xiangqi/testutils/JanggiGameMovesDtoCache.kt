@@ -14,6 +14,7 @@ class JanggiGameMovesDtoCache {
 
     private companion object {
 
+        val engineMovePattern = Regex("([a-i])(10|[1-9])([a-i])(10|[1-9])")
         val cache by lazy { loadAll() }
 
         fun loadAll(): List<GameMovesDto> =
@@ -23,7 +24,14 @@ class JanggiGameMovesDtoCache {
                 .map { line ->
                     val pieces = line.split(";", limit = 3)
                     val gameId = pieces[0]
-                    val moves = pieces[1].split(",").filter { it.isNotBlank() }
+                    // Fairy-Stockfish uses ranks 1..10 for Janggi, while the core uses 0..9.
+                    val moves = pieces[1].split(",").filter { it.isNotBlank() }.map { move ->
+                        val match = requireNotNull(engineMovePattern.matchEntire(move)) {
+                            "Invalid Janggi move '$move' in game '$gameId'"
+                        }
+                        val (fromFile, fromRank, toFile, toRank) = match.destructured
+                        "$fromFile${fromRank.toInt() - 1}$toFile${toRank.toInt() - 1}"
+                    }
                     val outcome = pieces.getOrNull(2)?.takeIf { it.isNotBlank() }
                     GameMovesDto(gameId, moves, outcome)
                 }
