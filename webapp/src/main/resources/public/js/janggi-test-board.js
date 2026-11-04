@@ -26,6 +26,7 @@ class TestBoardPage extends BasePage {
 
         const moveTreeWidget = new MoveTreeWidget({
             containerId: 'move-tree-container',
+            variant: Variant.JANGGI,
             ...moveTreeResizeCookiePersistence('simple-board', 'move-tree-container')
         });
         moveTreeWidget.addNavigationPanel({
@@ -36,6 +37,7 @@ class TestBoardPage extends BasePage {
             containerId: 'move-history-navigation-panel',
             isDownloadButtonEnabled: true
         });
+        moveTreeWidget.startFen = JANGGI_START_FEN;
         moveTreeWidget.boardWidget = boardGui;
 
         boardGui.addAfterMoveListener((move) => {
