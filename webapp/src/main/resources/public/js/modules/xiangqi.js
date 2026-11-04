@@ -278,7 +278,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen, variant = Var
     /**
      * File number or sign (+ or -)
      *
-     * @param board {Board}
+     * @param board {AbstractXiangqiBoard}
      * @param move {HalfMove}
      * @return {string}
      */
@@ -471,7 +471,7 @@ function calculateFen(moves, startFen = DEFAULT_START_FEN, variant = Variant.XIA
 /**
  * @param startFen {string}
  * @param variant {string}
- * @return {Board}
+ * @return {AbstractXiangqiBoard}
  */
 function createBoardForVariant(startFen, variant = Variant.XIANGQI) {
     const effectiveVariant = variant ?? (startFen === JANGGI_START_FEN ? Variant.JANGGI : Variant.XIANGQI);
@@ -482,7 +482,7 @@ function createBoardForVariant(startFen, variant = Variant.XIANGQI) {
 }
 
 /**
- * @param board {Board}
+ * @param board {AbstractXiangqiBoard}
  * @param position {Position}
  * @returns {Position[]}
  */
@@ -842,13 +842,9 @@ class HalfMove {
         return m1 != null && m2 != null && Position.areEquals(m1.from, m2.from) && Position.areEquals(m1.to, m2.to);
     }
 
-    static uciToAlgebraic(uci) {
-        return HalfMove.parseUci(uci).toAlgebraic();
-    }
-
 }
 
-class Board {
+class AbstractXiangqiBoard {
 
     #content = [];
     #whiteToPlay = true;
@@ -1276,7 +1272,7 @@ class Board {
     }
 
     /**
-     * @return {Board}
+     * @return {AbstractXiangqiBoard}
      */
     copy() {
         throw new Error('Abstract method, should be implemented in subclass');
@@ -1284,7 +1280,7 @@ class Board {
 
 }
 
-class XiangqiBoard extends Board {
+class XiangqiBoard extends AbstractXiangqiBoard {
 
     /**
      *
@@ -1604,7 +1600,7 @@ class XiangqiBoard extends Board {
 
 }
 
-class JanggiBoard extends Board {
+class JanggiBoard extends AbstractXiangqiBoard {
 
     /**
      * @param move {HalfMove}
