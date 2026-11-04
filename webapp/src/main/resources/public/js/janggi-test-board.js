@@ -26,6 +26,7 @@ class TestBoardPage extends BasePage {
 
         const moveTreeWidget = new MoveTreeWidget({
             containerId: 'move-tree-container',
+            variant: Variant.JANGGI,
             ...moveTreeResizeCookiePersistence('simple-board', 'move-tree-container')
         });
         moveTreeWidget.addNavigationPanel({

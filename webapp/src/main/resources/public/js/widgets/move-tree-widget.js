@@ -452,11 +452,12 @@ class MoveTreeNode {
      * Calculate and returns the label, but doesn't update UI
      *
      * @param moveFormat {string}
+     * @param variant {string}
      * @return {string}
      */
-    renderLabel(moveFormat) {
+    renderLabel(moveFormat, variant) {
         const moves = this.getAllNodesLeadingUpTo().map(node => node.move);
-        const translated = translateMovesFormatTakeLast(moves, moveFormat.toString(), this.startFen);
+        const translated = translateMovesFormatTakeLast(moves, moveFormat.toString(), this.startFen, variant);
         if (translated != null) {
             return translated;
         } else {
@@ -642,11 +643,12 @@ class MoveTreeNode {
 
     /**
      * @param startFen {string}
+     * @param variant {string}
      * @return {string}
      */
-    toPgn(startFen) {
+    toPgn(startFen, variant) {
         let nodes = this.getAllNodesLeadingUpTo();
-        let movesAsPgn = translateMovesToPgn(nodes.map(node => node.move), true, startFen);
+        let movesAsPgn = translateMovesToPgn(nodes.map(node => node.move), true, startFen, variant);
         let lastPgn = movesAsPgn[movesAsPgn.length - 1];
         let lastNode = nodes[nodes.length - 1];
         let position = lastNode.position;
@@ -1371,6 +1373,7 @@ class MoveTreeWidget {
 
     #metadataFetcher = () => new Map();
     #startFen = DEFAULT_START_FEN;
+    #variant = Variant.XIANGQI;
     #useDefaultFen = true;
 
     #settingsManager = new SettingsManager();
@@ -1442,6 +1445,9 @@ class MoveTreeWidget {
         }
         if (options.persistHeight !== undefined) {
             this.#persistHeight = options.persistHeight;
+        }
+        if (options.variant !== undefined) {
+            this.#variant = options.variant;
         }
 
         const containerId = options.containerId;
@@ -2100,7 +2106,7 @@ class MoveTreeWidget {
         this.#moveTree.getAllNodes().forEach(node => {
             document
                 .getElementById(`move-label-placeholder-${node.nodeId}`)
-                .innerText = node.renderLabel(format);
+                .innerText = node.renderLabel(format, this.#variant);
         });
     }
 
@@ -2347,7 +2353,7 @@ class MoveTreeWidget {
     #exportNodesToPgnNested(nodes) {
         let result = [];
         for (let node of nodes) {
-            result.push(node.toPgn(this.#startFen));
+            result.push(node.toPgn(this.#startFen, this.#variant));
             for (let i = 0; i < node.childNodes.length; i++) {
                 let childNode = node.childNodes[i];
                 let continuationToken = '';
@@ -2620,7 +2626,7 @@ class MoveTreeWidget {
             const label = document.createElement('div');
             label.id = `move-label-placeholder-${node.nodeId}`;
             label.className = 'move-label-placeholder';
-            label.innerText = node.renderLabel(moveFormat);
+            label.innerText = node.renderLabel(moveFormat, treeWidget.#variant);
             return label;
         }
 
