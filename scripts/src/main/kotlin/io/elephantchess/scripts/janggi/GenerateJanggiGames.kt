@@ -124,8 +124,5 @@ object GenerateJanggiGames {
     private fun randomId(): String =
         UUID.randomUUID().toString().replace("-", "").take(8)
 
-    private data class GeneratedGame(
-        val id: String,
-        val moves: List<String>,
-    )
+    private data class GeneratedGame(val id: String, val moves: List<String>)
 }
