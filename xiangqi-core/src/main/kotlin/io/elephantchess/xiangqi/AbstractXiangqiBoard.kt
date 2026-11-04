@@ -1,14 +1,14 @@
 package io.elephantchess.xiangqi
 
 import io.elephantchess.xiangqi.AbstractPieceType.GENERAL
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.HEIGHT
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.WIDTH
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.HEIGHT
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.WIDTH
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.Position.Companion.getAllPositions
 
-abstract class AbstractXiangqiXiangqiBoard(initFen: String, private val keepHistory: Boolean = false) {
+abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Boolean = false) {
 
     abstract val variant: Variant
 
