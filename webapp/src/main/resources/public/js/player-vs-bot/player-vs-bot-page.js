@@ -173,7 +173,11 @@ class PlayerVsBotPage extends BasePage {
 
         // set up listeners
         this.#boardGui.addAfterMoveListener((move) => {
-            this.#moveTreeWidget.addMoveAtTheEnd(move);
+            try {
+                this.#moveTreeWidget.addMoveAtTheEnd(move);
+            } catch (e) {
+                console.error('failed to append move to move-tree widget', e);
+            }
             this.#boardGui.disablePlayerMove();
             this.#controller.playMove(move);
         });
