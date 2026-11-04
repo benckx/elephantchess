@@ -35,6 +35,10 @@ import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.selectByProbability
+import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Color.BLACK
+import io.elephantchess.xiangqi.Color.WHITE
+import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.calculateNewFen
@@ -44,10 +48,6 @@ import io.elephantchess.xiangqi.XiangqiBoard.Companion.isStalemated
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.moveToFens
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.validateFen
-import io.elephantchess.xiangqi.Color
-import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.WHITE
-import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult

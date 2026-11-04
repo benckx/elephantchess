@@ -29,11 +29,11 @@ import io.elephantchess.servicelayer.exceptions.PreConditionFailedException
 import io.elephantchess.servicelayer.utils.collectMoveAnnotations
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.xiangqi.Color.WHITE
+import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
-import io.elephantchess.xiangqi.Color.WHITE
-import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

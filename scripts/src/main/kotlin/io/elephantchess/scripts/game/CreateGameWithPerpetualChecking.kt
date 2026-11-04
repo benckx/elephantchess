@@ -11,10 +11,10 @@ import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
-import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
+import io.elephantchess.xiangqi.XiangqiBoard
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
 import kotlin.system.exitProcess

@@ -12,10 +12,10 @@ import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.utils.calculateCpl
-import io.elephantchess.xiangqi.XiangqiBoard
-import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext

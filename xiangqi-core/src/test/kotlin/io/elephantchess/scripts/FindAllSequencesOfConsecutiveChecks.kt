@@ -1,8 +1,8 @@
 package io.elephantchess.scripts
 
-import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.testutils.GameMovesDtoCache
 import io.elephantchess.xiangqi.testutils.Ops.moves
 
@@ -13,7 +13,7 @@ fun main() {
         .listAll()
         .forEach { game ->
             try {
-                val board = Board(keepHistory = true)
+                val board = XiangqiBoard(keepHistory = true)
                 board.registerMoves(game.moves())
                 val history = board.getHistory()!!
 

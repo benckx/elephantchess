@@ -14,11 +14,11 @@ import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.utils.calculateMoveAnnotation
 import io.elephantchess.servicelayer.utils.findAnalysisDataFromEngineBestMove
 import io.elephantchess.servicelayer.utils.hasComparableAnalysisData
+import io.elephantchess.xiangqi.HalfMove.Companion.halfMoveIndexToFullMove
+import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
-import io.elephantchess.xiangqi.HalfMove.Companion.halfMoveIndexToFullMove
-import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject

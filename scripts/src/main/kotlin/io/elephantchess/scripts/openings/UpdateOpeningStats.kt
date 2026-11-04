@@ -12,8 +12,8 @@ import io.elephantchess.model.Outcome
 import io.elephantchess.model.Outcome.*
 import io.elephantchess.scripts.utils.ScriptConfig.Companion.loadScriptConfig
 import io.elephantchess.scripts.utils.getScriptDslContext
-import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.HalfMove
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import kotlinx.coroutines.*
 import org.jooq.DSLContext

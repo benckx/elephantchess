@@ -17,8 +17,8 @@ import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
-import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Color.WHITE
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
 import kotlinx.coroutines.test.runTest
 import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext

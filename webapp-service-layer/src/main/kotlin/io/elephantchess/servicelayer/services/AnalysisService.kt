@@ -15,10 +15,10 @@ import io.elephantchess.servicelayer.exceptions.ForbiddenException
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.xiangqi.HalfMove
 import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.validateFen
-import io.elephantchess.xiangqi.HalfMove
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Clock
 import kotlin.time.Instant

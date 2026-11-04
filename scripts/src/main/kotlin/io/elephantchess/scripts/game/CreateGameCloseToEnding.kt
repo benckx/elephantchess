@@ -13,9 +13,9 @@ import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
-import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.HalfMove
+import io.elephantchess.xiangqi.XiangqiBoard
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject

@@ -1,7 +1,7 @@
 package io.elephantchess.xiangqi.testutils
 
-import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
+import io.elephantchess.xiangqi.XiangqiBoard
 
 object Ops {
 

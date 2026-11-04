@@ -7,8 +7,8 @@ import io.elephantchess.db.dao.codegen.tables.pojos.AnalysisEngineDataCache
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.scripts.utils.getScriptDslContext
-import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.HalfMove
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.jooq.impl.DSL

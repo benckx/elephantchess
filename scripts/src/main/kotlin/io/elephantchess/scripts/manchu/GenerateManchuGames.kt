@@ -1,8 +1,8 @@
 package io.elephantchess.scripts.manchu
 
-import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.HalfMove
+import io.elephantchess.xiangqi.XiangqiBoard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
