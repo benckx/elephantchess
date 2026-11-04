@@ -290,6 +290,7 @@ class BoardGui {
     constructor(options = {}) {
         this.#isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         this.#options = Object.freeze({...DEFAULT_BOARD_GUI_OPTIONS, ...options});
+        this.#board = this.#newBoardForVariant();
 
         this.#clickSound = new Audio(`${this.#options.assetsBaseUrl}/audio/rclick-13693.mp3`);
 
@@ -394,7 +395,7 @@ class BoardGui {
 
         // compute the target piece layout via a temp board (no DOM side-effects,
         // and no mutation of the real model yet)
-        const targetBoard = new XiangqiBoard();
+        const targetBoard = this.#newBoardForVariant();
         targetBoard.loadFen(targetFen);
         const targetPieces = targetBoard.listPiecePositions();
 
@@ -743,6 +744,13 @@ class BoardGui {
             this.#board.registerMove(move);
             onDone();
         });
+    }
+
+    #newBoardForVariant() {
+        if (typeof createBoardForVariant === 'function') {
+            return createBoardForVariant(DEFAULT_START_FEN, this.#options.variant);
+        }
+        return new XiangqiBoard();
     }
 
     /**
