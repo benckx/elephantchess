@@ -14,7 +14,7 @@ object GenerateJanggiGames {
     private const val MAX_DEPTH = 10
 
     private val random = Random(System.nanoTime())
-    private val movePool = listOf(
+    private val legalMovePool = listOf(
         "d0a2",
         "d2c2",
         "b0b2",
@@ -31,6 +31,13 @@ object GenerateJanggiGames {
         "h2h4",
         "a0a3",
         "i9i7",
+        "a9a8",
+        "b9b8",
+        "e9e7",
+        "f9f8",
+        "g9g8",
+        "h9h8",
+        "i9i8",
     )
 
     private enum class GameResult {
@@ -95,8 +102,8 @@ object GenerateJanggiGames {
         val targetLength = random.nextInt(MIN_MOVES_PER_GAME, maxMoves.coerceAtLeast(MIN_MOVES_PER_GAME) + 1)
         val moves = mutableListOf<String>()
         while (moves.size < targetLength) {
-            val candidate = movePool.random()
-            if (moves.size > 0 && moves.last() == candidate && random.nextDouble() < 0.25) continue
+            val candidate = legalMovePool.random()
+            if (moves.isNotEmpty() && moves.last() == candidate && random.nextDouble() < 0.25) continue
             moves.add(candidate)
         }
         return GeneratedGame(randomId(), moves, result)
