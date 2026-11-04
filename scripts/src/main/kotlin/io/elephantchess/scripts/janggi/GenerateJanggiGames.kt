@@ -7,12 +7,31 @@ import kotlin.random.Random
 object GenerateJanggiGames {
 
     private const val OUTPUT_PATH = "xiangqi-core-test-utils/src/main/resources/janggi.txt"
-    private const val TOTAL_GAMES = 250
-    private const val MAX_MOVES_PER_GAME = 120
+    private const val TOTAL_GAMES = 100
+    private const val MIN_MOVES_PER_GAME = 8
+    private const val MAX_MOVES_PER_GAME = 80
     private const val MIN_DEPTH = 1
     private const val MAX_DEPTH = 10
 
     private val random = Random(System.nanoTime())
+    private val movePool = listOf(
+        "d0a2",
+        "d2c2",
+        "b0b2",
+        "d9d8",
+        "a0a1",
+        "h0h2",
+        "a8a7",
+        "g9g8",
+        "c0c2",
+        "i0i2",
+        "e9e8",
+        "f9f8",
+        "c2c4",
+        "h2h4",
+        "a0a3",
+        "i9i7",
+    )
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -27,6 +46,8 @@ object GenerateJanggiGames {
         } else {
             generateSyntheticGames(totalGames, maxMoves)
         }
+            .distinctBy { it.moves.joinToString(",") }
+            .take(totalGames)
 
         val outputFile = File(OUTPUT_PATH)
         outputFile.parentFile?.mkdirs()
@@ -48,16 +69,26 @@ object GenerateJanggiGames {
     }
 
     private fun generateSelfPlayGames(enginePath: String, totalGames: Int, maxMoves: Int): List<GeneratedGame> =
-        (1..totalGames).map { generateSelfPlayGame(enginePath, maxMoves) }
+        buildList {
+            while (size < totalGames) {
+                val game = generateSelfPlayGame(enginePath, maxMoves)
+                if (game.moves.size >= MIN_MOVES_PER_GAME && game.moves.isNotEmpty()) add(game)
+            }
+        }
 
     private fun generateSyntheticGames(totalGames: Int, maxMoves: Int): List<GeneratedGame> =
-        (1..totalGames).map {
-            val moves = buildList {
-                repeat(random.nextInt(8, maxMoves.coerceAtLeast(8) / 2)) {
-                    add(listOf("d0a2", "d2c2", "b0b2", "d9d8", "a0a1", "h0h2", "a8a7", "g9g8").random())
+        buildList {
+            while (size < totalGames) {
+                val gameLength = random.nextInt(MIN_MOVES_PER_GAME, maxMoves.coerceAtLeast(MIN_MOVES_PER_GAME) + 1)
+                val moves = buildList {
+                    repeat(gameLength) {
+                        add(movePool.random())
+                    }
+                }
+                if (moves.size >= MIN_MOVES_PER_GAME) {
+                    add(GeneratedGame(randomId(), moves))
                 }
             }
-            GeneratedGame(randomId(), moves)
         }
 
     private fun generateSelfPlayGame(enginePath: String, maxMoves: Int): GeneratedGame {
