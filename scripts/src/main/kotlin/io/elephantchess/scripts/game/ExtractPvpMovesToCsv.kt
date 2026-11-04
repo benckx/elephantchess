@@ -12,8 +12,8 @@ import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.utils.calculateCpl
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking
@@ -142,14 +142,14 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         // We also keep the full FEN of the position *before* each move so we can replay the engine's best move.
         // The first event time seen per game (rows ordered by position asc) is also captured here.
         var currentGameId: String? = null
-        var board = Board(Board.defaultStartFen(variant))
+        var board = XiangqiBoard(XiangqiBoard.defaultStartFen(variant))
         val fenBeforeMove = mutableListOf<String>()
         val firstMoveTimeByGameId = mutableMapOf<String, Instant>()
         val fenKeys = rows.map { row ->
             val gameId = row.get(GAME.ID)
             if (gameId != currentGameId) {
                 currentGameId = gameId
-                board = Board(Board.defaultStartFen(variant))
+                board = XiangqiBoard(XiangqiBoard.defaultStartFen(variant))
                 val eventTime = row.get(GAME_MOVE.EVENT_TIME)
                 if (eventTime != null) firstMoveTimeByGameId[gameId] = eventTime
             }
@@ -244,7 +244,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             ?.bestMove
                             ?.let { bestMove ->
                                 runCatching {
-                                    val bestMoveBoard = Board(fenBeforeMove[index])
+                                    val bestMoveXiangqiBoard = XiangqiBoard(fenBeforeMove[index])
                                     bestMoveBoard.registerMove(bestMove)
                                     resetFullMoveCount(bestMoveBoard.outputFen())
                                 }.getOrNull()

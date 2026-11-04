@@ -6,7 +6,7 @@ import io.elephantchess.engines.process.FairyStockfishEngineId
 import io.elephantchess.engines.process.PikafishEngineId
 import io.elephantchess.servicelayer.services.MailService
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.DEFAULT_START_FEN
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK

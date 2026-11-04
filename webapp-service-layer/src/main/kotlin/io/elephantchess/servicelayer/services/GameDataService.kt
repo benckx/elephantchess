@@ -29,9 +29,9 @@ import io.elephantchess.servicelayer.exceptions.PreConditionFailedException
 import io.elephantchess.servicelayer.utils.collectMoveAnnotations
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
@@ -352,7 +352,7 @@ class GameDataService(
         suspend fun processWhatTheEngineWouldHavePlayed(startFen: String, moves: List<String>) {
             val infoLineResultsDtos = fetchAnalysisData(gameId).entries
 
-            val board = Board(startFen)
+            val board = XiangqiBoard(startFen)
             moves.forEachIndexed { positionIndex, uci ->
                 val fenKeyBeforePlayedMove = resetFullMoveCount(board.outputFen())
                 val bestMove =
@@ -399,7 +399,7 @@ class GameDataService(
 
                         try {
                             val startFen = findStartFen(gameId)
-                            val board = Board(startFen)
+                            val board = XiangqiBoard(startFen)
                             val moves = findMoves(gameId)
 
                             // analyze actually played moves

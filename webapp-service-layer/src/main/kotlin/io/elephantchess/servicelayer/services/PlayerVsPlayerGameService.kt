@@ -35,12 +35,12 @@ import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
-import io.elephantchess.xiangqi.Board.Companion.isCheckmated
-import io.elephantchess.xiangqi.Board.Companion.isInCheck
-import io.elephantchess.xiangqi.Board.Companion.isMoveLegal
-import io.elephantchess.xiangqi.Board.Companion.isStalemated
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.calculateNewFen
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.isCheckmated
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.isInCheck
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.isMoveLegal
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.isStalemated
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
@@ -402,7 +402,7 @@ class PlayerVsPlayerGameService(
         game.id = generateId()
         game.inviter = userId.id
         game.inviterColor = request.inviterColor
-        game.currentFen = Board.defaultStartFen(request.variant)
+        game.currentFen = XiangqiBoard.defaultStartFen(request.variant)
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
@@ -1118,8 +1118,8 @@ class PlayerVsPlayerGameService(
      * Moves must include last one played
      */
     private fun hasViolatedPerpetualCheckingRuleCallback(game: Game, moves: List<String>): PerpetualCheckingCallbackResult? {
-        val startFen = Board.defaultStartFen(game.variant ?: Variant.XIANGQI)
-        val board = Board(startFen, keepHistory = true)
+        val startFen = XiangqiBoard.defaultStartFen(game.variant ?: Variant.XIANGQI)
+        val board = XiangqiBoard(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val playerColor = board.colorToPlay().reverse()
         val history = board.getHistory()!!

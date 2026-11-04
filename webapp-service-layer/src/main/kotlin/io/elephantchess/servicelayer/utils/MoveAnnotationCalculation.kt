@@ -4,9 +4,9 @@ import io.elephantchess.model.MoveAnnotationCategory
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationDetails
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationResult
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.resetFullMoveCount
 import kotlin.math.abs
 
 // Mirrors MAX_ABS_CP in webapp/src/main/resources/public/js/modules/engine.js
@@ -31,7 +31,7 @@ fun collectMoveAnnotations(
     analysisMap: Map<String, InfoLineResultDto>,
     startFen: String = DEFAULT_START_FEN,
 ): List<MoveAnnotationDetails> {
-    val board = Board(startFen)
+    val board = XiangqiBoard(startFen)
     val annotations = mutableListOf<MoveAnnotationDetails>()
 
     moves.forEachIndexed { index, move ->
@@ -135,7 +135,7 @@ fun findAnalysisDataFromEngineBestMove(
     previousNodeData: InfoLineResultDto,
 ): InfoLineResultDto? {
     val bestMove = previousNodeData.bestMove ?: return null
-    val board = Board(previousNodeData.fen)
+    val board = XiangqiBoard(previousNodeData.fen)
     board.registerMove(bestMove)
     val resultingFen = resetFullMoveCount(board.outputFen())
     return analysisMap[resultingFen]

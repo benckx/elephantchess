@@ -7,7 +7,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.AnalysisEngineDataCache
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.scripts.utils.getScriptDslContext
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.HalfMove
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -29,7 +29,7 @@ fun main() {
         val incorrectIds = mutableListOf<Int>()
 
         allEntries.forEach { entry ->
-            val board = Board(entry.fenKey)
+            val board = XiangqiBoard(entry.fenKey)
             val nextMove = entry.pv.split(",").first()
             val isLegal = board.isLegalMove(HalfMove.parseMoveFromUci(nextMove))
 

@@ -1,6 +1,6 @@
 package io.elephantchess.scripts.manchu
 
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.HalfMove
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +36,7 @@ object GenerateManchuGames {
         game.moves.joinToString(",")
 
     private fun generateGame(): GeneratedGame {
-        val board = Board(Board.MANCHU_START_FEN)
+        val board = XiangqiBoard(XiangqiBoard.MANCHU_START_FEN)
         val moves = mutableListOf<HalfMove>()
 
         while (moves.size < MAX_MOVES_PER_GAME) {

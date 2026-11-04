@@ -12,7 +12,7 @@ class BoardTest {
     @Test
     fun parseUciMovesTest01() {
         cache.listAll().forEach { entry ->
-            val board = Board()
+            val board = XiangqiBoard()
             board.registerMoves(entry.moves())
             assert(board.getHistory() == null)
         }
@@ -20,7 +20,7 @@ class BoardTest {
 
     @Test
     fun usesWhiteBlackCoreColorSemantics() {
-        val board = Board()
+        val board = XiangqiBoard()
 
         assertEquals(Color.WHITE, board.colorToPlay())
         assertEquals(Color.BLACK, Color.WHITE.reverse())

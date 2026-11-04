@@ -12,7 +12,7 @@ import io.elephantchess.model.Outcome
 import io.elephantchess.model.Outcome.*
 import io.elephantchess.scripts.utils.ScriptConfig.Companion.loadScriptConfig
 import io.elephantchess.scripts.utils.getScriptDslContext
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.HalfMove
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import kotlinx.coroutines.*
@@ -171,7 +171,7 @@ private suspend fun refreshCache(moves: List<String>) {
 
 private fun isValidSequenceOfMoves(moves: List<String>): Boolean {
     try {
-        val board = Board()
+        val board = XiangqiBoard()
         moves.forEach { move ->
             val halfMove = HalfMove.parseMoveFromUci(move)
             if (!board.isLegalMove(halfMove)) {

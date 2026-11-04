@@ -15,9 +15,9 @@ import io.elephantchess.servicelayer.exceptions.ForbiddenException
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
-import io.elephantchess.xiangqi.Board.Companion.validateFen
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.validateFen
 import io.elephantchess.xiangqi.HalfMove
 import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.Clock
@@ -211,7 +211,7 @@ class AnalysisService(
             return if (chainOfMoves.isEmpty()) {
                 null
             } else {
-                val board = Board()
+                val board = XiangqiBoard()
                 if (startFen != null) {
                     board.loadFen(startFen)
                 }
@@ -500,7 +500,7 @@ class AnalysisService(
         private fun isLegal(pvCache: PvCache): Boolean =
             try {
                 if (pvCache.pv.isNotEmpty()) {
-                    val board = Board(pvCache.fenKey)
+                    val board = XiangqiBoard(pvCache.fenKey)
                     val nextMove = pvCache.pv.first()
                     val nextHalfMove = HalfMove.parseMoveFromUci(nextMove)
                     board.isLegalMove(nextHalfMove)

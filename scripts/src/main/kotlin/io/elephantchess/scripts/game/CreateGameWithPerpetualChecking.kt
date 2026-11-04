@@ -11,7 +11,7 @@ import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
@@ -38,7 +38,7 @@ object CreateGameWithPerpetualChecking : KoinScriptInit() {
             val referenceGameId = "WRX1whTF"
             val moves = referenceGameDaoService.listMoves(referenceGameId).map { parseMoveFromUci(it) }
 
-            val board = Board(keepHistory = true)
+            val board = XiangqiBoard(keepHistory = true)
             board.registerMoves(moves)
             val history = board.getHistory()!!
 

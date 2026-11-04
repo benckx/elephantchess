@@ -9,7 +9,7 @@ import io.elephantchess.engines.process.PikafishEngineId
 import io.elephantchess.engines.protocol.model.InfoLinesResult
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
 import io.elephantchess.xiangqi.AbstractPieceType
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -30,7 +30,7 @@ fun Game.ratingUpdate(): RatingUpdate? {
 
 fun isNonStandardFen(fen: String): Boolean {
     try {
-        val board = Board(fen)
+        val board = XiangqiBoard(fen)
         Color.entries.forEach { color ->
             val allPieces = board.listAllPieces(color)
             AbstractPieceType.entries.forEach { pieceType ->

@@ -1,18 +1,18 @@
 package io.elephantchess.xiangqi
 
 import io.elephantchess.xiangqi.AbstractPieceType.*
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Board.Companion.inferVariantFromFen
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.inferVariantFromFen
 import io.elephantchess.xiangqi.Color.WHITE
 
-open class XiangqiBoard(
+open class XiangqiXiangqiBoard(
     initFen: String = DEFAULT_START_FEN,
     keepHistory: Boolean = false,
     override val variant: Variant = inferVariantFromFen(initFen),
-) : AbstractXiangqiBoard(initFen, keepHistory) {
+) : AbstractXiangqiXiangqiBoard(initFen, keepHistory) {
 
     init {
-        require(variant != Variant.JANGGI) { "Use JanggiBoard for Janggi rules" }
+        require(variant != Variant.JANGGI) { "Use JanggiXiangqiBoard for Janggi rules" }
     }
 
     override fun isIllegal(move: HalfMove, color: Color): Boolean {
@@ -65,6 +65,6 @@ open class XiangqiBoard(
         return movesToTargets(position, targets)
     }
 
-    override fun copy(keepHistory: Boolean): XiangqiBoard =
-        copyInto(XiangqiBoard(keepHistory = keepHistory, variant = variant), keepHistory)
+    override fun copy(keepHistory: Boolean): XiangqiXiangqiBoard =
+        copyInto(XiangqiXiangqiBoard(keepHistory = keepHistory, variant = variant), keepHistory)
 }

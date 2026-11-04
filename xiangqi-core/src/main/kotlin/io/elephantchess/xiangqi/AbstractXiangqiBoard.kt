@@ -1,14 +1,14 @@
 package io.elephantchess.xiangqi
 
 import io.elephantchess.xiangqi.AbstractPieceType.GENERAL
-import io.elephantchess.xiangqi.Board.Companion.HEIGHT
-import io.elephantchess.xiangqi.Board.Companion.WIDTH
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.HEIGHT
+import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.WIDTH
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.Position.Companion.getAllPositions
 
-abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Boolean = false) {
+abstract class AbstractXiangqiXiangqiBoard(initFen: String, private val keepHistory: Boolean = false) {
 
     abstract val variant: Variant
 
@@ -94,19 +94,19 @@ abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Bo
 
     protected fun horseTargets(position: Position): List<Position> =
         buildList {
-            if (position.getTop().existsOnBoard() && !hasPieceAt(position.getTop())) {
+            if (position.getTop().existsOnXiangqiBoard() && !hasPieceAt(position.getTop())) {
                 add(position.getTop().getTopLeft())
                 add(position.getTop().getTopRight())
             }
-            if (position.getBottom().existsOnBoard() && !hasPieceAt(position.getBottom())) {
+            if (position.getBottom().existsOnXiangqiBoard() && !hasPieceAt(position.getBottom())) {
                 add(position.getBottom().getBottomLeft())
                 add(position.getBottom().getBottomRight())
             }
-            if (position.getLeft().existsOnBoard() && !hasPieceAt(position.getLeft())) {
+            if (position.getLeft().existsOnXiangqiBoard() && !hasPieceAt(position.getLeft())) {
                 add(position.getLeft().getTopLeft())
                 add(position.getLeft().getBottomLeft())
             }
-            if (position.getRight().existsOnBoard() && !hasPieceAt(position.getRight())) {
+            if (position.getRight().existsOnXiangqiBoard() && !hasPieceAt(position.getRight())) {
                 add(position.getRight().getTopRight())
                 add(position.getRight().getBottomRight())
             }
@@ -125,12 +125,12 @@ abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Bo
         hasPieceAt(position1) && hasPieceAt(position2) && pieceAt(position1).color() != pieceAt(position2).color()
 
     protected fun movesToTargets(position: Position, targets: List<Position>): List<HalfMove> =
-        targets.filter { it.existsOnBoard() && !containsSameColors(position, it) }
+        targets.filter { it.existsOnXiangqiBoard() && !containsSameColors(position, it) }
             .distinct()
             .map { HalfMove(position, it) }
 
     fun registerMove(moveAsUci: String): PhysicalPiece? {
-        require(Regex(Board.UCI_MOVE_REGEX_PATTERN).matches(moveAsUci)) { "Move '$moveAsUci' can not be parsed" }
+        require(Regex(XiangqiBoard.UCI_MOVE_REGEX_PATTERN).matches(moveAsUci)) { "Move '$moveAsUci' can not be parsed" }
         return registerMove(parseMoveFromUci(moveAsUci))
     }
 
@@ -209,15 +209,15 @@ abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Bo
     }
 
     fun hasPieceAt(position: Position): Boolean =
-        position.existsOnBoard() && content[position.x][position.y] != null
+        position.existsOnXiangqiBoard() && content[position.x][position.y] != null
 
     fun pieceAt(position: Position): PhysicalPiece {
-        require(position.existsOnBoard()) { "Position $position does not exist on board" }
+        require(position.existsOnXiangqiBoard()) { "Position $position does not exist on board" }
         return content[position.x][position.y] ?: throw IllegalArgumentException("No piece at $position")
     }
 
     fun pieceAtOrNull(position: Position): PhysicalPiece? =
-        if (position.existsOnBoard()) content[position.x][position.y] else null
+        if (position.existsOnXiangqiBoard()) content[position.x][position.y] else null
 
     abstract fun copy(keepHistory: Boolean = false): AbstractXiangqiBoard
 
@@ -237,7 +237,7 @@ abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Bo
         if (keepHistory) MovesHistory(history.toList()) else null
 
     fun print(): String {
-        val separator = Board.PRINT_SEPARATOR
+        val separator = XiangqiBoard.PRINT_SEPARATOR
         val header = separator.repeat(3) + ('a'..'i').joinToString(separator)
         val ranks = (HEIGHT - 1 downTo 0).map { y ->
             "$y${separator.repeat(2)}" + (0 until WIDTH).joinToString(separator) { x ->
@@ -251,12 +251,12 @@ abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Bo
 
         fun create(
             variant: Variant,
-            initFen: String = Board.defaultStartFen(variant),
+            initFen: String = XiangqiBoard.defaultStartFen(variant),
             keepHistory: Boolean = false,
-        ): AbstractXiangqiBoard =
+        ): AbstractXiangqiXiangqiBoard =
             when (variant) {
-                Variant.XIANGQI, Variant.MANCHU -> XiangqiBoard(initFen, keepHistory, variant)
-                Variant.JANGGI -> JanggiBoard(initFen, keepHistory)
+                Variant.XIANGQI, Variant.MANCHU -> XiangqiXiangqiBoard(initFen, keepHistory, variant)
+                Variant.JANGGI -> JanggiXiangqiBoard(initFen, keepHistory)
             }
     }
 }

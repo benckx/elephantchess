@@ -33,7 +33,7 @@ class MoveHistoryTest {
             "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8",
         )
 
-        val board = Board(keepHistory = true)
+        val board = XiangqiBoard(keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val history = board.getHistory()!!
         val checkingPiece = PhysicalPiece(PieceType(CHARIOT, WHITE), parsePositionFromUci("a0"))

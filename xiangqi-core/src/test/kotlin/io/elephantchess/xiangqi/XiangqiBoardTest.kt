@@ -12,10 +12,10 @@ class XiangqiBoardTest {
 
     @Test
     fun replayXiangqiAndManchuFixturesPreservingBoardState() {
-        val games = GameMovesDtoCache().listAll().map { it to Board.DEFAULT_START_FEN } +
-            ManchuGameMovesDtoCache().listAll().map { it to Board.MANCHU_START_FEN }
+        val games = GameMovesDtoCache().listAll().map { it to XiangqiBoard.DEFAULT_START_FEN } +
+            ManchuGameMovesDtoCache().listAll().map { it to XiangqiBoard.MANCHU_START_FEN }
         games.forEach { (game, fen) ->
-            val board = XiangqiBoard(fen)
+            val board = XiangqiXiangqiBoard(fen)
             game.uciMoves.forEach { uci ->
                 board.registerMove(uci)
             }
@@ -26,25 +26,25 @@ class XiangqiBoardTest {
 
     @Test
     fun xiangqiStillForbidsFacingGenerals() {
-        val board = XiangqiBoard("9/4k4/9/9/9/4P4/9/9/4K4/9 w - - 0 0")
+        val board = XiangqiXiangqiBoard("9/4k4/9/9/9/4P4/9/9/4K4/9 w - - 0 0")
         assertFalse(board.isLegalMove(parseMoveFromUci("e4d4")))
         assertTrue(board.isLegalMove(parseMoveFromUci("e4e5")))
     }
 
     @Test
     fun legacyBoardKeepsItsConcreteCopyType() {
-        val board = Board(Board.MANCHU_START_FEN)
-        val copy: Board = board.copy()
+        val board = XiangqiBoard(XiangqiBoard.MANCHU_START_FEN)
+        val copy: XiangqiBoard = board.copy()
         assertEquals(Variant.MANCHU, copy.variant)
         assertEquals(board.outputFen(), copy.outputFen())
     }
 
     @Test
     fun moveCountsMatchFairyStockfish14BeforeAndAfterExtraction() {
-        assertEquals(44, XiangqiBoard().listLegalMoves(Color.WHITE).size)
-        assertEquals(79666, perft(XiangqiBoard(), 3))
-        assertEquals(860, perft(XiangqiBoard(Board.MANCHU_START_FEN), 2))
-        assertEquals(860, perft(Board(Board.MANCHU_START_FEN), 2))
+        assertEquals(44, XiangqiXiangqiBoard().listLegalMoves(Color.WHITE).size)
+        assertEquals(79666, perft(XiangqiXiangqiBoard(), 3))
+        assertEquals(860, perft(XiangqiXiangqiBoard(XiangqiBoard.MANCHU_START_FEN), 2))
+        assertEquals(860, perft(XiangqiBoard(XiangqiBoard.MANCHU_START_FEN), 2))
     }
 
     private fun perft(board: AbstractXiangqiBoard, depth: Int): Int =
