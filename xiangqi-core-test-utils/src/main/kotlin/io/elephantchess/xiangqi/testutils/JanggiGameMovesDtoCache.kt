@@ -21,8 +21,11 @@ class JanggiGameMovesDtoCache {
                 .split("\n")
                 .filterNot { line -> line.isBlank() }
                 .map { line ->
-                    val (gameId, moves) = line.split(";")
-                    GameMovesDto(gameId, moves.split(","))
+                    val pieces = line.split(";", limit = 3)
+                    val gameId = pieces[0]
+                    val moves = pieces[1].split(",").filter { it.isNotBlank() }
+                    val outcome = pieces.getOrNull(2)?.takeIf { it.isNotBlank() }
+                    GameMovesDto(gameId, moves, outcome)
                 }
     }
 }

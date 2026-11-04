@@ -407,4 +407,12 @@ project(":scripts") {
         classpath = sourceSets["main"].runtimeClasspath
         workingDir = rootProject.projectDir
     }
+
+    tasks.register<JavaExec>("generateJanggiGames") {
+        group = "generation"
+        description = "Generate synthetic Janggi test fixtures using Fairy Stockfish self-play"
+        mainClass.set("io.elephantchess.scripts.janggi.GenerateJanggiGames")
+        classpath = sourceSets["main"].runtimeClasspath
+        workingDir = rootProject.projectDir
+    }
 }

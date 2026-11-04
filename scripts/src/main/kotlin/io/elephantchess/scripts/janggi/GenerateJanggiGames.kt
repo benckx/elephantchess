@@ -10,6 +10,7 @@ object GenerateJanggiGames {
     private const val TOTAL_GAMES = 200
     private const val MIN_MOVES_PER_GAME = 8
     private const val MAX_MOVES_PER_GAME = 80
+    private const val TERMINAL_OUTCOME_FIELD = "CHECKMATE"
     private const val MIN_DEPTH = 1
     private const val MAX_DEPTH = 10
 
@@ -49,7 +50,7 @@ object GenerateJanggiGames {
         val outputFile = File(OUTPUT_PATH)
         outputFile.parentFile?.mkdirs()
         outputFile.writeText(
-            games.joinToString("\n") { game -> "${game.id};${game.moves.joinToString(",")}" },
+            games.joinToString("\n") { game -> "${game.id};${game.moves.joinToString(",")};${game.result.name}" },
         )
         println("Wrote ${games.size} unique Janggi games to $OUTPUT_PATH")
     }

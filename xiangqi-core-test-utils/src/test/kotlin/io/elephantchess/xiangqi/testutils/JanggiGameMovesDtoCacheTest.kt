@@ -11,6 +11,13 @@ class JanggiGameMovesDtoCacheTest {
         assertTrue(games.size == 200)
         assertTrue(games.distinctBy { it.gameId }.size == 200)
         assertTrue(games.distinctBy { it.uciMoves.joinToString(",") }.size == 200)
-        assertTrue(games.all { game -> game.gameId.isNotBlank() && game.uciMoves.isNotEmpty() })
+        assertTrue(
+            games.all { game ->
+                game.gameId.isNotBlank() &&
+                    game.uciMoves.isNotEmpty() &&
+                    game.outcome != null &&
+                    game.outcome in setOf("CHECKMATE", "STALEMATE", "DRAW")
+            },
+        )
     }
 }
