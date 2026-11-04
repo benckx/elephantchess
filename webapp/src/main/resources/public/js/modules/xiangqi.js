@@ -137,17 +137,39 @@ function toSingleLinePgn(movesAsPgn) {
 /**
  * https://en.wikipedia.org/wiki/Xiangqi#System_3
  *
+ * @param variant {string}
+ * @param startFen {string}
+ * @return {string}
+ */
+function resolveStartFen(startFen, variant = Variant.XIANGQI) {
+    if (startFen != null && startFen !== '') {
+        if (variant === Variant.MANCHU && startFen === DEFAULT_START_FEN) {
+            return MANCHU_START_FEN;
+        }
+        return startFen;
+    }
+
+    if (variant === Variant.MANCHU) {
+        return MANCHU_START_FEN;
+    }
+
+    return DEFAULT_START_FEN;
+}
+
+/**
+ * https://en.wikipedia.org/wiki/Xiangqi#System_3
+ *
  * @param {HalfMove[]} moves
  * @param {boolean} renderCheckIndicators
  * @param {string} startFen
- * @param {string|null} variant
+ * @param {string} variant
  * @return {string[]}
  */
-function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEFAULT_START_FEN, variant = null) {
+function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEFAULT_START_FEN, variant = Variant.XIANGQI) {
     let movesAsPgn = [];
 
     let board = createBoardForVariant(startFen, variant);
-    board.loadFen(startFen);
+    board.loadFen(resolveStartFen(startFen, variant));
 
     moves.forEach(move => {
         let pieceFrom = board.getPieceAt(move.from);
@@ -186,13 +208,13 @@ function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEF
 /**
  * @param moves {HalfMove[]}
  * @param startFen {string}
- * @param variant {string|null}
+ * @param variant {string}
  * @return {string[]}
  */
-function translateMovesToPrefixedAlgebraic(moves, startFen = DEFAULT_START_FEN, variant = null) {
+function translateMovesToPrefixedAlgebraic(moves, startFen = DEFAULT_START_FEN, variant = Variant.XIANGQI) {
     const formattedMoves = [];
     const board = createBoardForVariant(startFen, variant);
-    board.loadFen(startFen);
+    board.loadFen(resolveStartFen(startFen, variant));
 
     moves.forEach(move => {
         const pieceChar = board.getPieceAt(move.from).pieceChar.toUpperCase();
@@ -208,10 +230,10 @@ function translateMovesToPrefixedAlgebraic(moves, startFen = DEFAULT_START_FEN, 
  * @param moves {HalfMove[]}
  * @param horizontalSeparator {string} can be '=' or '.'
  * @param startFen {string}
- * @param variant {string|null}
+ * @param variant {string}
  * @return {string[]}
  */
-function translateMovesToWxf(moves, horizontalSeparator, startFen, variant = null) {
+function translateMovesToWxf(moves, horizontalSeparator, startFen, variant = Variant.XIANGQI) {
 
     /**
      * File number in WXF format starts at 1 from the right hand of the player
@@ -290,7 +312,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen, variant = nul
 
     let formattedMoves = [];
     let board = createBoardForVariant(startFen, variant);
-    board.loadFen(startFen);
+    board.loadFen(resolveStartFen(startFen, variant));
 
     moves.forEach(move => {
         let physicalPiece = board.getPieceAt(move.from);
@@ -367,10 +389,10 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen, variant = nul
  * @param moves {HalfMove[]}
  * @param moveFormat {string}
  * @param startFen {string}
- * @param variant {string|null}
+ * @param variant {string}
  * @return {string[]}
  */
-function translateMovesFormat(moves, moveFormat, startFen, variant = null) {
+function translateMovesFormat(moves, moveFormat, startFen, variant = Variant.XIANGQI) {
     switch (moveFormat) {
         case MoveFormatSetting.WXF_DOT:
             return translateMovesToWxf(moves, '.', startFen, variant);
@@ -392,10 +414,10 @@ function translateMovesFormat(moves, moveFormat, startFen, variant = null) {
  * @param allMoves {HalfMove[]}
  * @param format {string}
  * @param startFen {string}
- * @param variant {string|null}
+ * @param variant {string}
  * @return {string[]}
  */
-function safeTranslateMovesFormat(allMoves, format, startFen, variant = null) {
+function safeTranslateMovesFormat(allMoves, format, startFen, variant = Variant.XIANGQI) {
     try {
         return translateMovesFormat(allMoves, format, startFen, variant);
     } catch (e) {
@@ -411,10 +433,10 @@ function safeTranslateMovesFormat(allMoves, format, startFen, variant = null) {
  * @param moves {HalfMove[]}
  * @param moveFormat {string}
  * @param startFen {string}
- * @param variant {string|null}
+ * @param variant {string}
  * @return {null|string}
  */
-function translateMovesFormatTakeLast(moves, moveFormat, startFen, variant = null) {
+function translateMovesFormatTakeLast(moves, moveFormat, startFen, variant = Variant.XIANGQI) {
     let translated = translateMovesFormat(moves, moveFormat, startFen, variant);
     if (translated.length > 0) {
         return translated[translated.length - 1];
@@ -425,33 +447,35 @@ function translateMovesFormatTakeLast(moves, moveFormat, startFen, variant = nul
 
 /**
  * @param {HalfMove[]} moves
+ * @param {string} variant
+ * @param {string} startFen
  * @return {string}
  */
-function exportMovesToPgnLine(moves) {
-    return toSingleLinePgn(translateMovesToPgn(moves));
+function exportMovesToPgnLine(moves, variant = Variant.XIANGQI, startFen = DEFAULT_START_FEN) {
+    return toSingleLinePgn(translateMovesToPgn(moves, true, startFen, variant));
 }
 
 /**
  * @param moves {HalfMove[]}
  * @param startFen {string}
- * @param variant {string|null}
+ * @param variant {string}
  * @return {string}
  */
-function calculateFen(moves, startFen = DEFAULT_START_FEN, variant = null) {
+function calculateFen(moves, startFen = DEFAULT_START_FEN, variant = Variant.XIANGQI) {
     const board = createBoardForVariant(startFen, variant);
-    board.loadFen(startFen);
+    board.loadFen(resolveStartFen(startFen, variant));
     moves.forEach(move => board.registerMove(move));
     return board.outputFen();
 }
 
 /**
  * @param startFen {string}
- * @param variant {string|null}
+ * @param variant {string}
  * @return {Board}
  */
-function createBoardForVariant(startFen, variant = null) {
-    const effectiveVariant = variant ?? (startFen === JANGGI_START_FEN ? 'JANGGI' : 'XIANGQI');
-    if (effectiveVariant === 'JANGGI') {
+function createBoardForVariant(startFen, variant = Variant.XIANGQI) {
+    const effectiveVariant = variant ?? (startFen === JANGGI_START_FEN ? Variant.JANGGI : Variant.XIANGQI);
+    if (effectiveVariant === Variant.JANGGI) {
         return new JanggiBoard();
     }
     return new XiangqiBoard();

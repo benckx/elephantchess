@@ -29,6 +29,8 @@ class TestBoardPage extends BasePage {
             containerId: 'move-tree-container',
             ...moveTreeResizeCookiePersistence('simple-board', 'move-tree-container')
         });
+        moveTreeWidget.variant = isManchu ? Variant.MANCHU : Variant.XIANGQI;
+        moveTreeWidget.startFen = isManchu ? MANCHU_START_FEN : DEFAULT_START_FEN;
         moveTreeWidget.addNavigationPanel({
             containerId: 'mobile-navigation-panel',
             isDownloadButtonEnabled: true

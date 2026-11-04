@@ -455,7 +455,7 @@ class MoveTreeNode {
      * @param variant {string}
      * @return {string}
      */
-    renderLabel(moveFormat, variant) {
+    renderLabel(moveFormat, variant = Variant.XIANGQI) {
         const moves = this.getAllNodesLeadingUpTo().map(node => node.move);
         const translated = translateMovesFormatTakeLast(moves, moveFormat.toString(), this.startFen, variant);
         if (translated != null) {
@@ -646,7 +646,7 @@ class MoveTreeNode {
      * @param variant {string}
      * @return {string}
      */
-    toPgn(startFen, variant) {
+    toPgn(startFen, variant = Variant.XIANGQI) {
         let nodes = this.getAllNodesLeadingUpTo();
         let movesAsPgn = translateMovesToPgn(nodes.map(node => node.move), true, startFen, variant);
         let lastPgn = movesAsPgn[movesAsPgn.length - 1];
@@ -1792,6 +1792,14 @@ class MoveTreeWidget {
         return this.#moveTree.startFen;
     }
 
+    set variant(value) {
+        this.#variant = value ?? Variant.XIANGQI;
+    }
+
+    get variant() {
+        return this.#variant;
+    }
+
     // COMPLEX GETTERS/SETTERS
 
     /**
@@ -2307,7 +2315,7 @@ class MoveTreeWidget {
             }
 
             // data
-            exportForLine.push(exportMovesToPgnLine(moves));
+            exportForLine.push(exportMovesToPgnLine(moves, this.#variant, this.#startFen));
             exportForLine.push('');
             exportForLine.push('');
             return exportForLine.join('\n');

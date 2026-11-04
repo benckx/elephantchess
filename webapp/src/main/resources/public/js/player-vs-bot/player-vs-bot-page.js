@@ -126,6 +126,7 @@ class PlayerVsBotPage extends BasePage {
             gameId,
             (botGameDto) => {
                 this.#boardGui.flipToColor(botGameDto.userColor);
+                this.#moveTreeWidget.variant = botGameDto.isManchu ? Variant.MANCHU : Variant.XIANGQI;
                 this.#moveTreeWidget.startFen = botGameDto.startFen;
                 let infoPlayer = document.getElementById('info-player');
                 if (botGameDto.isAnonymous) {

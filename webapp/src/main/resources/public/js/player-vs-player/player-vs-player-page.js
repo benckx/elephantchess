@@ -319,7 +319,10 @@ class PlayGamePage extends BasePage {
 
     #initBoard() {
         if (this.#gameController.gameDto.isManchu) {
+            this.#moveTreeWidget.variant = Variant.MANCHU;
             this.#moveTreeWidget.startFen = MANCHU_START_FEN;
+        } else {
+            this.#moveTreeWidget.variant = Variant.XIANGQI;
         }
 
         if (!this.#gameController.isGameFinished()) {
