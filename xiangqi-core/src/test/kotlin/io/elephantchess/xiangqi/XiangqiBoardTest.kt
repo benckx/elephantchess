@@ -42,19 +42,23 @@ class XiangqiBoardTest {
     @Test
     fun moveCountsMatchFairyStockfish14BeforeAndAfterExtraction() {
         assertEquals(44, XiangqiBoard().listLegalMoves(Color.WHITE).size)
-        assertEquals(79666, perft(XiangqiBoard(), 3))
-        assertEquals(860, perft(XiangqiBoard(XiangqiBoard.MANCHU_START_FEN), 2))
-        assertEquals(860, perft(XiangqiBoard(XiangqiBoard.MANCHU_START_FEN), 2))
+        assertEquals(79666, countLegalLeafNodes(XiangqiBoard(), 3))
+        assertEquals(860, countLegalLeafNodes(XiangqiBoard(XiangqiBoard.MANCHU_START_FEN), 2))
+        assertEquals(860, countLegalLeafNodes(XiangqiBoard(XiangqiBoard.MANCHU_START_FEN), 2))
     }
 
-    private fun perft(board: AbstractXiangqiBoard, depth: Int): Int =
+    /**
+     * Counts legal leaf nodes in the move tree rooted at the current position.
+     * It enumerates every legal move at each ply and recurses until the target depth is reached.
+     */
+    private fun countLegalLeafNodes(board: AbstractXiangqiBoard, depth: Int): Int =
         if (depth == 0) {
             1
         } else {
             board.listLegalMoves(board.colorToPlay()).sumOf { move ->
                 val copy = board.copy()
                 copy.registerMove(move)
-                perft(copy, depth - 1)
+                countLegalLeafNodes(copy, depth - 1)
             }
         }
 }

@@ -187,6 +187,8 @@ class JanggiBoardTest {
     fun replaySyntheticGamesCheckingEveryMove() {
         val games = JanggiGameMovesDtoCache().listAll()
         assertEquals(100, games.size)
+        val checkmateGames = games.filter { it.outcome == "CHECKMATE" }
+        assertTrue(checkmateGames.isNotEmpty())
         games.forEach { game ->
             val board = JanggiBoard()
             game.uciMoves.forEachIndexed { index, uci ->

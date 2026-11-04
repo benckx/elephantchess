@@ -24,7 +24,8 @@ class JanggiGameMovesDtoCache {
                 .map { line ->
                     val pieces = line.split(";", limit = 3)
                     val gameId = pieces[0]
-                    // Fairy-Stockfish uses ranks 1..10 for Janggi, while the core uses 0..9.
+                    // Fairy-Stockfish encodes Janggi ranks as 1..10, but the core board uses 0..9.
+                    // We normalize engine coordinates on load so callers always work with the internal UCI format.
                     val moves = pieces[1].split(",").filter { it.isNotBlank() }.map { move ->
                         val match = requireNotNull(engineMovePattern.matchEntire(move)) {
                             "Invalid Janggi move '$move' in game '$gameId'"
