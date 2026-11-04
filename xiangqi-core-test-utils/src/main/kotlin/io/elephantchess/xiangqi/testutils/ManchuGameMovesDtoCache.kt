@@ -18,7 +18,7 @@ class ManchuGameMovesDtoCache {
                 .split("\n")
                 .filterNot { line -> line.isBlank() }
                 .map { line ->
-                    val (gameId, moves) = line.split(";")
+                    val (gameId, moves) = line.split(";", limit = 2)
                     GameMovesDto(gameId, moves.split(","))
                 }
     }
