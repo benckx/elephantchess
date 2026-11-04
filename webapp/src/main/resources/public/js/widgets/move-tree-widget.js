@@ -2563,6 +2563,8 @@ class MoveTreeWidget {
      * @param parentContainer {HTMLElement}
      */
     #renderNodes(nodes, parentContainer) {
+        const variant = this.#variant;
+
         // create a line in the move tree widget
         function buildMoveLineContainer(node, isFirstLineOfBranch = false, isLastLineOfBranch = false) {
             let lineContainer = document.createElement('div');
@@ -2634,7 +2636,7 @@ class MoveTreeWidget {
             const label = document.createElement('div');
             label.id = `move-label-placeholder-${node.nodeId}`;
             label.className = 'move-label-placeholder';
-            label.innerText = node.renderLabel(moveFormat, treeWidget.#variant);
+            label.innerText = node.renderLabel(moveFormat, variant);
             return label;
         }
 
