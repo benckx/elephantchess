@@ -234,9 +234,7 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
 
 class BoardGui {
 
-    /**
-     * @type {Board}
-     */
+    /** @type {AbstractXiangqiBoard} */
     #board;
     #boardContainer;
     #currentShowingLegalMovesFor = null;
@@ -377,7 +375,7 @@ class BoardGui {
 
     /**
      * Compute the target position (via a temporary board so we don't mutate the
-     * current {@link Board} model before we're ready) and diff it against the
+     * current {@link AbstractXiangqiBoard} model before we're ready) and diff it against the
      * currently displayed pieces to build the animation plan.
      *
      * @param targetFen {string}
@@ -429,13 +427,13 @@ class BoardGui {
     }
 
     /**
-     * Returns a copy of the underlying (non-GUI) {@link Board}, useful when
+     * Returns a copy of the underlying (non-GUI) {@link AbstractXiangqiBoard}, useful when
      * callers need to inspect/query the board model without touching the DOM.
      *
      * A copy is returned rather than the internal instance to preserve
      * encapsulation (so callers can't mutate the BoardGui's state directly).
      *
-     * @return {Board}
+     * @return {AbstractXiangqiBoard}
      */
     get board() {
         return this.#board.copy();
