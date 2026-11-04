@@ -253,10 +253,10 @@ abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Bo
             variant: Variant,
             initFen: String = XiangqiBoard.defaultStartFen(variant),
             keepHistory: Boolean = false,
-        ): AbstractXiangqiXiangqiBoard =
+        ): AbstractXiangqiBoard =
             when (variant) {
-                Variant.XIANGQI, Variant.MANCHU -> XiangqiXiangqiBoard(initFen, keepHistory, variant)
-                Variant.JANGGI -> JanggiXiangqiBoard(initFen, keepHistory)
+                Variant.XIANGQI, Variant.MANCHU -> XiangqiBoard(initFen, keepHistory, variant)
+                Variant.JANGGI -> JanggiBoard(initFen, keepHistory)
             }
     }
 }

@@ -4,9 +4,9 @@ import io.elephantchess.model.MoveAnnotationCategory
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationDetails
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationResult
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

@@ -1,6 +1,6 @@
 package io.elephantchess.scripts
 
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.testutils.GameMovesDtoCache

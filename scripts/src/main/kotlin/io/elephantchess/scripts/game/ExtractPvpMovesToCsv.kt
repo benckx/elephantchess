@@ -13,7 +13,7 @@ import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.utils.calculateCpl
 import io.elephantchess.xiangqi.XiangqiBoard
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking

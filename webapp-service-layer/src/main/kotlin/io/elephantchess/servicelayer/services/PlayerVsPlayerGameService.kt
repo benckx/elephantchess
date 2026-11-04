@@ -36,11 +36,11 @@ import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.XiangqiBoard
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.calculateNewFen
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.isCheckmated
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.isInCheck
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.isMoveLegal
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.isStalemated
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.calculateNewFen
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isCheckmated
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isInCheck
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isMoveLegal
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isStalemated
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE

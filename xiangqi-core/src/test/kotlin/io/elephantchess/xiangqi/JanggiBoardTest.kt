@@ -133,11 +133,11 @@ class JanggiBoardTest {
 
     @Test
     fun cannotPassOutOfOrdinaryCheckAndRecognizesCheckmate() {
-        val checked = JanggiXiangqiBoard("9/4k4/9/4R4/9/9/9/9/3K5/9 b - - 0 1")
+        val checked = JanggiBoard("9/4k4/9/4R4/9/9/9/9/3K5/9 b - - 0 1")
         assertTrue(checked.isInCheck(BLACK))
         assertFalse(checked.isLegalMove(parseMoveFromUci("e8e8")))
         assertFalse(checked.isCheckmated())
-        val mate = JanggiXiangqiBoard("9/4k4/3R1R3/4R4/9/9/9/9/3K5/9 b - - 0 1")
+        val mate = JanggiBoard("9/4k4/3R1R3/4R4/9/9/9/9/3K5/9 b - - 0 1")
         assertTrue(mate.isCheckmated())
         assertFalse(mate.isStalemated())
         assertFalse(mate.isDraw())
@@ -145,7 +145,7 @@ class JanggiBoardTest {
 
     @Test
     fun aNormalMoveBreaksTheSequenceOfPasses() {
-        val board = JanggiXiangqiBoard()
+        val board = JanggiBoard()
         board.registerMove("e1e1")
         board.registerMove("a6b6")
         board.registerMove("e1e1")
@@ -155,7 +155,7 @@ class JanggiBoardTest {
 
     @Test
     fun copiesAndFenReloadsPreserveJanggiRulesAndState() {
-        val board = JanggiXiangqiBoard()
+        val board = JanggiBoard()
         board.registerMove("a3b3")
         board.registerMove("a6b6")
         val copy = board.copy()
@@ -163,14 +163,14 @@ class JanggiBoardTest {
         assertEquals(board.listLegalMoves(WHITE), copy.listLegalMoves(WHITE))
         copy.registerMove("b3c3")
         assertFalse(copy.outputFen() == board.outputFen())
-        copy.loadFen(JanggiXiangqiBoard.DEFAULT_START_FEN)
-        assertEquals(JanggiXiangqiBoard.DEFAULT_START_FEN, copy.outputFen())
+        copy.loadFen(JanggiBoard.DEFAULT_START_FEN)
+        assertEquals(JanggiBoard.DEFAULT_START_FEN, copy.outputFen())
         assertEquals(32, copy.listAllPieces().size)
     }
 
     @Test
     fun moveHistoryPreservesPieceIdentityAndCopiesIndependently() {
-        val board = JanggiXiangqiBoard(keepHistory = true)
+        val board = JanggiBoard(keepHistory = true)
         val piece = board.pieceAt(parsePositionFromUci("a3"))
         board.registerMove("a3b3")
         val history = assertNotNull(board.getHistory())
@@ -188,7 +188,7 @@ class JanggiBoardTest {
         val games = JanggiGameMovesDtoCache().listAll()
         assertEquals(100, games.size)
         games.forEach { game ->
-            val board = JanggiXiangqiBoard()
+            val board = JanggiBoard()
             game.uciMoves.forEachIndexed { index, uci ->
                 val move = parseMoveFromUci(uci)
                 assertTrue(board.isLegalMove(move), "Game ${game.gameId}, ply $index: $uci\n${board.print()}")
@@ -203,7 +203,7 @@ class JanggiBoardTest {
     @Test
     fun acceptsBikjangByPassingEvenWhenInCheck() {
         val game = JanggiGameMovesDtoCache().findByGameId("233d96b7")
-        val board = JanggiXiangqiBoard()
+        val board = JanggiBoard()
         game.uciMoves.dropLast(1).forEach { uci ->
             assertTrue(board.isLegalMove(parseMoveFromUci(uci)))
             board.registerMove(uci)
@@ -220,7 +220,7 @@ class JanggiBoardTest {
 
     @Test
     fun passingPreservesPiecesAndHistoryAndAdvancesTheTurn() {
-        val board = JanggiXiangqiBoard(keepHistory = true)
+        val board = JanggiBoard(keepHistory = true)
         val placement = board.outputFen(abridged = true)
         val piece = board.pieceAt(parsePositionFromUci("e1"))
         assertTrue(board.isLegalMove(parseMoveFromUci("e1e1")))
@@ -238,32 +238,32 @@ class JanggiBoardTest {
         assertTrue(board.listLegalMoves(WHITE).isEmpty())
         assertFalse(board.isStalemated())
         assertTrue(board.copy().isDraw())
-        board.loadFen(JanggiXiangqiBoard.DEFAULT_START_FEN)
+        board.loadFen(JanggiBoard.DEFAULT_START_FEN)
         assertFalse(board.isDraw())
         board.registerMove("e1e1")
         val copy = board.copy()
         copy.registerMove("e8e8")
         assertTrue(copy.isDraw())
         assertFalse(board.isDraw())
-        assertFalse(XiangqiXiangqiBoard().isLegalMove(parseMoveFromUci("e0e0")))
+        assertFalse(XiangqiBoard().isLegalMove(parseMoveFromUci("e0e0")))
     }
 
     @Test
     fun createsVariantSpecificBoardsWithoutInferringJanggiFromFen() {
         assertIs<JanggiBoard>(AbstractXiangqiBoard.create(Variant.JANGGI))
-        assertEquals(Variant.JANGGI, JanggiXiangqiBoard().copy().variant)
+        assertEquals(Variant.JANGGI, JanggiBoard().copy().variant)
         assertEquals(Variant.MANCHU, AbstractXiangqiBoard.create(Variant.MANCHU).variant)
         assertEquals(XiangqiBoard.MANCHU_START_FEN, AbstractXiangqiBoard.create(Variant.MANCHU).outputFen())
-        assertFailsWith<IllegalArgumentException> { XiangqiXiangqiBoard(variant = Variant.JANGGI) }
+        assertFailsWith<IllegalArgumentException> { XiangqiBoard(variant = Variant.JANGGI) }
         assertEquals("janggitraditional", Variant.JANGGI.fairyStockfishVariantName())
     }
 
     @Test
     fun perftMatchesFairyStockfish14TraditionalJanggi() {
-        assertEquals(32, perft(JanggiXiangqiBoard(), 1))
-        assertEquals(1024, perft(JanggiXiangqiBoard(), 2))
-        assertEquals(33000, perft(JanggiXiangqiBoard(), 3))
-        val palacePosition = JanggiXiangqiBoard("3r5/4k4/9/3P5/9/4P4/9/9/4K4/3R5 w - - 0 1")
+        assertEquals(32, perft(JanggiBoard(), 1))
+        assertEquals(1024, perft(JanggiBoard(), 2))
+        assertEquals(33000, perft(JanggiBoard(), 3))
+        val palacePosition = JanggiBoard("3r5/4k4/9/3P5/9/4P4/9/9/4K4/3R5 w - - 0 1")
         assertEquals(453, perft(palacePosition, 2))
     }
 
@@ -283,11 +283,11 @@ class JanggiBoardTest {
         return board.listAllMoves(PieceAtPosition(board.pieceAt(position), position)).map { it.to.toUci() }.toSet()
     }
 
-    private fun board(vararg pieces: Pair<String, String>): JanggiXiangqiBoard {
+    private fun board(vararg pieces: Pair<String, String>): JanggiBoard {
         val byPosition = pieces.associate { (piece, uci) -> parsePositionFromUci(uci) to piece }
         val placement = (9 downTo 0).joinToString("/") { rank ->
             (0..8).joinToString("") { file -> byPosition[Position(file, rank)] ?: "1" }
         }
-        return JanggiXiangqiBoard("$placement w - - 0 1")
+        return JanggiBoard("$placement w - - 0 1")
     }
 }

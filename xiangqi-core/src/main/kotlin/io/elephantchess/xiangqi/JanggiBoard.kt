@@ -85,14 +85,14 @@ class JanggiBoard(initFen: String = DEFAULT_START_FEN, keepHistory: Boolean = fa
     private fun elephantTargets(position: Position): List<Position> =
         listOf(0 to 1, 0 to -1, 1 to 0, -1 to 0).flatMap { (dx, dy) ->
             val first = Position(position.x + dx, position.y + dy)
-            if (!first.existsOnBoard() || hasPieceAt(first)) {
+            if (!first.existsOnXiangqiBoard() || hasPieceAt(first)) {
                 emptyList()
             } else {
                 val diagonals = if (dx == 0) listOf(-1 to dy, 1 to dy) else listOf(dx to -1, dx to 1)
                 diagonals.mapNotNull { (diagonalX, diagonalY) ->
                     val second = Position(first.x + diagonalX, first.y + diagonalY)
                     val target = Position(second.x + diagonalX, second.y + diagonalY)
-                    target.takeIf { second.existsOnBoard() && !hasPieceAt(second) && it.existsOnBoard() }
+                    target.takeIf { second.existsOnXiangqiBoard() && !hasPieceAt(second) && it.existsOnXiangqiBoard() }
                 }
             }
         }
@@ -116,7 +116,7 @@ class JanggiBoard(initFen: String = DEFAULT_START_FEN, keepHistory: Boolean = fa
 
     private fun palaceCenter(position: Position): Position? =
         when {
-            !position.existsOnBoard() -> null
+            !position.existsOnXiangqiBoard() -> null
             position.isInRedPalace() -> Position(4, 1)
             position.isInBlackPalace() -> Position(4, 8)
             else -> null

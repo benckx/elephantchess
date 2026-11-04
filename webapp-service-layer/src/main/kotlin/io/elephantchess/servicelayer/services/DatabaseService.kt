@@ -22,7 +22,7 @@ import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.formatWithChineseName
 import io.elephantchess.utils.generateNameVariations
 import io.elephantchess.utils.isChineseText
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.validateFen
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.validateFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger

@@ -3,7 +3,7 @@ package io.elephantchess.engines
 import io.elephantchess.engines.process.EngineConfig
 import io.elephantchess.engines.process.EngineId
 import io.elephantchess.engines.process.PikafishEngineId
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import kotlinx.coroutines.*
 import java.util.Collections.synchronizedList

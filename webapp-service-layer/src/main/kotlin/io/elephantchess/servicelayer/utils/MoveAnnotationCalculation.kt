@@ -5,8 +5,8 @@ import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationDetails
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationResult
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.XiangqiBoard
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import kotlin.math.abs
 
 // Mirrors MAX_ABS_CP in webapp/src/main/resources/public/js/modules/engine.js

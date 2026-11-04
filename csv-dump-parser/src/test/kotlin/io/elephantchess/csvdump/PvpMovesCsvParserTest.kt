@@ -1,6 +1,6 @@
 package io.elephantchess.csvdump
 
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -15,7 +15,7 @@ class XiangqiBoardTest {
         val games = GameMovesDtoCache().listAll().map { it to XiangqiBoard.DEFAULT_START_FEN } +
             ManchuGameMovesDtoCache().listAll().map { it to XiangqiBoard.MANCHU_START_FEN }
         games.forEach { (game, fen) ->
-            val board = XiangqiXiangqiBoard(fen)
+            val board = XiangqiBoard(fen)
             game.uciMoves.forEach { uci ->
                 board.registerMove(uci)
             }
@@ -26,7 +26,7 @@ class XiangqiBoardTest {
 
     @Test
     fun xiangqiStillForbidsFacingGenerals() {
-        val board = XiangqiXiangqiBoard("9/4k4/9/9/9/4P4/9/9/4K4/9 w - - 0 0")
+        val board = XiangqiBoard("9/4k4/9/9/9/4P4/9/9/4K4/9 w - - 0 0")
         assertFalse(board.isLegalMove(parseMoveFromUci("e4d4")))
         assertTrue(board.isLegalMove(parseMoveFromUci("e4e5")))
     }
@@ -41,9 +41,9 @@ class XiangqiBoardTest {
 
     @Test
     fun moveCountsMatchFairyStockfish14BeforeAndAfterExtraction() {
-        assertEquals(44, XiangqiXiangqiBoard().listLegalMoves(Color.WHITE).size)
-        assertEquals(79666, perft(XiangqiXiangqiBoard(), 3))
-        assertEquals(860, perft(XiangqiXiangqiBoard(XiangqiBoard.MANCHU_START_FEN), 2))
+        assertEquals(44, XiangqiBoard().listLegalMoves(Color.WHITE).size)
+        assertEquals(79666, perft(XiangqiBoard(), 3))
+        assertEquals(860, perft(XiangqiBoard(XiangqiBoard.MANCHU_START_FEN), 2))
         assertEquals(860, perft(XiangqiBoard(XiangqiBoard.MANCHU_START_FEN), 2))
     }
 

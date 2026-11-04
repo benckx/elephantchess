@@ -15,8 +15,8 @@ import io.elephantchess.servicelayer.utils.calculateMoveAnnotation
 import io.elephantchess.servicelayer.utils.findAnalysisDataFromEngineBestMove
 import io.elephantchess.servicelayer.utils.hasComparableAnalysisData
 import io.elephantchess.xiangqi.XiangqiBoard
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.HalfMove.Companion.halfMoveIndexToFullMove
 import io.elephantchess.xiangqi.Variant
 import kotlinx.coroutines.runBlocking

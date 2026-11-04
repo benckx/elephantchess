@@ -1,7 +1,7 @@
 package io.elephantchess.xiangqi
 
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.HEIGHT
-import io.elephantchess.xiangqi.XiangqiXiangqiBoard.Companion.WIDTH
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.HEIGHT
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.WIDTH
 
 data class Position(val x: Int, val y: Int) {
 
