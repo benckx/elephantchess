@@ -25,7 +25,10 @@ class SiteMapService(
 ) {
 
     private val deployDay = LocalDate.now()
-    private val howToPlayLastPageChange = LocalDate.of(2026, 5, 24)
+    private val howToPlayXiangqiLastPageChange = LocalDate.of(2026, 5, 24)
+    private val howToPlayJanggiLastPageChange = LocalDate.of(2026, 11, 4)
+    private val xiangqiTestBoardLastChange = LocalDate.of(2026, 5, 23)
+    private val janggiTestBoardLastChange = LocalDate.of(2026, 11, 4)
     private val sevenKingdomLastChange = LocalDate.of(2025, 12, 10)
 
     private val webHostTrimmed = appConfig.webHost.trimEnd('/')
@@ -106,7 +109,25 @@ class SiteMapService(
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/how-to-play-xiangqi",
-            lastmod = howToPlayLastPageChange,
+            lastmod = howToPlayXiangqiLastPageChange,
+            changefreq = MONTHLY,
+            priority = 0.8,
+        ),
+        SitemapEntry(
+            loc = "$webHostTrimmed/how-to-play-janggi",
+            lastmod = howToPlayJanggiLastPageChange,
+            changefreq = MONTHLY,
+            priority = 0.8,
+        ),
+        SitemapEntry(
+            loc = "$webHostTrimmed/board",
+            lastmod = xiangqiTestBoardLastChange,
+            changefreq = MONTHLY,
+            priority = 0.8,
+        ),
+        SitemapEntry(
+            loc = "$webHostTrimmed/janggi-test-board",
+            lastmod = janggiTestBoardLastChange,
             changefreq = MONTHLY,
             priority = 0.8,
         ),

@@ -41,6 +41,7 @@ class AdminPageViewStatsPage extends BasePage {
         '/userdata/analysis',
         '/user/settings',
         '/how-to-play-xiangqi',
+        '/how-to-play-janggi',
     ];
 
     /**
