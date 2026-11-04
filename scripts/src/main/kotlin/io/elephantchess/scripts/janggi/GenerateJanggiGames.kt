@@ -7,38 +7,13 @@ import kotlin.random.Random
 object GenerateJanggiGames {
 
     private const val OUTPUT_PATH = "xiangqi-core-test-utils/src/main/resources/janggi.txt"
-    private const val TOTAL_GAMES = 100
+    private const val TOTAL_GAMES = 200
     private const val MIN_MOVES_PER_GAME = 8
     private const val MAX_MOVES_PER_GAME = 80
     private const val MIN_DEPTH = 1
     private const val MAX_DEPTH = 10
 
     private val random = Random(System.nanoTime())
-    private val legalMovePool = listOf(
-        "d0a2",
-        "d2c2",
-        "b0b2",
-        "d9d8",
-        "a0a1",
-        "h0h2",
-        "a8a7",
-        "g9g8",
-        "c0c2",
-        "i0i2",
-        "e9e8",
-        "f9f8",
-        "c2c4",
-        "h2h4",
-        "a0a3",
-        "i9i7",
-        "a9a8",
-        "b9b8",
-        "e9e7",
-        "f9f8",
-        "g9g8",
-        "h9h8",
-        "i9i8",
-    )
 
     private enum class GameResult {
         CHECKMATE,
@@ -53,12 +28,21 @@ object GenerateJanggiGames {
         val enginePath = args.firstOrNull { it.startsWith("--engine=") }?.substringAfter("=")
             ?: System.getenv("FAIRY_STOCKFISH_PATH")
             ?: findDefaultEnginePath()
+            ?: error(
+                "Fairy Stockfish is required to generate Janggi fixtures. " +
+                    "Set FAIRY_STOCKFISH_PATH or install a binary at one of: " +
+                    listOf(
+                        "engines/fairy/14.0.1/fairy-stockfish",
+                        "engines/fairy/11.2/fairy-stockfish",
+                        "fairy/fairy-stockfish",
+                        "fairy/14.0.1/fairy-stockfish",
+                        "fairy-stockfish",
+                        "/usr/local/bin/fairy-stockfish",
+                        "/opt/fairy-stockfish/fairy-stockfish",
+                    ).joinToString(", "),
+            )
 
-        val games = if (enginePath != null) {
-            generateSelfPlayGames(enginePath, totalGames, maxMoves)
-        } else {
-            generateSyntheticGames(totalGames, maxMoves)
-        }
+        val games = generateSelfPlayGames(enginePath, totalGames, maxMoves)
             .distinctBy { it.moves.joinToString(",") }
             .take(totalGames)
 
@@ -72,6 +56,8 @@ object GenerateJanggiGames {
 
     private fun findDefaultEnginePath(): String? {
         val candidates = listOf(
+            "engines/fairy/14.0.1/fairy-stockfish",
+            "engines/fairy/11.2/fairy-stockfish",
             "fairy/fairy-stockfish",
             "fairy/14.0.1/fairy-stockfish",
             "fairy-stockfish",
@@ -81,32 +67,19 @@ object GenerateJanggiGames {
         return candidates.firstOrNull { File(it).canExecute() }
     }
 
-    private fun generateSelfPlayGames(enginePath: String, totalGames: Int, maxMoves: Int): List<GeneratedGame> =
-        buildList {
-            while (size < totalGames) {
-                val game = generateSelfPlayGame(enginePath, maxMoves)
-                if (game.moves.size >= MIN_MOVES_PER_GAME && game.moves.isNotEmpty()) add(game)
+    private fun generateSelfPlayGames(enginePath: String, totalGames: Int, maxMoves: Int): List<GeneratedGame> {
+        val uniqueGames = linkedSetOf<String>()
+        val games = mutableListOf<GeneratedGame>()
+
+        while (games.size < totalGames) {
+            val game = generateSelfPlayGame(enginePath, maxMoves)
+            val key = game.moves.joinToString(",")
+            if (game.moves.size >= MIN_MOVES_PER_GAME && uniqueGames.add(key)) {
+                games += game
             }
         }
 
-    private fun generateSyntheticGames(totalGames: Int, maxMoves: Int): List<GeneratedGame> =
-        buildList {
-            while (size < totalGames) {
-                val game = generateSyntheticGame(maxMoves)
-                if (game.moves.size >= MIN_MOVES_PER_GAME) add(game)
-            }
-        }
-
-    private fun generateSyntheticGame(maxMoves: Int): GeneratedGame {
-        val result = GameResult.entries.random()
-        val targetLength = random.nextInt(MIN_MOVES_PER_GAME, maxMoves.coerceAtLeast(MIN_MOVES_PER_GAME) + 1)
-        val moves = mutableListOf<String>()
-        while (moves.size < targetLength) {
-            val candidate = legalMovePool.random()
-            if (moves.isNotEmpty() && moves.last() == candidate && random.nextDouble() < 0.25) continue
-            moves.add(candidate)
-        }
-        return GeneratedGame(randomId(), moves, result)
+        return games
     }
 
     private fun generateSelfPlayGame(enginePath: String, maxMoves: Int): GeneratedGame {
@@ -128,46 +101,61 @@ object GenerateJanggiGames {
             }
         }
 
-        send("uci")
-        readUntil { it == "uciok" }
-        send("isready")
-        readUntil { it == "readyok" }
-        send("setoption name UCI_Variant value janggitraditional")
-
-        val history = mutableListOf<String>()
-        while (history.size < maxMoves) {
-            val depth = random.nextInt(MIN_DEPTH, MAX_DEPTH + 1)
-            val jitteredDepth = if (random.nextDouble() < 0.35) random.nextInt(MIN_DEPTH, MAX_DEPTH + 1) else depth
-            send("position startpos moves ${history.joinToString(" ")}")
-            send("go depth $jitteredDepth")
-            var bestMove: String? = null
+        fun readBestMove(): String? {
             while (true) {
-                val line = output.readLine() ?: break
+                val line = output.readLine() ?: return null
                 if (line.startsWith("bestmove ")) {
-                    bestMove = line.substringAfter("bestmove ").substringBefore(' ').trim()
-                    break
-                }
-            }
-            if (bestMove.isNullOrBlank() || bestMove == "(none)" || bestMove == "none") {
-                break
-            }
-            history += bestMove
-            if (random.nextDouble() < 0.15) {
-                val extraDepth = random.nextInt(MIN_DEPTH, MAX_DEPTH + 1)
-                send("position startpos moves ${history.joinToString(" ")}")
-                send("go depth $extraDepth")
-                while (true) {
-                    val line = output.readLine() ?: break
-                    if (line.startsWith("bestmove ")) break
+                    return line.substringAfter("bestmove ").substringBefore(' ').trim()
                 }
             }
         }
 
-        send("quit")
-        process.waitFor()
-        input.close()
-        output.close()
-        return GeneratedGame(randomId(), history, GameResult.entries.random())
+        try {
+            send("uci")
+            readUntil { it == "uciok" }
+            send("isready")
+            readUntil { it == "readyok" }
+            send("setoption name UCI_Variant value janggitraditional")
+
+            val history = mutableListOf<String>()
+            var terminalResult = GameResult.DRAW
+
+            while (history.size < maxMoves) {
+                val depth = random.nextInt(MIN_DEPTH, MAX_DEPTH + 1)
+                val jitteredDepth = if (random.nextDouble() < 0.35) random.nextInt(MIN_DEPTH, MAX_DEPTH + 1) else depth
+
+                send("position startpos moves ${history.joinToString(" ")}")
+                send("go depth $jitteredDepth")
+
+                val bestMove = readBestMove()
+                if (bestMove.isNullOrBlank() || bestMove == "(none)" || bestMove == "none") {
+                    terminalResult = when {
+                        history.size % 2 == 0 -> GameResult.CHECKMATE
+                        else -> GameResult.STALEMATE
+                    }
+                    break
+                }
+
+                history += bestMove
+
+                if (random.nextDouble() < 0.15) {
+                    val extraDepth = random.nextInt(MIN_DEPTH, MAX_DEPTH + 1)
+                    send("position startpos moves ${history.joinToString(" ")}")
+                    send("go depth $extraDepth")
+                    readBestMove()
+                }
+            }
+
+            return GeneratedGame(randomId(), history, terminalResult)
+        } finally {
+            try {
+                send("quit")
+                process.waitFor()
+            } finally {
+                input.close()
+                output.close()
+            }
+        }
     }
 
     private fun randomId(): String =
