@@ -163,11 +163,7 @@ class PlayerVsBotPage extends BasePage {
             },
             (botMove) => {
                 this.#boardGui.registerOpponentMove(botMove, true, null);
-                try {
-                    this.#moveTreeWidget.addMoveAtTheEnd(botMove);
-                } catch (e) {
-                    console.error('failed to append bot move to move-tree widget', e);
-                }
+                this.#moveTreeWidget.addMoveAtTheEnd(botMove);
                 this.#updateButtonsEnabled();
                 this.#enablePlayerMoveIfPermitted();
             },
@@ -177,11 +173,7 @@ class PlayerVsBotPage extends BasePage {
 
         // set up listeners
         this.#boardGui.addAfterMoveListener((move) => {
-            try {
-                this.#moveTreeWidget.addMoveAtTheEnd(move);
-            } catch (e) {
-                console.error('failed to append move to move-tree widget', e);
-            }
+            this.#moveTreeWidget.addMoveAtTheEnd(move);
             this.#boardGui.disablePlayerMove();
             this.#controller.playMove(move);
         });

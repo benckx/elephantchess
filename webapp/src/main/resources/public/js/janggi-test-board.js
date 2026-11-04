@@ -37,6 +37,7 @@ class TestBoardPage extends BasePage {
             containerId: 'move-history-navigation-panel',
             isDownloadButtonEnabled: true
         });
+        moveTreeWidget.startFen = JANGGI_START_FEN;
         moveTreeWidget.boardWidget = boardGui;
 
         boardGui.addAfterMoveListener((move) => {

@@ -20,11 +20,10 @@
 const {test, expect} = require('@playwright/test');
 const {newGuestContext, playMove, captureStep} = require('./helpers');
 
-// Synthetic Janggi self-play game (id `iaxeugSr`) from
+// Synthetic Janggi self-play game (id `ug2vcPrh`) from
 // `xiangqi-core-test-utils/src/main/resources/uci.txt`.
 const SYNTHETIC_JANGGI_MOVES = [
-    'h2e2', 'h9g7', 'h0g2', 'i9h9', 'i0h0', 'b9c7',
-    'c3c4', 'g6g5', 'h0h6', 'h7i7', 'h6g6', 'i7i8',
+    'b0c2', 'c6c5', 'g3g4', 'b9c7', 'h0g2', 'a9a8', 'i0i1',
 ];
 
 test.describe('Janggi test board', () => {
@@ -43,7 +42,14 @@ test.describe('Janggi test board', () => {
             }
         }
 
-        await expect(page.locator('#board-container-image-8-8')).toHaveClass(/piece-image/);
+        const moveHistoryLabels = page.locator('.move-label-placeholder');
+        await expect(moveHistoryLabels).toHaveCount(SYNTHETIC_JANGGI_MOVES.length);
+
+        const renderedLabels = await moveHistoryLabels.allTextContents();
+        renderedLabels.forEach((label) => expect(label.trim().length).toBeGreaterThan(0));
+
+        const movablePieces = page.locator('[id^="board-container-image-"][class*="piece-image-can-move"]');
+        expect(await movablePieces.count()).toBeGreaterThan(0);
         await captureStep(testInfo, '3-janggi-test-board-finished-line', [['board', page]]);
 
         await player.context.close();
