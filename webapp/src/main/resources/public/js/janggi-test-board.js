@@ -47,7 +47,7 @@ class TestBoardPage extends BasePage {
         new SettingsGui(boardGui, moveTreeWidget);
 
         // TODO: just to test
-        const moves = "h1g3,h10g8,i4h4,e9e10,i1i5,b10c8,e2e1,b8e8,b1c3,e8a8,b3e3,d10e9,e4d4,g7g6,a1b1,a7b7,c4c5,i7i6,i5i3,h8e8,c3e4,a8d8,e4d6,e8e6,d6c8,d8i8,c8e9,f10e9,h4i4,g6f6,g4h4,i6h6,g3h1,i8i3,h1i3,i10i7,d1e2,a10a6,e1d1,i7g7,h3h6,g7g1,h6h2,a6b6,b1b6,b7b6,i3g4,g1g3,h2c2,g10i7,g4e5,g3g5,d4d5,b6b5,e5f3,g5g6,d5e5,e6e8,c5d5,f6f5,c2f2,f5e5,d5e5,g6c6,e3e1,c6c4,f2d2,e8i8,e2d3,c10a7,e5d5,i7f5,d2d4,a7d5,d3d2,i8d8,f1e2,d5a3";
+        const moves = "h0g2,h9g7,i3h3,e8e9,i0i4,b9c7,e1e0,b7e7,b0c2,e7a7,b2e2,d9e8,e3d3,g6g5,a0b0,a6b6,c3c4,i6i5,i4i2,h7e7,c2e3,a7d7,e3d5,e7e5,d5c7,d7i7,c7e8,f9e8,h3i3,g5f5,g3h3,i5h5,g2h0,i7i2,h0i2,i9i6,d0e1,a9a5,e0d0,i6g6,h2h5,g6g0,h5h1,a5b5,b0b5,b6b5,i2g3,g0g2,h1c1,g9i6,g3e4,g2g4,d3d4,b5b4,e4f2,g4g5,d4e4,e5e7,c4d4,f5f4,c1f1,f4e4,d4e4,g5c5,e2e0,c5c3,f1d1,e7i7,e1d2,c9a6,e4d4,i6f4,d1d3,a6d4,d2d1,i7d7,f0e1,d4a2";
         moves.split(",").forEach(move => boardGui.registerMoveIfLegal(HalfMove.parseUci(move)));
     }
 
