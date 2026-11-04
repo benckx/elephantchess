@@ -28,6 +28,7 @@ class JanggiBoard(initFen: String = DEFAULT_START_FEN, keepHistory: Boolean = fa
         return capture
     }
 
+    /** FEN does not encode prior passes or an accepted bikjang, so loading a position resets draw state. */
     override fun loadFen(fen: String) {
         super.loadFen(fen)
         previousPass = false
