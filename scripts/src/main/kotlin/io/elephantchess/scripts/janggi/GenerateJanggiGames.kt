@@ -193,10 +193,13 @@ object GenerateJanggiGames {
                 }.distinct()
                 val chosenMove = when {
                     candidateMoves.isEmpty() -> null
+
                     evaluation.mateDistance != null &&
                         evaluation.mateDistance <= 3 &&
                         random.nextDouble() < 0.85 -> candidateMoves.firstOrNull()
+
                     candidateMoves.size > 1 && random.nextDouble() < 0.2 -> candidateMoves.random()
+
                     else -> evaluation.bestMove
                 }
 
