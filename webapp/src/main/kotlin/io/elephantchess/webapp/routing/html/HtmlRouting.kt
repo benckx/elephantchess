@@ -44,7 +44,7 @@ private val simplePublicPageMapping = mapOf(
     "/about/datasets" to "about/datasets",
     "/contact" to "contact_form",
     "/how-to-play-xiangqi" to "how_to_play_xiangqi",
-    "/how-to-play-janggi" to "how_to_play_janggi", // TODO
+    "/how-to-play-janggi" to "how_to_play_janggi",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
     "/7k/playground" to "seven_kingdoms/seven_kingdoms_playground",
     "/7k/about" to "seven_kingdoms/seven_kingdoms_about",
