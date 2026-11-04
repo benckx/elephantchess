@@ -8,9 +8,10 @@ class JanggiGameMovesDtoCacheTest {
     @Test
     fun loadsGeneratedGames() {
         val games = JanggiGameMovesDtoCache().listAll()
-        assertTrue(games.size == 200)
-        assertTrue(games.distinctBy { it.gameId }.size == 200)
-        assertTrue(games.distinctBy { it.uciMoves.joinToString(",") }.size == 200)
+        assertTrue(games.size == 100)
+        assertTrue(games.distinctBy { it.gameId }.size == 100)
+        assertTrue(games.distinctBy { it.uciMoves.joinToString(",") }.size == 100)
+        assertTrue(games.count { it.outcome == "CHECKMATE" } >= 25)
         assertTrue(
             games.all { game ->
                 game.gameId.isNotBlank() &&

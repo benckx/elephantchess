@@ -7,10 +7,11 @@ import kotlin.random.Random
 object GenerateJanggiGames {
 
     private const val OUTPUT_PATH = "xiangqi-core-test-utils/src/main/resources/janggi.txt"
-    private const val TOTAL_GAMES = 200
+    private const val TOTAL_GAMES = 100
+    private const val CHECKMATE_TARGET = 25
+    private const val MAX_GENERATION_ATTEMPTS = 25_000
     private const val MIN_MOVES_PER_GAME = 8
     private const val MAX_MOVES_PER_GAME = 80
-    private const val TERMINAL_OUTCOME_FIELD = "CHECKMATE"
     private const val MIN_DEPTH = 1
     private const val MAX_DEPTH = 10
 
@@ -70,17 +71,46 @@ object GenerateJanggiGames {
 
     private fun generateSelfPlayGames(enginePath: String, totalGames: Int, maxMoves: Int): List<GeneratedGame> {
         val uniqueGames = linkedSetOf<String>()
-        val games = mutableListOf<GeneratedGame>()
+        val checkmates = mutableListOf<GeneratedGame>()
+        val otherGames = mutableListOf<GeneratedGame>()
+        var attempts = 0
 
-        while (games.size < totalGames) {
+        while (
+            (checkmates.size < CHECKMATE_TARGET || checkmates.size + otherGames.size < totalGames) &&
+            attempts < MAX_GENERATION_ATTEMPTS
+        ) {
+            attempts += 1
             val game = generateSelfPlayGame(enginePath, maxMoves)
             val key = game.moves.joinToString(",")
-            if (game.moves.size >= MIN_MOVES_PER_GAME && uniqueGames.add(key)) {
-                games += game
+            if (game.moves.size < MIN_MOVES_PER_GAME || !uniqueGames.add(key)) {
+                continue
+            }
+
+            if (game.result == GameResult.CHECKMATE) {
+                if (checkmates.none { it.moves == game.moves }) {
+                    checkmates += game
+                }
+            } else if (otherGames.none { it.moves == game.moves }) {
+                otherGames += game
             }
         }
 
-        return games
+        if (checkmates.size < CHECKMATE_TARGET) {
+            println(
+                "Best effort: generated ${checkmates.size} checkmating games after $attempts attempts; " +
+                    "target was $CHECKMATE_TARGET for $totalGames entries",
+            )
+        }
+
+        val selected = (checkmates + otherGames)
+            .distinctBy { it.moves.joinToString(",") }
+            .take(totalGames)
+
+        if (selected.size != totalGames) {
+            error("Expected $totalGames generated Janggi games but got ${selected.size}")
+        }
+
+        return selected
     }
 
     private fun generateSelfPlayGame(enginePath: String, maxMoves: Int): GeneratedGame {
@@ -102,11 +132,33 @@ object GenerateJanggiGames {
             }
         }
 
-        fun readBestMove(): String? {
+        data class MoveEvaluation(
+            val bestMove: String?,
+            val pvMoves: List<String>,
+            val mateDistance: Int?,
+        )
+
+        fun readMoveEvaluation(): MoveEvaluation {
+            var bestMove: String? = null
+            var pvMoves = emptyList<String>()
+            var mateDistance: Int? = null
+
             while (true) {
-                val line = output.readLine() ?: return null
+                val line = output.readLine() ?: return MoveEvaluation(bestMove, pvMoves, mateDistance)
+                if (line.startsWith("info ")) {
+                    val mateMatch = Regex("score mate (-?\\d+)").find(line)
+                    if (mateMatch != null) {
+                        mateDistance = mateMatch.groupValues[1].toInt()
+                    }
+                    val pvMatch = Regex("pv (.+)").find(line)
+                    if (pvMatch != null) {
+                        pvMoves = pvMatch.groupValues[1].split(Regex("\\s+"), limit = 16)
+                            .filter { it.isNotBlank() }
+                    }
+                }
                 if (line.startsWith("bestmove ")) {
-                    return line.substringAfter("bestmove ").substringBefore(' ').trim()
+                    bestMove = line.substringAfter("bestmove ").substringBefore(' ').trim()
+                    return MoveEvaluation(bestMove, pvMoves, mateDistance)
                 }
             }
         }
@@ -128,8 +180,27 @@ object GenerateJanggiGames {
                 send("position startpos moves ${history.joinToString(" ")}")
                 send("go depth $jitteredDepth")
 
-                val bestMove = readBestMove()
-                if (bestMove.isNullOrBlank() || bestMove == "(none)" || bestMove == "none") {
+                val evaluation = readMoveEvaluation()
+                val candidateMoves = buildList {
+                    if (
+                        !evaluation.bestMove.isNullOrBlank() &&
+                        evaluation.bestMove != "(none)" &&
+                        evaluation.bestMove != "none"
+                    ) {
+                        add(evaluation.bestMove)
+                    }
+                    addAll(evaluation.pvMoves)
+                }.distinct()
+                val chosenMove = when {
+                    candidateMoves.isEmpty() -> null
+                    evaluation.mateDistance != null &&
+                        evaluation.mateDistance <= 3 &&
+                        random.nextDouble() < 0.85 -> candidateMoves.firstOrNull()
+                    candidateMoves.size > 1 && random.nextDouble() < 0.2 -> candidateMoves.random()
+                    else -> evaluation.bestMove
+                }
+
+                if (chosenMove.isNullOrBlank() || chosenMove == "(none)" || chosenMove == "none") {
                     terminalResult = when {
                         history.size % 2 == 0 -> GameResult.CHECKMATE
                         else -> GameResult.STALEMATE
@@ -137,13 +208,13 @@ object GenerateJanggiGames {
                     break
                 }
 
-                history += bestMove
+                history += chosenMove
 
                 if (random.nextDouble() < 0.15) {
                     val extraDepth = random.nextInt(MIN_DEPTH, MAX_DEPTH + 1)
                     send("position startpos moves ${history.joinToString(" ")}")
                     send("go depth $extraDepth")
-                    readBestMove()
+                    readMoveEvaluation()
                 }
             }
 
