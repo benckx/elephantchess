@@ -234,7 +234,10 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
 
 class BoardGui {
 
-    #board = new XiangqiBoard();
+    /**
+     * @type {Board}
+     */
+    #board;
     #boardContainer;
     #currentShowingLegalMovesFor = null;
     #selectedPiecePosition = null;
@@ -289,6 +292,16 @@ class BoardGui {
         this.#options = Object.freeze({...DEFAULT_BOARD_GUI_OPTIONS, ...options});
 
         this.#clickSound = new Audio(`${this.#options.assetsBaseUrl}/audio/rclick-13693.mp3`);
+
+        switch (this.#options.variant) {
+            case Variant.XIANGQI:
+            case Variant.MANCHU:
+                this.#board = new XiangqiBoard();
+                break;
+            case Variant.JANGGI:
+                this.#board = new JanggiBoard();
+                break;
+        }
 
         this.#boardContainer = document.getElementById(this.#options.elementId);
         this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
