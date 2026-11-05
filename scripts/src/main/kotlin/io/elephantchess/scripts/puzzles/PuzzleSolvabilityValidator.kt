@@ -34,7 +34,7 @@ object PuzzleSolvabilityValidator {
     fun hasEnoughMovesAtEachPlayerStep(startFen: String, solutionMoves: List<String>, minLegalMoves: Int): Boolean =
         hasEnoughMovesAtEachPlayerStep(XiangqiBoard(startFen), solutionMoves, minLegalMoves)
 
-    private fun hasEnoughMovesAtEachPlayerStep(board: Board, solutionMoves: List<String>, minLegalMoves: Int): Boolean {
+    private fun hasEnoughMovesAtEachPlayerStep(board: XiangqiBoard, solutionMoves: List<String>, minLegalMoves: Int): Boolean {
         val playerColor = board.colorToPlay()
 
         solutionMoves.forEach { move ->

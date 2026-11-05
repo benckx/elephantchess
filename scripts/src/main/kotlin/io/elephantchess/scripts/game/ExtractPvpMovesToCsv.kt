@@ -244,7 +244,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             ?.bestMove
                             ?.let { bestMove ->
                                 runCatching {
-                                    val bestMoveXiangqiBoard = XiangqiBoard(fenBeforeMove[index])
+                                    val bestMoveBoard = XiangqiBoard(fenBeforeMove[index])
                                     bestMoveBoard.registerMove(bestMove)
                                     resetFullMoveCount(bestMoveBoard.outputFen())
                                 }.getOrNull()
