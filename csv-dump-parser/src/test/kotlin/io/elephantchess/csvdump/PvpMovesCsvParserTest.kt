@@ -2,12 +2,7 @@ package io.elephantchess.csvdump
 
 import io.elephantchess.xiangqi.XiangqiBoard
 import java.io.File
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -34,7 +29,7 @@ class PvpMovesCsvParserTest {
             assertEquals(game.moveCount, game.moves.size)
             // Replaying every move on a fresh board proves the moves are consistent and legal:
             // registerMove throws on wrong turn color or an impossible move.
-            val board = Board()
+            val board = XiangqiBoard()
             game.moves.forEach { move -> board.registerMove(move.move) }
         }
         // Total moves across games equals the number of CSV data rows.
