@@ -180,35 +180,30 @@
         R = Chariot, N = Horse, B = Elephant, A = Guard, and 1 = an empty point:
     </p>
     <ul>
-        <li><b>Inner Elephant:</b> <code>rnba1abnr</code> (the default).</li>
-        <li><b>Outer Elephant:</b> <code>rbna1anbr</code>.</li>
-        <li><b>Right Elephant:</b> <code>rnba1anbr</code>.</li>
-        <li><b>Left Elephant:</b> <code>rbna1abnr</code>.</li>
-        <li><b>Central Chariot:</b> <code>bnra1arnb</code>, an alternative arrangement with Chariots beside the Guards.</li>
+        <li>
+            <b>Inner Elephant:</b> Elephants sit next to Advisors, <code>rnba1abnr</code>.
+        </li>
+        <li>
+            <b>Outer Elephant:</b> Elephants sit between the Chariots and the Horses, <code>rbna1anbr</code>.
+        </li>
+        <li>
+            <b>Right Elephant:</b> Elephants sit between on the right of the horses, <code>rnba1anbr</code>.
+        </li>
+        <li>
+            <b>Left Elephant:</b> Elephants sit between on the left of the horses, <code>rbna1abnr</code>.
+        </li>
+        <li>
+            <b>Right Elephant:</b> Elephants sit between on the right of the horses, <code>rnba1anbr</code>.
+        </li>
+        <li>
+            <b>Central Chariot:</b> Elephants sit in the corners and the Chariots next to the
+            Advisors,<code>bnra1arnb</code>. Nowadays, the setup is mostly played in North Korean.
+        </li>
     </ul>
     <p>
         Red's back rank is the first, lowercase rank in FEN; Blue's is the last, uppercase rank.
         Blue moves first. The General, Cannons, and Soldiers keep the same starting positions in every setup.
-        Nowadays, Janggi is mostly played in North Korea.
     </p>
-    <div class="janggi-setup-selectors">
-        <label for="blue-setup-select" class="janggi-setup-label-blue">Blue setup</label>
-        <select id="blue-setup-select" class="janggi-setup-select-blue">
-            <option value="rnba1abnr">Inner Elephant</option>
-            <option value="rbna1anbr">Outer Elephant</option>
-            <option value="rnba1anbr">Right Elephant</option>
-            <option value="rbna1abnr">Left Elephant</option>
-            <option value="bnra1arnb">Central Chariot</option>
-        </select>
-        <label for="red-setup-select" class="janggi-setup-label-red">Red setup</label>
-        <select id="red-setup-select" class="janggi-setup-select-red">
-            <option value="rnba1abnr">Inner Elephant</option>
-            <option value="rbna1anbr">Outer Elephant</option>
-            <option value="rnba1anbr">Right Elephant</option>
-            <option value="rbna1abnr">Left Elephant</option>
-            <option value="bnra1arnb">Central Chariot</option>
-        </select>
-    </div>
     <div class="piece-rules">
         <div class="piece-row">
             <div class="explanation">
@@ -216,6 +211,25 @@
                 <p>
                     Pick one setup for each side to preview any of the 25 starting combinations.
                 </p>
+                <div class="janggi-setup-selectors">
+                    <label for="blue-setup-select" class="janggi-setup-label-blue">Blue setup</label>
+                    <select id="blue-setup-select" class="janggi-setup-select-blue">
+                        <option value="rnba1abnr">Inner Elephant</option>
+                        <option value="rbna1anbr">Outer Elephant</option>
+                        <option value="rnba1anbr">Right Elephant</option>
+                        <option value="rbna1abnr">Left Elephant</option>
+                        <option value="bnra1arnb">Central Chariot</option>
+                    </select>
+                    <br/>
+                    <label for="red-setup-select" class="janggi-setup-label-red">Red setup</label>
+                    <select id="red-setup-select" class="janggi-setup-select-red">
+                        <option value="rnba1abnr">Inner Elephant</option>
+                        <option value="rbna1anbr">Outer Elephant</option>
+                        <option value="rnba1anbr">Right Elephant</option>
+                        <option value="rbna1abnr">Left Elephant</option>
+                        <option value="bnra1arnb">Central Chariot</option>
+                    </select>
+                </div>
                 <p>
                     <span id="reset-complete-setup-board-button" class="action-link">reset setup board</span> /
                     <a href="/janggi-test-board?medium=janggi_about">test board</a>
