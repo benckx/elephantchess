@@ -28,6 +28,7 @@ class JanggiAboutPage extends BasePage {
     #boardGuiSoldier = this.#createBoardGui('board-container-soldier-about');
     #boardGuiCompleteSetup = this.#createBoardGui('board-container-complete-setup-about');
 
+    /** @type {SettingsGui} */
     #settingsGui;
 
     constructor() {
@@ -64,6 +65,10 @@ class JanggiAboutPage extends BasePage {
         boardGuis.slice(1).forEach(boardGui => this.#settingsGui.addBoardGui(boardGui));
     }
 
+    /**
+     * @param {string} elementId
+     * @returns {BoardGui}
+     */
     #createBoardGui(elementId) {
         return createWebappBoardGui({
             elementId,
@@ -72,10 +77,22 @@ class JanggiAboutPage extends BasePage {
         });
     }
 
+    /**
+     * @param {string} elementId
+     * @param {function(): void} callback
+     * @returns {void}
+     */
     #initResetButton(elementId, callback) {
         document.getElementById(elementId).addEventListener('click', callback);
     }
 
+    /**
+     * @param {BoardGui} boardGui
+     * @param {string} pieceChar
+     * @param {Position} piecePosition
+     * @param {{pieceChar: string, position: Position}[]} [blockerPieces=[]]
+     * @returns {void}
+     */
     #resetBoard(boardGui, pieceChar, piecePosition, blockerPieces = []) {
         const board = new JanggiBoard();
         if (pieceChar !== 'K') {
@@ -117,6 +134,8 @@ class JanggiAboutPage extends BasePage {
             [
                 {pieceChar: 'P', position: new Position(1, 5)},
                 {pieceChar: 'p', position: new Position(1, 7)},
+                {pieceChar: 'c', position: new Position(3, 4)},
+                {pieceChar: 'p', position: new Position(5, 4)},
             ]
         );
     }
