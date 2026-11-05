@@ -51,6 +51,24 @@
     width: 330px;
 }
 
+.janggi-setup-selectors {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.janggi-setup-label-blue,
+.janggi-setup-select-blue {
+    color: #1f4aa8;
+}
+
+.janggi-setup-label-red,
+.janggi-setup-select-red {
+    color: #a52626;
+}
+
 @media (max-width: 1000px) {
     .piece-row {
         flex-flow: column;

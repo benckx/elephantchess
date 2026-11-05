@@ -189,12 +189,30 @@
         Red's back rank is the first, lowercase rank in FEN; Blue's is the last, uppercase rank.
         Blue moves first. The General, Cannons, and Soldiers keep the same starting positions in every setup.
     </p>
+    <div class="janggi-setup-selectors">
+        <label for="blue-setup-select" class="janggi-setup-label-blue">Blue setup</label>
+        <select id="blue-setup-select" class="janggi-setup-select-blue">
+            <option value="rnba1abnr">Inner Elephant</option>
+            <option value="rbna1anbr">Outer Elephant</option>
+            <option value="rnba1anbr">Right Elephant</option>
+            <option value="rbna1abnr">Left Elephant</option>
+            <option value="bnra1arnb">Central Chariot</option>
+        </select>
+        <label for="red-setup-select" class="janggi-setup-label-red">Red setup</label>
+        <select id="red-setup-select" class="janggi-setup-select-red">
+            <option value="rnba1abnr">Inner Elephant</option>
+            <option value="rbna1anbr">Outer Elephant</option>
+            <option value="rnba1anbr">Right Elephant</option>
+            <option value="rbna1abnr">Left Elephant</option>
+            <option value="bnra1arnb">Central Chariot</option>
+        </select>
+    </div>
     <div class="piece-rules">
         <div class="piece-row">
             <div class="explanation">
                 <h2 id="complete-setup-board">Starting position</h2>
                 <p>
-                    This example shows Inner Elephant on both sides. Blue moves first.
+                    Pick one setup for each side to preview any of the 25 starting combinations.
                 </p>
                 <p>
                     <span id="reset-complete-setup-board-button" class="action-link">reset setup board</span> /
