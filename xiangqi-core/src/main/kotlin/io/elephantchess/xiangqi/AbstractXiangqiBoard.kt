@@ -47,11 +47,7 @@ abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Bo
     open fun isDraw(): Boolean =
         false
 
-    open fun isIllegal(move: HalfMove, color: Color): Boolean {
-        val boardCopy = copy()
-        boardCopy.registerMove(move)
-        return boardCopy.isInCheck(color)
-    }
+    abstract fun isIllegal(move: HalfMove, color: Color): Boolean
 
     fun areGeneralsFacing(): Boolean {
         val white = findGeneral(WHITE) ?: return false
