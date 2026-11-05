@@ -75,7 +75,7 @@ data class Position(val x: Int, val y: Int) {
     fun getDiagonal() =
         listOf(getTopLeft(), getTopRight(), getBottomLeft(), getBottomRight())
 
-    fun isInRedPalace() =
+    fun isInWhitePalace() =
         x in 3..5 && y <= 2
 
     fun isInBlackPalace() =

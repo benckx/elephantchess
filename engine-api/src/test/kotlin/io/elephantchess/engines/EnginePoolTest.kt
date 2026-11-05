@@ -144,7 +144,7 @@ private data class FenAndResult(val fen: String, val bestMove: String?) {
 
     fun isBestMoveLegal(): Boolean {
         bestMove?.let { bestMove ->
-            return Board(fen).isLegalMove(parseMoveFromUci(bestMove))
+            return XiangqiBoard(fen).isLegalMove(parseMoveFromUci(bestMove))
         }
         return false
     }

@@ -35,7 +35,7 @@ open class XiangqiBoard(
             }
 
         fun inPalace(targets: List<Position>): List<Position> =
-            targets.filter { if (color == WHITE) it.isInRedPalace() else it.isInBlackPalace() }
+            targets.filter { if (color == WHITE) it.isInWhitePalace() else it.isInBlackPalace() }
 
         val targets = when (pieceAtPosition.abstractPieceType()) {
             CHARIOT -> chariotTargets(position, position.getOrthogonalLines())

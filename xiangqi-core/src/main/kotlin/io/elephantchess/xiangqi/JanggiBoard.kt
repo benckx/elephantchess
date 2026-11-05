@@ -57,7 +57,7 @@ class JanggiBoard(initFen: String = DEFAULT_START_FEN, keepHistory: Boolean = fa
         require(pieceAtPosition.physicalPiece == pieceAt(position))
         val targets = when (pieceAtPosition.abstractPieceType()) {
             GENERAL, ADVISOR -> (position.getOrthogonal() + palaceDiagonalNeighbors(position))
-                .filter { if (color == WHITE) it.isInRedPalace() else it.isInBlackPalace() }
+                .filter { if (color == WHITE) it.isInWhitePalace() else it.isInBlackPalace() }
 
             HORSE -> horseTargets(position)
 
@@ -71,7 +71,7 @@ class JanggiBoard(initFen: String = DEFAULT_START_FEN, keepHistory: Boolean = fa
                 add(position.getLeft())
                 add(position.getRight())
                 add(if (color == WHITE) position.getTop() else position.getBottom())
-                val inEnemyPalace = if (color == WHITE) position.isInBlackPalace() else position.isInRedPalace()
+                val inEnemyPalace = if (color == WHITE) position.isInBlackPalace() else position.isInWhitePalace()
                 if (inEnemyPalace) {
                     addAll(palaceDiagonalNeighbors(position).filter { if (color == WHITE) it.y > position.y else it.y < position.y })
                 }
@@ -117,7 +117,7 @@ class JanggiBoard(initFen: String = DEFAULT_START_FEN, keepHistory: Boolean = fa
     private fun palaceCenter(position: Position): Position? =
         when {
             !position.existsOnXiangqiBoard() -> null
-            position.isInRedPalace() -> Position(4, 1)
+            position.isInWhitePalace() -> Position(4, 1)
             position.isInBlackPalace() -> Position(4, 8)
             else -> null
         }

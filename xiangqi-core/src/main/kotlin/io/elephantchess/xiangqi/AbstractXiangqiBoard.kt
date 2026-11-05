@@ -8,6 +8,9 @@ import io.elephantchess.xiangqi.Position.Companion.getAllPositions
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.HEIGHT
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.WIDTH
 
+/**
+ * Supports Xiangqi, Manchu and Janggi variants.
+ */
 abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Boolean = false) {
 
     abstract val variant: Variant
