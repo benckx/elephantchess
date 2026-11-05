@@ -40,7 +40,7 @@ import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.XiangqiBoard
-import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.calculateNewFen
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.colorToPlay
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.isCheckmated
@@ -239,7 +239,7 @@ class PlayerVsBotGameService(
                     engine = record.engine,
                     depth = record.depth,
                     customStartFen = record.startFen != null,
-                    currentFen = record.currentFen ?: DEFAULT_START_FEN,
+                    currentFen = record.currentFen ?: DEFAULT_XIANGQI_START_FEN,
                     status = record.gameStatus,
                     outcome = record.outcome,
                     moveIndex = record.currentHalfMoveIndex,

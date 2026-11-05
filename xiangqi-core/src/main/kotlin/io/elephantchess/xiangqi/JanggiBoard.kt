@@ -9,7 +9,7 @@ import io.elephantchess.xiangqi.Color.WHITE
  * Two consecutive passes or accepting bikjang end the game in a draw.
  * Repetition and point scoring are left to the game layer.
  */
-class JanggiBoard(initFen: String = DEFAULT_START_FEN, keepHistory: Boolean = false) : AbstractXiangqiBoard(initFen, keepHistory) {
+class JanggiBoard(initFen: String = DEFAULT_JANGGI_START_FEN, keepHistory: Boolean = false) : AbstractXiangqiBoard(initFen, keepHistory) {
 
     override val variant: Variant = Variant.JANGGI
 
@@ -152,6 +152,6 @@ class JanggiBoard(initFen: String = DEFAULT_START_FEN, keepHistory: Boolean = fa
     companion object {
 
         /** Default setup, matching the front-end and Fairy-Stockfish fixtures; other setups can be loaded via FEN. */
-        const val DEFAULT_START_FEN = "rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1"
+        const val DEFAULT_JANGGI_START_FEN = "rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1"
     }
 }

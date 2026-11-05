@@ -6,7 +6,7 @@ import io.elephantchess.engines.process.FairyStockfishEngineId
 import io.elephantchess.engines.process.PikafishEngineId
 import io.elephantchess.servicelayer.services.MailService
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -64,7 +64,7 @@ fun Application.healthCheckModule() {
                 listOf(PikafishEngineId, FairyStockfishEngineId).forEach { engineId ->
                     try {
                         val result = enginePool.queryForDepth(
-                            fen = DEFAULT_START_FEN,
+                            fen = DEFAULT_XIANGQI_START_FEN,
                             engineId = engineId,
                             depth = HEALTH_CHECK_DEPTH,
                             timeout = HEALTH_CHECK_TIMEOUT,

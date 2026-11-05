@@ -32,7 +32,7 @@ import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.XiangqiBoard
-import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
@@ -230,10 +230,10 @@ class GameDataService(
     }
 
     suspend fun fetchAnalysisData(gameId: GameId): GameAnalysisResponse {
-        val startFenResult = engineCacheService.get(DEFAULT_START_FEN)
+        val startFenResult = engineCacheService.get(DEFAULT_XIANGQI_START_FEN)
         val start =
             if (startFenResult != null) {
-                Pair(DEFAULT_START_FEN, startFenResult)
+                Pair(DEFAULT_XIANGQI_START_FEN, startFenResult)
             } else {
                 null
             }
@@ -442,9 +442,9 @@ class GameDataService(
 
     private suspend fun findStartFen(gameId: GameId) =
         when (gameId.type) {
-            PVP -> DEFAULT_START_FEN
-            PVB -> pvbGameDaoService.fetchStartFen(gameId.id) ?: DEFAULT_START_FEN
-            DB -> DEFAULT_START_FEN
+            PVP -> DEFAULT_XIANGQI_START_FEN
+            PVB -> pvbGameDaoService.fetchStartFen(gameId.id) ?: DEFAULT_XIANGQI_START_FEN
+            DB -> DEFAULT_XIANGQI_START_FEN
         }
 
     private suspend fun fetchUserName(userId: String?): String? =
@@ -720,7 +720,7 @@ class GameDataService(
             redPlayerName = databaseService.playerIdToCanonicalName(game.whitePlayer),
             blackPlayerId = game.blackPlayer,
             blackPlayerName = databaseService.playerIdToCanonicalName(game.blackPlayer),
-            finalFen = game.finalFen ?: DEFAULT_START_FEN,
+            finalFen = game.finalFen ?: DEFAULT_XIANGQI_START_FEN,
             outcome = game.outcome,
             lastUpdated = game.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
             paginationOffset = paginationOffset,

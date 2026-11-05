@@ -5,7 +5,7 @@ import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationDetails
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationResult
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.XiangqiBoard
-import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import kotlin.math.abs
 
@@ -29,7 +29,7 @@ private const val MAX_COMPARABLE_DEPTH_DIFFERENCE = 3
 fun collectMoveAnnotations(
     moves: List<String>,
     analysisMap: Map<String, InfoLineResultDto>,
-    startFen: String = DEFAULT_START_FEN,
+    startFen: String = DEFAULT_XIANGQI_START_FEN,
 ): List<MoveAnnotationDetails> {
     val board = XiangqiBoard(startFen)
     val annotations = mutableListOf<MoveAnnotationDetails>()

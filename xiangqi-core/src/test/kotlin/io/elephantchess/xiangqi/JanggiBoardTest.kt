@@ -163,8 +163,8 @@ class JanggiBoardTest {
         assertEquals(board.listLegalMoves(WHITE), copy.listLegalMoves(WHITE))
         copy.registerMove("b3c3")
         assertFalse(copy.outputFen() == board.outputFen())
-        copy.loadFen(JanggiBoard.DEFAULT_START_FEN)
-        assertEquals(JanggiBoard.DEFAULT_START_FEN, copy.outputFen())
+        copy.loadFen(JanggiBoard.DEFAULT_JANGGI_START_FEN)
+        assertEquals(JanggiBoard.DEFAULT_JANGGI_START_FEN, copy.outputFen())
         assertEquals(32, copy.listAllPieces().size)
     }
 
@@ -240,7 +240,7 @@ class JanggiBoardTest {
         assertTrue(board.listLegalMoves(WHITE).isEmpty())
         assertFalse(board.isStalemated())
         assertTrue(board.copy().isDraw())
-        board.loadFen(JanggiBoard.DEFAULT_START_FEN)
+        board.loadFen(JanggiBoard.DEFAULT_JANGGI_START_FEN)
         assertFalse(board.isDraw())
         board.registerMove("e1e1")
         val copy = board.copy()

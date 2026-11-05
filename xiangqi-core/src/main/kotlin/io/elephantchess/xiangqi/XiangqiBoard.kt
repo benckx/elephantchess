@@ -3,11 +3,12 @@ package io.elephantchess.xiangqi
 import io.elephantchess.xiangqi.AbstractPieceType.*
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
+import io.elephantchess.xiangqi.JanggiBoard.Companion.DEFAULT_JANGGI_START_FEN
 import io.elephantchess.xiangqi.Variant.MANCHU
 import io.elephantchess.xiangqi.Variant.XIANGQI
 
 open class XiangqiBoard(
-    initFen: String = DEFAULT_START_FEN,
+    initFen: String = DEFAULT_XIANGQI_START_FEN,
     keepHistory: Boolean = false,
     override val variant: Variant = inferVariantFromFen(initFen),
 ) : AbstractXiangqiBoard(initFen, keepHistory) {
@@ -73,7 +74,7 @@ open class XiangqiBoard(
 
         const val WIDTH = 9
         const val HEIGHT = 10
-        const val DEFAULT_START_FEN = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
+        const val DEFAULT_XIANGQI_START_FEN = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
 
         /**
          * Manchu chess start FEN. Black pieces are set up as in standard xiangqi.
@@ -86,9 +87,9 @@ open class XiangqiBoard(
 
         fun defaultStartFen(variant: Variant): String =
             when (variant) {
-                XIANGQI -> DEFAULT_START_FEN
+                XIANGQI -> DEFAULT_XIANGQI_START_FEN
                 MANCHU -> MANCHU_START_FEN
-                Variant.JANGGI -> JanggiBoard.DEFAULT_START_FEN
+                Variant.JANGGI -> DEFAULT_JANGGI_START_FEN
             }
 
         fun inferVariantFromFen(fen: String): Variant =
@@ -127,7 +128,7 @@ open class XiangqiBoard(
         fun isInCheck(fen: String, color: Color): Boolean =
             XiangqiBoard(fen).isInCheck(color)
 
-        fun moveToFens(movesHistory: List<String>, startFen: String = DEFAULT_START_FEN, abridged: Boolean = false): List<String> {
+        fun moveToFens(movesHistory: List<String>, startFen: String = DEFAULT_XIANGQI_START_FEN, abridged: Boolean = false): List<String> {
             val board = XiangqiBoard(startFen)
             val fens = mutableListOf(board.outputFen(abridged))
             movesHistory.forEach { move ->

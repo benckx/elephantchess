@@ -5,7 +5,7 @@ import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationDetails
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationResult
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
 import io.elephantchess.xiangqi.XiangqiBoard
-import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -44,14 +44,14 @@ class MoveAnnotationCalculationTest {
         val move = "h2e2"
         val bestMove = "c3c4"
 
-        val startBoard = Board(DEFAULT_START_FEN)
+        val startBoard = XiangqiBoard(DEFAULT_XIANGQI_START_FEN)
         val startFen = resetFullMoveCount(startBoard.outputFen())
 
-        val bestMoveBoard = Board(DEFAULT_START_FEN)
+        val bestMoveBoard = XiangqiBoard(DEFAULT_XIANGQI_START_FEN)
         bestMoveBoard.registerMove(bestMove)
         val bestMoveFen = resetFullMoveCount(bestMoveBoard.outputFen())
 
-        val actualMoveBoard = Board(DEFAULT_START_FEN)
+        val actualMoveBoard = XiangqiBoard(DEFAULT_XIANGQI_START_FEN)
         actualMoveBoard.registerMove(move)
         val actualMoveFen = resetFullMoveCount(actualMoveBoard.outputFen())
 

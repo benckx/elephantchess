@@ -12,7 +12,7 @@ class XiangqiBoardTest {
 
     @Test
     fun replayXiangqiAndManchuFixturesPreservingBoardState() {
-        val games = GameMovesDtoCache().listAll().map { it to XiangqiBoard.DEFAULT_START_FEN } +
+        val games = GameMovesDtoCache().listAll().map { it to XiangqiBoard.DEFAULT_XIANGQI_START_FEN } +
             ManchuGameMovesDtoCache().listAll().map { it to XiangqiBoard.MANCHU_START_FEN }
         games.forEach { (game, fen) ->
             val board = XiangqiBoard(fen)
