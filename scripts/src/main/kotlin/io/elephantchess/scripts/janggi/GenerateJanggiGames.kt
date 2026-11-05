@@ -1,7 +1,7 @@
 package io.elephantchess.scripts.janggi
 
 import java.io.File
-import java.util.UUID
+import java.util.*
 import kotlin.random.Random
 
 object GenerateJanggiGames {
@@ -43,6 +43,8 @@ object GenerateJanggiGames {
                         "/opt/fairy-stockfish/fairy-stockfish",
                     ).joinToString(", "),
             )
+
+        println("totalGames=$totalGames, maxMoves=$maxMoves, enginePath=$enginePath")
 
         val games = generateSelfPlayGames(enginePath, totalGames, maxMoves)
             .distinctBy { it.moves.joinToString(",") }
