@@ -31,8 +31,29 @@ const DEFAULT_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNB
  */
 const MANCHU_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/M1BAKAB2 w - - 0 0';
 
-// TODO: there are actually multiple start FEN
-const JANGGI_START_FEN = 'rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1';
+const JanggiSetup = Object.freeze({
+    INNER_ELEPHANT: 'rnba1abnr',
+    OUTER_ELEPHANT: 'rbna1anbr',
+    RIGHT_ELEPHANT: 'rnba1anbr',
+    LEFT_ELEPHANT: 'rbna1abnr',
+    CENTRAL_CHARIOT: 'bnra1arnb',
+});
+
+/**
+ * Blue plays first from the uppercase bottom rank; Red occupies the lowercase top rank.
+ * @param {string} blue A JanggiSetup value.
+ * @param {string} red A JanggiSetup value.
+ * @returns {string}
+ */
+function generateJanggiStartFen(blue = JanggiSetup.INNER_ELEPHANT, red = JanggiSetup.INNER_ELEPHANT) {
+    const setups = Object.values(JanggiSetup);
+    if (!setups.includes(blue) || !setups.includes(red)) {
+        throw new Error('Invalid Janggi setup');
+    }
+    return `${red}/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/${blue.toUpperCase()} w - - 0 1`;
+}
+
+const JANGGI_START_FEN = generateJanggiStartFen();
 
 // Piece color enum. Lives here (rather than in enums.js) so that xiangqi.js
 // can be used standalone (together with board-gui.js) without pulling in the

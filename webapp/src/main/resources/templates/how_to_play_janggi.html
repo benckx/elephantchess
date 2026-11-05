@@ -170,15 +170,27 @@
     <hr/>
     <p>
         Each player starts with one General, two Guards, two Elephants, two Horses, two Chariots, two Cannons, and five
-        Soldiers. The General and Guards start in the palace. Players can choose either Horse/Elephant order beside
-        each Guard.
+        Soldiers. The General and Guards start in the palace. Each player chooses their starting arrangement
+        independently. The following setups show the back rank from left to right in FEN order, with
+        R = Chariot, N = Horse, B = Elephant, A = Guard, and 1 = an empty point:
+    </p>
+    <ul>
+        <li><b>Inner Elephant:</b> <code>rnba1abnr</code> (the default).</li>
+        <li><b>Outer Elephant:</b> <code>rbna1anbr</code>.</li>
+        <li><b>Right Elephant:</b> <code>rnba1anbr</code>.</li>
+        <li><b>Left Elephant:</b> <code>rbna1abnr</code>.</li>
+        <li><b>Central Chariot:</b> <code>bnra1arnb</code>, an alternative arrangement with Chariots beside the Guards.</li>
+    </ul>
+    <p>
+        Red's back rank is the first, lowercase rank in FEN; Blue's is the last, uppercase rank.
+        Blue moves first. The General, Cannons, and Soldiers keep the same starting positions in every setup.
     </p>
     <div class="piece-rules">
         <div class="piece-row">
             <div class="explanation">
                 <h2 id="complete-setup-board">Starting position</h2>
                 <p>
-                    This example shows one standard setup. Blue moves first.
+                    This example shows Inner Elephant on both sides. Blue moves first.
                 </p>
                 <p>
                     <span id="reset-complete-setup-board-button" class="action-link">reset setup board</span> /

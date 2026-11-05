@@ -151,7 +151,7 @@ class JanggiBoard(initFen: String = DEFAULT_JANGGI_START_FEN, keepHistory: Boole
 
     companion object {
 
-        /** Default setup, matching the front-end and Fairy-Stockfish fixtures; other setups can be loaded via FEN. */
+        /** Inner elephants on both sides; use generateJanggiStartFen to choose each side's setup. */
         const val DEFAULT_JANGGI_START_FEN = "rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1"
     }
 }
