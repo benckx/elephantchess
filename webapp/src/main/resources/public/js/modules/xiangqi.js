@@ -1623,28 +1623,12 @@ class XiangqiBoard extends AbstractXiangqiBoard {
 
 class JanggiBoard extends AbstractXiangqiBoard {
 
-    isPossibleMove(move) {
-        if (Position.areEquals(move.from, move.to)) {
-            const piece = this.getPieceAt(move.from);
-            return piece != null && piece.pieceChar.toLowerCase() === 'k';
-        }
-        return super.isPossibleMove(move);
-    }
-
     /**
      * @param move {HalfMove}
      * @param color {string}
      * @returns {boolean}
      */
     isMoveIllegal(move, color) {
-        if (Position.areEquals(move.from, move.to)) {
-            const piece = this.getPieceAt(move.from);
-            if (piece == null || piece.pieceChar.toLowerCase() !== 'k') {
-                return true;
-            }
-            return this.isInCheck(color) && !this.#areGeneralsFacing();
-        }
-
         const boardCopy = this.copy();
         if (boardCopy.isPossibleMove(move)) {
             boardCopy.registerMove(move);
@@ -1652,22 +1636,6 @@ class JanggiBoard extends AbstractXiangqiBoard {
         } else {
             return true;
         }
-    }
-
-    #areGeneralsFacing() {
-        const white = this.findGeneral(Color.WHITE);
-        const black = this.findGeneral(Color.BLACK);
-        if (white == null || black == null || white.position.x !== black.position.x) {
-            return false;
-        }
-        const low = Math.min(white.position.y, black.position.y);
-        const high = Math.max(white.position.y, black.position.y);
-        for (let y = low + 1; y < high; y++) {
-            if (this.getPieceAt(new Position(white.position.x, y)) != null) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**

@@ -5,7 +5,6 @@ import io.elephantchess.model.GameEventType.CHECKMATED
 import io.elephantchess.model.GameEventType.STALEMATED
 import io.elephantchess.model.Outcome
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.DRAW
 import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.xiangqi.Color
 
@@ -49,9 +48,6 @@ data class PlayMoveBotGameCallbackResult(
 
     fun updateForUserVictory(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult =
         updateWinner(color, checkmated, stalemated).copy(userVictory = true)
-
-    fun updateForDraw(): PlayMoveBotGameCallbackResult =
-        copy(gameEventType = GameEventType.DRAW_ACCEPTED, outcome = DRAW)
 
     fun addError(errorType: ErrorType): PlayMoveBotGameCallbackResult =
         copy(errors = errors + errorType)

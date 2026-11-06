@@ -97,7 +97,6 @@ class PlayerVsBotPage extends BasePage {
 
     #resignButton = document.getElementById('resign-button');
     #cancelButton = document.getElementById('cancel-button');
-    #passButton = document.getElementById('pass-button');
     #analyzeButtons = [
         document.getElementById('analyze-button-left-side'),
         document.getElementById('analyze-button-right-side')
@@ -170,8 +169,7 @@ class PlayerVsBotPage extends BasePage {
                 this.#enablePlayerMoveIfPermitted();
             },
             () => this.#gameEndedCallback(true),
-            () => this.#gameEndedCallback(false),
-            () => this.#drawGameCallback()
+            () => this.#gameEndedCallback(false)
         );
 
         // set up listeners
@@ -195,12 +193,6 @@ class PlayerVsBotPage extends BasePage {
                 this.#handleClickedCancelButton();
             }
         });
-        this.#passButton.addEventListener('click', (e) => {
-            if (isInfoBoxButtonEnabled(e)) {
-                this.#boardGui.pass();
-            }
-        });
-
         this.#analyzeButtons.forEach((button) => {
             button.addEventListener('click', (e) => {
                 if (isAppButtonEnabled(e)) {
@@ -267,35 +259,18 @@ class PlayerVsBotPage extends BasePage {
         this.#updateButtonsEnabled();
     }
 
-    #drawGameCallback() {
-        this.#boardGui.disablePlayerMove();
-        this.#updateOutcomeLabel();
-        this.#updateButtonsEnabled();
-    }
-
     #handleNavigationEvent() {
         if (this.#moveTreeWidget.isLastMoveSelected()) {
             this.#enablePlayerMoveIfPermitted();
         } else {
             this.#boardGui.disablePlayerMove();
         }
-        this.#updatePassButtonEnabled();
     }
 
     #enablePlayerMoveIfPermitted() {
         if (this.#controller.userCanPlay()) {
             this.#boardGui.enablePlayerMove();
         }
-        this.#updatePassButtonEnabled();
-    }
-
-    #updatePassButtonEnabled() {
-        const isJanggi = this.#controller.isJanggi();
-        this.#passButton.style.display = isJanggi && this.#controller.userCanPlay() ? '' : 'none';
-        setInfoBoxButtonEnabled(
-            this.#passButton,
-            isJanggi && this.#controller.userCanPlay() && this.#moveTreeWidget.isLastMoveSelected()
-        );
     }
 
     #updateOutcomeLabel() {
@@ -362,7 +337,6 @@ class PlayerVsBotPage extends BasePage {
         } else {
             document.getElementById('game-actions-buttons-info-box').style.display = 'none';
         }
-        this.#updatePassButtonEnabled();
     }
 
     /**

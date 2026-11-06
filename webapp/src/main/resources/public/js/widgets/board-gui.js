@@ -376,18 +376,6 @@ class BoardGui {
         this.#drawPieces();
     }
 
-    pass() {
-        if (this.#options.variant !== Variant.JANGGI) {
-            throw new Error('Passing is only supported in Janggi');
-        }
-
-        const general = this.#board.findGeneral(this.#board.getColorToPlay());
-        if (general == null) {
-            throw new Error('Can not pass without a general on the board');
-        }
-        this.registerMoveIfLegal(new HalfMove(general.position, general.position));
-    }
-
     #drawPositionNoAnimation(targetFen) {
         this.#hideAllPiecePlaceHolders();
         this.#hideHighlightedLastMove();

@@ -362,16 +362,7 @@ class PlayMoveResponseDto {
     }
 
     isUserVictory() {
-        return this.hasMatingResult() && this.#botMove == null;
-    }
-
-    isDraw() {
-        return this.#statusUpdate === GameEventType.DRAW_ACCEPTED;
-    }
-
-    hasMatingResult() {
-        return this.#statusUpdate === GameEventType.CHECKMATED ||
-            this.#statusUpdate === GameEventType.STALEMATED;
+        return this.hasGameEnded() && this.#botMove == null;
     }
 
 }

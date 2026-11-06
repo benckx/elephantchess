@@ -345,7 +345,7 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
     suspend fun saveUserMoveResult(
         gameId: String,
         userMove: String,
-        callback: suspend (gameRecord: BotGame, userMove: String, previousMoves: List<String>) -> PlayMoveBotGameCallbackResult,
+        callback: suspend (gameRecord: BotGame, userMove: String) -> PlayMoveBotGameCallbackResult,
     ) {
         dslContext.transactionCoroutine { cfg ->
             val transactional = DSL.using(cfg)
@@ -357,14 +357,8 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                 .awaitMappedRecords<BotGame>()
                 .firstOrNull()
                 ?.let { game ->
-                    val previousMoves = transactional
-                        .select(BOT_GAME_MOVE.UCI)
-                        .from(BOT_GAME_MOVE)
-                        .where(BOT_GAME_MOVE.BOT_GAME_ID.eq(gameId))
-                        .orderBy(BOT_GAME_MOVE.POSITION)
-                        .awaitMappedRecords<String>()
                     val beforeCallbackTime = Clock.System.now()
-                    val playMoveResult = callback(game, userMove, previousMoves)
+                    val playMoveResult = callback(game, userMove)
                     val afterCallbackTime = Clock.System.now()
 
                     if (!playMoveResult.hasErrors()) {

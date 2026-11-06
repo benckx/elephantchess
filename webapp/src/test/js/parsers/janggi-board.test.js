@@ -73,18 +73,6 @@ test('Janggi start FEN rejects invalid setups on either side', () => {
     });
 });
 
-test('Janggi allows a general to pass and changes the side to move', () => {
-    const board = new ctx.JanggiBoard();
-    board.loadFen(ctx.JANGGI_START_FEN);
-    const general = board.findGeneral(ctx.Color.WHITE);
-    const pass = new ctx.HalfMove(general.position, general.position);
-
-    assert.equal(board.isLegalMove(pass), true);
-    board.registerMove(pass);
-    assert.equal(board.getColorToPlay(), ctx.Color.BLACK);
-    assert.equal(board.findGeneral(ctx.Color.WHITE).position.toUci(), general.position.toUci());
-});
-
 function fenFromPieces(pieces, colorToPlay = 'w') {
     const board = Array.from({length: 10}, () => Array(9).fill(null));
     Object.entries(pieces).forEach(([uci, piece]) => {
