@@ -35,6 +35,7 @@ import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.selectByProbability
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
@@ -165,8 +166,9 @@ class PlayerVsBotGameService(
         val now = Clock.System.now()
         val gameId = generateId()
 
-        val actualStartFen = request.startFen ?: XiangqiBoard.defaultStartFen(request.variant)
-        val usesDefaultStartFen = actualStartFen == XiangqiBoard.defaultStartFen(request.variant)
+        val defaultStartFen = defaultStartFen(request.variant)
+        val actualStartFen = request.startFen ?: defaultStartFen
+        val usesDefaultStartFen = actualStartFen == defaultStartFen
 
         // Manchu variant requires Fairy Stockfish.
         // If Pikafish is requested but the start FEN is non-standard, safeQueryForDepth will
@@ -264,7 +266,7 @@ class PlayerVsBotGameService(
                 userColor = game.userColor,
                 engine = game.engine,
                 depth = game.depth,
-                startFen = game.startFen ?: XiangqiBoard.defaultStartFen(game.variant ?: Variant.XIANGQI),
+                startFen = game.startFen ?: defaultStartFen(game.variant ?: Variant.XIANGQI),
                 status = game.gameStatus,
                 moveIndex = game.currentHalfMoveIndex,
                 fen = game.currentFen,
@@ -313,7 +315,7 @@ class PlayerVsBotGameService(
                         botColor = botColor,
                         userMove = userMove,
                         fen = board.outputFen(),
-                        startFen = gameRecord.startFen ?: XiangqiBoard.defaultStartFen(variant),
+                        startFen = gameRecord.startFen ?: defaultStartFen(variant),
                         position = gameRecord.currentHalfMoveIndex,
                         engine = gameRecord.engine,
                         depth = gameRecord.depth,

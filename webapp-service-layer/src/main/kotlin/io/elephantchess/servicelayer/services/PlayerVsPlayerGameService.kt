@@ -35,6 +35,7 @@ import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
@@ -48,8 +49,11 @@ import io.elephantchess.xiangqi.XiangqiBoard.Companion.isInCheck
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.isMoveLegal
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.isStalemated
 import io.github.oshai.kotlinlogging.KLogger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -402,7 +406,7 @@ class PlayerVsPlayerGameService(
         game.id = generateId()
         game.inviter = userId.id
         game.inviterColor = request.inviterColor
-        game.currentFen = XiangqiBoard.defaultStartFen(request.variant)
+        game.currentFen = defaultStartFen(request.variant)
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
@@ -531,6 +535,9 @@ class PlayerVsPlayerGameService(
                     "dynamic matching: user $joinerId's game ${joinerGame.id} matched with ${matchGame.id}"
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) {
+                    currentCoroutineContext().ensureActive()
+                }
                 logger.warn(e) {
                     "dynamic matching failed for ${joinerGame.id} -> ${matchGame.id}"
                 }
@@ -1118,7 +1125,7 @@ class PlayerVsPlayerGameService(
      * Moves must include last one played
      */
     private fun hasViolatedPerpetualCheckingRuleCallback(game: Game, moves: List<String>): PerpetualCheckingCallbackResult? {
-        val startFen = XiangqiBoard.defaultStartFen(game.variant ?: Variant.XIANGQI)
+        val startFen = defaultStartFen(game.variant ?: Variant.XIANGQI)
         val board = XiangqiBoard(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val playerColor = board.colorToPlay().reverse()
