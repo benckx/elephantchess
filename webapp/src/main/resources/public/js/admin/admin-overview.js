@@ -130,11 +130,17 @@ class AdminOverviewPage extends BasePage {
         getAndHandle(`${ADMIN_URL_PREFIX}/latest-game-activity/latest-pvp`, json => {
             this.#setActivityTimestamp('latest-pvp-timestamp', json.latestPvpActivity);
             this.#setActivityTimestamp('latest-pvp3-timestamp', json.latestPvp3Activity);
+            this.#setActivityTimestamp('latest-pvp-manchu3-timestamp', json.latestManchu3Activity);
+            this.#setActivityTimestamp('latest-pvp-xiangqi3-timestamp', json.latestXiangqi3Activity);
         });
 
         getAndHandle(`${ADMIN_URL_PREFIX}/latest-game-activity/latest-pvb`, json => {
             this.#setActivityTimestamp('latest-pvb-timestamp', json.latestPvbActivity);
             this.#setActivityTimestamp('latest-pvb3-timestamp', json.latestPvb3Activity);
+            this.#setActivityTimestamp('latest-pvb-fairy3-timestamp', json.latestFairy3Activity);
+            this.#setActivityTimestamp('latest-pvb-manchu3-timestamp', json.latestManchu3Activity);
+            this.#setActivityTimestamp('latest-pvb-janggi3-timestamp', json.latestJanggi3Activity);
+            this.#setActivityTimestamp('latest-pvb-xiangqi3-timestamp', json.latestXiangqi3Activity);
         });
 
         getAndHandle(`${ADMIN_URL_PREFIX}/latest-game-activity/live-pvp`, json => {

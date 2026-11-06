@@ -4,6 +4,7 @@ import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.PuzzleResultDaoService
 import io.elephantchess.db.services.UserDaoService
+import io.elephantchess.model.Engine
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.GameDataService
@@ -12,6 +13,7 @@ import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESPAN_SECONDS
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.xiangqi.Variant
 import kotlin.time.Duration.Companion.minutes
 
 @KoinSingleton
@@ -76,6 +78,8 @@ class AdminOverviewService(
         return LatestPvpActivityResponse(
             latestPvpActivity = latestPvpActivity,
             latestPvp3Activity = latestPvp3Activity,
+            latestManchu3Activity = latestPvp3Activity(Variant.MANCHU),
+            latestXiangqi3Activity = latestPvp3Activity(Variant.XIANGQI),
         )
     }
 
@@ -99,8 +103,24 @@ class AdminOverviewService(
         return LatestPvbActivityResponse(
             latestPvbActivity = latestPvbActivity,
             latestPvb3Activity = latestPvb3Activity,
+            latestFairy3Activity = latestPvb3Activity(engine = Engine.FAIRYSTOCKFISH),
+            latestManchu3Activity = latestPvb3Activity(variant = Variant.MANCHU),
+            latestJanggi3Activity = latestPvb3Activity(variant = Variant.JANGGI),
+            latestXiangqi3Activity = latestPvb3Activity(variant = Variant.XIANGQI),
         )
     }
+
+    private suspend fun latestPvp3Activity(variant: Variant): Long? =
+        listOfNotNull(
+            pvpGameDaoService.latestGameActivity(MIN_MOVE_INDEX, variant),
+            pvpGameDaoService.latestMoveTime(MIN_MOVE_INDEX, variant),
+        ).maxOrNull()?.toEpochMilliseconds()
+
+    private suspend fun latestPvb3Activity(engine: Engine? = null, variant: Variant? = null): Long? =
+        listOfNotNull(
+            pvbGameDaoService.latestGameActivity(MIN_MOVE_INDEX, engine, variant),
+            pvbGameDaoService.latestMoveTime(MIN_MOVE_INDEX, engine, variant),
+        ).maxOrNull()?.toEpochMilliseconds()
 
     suspend fun fetchLivePvpGames(): LivePvpGamesResponse =
         LivePvpGamesResponse(

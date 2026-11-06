@@ -342,20 +342,22 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             )
             .awaitSingleValue() ?: 0
 
-    suspend fun latestGameActivity(minMoveIndex: Int = 0): Instant? =
+    suspend fun latestGameActivity(minMoveIndex: Int = 0, variant: Variant? = null): Instant? =
         dslContext
             .select(DSL.max(GAME.LAST_UPDATED))
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(GAME.GAME_STATUS.notIn(listOf(FLAGGED, AUTO_CANCELED)))
+            .and(variant?.let { GAME.VARIANT.eq(it) } ?: DSL.noCondition())
             .awaitSingleValue()
 
-    suspend fun latestMoveTime(minMoveIndex: Int = 0): Instant? =
+    suspend fun latestMoveTime(minMoveIndex: Int = 0, variant: Variant? = null): Instant? =
         dslContext
             .select(DSL.max(GAME_MOVE.EVENT_TIME))
             .from(GAME, GAME_MOVE)
             .where(GAME.ID.eq(GAME_MOVE.GAME_ID))
             .and(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(variant?.let { GAME.VARIANT.eq(it) } ?: DSL.noCondition())
             .awaitSingleValue()
 
     suspend fun countCreatedGamesByUser(userId: String, timeControlCategory: TimeControlCategory): Int =
@@ -392,7 +394,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex).or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
             .awaitSingleValue()!!
 
-    suspend fun countManchuGames(minMoveIndex: Int): Int {
+    suspend fun countVariantGames(minMoveIndex: Int, variant: Variant): Int {
         val countCondition =
             GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)
                 .or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
@@ -400,7 +402,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .selectCount()
             .from(GAME)
-            .where(countCondition.and(GAME.VARIANT.eq(Variant.MANCHU)))
+            .where(countCondition.and(GAME.VARIANT.eq(variant)))
             .awaitSingleValue()!!
     }
 
