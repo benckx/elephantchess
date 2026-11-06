@@ -12,4 +12,6 @@ data class CreateBotGameRequest(
     val startFen: String?,
     val openingMode: OpeningMode = OpeningMode.BY_FREQUENCY,
     val variant: Variant = Variant.XIANGQI,
+    val timeControlBase: Int? = null,
+    val timeControlIncrement: Int? = null,
 )

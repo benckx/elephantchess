@@ -24,10 +24,16 @@ const BOT_OPTION_BUTTON_DISABLED_CLASS = 'option-button-div-disabled';
 const BOT_VARIANT_OPTION_GROUP = 'bot-variant-option-button-div';
 const BOT_COLOR_OPTION_GROUP = 'bot-color-option-button-div';
 const BOT_ENGINE_OPTION_GROUP = 'bot-engine-option-button-div';
+const BOT_TIME_CONTROL_OPTION_GROUP = 'bot-tc-option-button-div';
 
 class PlayBotModalHandler extends ModalHandler {
 
-    #exclusionGroups = [BOT_VARIANT_OPTION_GROUP, BOT_COLOR_OPTION_GROUP, BOT_ENGINE_OPTION_GROUP];
+    #exclusionGroups = [
+        BOT_VARIANT_OPTION_GROUP,
+        BOT_COLOR_OPTION_GROUP,
+        BOT_ENGINE_OPTION_GROUP,
+        BOT_TIME_CONTROL_OPTION_GROUP,
+    ];
     #optionDivs;
 
     #depthInput = document.getElementById('play-bot-depth');
@@ -44,6 +50,13 @@ class PlayBotModalHandler extends ModalHandler {
     #startFenInput = document.getElementById('start-fen');
 
     #playBotButton = document.getElementById('play-bot-button');
+
+    #mainPanel = document.getElementById('play-bot-main-panel');
+    #timeControlPanel = document.getElementById('play-bot-time-control-panel');
+    #timeControlButton = document.getElementById('play-bot-time-control-button');
+    #timeControlLabel = document.getElementById('play-bot-time-control-label');
+    #timeControlBackButton = document.getElementById('play-bot-time-control-back-button');
+    #modalTitle = document.getElementById('play-bot-modal-title');
 
     constructor() {
         super();
@@ -84,6 +97,21 @@ class PlayBotModalHandler extends ModalHandler {
         this.#playBotButton.addEventListener('click', () => {
             this.#handleCreateGameClickEvent();
         });
+
+        this.#timeControlButton.addEventListener('click', () => {
+            this.#showTimeControlPanel();
+        });
+        this.#timeControlBackButton.addEventListener('click', () => {
+            this.#showMainPanel();
+        });
+        this.#optionDivs
+            .filter(item => item.classList.contains(BOT_TIME_CONTROL_OPTION_GROUP))
+            .forEach(item => {
+                item.addEventListener('click', () => {
+                    this.#updateTimeControlLabel();
+                    this.#showMainPanel();
+                });
+            });
 
         // Auto-detect Manchu variant from FEN: if piece section contains an 'M', select Manchu
         this.#startFenInput.addEventListener('input', () => {
@@ -140,6 +168,7 @@ class PlayBotModalHandler extends ModalHandler {
                 validateStartFen(startFenValue);
             }
             this.#startFenInputSetValid(true);
+            const {base: timeControlBase, increment: timeControlIncrement} = this.#getSelectedTimeControl();
             const body = {
                 'color': color,
                 'depth': depth,
@@ -147,6 +176,8 @@ class PlayBotModalHandler extends ModalHandler {
                 'startFen': startFenValue,
                 'openingMode': openingMode,
                 'variant': variant,
+                'timeControlBase': timeControlBase,
+                'timeControlIncrement': timeControlIncrement,
             };
             postAndHandle('/api/botgame/create', body, json => {
                 window.open('/playbot?id=' + json.gameId, '_self');
@@ -281,6 +312,48 @@ class PlayBotModalHandler extends ModalHandler {
         } else {
             this.#startFenInput.classList.add('incorrect-data');
         }
+    }
+
+    #showTimeControlPanel() {
+        this.#mainPanel.style.display = 'none';
+        this.#timeControlPanel.style.display = '';
+        this.#playBotButton.style.display = 'none';
+        this.#timeControlBackButton.style.display = '';
+        this.#modalTitle.innerText = 'Time control';
+    }
+
+    #showMainPanel() {
+        this.#mainPanel.style.display = '';
+        this.#timeControlPanel.style.display = 'none';
+        this.#playBotButton.style.display = '';
+        this.#timeControlBackButton.style.display = 'none';
+        this.#modalTitle.innerText = 'Play Bot';
+    }
+
+    #getSelectedTimeControlButton() {
+        return this.#optionDivs
+            .filter(item => item.classList.contains(BOT_TIME_CONTROL_OPTION_GROUP))
+            .find(item => item.classList.contains(BOT_OPTION_BUTTON_SELECTED_CLASS));
+    }
+
+    #updateTimeControlLabel() {
+        const selected = this.#getSelectedTimeControlButton();
+        if (selected != null) {
+            this.#timeControlLabel.innerText = selected.dataset.tcLabel;
+        }
+    }
+
+    /**
+     * @return {{base: number|null, increment: number|null}}
+     */
+    #getSelectedTimeControl() {
+        const selected = this.#getSelectedTimeControlButton();
+        if (selected == null) {
+            return {base: null, increment: null};
+        }
+        const base = selected.dataset.tcBase === '' ? null : Number(selected.dataset.tcBase);
+        const increment = selected.dataset.tcIncrement === '' ? null : Number(selected.dataset.tcIncrement);
+        return {base, increment};
     }
 
 }
