@@ -36,12 +36,21 @@ const CHECKMATE_GAME_MOVES = [
     'b2b7', 'h7i7', 'b7g7', 'a9b9', 'e2e6', 'b9b5', 'g7e7',
 ];
 
+// Split into two halves so the spectator can screenshot the live thumb mid-game.
+// After 7 moves (indices 0-6) the inviter (Red) has just moved; the 8 remaining
+// moves start with the opponent (Black), so movers order is swapped for the
+// second half.
+const CHECKMATE_MOVES_FIRST_HALF = CHECKMATE_GAME_MOVES.slice(0, 7);
+const CHECKMATE_MOVES_SECOND_HALF = CHECKMATE_GAME_MOVES.slice(7);
+
 // End-to-end coverage for the full online PvP workflow with two remote players.
 //
 // Two independent guests play against each other, so each player runs in its
-// own browser context (its own guest identity). The scenario drives a complete
-// game from creation through checkmate and asserts the live UI updates on both
-// sides along the way.
+// own browser context (its own guest identity). A third "spectator" context
+// opens the lobby to verify that the live game thumb updates in place (FEN,
+// live indicator, outcome star) during and after the game — without a page
+// reload. The scenario drives a complete game from creation through checkmate
+// and asserts the live UI updates on all three sides along the way.
 test.describe('PvP workflow (two remote guests)', () => {
     test('full game: join updates inviter buttons live, checkmate ends game on both sides with Elo update', async ({
                                                                                                                        browser,
@@ -86,9 +95,27 @@ test.describe('PvP workflow (two remote guests)', () => {
         await expect(opponent.page.locator('#game-status')).toHaveText(/Opponent's turn/);
         await captureStep(testInfo, '2-opponent-joined', bothPages());
 
-        // --- Play the scripted game to checkmate ---
-        // Inviter is Red and plays the odd half-moves; opponent is Black.
-        await playScriptedGame([inviter.page, opponent.page], CHECKMATE_GAME_MOVES);
+        // --- Play the first half of the scripted game ---
+        // Inviter (Red) plays odd indices; opponent (Black) plays even indices.
+        await playScriptedGame([inviter.page, opponent.page], CHECKMATE_MOVES_FIRST_HALF);
+
+        // --- Spectator opens the lobby to watch the live game thumb ---
+        // The latest-games list omits games with fewer than six plies, so open the
+        // lobby after the first half. newGuestContext loads it once; keep it open
+        // through checkmate to verify polling without a reload.
+        const spectator = await newGuestContext(browser);
+
+        // --- Spectator mid-game: lobby thumb must show the live indicator ---
+        // After the first moves the game is live and recently updated, so the thumb
+        // should display the "live" record-button icon (injected by GameThumb.refresh
+        // when metadata.isLive() is true). The spectator has not reloaded the page.
+        const spectatorLiveThumb = spectator.page.locator('.latest-pvp-game-thumb img.live-icon').first();
+        await expect(spectatorLiveThumb).toBeVisible({timeout: 15_000});
+        await captureStep(testInfo, '3-spectator-mid-game', [['spectator', spectator.page]]);
+
+        // --- Play the second half to checkmate ---
+        // After 7 moves (odd count) the opponent (Black) moves next; swap movers.
+        await playScriptedGame([opponent.page, inviter.page], CHECKMATE_MOVES_SECOND_HALF);
 
         // --- Checkmate: the game-over modal appears on both sides ---
         // The inviter (Red) delivered mate and wins; the opponent (Black) loses.
@@ -103,7 +130,15 @@ test.describe('PvP workflow (two remote guests)', () => {
         await expect(opponent.page.locator('#rating-update-box')).toBeVisible();
         await expect(inviter.page.locator('#user-rating-delta-value-box')).toBeVisible();
         await expect(opponent.page.locator('#user-rating-delta-value-box')).toBeVisible();
-        await captureStep(testInfo, '3-checkmate-modal', bothPages(), {fullPage: false});
+        await captureStep(testInfo, '4-checkmate-modal', bothPages(), {fullPage: false});
+
+        // --- Spectator end-game: lobby thumb must show the Red winner star ---
+        // The polling picks up the outcome from the server and GameThumb.refresh()
+        // calls #setWinnerStar(), which places the blue star in .red-player-wins.
+        // The spectator still has not reloaded the page.
+        const spectatorWinnerStar = spectator.page.locator('.latest-pvp-game-thumb .red-player-wins img').first();
+        await expect(spectatorWinnerStar).toBeVisible({timeout: 15_000});
+        await captureStep(testInfo, '5-spectator-end-game', [['spectator', spectator.page]]);
 
         // --- Dismiss the modal; the underlying UI reflects the finished game ---
         await inviter.page.click('#ok-button');
@@ -126,9 +161,10 @@ test.describe('PvP workflow (two remote guests)', () => {
         // opponent's page so both finished-game UIs are exercised.
         await expect(inviter.page.locator('#inviter-rating-delta')).toHaveText(/[+-]\d+/);
         await expect(opponent.page.locator('#invitee-rating-delta')).toHaveText(/[+-]\d+/);
-        await captureStep(testInfo, '4-finished-game', bothPages());
+        await captureStep(testInfo, '6-finished-game', bothPages());
 
         await inviter.context.close();
         await opponent.context.close();
+        await spectator.context.close();
     });
 });

@@ -361,14 +361,21 @@ class GameThumb {
      * Refresh this thumb in-place from a {@link LatestGamesUpdateResponse} entry,
      * without re-rendering player names, ratings, ...
      *
-     * @param update {{gameId: GameId, status: string, fen: string, lastUpdated: number}}
+     * @param update {{gameId: GameId, status: string, fen: string, lastUpdated: number, outcome: string|null, isRedOnline: boolean, isBlackOnline: boolean}}
      */
     refresh(update) {
         this.boardGui.loadFen(update.fen, true);
 
+        const isPvb = this.metadata != null && this.metadata.gameId.type === GameType.PVB;
+        const inProgress = isStatusInProgress(update.status) || (isPvb && update.status === GameEventType.CREATED);
+        const isLive = inProgress
+            && update.isRedOnline
+            && update.isBlackOnline
+            && (new Date().getTime() - update.lastUpdated) <= 180_000;
+
         const lastUpdatedDiv = this.#findFirst('game-thumb-status');
         if (lastUpdatedDiv != null) {
-            if (this.metadata != null && this.metadata.isLive()) {
+            if (isLive) {
                 lastUpdatedDiv.innerHTML = LIVE_HTML;
             } else {
                 lastUpdatedDiv.innerHTML = formatGameStatus(update.status);
@@ -379,6 +386,37 @@ class GameThumb {
         if (lastUpdatedEl != null && update.lastUpdated > 0) {
             lastUpdatedEl.innerHTML = formatTimestampToRelativeTime(update.lastUpdated);
         }
+
+        this.#setWinnerStar(update.outcome);
+        this.#setOnlineStatus(update.isRedOnline, update.isBlackOnline);
+    }
+
+    /**
+     * @param outcome {string|null}
+     */
+    #setWinnerStar(outcome) {
+        const redEl = this.#findFirst('red-player-wins');
+        const blackEl = this.#findFirst('black-player-wins');
+        if (redEl == null || blackEl == null) return;
+        redEl.innerHTML = '';
+        blackEl.innerHTML = '';
+        if (outcome === Outcome.RED_WINS) {
+            redEl.innerHTML = WINNER_BLUE_STAR_HTML;
+        } else if (outcome === Outcome.BLACK_WINS) {
+            blackEl.innerHTML = WINNER_BLUE_STAR_HTML;
+        }
+    }
+
+    /**
+     * @param isRedOnline {boolean}
+     * @param isBlackOnline {boolean}
+     */
+    #setOnlineStatus(isRedOnline, isBlackOnline) {
+        const redEl = this.#findFirst('red-player-status-indicator');
+        const blackEl = this.#findFirst('black-player-status-indicator');
+        if (redEl == null || blackEl == null) return;
+        redEl.classList.toggle(IS_ONLINE_CSS_CLASS, isRedOnline);
+        blackEl.classList.toggle(IS_ONLINE_CSS_CLASS, isBlackOnline);
     }
 
     /**
