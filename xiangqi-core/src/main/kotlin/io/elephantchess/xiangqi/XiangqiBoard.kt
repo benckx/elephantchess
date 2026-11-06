@@ -84,16 +84,6 @@ open class XiangqiBoard(
         const val PRINT_SEPARATOR = " "
         const val UCI_MOVE_REGEX_PATTERN = "[a-i][0-9][a-i][0-9]"
 
-        fun defaultStartFen(variant: Variant): String =
-            when (variant) {
-                XIANGQI -> DEFAULT_XIANGQI_START_FEN
-                MANCHU -> MANCHU_START_FEN
-                JANGGI -> DEFAULT_JANGGI_START_FEN
-            }
-
-        fun inferVariantFromFen(fen: String): Variant =
-            if (fen.substringBefore(' ').contains('M')) MANCHU else XIANGQI
-
         fun validateFen(fen: String) {
             try {
                 XiangqiBoard(fen)

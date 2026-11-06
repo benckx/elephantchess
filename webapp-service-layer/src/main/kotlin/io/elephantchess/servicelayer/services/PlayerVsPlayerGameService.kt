@@ -35,6 +35,7 @@ import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
@@ -48,8 +49,11 @@ import io.elephantchess.xiangqi.XiangqiBoard.Companion.isInCheck
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.isMoveLegal
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.isStalemated
 import io.github.oshai.kotlinlogging.KLogger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -282,11 +286,11 @@ class PlayerVsPlayerGameService(
 
                 val shouldUpdate =
                     session.currentStatus() != status ||
-                        newMove != null ||
-                        hasJoinedEvent != null ||
-                        timeRemaining != null ||
-                        chatMessages.isNotEmpty() ||
-                        typingUsers.isNotEmpty()
+                            newMove != null ||
+                            hasJoinedEvent != null ||
+                            timeRemaining != null ||
+                            chatMessages.isNotEmpty() ||
+                            typingUsers.isNotEmpty()
 
                 // update session
                 if (shouldUpdate) {
@@ -325,7 +329,7 @@ class PlayerVsPlayerGameService(
             .listGamesOpenToJoin()
             .filter { gameRecord ->
                 gameRecord.alwaysVisibleInLobby ||
-                    onlineUserIds.contains(gameRecord.inviter)
+                        onlineUserIds.contains(gameRecord.inviter)
             }
 
     private suspend fun fetchAllActiveGames(onlineUserIds: Set<String>) =
@@ -333,7 +337,7 @@ class PlayerVsPlayerGameService(
             .listAllActiveGames()
             .filter { gameRecord ->
                 onlineUserIds.contains(gameRecord.inviter) ||
-                    onlineUserIds.contains(gameRecord.invitee)
+                        onlineUserIds.contains(gameRecord.invitee)
             }
 
     suspend fun createGame(userId: UserId, request: CreateGameRequest): CreateGameResponse {
@@ -366,8 +370,8 @@ class PlayerVsPlayerGameService(
         if (!request.privateInvite && request.alwaysVisibleInLobby && !isOptionAlwaysVisibleInLobbyAllowed(userId.id)) {
             throw BadRequestException(
                 "The 'always show in lobby' option is not allowed for this game. " +
-                    "It can only be enabled for correspondence games or if you have a valid email address and the" +
-                    " 'someone joined my game' email notification enabled.",
+                        "It can only be enabled for correspondence games or if you have a valid email address and the" +
+                        " 'someone joined my game' email notification enabled.",
             )
         }
 
@@ -402,7 +406,7 @@ class PlayerVsPlayerGameService(
         game.id = generateId()
         game.inviter = userId.id
         game.inviterColor = request.inviterColor
-        game.currentFen = XiangqiBoard.defaultStartFen(request.variant)
+        game.currentFen = defaultStartFen(request.variant)
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
@@ -531,6 +535,9 @@ class PlayerVsPlayerGameService(
                     "dynamic matching: user $joinerId's game ${joinerGame.id} matched with ${matchGame.id}"
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) {
+                    currentCoroutineContext().ensureActive()
+                }
                 logger.warn(e) {
                     "dynamic matching failed for ${joinerGame.id} -> ${matchGame.id}"
                 }
@@ -1118,7 +1125,7 @@ class PlayerVsPlayerGameService(
      * Moves must include last one played
      */
     private fun hasViolatedPerpetualCheckingRuleCallback(game: Game, moves: List<String>): PerpetualCheckingCallbackResult? {
-        val startFen = XiangqiBoard.defaultStartFen(game.variant ?: Variant.XIANGQI)
+        val startFen = defaultStartFen(game.variant ?: Variant.XIANGQI)
         val board = XiangqiBoard(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val playerColor = board.colorToPlay().reverse()
@@ -1208,7 +1215,7 @@ class PlayerVsPlayerGameService(
                 val k = gameRecord.kValue
                 val isInviterWinner =
                     (outcome == WHITE_WINS && gameRecord.inviterColor == WHITE) ||
-                        (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
+                            (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
 
                 if (isInviterWinner) {
                     val elo = calculateElo(
