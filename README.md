@@ -86,8 +86,10 @@ The webapp offers the following features:
   `position fen rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0` tells the engine to set up the
   board with the given FEN position; and the command `go depth 10` tells the engine to start calculating the best move
   from that position with a search depth of 10.
-- The UCI move notation is similar to the algebraic notation, except that the ranks are 0-based. Therefore, any
-  move can be encoded as 4 characters. For example, move `h3e3` is encoded in UCI as `h2e2`.
+- In this project, move strings called UCI use 0-based ranks for every variant. Therefore, any move can be
+  encoded as 4 characters. For example, algebraic move `h3e3` is encoded internally as `h2e2`.
+  Fairy Stockfish is initialized with `ucci` for gameplay and Janggi fixture generation: on ten-rank boards,
+  this mode uses ranks 0-9. Its `uci` mode uses ranks 1-10 and must not be used for these internal move strings.
 - The WXF notation is the traditional Chinese chess notation (e.g. `C2=5`), widely in use. It's not as convenient
   technically because move can be ambiguous and the files are numbered from the right to the left relative to the
   player (so it's not the same numbers for the red and black players). Therefore, it's not used in code, except for
