@@ -52,13 +52,16 @@ abstract class EngineProcess(
         variant: Variant = Variant.XIANGQI,
         maxDelay: Long = DEFAULT_MAX_DELAY,
         checkPeriod: Long = DEFAULT_CHECK_PERIOD,
+        searchMoves: List<String>? = null,
     ): InfoLinesResult {
+        require(searchMoves == null || searchMoves.isNotEmpty()) { "searchMoves must not be empty" }
         val infoListener = InfoLineListener()
         lineListener = infoListener
 
         setVariant(variant)
         inputCommand("position fen $fen")
-        inputCommand("go depth $maxDepth")
+        val searchRestriction = searchMoves?.joinToString(" ", prefix = " searchmoves ") ?: ""
+        inputCommand("go depth $maxDepth$searchRestriction")
         waitForCondition(maxDelay, checkPeriod) {
             infoListener.shouldStopSearch(maxDepth)
         }

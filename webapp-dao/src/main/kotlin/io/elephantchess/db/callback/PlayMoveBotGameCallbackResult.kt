@@ -16,13 +16,7 @@ data class PlayMoveBotGameCallbackResult(
     val outcome: Outcome? = null,
     val botVictory: Boolean = false,
     val userVictory: Boolean = false,
-    val errors: List<ErrorType> = emptyList(),
 ) {
-
-    enum class ErrorType {
-        BOT_MOVE_NOT_FOUND,
-        ILLEGAL_PLAYER_MOVE,
-    }
 
     private fun updateWinningColor(color: Color): PlayMoveBotGameCallbackResult =
         if (color == Color.WHITE) {
@@ -48,13 +42,4 @@ data class PlayMoveBotGameCallbackResult(
 
     fun updateForUserVictory(color: Color, checkmated: Boolean, stalemated: Boolean): PlayMoveBotGameCallbackResult =
         updateWinner(color, checkmated, stalemated).copy(userVictory = true)
-
-    fun addError(errorType: ErrorType): PlayMoveBotGameCallbackResult =
-        copy(errors = errors + errorType)
-
-    fun hasErrors(): Boolean =
-        errors.isNotEmpty()
-
-    fun hasError(errorType: ErrorType): Boolean =
-        errors.contains(errorType)
 }

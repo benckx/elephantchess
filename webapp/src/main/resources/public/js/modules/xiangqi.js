@@ -1623,6 +1623,20 @@ class XiangqiBoard extends AbstractXiangqiBoard {
 
 class JanggiBoard extends AbstractXiangqiBoard {
 
+    #areGeneralsFacing() {
+        const white = this.findGeneral(Color.WHITE)?.position;
+        const black = this.findGeneral(Color.BLACK)?.position;
+        if (white == null || black == null || white.x !== black.x) {
+            return false;
+        }
+        for (let y = Math.min(white.y, black.y) + 1; y < Math.max(white.y, black.y); y++) {
+            if (this.hasPieceAt(new Position(white.x, y))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * @param move {HalfMove}
      * @param color {string}
@@ -1632,7 +1646,7 @@ class JanggiBoard extends AbstractXiangqiBoard {
         const boardCopy = this.copy();
         if (boardCopy.isPossibleMove(move)) {
             boardCopy.registerMove(move);
-            return boardCopy.isInCheck(color);
+            return (this.#areGeneralsFacing() && boardCopy.#areGeneralsFacing()) || boardCopy.isInCheck(color);
         } else {
             return true;
         }

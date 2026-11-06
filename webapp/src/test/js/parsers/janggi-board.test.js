@@ -188,3 +188,19 @@ test('Janggi soldier moves forward or sideways without river, and diagonally for
     assert.deepEqual(targetsFrom(board, 'e3'), ['d3', 'e4', 'f3']);
     assert.deepEqual(targetsFrom(board, 'd7'), ['c7', 'd8', 'e7', 'e8']);
 });
+
+test('Janggi permits offering bikjang but requires the reply to separate the generals', () => {
+    const board = new ctx.JanggiBoard();
+    board.loadFen(fenFromPieces({e1: 'K', d8: 'k', a6: 'r'}, 'b'));
+    assert.equal(board.isLegalMove(ctx.HalfMove.parseUci('d8e8')), true);
+    board.registerMove(ctx.HalfMove.parseUci('d8e8'));
+    assert.equal(board.isLegalMove(ctx.HalfMove.parseUci('e1e0')), false);
+    assert.equal(board.isLegalMove(ctx.HalfMove.parseUci('e1d1')), true);
+});
+
+test('Janggi PvB board does not offer a pass', () => {
+    const board = new ctx.JanggiBoard();
+    board.loadFen(ctx.JANGGI_START_FEN);
+    assert.equal(board.isLegalMove(ctx.HalfMove.parseUci('e1e1')), false);
+    assert.equal(board.listAllLegalMoves().some(move => move.from.isEqualsTo(move.to)), false);
+});

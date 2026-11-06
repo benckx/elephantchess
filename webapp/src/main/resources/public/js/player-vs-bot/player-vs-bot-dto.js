@@ -104,11 +104,11 @@ class BotGameDto {
         this.#userColor = json.userColor;
         this.#engine = json.engine;
         this.#depth = Number(json.depth);
+        this.#variant = json.variant ?? Variant.XIANGQI;
         this.#startFen = json.startFen;
         if (this.#startFen == null) {
-            this.#startFen = DEFAULT_START_FEN;
+            this.#startFen = resolveStartFen(null, this.#variant);
         }
-        this.#variant = json.variant ?? Variant.XIANGQI;
         this.#status = json.status;
         this.#moveIndex = Number(json.moveIndex);
         this.#fen = json.fen;
@@ -309,6 +309,8 @@ class BotGameDto {
 
 class PlayMoveResponseDto {
 
+    #outcome;
+
     /**
      * @type {string}
      */
@@ -338,6 +340,7 @@ class PlayMoveResponseDto {
             this.#botMove = null;
         }
         this.#statusUpdate = json.statusUpdate;
+        this.#outcome = json.outcome;
     }
 
     get botMove() {
@@ -352,17 +355,25 @@ class PlayMoveResponseDto {
         return this.#statusUpdate;
     }
 
+    get outcome() {
+        return this.#outcome;
+    }
+
+    isDraw() {
+        return this.#outcome === Outcome.DRAW;
+    }
+
     hasGameEnded() {
         return this.#statusUpdate === GameEventType.CHECKMATED ||
             this.#statusUpdate === GameEventType.STALEMATED;
     }
 
     isBotVictory() {
-        return this.hasGameEnded() && this.#botMove != null;
+        return this.hasGameEnded() && !this.isDraw() && this.#botMove != null;
     }
 
     isUserVictory() {
-        return this.hasGameEnded() && this.#botMove == null;
+        return this.hasGameEnded() && !this.isDraw() && this.#botMove == null;
     }
 
 }

@@ -20,10 +20,10 @@ import io.elephantchess.model.BotGameMoveType
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
+import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record2
@@ -35,8 +35,6 @@ import kotlin.time.Instant
 
 @KoinSingleton
 class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
-
-    private val logger = KotlinLogging.logger {}
 
     suspend fun countGamesByAnalysisStatus(minMoveIndex: Int): List<Record2<AnalysisStatus, Int>> =
         dslContext
@@ -317,18 +315,28 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .where(BOT_GAME_MOVE.BOT_GAME_ID.eq(gameId))
             .awaitSingleValue()!!
 
-    suspend fun saveFirstBotMove(gameId: String, botMove: BotMove, newFen: String) {
+    suspend fun saveFirstBotMove(gameId: String, botMove: BotMove, newFen: String, ending: PlayMoveBotGameCallbackResult? = null) {
         dslContext.transactionCoroutine { cfg ->
             val now = Clock.System.now()
 
-            DSL
+            var update = DSL
                 .using(cfg)
                 .update(BOT_GAME)
                 .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX, 1)
                 .set(BOT_GAME.CURRENT_FEN, newFen)
                 .set(BOT_GAME.LAST_UPDATED, now)
-                .where(BOT_GAME.ID.eq(gameId))
-                .awaitExecute()
+
+            if (ending != null) {
+                update = update
+                    .set(BOT_GAME.GAME_STATUS, ending.gameEventType)
+                    .set(BOT_GAME.OUTCOME, ending.outcome)
+                val event = BotGameStatusEvent()
+                event.botGameId = gameId
+                event.eventType = ending.gameEventType
+                event.eventTime = now
+                BotGameStatusEventDao(cfg).insertReactive(event)
+            }
+            update.where(BOT_GAME.ID.eq(gameId)).awaitExecute()
 
             val botMoveRecord = BotGameMove()
             botMoveRecord.botGameId = gameId
@@ -346,86 +354,74 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         gameId: String,
         userMove: String,
         callback: suspend (gameRecord: BotGame, userMove: String) -> PlayMoveBotGameCallbackResult,
-    ) {
-        dslContext.transactionCoroutine { cfg ->
-            val transactional = DSL.using(cfg)
-
-            transactional
+    ): TryEither<PlayMoveBotGameCallbackResult> =
+        dslContext.transactionalContextTry { transactional ->
+            val cfg = transactional.configuration()
+            val game = transactional
                 .select()
                 .from(BOT_GAME)
                 .where(BOT_GAME.ID.eq(gameId))
                 .awaitMappedRecords<BotGame>()
-                .firstOrNull()
-                ?.let { game ->
-                    val beforeCallbackTime = Clock.System.now()
-                    val playMoveResult = callback(game, userMove)
-                    val afterCallbackTime = Clock.System.now()
+                .first()
+            val beforeCallbackTime = Clock.System.now()
+            val playMoveResult = callback(game, userMove)
+            val afterCallbackTime = Clock.System.now()
+            val botGameMoveDao = BotGameMoveDao(cfg)
 
-                    if (!playMoveResult.hasErrors()) {
-                        val botGameMoveDao = BotGameMoveDao(cfg)
+            // persist user move
+            val userMoveRecord = BotGameMove()
+            userMoveRecord.botGameId = gameId
+            userMoveRecord.position = game.currentHalfMoveIndex
+            userMoveRecord.uci = userMove
+            userMoveRecord.eventTime = beforeCallbackTime
+            botGameMoveDao.insertReactive(userMoveRecord)
 
-                        // persist user move
-                        val userMoveRecord = BotGameMove()
-                        userMoveRecord.botGameId = gameId
-                        userMoveRecord.position = game.currentHalfMoveIndex
-                        userMoveRecord.uci = userMove
-                        userMoveRecord.eventTime = beforeCallbackTime
-                        botGameMoveDao.insertReactive(userMoveRecord)
-
-                        // persist engine move if any
-                        playMoveResult.botMove?.let { botMove ->
-                            val botMoveRecord = BotGameMove()
-                            botMoveRecord.botGameId = gameId
-                            botMoveRecord.position = game.currentHalfMoveIndex + 1
-                            botMoveRecord.uci = botMove.uci
-                            if (botMove.moveType == BotGameMoveType.OPENING) {
-                                botMoveRecord.fromOpeningRepository = true
-                            }
-                            botMoveRecord.eventTime = afterCallbackTime
-                            botGameMoveDao.insertReactive(botMoveRecord)
-                        }
-
-                        // persist status update (checkmate or stalemate) if any
-                        playMoveResult.gameEventType?.let { gameEventType ->
-                            val eventRecord = BotGameStatusEvent()
-                            eventRecord.botGameId = gameId
-                            eventRecord.eventType = gameEventType
-                            eventRecord.eventTime = afterCallbackTime
-                            BotGameStatusEventDao(cfg).insertReactive(eventRecord)
-                        }
-
-                        // update game record
-                        val newPosition =
-                            if (playMoveResult.botMove != null) {
-                                game.currentHalfMoveIndex + 2
-                            } else {
-                                game.currentHalfMoveIndex + 1
-                            }
-
-                        var update =
-                            transactional
-                                .update(BOT_GAME)
-                                .set(BOT_GAME.CURRENT_FEN, playMoveResult.newFen)
-                                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX, newPosition)
-                                .set(BOT_GAME.LAST_UPDATED, afterCallbackTime)
-
-                        playMoveResult.gameEventType?.let { gameEventType ->
-                            update = update.set(BOT_GAME.GAME_STATUS, gameEventType)
-                        }
-
-                        playMoveResult.outcome?.let { outcome ->
-                            update = update.set(BOT_GAME.OUTCOME, outcome)
-                        }
-
-                        update
-                            .where(BOT_GAME.ID.eq(gameId))
-                            .awaitExecute()
-                    } else {
-                        logger.warn { "error while playing move ${playMoveResult.errors.joinToString(", ")}, move not persisted" }
-                    }
+            // persist engine move if any
+            playMoveResult.botMove?.let { botMove ->
+                val botMoveRecord = BotGameMove()
+                botMoveRecord.botGameId = gameId
+                botMoveRecord.position = game.currentHalfMoveIndex + 1
+                botMoveRecord.uci = botMove.uci
+                if (botMove.moveType == BotGameMoveType.OPENING) {
+                    botMoveRecord.fromOpeningRepository = true
                 }
+                botMoveRecord.eventTime = afterCallbackTime
+                botGameMoveDao.insertReactive(botMoveRecord)
+            }
+
+            // persist status update (checkmate or stalemate) if any
+            playMoveResult.gameEventType?.let { gameEventType ->
+                val eventRecord = BotGameStatusEvent()
+                eventRecord.botGameId = gameId
+                eventRecord.eventType = gameEventType
+                eventRecord.eventTime = afterCallbackTime
+                BotGameStatusEventDao(cfg).insertReactive(eventRecord)
+            }
+
+            // update game record
+            val newPosition =
+                if (playMoveResult.botMove != null) {
+                    game.currentHalfMoveIndex + 2
+                } else {
+                    game.currentHalfMoveIndex + 1
+                }
+
+            var update = transactional
+                .update(BOT_GAME)
+                .set(BOT_GAME.CURRENT_FEN, playMoveResult.newFen)
+                .set(BOT_GAME.CURRENT_HALF_MOVE_INDEX, newPosition)
+                .set(BOT_GAME.LAST_UPDATED, afterCallbackTime)
+
+            playMoveResult.gameEventType?.let { gameEventType ->
+                update = update.set(BOT_GAME.GAME_STATUS, gameEventType)
+            }
+            playMoveResult.outcome?.let { outcome ->
+                update = update.set(BOT_GAME.OUTCOME, outcome)
+            }
+            update.where(BOT_GAME.ID.eq(gameId)).awaitExecute()
+
+            playMoveResult
         }
-    }
 
     suspend fun updateGameStatus(
         gameId: String,

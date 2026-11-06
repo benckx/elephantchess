@@ -371,6 +371,7 @@ project(":scripts") {
         implementation(project(":webapp"))
         implementation(rootLibs.guava)
         implementation(project(":xiangqi-core"))
+        implementation(project(":xiangqi-core-test-utils"))
         implementation(project(":engine-api"))
         implementation(rootLibs.ktor.client.core)
         implementation(rootLibs.ktor.client.cio)
@@ -412,6 +413,14 @@ project(":scripts") {
         group = "generation"
         description = "Generate synthetic Janggi test fixtures using Fairy Stockfish self-play"
         mainClass.set("io.elephantchess.scripts.janggi.GenerateJanggiGames")
+        classpath = sourceSets["main"].runtimeClasspath
+        workingDir = rootProject.projectDir
+    }
+
+    tasks.register<JavaExec>("createJanggiDrawGame") {
+        group = "generation"
+        description = "Create a Janggi PvB game one human move away from a stalemate draw"
+        mainClass.set("io.elephantchess.scripts.janggi.CreateJanggiDrawGame")
         classpath = sourceSets["main"].runtimeClasspath
         workingDir = rootProject.projectDir
     }

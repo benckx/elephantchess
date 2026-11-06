@@ -164,8 +164,8 @@ class GameDataService(
                         val gameRecord = pvpGameDaoService.fetchById(gameId.id)
                             ?: throw NotFoundException("Game $gameId not found")
 
-                        if (gameRecord.variant == Variant.MANCHU) {
-                            throw BadRequestException("Analysis is not supported for Manchu variant games")
+                        if (gameRecord.variant != Variant.XIANGQI) {
+                            throw BadRequestException("Analysis is not supported for ${gameRecord.variant} variant games")
                         }
 
                         if (gameRecord.gameStatus.isInProgress()) {
@@ -178,8 +178,8 @@ class GameDataService(
                             ?: throw NotFoundException("Game $gameId not found")
 
                         val pvbRecord = pvbGameDaoService.fetchById(gameId.id)
-                        if (pvbRecord != null && (pvbRecord.variant == Variant.MANCHU)) {
-                            throw BadRequestException("Analysis is not supported for Manchu variant games")
+                        if (pvbRecord != null && pvbRecord.variant != Variant.XIANGQI) {
+                            throw BadRequestException("Analysis is not supported for ${pvbRecord.variant} variant games")
                         }
 
                         if (statusRecord.isInProgress()) {
