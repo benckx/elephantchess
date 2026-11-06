@@ -135,7 +135,7 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await expect(page.locator('#info-engine')).toHaveText('Fairy Stockfish');
 
         // Browse PvB lists games after at least six half-moves.
-        for (const [index, uci] of ['a3a4', 'c3c4', 'e3e4', 'g3g4'].entries()) {
+        for (const [index, uci] of ['a3a4', 'c3c4', 'e3e4', 'a4a5'].entries()) {
             await playMove(page, uci, {readyTimeout: 60_000});
             await waitForBotReply(page);
             await captureStep(testInfo, `Janggi-move-${index + 1}`, [['player', page]]);
