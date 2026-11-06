@@ -36,6 +36,7 @@ import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.selectByProbability
 import io.elephantchess.xiangqi.AbstractXiangqiBoard
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
@@ -163,8 +164,9 @@ class PlayerVsBotGameService(
         val now = Clock.System.now()
         val gameId = generateId()
 
-        val actualStartFen = request.startFen ?: XiangqiBoard.defaultStartFen(request.variant)
-        val usesDefaultStartFen = actualStartFen == XiangqiBoard.defaultStartFen(request.variant)
+        val defaultStartFen = defaultStartFen(request.variant)
+        val actualStartFen = request.startFen ?: defaultStartFen
+        val usesDefaultStartFen = actualStartFen == defaultStartFen
 
         // Variants and non-standard FENs require Fairy Stockfish.
         // Persist effective engine/version because the game record is also shown in history.
@@ -260,7 +262,7 @@ class PlayerVsBotGameService(
                 userColor = game.userColor,
                 engine = game.engine,
                 depth = game.depth,
-                startFen = game.startFen ?: XiangqiBoard.defaultStartFen(game.variant ?: Variant.XIANGQI),
+                startFen = game.startFen ?: defaultStartFen(game.variant ?: Variant.XIANGQI),
                 status = game.gameStatus,
                 moveIndex = game.currentHalfMoveIndex,
                 fen = game.currentFen,
@@ -287,7 +289,7 @@ class PlayerVsBotGameService(
             val variant = gameRecord.variant ?: Variant.XIANGQI
             val userColor = gameRecord.userColor
             val botColor = userColor.reverse()
-            val startFen = gameRecord.startFen ?: XiangqiBoard.defaultStartFen(variant)
+            val startFen = gameRecord.startFen ?: defaultStartFen(variant)
             val board = AbstractXiangqiBoard.create(variant, gameRecord.currentFen)
 
             val isLegalMove = userMove.matches(Regex(XiangqiBoard.UCI_MOVE_REGEX_PATTERN)) &&

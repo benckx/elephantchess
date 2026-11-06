@@ -4,8 +4,12 @@ import io.elephantchess.xiangqi.AbstractPieceType.GENERAL
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
+import io.elephantchess.xiangqi.JanggiBoard.Companion.DEFAULT_JANGGI_START_FEN
 import io.elephantchess.xiangqi.Position.Companion.getAllPositions
+import io.elephantchess.xiangqi.Variant.*
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.HEIGHT
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.MANCHU_START_FEN
 import io.elephantchess.xiangqi.XiangqiBoard.Companion.WIDTH
 
 /**
@@ -118,15 +122,21 @@ abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Bo
         }
 
     protected fun containsSameColors(position1: Position, position2: Position): Boolean =
-        hasPieceAt(position1) && hasPieceAt(position2) && pieceAt(position1).color() == pieceAt(position2).color()
+        hasPieceAt(position1) &&
+            hasPieceAt(position2) &&
+            pieceAt(position1).color() == pieceAt(position2).color()
 
     protected fun containsOppositeColors(position1: Position, position2: Position): Boolean =
         hasPieceAt(position1) && hasPieceAt(position2) && pieceAt(position1).color() != pieceAt(position2).color()
 
     protected fun movesToTargets(position: Position, targets: List<Position>): List<HalfMove> =
-        targets.filter { it.existsOnXiangqiBoard() && !containsSameColors(position, it) }
+        targets
+            .filter { target ->
+                target.existsOnXiangqiBoard() &&
+                    !containsSameColors(position, target)
+            }
             .distinct()
-            .map { HalfMove(position, it) }
+            .map { target -> HalfMove(position, target) }
 
     fun registerMove(moveAsUci: String): PhysicalPiece? {
         require(Regex(XiangqiBoard.UCI_MOVE_REGEX_PATTERN).matches(moveAsUci)) { "Move '$moveAsUci' can not be parsed" }
@@ -248,14 +258,20 @@ abstract class AbstractXiangqiBoard(initFen: String, private val keepHistory: Bo
 
     companion object {
 
-        fun create(
-            variant: Variant,
-            initFen: String = XiangqiBoard.defaultStartFen(variant),
-            keepHistory: Boolean = false,
-        ): AbstractXiangqiBoard =
+        fun create(variant: Variant, initFen: String = defaultStartFen(variant), keepHistory: Boolean = false): AbstractXiangqiBoard =
             when (variant) {
-                Variant.XIANGQI, Variant.MANCHU -> XiangqiBoard(initFen, keepHistory, variant)
-                Variant.JANGGI -> JanggiBoard(initFen, keepHistory)
+                XIANGQI, MANCHU -> XiangqiBoard(initFen, keepHistory, variant)
+                JANGGI -> JanggiBoard(initFen, keepHistory)
             }
+
+        fun defaultStartFen(variant: Variant): String =
+            when (variant) {
+                XIANGQI -> DEFAULT_XIANGQI_START_FEN
+                MANCHU -> MANCHU_START_FEN
+                JANGGI -> DEFAULT_JANGGI_START_FEN
+            }
+
+        fun inferVariantFromFen(fen: String): Variant =
+            if (fen.substringBefore(' ').contains('M')) MANCHU else XIANGQI
     }
 }
