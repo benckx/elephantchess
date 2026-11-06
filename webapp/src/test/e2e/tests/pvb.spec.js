@@ -125,6 +125,7 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await expect(page.locator('#opening-engine-only')).toBeChecked();
         await page.click('#engine-fairy');
         await page.locator('#play-bot-depth').fill('1');
+        await captureStep(testInfo, 'Janggi-new-game-modal', [['player', page]], {fullPage: false});
         await page.click('#play-bot-button');
         await page.waitForURL(/\/playbot\?id=/);
         const gameId = gameIdFromUrl(page.url());
@@ -134,9 +135,12 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await expect(page.locator('#info-engine')).toHaveText('Fairy Stockfish');
 
         // Browse PvB lists games after at least six half-moves.
-        for (const uci of ['a3a4', 'c3c4', 'e3e4']) {
+        for (const [index, uci] of ['a3a4', 'c3c4', 'e3e4'].entries()) {
             await playMove(page, uci, {readyTimeout: 60_000});
             await waitForBotReply(page);
+            if (index < 2) {
+                await captureStep(testInfo, `Janggi-move-${index + 1}`, [['player', page]]);
+            }
         }
 
         await page.goto('/userdata/botgames', {waitUntil: 'networkidle'});
@@ -144,6 +148,7 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await expect(item).toHaveCount(1);
         await expect(item.locator('.variant-name')).toHaveText('Janggi');
         await expect(item.locator('.middle-pane')).toContainText('Blue');
+        await expect(page.locator(`#custom-start-fen-${gameId}`)).toHaveCount(0);
         await captureStep(testInfo, 'Janggi-my-bot-games', [['player', page]]);
 
         await page.goto('/browse/player-vs-bot', {waitUntil: 'networkidle'});

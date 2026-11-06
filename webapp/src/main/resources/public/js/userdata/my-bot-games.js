@@ -128,7 +128,7 @@ class MyBotGamesPage extends InfiniteScrollPage {
             ];
             middlePane.append(...middlePaneItems);
 
-            if (entry.hasCustomStartFen) {
+            if (entry.variant === Variant.XIANGQI && entry.hasCustomStartFen) {
                 customFenIndicatorPane.append(buildCustomFenIcon(entry));
             }
 
