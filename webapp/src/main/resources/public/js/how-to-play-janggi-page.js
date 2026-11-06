@@ -18,6 +18,7 @@
  */
 
 class JanggiAboutPage extends BasePage {
+    #defaultSetup = JanggiSetup.INNER_ELEPHANT;
 
     #boardGuiGeneral = this.#createBoardGui('board-container-general-about');
     #boardGuiAdvisor = this.#createBoardGui('board-container-advisor-about');
@@ -33,6 +34,7 @@ class JanggiAboutPage extends BasePage {
 
     constructor() {
         super();
+        this.#initSetupSelectors();
         this.#resetGeneralBoard();
         this.#resetAdvisorBoard();
         this.#resetChariotBoard();
@@ -84,6 +86,37 @@ class JanggiAboutPage extends BasePage {
      */
     #initResetButton(elementId, callback) {
         document.getElementById(elementId).addEventListener('click', callback);
+    }
+
+    #initSetupSelectors() {
+        const onSetupChanged = () => this.#loadCompleteSetupBoardFromSelectedSetups();
+        this.#initSetupSelector('blue-setup-select', onSetupChanged);
+        this.#initSetupSelector('red-setup-select', onSetupChanged);
+    }
+
+    /**
+     * @param {string} elementId
+     * @param {function(): void} onSetupChanged
+     * @returns {void}
+     */
+    #initSetupSelector(elementId, onSetupChanged) {
+        const selectElement = document.getElementById(elementId);
+        selectElement.value = this.#defaultSetup;
+        selectElement.addEventListener('change', onSetupChanged);
+    }
+
+    #loadCompleteSetupBoardFromSelectedSetups() {
+        const blue = this.#getSelectedSetup('blue-setup-select');
+        const red = this.#getSelectedSetup('red-setup-select');
+        this.#boardGuiCompleteSetup.loadFen(generateJanggiStartFen(blue, red), true);
+    }
+
+    /**
+     * @param {string} elementId
+     * @returns {string}
+     */
+    #getSelectedSetup(elementId) {
+        return document.getElementById(elementId).value;
     }
 
     /**
@@ -158,7 +191,9 @@ class JanggiAboutPage extends BasePage {
     }
 
     #resetCompleteSetupBoard() {
-        this.#boardGuiCompleteSetup.loadFen(JANGGI_START_FEN, true);
+        document.getElementById('blue-setup-select').value = this.#defaultSetup;
+        document.getElementById('red-setup-select').value = this.#defaultSetup;
+        this.#loadCompleteSetupBoardFromSelectedSetups();
     }
 
 }

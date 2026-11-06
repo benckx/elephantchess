@@ -120,6 +120,8 @@ function loadParsers() {
         'HalfMove',
         'Color',
         'DEFAULT_START_FEN',
+        'JanggiSetup',
+        'generateJanggiStartFen',
         'JANGGI_START_FEN'
     ];
 

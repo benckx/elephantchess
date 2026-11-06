@@ -26,6 +26,53 @@ const {loadParsers} = require('./harness');
 
 const ctx = loadParsers();
 
+const setups = {
+    INNER_ELEPHANT: 'rnba1abnr',
+    OUTER_ELEPHANT: 'rbna1anbr',
+    RIGHT_ELEPHANT: 'rnba1anbr',
+    LEFT_ELEPHANT: 'rbna1abnr',
+    CENTRAL_CHARIOT: 'bnra1arnb',
+};
+
+test('Janggi setups expose the five specified lowercase FEN fragments', () => {
+    assert.deepEqual({...ctx.JanggiSetup}, setups);
+    assert.ok(Object.isFrozen(ctx.JanggiSetup));
+});
+
+test('Janggi default remains inner elephants on both sides', () => {
+    const expected = 'rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1';
+    assert.equal(ctx.generateJanggiStartFen(), expected);
+    assert.equal(ctx.JANGGI_START_FEN, expected);
+    assert.equal(ctx.generateJanggiStartFen(ctx.JanggiSetup.OUTER_ELEPHANT),
+        ctx.generateJanggiStartFen(ctx.JanggiSetup.OUTER_ELEPHANT, ctx.JanggiSetup.INNER_ELEPHANT));
+    assert.equal(ctx.generateJanggiStartFen(undefined, ctx.JanggiSetup.CENTRAL_CHARIOT),
+        ctx.generateJanggiStartFen(ctx.JanggiSetup.INNER_ELEPHANT, ctx.JanggiSetup.CENTRAL_CHARIOT));
+});
+
+test('Janggi start FEN composes all 25 independent setups with Blue playing first', () => {
+    const fens = new Set();
+    Object.values(setups).forEach(blue => {
+        Object.values(setups).forEach(red => {
+            const fen = ctx.generateJanggiStartFen(blue, red);
+            assert.equal(fen, `${red}/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/${blue.toUpperCase()} w - - 0 1`);
+            const board = new ctx.JanggiBoard();
+            board.loadFen(fen);
+            assert.equal(board.outputFen().split(' ').slice(0, 2).join(' '), fen.split(' ').slice(0, 2).join(' '));
+            assert.equal(board.isInCheck(ctx.Color.WHITE), false);
+            assert.equal(board.isInCheck(ctx.Color.BLACK), false);
+            fens.add(fen);
+        });
+    });
+    assert.equal(fens.size, 25);
+});
+
+test('Janggi start FEN rejects invalid setups on either side', () => {
+    [null, '', 'INNER_ELEPHANT', 'invalid', {}, 1].forEach(value => {
+        assert.throws(() => ctx.generateJanggiStartFen(value), /Invalid Janggi setup/);
+        assert.throws(() => ctx.generateJanggiStartFen(ctx.JanggiSetup.INNER_ELEPHANT, value), /Invalid Janggi setup/);
+    });
+});
+
 function fenFromPieces(pieces, colorToPlay = 'w') {
     const board = Array.from({length: 10}, () => Array(9).fill(null));
     Object.entries(pieces).forEach(([uci, piece]) => {

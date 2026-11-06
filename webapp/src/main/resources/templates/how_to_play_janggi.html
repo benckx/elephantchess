@@ -7,6 +7,7 @@
     <script defer src="/js/modules/engine.js"></script>
     <script defer src="/js/widgets/board-gui.js"></script>
     <link rel="stylesheet" href="/css/how-to-play-xiangqi.css"/>
+    <link rel="stylesheet" href="/css/janggi.css"/>
     <script defer src="/js/how-to-play-janggi-page.js"></script>
 </head>
 <body>
@@ -171,24 +172,72 @@
         </div>
     </div>
 
-    <h1>Setup</h1>
+    <h1>Setups</h1>
     <hr/>
     <p>
-        Each player starts with one General, two Guards, two Elephants, two Horses, two Chariots, two Cannons, and five
-        Soldiers. The General and Guards start in the palace. Players can choose either Horse/Elephant order beside
-        each Guard.
+        Each player starts with 1 General, 2 Guards, 2 Elephants, 2 Horses, 2 Chariots, 2 Cannons, and 5 Soldiers. The
+        General and Guards start in the palace. Each player chooses their starting arrangement independently.
+    </p>
+    <ul>
+        <li>
+            <b>Inner Elephant:</b> Elephants sit next to Advisors, <code>rnba1abnr</code>.
+        </li>
+        <li>
+            <b>Outer Elephant:</b> Elephants sit between the Chariots and the Horses, <code>rbna1anbr</code>.
+        </li>
+        <li>
+            <b>Right Elephant:</b> Elephants sit between on the right of the horses, <code>rnba1anbr</code>.
+        </li>
+        <li>
+            <b>Left Elephant:</b> Elephants sit between on the left of the horses, <code>rbna1abnr</code>.
+        </li>
+        <li>
+            <b>Central Chariot:</b> Elephants sit in the corners and the Chariots next to the
+            Advisors,<code>bnra1arnb</code>. Nowadays, the setup is mostly played in North Korean.
+        </li>
+    </ul>
+    <p>
+        Generals, Cannons, and Soldiers keep the same starting positions in every setup.
+    </p>
+    <p>
+        Red's back rank is the first, lowercase rank in FEN; Blue's is the last, uppercase rank.
+        Blue moves first.
     </p>
     <div class="piece-rules">
         <div class="piece-row">
             <div class="explanation">
                 <h2 id="complete-setup-board">Starting position</h2>
                 <p>
-                    This example shows one standard setup. Blue moves first.
+                    Pick one setup for each side to preview any of the 25 starting combinations.
                 </p>
-                <p>
-                    <span id="reset-complete-setup-board-button" class="action-link">reset setup board</span> /
-                    <a href="/janggi-test-board?medium=janggi_about">test board</a>
-                </p>
+                <div class="janggi-setup-selectors">
+                    <div>
+                        <label for="blue-setup-select" class="janggi-setup-label-blue">Blue setup</label>
+                        <select id="blue-setup-select" class="janggi-setup-select-blue">
+                            <option value="rnba1abnr">Inner Elephant</option>
+                            <option value="rbna1anbr">Outer Elephant</option>
+                            <option value="rnba1anbr">Right Elephant</option>
+                            <option value="rbna1abnr">Left Elephant</option>
+                            <option value="bnra1arnb">Central Chariot</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="red-setup-select" class="janggi-setup-label-red">Red setup</label>
+                        <select id="red-setup-select" class="janggi-setup-select-red">
+                            <option value="rnba1abnr">Inner Elephant</option>
+                            <option value="rbna1anbr">Outer Elephant</option>
+                            <option value="rnba1anbr">Right Elephant</option>
+                            <option value="rbna1abnr">Left Elephant</option>
+                            <option value="bnra1arnb">Central Chariot</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <p>
+                        <span id="reset-complete-setup-board-button" class="action-link">reset setup board</span> /
+                        <a href="/janggi-test-board?medium=janggi_about">test board</a>
+                    </p>
+                </div>
             </div>
             <div class="board">
                 <div id="board-container-complete-setup-about" class="board-container board-container-about"></div>
