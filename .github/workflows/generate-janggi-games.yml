@@ -1,10 +1,7 @@
 name: Generate Janggi fixtures
 
 on:
-  pull_request:
-    paths:
-      - scripts/src/main/kotlin/io/elephantchess/scripts/janggi/GenerateJanggiGames.kt
-      - .github/workflows/generate-janggi-games.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
