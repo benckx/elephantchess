@@ -164,11 +164,12 @@ object GenerateJanggiGames {
         }
 
         try {
-            send("uci")
-            readUntil { it == "uciok" }
+            // UCCI uses the same zero-based ranks as the app on ten-rank boards.
+            send("ucci")
+            readUntil { it == "ucciok" }
             send("isready")
             readUntil { it == "readyok" }
-            send("setoption name UCI_Variant value janggitraditional")
+            send("setoption UCI_Variant janggitraditional")
 
             val history = mutableListOf<String>()
             var terminalResult = GameResult.DRAW
