@@ -63,18 +63,34 @@ class AdminUserInsightsPage extends BasePage {
     }
 
     #loadInsightsDetails() {
-        const url = `${ADMIN_URL_PREFIX}/user-insights/${encodeURIComponent(this.#identifier)}/details`;
-        getAndHandle(url, json => this.#renderAllDynamicSections(json));
-    }
+        const identifier = encodeURIComponent(this.#identifier);
 
-    #renderAllDynamicSections(data) {
-        this.#renderGameActivity(data);
-        this.#renderRelatedUsers(data);
-        this.#renderSockPuppetGames(data);
-        this.#renderSavedAnalysis(data);
-        this.#renderLatestChatMessages(data);
-        this.#renderLatestPageViews(data);
-        this.#renderLatestSessions(data);
+        getAndHandle(
+            `${ADMIN_URL_PREFIX}/user-insights/${identifier}/game-activity-and-saved-analysis`,
+            data => {
+                this.#renderGameActivity(data);
+                this.#renderSavedAnalysis(data);
+            },
+        );
+        getAndHandle(
+            `${ADMIN_URL_PREFIX}/user-insights/${identifier}/related-users-and-sock-puppet-games`,
+            data => {
+                this.#renderRelatedUsers(data);
+                this.#renderSockPuppetGames(data);
+            },
+        );
+        getAndHandle(
+            `${ADMIN_URL_PREFIX}/user-insights/${identifier}/latest-chat-messages`,
+            data => this.#renderLatestChatMessages(data),
+        );
+        getAndHandle(
+            `${ADMIN_URL_PREFIX}/user-insights/${identifier}/latest-page-views`,
+            data => this.#renderLatestPageViews(data),
+        );
+        getAndHandle(
+            `${ADMIN_URL_PREFIX}/user-insights/${identifier}/latest-sessions`,
+            data => this.#renderLatestSessions(data),
+        );
     }
 
     #renderGameActivity(data) {
