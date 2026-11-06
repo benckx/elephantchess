@@ -252,6 +252,13 @@ private fun Route.adminUserInsightsRoutes() {
             adminUserInsightsService.listUserChatMessages(identifier, limit, offset)
         }
     }
+
+    get("/user-insights/{identifier}/details") {
+        requireAdminRole {
+            val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+            adminUserInsightsService.fetchUserInsightsDetails(identifier)
+        }
+    }
 }
 
 private fun Route.adminDatabaseSearchRoutes() {

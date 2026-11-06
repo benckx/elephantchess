@@ -11,7 +11,8 @@ import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.services.UserSessionDaoService
 import io.elephantchess.servicelayer.dto.AutocompleteResponse
 import io.elephantchess.servicelayer.dto.admin.AdminUserChatMessagesResponse
-import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsData
+import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsDetailsResponse
+import io.elephantchess.servicelayer.dto.admin.AdminUserInsightsMetadata
 import io.elephantchess.servicelayer.dto.admin.AdminUserPageViewsResponse
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.AnalysisService
@@ -33,7 +34,27 @@ class AdminUserInsightsService(
     private val mailService: MailService,
 ) {
 
-    suspend fun fetchUserInsights(identifier: String): AdminUserInsightsData {
+    suspend fun fetchUserMetadata(identifier: String): AdminUserInsightsMetadata {
+        val user = resolveUser(identifier)
+        val emailValidityStatus = user.email?.let { email -> mailService.getEmailValidityDetails(email) }
+
+        return AdminUserInsightsMetadata(
+            userId = user.id,
+            username = user.handle ?: user.id,
+            email = user.email,
+            userType = user.userType,
+            country = user.country,
+            creationTime = user.creation?.toEpochMilliseconds(),
+            lastOnlineTime = user.lastOnline?.toEpochMilliseconds(),
+            lastProfileUpdateTime = user.lastProfileUpdate?.toEpochMilliseconds(),
+            emailConfirmedAtTime = user.emailConfirmedAt?.toEpochMilliseconds(),
+            emailValidityStatus = emailValidityStatus,
+            hasRoleAdmin = user.hasRoleAdmin ?: false,
+            hasRoleEditor = user.hasRoleEditor ?: false,
+        )
+    }
+
+    suspend fun fetchUserInsightsDetails(identifier: String): AdminUserInsightsDetailsResponse {
         val user = resolveUser(identifier)
 
         val puzzle = puzzleResultDaoService.fetchUserActivitySummary(user.id)
@@ -41,7 +62,6 @@ class AdminUserInsightsService(
         val pvpOver3 = playerVsPlayerGameDaoService.fetchUserActivitySummary(user.id, MIN_MOVE_INDEX)
         val pvb = playerVsBotGameDaoService.fetchUserActivitySummary(user.id)
         val pvbOver3 = playerVsBotGameDaoService.fetchUserActivitySummary(user.id, MIN_MOVE_INDEX)
-        val emailValidityStatus = user.email?.let { email -> mailService.getEmailValidityDetails(email) }
         val latestChatMessages = chatMessageDaoService.listMessagesByAuthor(user.id, limit = 10, offset = null)
         val latestPageViews = archivedPageViewDaoService.listPageViewsForUser(user.id, limit = 10, offset = 0)
         val latestSessions = userSessionDaoService.listAuthenticatedSessionsForUser(user.id, limit = 5, offset = 0)
@@ -60,26 +80,14 @@ class AdminUserInsightsService(
             remoteAddresses = latestSessions.map { it.remoteAddress }.toSet(),
         )
 
-        return AdminUserInsightsData(
-            userId = user.id,
-            username = user.handle ?: user.id,
-            email = user.email,
-            userType = user.userType,
-            country = user.country,
-            creationTime = user.creation?.toEpochMilliseconds(),
-            lastOnlineTime = user.lastOnline?.toEpochMilliseconds(),
-            lastProfileUpdateTime = user.lastProfileUpdate?.toEpochMilliseconds(),
-            emailConfirmedAtTime = user.emailConfirmedAt?.toEpochMilliseconds(),
-            emailValidityStatus = emailValidityStatus,
-            hasRoleAdmin = user.hasRoleAdmin ?: false,
-            hasRoleEditor = user.hasRoleEditor ?: false,
+        return AdminUserInsightsDetailsResponse(
             puzzle = puzzle.toDto(),
             pvp = pvp.toDto(),
             pvpOver3 = pvpOver3.toDto(),
             pvb = pvb.toDto(),
             pvbOver3 = pvbOver3.toDto(),
             relatedUsers = relatedUsers.map { relatedUser ->
-                AdminUserInsightsData.RelatedUserEntry(
+                AdminUserInsightsDetailsResponse.RelatedUserEntry(
                     userId = relatedUser.userId,
                     username = userDaoService.findUserNameById(relatedUser.userId) ?: relatedUser.userId,
                     sharedIpCount = relatedUser.sharedRemoteAddressCount,
@@ -88,7 +96,7 @@ class AdminUserInsightsService(
                 )
             },
             sockPuppetGames = sockPuppetGames.map { report ->
-                AdminUserInsightsData.SockPuppetGameEntry(
+                AdminUserInsightsDetailsResponse.SockPuppetGameEntry(
                     gameId = report.gameId,
                     inviterUserId = report.inviterUserId,
                     inviterUsername = userDaoService.findUserNameById(report.inviterUserId) ?: report.inviterUserId,
@@ -106,7 +114,7 @@ class AdminUserInsightsService(
                 )
             },
             savedAnalysis = savedAnalysis.map { analysis ->
-                AdminUserInsightsData.SavedAnalysisEntry(
+                AdminUserInsightsDetailsResponse.SavedAnalysisEntry(
                     analysisId = analysis.analysisId,
                     name = analysis.name,
                     gameType = analysis.gameType,
@@ -115,20 +123,20 @@ class AdminUserInsightsService(
                 )
             },
             latestChatMessages = latestChatMessages.map { record ->
-                AdminUserInsightsData.ChatMessageEntry(
+                AdminUserInsightsDetailsResponse.ChatMessageEntry(
                     gameId = record.gameId,
                     messageTime = record.messageTime.toEpochMilliseconds(),
                     content = record.content,
                 )
             },
             latestPageViews = latestPageViews.map { record ->
-                AdminUserInsightsData.PageViewEntry(
+                AdminUserInsightsDetailsResponse.PageViewEntry(
                     url = record.url,
                     time = record.eventTime.toEpochMilliseconds(),
                 )
             },
             latestSessions = latestSessions.map { record ->
-                AdminUserInsightsData.SessionEntry(
+                AdminUserInsightsDetailsResponse.SessionEntry(
                     os = record.operatingSystemName,
                     agentName = record.agentName,
                     countryCode = record.countryCode,
@@ -190,8 +198,8 @@ class AdminUserInsightsService(
             ?: userDaoService.findById(identifier)
             ?: throw NotFoundException("User $identifier could not be found")
 
-    private fun UserActivitySummaryRecord.toDto(): AdminUserInsightsData.ActivitySummary =
-        AdminUserInsightsData.ActivitySummary(
+    private fun UserActivitySummaryRecord.toDto(): AdminUserInsightsDetailsResponse.ActivitySummary =
+        AdminUserInsightsDetailsResponse.ActivitySummary(
             firstPlayed = firstPlayed?.toEpochMilliseconds(),
             lastPlayed = lastPlayed?.toEpochMilliseconds(),
             totalPlayed = totalPlayed,
