@@ -35,10 +35,10 @@ import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.selectByProbability
+import io.elephantchess.xiangqi.AbstractXiangqiBoard
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
-import io.elephantchess.xiangqi.AbstractXiangqiBoard
 import io.elephantchess.xiangqi.HalfMove
 import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.XiangqiBoard
@@ -140,7 +140,11 @@ class PlayerVsBotGameService(
         }
 
         if (request.variant != Variant.XIANGQI && request.engine == Engine.PIKAFISH) {
-            throw BadRequestException("Pikafish does not support the ${request.variant.name.lowercase().replaceFirstChar(Char::uppercase)} variant. Please use Fairy Stockfish")
+            throw BadRequestException(
+                "Pikafish does not support the ${request.variant.name.lowercase().replaceFirstChar(
+                    Char::uppercase,
+                )} variant. Please use Fairy Stockfish",
+            )
         }
 
         request.startFen?.let { fen ->
