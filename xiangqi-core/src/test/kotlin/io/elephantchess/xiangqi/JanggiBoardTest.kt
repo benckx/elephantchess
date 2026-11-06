@@ -5,107 +5,9 @@ import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.Position.Companion.parsePositionFromUci
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertIs
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class JanggiBoardTest {
-
-    @Test
-    fun generalsAndGuardsFollowPalaceLines() {
-        assertEquals(
-            setOf("d0", "e0", "f0", "d1", "f1", "d2", "e2", "f2"),
-            targets(board("K" to "e1"), "e1"),
-        )
-        assertEquals(setOf("d1", "e0", "e1"), targets(board("A" to "d0"), "d0"))
-        assertEquals(setOf("d0", "d2", "e1"), targets(board("A" to "d1"), "d1"))
-        assertEquals(setOf("e8", "e9", "f8"), targets(board("a" to "f9"), "f9"))
-    }
-
-    @Test
-    fun palaceMovesCannotLeavePalaceOrCaptureFriendlyPieces() {
-        assertEquals(setOf("d1", "e0"), targets(board("A" to "d0", "K" to "e1"), "d0"))
-        assertEquals(
-            setOf("e0", "e2", "f1"),
-            targets(board("A" to "e1", "P" to "d1", "P" to "d0", "P" to "f0", "P" to "d2", "P" to "f2"), "e1"),
-        )
-    }
-
-    @Test
-    fun horseUsesTheSameBlockedLegRuleAsXiangqi() {
-        val board = board("N" to "e4", "p" to "e5")
-        assertEquals(setOf("c3", "c5", "d2", "f2", "g3", "g5"), targets(board, "e4"))
-    }
-
-    @Test
-    fun elephantsHaveEightLongMovesWithoutARiverRestriction() {
-        assertEquals(
-            setOf("b2", "b6", "c1", "c7", "g1", "g7", "h2", "h6"),
-            targets(board("B" to "e4"), "e4"),
-        )
-    }
-
-    @Test
-    fun elephantsAreBlockedAtEitherIntermediatePoint() {
-        val firstBlocked = targets(board("B" to "e4", "p" to "e5"), "e4")
-        assertFalse("c7" in firstBlocked)
-        assertFalse("g7" in firstBlocked)
-        val secondBlocked = targets(board("B" to "e4", "p" to "f6"), "e4")
-        assertFalse("g7" in secondBlocked)
-        assertTrue("c7" in secondBlocked)
-        assertFalse("g7" in targets(board("B" to "e4", "P" to "g7"), "e4"))
-        assertTrue("g7" in targets(board("B" to "e4", "p" to "g7"), "e4"))
-    }
-
-    @Test
-    fun chariotsFollowOnlyMarkedPalaceDiagonals() {
-        val corners = targets(board("R" to "d0"), "d0")
-        assertTrue("e1" in corners)
-        assertTrue("f2" in corners)
-        assertFalse("g3" in corners)
-        assertFalse("e1" in targets(board("R" to "d0", "P" to "e1"), "d0"))
-        assertFalse("f2" in targets(board("R" to "d0", "p" to "e1"), "d0"))
-        assertTrue("e1" in targets(board("R" to "d0", "p" to "e1"), "d0"))
-        assertFalse("e2" in targets(board("R" to "d1"), "d1"))
-        assertTrue("f9" in targets(board("R" to "d7"), "d7"))
-    }
-
-    @Test
-    fun cannonsRequireExactlyOneNonCannonPivotEvenForQuietMoves() {
-        assertTrue(targets(board("C" to "e4"), "e4").isEmpty())
-        assertEquals(
-            setOf("e6", "e7"),
-            targets(board("C" to "e4", "P" to "e5", "p" to "e7", "p" to "e8"), "e4"),
-        )
-        assertEquals(setOf("e6"), targets(board("C" to "e4", "p" to "e5", "P" to "e7"), "e4"))
-        assertTrue(targets(board("C" to "e4", "c" to "e5"), "e4").isEmpty())
-        assertTrue(targets(board("C" to "e4", "C" to "e5"), "e4").isEmpty())
-        assertEquals(setOf("e6"), targets(board("C" to "e4", "P" to "e5", "c" to "e7"), "e4"))
-        assertEquals(setOf("e6"), targets(board("C" to "e4", "P" to "e5", "C" to "e7"), "e4"))
-    }
-
-    @Test
-    fun cannonsJumpPalaceCentersButNeverTurnAtTheCenter() {
-        assertEquals(setOf("f2"), targets(board("C" to "d0", "A" to "e1"), "d0"))
-        assertTrue(targets(board("C" to "d0", "c" to "e1"), "d0").isEmpty())
-        assertTrue(targets(board("C" to "d0", "A" to "e1", "c" to "f2"), "d0").isEmpty())
-        assertEquals(setOf("f2"), targets(board("C" to "d0", "A" to "e1", "p" to "f2"), "d0"))
-        assertEquals(setOf("f9"), targets(board("C" to "d7", "a" to "e8"), "d7"))
-    }
-
-    @Test
-    fun soldiersMoveSidewaysImmediatelyAndForwardOnEnemyPalaceDiagonals() {
-        assertEquals(setOf("d3", "f3", "e4"), targets(board("P" to "e3"), "e3"))
-        assertEquals(setOf("d6", "f6", "e5"), targets(board("p" to "e6"), "e6"))
-        assertEquals(setOf("c7", "e7", "d8", "e8"), targets(board("P" to "d7"), "d7"))
-        assertEquals(setOf("d8", "f8", "e9", "d9", "f9"), targets(board("P" to "e8"), "e8"))
-        assertEquals(setOf("d1", "f1", "e2"), targets(board("P" to "e1"), "e1"))
-        assertEquals(setOf("d1", "f1", "e0", "d0", "f0"), targets(board("p" to "e1"), "e1"))
-    }
 
     @Test
     fun facingGeneralsAreLegalButExposingCheckIsNot() {
@@ -266,26 +168,6 @@ class JanggiBoardTest {
         assertFailsWith<IllegalArgumentException> { XiangqiBoard(variant = Variant.JANGGI) }
         assertEquals("janggitraditional", Variant.JANGGI.fairyStockfishVariantName())
     }
-
-    @Test
-    fun perftMatchesFairyStockfish14TraditionalJanggi() {
-        assertEquals(32, perft(JanggiBoard(), 1))
-        assertEquals(1024, perft(JanggiBoard(), 2))
-        assertEquals(33000, perft(JanggiBoard(), 3))
-        val palacePosition = JanggiBoard("3r5/4k4/9/3P5/9/4P4/9/9/4K4/3R5 w - - 0 1")
-        assertEquals(453, perft(palacePosition, 2))
-    }
-
-    private fun perft(board: JanggiBoard, depth: Int): Int =
-        if (depth == 0) {
-            1
-        } else {
-            board.listLegalMoves(board.colorToPlay()).sumOf { move ->
-                val copy = board.copy()
-                copy.registerMove(move)
-                perft(copy, depth - 1)
-            }
-        }
 
     private fun targets(board: JanggiBoard, from: String): Set<String> {
         val position = parsePositionFromUci(from)

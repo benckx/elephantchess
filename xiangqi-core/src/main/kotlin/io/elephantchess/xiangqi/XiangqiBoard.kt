@@ -4,8 +4,7 @@ import io.elephantchess.xiangqi.AbstractPieceType.*
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.JanggiBoard.Companion.DEFAULT_JANGGI_START_FEN
-import io.elephantchess.xiangqi.Variant.MANCHU
-import io.elephantchess.xiangqi.Variant.XIANGQI
+import io.elephantchess.xiangqi.Variant.*
 
 open class XiangqiBoard(
     initFen: String = DEFAULT_XIANGQI_START_FEN,
@@ -14,7 +13,7 @@ open class XiangqiBoard(
 ) : AbstractXiangqiBoard(initFen, keepHistory) {
 
     init {
-        require(variant != Variant.JANGGI) { "Use JanggiBoard for Janggi rules" }
+        require(variant != JANGGI) { "Use JanggiBoard for Janggi rules" }
     }
 
     override fun isIllegal(move: HalfMove, color: Color): Boolean {
@@ -89,7 +88,7 @@ open class XiangqiBoard(
             when (variant) {
                 XIANGQI -> DEFAULT_XIANGQI_START_FEN
                 MANCHU -> MANCHU_START_FEN
-                Variant.JANGGI -> DEFAULT_JANGGI_START_FEN
+                JANGGI -> DEFAULT_JANGGI_START_FEN
             }
 
         fun inferVariantFromFen(fen: String): Variant =
