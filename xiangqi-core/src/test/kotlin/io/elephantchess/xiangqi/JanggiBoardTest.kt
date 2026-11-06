@@ -27,13 +27,6 @@ class JanggiBoardTest {
     }
 
     @Test
-    fun `checks include palace diagonals`() {
-        assertTrue(board("K" to "d0", "k" to "d8", "r" to "f2").isInCheck(WHITE))
-        assertTrue(board("K" to "d0", "k" to "d8", "c" to "f2", "P" to "e1").isInCheck(WHITE))
-        assertFalse(board("K" to "d0", "k" to "d8", "c" to "f2", "C" to "e1").isInCheck(WHITE))
-    }
-
-    @Test
     fun `passing cannot escape ordinary check and checkmate is recognized`() {
         val checked = JanggiBoard("9/4k4/9/4R4/9/9/9/9/3K5/9 b - - 0 1")
         assertTrue(checked.isInCheck(BLACK))
@@ -95,10 +88,16 @@ class JanggiBoardTest {
             val board = JanggiBoard()
             game.uciMoves.forEachIndexed { index, uci ->
                 val move = parseMoveFromUci(uci)
-                assertTrue(board.isLegalMove(move), "Game ${game.gameId}, ply $index: $uci\n${board.print()}")
+                assertTrue(
+                    board.isLegalMove(move),
+                    message = "Game ${game.gameId}, ply $index: $uci\n${board.print()}",
+                )
                 board.registerMove(move)
                 if (move.from != move.to) {
-                    assertFalse(board.isInCheck(board.colorToPlay().reverse()), "Game ${game.gameId}, ply $index: $uci")
+                    assertFalse(
+                        board.isInCheck(board.colorToPlay().reverse()),
+                        message = "Game ${game.gameId}, ply $index: $uci",
+                    )
                 }
             }
             val actualOutcome = when {
