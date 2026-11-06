@@ -10,7 +10,7 @@ import kotlin.test.*
 class JanggiBoardTest {
 
     @Test
-    fun facingGeneralsAreLegalButExposingCheckIsNot() {
+    fun `facing generals are legal but exposing check is not`() {
         val facing = board("K" to "e1", "k" to "e8", "P" to "e4")
         assertTrue(facing.isLegalMove(parseMoveFromUci("e4d4")))
         facing.registerMove("e4d4")
@@ -27,14 +27,14 @@ class JanggiBoardTest {
     }
 
     @Test
-    fun checksIncludePalaceDiagonals() {
+    fun `checks include palace diagonals`() {
         assertTrue(board("K" to "d0", "k" to "d8", "r" to "f2").isInCheck(WHITE))
         assertTrue(board("K" to "d0", "k" to "d8", "c" to "f2", "P" to "e1").isInCheck(WHITE))
         assertFalse(board("K" to "d0", "k" to "d8", "c" to "f2", "C" to "e1").isInCheck(WHITE))
     }
 
     @Test
-    fun cannotPassOutOfOrdinaryCheckAndRecognizesCheckmate() {
+    fun `passing cannot escape ordinary check and checkmate is recognized`() {
         val checked = JanggiBoard("9/4k4/9/4R4/9/9/9/9/3K5/9 b - - 0 1")
         assertTrue(checked.isInCheck(BLACK))
         assertFalse(checked.isLegalMove(parseMoveFromUci("e8e8")))
@@ -46,7 +46,7 @@ class JanggiBoardTest {
     }
 
     @Test
-    fun aNormalMoveBreaksTheSequenceOfPasses() {
+    fun `a normal move breaks the sequence of passes`() {
         val board = JanggiBoard()
         board.registerMove("e1e1")
         board.registerMove("a6b6")
@@ -56,7 +56,7 @@ class JanggiBoardTest {
     }
 
     @Test
-    fun copiesAndFenReloadsPreserveJanggiRulesAndState() {
+    fun `copies preserve Janggi state and loading FEN restores the starting position`() {
         val board = JanggiBoard()
         board.registerMove("a3b3")
         board.registerMove("a6b6")
@@ -71,7 +71,7 @@ class JanggiBoardTest {
     }
 
     @Test
-    fun moveHistoryPreservesPieceIdentityAndCopiesIndependently() {
+    fun `move history preserves piece identity and copies independently`() {
         val board = JanggiBoard(keepHistory = true)
         val piece = board.pieceAt(parsePositionFromUci("a3"))
         board.registerMove("a3b3")
@@ -86,7 +86,7 @@ class JanggiBoardTest {
     }
 
     @Test
-    fun replaySyntheticGamesCheckingEveryMove() {
+    fun `synthetic games replay with legal moves and expected outcomes`() {
         val games = JanggiGameMovesDtoCache().listAll()
         assertEquals(100, games.size)
         val checkmateGames = games.filter { it.outcome == "CHECKMATE" }
@@ -112,7 +112,7 @@ class JanggiBoardTest {
     }
 
     @Test
-    fun acceptsBikjangByPassingEvenWhenInCheck() {
+    fun `passing accepts bikjang even when in check`() {
         val game = JanggiGameMovesDtoCache().findByGameId("cb4951a3")
         val board = JanggiBoard()
         game.uciMoves.dropLast(1).forEach { uci ->
@@ -130,7 +130,7 @@ class JanggiBoardTest {
     }
 
     @Test
-    fun passingPreservesPiecesAndHistoryAndAdvancesTheTurn() {
+    fun `passing preserves pieces and history and two consecutive passes draw`() {
         val board = JanggiBoard(keepHistory = true)
         val placement = board.outputFen(abridged = true)
         val piece = board.pieceAt(parsePositionFromUci("e1"))
@@ -160,18 +160,13 @@ class JanggiBoardTest {
     }
 
     @Test
-    fun createsVariantSpecificBoardsWithoutInferringJanggiFromFen() {
+    fun `board creation respects the variant and rejects Janggi in XiangqiBoard`() {
         assertIs<JanggiBoard>(AbstractXiangqiBoard.create(Variant.JANGGI))
         assertEquals(Variant.JANGGI, JanggiBoard().copy().variant)
         assertEquals(Variant.MANCHU, AbstractXiangqiBoard.create(Variant.MANCHU).variant)
         assertEquals(XiangqiBoard.MANCHU_START_FEN, AbstractXiangqiBoard.create(Variant.MANCHU).outputFen())
         assertFailsWith<IllegalArgumentException> { XiangqiBoard(variant = Variant.JANGGI) }
         assertEquals("janggitraditional", Variant.JANGGI.fairyStockfishVariantName())
-    }
-
-    private fun targets(board: JanggiBoard, from: String): Set<String> {
-        val position = parsePositionFromUci(from)
-        return board.listAllMoves(PieceAtPosition(board.pieceAt(position), position)).map { it.to.toUci() }.toSet()
     }
 
     private fun board(vararg pieces: Pair<String, String>): JanggiBoard {
