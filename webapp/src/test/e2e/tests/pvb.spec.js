@@ -135,12 +135,10 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await expect(page.locator('#info-engine')).toHaveText('Fairy Stockfish');
 
         // Browse PvB lists games after at least six half-moves.
-        for (const [index, uci] of ['a3a4', 'c3c4', 'e3e4'].entries()) {
+        for (const [index, uci] of ['a3a4', 'c3c4', 'e3e4', 'g3g4'].entries()) {
             await playMove(page, uci, {readyTimeout: 60_000});
             await waitForBotReply(page);
-            if (index < 2) {
-                await captureStep(testInfo, `Janggi-move-${index + 1}`, [['player', page]]);
-            }
+            await captureStep(testInfo, `Janggi-move-${index + 1}`, [['player', page]]);
         }
 
         await page.goto('/userdata/botgames', {waitUntil: 'networkidle'});
@@ -157,6 +155,14 @@ test.describe('PvB workflow (guest vs bot)', () => {
         });
         await expect(thumb).toHaveCount(1, {timeout: 30_000});
         await expect(thumb.locator('.game-thumb-variant')).toHaveText('장');
+
+        await page.goto('/', {waitUntil: 'networkidle'});
+        await expect(page.getByRole('heading', {name: 'Latest Bot Games'})).toBeVisible();
+        const latestBotGame = page.locator('.latest-pvb-game-thumb').filter({
+            has: page.locator(`a[href^="/playbot?id=${gameId}"]`),
+        });
+        await expect(latestBotGame).toHaveCount(1);
+        await captureStep(testInfo, 'Janggi-latest-bot-game-in-lobby', [['player', page]]);
 
         await player.context.close();
     });
