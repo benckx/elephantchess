@@ -27,6 +27,8 @@ object GenerateJanggiGames {
     fun main(args: Array<String>) {
         val totalGames = args.firstOrNull { it.startsWith("--games=") }?.substringAfter("=")?.toIntOrNull() ?: TOTAL_GAMES
         val maxMoves = args.firstOrNull { it.startsWith("--max-moves=") }?.substringAfter("=")?.toIntOrNull() ?: MAX_MOVES_PER_GAME
+        val maxDepth = args.firstOrNull { it.startsWith("--max-depth=") }?.substringAfter("=")?.toIntOrNull() ?: MAX_DEPTH
+        require(maxDepth >= MIN_DEPTH) { "max-depth must be at least $MIN_DEPTH" }
         val enginePath = args.firstOrNull { it.startsWith("--engine=") }?.substringAfter("=")
             ?: System.getenv("FAIRY_STOCKFISH_PATH")
             ?: findDefaultEnginePath()
@@ -44,7 +46,7 @@ object GenerateJanggiGames {
                     ).joinToString(", "),
             )
 
-        val games = generateSelfPlayGames(enginePath, totalGames, maxMoves)
+        val games = generateSelfPlayGames(enginePath, totalGames, maxMoves, maxDepth)
             .distinctBy { it.moves.joinToString(",") }
             .take(totalGames)
 
@@ -69,7 +71,7 @@ object GenerateJanggiGames {
         return candidates.firstOrNull { File(it).canExecute() }
     }
 
-    private fun generateSelfPlayGames(enginePath: String, totalGames: Int, maxMoves: Int): List<GeneratedGame> {
+    private fun generateSelfPlayGames(enginePath: String, totalGames: Int, maxMoves: Int, maxDepth: Int): List<GeneratedGame> {
         val uniqueGames = linkedSetOf<String>()
         val checkmates = mutableListOf<GeneratedGame>()
         val otherGames = mutableListOf<GeneratedGame>()
@@ -80,7 +82,8 @@ object GenerateJanggiGames {
             attempts < MAX_GENERATION_ATTEMPTS
         ) {
             attempts += 1
-            val game = generateSelfPlayGame(enginePath, maxMoves)
+            val game = generateSelfPlayGame(enginePath, maxMoves, maxDepth)
+            println("Attempt $attempts: ${game.moves.size} moves, ${game.result}; ${checkmates.size} checkmates collected")
             val key = game.moves.joinToString(",")
             if (game.moves.size < MIN_MOVES_PER_GAME || !uniqueGames.add(key)) {
                 continue
@@ -113,7 +116,7 @@ object GenerateJanggiGames {
         return selected
     }
 
-    private fun generateSelfPlayGame(enginePath: String, maxMoves: Int): GeneratedGame {
+    private fun generateSelfPlayGame(enginePath: String, maxMoves: Int, maxDepth: Int): GeneratedGame {
         val process = ProcessBuilder(enginePath)
             .redirectErrorStream(true)
             .start()
@@ -165,8 +168,8 @@ object GenerateJanggiGames {
             var terminalResult = GameResult.DRAW
 
             while (history.size < maxMoves) {
-                val depth = random.nextInt(MIN_DEPTH, MAX_DEPTH + 1)
-                val jitteredDepth = if (random.nextDouble() < 0.35) random.nextInt(MIN_DEPTH, MAX_DEPTH + 1) else depth
+                val depth = random.nextInt(MIN_DEPTH, maxDepth + 1)
+                val jitteredDepth = if (random.nextDouble() < 0.35) random.nextInt(MIN_DEPTH, maxDepth + 1) else depth
 
                 send("position startpos moves ${history.joinToString(" ")}")
                 send("go depth $jitteredDepth")
@@ -185,7 +188,7 @@ object GenerateJanggiGames {
                 history += chosenMove
 
                 if (random.nextDouble() < 0.15) {
-                    val extraDepth = random.nextInt(MIN_DEPTH, MAX_DEPTH + 1)
+                    val extraDepth = random.nextInt(MIN_DEPTH, maxDepth + 1)
                     send("position startpos moves ${history.joinToString(" ")}")
                     send("go depth $extraDepth")
                     readMoveEvaluation()
