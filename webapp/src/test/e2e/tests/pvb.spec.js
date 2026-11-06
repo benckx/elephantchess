@@ -148,7 +148,7 @@ test.describe('PvB workflow (guest vs bot)', () => {
 
         await page.goto('/browse/player-vs-bot', {waitUntil: 'networkidle'});
         const thumb = page.locator('.pvb-game-thumb').filter({
-            has: page.locator(`a[href="/playbot?id=${gameId}"]`),
+            has: page.locator(`a[href^="/playbot?id=${gameId}"]`),
         });
         await expect(thumb).toHaveCount(1, {timeout: 30_000});
         await expect(thumb.locator('.game-thumb-variant')).toHaveText('장');
