@@ -199,19 +199,26 @@ class JanggiBoardTest {
                     assertFalse(board.isInCheck(board.colorToPlay().reverse()), "Game ${game.gameId}, ply $index: $uci")
                 }
             }
+            val actualOutcome = when {
+                board.isCheckmated() -> "CHECKMATE"
+                board.isDraw() -> "DRAW"
+                board.isStalemated() -> "STALEMATE"
+                else -> "ONGOING"
+            }
+            assertEquals(game.outcome, actualOutcome, "Game ${game.gameId}")
         }
     }
 
     @Test
     fun acceptsBikjangByPassingEvenWhenInCheck() {
-        val game = JanggiGameMovesDtoCache().findByGameId("233d96b7")
+        val game = JanggiGameMovesDtoCache().findByGameId("cb4951a3")
         val board = JanggiBoard()
         game.uciMoves.dropLast(1).forEach { uci ->
             assertTrue(board.isLegalMove(parseMoveFromUci(uci)))
             board.registerMove(uci)
         }
-        assertEquals("e8e8", game.uciMoves.last())
-        assertTrue(board.isInCheck(BLACK))
+        assertEquals("e1e1", game.uciMoves.last())
+        assertTrue(board.isInCheck(board.colorToPlay()))
         assertTrue(board.areGeneralsFacing())
         assertTrue(board.isLegalMove(parseMoveFromUci(game.uciMoves.last())))
         board.registerMove(game.uciMoves.last())

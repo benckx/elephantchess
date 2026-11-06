@@ -1,0 +1,31 @@
+name: Generate Janggi fixtures
+
+on:
+  pull_request:
+    paths:
+      - scripts/src/main/kotlin/io/elephantchess/scripts/janggi/GenerateJanggiGames.kt
+      - .github/workflows/generate-janggi-games.yml
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Generate games with Fairy Stockfish
+        run: ./gradlew :scripts:generateJanggiGames --args='--max-depth=3 --max-moves=256' --no-daemon --stacktrace
+      - name: Validate generated fixture
+        run: ./gradlew :xiangqi-core-test-utils:test --tests '*JanggiGameMovesDtoCacheTest' --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v7
+        with:
+          name: janggi-fixtures
+          path: xiangqi-core-test-utils/src/main/resources/janggi.txt
+          if-no-files-found: error

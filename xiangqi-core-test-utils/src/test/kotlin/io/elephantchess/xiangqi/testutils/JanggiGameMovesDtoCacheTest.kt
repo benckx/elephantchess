@@ -7,13 +7,15 @@ import kotlin.test.assertTrue
 class JanggiGameMovesDtoCacheTest {
 
     @Test
-    fun normalizesFairyStockfishRanksToCoreCoordinates() {
+    fun usesZeroBasedCoordinates() {
+        val games = JanggiGameMovesDtoCache().listAll()
+        val movePattern = Regex("[a-i][0-9][a-i][0-9]")
+        assertTrue(games.all { game -> game.uciMoves.all { movePattern.matches(it) } })
+        assertTrue(games.any { game -> game.uciMoves.any { it.contains('0') } })
         assertEquals(
-            listOf("e3f3", "e6d6", "g0e3", "i6h6", "b0c2", "b9c7", "e3g6", "e8e8"),
-            JanggiGameMovesDtoCache().findByGameId("1734e167").uciMoves,
+            listOf("e3d3", "i6h6", "b0c2", "b9c7", "g0e3", "c6d6", "b2e2", "e8e9", "e3g6"),
+            JanggiGameMovesDtoCache().findByGameId("7be97705").uciMoves,
         )
-        val coreMovePattern = Regex("[a-i][0-9][a-i][0-9]")
-        assertTrue(JanggiGameMovesDtoCache().listAll().all { game -> game.uciMoves.all { coreMovePattern.matches(it) } })
     }
 
     @Test
