@@ -6,6 +6,14 @@ import kotlin.test.assertTrue
 class JanggiGameMovesDtoCacheTest {
 
     @Test
+    fun usesZeroBasedCoordinates() {
+        val games = JanggiGameMovesDtoCache().listAll()
+        val movePattern = Regex("[a-i][0-9][a-i][0-9]")
+        assertTrue(games.all { game -> game.uciMoves.all { movePattern.matches(it) } })
+        assertTrue(games.any { game -> game.uciMoves.any { it.contains('0') } })
+    }
+
+    @Test
     fun loadsGeneratedGames() {
         val games = JanggiGameMovesDtoCache().listAll()
         assertTrue(games.size == 100)
