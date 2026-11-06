@@ -6,4 +6,5 @@ data class LatestPvbActivityResponse(
     val latestFairy3Activity: Long?,
     val latestManchu3Activity: Long?,
     val latestJanggi3Activity: Long?,
+    val latestXiangqi3Activity: Long?,
 )

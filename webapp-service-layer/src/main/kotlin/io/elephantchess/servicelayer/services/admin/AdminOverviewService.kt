@@ -78,10 +78,8 @@ class AdminOverviewService(
         return LatestPvpActivityResponse(
             latestPvpActivity = latestPvpActivity,
             latestPvp3Activity = latestPvp3Activity,
-            latestManchu3Activity = listOfNotNull(
-                pvpGameDaoService.latestGameActivity(MIN_MOVE_INDEX, Variant.MANCHU),
-                pvpGameDaoService.latestMoveTime(MIN_MOVE_INDEX, Variant.MANCHU),
-            ).maxOrNull()?.toEpochMilliseconds(),
+            latestManchu3Activity = latestPvp3Activity(Variant.MANCHU),
+            latestXiangqi3Activity = latestPvp3Activity(Variant.XIANGQI),
         )
     }
 
@@ -108,8 +106,15 @@ class AdminOverviewService(
             latestFairy3Activity = latestPvb3Activity(engine = Engine.FAIRYSTOCKFISH),
             latestManchu3Activity = latestPvb3Activity(variant = Variant.MANCHU),
             latestJanggi3Activity = latestPvb3Activity(variant = Variant.JANGGI),
+            latestXiangqi3Activity = latestPvb3Activity(variant = Variant.XIANGQI),
         )
     }
+
+    private suspend fun latestPvp3Activity(variant: Variant): Long? =
+        listOfNotNull(
+            pvpGameDaoService.latestGameActivity(MIN_MOVE_INDEX, variant),
+            pvpGameDaoService.latestMoveTime(MIN_MOVE_INDEX, variant),
+        ).maxOrNull()?.toEpochMilliseconds()
 
     private suspend fun latestPvb3Activity(engine: Engine? = null, variant: Variant? = null): Long? =
         listOfNotNull(

@@ -33,8 +33,19 @@
     width: 75%;
 }
 
+.activity-panels {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.activity-panel h2 {
+    margin-top: 0;
+}
+
 @media (max-width: 1000px) {
-    #latest-activity {
+    .activity-panel .stats-table {
         font-size: 24px;
     }
 }
