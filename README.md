@@ -53,6 +53,7 @@ The webapp offers the following features:
 - Manchu chess variant (also called Yitong): Black's pieces are set up and move the same as in xiangqi, but horses,
   cannons, and one of the chariots are absent for Red. The remaining chariot has the combined powers of the chariot,
   horse, and cannon.
+- Janggi (Korean chess), including Player-vs-Bot games with independent Blue and Red starting setups.
 - By default, users are assigned a temporary guest user id. They can also sign up with an email and password to keep
   their data across devices and access all features.
 

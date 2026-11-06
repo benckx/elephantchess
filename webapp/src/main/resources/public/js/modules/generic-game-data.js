@@ -371,7 +371,7 @@ class GameMetadataDto {
                 } else {
                     redPlayerName = formatPlayerName(this.#redPlayerName)
                 }
-                return redPlayerName + ' victory (Red)';
+                return redPlayerName + ` victory (${this.#variant === Variant.JANGGI ? 'Blue' : 'Red'})`;
             case Outcome.BLACK_WINS:
                 let blackPlayerName = '';
                 if (this.#gameId.type === GameType.PVB && this.#blackPlayerId == null && this.#engine != null) {
@@ -379,7 +379,7 @@ class GameMetadataDto {
                 } else {
                     blackPlayerName = formatPlayerName(this.#blackPlayerName)
                 }
-                return blackPlayerName + ' victory (Black)';
+                return blackPlayerName + ` victory (${this.#variant === Variant.JANGGI ? 'Red' : 'Black'})`;
             case Outcome.DRAW:
                 return 'Draw';
             default:
@@ -422,7 +422,10 @@ class GameMetadataDto {
             }
         }
 
-        metadata.set('Variant', this.#variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi');
+        metadata.set(
+            'Variant',
+            this.#variant === Variant.JANGGI ? 'Janggi' : this.#variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi'
+        );
 
         // TODO: add date, tournament, etc.
 

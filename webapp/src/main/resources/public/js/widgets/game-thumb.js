@@ -145,6 +145,7 @@ class GameThumb {
      */
     render(gameMetadataDto, utmMedium = null, playerNameHighlight = null) {
         this.metadata = gameMetadataDto;
+        this.boardGui.setVariant(gameMetadataDto.variant);
 
         let maxUserNameLength;
         switch (gameMetadataDto.gameId.type) {
@@ -318,10 +319,14 @@ class GameThumb {
         // variant indicator
         const variantIndicator = this.#findFirst('game-thumb-variant');
         if (variantIndicator) {
-            variantIndicator.innerHTML = gameMetadataDto.variant === Variant.MANCHU ? '统' : '象';
-            variantIndicator.title = gameMetadataDto.variant === Variant.MANCHU
-                ? 'Manchu chess (or Yitong)'
-                : 'Xiangqi (Chinese chess)';
+            variantIndicator.innerHTML = gameMetadataDto.variant === Variant.JANGGI
+                ? '장'
+                : gameMetadataDto.variant === Variant.MANCHU ? '统' : '象';
+            variantIndicator.title = gameMetadataDto.variant === Variant.JANGGI
+                ? 'Janggi (Korean chess)'
+                : gameMetadataDto.variant === Variant.MANCHU
+                    ? 'Manchu chess (or Yitong)'
+                    : 'Xiangqi (Chinese chess)';
         }
 
         // is online

@@ -12,7 +12,9 @@ import io.elephantchess.servicelayer.dto.botgame.CreateBotGameRequest
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.xiangqi.Color.WHITE
+import io.elephantchess.xiangqi.JanggiSetup
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.generateJanggiStartFen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
 import org.koin.core.component.inject
@@ -46,13 +48,62 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `janggi remains unavailable for bot games until server integration`() =
+    fun `can create a Janggi bot game with Fairy Stockfish`() =
         runTest {
-            val request = CreateBotGameRequest(WHITE, 5, Engine.FAIRYSTOCKFISH, null, variant = Variant.JANGGI)
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val startFen = generateJanggiStartFen(JanggiSetup.CENTRAL_CHARIOT, JanggiSetup.OUTER_ELEPHANT)
+            val response = service.create(
+                userId,
+                CreateBotGameRequest(
+                    color = WHITE,
+                    depth = 5,
+                    engine = Engine.FAIRYSTOCKFISH,
+                    startFen = startFen,
+                    openingMode = OpeningMode.ENGINE_ONLY,
+                    variant = Variant.JANGGI,
+                ),
+            )
+
+            val game = pvbGameDaoService.fetchById(response.gameId)!!
+            assertEquals(Variant.JANGGI, game.variant)
+            assertEquals(startFen, game.startFen)
+            assertEquals(Engine.FAIRYSTOCKFISH, game.engine)
+        }
+
+    @Test
+    fun `Janggi requires Fairy Stockfish`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val request = CreateBotGameRequest(
+                color = WHITE,
+                depth = 5,
+                engine = Engine.PIKAFISH,
+                startFen = null,
+                openingMode = OpeningMode.ENGINE_ONLY,
+                variant = Variant.JANGGI,
+            )
             val exception = assertFailsWith<BadRequestException> {
-                service.create(UserId(AUTHENTICATED, "unused"), request)
+                service.create(userId, request)
             }
-            assertEquals("Janggi games are not supported yet", exception.message)
+            assertEquals("Pikafish does not support the Janggi variant. Please use Fairy Stockfish", exception.message)
+        }
+
+    @Test
+    fun `Janggi requires engine-only opening mode`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val request = CreateBotGameRequest(
+                color = WHITE,
+                depth = 5,
+                engine = Engine.FAIRYSTOCKFISH,
+                startFen = null,
+                openingMode = OpeningMode.BY_FREQUENCY,
+                variant = Variant.JANGGI,
+            )
+            val exception = assertFailsWith<BadRequestException> {
+                service.create(userId, request)
+            }
+            assertEquals("Variants require engine-only opening mode", exception.message)
         }
 
     @Test

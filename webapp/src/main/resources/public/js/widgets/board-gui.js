@@ -362,6 +362,32 @@ class BoardGui {
         }
     }
 
+    setVariant(variant) {
+        if (variant === this.#options.variant) {
+            return;
+        }
+
+        const fen = this.#board.outputFen();
+        this.#options = Object.freeze({...this.#options, variant});
+        this.#board = createBoardForVariant(DEFAULT_START_FEN, variant);
+        this.#board.loadFen(fen);
+        this.#boardContainer.innerHTML = '';
+        this.#drawBoard();
+        this.#drawPieces();
+    }
+
+    pass() {
+        if (this.#options.variant !== Variant.JANGGI) {
+            throw new Error('Passing is only supported in Janggi');
+        }
+
+        const general = this.#board.findGeneral(this.#board.getColorToPlay());
+        if (general == null) {
+            throw new Error('Can not pass without a general on the board');
+        }
+        this.registerMoveIfLegal(new HalfMove(general.position, general.position));
+    }
+
     #drawPositionNoAnimation(targetFen) {
         this.#hideAllPiecePlaceHolders();
         this.#hideHighlightedLastMove();
@@ -2086,7 +2112,7 @@ function parsePositionFromElementId(elementId) {
  * @param lazy {boolean} - If true, only create the board on first mouseenter (default: false)
  * @returns {HTMLElement|null} - The created miniboard div (null if lazy and not yet created)
  */
-function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false) {
+function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false, variant = Variant.XIANGQI) {
     const LEFT_MARGIN = 12;
     const MINI_BOARD_HEIGHT = 256 / 0.9;
 
@@ -2111,6 +2137,7 @@ function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false) {
             showCoordinates: false,
             mini: true,
             forceRenderChecks: true,
+            variant,
         });
         boardGui.loadFen(fen);
         boardGui.flipToColor(playerColor);

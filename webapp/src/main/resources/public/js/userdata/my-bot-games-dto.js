@@ -126,6 +126,8 @@ class BotGameEntryDto {
                 return 'checkmated';
             case GameEventType.STALEMATED:
                 return 'stalemated';
+            case GameEventType.DRAW_ACCEPTED:
+                return 'draw';
             case GameEventType.RESIGNED:
                 return 'resigned';
             case GameEventType.AUTO_RESIGNED:

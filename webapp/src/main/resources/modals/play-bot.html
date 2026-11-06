@@ -26,6 +26,13 @@
                             统 Manchu
                         </div>
                     </td>
+                    <td class="button-cells">
+                        <div id="variant-janggi-bot"
+                             data-variant="JANGGI"
+                             class="option-button-div bot-variant-option-button-div">
+                            장 Janggi
+                        </div>
+                    </td>
                 </tr>
                 <tr>
                     <td class="icons-cells">
@@ -112,6 +119,24 @@
             </div>
             <div class="modal-form-label">
                 <h3>Starting Position</h3>
+                <div id="janggi-setup-selectors" style="display: none">
+                    <label for="janggi-blue-setup">Blue setup</label>
+                    <select id="janggi-blue-setup">
+                        <option value="rnba1abnr">Inner elephants</option>
+                        <option value="rbna1anbr">Outer elephants</option>
+                        <option value="rnba1anbr">Right elephant</option>
+                        <option value="rbna1abnr">Left elephant</option>
+                        <option value="bnra1arnb">Central chariot</option>
+                    </select>
+                    <label for="janggi-red-setup">Red setup</label>
+                    <select id="janggi-red-setup">
+                        <option value="rnba1abnr">Inner elephants</option>
+                        <option value="rbna1anbr">Outer elephants</option>
+                        <option value="rnba1anbr">Right elephant</option>
+                        <option value="rbna1abnr">Left elephant</option>
+                        <option value="bnra1arnb">Central chariot</option>
+                    </select>
+                </div>
                 <div class="standard-radio">
                     <span>
                         <input type="radio" id="start-fen-standard" name="start-position-radio" value="Standard"

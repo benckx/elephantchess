@@ -110,7 +110,7 @@ class MyBotGamesPage extends InfiniteScrollPage {
             );
 
             this.#myGameItems.append(item);
-            addMiniboardDiv(item, entry.gameId, entry.currentFen, entry.color);
+            addMiniboardDiv(item, entry.gameId, entry.currentFen, entry.color, false, entry.variant);
 
             // left pane
             leftPane.append(buildBotIcon());
@@ -124,7 +124,7 @@ class MyBotGamesPage extends InfiniteScrollPage {
             opponentDiv.innerText = `${entry.formattedEngine} (${entry.depth})`;
             const middlePaneItems = [
                 opponentDiv,
-                wrapInDiv(buildColorSpan(entry.color)),
+                wrapInDiv(buildColorSpan(entry.color, entry.variant)),
             ];
             middlePane.append(...middlePaneItems);
 
@@ -197,7 +197,7 @@ class MyBotGamesPage extends InfiniteScrollPage {
 
             let colorCell = row.insertCell();
             colorCell.classList.add('clickable');
-            colorCell.append(buildColorSpan(entry.color));
+            colorCell.append(buildColorSpan(entry.color, entry.variant));
 
             let statusCell = row.insertCell();
             statusCell.classList.add('clickable', 'long-label-cell');

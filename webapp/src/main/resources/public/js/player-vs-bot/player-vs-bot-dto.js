@@ -104,11 +104,11 @@ class BotGameDto {
         this.#userColor = json.userColor;
         this.#engine = json.engine;
         this.#depth = Number(json.depth);
+        this.#variant = json.variant ?? Variant.XIANGQI;
         this.#startFen = json.startFen;
         if (this.#startFen == null) {
-            this.#startFen = DEFAULT_START_FEN;
+            this.#startFen = resolveStartFen(null, this.#variant);
         }
-        this.#variant = json.variant ?? Variant.XIANGQI;
         this.#status = json.status;
         this.#moveIndex = Number(json.moveIndex);
         this.#fen = json.fen;
@@ -362,7 +362,16 @@ class PlayMoveResponseDto {
     }
 
     isUserVictory() {
-        return this.hasGameEnded() && this.#botMove == null;
+        return this.hasMatingResult() && this.#botMove == null;
+    }
+
+    isDraw() {
+        return this.#statusUpdate === GameEventType.DRAW_ACCEPTED;
+    }
+
+    hasMatingResult() {
+        return this.#statusUpdate === GameEventType.CHECKMATED ||
+            this.#statusUpdate === GameEventType.STALEMATED;
     }
 
 }

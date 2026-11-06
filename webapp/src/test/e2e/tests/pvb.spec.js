@@ -101,4 +101,49 @@ test.describe('PvB workflow (guest vs bot)', () => {
             await player.context.close();
         });
     }
+
+    test('create and browse a Janggi game with independent setups', async ({browser}, testInfo) => {
+        test.setTimeout(180_000);
+        const player = await newGuestContext(browser);
+        const page = player.page;
+
+        await page.goto('/?pvb', {waitUntil: 'networkidle'});
+        await page.waitForSelector('#play-bot-modal', {state: 'visible'});
+        await page.click('#variant-janggi-bot');
+        await expect(page.locator('#play-as-red')).toHaveText('Blue');
+        await expect(page.locator('#play-as-black')).toHaveText('Red');
+        await page.selectOption('#janggi-blue-setup', 'rbna1abnr');
+        await page.selectOption('#janggi-red-setup', 'bnra1arnb');
+        await expect(page.locator('#opening-engine-only')).toBeChecked();
+        await page.click('#engine-fairy');
+        await page.locator('#play-bot-depth').fill('1');
+        await page.click('#play-bot-button');
+        await page.waitForURL(/\/playbot\?id=/);
+        const gameId = gameIdFromUrl(page.url());
+
+        await expect(page.locator('#info-variant')).toHaveText('Janggi');
+        await expect(page.locator('#info-user-color')).toHaveText('Blue');
+        await expect(page.locator('#info-engine')).toHaveText('Fairy Stockfish');
+
+        for (const uci of ['a3a4', 'c3c4']) {
+            await playMove(page, uci, {readyTimeout: 60_000});
+            await waitForBotReply(page);
+        }
+
+        await page.goto('/userdata/botgames', {waitUntil: 'networkidle'});
+        const item = page.locator(`a.my-game-item[href="/playbot?id=${gameId}"]`);
+        await expect(item).toHaveCount(1);
+        await expect(item.locator('.variant-name')).toHaveText('Janggi');
+        await expect(item.locator('.middle-pane')).toContainText('Blue');
+        await captureStep(testInfo, 'Janggi-my-bot-games', [['player', page]]);
+
+        await page.goto('/browse/player-vs-bot', {waitUntil: 'networkidle'});
+        const thumb = page.locator('.pvb-game-thumb').filter({
+            has: page.locator(`a[href="/playbot?id=${gameId}"]`),
+        });
+        await expect(thumb).toHaveCount(1, {timeout: 30_000});
+        await expect(thumb.locator('.game-thumb-variant')).toHaveText('장');
+
+        await player.context.close();
+    });
 });

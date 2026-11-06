@@ -202,12 +202,17 @@ function buildDivWithTextAndClass(textContent, className) {
  * @returns {HTMLDivElement}
  */
 function buildVariantCell(variant) {
-    const isManchu = variant === Variant.MANCHU;
+    const symbolText = variant === Variant.JANGGI ? '장' : variant === Variant.MANCHU ? '统' : '象';
+    const variantName = variant === Variant.JANGGI ? 'Janggi' : variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi';
+    const variantTitle = variant === Variant.JANGGI
+        ? 'Janggi (Korean chess)'
+        : variant === Variant.MANCHU
+            ? 'Manchu chess (or Yitong)'
+            : 'Xiangqi (Chinese chess)';
     const cell = buildDivWithClass('variant-cell');
-    const symbol = buildDivWithTextAndClass(isManchu ? '统' : '象', 'variant-symbol');
-    symbol.title = isManchu ? 'Manchu chess (or Yitong)' : 'Xiangqi (Chinese chess)';
-    const textContent = isManchu ? 'Manchu' : 'Xiangqi';
-    cell.append(symbol, buildDivWithTextAndClass(textContent, 'variant-name'));
+    const symbol = buildDivWithTextAndClass(symbolText, 'variant-symbol');
+    symbol.title = variantTitle;
+    cell.append(symbol, buildDivWithTextAndClass(variantName, 'variant-name'));
     return cell;
 }
 
@@ -297,16 +302,16 @@ function buildUsernameSpan(userId, username, userType, maxLength = null, removeG
  * @param color {string|null}
  * @return {HTMLSpanElement}
  */
-function buildColorSpan(color) {
+function buildColorSpan(color, variant = Variant.XIANGQI) {
     const colorSpan = document.createElement('span');
     switch (color) {
         case Color.WHITE:
-            colorSpan.className = 'red-color';
-            colorSpan.innerText = 'Red';
+            colorSpan.className = variant === Variant.JANGGI ? 'blue-color' : 'red-color';
+            colorSpan.innerText = variant === Variant.JANGGI ? 'Blue' : 'Red';
             break;
         case Color.BLACK:
-            colorSpan.className = 'black-color';
-            colorSpan.innerText = 'Black';
+            colorSpan.className = variant === Variant.JANGGI ? 'red-color' : 'black-color';
+            colorSpan.innerText = variant === Variant.JANGGI ? 'Red' : 'Black';
             break;
         default:
             colorSpan.className = 'any-color';
