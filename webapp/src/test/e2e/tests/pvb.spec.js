@@ -110,8 +110,16 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await page.goto('/?pvb', {waitUntil: 'networkidle'});
         await page.waitForSelector('#play-bot-modal', {state: 'visible'});
         await page.click('#variant-janggi-bot');
+        expect(await page.locator('#variant-janggi-bot').evaluate((button) => button.closest('tr').rowIndex)).toBe(1);
         await expect(page.locator('#play-as-red')).toHaveText('Blue');
         await expect(page.locator('#play-as-black')).toHaveText('Red');
+        await expect(page.locator('#start-fen-options')).toBeHidden();
+        await expect(page.locator('#janggi-setup-selectors')).toBeVisible();
+        await expect(page.locator('#janggi-setup-selectors')).toHaveCSS('flex-direction', 'column');
+        await expect(page.locator('#janggi-blue-setup')).toHaveClass(/janggi-setup-select-blue/);
+        await expect(page.locator('.janggi-setup-label-blue')).toHaveCSS('color', 'rgb(31, 74, 168)');
+        await expect(page.locator('#janggi-red-setup')).toHaveClass(/janggi-setup-select-red/);
+        await expect(page.locator('.janggi-setup-label-red')).toHaveCSS('color', 'rgb(165, 38, 38)');
         await page.selectOption('#janggi-blue-setup', 'rbna1abnr');
         await page.selectOption('#janggi-red-setup', 'bnra1arnb');
         await expect(page.locator('#opening-engine-only')).toBeChecked();
@@ -125,7 +133,8 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await expect(page.locator('#info-user-color')).toHaveText('Blue');
         await expect(page.locator('#info-engine')).toHaveText('Fairy Stockfish');
 
-        for (const uci of ['a3a4', 'c3c4']) {
+        // Browse PvB lists games after at least six half-moves.
+        for (const uci of ['a3a4', 'c3c4', 'e3e4']) {
             await playMove(page, uci, {readyTimeout: 60_000});
             await waitForBotReply(page);
         }

@@ -42,6 +42,7 @@ class PlayBotModalHandler extends ModalHandler {
     #startFenStandardRadio = document.getElementById('start-fen-standard');
     #startFenCustomRadio = document.getElementById('start-fen-custom');
     #startFenInput = document.getElementById('start-fen');
+    #startFenOptions = document.getElementById('start-fen-options');
     #janggiSetupSelectors = document.getElementById('janggi-setup-selectors');
     #janggiBlueSetup = document.getElementById('janggi-blue-setup');
     #janggiRedSetup = document.getElementById('janggi-red-setup');
@@ -262,6 +263,7 @@ class PlayBotModalHandler extends ModalHandler {
         const isJanggi = this.#getSelectedVariant() === Variant.JANGGI;
         const whiteButton = document.getElementById('play-as-red');
         const blackButton = document.getElementById('play-as-black');
+        this.#startFenOptions.style.display = isJanggi ? 'none' : '';
         whiteButton.innerText = isJanggi ? 'Blue' : 'Red';
         blackButton.innerText = isJanggi ? 'Red' : 'Black';
         whiteButton.classList.toggle('blue-color', isJanggi);
@@ -303,10 +305,10 @@ class PlayBotModalHandler extends ModalHandler {
      * @return {string|null}
      */
     #readStartFenValue() {
-        if (this.#startFenCustomRadio.checked) {
-            return this.#startFenInput.value;
-        } else if (this.#getSelectedVariant() === Variant.JANGGI) {
+        if (this.#getSelectedVariant() === Variant.JANGGI) {
             return generateJanggiStartFen(this.#janggiBlueSetup.value, this.#janggiRedSetup.value);
+        } else if (this.#startFenCustomRadio.checked) {
+            return this.#startFenInput.value;
         } else {
             return null;
         }
