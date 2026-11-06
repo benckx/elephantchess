@@ -17,6 +17,7 @@ import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.AnalysisStatus.CANCELLED
 import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.BotGameMoveType
+import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
@@ -132,19 +133,23 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
                 )
             }
 
-    suspend fun latestGameActivity(minMoveIndex: Int = 0): Instant? =
+    suspend fun latestGameActivity(minMoveIndex: Int = 0, engine: Engine? = null, variant: Variant? = null): Instant? =
         dslContext
             .select(DSL.max(BOT_GAME.LAST_UPDATED))
             .from(BOT_GAME)
             .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(BOT_GAME.GAME_STATUS.notIn(listOf(FLAGGED, AUTO_CANCELED)))
+            .and(engine?.let { BOT_GAME.ENGINE.eq(it) } ?: DSL.noCondition())
+            .and(variant?.let { BOT_GAME.VARIANT.eq(it) } ?: DSL.noCondition())
             .awaitSingleValue()
 
-    suspend fun latestMoveTime(minMoveIndex: Int = 0): Instant? =
+    suspend fun latestMoveTime(minMoveIndex: Int = 0, engine: Engine? = null, variant: Variant? = null): Instant? =
         dslContext
             .select(DSL.max(BOT_GAME.LAST_UPDATED))
             .from(BOT_GAME)
             .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(engine?.let { BOT_GAME.ENGINE.eq(it) } ?: DSL.noCondition())
+            .and(variant?.let { BOT_GAME.VARIANT.eq(it) } ?: DSL.noCondition())
             .awaitSingleValue()
 
     suspend fun fetchUserActivitySummary(userId: String, minMoveIndex: Int? = null): UserActivitySummaryRecord {
@@ -290,7 +295,7 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex).or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
             .awaitSingleValue()!!
 
-    suspend fun countManchuGames(minIndex: Int): Int {
+    suspend fun countVariantGames(minIndex: Int, variant: Variant): Int {
         val countCondition =
             BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex)
                 .or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
@@ -298,7 +303,7 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .selectCount()
             .from(BOT_GAME)
-            .where(countCondition.and(BOT_GAME.VARIANT.eq(Variant.MANCHU)))
+            .where(countCondition.and(BOT_GAME.VARIANT.eq(variant)))
             .awaitSingleValue()!!
     }
 

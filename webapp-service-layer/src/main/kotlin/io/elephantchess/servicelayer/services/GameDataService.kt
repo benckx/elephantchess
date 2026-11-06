@@ -76,8 +76,12 @@ class GameDataService(
             pvpGameDaoService.countTotalGames(MIN_MOVE_INDEX)
 
     suspend fun countTotalManchuGames(): Int =
-        pvbGameDaoService.countManchuGames(MIN_MOVE_INDEX) +
-            pvpGameDaoService.countManchuGames(MIN_MOVE_INDEX)
+        pvbGameDaoService.countVariantGames(MIN_MOVE_INDEX, Variant.MANCHU) +
+            pvpGameDaoService.countVariantGames(MIN_MOVE_INDEX, Variant.MANCHU)
+
+    suspend fun countTotalJanggiGames(): Int =
+        pvbGameDaoService.countVariantGames(MIN_MOVE_INDEX, Variant.JANGGI) +
+            pvpGameDaoService.countVariantGames(MIN_MOVE_INDEX, Variant.JANGGI)
 
     /**
      * Half moves or plies
