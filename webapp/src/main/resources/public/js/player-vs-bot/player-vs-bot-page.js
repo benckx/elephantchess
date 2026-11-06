@@ -146,7 +146,8 @@ class PlayerVsBotPage extends BasePage {
                 document.getElementById('info-depth').innerText = botGameDto.depth.toString();
                 document.getElementById('info-created').innerText = botGameDto.formattedCreated;
                 if (botGameDto.variant !== Variant.XIANGQI) {
-                    document.getElementById('info-variant').innerText = botGameDto.isJanggi ? 'Janggi' : 'Manchu';
+                    document.getElementById('info-variant').innerText =
+                        botGameDto.variant === Variant.JANGGI ? 'Janggi' : 'Manchu';
                     document.getElementById('info-variant-row').style.display = '';
                 }
                 this.#updateOutcomeLabel();
