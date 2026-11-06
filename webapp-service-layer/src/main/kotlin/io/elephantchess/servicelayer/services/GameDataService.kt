@@ -196,6 +196,10 @@ class GameDataService(
                     }
                 }
 
+                if (countTotalMoves(gameId) == 0) {
+                    throw BadRequestException("Game must contain at least one move to analyze")
+                }
+
                 return status to true
             } else {
                 return status to false
