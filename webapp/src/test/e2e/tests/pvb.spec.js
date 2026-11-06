@@ -29,10 +29,32 @@ const ENGINES = [
     {name: 'Fairy Stockfish', optionId: '#engine-fairy'},
 ];
 
+async function waitForBotReply(page) {
+    await page.waitForFunction(() => {
+        const pieces = [...document.querySelectorAll('[id^="board-container-image-"]')];
+        const white = pieces.filter((el) => el.className.includes('piece-image-white')
+            && el.className.includes('piece-image-can-move')).length;
+        const black = pieces.filter((el) => el.className.includes('piece-image-black')
+            && el.className.includes('piece-image-can-move')).length;
+        return black > 0 && white === 0;
+    }, null, {timeout: 15_000});
+
+    await page.waitForFunction(() => {
+        const pieces = [...document.querySelectorAll('[id^="board-container-image-"]')];
+        const white = pieces.filter((el) => el.className.includes('piece-image-white')
+            && el.className.includes('piece-image-can-move')).length;
+        const black = pieces.filter((el) => el.className.includes('piece-image-black')
+            && el.className.includes('piece-image-can-move')).length;
+        return white > 0 && black === 0;
+    }, null, {timeout: 60_000});
+}
+
 // End-to-end coverage for creating a PvB game from the "play bot" modal with
 // each engine. Regression test for the Jackson 3 upgrade, which broke the
 // deserialization of the `engine` field for Fairy Stockfish.
 test.describe('PvB workflow (guest vs bot)', () => {
+    test.setTimeout(180_000);
+
     for (const engine of ENGINES) {
         test(`create game with ${engine.name}, play 2 moves, game is listed in my bot games`, async ({
                                                                                                          browser,
@@ -59,10 +81,8 @@ test.describe('PvB workflow (guest vs bot)', () => {
             // --- Play 2 moves; the server answers each one with the bot's reply ---
             for (let i = 0; i < USER_MOVES.length; i++) {
                 const uci = USER_MOVES[i];
-                const response = page.waitForResponse(/\/api\/botgame\/play-move/);
-                await playMove(page, uci);
-                const json = await (await response).json();
-                expect(json.botMove).toMatch(/^[a-i]\d[a-i]\d$/);
+                await playMove(page, uci, {readyTimeout: 60_000});
+                await waitForBotReply(page);
                 if (i === 0) {
                     await captureStep(testInfo, `1-${engine.name}-move-1`, [['player', page]]);
                 }

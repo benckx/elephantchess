@@ -222,6 +222,7 @@ class MoveTreeNode {
      * In this case, null means we use the default start fen
      */
     #customStartFen;
+    #variant = Variant.XIANGQI;
 
     // graph connections
     #previous = null;
@@ -308,6 +309,20 @@ class MoveTreeNode {
         } else {
             return DEFAULT_START_FEN;
         }
+    }
+
+    /**
+     * @param value {string}
+     */
+    set variant(value) {
+        this.#variant = value ?? Variant.XIANGQI;
+    }
+
+    /**
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
     }
 
     get fullMoveCount() {
@@ -452,6 +467,7 @@ class MoveTreeNode {
      * Calculate and returns the label, but doesn't update UI
      *
      * @param moveFormat {string}
+     * @param variant {string}
      * @return {string}
      */
     renderLabel(moveFormat, variant = Variant.XIANGQI) {
@@ -550,6 +566,7 @@ class MoveTreeNode {
 
     #createBranchWithMoves(moves) {
         let nodes = MoveTreeNode.mapMovesToNodes(moves, this.#level + 1);
+        nodes.forEach(node => node.variant = this.#variant);
         if (this.#customStartFen != null) {
             nodes.forEach(node => node.startFen = this.#customStartFen);
         }
@@ -560,6 +577,7 @@ class MoveTreeNode {
 
     #appendAtTheEnd(moves) {
         let nodes = MoveTreeNode.mapMovesToNodes(moves, this.#level);
+        nodes.forEach(node => node.variant = this.#variant);
         if (this.#customStartFen != null) {
             nodes.forEach(node => node.startFen = this.#customStartFen);
         }
@@ -570,7 +588,7 @@ class MoveTreeNode {
 
     #calculateFen() {
         let moves = this.getAllNodesLeadingUpTo().map(node => node.move);
-        return calculateFen(moves, this.startFen);
+        return calculateFen(moves, this.startFen, this.#variant);
     }
 
     /**
@@ -642,6 +660,7 @@ class MoveTreeNode {
 
     /**
      * @param startFen {string}
+     * @param variant {string}
      * @return {string}
      */
     toPgn(startFen, variant = Variant.XIANGQI) {
@@ -695,6 +714,7 @@ class MoveTree {
     #rootNode = null;
     #startFen = DEFAULT_START_FEN;
     #useDefaultFen = true;
+    #variant = Variant.XIANGQI;
 
     get rootNode() {
         return this.#rootNode;
@@ -714,6 +734,13 @@ class MoveTree {
         } else {
             return this.#startFen;
         }
+    }
+
+    /**
+     * @param value {string}
+     */
+    set variant(value) {
+        this.#variant = value ?? Variant.XIANGQI;
     }
 
     isEmpty() {
@@ -753,6 +780,7 @@ class MoveTree {
 
     setMoves(moves) {
         let nodes = MoveTreeNode.mapMovesToNodes(moves, 0);
+        nodes.forEach(node => node.variant = this.#variant);
         if (!this.#useDefaultFen) {
             nodes.forEach(node => node.startFen = this.#startFen);
         }
@@ -770,12 +798,14 @@ class MoveTree {
         if (lastNode != null) {
             let nextNode = new MoveTreeNode(move, 0);
             nextNode.startFen = this.#startFen;
+            nextNode.variant = this.#variant;
             nextNode.previous = lastNode;
             lastNode.next = nextNode;
             return nextNode;
         } else {
             this.#rootNode = new MoveTreeNode(move, 0);
             this.#rootNode.startFen = this.#startFen;
+            this.#rootNode.variant = this.#variant;
             return this.#rootNode;
         }
     }
@@ -827,6 +857,7 @@ class MoveTree {
 
             // TODO: move to its own loop?
             node.startFen = this.#startFen;
+            node.variant = this.#variant;
         }
 
         // find root node
@@ -1447,6 +1478,7 @@ class MoveTreeWidget {
         if (options.variant !== undefined) {
             this.#variant = options.variant;
         }
+        this.#moveTree.variant = this.#variant;
 
         const containerId = options.containerId;
         if (containerId === undefined) {
@@ -1792,6 +1824,7 @@ class MoveTreeWidget {
 
     set variant(value) {
         this.#variant = value ?? Variant.XIANGQI;
+        this.#moveTree.variant = this.#variant;
     }
 
     get variant() {
@@ -1901,6 +1934,7 @@ class MoveTreeWidget {
         this.#previouslySelectedNode = null;
         this.#moveTree = new MoveTree();
         this.#moveTree.startFen = this.#startFen;
+        this.#moveTree.variant = this.#variant;
 
         if (moves.length > 0) {
             const lastNode = this.#moveTree.setMoves(moves);
@@ -2561,6 +2595,8 @@ class MoveTreeWidget {
      * @param parentContainer {HTMLElement}
      */
     #renderNodes(nodes, parentContainer) {
+        const variant = this.#variant;
+
         // create a line in the move tree widget
         function buildMoveLineContainer(node, isFirstLineOfBranch = false, isLastLineOfBranch = false) {
             let lineContainer = document.createElement('div');
@@ -2632,7 +2668,7 @@ class MoveTreeWidget {
             const label = document.createElement('div');
             label.id = `move-label-placeholder-${node.nodeId}`;
             label.className = 'move-label-placeholder';
-            label.innerText = node.renderLabel(moveFormat, this.#variant);
+            label.innerText = node.renderLabel(moveFormat, variant);
             return label;
         }
 

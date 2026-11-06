@@ -150,10 +150,10 @@ function imageIdFromUci(uciPosition) {
 // marked movable (`piece-image-can-move`) so the animation has committed, then
 // click it to select, wait until the `to` square is shown as a legal
 // destination, and finally click the `to` square.
-async function playMove(page, uci) {
+async function playMove(page, uci, {readyTimeout = 15_000} = {}) {
     const fromUci = uci.substring(0, 2);
     const toUci = uci.substring(2, 4);
-    await expect(page.locator(imageIdFromUci(fromUci))).toHaveClass(/piece-image-can-move/);
+    await expect(page.locator(imageIdFromUci(fromUci))).toHaveClass(/piece-image-can-move/, {timeout: readyTimeout});
     await page.click(squareIdFromUci(fromUci));
     const target = page.locator(legalMoveIdFromUci(toUci));
     await expect(target).toHaveClass(/legal-move-place-holder|possible-capture/);

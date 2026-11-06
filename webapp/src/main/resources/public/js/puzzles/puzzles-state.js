@@ -19,7 +19,7 @@
 
 class PuzzleState extends PuzzleDto {
 
-    #board = new Board();
+    #board = new XiangqiBoard();
     #preRecordedSolutionMovesIndex = 0;
 
     /**
