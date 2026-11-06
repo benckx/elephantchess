@@ -68,6 +68,47 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await player.context.close();
     });
 
+    test('create a Janggi game as Red and play three moves', async ({browser}, testInfo) => {
+        const player = await newGuestContext(browser);
+        const page = player.page;
+
+        await page.goto('/?pvb', {waitUntil: 'networkidle'});
+        await page.click('#variant-janggi-bot');
+        await expect(page.locator('#play-as-black')).toHaveText('Red');
+        await page.click('#play-as-black');
+        await page.locator('#play-bot-depth').fill('1');
+        const creationResponse = page.waitForResponse(response => response.url().endsWith('/api/botgame/create'));
+        await page.click('#play-bot-button');
+        expect((await creationResponse).ok()).toBe(true);
+        await page.waitForURL(/\/playbot\?id=/);
+        await expect(page.locator('#info-variant')).toHaveText('Janggi');
+        await expect(page.locator('#info-user-color')).toHaveText('Red');
+        await expect(page.locator('#info-engine')).toHaveText('Fairy Stockfish');
+        await expect(page.locator('.piece-image-black.piece-image-can-move')).not.toHaveCount(0);
+        await expect(page.locator('.piece-image-white.piece-image-can-move')).toHaveCount(0);
+        await captureStep(testInfo, 'Janggi-Red-after-bot-opening', [['player', page]]);
+
+        for (const [index, uci] of ['a6a5', 'c6c5', 'e6e5'].entries()) {
+            const replyPromise = page.waitForResponse(response => response.url().endsWith('/api/botgame/play-move'));
+            await playMove(page, uci, {readyTimeout: 60_000});
+            const response = await replyPromise;
+            expect(response.ok()).toBe(true);
+            const reply = await response.json();
+            expect(reply.position).toBe(3 + index * 2);
+            expect(reply.botMove).toMatch(/^[a-i][0-9][a-i][0-9]$/);
+            expect(reply.botMove.slice(0, 2)).not.toBe(reply.botMove.slice(2));
+            await expect(page.locator('.piece-image-black.piece-image-can-move')).not.toHaveCount(0);
+            await expect(page.locator('.piece-image-white.piece-image-can-move')).toHaveCount(0);
+        }
+        await captureStep(testInfo, 'Janggi-Red-after-three-moves', [['player', page]]);
+
+        await page.reload({waitUntil: 'networkidle'});
+        await expect(page.locator('#info-user-color')).toHaveText('Red');
+        await expect(page.locator('.piece-image-black.piece-image-can-move')).not.toHaveCount(0);
+        await expect(page.locator('.piece-image-white.piece-image-can-move')).toHaveCount(0);
+        await player.context.close();
+    });
+
     test('Janggi stalemate draws after the final human move', async ({browser}, testInfo) => {
         const player = await newGuestContext(browser);
         const page = player.page;
