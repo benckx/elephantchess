@@ -49,7 +49,7 @@ class PlayBotModalHandler extends ModalHandler {
 
     #playBotButton = document.getElementById('play-bot-button');
 
-    constructor() {
+    constructor(initialVariant = null) {
         super();
         this.#optionDivs = getElementsByClassNameArray(BOT_OPTION_BUTTON_CLASS);
 
@@ -131,6 +131,12 @@ class PlayBotModalHandler extends ModalHandler {
             showGuestMessages();
         }
 
+        if (initialVariant !== null) {
+            this.#setSelectedVariant(initialVariant);
+            if (this.#startFenStandardRadio.checked) {
+                this.#setStartFenFromVariant();
+            }
+        }
         this.#updateDepthInfo();
         this.#updateEngineAvailabilityFromVariant();
         this.#updateOpeningModeAvailabilityFromVariant();

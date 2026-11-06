@@ -613,9 +613,9 @@ function showNewGameModal() {
     });
 }
 
-function showPlayBotModal() {
+function showPlayBotModal(variant = null) {
     UI.showModalByName(Modals.PLAY_BOT, () => {
-        new PlayBotModalHandler();
+        new PlayBotModalHandler(variant);
     });
 }
 

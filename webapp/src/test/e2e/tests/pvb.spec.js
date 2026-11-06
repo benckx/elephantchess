@@ -55,6 +55,19 @@ async function waitForBotReply(page) {
 test.describe('PvB workflow (guest vs bot)', () => {
     test.setTimeout(180_000);
 
+    test('lobby Janggi link opens the bot modal with Janggi selected', async ({browser}) => {
+        const player = await newGuestContext(browser);
+        const page = player.page;
+        await page.locator('.action-link[onclick="showPlayBotModal(Variant.JANGGI)"]').click();
+        await expect(page.locator('#play-bot-modal')).toBeVisible();
+        await expect(page.locator('#variant-janggi-bot')).toHaveClass(/option-button-div-selected/);
+        await expect(page.locator('#janggi-setup-selectors')).toBeVisible();
+        await expect(page.locator('#play-as-red')).toHaveText('Blue');
+        await expect(page.locator('#engine-fairy')).toHaveClass(/option-button-div-selected/);
+        await expect(page.locator('#opening-engine-only')).toBeChecked();
+        await player.context.close();
+    });
+
     test('Janggi stalemate draws after the final human move', async ({browser}, testInfo) => {
         const player = await newGuestContext(browser);
         const page = player.page;
