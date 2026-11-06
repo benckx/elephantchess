@@ -35,7 +35,7 @@ class JacksonEnumConfigTest {
                 routing {
                     post("/engine") {
                         receivedRequest = call.receive<CreateBotGameRequest>()
-                        call.respond(receivedRequest!!)
+                        call.respond(receivedRequest)
                     }
                 }
             }

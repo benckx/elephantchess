@@ -13,9 +13,9 @@ import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.game.PlayMoveRequest
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
-import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.HalfMove
+import io.elephantchess.xiangqi.XiangqiBoard
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
@@ -41,7 +41,7 @@ object CreateGameCloseToEnding : KoinScriptInit() {
             .map { uci -> HalfMove.parseMoveFromUci(uci) }
 
     private suspend fun endsInCheckmate(gameId: String): Boolean {
-        val board = Board()
+        val board = XiangqiBoard()
         board.registerMoves(fetchMoves(gameId))
         return board.isCheckmated()
     }

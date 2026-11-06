@@ -66,6 +66,26 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 }
         }
 
+    @Test
+    fun `janggi remains unavailable for player games until server integration`() =
+        runTest {
+            val request = CreateGameRequest(
+                inviterColor = WHITE,
+                isRated = false,
+                timeControlBase = 600,
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = true,
+                variant = Variant.JANGGI,
+            )
+            val exception = assertFailsWith<BadRequestException> {
+                pvpGameService.createGame(userId1, request)
+            }
+            assertEquals("Janggi games are not supported yet", exception.message)
+        }
+
     @Nested
     @DisplayName("'Always visible in lobby' option behavior")
     inner class AlwaysVisibleInLobbyBehavior {

@@ -12,7 +12,7 @@ import io.elephantchess.scripts.KoinScript
 import io.elephantchess.scripts.puzzles.FindMatePuzzleCandidates.MAX_MATE
 import io.elephantchess.scripts.puzzles.FindMatePuzzleCandidates.OUTPUT_FILE_NAME
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
@@ -88,7 +88,7 @@ object FindMatePuzzleCandidates : KoinScript {
     private suspend fun evaluate(game: ReferenceGame, finalFen: String): MatePuzzleCandidate? {
         logger.info { "evaluating ${game.id} (fen=$finalFen)" }
 
-        val board = Board(finalFen)
+        val board = XiangqiBoard(finalFen)
         val playerColor = board.colorToPlay()
         if (board.isCheckmated() || board.isStalemated(playerColor)) {
             logger.info { "${game.id}: final position is already checkmate/stalemate, skipping" }
@@ -130,7 +130,7 @@ object FindMatePuzzleCandidates : KoinScript {
         }
 
         // verify the engine line actually ends in checkmate before trusting it
-        val replay = Board(finalFen)
+        val replay = XiangqiBoard(finalFen)
         solutionMoves.forEach { move -> replay.registerMove(move) }
         if (!replay.isCheckmated()) {
             logger.warn { "engine line for ${game.id} does not end in checkmate, skipping" }

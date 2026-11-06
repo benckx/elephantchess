@@ -46,6 +46,16 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     }
 
     @Test
+    fun `janggi remains unavailable for bot games until server integration`() =
+        runTest {
+            val request = CreateBotGameRequest(WHITE, 5, Engine.FAIRYSTOCKFISH, null, variant = Variant.JANGGI)
+            val exception = assertFailsWith<BadRequestException> {
+                service.create(UserId(AUTHENTICATED, "unused"), request)
+            }
+            assertEquals("Janggi games are not supported yet", exception.message)
+        }
+
+    @Test
     fun `manchu variant requires engine-only opening mode in service`() =
         runTest {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)

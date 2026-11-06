@@ -9,9 +9,6 @@ enum class Color {
     BLACK,
     ;
 
-    fun isWhiteSide(): Boolean =
-        this == WHITE
-
     fun toUci(): Char =
         when (this) {
             WHITE -> 'w'

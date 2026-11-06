@@ -3,8 +3,8 @@ package io.elephantchess.engines
 import io.elephantchess.engines.process.EngineConfig
 import io.elephantchess.engines.process.EngineId
 import io.elephantchess.engines.process.PikafishEngineId
-import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
+import io.elephantchess.xiangqi.XiangqiBoard
 import kotlinx.coroutines.*
 import java.util.Collections.synchronizedList
 import java.util.concurrent.Executors
@@ -144,7 +144,7 @@ private data class FenAndResult(val fen: String, val bestMove: String?) {
 
     fun isBestMoveLegal(): Boolean {
         bestMove?.let { bestMove ->
-            return Board(fen).isLegalMove(parseMoveFromUci(bestMove))
+            return XiangqiBoard(fen).isLegalMove(parseMoveFromUci(bestMove))
         }
         return false
     }

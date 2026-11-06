@@ -16,15 +16,18 @@ enum class Variant {
      */
     MANCHU,
 
+    JANGGI,
+
     ;
 
     /**
-     * The Chinese character commonly used to represent this variant.
+     * The single-character label used to represent this variant.
      */
     fun chineseChar(): String =
         when (this) {
             XIANGQI -> "象"
             MANCHU -> "统"
+            JANGGI -> "장"
         }
 
     /**
@@ -34,5 +37,6 @@ enum class Variant {
         when (this) {
             XIANGQI -> "xiangqi"
             MANCHU -> "manchu"
+            JANGGI -> "janggitraditional"
         }
 }

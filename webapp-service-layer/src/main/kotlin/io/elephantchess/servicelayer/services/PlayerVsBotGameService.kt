@@ -35,19 +35,20 @@ import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.selectByProbability
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
-import io.elephantchess.xiangqi.Board.Companion.colorToPlay
-import io.elephantchess.xiangqi.Board.Companion.isCheckmated
-import io.elephantchess.xiangqi.Board.Companion.isStalemated
-import io.elephantchess.xiangqi.Board.Companion.moveToFens
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
-import io.elephantchess.xiangqi.Board.Companion.validateFen
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.calculateNewFen
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.colorToPlay
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isCheckmated
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isStalemated
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.moveToFens
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.validateFen
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
@@ -126,6 +127,10 @@ class PlayerVsBotGameService(
     }
 
     suspend fun create(userId: UserId, request: CreateBotGameRequest): CreateBotGameResponse {
+        if (request.variant == Variant.JANGGI) {
+            throw BadRequestException("Janggi games are not supported yet")
+        }
+
         if (request.depth !in 1..14) {
             throw BadRequestException("Depth must be between 1 and 14")
         }
@@ -161,8 +166,9 @@ class PlayerVsBotGameService(
         val now = Clock.System.now()
         val gameId = generateId()
 
-        val actualStartFen = request.startFen ?: Board.defaultStartFen(request.variant)
-        val usesDefaultStartFen = actualStartFen == Board.defaultStartFen(request.variant)
+        val defaultStartFen = defaultStartFen(request.variant)
+        val actualStartFen = request.startFen ?: defaultStartFen
+        val usesDefaultStartFen = actualStartFen == defaultStartFen
 
         // Manchu variant requires Fairy Stockfish.
         // If Pikafish is requested but the start FEN is non-standard, safeQueryForDepth will
@@ -235,7 +241,7 @@ class PlayerVsBotGameService(
                     engine = record.engine,
                     depth = record.depth,
                     customStartFen = record.startFen != null,
-                    currentFen = record.currentFen ?: DEFAULT_START_FEN,
+                    currentFen = record.currentFen ?: DEFAULT_XIANGQI_START_FEN,
                     status = record.gameStatus,
                     outcome = record.outcome,
                     moveIndex = record.currentHalfMoveIndex,
@@ -260,7 +266,7 @@ class PlayerVsBotGameService(
                 userColor = game.userColor,
                 engine = game.engine,
                 depth = game.depth,
-                startFen = game.startFen ?: Board.defaultStartFen(game.variant ?: Variant.XIANGQI),
+                startFen = game.startFen ?: defaultStartFen(game.variant ?: Variant.XIANGQI),
                 status = game.gameStatus,
                 moveIndex = game.currentHalfMoveIndex,
                 fen = game.currentFen,
@@ -288,11 +294,11 @@ class PlayerVsBotGameService(
             val userColor = gameRecord.userColor
             val botColor = userColor.reverse()
 
-            val isLegalMove = Board.isMoveLegal(gameRecord.currentFen, userMove)
+            val isLegalMove = XiangqiBoard.isMoveLegal(gameRecord.currentFen, userMove)
 
             if (isLegalMove) {
                 // user plays their move
-                val board = Board(gameRecord.currentFen)
+                val board = XiangqiBoard(gameRecord.currentFen)
                 board.registerMove(userMove)
 
                 val isBotCheckmated = board.isCheckmated(botColor)
@@ -309,7 +315,7 @@ class PlayerVsBotGameService(
                         botColor = botColor,
                         userMove = userMove,
                         fen = board.outputFen(),
-                        startFen = gameRecord.startFen ?: Board.defaultStartFen(variant),
+                        startFen = gameRecord.startFen ?: defaultStartFen(variant),
                         position = gameRecord.currentHalfMoveIndex,
                         engine = gameRecord.engine,
                         depth = gameRecord.depth,
@@ -319,7 +325,7 @@ class PlayerVsBotGameService(
                     )
 
                     if (botMove != null) {
-                        if (!Board.isMoveLegal(board.outputFen(), botMove.uci)) {
+                        if (!XiangqiBoard.isMoveLegal(board.outputFen(), botMove.uci)) {
                             logger.error { "[${request.gameId}] bot returned illegal move ${botMove.uci} for FEN ${board.outputFen()}" }
                             result = result.addError(BOT_MOVE_NOT_FOUND)
                         } else {
@@ -437,7 +443,7 @@ class PlayerVsBotGameService(
 
         suspend fun findAlternativeMove(bestMove: String): String? {
             val cpMultiplier = if (botColor == WHITE) 1 else -1
-            val movesEvaluation = Board(fen)
+            val movesEvaluation = XiangqiBoard(fen)
                 .listLegalMoves(botColor)
                 .filterNot { move -> move.toUci() == bestMove }
                 .shuffled()
@@ -464,7 +470,7 @@ class PlayerVsBotGameService(
 
         suspend fun validateForRepetitions(bestMove: String): String {
             if (position >= MIN_MOVE_INDEX_CHECK_REPETITION) {
-                val board = Board(fen)
+                val board = XiangqiBoard(fen)
                 board.registerMove(bestMove)
                 if (board.isInCheck(botColor.reverse())) {
                     logger.debug { "user in check -> check for repetitions" }

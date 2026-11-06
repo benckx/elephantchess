@@ -17,8 +17,8 @@ import io.elephantchess.servicelayer.dto.user.*
 import io.elephantchess.servicelayer.exceptions.UnauthorizedException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
 import io.elephantchess.xiangqi.Color.WHITE
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
 import kotlinx.coroutines.test.runTest
 import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
@@ -535,7 +535,7 @@ class UserServiceTest : ServiceTest() {
                 depth = 4
                 startFen = null
                 gameStatus = GameEventType.CREATED
-                currentFen = DEFAULT_START_FEN
+                currentFen = DEFAULT_XIANGQI_START_FEN
                 currentHalfMoveIndex = 0
                 created = now
                 lastUpdated = now
@@ -630,7 +630,7 @@ class UserServiceTest : ServiceTest() {
                 .set(PUZZLE.REF_GAME_SOURCE_ID, "testSource1")
                 .set(PUZZLE.ALGORITHM, PuzzleAlgo.FIND_PATH_TO_MATE)
                 .set(PUZZLE.PLAYER_COLOR, WHITE)
-                .set(PUZZLE.START_FEN, DEFAULT_START_FEN)
+                .set(PUZZLE.START_FEN, DEFAULT_XIANGQI_START_FEN)
                 .set(PUZZLE.INITIAL_RATING, 1000)
                 .set(PUZZLE.RATING, 1000)
                 .awaitExecute()
