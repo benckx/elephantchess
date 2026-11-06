@@ -10,7 +10,6 @@ import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
 import io.elephantchess.webapp.rendering.*
-import io.elephantchess.webapp.rendering.latestSupporterTagResolver
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.*
@@ -30,7 +29,9 @@ private val simplePublicPageMapping = mapOf(
     "/401" to "errors/401",
     "/403" to "errors/403",
     "/404" to "errors/404",
-    "/board" to "test_board",
+    "/board" to "xiangqi_test_board",
+    "/xiangqi-test-board" to "xiangqi_test_board",
+    "/manchu-test-board" to "manchu_test_board",
     "/janggi-test-board" to "janggi_test_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
@@ -44,6 +45,7 @@ private val simplePublicPageMapping = mapOf(
     "/about/datasets" to "about/datasets",
     "/contact" to "contact_form",
     "/how-to-play-xiangqi" to "how_to_play_xiangqi",
+    "/how-to-play-janggi" to "how_to_play_janggi",
     "/7k/game" to "seven_kingdoms/seven_kingdoms_game",
     "/7k/playground" to "seven_kingdoms/seven_kingdoms_playground",
     "/7k/about" to "seven_kingdoms/seven_kingdoms_about",

@@ -1,0 +1,217 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>How to Play Korean chess (janggi) - elephantchess.io</title>
+    <meta name="description"
+          content="Learn how to play Korean chess (janggi), with interactive boards for every piece.">
+    <script defer src="/js/modules/engine.js"></script>
+    <script defer src="/js/widgets/board-gui.js"></script>
+    <link rel="stylesheet" href="/css/how-to-play-xiangqi.css"/>
+    <script defer src="/js/how-to-play-janggi-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-smaller">
+    <h1>How to Play Janggi</h1>
+    <hr/>
+    <p>
+        Janggi is Korean chess. Like Xiangqi, it is played on a 9 by 10 board, except that the board doesn't have a
+        river. It uses Blue and Red pieces where Xiangqi uses Red and Black (so the Red ones are on the other side).
+        Blue moves first. Click or drag pieces on the interactive boards below to explore their moves; use each reset
+        link to restore its example.
+    </p>
+    <p>
+        The boards use westernized pieces by default. Change piece style in the settings if you prefer traditional
+        Janggi characters.
+    </p>
+    <div class="center-content-div">
+        <div id="settings-info-box-container" class="center-content-div">
+            {{settings_info_box}}
+        </div>
+    </div>
+
+    <h1>Pieces and moves</h1>
+    <hr/>
+    <div class="piece-rules">
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="general-moves">General (초 or 楚 / 한 or 漢)</h2>
+                <p>
+                    The General moves one point orthogonally or along a marked palace diagonal. It must stay inside
+                    its 3 by 3 palace.
+                </p>
+                <p>
+                    It is represented by the letter K in FEN.
+                </p>
+                <p>
+                    <span id="reset-general-board-button" class="action-link">reset</span> /
+                    <a href="/janggi-test-board?medium=janggi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-general-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="advisor-moves">Guard (사 or 士)</h2>
+                <p>
+                    The Guard moves like the General: one point orthogonally or along a marked palace diagonal. It
+                    cannot leave its palace.
+                </p>
+                <p>
+                    It is represented by the letter A in FEN.
+                </p>
+                <p>
+                    <span id="reset-advisor-board-button" class="action-link">reset</span> /
+                    <a href="/janggi-test-board?medium=janggi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-advisor-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="chariot-moves">Chariot (차 or 車)</h2>
+                <p>
+                    The Chariot moves any distance orthogonally. It can also follow the marked diagonal lines through
+                    either palace. Pieces block its path.
+                </p>
+                <p>
+                    It is similar to the Rook in western chess or the Chariot in Xiangqi.
+                </p>
+                <p>
+                    It is represented by the letter R in FEN.
+                </p>
+                <p>
+                    <span id="reset-chariot-board-button" class="action-link">reset</span> /
+                    <a href="/janggi-test-board?medium=janggi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-chariot-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="cannon-moves">Cannon (포 or 包)</h2>
+                <p>
+                    The Cannon must jump over exactly one piece to move or capture. It cannot jump over another Cannon
+                    or capture one.
+                </p>
+                <p>
+                    It is represented by the letter C in FEN.
+                </p>
+                <p>
+                    <span id="reset-cannon-board-button" class="action-link">reset</span> /
+                    <a href="/janggi-test-board?medium=janggi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-cannon-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="horse-moves">Horse (마 or 馬)</h2>
+                <p>
+                    The Horse moves one point orthogonally, then one point diagonally outward. A piece on the first
+                    point blocks the move. It is similar to the Horse in Xiangqi.
+                </p>
+                <p>
+                    It is represented by the letter N in FEN.
+                </p>
+                <p>
+                    <span id="reset-horse-board-button" class="action-link">reset</span> /
+                    <a href="/janggi-test-board?medium=janggi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-horse-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="elephant-moves">Elephant (상 or 象)</h2>
+                <p>
+                    The Elephant moves one point orthogonally, then two points diagonally in the same direction. Pieces
+                    on either diagonal step block the move.
+                </p>
+                <p>
+                    It is represented by the letter B in FEN.
+                </p>
+                <p>
+                    <span id="reset-elephant-board-button" class="action-link">reset</span> /
+                    <a href="/janggi-test-board?medium=janggi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-elephant-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="soldier-moves">Soldier (졸 or 卒 / 병 or 兵)</h2>
+                <p>
+                    The Soldier moves one point forward or sideways, but never backward. Inside the opponent's palace,
+                    it can also move forward along marked diagonal lines.
+                </p>
+                <p>
+                    It is represented by the letter P in FEN.
+                </p>
+                <p>
+                    <span id="reset-soldier-board-button" class="action-link">reset</span> /
+                    <a href="/janggi-test-board?medium=janggi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-soldier-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+    </div>
+
+    <h1>Setup</h1>
+    <hr/>
+    <p>
+        Each player starts with one General, two Guards, two Elephants, two Horses, two Chariots, two Cannons, and five
+        Soldiers. The General and Guards start in the palace. Players can choose either Horse/Elephant order beside
+        each Guard.
+    </p>
+    <div class="piece-rules">
+        <div class="piece-row">
+            <div class="explanation">
+                <h2 id="complete-setup-board">Starting position</h2>
+                <p>
+                    This example shows one standard setup. Blue moves first.
+                </p>
+                <p>
+                    <span id="reset-complete-setup-board-button" class="action-link">reset setup board</span> /
+                    <a href="/janggi-test-board?medium=janggi_about">test board</a>
+                </p>
+            </div>
+            <div class="board">
+                <div id="board-container-complete-setup-about" class="board-container board-container-about"></div>
+            </div>
+        </div>
+    </div>
+
+    <h1>See also</h1>
+    <hr/>
+    <ul>
+        <li>
+            <a href="/janggi-test-board?medium=how-to-play">
+                Janggi Test Board
+            </a>
+        </li>
+        <li>
+            <a href="https://en.wikipedia.org/wiki/Janggi" target="_blank">
+                https://en.wikipedia.org/wiki/Janggi
+            </a>
+        </li>
+    </ul>
+</div>
+{{footer}}
+{{kofi_floating_widget}}
+</body>
+</html>
