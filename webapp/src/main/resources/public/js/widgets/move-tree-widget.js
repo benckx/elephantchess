@@ -454,9 +454,9 @@ class MoveTreeNode {
      * @param moveFormat {string}
      * @return {string}
      */
-    renderLabel(moveFormat) {
+    renderLabel(moveFormat, variant = Variant.XIANGQI) {
         const moves = this.getAllNodesLeadingUpTo().map(node => node.move);
-        const translated = translateMovesFormatTakeLast(moves, moveFormat.toString(), this.startFen);
+        const translated = translateMovesFormatTakeLast(moves, moveFormat.toString(), this.startFen, variant);
         if (translated != null) {
             return translated;
         } else {
@@ -644,9 +644,9 @@ class MoveTreeNode {
      * @param startFen {string}
      * @return {string}
      */
-    toPgn(startFen) {
+    toPgn(startFen, variant = Variant.XIANGQI) {
         let nodes = this.getAllNodesLeadingUpTo();
-        let movesAsPgn = translateMovesToPgn(nodes.map(node => node.move), true, startFen);
+        let movesAsPgn = translateMovesToPgn(nodes.map(node => node.move), true, startFen, variant);
         let lastPgn = movesAsPgn[movesAsPgn.length - 1];
         let lastNode = nodes[nodes.length - 1];
         let position = lastNode.position;
@@ -1371,6 +1371,7 @@ class MoveTreeWidget {
 
     #metadataFetcher = () => new Map();
     #startFen = DEFAULT_START_FEN;
+    #variant = Variant.XIANGQI;
     #useDefaultFen = true;
 
     #settingsManager = new SettingsManager();
@@ -1442,6 +1443,9 @@ class MoveTreeWidget {
         }
         if (options.persistHeight !== undefined) {
             this.#persistHeight = options.persistHeight;
+        }
+        if (options.variant !== undefined) {
+            this.#variant = options.variant;
         }
 
         const containerId = options.containerId;
@@ -1786,6 +1790,14 @@ class MoveTreeWidget {
         return this.#moveTree.startFen;
     }
 
+    set variant(value) {
+        this.#variant = value ?? Variant.XIANGQI;
+    }
+
+    get variant() {
+        return this.#variant;
+    }
+
     // COMPLEX GETTERS/SETTERS
 
     /**
@@ -2100,7 +2112,7 @@ class MoveTreeWidget {
         this.#moveTree.getAllNodes().forEach(node => {
             document
                 .getElementById(`move-label-placeholder-${node.nodeId}`)
-                .innerText = node.renderLabel(format);
+                .innerText = node.renderLabel(format, this.#variant);
         });
     }
 
@@ -2301,7 +2313,7 @@ class MoveTreeWidget {
             }
 
             // data
-            exportForLine.push(exportMovesToPgnLine(moves));
+            exportForLine.push(exportMovesToPgnLine(moves, this.#variant, this.#startFen));
             exportForLine.push('');
             exportForLine.push('');
             return exportForLine.join('\n');
@@ -2347,7 +2359,7 @@ class MoveTreeWidget {
     #exportNodesToPgnNested(nodes) {
         let result = [];
         for (let node of nodes) {
-            result.push(node.toPgn(this.#startFen));
+            result.push(node.toPgn(this.#startFen, this.#variant));
             for (let i = 0; i < node.childNodes.length; i++) {
                 let childNode = node.childNodes[i];
                 let continuationToken = '';
@@ -2620,7 +2632,7 @@ class MoveTreeWidget {
             const label = document.createElement('div');
             label.id = `move-label-placeholder-${node.nodeId}`;
             label.className = 'move-label-placeholder';
-            label.innerText = node.renderLabel(moveFormat);
+            label.innerText = node.renderLabel(moveFormat, this.#variant);
             return label;
         }
 

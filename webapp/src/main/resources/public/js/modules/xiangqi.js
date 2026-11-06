@@ -34,16 +34,17 @@ const MANCHU_START_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/9/9/M1BAKAB2
 // Piece color enum. Lives here (rather than in enums.js) so that xiangqi.js
 // can be used standalone (together with board-gui.js) without pulling in the
 // rest of the webapp's modules.
+// Under the hood we keep engine-side colors neutral (WHITE/BLACK).
 const Color = Object.freeze({
-    RED: 'RED',
-    BLACK: 'BLACK'
+    WHITE: 'WHITE',
+    BLACK: 'BLACK',
 });
 
 /**
  * @param char {string}
  * @return {boolean}
  */
-function isRedPiece(char) {
+function isWhitePiece(char) {
     return char.length === 1 && char.toUpperCase() === char;
 }
 
@@ -63,8 +64,8 @@ function charToPieceColor(char) {
     if (char.length !== 1) {
         throw new Error('Not a single char: ' + char);
     } else {
-        if (isRedPiece(char)) {
-            return Color.RED;
+        if (isWhitePiece(char)) {
+            return Color.WHITE;
         } else if (isBlackPiece(char)) {
             return Color.BLACK;
         } else {
@@ -75,10 +76,10 @@ function charToPieceColor(char) {
 
 function reverseColor(color) {
     switch (color.toUpperCase()) {
-        case Color.RED:
+        case Color.WHITE:
             return Color.BLACK;
         case Color.BLACK:
-            return Color.RED;
+            return Color.WHITE;
         default:
             throw Error('Illegal argument color ' + color);
     }
@@ -86,7 +87,7 @@ function reverseColor(color) {
 
 function colorToUci(color) {
     switch (color.toUpperCase()) {
-        case Color.RED:
+        case Color.WHITE:
             return 'w';
         case Color.BLACK:
             return 'b';
@@ -107,9 +108,9 @@ function validateStartFen(fen) {
     let board = new Board();
     board.loadFen(fen);
 
-    if (board.isCheckmate(Color.RED) || board.isCheckmate(Color.BLACK)) {
+    if (board.isCheckmate(Color.WHITE) || board.isCheckmate(Color.BLACK)) {
         throw new Error('Start position is checkmate');
-    } else if (board.isStalemate(Color.RED) || board.isStalemate(Color.BLACK)) {
+    } else if (board.isStalemate(Color.WHITE) || board.isStalemate(Color.BLACK)) {
         throw new Error('Start position is stalemate');
     }
 }
@@ -133,16 +134,39 @@ function toSingleLinePgn(movesAsPgn) {
 /**
  * https://en.wikipedia.org/wiki/Xiangqi#System_3
  *
+ * @param variant {string}
+ * @param startFen {string}
+ * @return {string}
+ */
+function resolveStartFen(startFen, variant = Variant.XIANGQI) {
+    if (startFen != null && startFen !== '') {
+        if (variant === Variant.MANCHU && startFen === DEFAULT_START_FEN) {
+            return MANCHU_START_FEN;
+        }
+        return startFen;
+    }
+
+    if (variant === Variant.MANCHU) {
+        return MANCHU_START_FEN;
+    }
+
+    return DEFAULT_START_FEN;
+}
+
+/**
+ * https://en.wikipedia.org/wiki/Xiangqi#System_3
+ *
  * @param {HalfMove[]} moves
  * @param {boolean} renderCheckIndicators
  * @param {string} startFen
+ * @param {string} variant
  * @return {string[]}
  */
-function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEFAULT_START_FEN) {
+function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEFAULT_START_FEN, variant = Variant.XIANGQI) {
     let movesAsPgn = [];
 
     let board = new Board();
-    board.loadFen(startFen);
+    board.loadFen(resolveStartFen(startFen, variant));
 
     moves.forEach(move => {
         let pieceFrom = board.getPieceAt(move.from);
@@ -164,9 +188,9 @@ function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEF
 
         let checkIndicator = '';
         if (renderCheckIndicators) {
-            if (board.isCheckmate(Color.RED) || board.isCheckmate(Color.BLACK)) {
+            if (board.isCheckmate(Color.WHITE) || board.isCheckmate(Color.BLACK)) {
                 checkIndicator += '#';
-            } else if (board.isInCheck(Color.RED) || board.isInCheck(Color.BLACK)) {
+            } else if (board.isInCheck(Color.WHITE) || board.isInCheck(Color.BLACK)) {
                 checkIndicator += '+';
             }
         }
@@ -181,12 +205,13 @@ function translateMovesToPgn(moves, renderCheckIndicators = true, startFen = DEF
 /**
  * @param moves {HalfMove[]}
  * @param startFen {string}
+ * @param variant {string}
  * @return {string[]}
  */
-function translateMovesToPrefixedAlgebraic(moves, startFen = DEFAULT_START_FEN) {
+function translateMovesToPrefixedAlgebraic(moves, startFen = DEFAULT_START_FEN, variant = Variant.XIANGQI) {
     const formattedMoves = [];
     const board = new Board();
-    board.loadFen(startFen);
+    board.loadFen(resolveStartFen(startFen, variant));
 
     moves.forEach(move => {
         const pieceChar = board.getPieceAt(move.from).pieceChar.toUpperCase();
@@ -202,9 +227,10 @@ function translateMovesToPrefixedAlgebraic(moves, startFen = DEFAULT_START_FEN) 
  * @param moves {HalfMove[]}
  * @param horizontalSeparator {string} can be '=' or '.'
  * @param startFen {string}
+ * @param variant {string}
  * @return {string[]}
  */
-function translateMovesToWxf(moves, horizontalSeparator, startFen) {
+function translateMovesToWxf(moves, horizontalSeparator, startFen, variant = Variant.XIANGQI) {
 
     /**
      * File number in WXF format starts at 1 from the right hand of the player
@@ -213,7 +239,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
      */
     function fileAsWxf(color, file) {
         switch (color) {
-            case Color.RED:
+            case Color.WHITE:
                 return BOARD_WIDTH - file;
             case Color.BLACK:
                 return file + 1;
@@ -228,7 +254,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
      * @return {string} e.g. Direction indicator sign (+ or -)
      */
     function verticalMoveDirectionChar(color, move) {
-        if ((color === Color.BLACK && move.from.y > move.to.y) || (color === Color.RED && move.from.y < move.to.y)) {
+        if ((color === Color.BLACK && move.from.y > move.to.y) || (color === Color.WHITE && move.from.y < move.to.y)) {
             return '+';
         } else {
             return '-';
@@ -272,7 +298,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
                 otherFileY = allSimilarPiecesOnFile[0].position.y;
             }
 
-            let isOnTop = (currentFileY > otherFileY && color === Color.RED)
+            let isOnTop = (currentFileY > otherFileY && color === Color.WHITE)
                 || (currentFileY < otherFileY && color === Color.BLACK);
 
             return isOnTop ? '+' : '-';
@@ -283,7 +309,7 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
 
     let formattedMoves = [];
     let board = new Board();
-    board.loadFen(startFen);
+    board.loadFen(resolveStartFen(startFen, variant));
 
     moves.forEach(move => {
         let physicalPiece = board.getPieceAt(move.from);
@@ -360,18 +386,19 @@ function translateMovesToWxf(moves, horizontalSeparator, startFen) {
  * @param moves {HalfMove[]}
  * @param moveFormat {string}
  * @param startFen {string}
+ * @param variant {string}
  * @return {string[]}
  */
-function translateMovesFormat(moves, moveFormat, startFen) {
+function translateMovesFormat(moves, moveFormat, startFen, variant = Variant.XIANGQI) {
     switch (moveFormat) {
         case MoveFormatSetting.WXF_DOT:
-            return translateMovesToWxf(moves, '.', startFen);
+            return translateMovesToWxf(moves, '.', startFen, variant);
         case MoveFormatSetting.WXF_EQUALS:
-            return translateMovesToWxf(moves, '=', startFen);
+            return translateMovesToWxf(moves, '=', startFen, variant);
         case MoveFormatSetting.PGN:
-            return translateMovesToPgn(moves, false, startFen);
+            return translateMovesToPgn(moves, false, startFen, variant);
         case MoveFormatSetting.ALGEBRAIC_EN:
-            return translateMovesToPrefixedAlgebraic(moves, startFen);
+            return translateMovesToPrefixedAlgebraic(moves, startFen, variant);
         default:
             throw new Error('Unsupported move format ' + moveFormat);
     }
@@ -384,11 +411,12 @@ function translateMovesFormat(moves, moveFormat, startFen) {
  * @param allMoves {HalfMove[]}
  * @param format {string}
  * @param startFen {string}
+ * @param variant {string}
  * @return {string[]}
  */
-function safeTranslateMovesFormat(allMoves, format, startFen) {
+function safeTranslateMovesFormat(allMoves, format, startFen, variant = Variant.XIANGQI) {
     try {
-        return translateMovesFormat(allMoves, format, startFen);
+        return translateMovesFormat(allMoves, format, startFen, variant);
     } catch (e) {
         console.error(e);
         console.info(`startFen ${startFen}`);
@@ -402,10 +430,11 @@ function safeTranslateMovesFormat(allMoves, format, startFen) {
  * @param moves {HalfMove[]}
  * @param moveFormat {string}
  * @param startFen {string}
+ * @param variant {string}
  * @return {null|string}
  */
-function translateMovesFormatTakeLast(moves, moveFormat, startFen) {
-    let translated = translateMovesFormat(moves, moveFormat, startFen);
+function translateMovesFormatTakeLast(moves, moveFormat, startFen, variant = Variant.XIANGQI) {
+    let translated = translateMovesFormat(moves, moveFormat, startFen, variant);
     if (translated.length > 0) {
         return translated[translated.length - 1];
     } else {
@@ -415,10 +444,12 @@ function translateMovesFormatTakeLast(moves, moveFormat, startFen) {
 
 /**
  * @param {HalfMove[]} moves
+ * @param {string} variant
+ * @param {string} startFen
  * @return {string}
  */
-function exportMovesToPgnLine(moves) {
-    return toSingleLinePgn(translateMovesToPgn(moves));
+function exportMovesToPgnLine(moves, variant = Variant.XIANGQI, startFen = DEFAULT_START_FEN) {
+    return toSingleLinePgn(translateMovesToPgn(moves, true, startFen, variant));
 }
 
 /**
@@ -461,7 +492,7 @@ class Position {
             this.y < BOARD_HEIGHT;
     }
 
-    isInRedPalace() {
+    isInWhitePalace() {
         return this.x >= 3 &&
             this.x <= 5 &&
             this.y <= 2;
@@ -474,7 +505,7 @@ class Position {
     }
 
     isInAnyPalace() {
-        return this.isInRedPalace() || this.isInBlackPalace();
+        return this.isInWhitePalace() || this.isInBlackPalace();
     }
 
     getTop() {
@@ -764,7 +795,7 @@ class HalfMove {
 class Board {
 
     #content = [];
-    #redToPlay = true;
+    #whiteToPlay = true;
     #enforceColorTurn = true;
     #fullMovesCounts = 0;
 
@@ -794,10 +825,10 @@ class Board {
         switch (gameStateFen.toLowerCase().trim()[0]) {
             case 'w':
             case 'r':
-                this.#redToPlay = true;
+                this.#whiteToPlay = true;
                 break;
             case 'b':
-                this.#redToPlay = false;
+                this.#whiteToPlay = false;
                 break;
             default:
                 throw new Error('Invalid FEN: can not determine which side plays next');
@@ -942,8 +973,8 @@ class Board {
     }
 
     getColorToPlay() {
-        if (this.#redToPlay) {
-            return Color.RED;
+        if (this.#whiteToPlay) {
+            return Color.WHITE;
         } else {
             return Color.BLACK;
         }
@@ -954,14 +985,14 @@ class Board {
      * @return {boolean}
      */
     isColorToPlay(piece) {
-        return (piece.color === Color.RED && this.#redToPlay) || (piece.color === Color.BLACK && !this.#redToPlay);
+        return (piece.color === Color.WHITE && this.#whiteToPlay) || (piece.color === Color.BLACK && !this.#whiteToPlay);
     }
 
     /**
      * @param color {string}
      */
     forceColorToPlay(color) {
-        this.#redToPlay = (color === Color.RED);
+        this.#whiteToPlay = (color === Color.WHITE);
     }
 
     /**
@@ -991,7 +1022,7 @@ class Board {
         let targetPiece = this.getPieceAt(move.to);
         this.removePieceFrom(move.from);
         this.#setPieceAt(piece, move.to);
-        this.#redToPlay = !this.#redToPlay;
+        this.#whiteToPlay = !this.#whiteToPlay;
         if (piece.color === Color.BLACK) {
             this.#fullMovesCounts++;
         }
@@ -1023,9 +1054,9 @@ class Board {
     }
 
     isMated() {
-        return this.isCheckmate(Color.RED) ||
+        return this.isCheckmate(Color.WHITE) ||
             this.isCheckmate(Color.BLACK) ||
-            this.isStalemate(Color.RED) ||
+            this.isStalemate(Color.WHITE) ||
             this.isStalemate(Color.BLACK);
     }
 
@@ -1052,7 +1083,7 @@ class Board {
     }
 
     #areGeneralsFacing() {
-        let red = this.findGeneral(Color.RED);
+        let red = this.findGeneral(Color.WHITE);
         let black = this.findGeneral(Color.BLACK);
         if (red == null || black == null) {
             return false;
@@ -1100,7 +1131,8 @@ class Board {
     }
 
     /**
-     * @returns {HalfMove[]}
+     * @param position {Position}
+     * @returns {HalfMove[]} Legal moves from the position.
      */
     listLegalMovesFrom(position) {
         let color = this.getColorAt(position);
@@ -1116,7 +1148,7 @@ class Board {
      * color whose turn it is to play).
      *
      * @param color {string} optional, defaults to {@link getColorToPlay}
-     * @returns {HalfMove[]}
+     * @returns {HalfMove[]} Legal moves for the color.
      */
     listAllLegalMoves(color = this.getColorToPlay()) {
         const moves = [];
@@ -1132,7 +1164,8 @@ class Board {
     }
 
     /**
-     * @returns Array of {@class HalfMove} one can go to from {@param from}. Includes illegal moves (e.g. that would put player in check)
+     * @param from {Position}
+     * @returns {HalfMove[]} Moves from the position, including moves that leave the player in check.
      */
     #listAllMovesFrom(from) {
         return this
@@ -1140,9 +1173,7 @@ class Board {
             .map(to => new HalfMove(from, to));
     }
 
-    /**
-     * @returns {Position[]} one can go to from {@param position}. Includes illegal moves (e.g. that would put player in check)
-     */
+    /** @returns {Position[]} Target positions, including moves that leave the player in check. */
     #listAllMovesFromAsPositions(position) {
         switch (this.getPieceAt(position).pieceChar.toLowerCase()) {
             case 'c':
@@ -1166,6 +1197,10 @@ class Board {
         }
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the cannon.
+     */
     #listMovesForCannon(position) {
         let result = [];
         result = result.concat(this.#filterMovesForCannon(position, position.getAllTop()));
@@ -1200,6 +1235,10 @@ class Board {
         return result;
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the chariot.
+     */
     #listMovesForChariot(position) {
         let result = [];
         result = result.concat(this.#filterMovesForChariot(position, position.getAllTop()));
@@ -1227,6 +1266,10 @@ class Board {
         return result;
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the horse.
+     */
     #listMovesForHorse(position) {
         let result = [];
         let top = position.getTop();
@@ -1255,6 +1298,10 @@ class Board {
         );
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the elephant.
+     */
     #listMovesForElephant(position) {
         let result = [];
         let topLeft = position.getTopLeft();
@@ -1282,6 +1329,10 @@ class Board {
         );
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the advisor.
+     */
     #listMovesForAdvisor(position) {
         let result = [];
         result.push(position.getTopLeft());
@@ -1291,6 +1342,10 @@ class Board {
         return this.#filterMovesInItsPalace(position, result);
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the general.
+     */
     #listMovesForGeneral(position) {
         let result = [];
         result.push(position.getTop());
@@ -1301,9 +1356,9 @@ class Board {
     }
 
     #filterMovesInItsPalace(position, allTargetPosition) {
-        if (this.#hasRedPieceAt(position)) {
+        if (this.#hasWhitePieceAt(position)) {
             return allTargetPosition.filter(target =>
-                target.existsOnBoard() && target.isInRedPalace() && !this.#hasRedPieceAt(target)
+                target.existsOnBoard() && target.isInWhitePalace() && !this.#hasWhitePieceAt(target)
             );
         } else if (this.#hasBlackPieceAt(position)) {
             return allTargetPosition.filter(target =>
@@ -1315,9 +1370,13 @@ class Board {
         }
     }
 
+    /**
+     * @param position {Position}
+     * @returns {Position[]} Target positions reachable by the soldier.
+     */
     #listMovesForSoldier(position) {
         let result = [];
-        if (this.#hasRedPieceAt(position)) {
+        if (this.#hasWhitePieceAt(position)) {
             // is red
             result.push(position.getTop());
             if (this.#areOnOppositeSidesOfTheRiver(position, Position.redGeneralStartingPosition)) {
@@ -1343,40 +1402,20 @@ class Board {
 
     /**
      * Super-chariot (Manchu Banner): combines the powers of the chariot, horse, and cannon.
+     * @param position {Position}
+     * @returns {Position[]} Unique target positions reachable by the super-chariot.
      */
     #listMovesForSuperChariot(position) {
         let result = [];
-        // Chariot moves
-        result = result.concat(this.#filterMovesForChariot(position, position.getAllTop()));
-        result = result.concat(this.#filterMovesForChariot(position, position.getAllBottom()));
-        result = result.concat(this.#filterMovesForChariot(position, position.getAllLeft()));
-        result = result.concat(this.#filterMovesForChariot(position, position.getAllRight()));
-        // Cannon moves
-        result = result.concat(this.#filterMovesForCannon(position, position.getAllTop()));
-        result = result.concat(this.#filterMovesForCannon(position, position.getAllBottom()));
-        result = result.concat(this.#filterMovesForCannon(position, position.getAllLeft()));
-        result = result.concat(this.#filterMovesForCannon(position, position.getAllRight()));
-        // Horse moves
-        const top = position.getTop();
-        const bottom = position.getBottom();
-        const left = position.getLeft();
-        const right = position.getRight();
-        if (top.existsOnBoard() && !this.#hasPieceAt(top)) {
-            result.push(top.getTopLeft());
-            result.push(top.getTopRight());
-        }
-        if (bottom.existsOnBoard() && !this.#hasPieceAt(bottom)) {
-            result.push(bottom.getBottomLeft());
-            result.push(bottom.getBottomRight());
-        }
-        if (left.existsOnBoard() && !this.#hasPieceAt(left)) {
-            result.push(left.getTopLeft());
-            result.push(left.getBottomLeft());
-        }
-        if (right.existsOnBoard() && !this.#hasPieceAt(right)) {
-            result.push(right.getTopRight());
-            result.push(right.getBottomRight());
-        }
+        result = result.concat(this.#listMovesForChariot(position));
+        result = result.concat(this.#listMovesForCannon(position));
+        result = result.concat(this.#listMovesForHorse(position));
+
+        // de-duplicate
+        result = result.filter((targetPosition, index) =>
+            result.findIndex(candidate => candidate.isEqualsTo(targetPosition)) === index
+        );
+
         // Filter: must be on board and not capture same-color pieces
         return result.filter(targetPosition =>
             targetPosition.existsOnBoard() && !this.containSameColors(position, targetPosition)
@@ -1408,8 +1447,8 @@ class Board {
      * @param position {Position}
      * @return {boolean}
      */
-    #hasRedPieceAt(position) {
-        return this.#hasPieceOfColorAt(Color.RED, position);
+    #hasWhitePieceAt(position) {
+        return this.#hasPieceOfColorAt(Color.WHITE, position);
     }
 
     /**
@@ -1430,13 +1469,13 @@ class Board {
     }
 
     containSameColors(p1, p2) {
-        return (this.#hasRedPieceAt(p1) && this.#hasRedPieceAt(p2))
+        return (this.#hasWhitePieceAt(p1) && this.#hasWhitePieceAt(p2))
             || (this.#hasBlackPieceAt(p1) && this.#hasBlackPieceAt(p2));
     }
 
     containOppositeColors(p1, p2) {
-        return (this.#hasRedPieceAt(p1) && this.#hasBlackPieceAt(p2))
-            || (this.#hasRedPieceAt(p2) && this.#hasBlackPieceAt(p1));
+        return (this.#hasWhitePieceAt(p1) && this.#hasBlackPieceAt(p2))
+            || (this.#hasWhitePieceAt(p2) && this.#hasBlackPieceAt(p1));
     }
 
     printBoardToLines() {

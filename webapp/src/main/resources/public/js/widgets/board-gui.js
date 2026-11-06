@@ -738,7 +738,7 @@ class BoardGui {
         this.#hideAllCheckHighlights();
 
         if (!this.#options.mini || this.#options.forceRenderChecks) {
-            const redGeneral = this.#board.findGeneral(Color.RED);
+            const redGeneral = this.#board.findGeneral(Color.WHITE);
             const blackGeneral = this.#board.findGeneral(Color.BLACK);
 
             // generals may be absent (e.g. when flip() is called before any
@@ -747,8 +747,8 @@ class BoardGui {
                 return;
             }
 
-            if (this.#board.isInCheck(Color.RED)) {
-                if (this.#board.isCheckmate(Color.RED)) {
+            if (this.#board.isInCheck(Color.WHITE)) {
+                if (this.#board.isCheckmate(Color.WHITE)) {
                     this.disablePlayerMove();
                     this.#hideHighlightedLastMove();
                     this.#highlightCheckMate(redGeneral.position);
@@ -1442,7 +1442,7 @@ class BoardGui {
         img.className = 'piece-image';
         if (isBlackPiece(pieceChar)) {
             img.classList.add('piece-image-black');
-        } else if (isRedPiece(pieceChar)) {
+        } else if (isWhitePiece(pieceChar)) {
             img.classList.add('piece-image-red');
         }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
@@ -1728,7 +1728,7 @@ class BoardGui {
      * @param color {string|null}
      */
     flipToColor(color) {
-        if (color != null && ((this.#flippedRed && color === Color.BLACK) || (!this.#flippedRed && color === Color.RED))) {
+        if (color != null && ((this.#flippedRed && color === Color.BLACK) || (!this.#flippedRed && color === Color.WHITE))) {
             this.flip();
         }
     }
@@ -1739,7 +1739,7 @@ class BoardGui {
      * @return {string}
      */
     get bottomColor() {
-        return this.#flippedRed ? Color.RED : Color.BLACK;
+        return this.#flippedRed ? Color.WHITE : Color.BLACK;
     }
 
     flip() {
@@ -1751,7 +1751,7 @@ class BoardGui {
         this.#resetDraggableCursors();
         this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
 
-        const newColor = this.#flippedRed ? Color.RED : Color.BLACK;
+        const newColor = this.#flippedRed ? Color.WHITE : Color.BLACK;
         this.#afterFlipListeners.forEach(listener => listener(newColor));
         this.#forceSafariLayoutRefresh();
     }

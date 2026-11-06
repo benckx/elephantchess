@@ -32,7 +32,7 @@ class DatabaseEventPage extends BasePage {
                 const gameId = row.getAttribute('data-game-id');
 
                 if (fen && gameId) {
-                    addMiniboardDiv(row, gameId, fen, Color.RED, true);
+                    addMiniboardDiv(row, gameId, fen, Color.WHITE, true);
                     row.addEventListener('click', () => {
                         window.location.href = `/database/game?id=${gameId}`;
                     });

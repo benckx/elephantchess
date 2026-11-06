@@ -17,5 +17,5 @@ data class BotGameStatusRecord(
         isInProgress() && !userHasPlayed()
 
     private fun userHasPlayed(): Boolean =
-        (position > 0 && userColor == Color.RED) || (position > 1 && userColor == Color.BLACK)
+        (position > 0 && userColor == Color.WHITE) || (position > 1 && userColor == Color.BLACK)
 }

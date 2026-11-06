@@ -5,7 +5,7 @@ import io.elephantchess.model.GameEventType.CHECKMATED
 import io.elephantchess.model.GameEventType.STALEMATED
 import io.elephantchess.model.Outcome
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.xiangqi.Color
 
 data class PlayMoveBotGameCallbackResult(
@@ -25,8 +25,8 @@ data class PlayMoveBotGameCallbackResult(
     }
 
     private fun updateWinningColor(color: Color): PlayMoveBotGameCallbackResult =
-        if (color == Color.RED) {
-            copy(outcome = RED_WINS)
+        if (color == Color.WHITE) {
+            copy(outcome = WHITE_WINS)
         } else {
             copy(outcome = BLACK_WINS)
         }

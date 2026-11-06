@@ -77,7 +77,7 @@ class PgnParser extends MoveParser {
         }
 
         let resultCandidates = [new ResultCandidate()];
-        let color = Color.RED;
+        let color = Color.WHITE;
         let annotations = [];
 
         this.tokenize().forEach(token => {
@@ -130,7 +130,7 @@ class PgnParser extends MoveParser {
 
             let pieceWithColor;
             switch (color) {
-                case Color.RED:
+                case Color.WHITE:
                     pieceWithColor = piece.toUpperCase();
                     break;
                 case Color.BLACK:

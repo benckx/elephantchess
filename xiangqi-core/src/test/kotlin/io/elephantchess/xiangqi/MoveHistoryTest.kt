@@ -1,7 +1,7 @@
 package io.elephantchess.xiangqi
 
 import io.elephantchess.xiangqi.AbstractPieceType.CHARIOT
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.Position.Companion.parsePositionFromUci
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -36,8 +36,8 @@ class MoveHistoryTest {
         val board = Board(keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val history = board.getHistory()!!
-        val checkingPiece = PhysicalPiece(PieceType(CHARIOT, RED), parsePositionFromUci("a0"))
-        val sequenceOfChecks = history.findSequencesOfConsecutiveChecks(RED, 1)[1]!!
+        val checkingPiece = PhysicalPiece(PieceType(CHARIOT, WHITE), parsePositionFromUci("a0"))
+        val sequenceOfChecks = history.findSequencesOfConsecutiveChecks(WHITE, 1)[1]!!
 
         sequenceOfChecks.moves.forEach { historicalMove ->
             logger.debug { historicalMove }

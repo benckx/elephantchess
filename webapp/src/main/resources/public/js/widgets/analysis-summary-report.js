@@ -162,7 +162,7 @@ function renderAnalysisSummaryReport(
     const summaryBlock = document.getElementById('analysis-summary')
 
     if (isEngineDataComplete(nodes, analysisMap)) {
-        const counterRed = countMoveAnnotationTypesByColor(Color.RED);
+        const counterRed = countMoveAnnotationTypesByColor(Color.WHITE);
         const counterBlack = countMoveAnnotationTypesByColor(Color.BLACK);
 
         for (let symbolType of moveAnnotationSymbolTypesArray) {
@@ -187,8 +187,8 @@ function renderAnalysisSummaryReport(
 
         if (outcome != null) {
             switch (outcome) {
-                case Outcome.RED_WINS:
-                    document.getElementById('analysis-summary-red-player-wins').innerHTML = WINNER_BLUE_STAR_HTML;
+                case Outcome.WHITE_WINS:
+                    document.getElementById('analysis-summary-white-player-wins').innerHTML = WINNER_BLUE_STAR_HTML;
                     break;
                 case Outcome.BLACK_WINS:
                     document.getElementById('analysis-summary-black-player-wins').innerHTML = WINNER_BLUE_STAR_HTML;

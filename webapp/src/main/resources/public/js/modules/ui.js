@@ -300,7 +300,7 @@ function buildUsernameSpan(userId, username, userType, maxLength = null, removeG
 function buildColorSpan(color) {
     const colorSpan = document.createElement('span');
     switch (color) {
-        case Color.RED:
+        case Color.WHITE:
             colorSpan.className = 'red-color';
             colorSpan.innerText = 'Red';
             break;

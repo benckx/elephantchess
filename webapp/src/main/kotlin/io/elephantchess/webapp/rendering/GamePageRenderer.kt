@@ -75,7 +75,7 @@ class GamePageRenderer(
 
             val invitee = inviteeUsername ?: "<waiting>"
             return when (inviterColor) {
-                Color.RED -> "$inviterUsername vs. $invitee"
+                Color.WHITE -> "$inviterUsername vs. $invitee"
                 Color.BLACK -> "$invitee vs. $inviterUsername"
             }
         }
@@ -85,7 +85,7 @@ class GamePageRenderer(
             val botPlayer = "${formatEngineName(engine)} ($depth)"
 
             return when (userColor) {
-                Color.RED -> "$humanPlayer vs. $botPlayer"
+                Color.WHITE -> "$humanPlayer vs. $botPlayer"
                 Color.BLACK -> "$botPlayer vs. $humanPlayer"
             }
         }

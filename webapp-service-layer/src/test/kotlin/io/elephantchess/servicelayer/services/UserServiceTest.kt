@@ -18,7 +18,7 @@ import io.elephantchess.servicelayer.exceptions.UnauthorizedException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import kotlinx.coroutines.test.runTest
 import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
@@ -489,7 +489,7 @@ class UserServiceTest : ServiceTest() {
             userService.refreshIsOnlineCache()
 
             val createGameRequest = CreateGameRequest(
-                inviterColor = RED,
+                inviterColor = WHITE,
                 isRated = false,
                 timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                 timeControlIncrement = null,
@@ -529,7 +529,7 @@ class UserServiceTest : ServiceTest() {
             val gameRecord = BotGame().apply {
                 id = gameId
                 userId = guestId.id
-                userColor = RED
+                userColor = WHITE
                 engine = Engine.FAIRYSTOCKFISH
                 engineVersion = "11.2"
                 depth = 4
@@ -570,7 +570,7 @@ class UserServiceTest : ServiceTest() {
             userService.refreshIsOnlineCache()
 
             val createGameRequest = CreateGameRequest(
-                inviterColor = RED,
+                inviterColor = WHITE,
                 isRated = false,
                 timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                 timeControlIncrement = null,
@@ -629,7 +629,7 @@ class UserServiceTest : ServiceTest() {
                 .set(PUZZLE.REF_GAME_SOURCE, "test")
                 .set(PUZZLE.REF_GAME_SOURCE_ID, "testSource1")
                 .set(PUZZLE.ALGORITHM, PuzzleAlgo.FIND_PATH_TO_MATE)
-                .set(PUZZLE.PLAYER_COLOR, RED)
+                .set(PUZZLE.PLAYER_COLOR, WHITE)
                 .set(PUZZLE.START_FEN, DEFAULT_START_FEN)
                 .set(PUZZLE.INITIAL_RATING, 1000)
                 .set(PUZZLE.RATING, 1000)

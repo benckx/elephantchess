@@ -298,7 +298,7 @@ function millisToRelativeTimeShorthand(elapsed) {
 // TODO: rename to PGN
 function formatOutcome(outcome) {
     switch (outcome) {
-        case Outcome.RED_WINS:
+        case Outcome.WHITE_WINS:
             return '1 - 0';
         case Outcome.BLACK_WINS:
             return '0 - 1'
@@ -393,6 +393,23 @@ function capitalize(value) {
  */
 function formatEnumValue(value) {
     return capitalize(value.replaceAll('_', ' '));
+}
+
+/**
+ * @param value {string}
+ * @return {string}
+ */
+function formatXiangqiOutcome(value) {
+    switch (value) {
+        case Outcome.WHITE_WINS:
+            return 'Red wins';
+        case Outcome.BLACK_WINS:
+            return 'Black wins';
+        case Outcome.DRAW:
+            return 'Draw';
+        default:
+            return formatEnumValue(value);
+    }
 }
 
 /**

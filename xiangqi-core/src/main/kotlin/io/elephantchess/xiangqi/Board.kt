@@ -2,7 +2,7 @@ package io.elephantchess.xiangqi
 
 import io.elephantchess.xiangqi.AbstractPieceType.*
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.Position.Companion.getAllPositions
 import io.elephantchess.xiangqi.Variant.MANCHU
@@ -16,7 +16,7 @@ class Board(
 
     private val content: Array<Array<PhysicalPiece?>> = Array(WIDTH) { Array(HEIGHT) { null } }
     private val history = mutableListOf<HistoricalMove>()
-    private var colorToPlay = RED
+    private var colorToPlay = WHITE
     private var fullMovesCounts = 0
 
     init {
@@ -32,13 +32,13 @@ class Board(
     }
 
     fun isCheckmated(): Boolean =
-        isCheckmated(RED) || isCheckmated(BLACK)
+        isCheckmated(WHITE) || isCheckmated(BLACK)
 
     fun isCheckmated(color: Color): Boolean =
         color == colorToPlay && isInCheck(color) && allMovesAreIllegal(color)
 
     fun isStalemated(): Boolean =
-        isStalemated(RED) || isStalemated(BLACK)
+        isStalemated(WHITE) || isStalemated(BLACK)
 
     fun isStalemated(color: Color): Boolean =
         color == colorToPlay && !isInCheck(color) && allMovesAreIllegal(color)
@@ -55,7 +55,7 @@ class Board(
     }
 
     private fun areGeneralsFacing(): Boolean {
-        val red = findGeneral(RED)
+        val red = findGeneral(WHITE)
         val black = findGeneral(BLACK)
         fun noPieceInBetweenGenerals() =
             (red!!.position.y + 1 until black!!.position.y)
@@ -165,19 +165,19 @@ class Board(
 
         fun filterInItsPalace(positions: List<Position>): List<Position> =
             when (color) {
-                RED -> positions.filter { it.isInRedPalace() }
+                WHITE -> positions.filter { it.isInRedPalace() }
                 BLACK -> positions.filter { it.isInBlackPalace() }
             }
 
         fun hasCrossedTheRiver(): Boolean =
             when (color) {
-                RED -> piecePosition.y >= 5
+                WHITE -> piecePosition.y >= 5
                 BLACK -> piecePosition.y <= 4
             }
 
         fun isAcrossTheRiver(position: Position): Boolean =
             when (color) {
-                RED -> position.y >= 5
+                WHITE -> position.y >= 5
                 BLACK -> position.y <= 4
             }
 
@@ -268,7 +268,7 @@ class Board(
                 SOLDIER -> {
                     val result = mutableListOf<Position>()
                     result += when (color) {
-                        RED -> piecePosition.getTop()
+                        WHITE -> piecePosition.getTop()
                         BLACK -> piecePosition.getBottom()
                     }
                     if (hasCrossedTheRiver()) {
@@ -383,8 +383,8 @@ class Board(
         // color to play
         colorToPlay =
             when (fenComponents[1].toCharArray().first()) {
-                'r' -> RED
-                'w' -> RED
+                'r' -> WHITE
+                'w' -> WHITE
                 'b' -> BLACK
                 else -> throw IllegalArgumentException("Unrecognized color ${fenComponents[1]}")
             }
