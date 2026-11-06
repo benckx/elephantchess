@@ -14,6 +14,7 @@ class JanggiGameMovesDtoCache {
 
     private companion object {
 
+        val movePattern = Regex("[a-i][0-9][a-i][0-9]")
         val cache by lazy { loadAll() }
 
         fun loadAll(): List<GameMovesDto> =
@@ -24,6 +25,9 @@ class JanggiGameMovesDtoCache {
                     val pieces = line.split(";", limit = 3)
                     val gameId = pieces[0]
                     val moves = pieces[1].split(",").filter { it.isNotBlank() }
+                    require(moves.all { movePattern.matches(it) }) {
+                        "Invalid zero-based Janggi coordinates in game '$gameId'"
+                    }
                     val outcome = pieces.getOrNull(2)?.takeIf { it.isNotBlank() }
                     GameMovesDto(gameId, moves, outcome)
                 }
