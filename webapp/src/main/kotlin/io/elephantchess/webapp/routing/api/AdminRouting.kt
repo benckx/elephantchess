@@ -10,6 +10,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import java.net.URLDecoder
+import java.nio.charset.StandardCharsets.UTF_8
 import java.time.YearMonth
 
 fun Route.adminConsoleRoutes() {
@@ -170,8 +171,7 @@ private fun Route.adminAnalyticsRoutes() {
     get("/page-view-stats-by-event-path") {
         requireAdminRole { _ ->
             val encodedPath = call.parameters["path"] ?: "/"
-            val eventPath = URLDecoder.decode(encodedPath, "UTF-8")
-
+            val eventPath = URLDecoder.decode(encodedPath, UTF_8)
             adminAnalyticsService.fetchPageViewStatsByEventPath(eventPath)
         }
     }
