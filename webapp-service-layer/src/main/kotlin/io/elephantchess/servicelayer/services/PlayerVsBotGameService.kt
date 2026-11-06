@@ -3,8 +3,6 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.config.AppConfig
 import io.elephantchess.db.callback.BotMove
 import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult
-import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult.ErrorType.BOT_MOVE_NOT_FOUND
-import io.elephantchess.db.callback.PlayMoveBotGameCallbackResult.ErrorType.ILLEGAL_PLAYER_MOVE
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGameStatusEvent
 import io.elephantchess.db.model.BotGameStatusRecord
@@ -19,12 +17,14 @@ import io.elephantchess.model.BotGameMoveType
 import io.elephantchess.model.Engine
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.OpeningMode
+import io.elephantchess.model.Outcome
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.botgame.*
 import io.elephantchess.servicelayer.dto.gamedata.GameMovesResponse
 import io.elephantchess.servicelayer.dto.ws.BotGameSpectatorUpdate
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.ForbiddenException
+import io.elephantchess.servicelayer.exceptions.InternalErrorException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.exceptions.RequestTimeoutException
 import io.elephantchess.servicelayer.model.UserId
@@ -33,21 +33,23 @@ import io.elephantchess.servicelayer.utils.modelToProcess
 import io.elephantchess.servicelayer.utils.ops.isNonStandardFen
 import io.elephantchess.servicelayer.utils.ops.launchAtFixedRate
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
+import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.selectByProbability
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
-import io.elephantchess.xiangqi.Board.Companion.colorToPlay
-import io.elephantchess.xiangqi.Board.Companion.isCheckmated
-import io.elephantchess.xiangqi.Board.Companion.isStalemated
-import io.elephantchess.xiangqi.Board.Companion.moveToFens
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
-import io.elephantchess.xiangqi.Board.Companion.validateFen
+import io.elephantchess.xiangqi.AbstractXiangqiBoard
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
+import io.elephantchess.xiangqi.HalfMove
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.calculateNewFen
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.colorToPlay
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.moveToFens
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.validateFen
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
@@ -134,14 +136,15 @@ class PlayerVsBotGameService(
             throw BadRequestException("You must be authenticated to play with depth greater than 6")
         }
 
-        // Manchu variant requires Engine only opening mode
-        if (request.variant == Variant.MANCHU && request.openingMode != OpeningMode.ENGINE_ONLY) {
+        // Non-Xiangqi variants require engine-only opening mode.
+        if (request.variant != Variant.XIANGQI && request.openingMode != OpeningMode.ENGINE_ONLY) {
             throw BadRequestException("Variants require engine-only opening mode")
         }
 
-        // Manchu variant requires Fairy Stockfish
-        if (request.variant == Variant.MANCHU && request.engine == Engine.PIKAFISH) {
-            throw BadRequestException("Pikafish does not support the Manchu variant. Please use Fairy Stockfish")
+        if (request.variant != Variant.XIANGQI && request.engine == Engine.PIKAFISH) {
+            throw BadRequestException(
+                "Pikafish does not support the ${request.variant.prettyName()} variant. Please use Fairy Stockfish",
+            )
         }
 
         request.startFen?.let { fen ->
@@ -151,24 +154,24 @@ class PlayerVsBotGameService(
                 throw BadRequestException(e.message ?: "Invalid FEN")
             }
 
-            if (isCheckmated(fen)) {
-                throw BadRequestException("Start position is checkmate")
-            } else if (isStalemated(fen)) {
-                throw BadRequestException("Start position is stalemate")
+            val board = AbstractXiangqiBoard.create(request.variant, fen)
+            gameEnding(board, request.color)?.let { ending ->
+                throw BadRequestException(
+                    if (ending.gameEventType == CHECKMATED) "Start position is checkmate" else "Start position is stalemate",
+                )
             }
         }
 
         val now = Clock.System.now()
         val gameId = generateId()
 
-        val actualStartFen = request.startFen ?: Board.defaultStartFen(request.variant)
-        val usesDefaultStartFen = actualStartFen == Board.defaultStartFen(request.variant)
+        val defaultStartFen = defaultStartFen(request.variant)
+        val actualStartFen = request.startFen ?: defaultStartFen
+        val usesDefaultStartFen = actualStartFen == defaultStartFen
 
-        // Manchu variant requires Fairy Stockfish.
-        // If Pikafish is requested but the start FEN is non-standard, safeQueryForDepth will
-        // use Fairy Stockfish instead, so we persist the effective engine/version that will be used.
-
-        val isVariant = request.variant == Variant.MANCHU
+        // Variants and non-standard FENs require Fairy Stockfish.
+        // Persist effective engine/version because the game record is also shown in history.
+        val isVariant = request.variant != Variant.XIANGQI
         val isUnsupportedByPikafish = isNonStandardFen(actualStartFen)
         val effectiveEngine = if (isVariant || isUnsupportedByPikafish) Engine.FAIRYSTOCKFISH else request.engine
         val engineVersion = when (effectiveEngine) {
@@ -215,7 +218,9 @@ class PlayerVsBotGameService(
             )
 
             if (botMove != null) {
-                pvbGameDaoService.saveFirstBotMove(gameId, botMove, calculateNewFen(actualStartFen, botMove.uci))
+                val board = AbstractXiangqiBoard.create(request.variant, actualStartFen)
+                board.registerMove(botMove.uci)
+                pvbGameDaoService.saveFirstBotMove(gameId, botMove, board.outputFen(), gameEnding(board, request.color))
             } else {
                 // FIXME: the game is created but is in a wrong state -> maybe it should be canceled
                 throw RequestTimeoutException("Engine did not respond in time, please retry later")
@@ -235,7 +240,7 @@ class PlayerVsBotGameService(
                     engine = record.engine,
                     depth = record.depth,
                     customStartFen = record.startFen != null,
-                    currentFen = record.currentFen ?: DEFAULT_START_FEN,
+                    currentFen = record.currentFen ?: DEFAULT_XIANGQI_START_FEN,
                     status = record.gameStatus,
                     outcome = record.outcome,
                     moveIndex = record.currentHalfMoveIndex,
@@ -260,7 +265,7 @@ class PlayerVsBotGameService(
                 userColor = game.userColor,
                 engine = game.engine,
                 depth = game.depth,
-                startFen = game.startFen ?: Board.defaultStartFen(game.variant ?: Variant.XIANGQI),
+                startFen = game.startFen ?: defaultStartFen(game.variant ?: Variant.XIANGQI),
                 status = game.gameStatus,
                 moveIndex = game.currentHalfMoveIndex,
                 fen = game.currentFen,
@@ -280,89 +285,75 @@ class PlayerVsBotGameService(
 
     suspend fun playMove(userId: String, request: PlayMoveBotGameRequest): PlayMoveBotGameResponse {
         validateCanPlay(userId, request.gameId)
-        var result = PlayMoveBotGameCallbackResult()
 
-        // TODO: use same pattern as in GameService with TryEither
-        pvbGameDaoService.saveUserMoveResult(request.gameId, request.move) { gameRecord, userMove ->
-            val variant = gameRecord.variant
+        val dbResult = pvbGameDaoService.saveUserMoveResult(request.gameId, request.move) { gameRecord, userMove ->
+            val variant = gameRecord.variant ?: Variant.XIANGQI
             val userColor = gameRecord.userColor
             val botColor = userColor.reverse()
+            val startFen = gameRecord.startFen ?: defaultStartFen(variant)
+            val board = AbstractXiangqiBoard.create(variant, gameRecord.currentFen)
 
-            val isLegalMove = Board.isMoveLegal(gameRecord.currentFen, userMove)
+            val isLegalMove = userMove.matches(Regex(XiangqiBoard.UCI_MOVE_REGEX_PATTERN)) &&
+                HalfMove.parseMoveFromUci(userMove) in listLegalMoves(board)
 
-            if (isLegalMove) {
-                // user plays their move
-                val board = Board(gameRecord.currentFen)
-                board.registerMove(userMove)
-
-                val isBotCheckmated = board.isCheckmated(botColor)
-                val isBotStalemated = board.isStalemated(botColor)
-
-                if (isBotCheckmated || isBotStalemated) {
-                    // user has won against the bot
-                    result = result.updateForUserVictory(userColor, isBotCheckmated, isBotStalemated)
-                    result = result.copy(newPosition = gameRecord.currentHalfMoveIndex + 1)
-                } else {
-                    // otherwise, bot plays its move
-                    val botMove = playBotMove(
-                        gameId = request.gameId,
-                        botColor = botColor,
-                        userMove = userMove,
-                        fen = board.outputFen(),
-                        startFen = gameRecord.startFen ?: Board.defaultStartFen(variant),
-                        position = gameRecord.currentHalfMoveIndex,
-                        engine = gameRecord.engine,
-                        depth = gameRecord.depth,
-                        usesDefaultStartFen = gameRecord.startFen == null,
-                        openingMode = gameRecord.openingMode,
-                        variant = variant,
-                    )
-
-                    if (botMove != null) {
-                        if (!Board.isMoveLegal(board.outputFen(), botMove.uci)) {
-                            logger.error { "[${request.gameId}] bot returned illegal move ${botMove.uci} for FEN ${board.outputFen()}" }
-                            result = result.addError(BOT_MOVE_NOT_FOUND)
-                        } else {
-                            board.registerMove(botMove.uci)
-                            logger.debug { "FEN after bot move: ${board.outputFen()}" }
-                            result = result.copy(botMove = botMove)
-
-                            val isUserCheckmated = board.isCheckmated(userColor)
-                            val isUserStalemated = board.isStalemated(userColor)
-
-                            if (isUserCheckmated || isUserStalemated) {
-                                // bot has won against the player
-                                result = result.updateForBotVictory(botColor, isUserCheckmated, isUserStalemated)
-                            }
-
-                            result = result.copy(newPosition = gameRecord.currentHalfMoveIndex + 2)
-                        }
-                    } else {
-                        result = result.addError(BOT_MOVE_NOT_FOUND)
-                    }
-                }
-
-                result = result.copy(newFen = board.outputFen())
-            } else {
-                result = result.addError(ILLEGAL_PLAYER_MOVE)
+            if (!isLegalMove) {
+                logger.warn { "[${request.gameId}] Illegal player move $userMove" }
+                throw BadRequestException("Illegal move $userMove")
             }
 
-            result
+            board.registerMove(userMove)
+            gameEnding(board, userColor)?.let { ending ->
+                return@saveUserMoveResult ending.copy(
+                    newFen = board.outputFen(),
+                    newPosition = gameRecord.currentHalfMoveIndex + 1,
+                )
+            }
+
+            val botMove = playBotMove(
+                gameId = request.gameId,
+                botColor = botColor,
+                userMove = userMove,
+                fen = board.outputFen(),
+                startFen = startFen,
+                position = gameRecord.currentHalfMoveIndex,
+                engine = gameRecord.engine,
+                depth = gameRecord.depth,
+                usesDefaultStartFen = gameRecord.startFen == null,
+                openingMode = gameRecord.openingMode,
+                variant = variant,
+            ) ?: throw RequestTimeoutException("Engine did not respond in time, reload page")
+
+            val botMoveIsLegal = botMove.uci.matches(Regex(XiangqiBoard.UCI_MOVE_REGEX_PATTERN)) &&
+                HalfMove.parseMoveFromUci(botMove.uci) in listLegalMoves(board)
+            if (!botMoveIsLegal) {
+                logger.error { "[${request.gameId}] bot returned illegal move ${botMove.uci} for FEN ${board.outputFen()}" }
+                throw RequestTimeoutException("Engine did not respond in time, reload page")
+            }
+
+            board.registerMove(botMove.uci)
+            logger.debug { "FEN after bot move: ${board.outputFen()}" }
+            (gameEnding(board, userColor) ?: PlayMoveBotGameCallbackResult()).copy(
+                botMove = botMove,
+                newFen = board.outputFen(),
+                newPosition = gameRecord.currentHalfMoveIndex + 2,
+            )
         }
 
-        if (result.hasError(BOT_MOVE_NOT_FOUND)) {
-            throw RequestTimeoutException("Engine did not respond in time, reload page")
-        } else if (result.hasError(ILLEGAL_PLAYER_MOVE)) {
-            throw BadRequestException("Illegal move ${request.move}")
-        } else {
-            // here we could also directly refresh spectator sessions
-            // it would only affect this pod though
-            return PlayMoveBotGameResponse(
-                fen = result.newFen!!,
-                position = result.newPosition!!,
-                botMove = result.botMove?.uci,
-                statusUpdate = result.gameEventType,
-            )
+        return when (dbResult) {
+            is TryEither.Valid -> {
+                val result = dbResult.value
+                PlayMoveBotGameResponse(
+                    fen = result.newFen!!,
+                    position = result.newPosition!!,
+                    botMove = result.botMove?.uci,
+                    statusUpdate = result.gameEventType,
+                    outcome = result.outcome,
+                )
+            }
+
+            is TryEither.Invalid -> throw dbResult.exception
+
+            else -> throw InternalErrorException("Unexpected result")
         }
     }
 
@@ -433,11 +424,16 @@ class PlayerVsBotGameService(
                 depth = depth,
                 timeout = 15_000,
                 variant = variant,
+                searchMoves = if (variant == Variant.JANGGI) {
+                    listLegalMoves(AbstractXiangqiBoard.create(variant, fenToEngine)).map { it.toUci() }
+                } else {
+                    null
+                },
             )
 
         suspend fun findAlternativeMove(bestMove: String): String? {
-            val cpMultiplier = if (botColor == RED) 1 else -1
-            val movesEvaluation = Board(fen)
+            val cpMultiplier = if (botColor == WHITE) 1 else -1
+            val movesEvaluation = XiangqiBoard(fen)
                 .listLegalMoves(botColor)
                 .filterNot { move -> move.toUci() == bestMove }
                 .shuffled()
@@ -463,8 +459,11 @@ class PlayerVsBotGameService(
         }
 
         suspend fun validateForRepetitions(bestMove: String): String {
+            if (variant == Variant.JANGGI) {
+                return bestMove
+            }
             if (position >= MIN_MOVE_INDEX_CHECK_REPETITION) {
-                val board = Board(fen)
+                val board = XiangqiBoard(fen)
                 board.registerMove(bestMove)
                 if (board.isInCheck(botColor.reverse())) {
                     logger.debug { "user in check -> check for repetitions" }
@@ -474,7 +473,7 @@ class PlayerVsBotGameService(
                         .takeLast(POSITIONS_TO_CONSIDER_TO_AVOID_REPETITIONS)
                         .map { resetFullMoveCount(it) }
                     val botFens = when (botColor) {
-                        RED -> historyFens.filter { it.contains(" b ") }
+                        WHITE -> historyFens.filter { it.contains(" b ") }
                         BLACK -> historyFens.filter { it.contains(" w ") }
                     }
                     val hasRepetition = botFens.contains(bestMoveFen)
@@ -489,10 +488,36 @@ class PlayerVsBotGameService(
         }
 
         queryEngine(fen)?.bestMove?.let { bestMove ->
+            if (variant == Variant.JANGGI &&
+                listLegalMoves(AbstractXiangqiBoard.create(variant, fen)).none { it.toUci() == bestMove }
+            ) {
+                logger.error { "[$gameId] engine returned illegal or pass move $bestMove for FEN $fen" }
+                return null
+            }
             return BotMove(validateForRepetitions(bestMove), BotGameMoveType.ENGINE)
         }
 
         return null
+    }
+
+    private fun listLegalMoves(board: AbstractXiangqiBoard): List<HalfMove> =
+        board.listLegalMoves(board.colorToPlay()).filter { it.from != it.to }
+
+    private fun gameEnding(board: AbstractXiangqiBoard, userColor: Color): PlayMoveBotGameCallbackResult? {
+        if (listLegalMoves(board).isNotEmpty()) return null
+
+        val checkmated = board.isInCheck(board.colorToPlay())
+        val result = PlayMoveBotGameCallbackResult()
+        if (!checkmated && board.variant == Variant.JANGGI) {
+            return result.copy(gameEventType = STALEMATED, outcome = Outcome.DRAW)
+        }
+
+        val winner = board.colorToPlay().reverse()
+        return if (winner == userColor) {
+            result.updateForUserVictory(winner, checkmated, !checkmated)
+        } else {
+            result.updateForBotVictory(winner, checkmated, !checkmated)
+        }
     }
 
     suspend fun cancel(userId: String, request: CancelBotGameRequest) {

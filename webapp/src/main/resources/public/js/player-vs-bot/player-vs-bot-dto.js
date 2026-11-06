@@ -104,11 +104,11 @@ class BotGameDto {
         this.#userColor = json.userColor;
         this.#engine = json.engine;
         this.#depth = Number(json.depth);
+        this.#variant = json.variant ?? Variant.XIANGQI;
         this.#startFen = json.startFen;
         if (this.#startFen == null) {
-            this.#startFen = DEFAULT_START_FEN;
+            this.#startFen = resolveStartFen(null, this.#variant);
         }
-        this.#variant = json.variant ?? Variant.XIANGQI;
         this.#status = json.status;
         this.#moveIndex = Number(json.moveIndex);
         this.#fen = json.fen;
@@ -285,7 +285,7 @@ class BotGameDto {
      * @return {boolean}
      */
     hasUserPlayed() {
-        return this.#moveIndex > 0 && this.#userColor === Color.RED ||
+        return this.#moveIndex > 0 && this.#userColor === Color.WHITE ||
             this.#moveIndex > 1 && this.#userColor === Color.BLACK;
     }
 
@@ -296,11 +296,11 @@ class BotGameDto {
     resign() {
         this.#status = GameEventType.RESIGNED;
         switch (this.#userColor) {
-            case Color.RED:
+            case Color.WHITE:
                 this.#outcome = Outcome.BLACK_WINS;
                 break;
             case Color.BLACK:
-                this.#outcome = Outcome.RED_WINS;
+                this.#outcome = Outcome.WHITE_WINS;
                 break;
         }
     }
@@ -308,6 +308,8 @@ class BotGameDto {
 }
 
 class PlayMoveResponseDto {
+
+    #outcome;
 
     /**
      * @type {string}
@@ -338,6 +340,7 @@ class PlayMoveResponseDto {
             this.#botMove = null;
         }
         this.#statusUpdate = json.statusUpdate;
+        this.#outcome = json.outcome;
     }
 
     get botMove() {
@@ -352,17 +355,25 @@ class PlayMoveResponseDto {
         return this.#statusUpdate;
     }
 
+    get outcome() {
+        return this.#outcome;
+    }
+
+    isDraw() {
+        return this.#outcome === Outcome.DRAW;
+    }
+
     hasGameEnded() {
         return this.#statusUpdate === GameEventType.CHECKMATED ||
             this.#statusUpdate === GameEventType.STALEMATED;
     }
 
     isBotVictory() {
-        return this.hasGameEnded() && this.#botMove != null;
+        return this.hasGameEnded() && !this.isDraw() && this.#botMove != null;
     }
 
     isUserVictory() {
-        return this.hasGameEnded() && this.#botMove == null;
+        return this.hasGameEnded() && !this.isDraw() && this.#botMove == null;
     }
 
 }

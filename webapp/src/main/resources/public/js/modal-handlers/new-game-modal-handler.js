@@ -241,7 +241,7 @@ class NewGameHandler extends ModalHandler {
         } else {
             switch (colorId) {
                 case 'option-red':
-                    return Color.RED;
+                    return Color.WHITE;
                 case 'option-black':
                     return Color.BLACK;
                 default:

@@ -140,7 +140,7 @@ class DiscordService(
 
             fun formatColor(game: Game) =
                 when (game.inviterColor) {
-                    Color.RED -> "red"
+                    Color.WHITE -> "red"
                     Color.BLACK -> "black"
                     else -> "any color"
                 }

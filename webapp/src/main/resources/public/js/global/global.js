@@ -165,12 +165,14 @@ class GlobalStatsPage extends BasePage {
             const totalGames = document.getElementById('total-games');
             const totalInAppGames = document.getElementById('total-in-app-games');
             const totalManchuGames = document.getElementById('total-manchu-games');
+            const totalJanggiGames = document.getElementById('total-janggi-games');
             const totalMoves = document.getElementById('total-moves');
             const totalInAppMoves = document.getElementById('total-in-app-moves');
 
             totalGames.innerText = formatNumberWithSuffix(json.totalGames);
             totalInAppGames.innerText = formatNumberWithSuffix(json.totalInAppGames);
             totalManchuGames.innerText = formatNumberWithSuffix(json.totalManchuGames);
+            totalJanggiGames.innerText = formatNumberWithSuffix(json.totalJanggiGames);
             totalMoves.innerText = formatNumberWithSuffix(Math.floor(json.totalMoves / 2));
             totalInAppMoves.innerText = formatNumberWithSuffix(Math.floor(json.totalInAppMoves / 2));
         });

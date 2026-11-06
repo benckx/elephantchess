@@ -14,7 +14,7 @@ import io.elephantchess.model.PuzzleAlgo.FIND_PATH_TO_MATE
 import io.elephantchess.model.PuzzleAlgo.FIND_PATH_TO_MATE_SHORTENED
 import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.scripts.KoinScriptInit
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
@@ -64,7 +64,7 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
         }
 
         // the history must reconstruct the candidate start position when replayed from the standard start
-        val reconstructed = Board().apply { gameHistory.forEach { move -> registerMove(move) } }
+        val reconstructed = XiangqiBoard().apply { gameHistory.forEach { move -> registerMove(move) } }
         if (positionKey(reconstructed.outputFen()) != positionKey(candidate.startFen)) {
             logger.warn {
                 "game history for ${candidate.refGameSource}/${candidate.refGameSourceId} does not reconstruct " +
@@ -92,7 +92,7 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
             val solutionMoves = solutionLine.subList(revealedPlies, solutionLine.size)
 
             // the puzzle starts from the final position advanced by the revealed moves
-            val board = Board(candidate.startFen)
+            val board = XiangqiBoard(candidate.startFen)
             revealedMoves.forEach { move -> board.registerMove(move) }
             val startFen = board.outputFen()
 
@@ -172,7 +172,7 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
      * in checkmate. [Board.registerMove] throws on illegal moves, so an invalid puzzle never gets saved.
      */
     private fun validateSavedMoves(puzzleId: String, nonSolutionMoves: List<String>, solutionMoves: List<String>, startFen: String) {
-        val board = Board()
+        val board = XiangqiBoard()
         nonSolutionMoves.forEach { move -> board.registerMove(move) }
         check(positionKey(board.outputFen()) == positionKey(startFen)) {
             "puzzle $puzzleId: non-solution moves do not reach the puzzle start position"

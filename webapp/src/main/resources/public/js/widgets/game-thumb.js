@@ -145,6 +145,7 @@ class GameThumb {
      */
     render(gameMetadataDto, utmMedium = null, playerNameHighlight = null) {
         this.metadata = gameMetadataDto;
+        this.boardGui.setVariant(gameMetadataDto.variant);
 
         let maxUserNameLength;
         switch (gameMetadataDto.gameId.type) {
@@ -191,7 +192,7 @@ class GameThumb {
         blackPlayerNameElement.innerHTML = '';
 
         switch (gameMetadataDto.userColor) {
-            case Color.RED:
+            case Color.WHITE:
                 // PvB game, user plays RED
                 redPlayerNameElement.append(buildRedUsername());
                 blackPlayerNameElement.innerText = gameMetadataDto.blackPlayerName;
@@ -250,14 +251,14 @@ class GameThumb {
         }
 
         // outcome
-        const redPlayerWinsElement = this.#findFirst('red-player-wins');
+        const whitePlayerWinsElement = this.#findFirst('white-player-wins');
         const blackPlayerWinsElement = this.#findFirst('black-player-wins');
-        redPlayerWinsElement.innerHTML = '';
+        whitePlayerWinsElement.innerHTML = '';
         blackPlayerWinsElement.innerHTML = '';
 
         switch (gameMetadataDto.outcome) {
-            case Outcome.RED_WINS:
-                redPlayerWinsElement.innerHTML = WINNER_BLUE_STAR_HTML;
+            case Outcome.WHITE_WINS:
+                whitePlayerWinsElement.innerHTML = WINNER_BLUE_STAR_HTML;
                 break;
             case Outcome.BLACK_WINS:
                 blackPlayerWinsElement.innerHTML = WINNER_BLUE_STAR_HTML;
@@ -277,7 +278,7 @@ class GameThumb {
             } else {
                 if (playerNameHighlight != null) {
                     if (playerNameHighlight === gameMetadataDto.redPlayerName) {
-                        if (gameMetadataDto.outcome === Outcome.RED_WINS) {
+                        if (gameMetadataDto.outcome === Outcome.WHITE_WINS) {
                             statusDiv.innerHTML = 'win';
                         } else {
                             statusDiv.innerHTML = 'loss';
@@ -291,7 +292,7 @@ class GameThumb {
                     }
                 } else {
                     switch (gameMetadataDto.outcome) {
-                        case Outcome.RED_WINS:
+                        case Outcome.WHITE_WINS:
                             statusDiv.innerHTML = 'red wins';
                             break;
                         case Outcome.BLACK_WINS:
@@ -318,10 +319,21 @@ class GameThumb {
         // variant indicator
         const variantIndicator = this.#findFirst('game-thumb-variant');
         if (variantIndicator) {
-            variantIndicator.innerHTML = gameMetadataDto.variant === Variant.MANCHU ? '统' : '象';
-            variantIndicator.title = gameMetadataDto.variant === Variant.MANCHU
-                ? 'Manchu chess (or Yitong)'
-                : 'Xiangqi (Chinese chess)';
+            switch (gameMetadataDto.variant) {
+                case Variant.JANGGI:
+                    variantIndicator.innerHTML = '장';
+                    variantIndicator.title = 'Janggi (Korean chess)';
+                    break;
+                case Variant.MANCHU:
+                    variantIndicator.innerHTML = '统';
+                    variantIndicator.title = 'Manchu chess (or Yitong)';
+                    break;
+                case Variant.XIANGQI:
+                default:
+                    variantIndicator.innerHTML = '象';
+                    variantIndicator.title = 'Xiangqi (Chinese chess)';
+                    break;
+            }
         }
 
         // is online
@@ -389,7 +401,7 @@ class GameThumb {
         const div = this.divElement;
 
         // Clear winner indicators
-        div.querySelector('.red-player-wins').innerHTML = '';
+        div.querySelector('.white-player-wins').innerHTML = '';
         div.querySelector('.black-player-wins').innerHTML = '';
 
         // Clear player names and ratings (will be repopulated by render())

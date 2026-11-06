@@ -68,6 +68,16 @@
     width: 100%;
 }
 
+#play-bot-modal .play-bot-janggi-setup-selectors {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+#play-bot-modal .play-bot-janggi-setup-selectors > div {
+    display: flex;
+    align-items: center;
+}
+
 #play-bot-modal #play-bot-depth-box {
     width: 100%;
     margin-top: 12px;

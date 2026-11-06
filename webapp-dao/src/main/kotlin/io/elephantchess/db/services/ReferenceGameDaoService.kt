@@ -107,7 +107,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
                     REFERENCE_GAME.ID,
                     REFERENCE_GAME.FINAL_FEN,
                     REFERENCE_GAME.ANALYSIS_STATUS,
-                    REFERENCE_GAME.RED_PLAYER,
+                    REFERENCE_GAME.WHITE_PLAYER,
                     REFERENCE_GAME.BLACK_PLAYER,
                     REFERENCE_PLAYER.ID,
                     REFERENCE_PLAYER.CANONICAL_NAME,
@@ -122,7 +122,7 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
                 .where(PUZZLE.ID.`in`(puzzleIds))
                 .and(PUZZLE.REF_GAME_SOURCE_ID.eq(REFERENCE_GAME.SOURCE_ID))
                 .and(
-                    REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.RED_PLAYER)
+                    REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.WHITE_PLAYER)
                         .or(REFERENCE_PLAYER.ID.eq(REFERENCE_GAME.BLACK_PLAYER)),
                 )
                 .and(REFERENCE_PLAYER.IS_VISIBLE.eq(true))
@@ -179,11 +179,11 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
         // create a union of all games where the player participated
         val allGamesUnion = dslContext
             .select(
-                REFERENCE_GAME.RED_PLAYER.`as`("player_id"),
+                REFERENCE_GAME.WHITE_PLAYER.`as`("player_id"),
                 REFERENCE_GAME.DATE,
             )
             .from(REFERENCE_GAME)
-            .where(REFERENCE_GAME.RED_PLAYER.`in`(playerIds))
+            .where(REFERENCE_GAME.WHITE_PLAYER.`in`(playerIds))
             .and(REFERENCE_GAME.DATE.isNotNull)
             .unionAll(
                 dslContext
@@ -246,12 +246,14 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
             conditions += if (playerColor != null) {
                 // only one color
                 when (playerColor) {
-                    Color.RED -> REFERENCE_GAME.RED_PLAYER.`in`(playerIds)
+                    Color.WHITE,
+                    -> REFERENCE_GAME.WHITE_PLAYER.`in`(playerIds)
+
                     Color.BLACK -> REFERENCE_GAME.BLACK_PLAYER.`in`(playerIds)
                 }
             } else {
                 // both colors
-                REFERENCE_GAME.RED_PLAYER.`in`(playerIds)
+                REFERENCE_GAME.WHITE_PLAYER.`in`(playerIds)
                     .or(REFERENCE_GAME.BLACK_PLAYER.`in`(playerIds))
             }
         }

@@ -12,10 +12,11 @@ import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.utils.calculateCpl
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
@@ -142,14 +143,14 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         // We also keep the full FEN of the position *before* each move so we can replay the engine's best move.
         // The first event time seen per game (rows ordered by position asc) is also captured here.
         var currentGameId: String? = null
-        var board = Board(Board.defaultStartFen(variant))
+        var board = XiangqiBoard(defaultStartFen(variant))
         val fenBeforeMove = mutableListOf<String>()
         val firstMoveTimeByGameId = mutableMapOf<String, Instant>()
         val fenKeys = rows.map { row ->
             val gameId = row.get(GAME.ID)
             if (gameId != currentGameId) {
                 currentGameId = gameId
-                board = Board(Board.defaultStartFen(variant))
+                board = XiangqiBoard(defaultStartFen(variant))
                 val eventTime = row.get(GAME_MOVE.EVENT_TIME)
                 if (eventTime != null) firstMoveTimeByGameId[gameId] = eventTime
             }
@@ -219,7 +220,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         val inviterColor = row.get(GAME.INVITER_COLOR)
                         val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
                         val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
-                        val inviterIsRed = inviterColor == Color.RED
+                        val inviterIsRed = inviterColor == Color.WHITE
                         val redHandle = if (inviterIsRed) inviterHandle else inviteeHandle
                         val blackHandle = if (inviterIsRed) inviteeHandle else inviterHandle
                         val redPlayerName = anonymizedNames[redHandle] ?: redHandle
@@ -244,7 +245,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             ?.bestMove
                             ?.let { bestMove ->
                                 runCatching {
-                                    val bestMoveBoard = Board(fenBeforeMove[index])
+                                    val bestMoveBoard = XiangqiBoard(fenBeforeMove[index])
                                     bestMoveBoard.registerMove(bestMove)
                                     resetFullMoveCount(bestMoveBoard.outputFen())
                                 }.getOrNull()

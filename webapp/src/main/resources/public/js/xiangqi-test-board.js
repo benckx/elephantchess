@@ -21,14 +21,17 @@ class TestBoardPage extends BasePage {
 
     constructor() {
         super();
-        const boardGui = createWebappBoardGui();
-        const isManchu = getQueryParam('variant') === 'manchu';
+        const isManchu = document.body.dataset.variant === 'manchu' || getQueryParam('variant') === 'manchu';
+        const variant = isManchu ? Variant.MANCHU : Variant.XIANGQI;
+        const boardGui = createWebappBoardGui({variant});
         boardGui.loadFen(isManchu ? MANCHU_START_FEN : DEFAULT_START_FEN);
 
         const moveTreeWidget = new MoveTreeWidget({
             containerId: 'move-tree-container',
             ...moveTreeResizeCookiePersistence('simple-board', 'move-tree-container')
         });
+        moveTreeWidget.variant = variant;
+        moveTreeWidget.startFen = isManchu ? MANCHU_START_FEN : DEFAULT_START_FEN;
         moveTreeWidget.addNavigationPanel({
             containerId: 'mobile-navigation-panel',
             isDownloadButtonEnabled: true
@@ -45,9 +48,6 @@ class TestBoardPage extends BasePage {
 
         new SettingsGui(boardGui, moveTreeWidget);
 
-        if (isManchu) {
-            document.getElementById('manchu-explanation').style.display = 'block';
-        }
     }
 
 }

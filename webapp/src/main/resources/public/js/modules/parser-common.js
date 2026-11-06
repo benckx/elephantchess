@@ -278,7 +278,7 @@ class SimpleTokenParser extends TokenParser {
  */
 class ResultCandidate {
 
-    #board = new Board();
+    #board = new XiangqiBoard();
 
     /**
      * @type {HalfMove[]}

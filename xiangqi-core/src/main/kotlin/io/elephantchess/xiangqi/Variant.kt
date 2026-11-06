@@ -1,5 +1,7 @@
 package io.elephantchess.xiangqi
 
+import io.elephantchess.utils.StringUtils.capitalize
+
 /**
  * The chess variant being played.
  */
@@ -16,16 +18,22 @@ enum class Variant {
      */
     MANCHU,
 
+    JANGGI,
+
     ;
 
     /**
-     * The Chinese character commonly used to represent this variant.
+     * The single-character label used to represent this variant.
      */
     fun chineseChar(): String =
         when (this) {
             XIANGQI -> "象"
             MANCHU -> "统"
+            JANGGI -> "장"
         }
+
+    fun prettyName(): String =
+        name.capitalize()
 
     /**
      * The Fairy Stockfish variant name for this variant (used with `setoption name UCI_Variant value <name>`).
@@ -34,5 +42,6 @@ enum class Variant {
         when (this) {
             XIANGQI -> "xiangqi"
             MANCHU -> "manchu"
+            JANGGI -> "janggitraditional"
         }
 }

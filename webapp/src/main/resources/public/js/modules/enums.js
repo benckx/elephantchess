@@ -19,7 +19,8 @@
 
 const Variant = Object.freeze({
     XIANGQI: 'XIANGQI',
-    MANCHU: 'MANCHU'
+    MANCHU: 'MANCHU',
+    JANGGI: 'JANGGI'
 });
 
 const GameEventType = Object.freeze({
@@ -45,7 +46,7 @@ const UserOutcome = Object.freeze({
 });
 
 const Outcome = Object.freeze({
-    RED_WINS: 'RED_WINS',
+    WHITE_WINS: 'WHITE_WINS',
     BLACK_WINS: 'BLACK_WINS',
     DRAW: 'DRAW'
 });
@@ -85,10 +86,10 @@ const Role = Object.freeze({
 
 function oppositeColor(color) {
     switch (color) {
-        case Color.RED:
+        case Color.WHITE:
             return Color.BLACK;
         case Color.BLACK:
-            return Color.RED;
+            return Color.WHITE;
         default:
             throw new Error('Invalid color ' + color);
     }
@@ -122,8 +123,8 @@ function gameOutcomeToUserOutcome(userColor, gameOutcome) {
     switch (gameOutcome) {
         case Outcome.DRAW:
             return UserOutcome.DRAW;
-        case Outcome.RED_WINS:
-            return userColor === Color.RED ? UserOutcome.WIN : UserOutcome.LOSS;
+        case Outcome.WHITE_WINS:
+            return userColor === Color.WHITE ? UserOutcome.WIN : UserOutcome.LOSS;
         case Outcome.BLACK_WINS:
             return userColor === Color.BLACK ? UserOutcome.WIN : UserOutcome.LOSS;
         default:
@@ -137,8 +138,8 @@ function gameOutcomeToUserOutcome(userColor, gameOutcome) {
  */
 function winnerColorToOutcome(color) {
     switch (color) {
-        case Color.RED:
-            return Outcome.RED_WINS;
+        case Color.WHITE:
+            return Outcome.WHITE_WINS;
         case Color.BLACK:
             return Outcome.BLACK_WINS;
         default:
@@ -152,10 +153,10 @@ function winnerColorToOutcome(color) {
  */
 function loserColorToOutcome(color) {
     switch (color) {
-        case Color.RED:
+        case Color.WHITE:
             return Outcome.BLACK_WINS;
         case Color.BLACK:
-            return Outcome.RED_WINS;
+            return Outcome.WHITE_WINS;
         default:
             throw new Error('Invalid color ' + color);
     }

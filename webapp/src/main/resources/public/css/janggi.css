@@ -17,6 +17,26 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#manchu-explanation {
-    display: none;
+.janggi-setup-selectors {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.janggi-setup-label-blue,
+.janggi-setup-label-red {
+    display: inline-block;
+    width: 6em;
+}
+
+.janggi-setup-label-blue,
+.janggi-setup-select-blue {
+    color: #1f4aa8;
+}
+
+.janggi-setup-label-red,
+.janggi-setup-select-red {
+    color: #a52626;
 }

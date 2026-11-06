@@ -22,12 +22,12 @@ import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
@@ -97,8 +97,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
 
         query = when (inviterColor) {
-            RED -> query.and(GAME.INVITER_COLOR.eq(BLACK))
-            BLACK -> query.and(GAME.INVITER_COLOR.eq(RED))
+            WHITE -> query.and(GAME.INVITER_COLOR.eq(BLACK))
+            BLACK -> query.and(GAME.INVITER_COLOR.eq(WHITE))
             else -> query
         }
 
@@ -342,20 +342,22 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             )
             .awaitSingleValue() ?: 0
 
-    suspend fun latestGameActivity(minMoveIndex: Int = 0): Instant? =
+    suspend fun latestGameActivity(minMoveIndex: Int = 0, variant: Variant? = null): Instant? =
         dslContext
             .select(DSL.max(GAME.LAST_UPDATED))
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(GAME.GAME_STATUS.notIn(listOf(FLAGGED, AUTO_CANCELED)))
+            .and(variant?.let { GAME.VARIANT.eq(it) } ?: DSL.noCondition())
             .awaitSingleValue()
 
-    suspend fun latestMoveTime(minMoveIndex: Int = 0): Instant? =
+    suspend fun latestMoveTime(minMoveIndex: Int = 0, variant: Variant? = null): Instant? =
         dslContext
             .select(DSL.max(GAME_MOVE.EVENT_TIME))
             .from(GAME, GAME_MOVE)
             .where(GAME.ID.eq(GAME_MOVE.GAME_ID))
             .and(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(variant?.let { GAME.VARIANT.eq(it) } ?: DSL.noCondition())
             .awaitSingleValue()
 
     suspend fun countCreatedGamesByUser(userId: String, timeControlCategory: TimeControlCategory): Int =
@@ -392,7 +394,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex).or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
             .awaitSingleValue()!!
 
-    suspend fun countManchuGames(minMoveIndex: Int): Int {
+    suspend fun countVariantGames(minMoveIndex: Int, variant: Variant): Int {
         val countCondition =
             GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)
                 .or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
@@ -400,7 +402,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .selectCount()
             .from(GAME)
-            .where(countCondition.and(GAME.VARIANT.eq(Variant.MANCHU)))
+            .where(countCondition.and(GAME.VARIANT.eq(variant)))
             .awaitSingleValue()!!
     }
 
@@ -486,19 +488,19 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val isUserPlaying = isInviter.or(isInvitee)
 
         val inviterWinCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(WHITE_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
 
         val inviteeWinCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
-                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(WHITE_WINS)))
 
         val inviterLossCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
-                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(WHITE_WINS)))
 
         val inviteeLossCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(WHITE_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
 
         val winCondition = isInviter.and(inviterWinCondition).or(isInvitee.and(inviteeWinCondition))
@@ -1308,6 +1310,8 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                     TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_MANCHU_SEVERAL_DAYS
                     TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_MANCHU_CORRESPONDENCE
                 }
+
+                Variant.JANGGI -> error("Janggi ratings are not supported yet")
             }
 
         fun isPlaying(userId: String): Condition =

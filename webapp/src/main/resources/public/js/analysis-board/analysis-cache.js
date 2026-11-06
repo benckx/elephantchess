@@ -122,7 +122,7 @@ class AnalysisCache {
             const isNodePosition = allNodesPositions.includes(fen);
             if (isNodePosition && infoLineResult.pv.length > 0) {
                 const bestMove = infoLineResult.pv[0];
-                const board = new Board();
+                const board = new XiangqiBoard();
                 board.loadFen(fen);
                 board.registerMove(bestMove);
                 const fenKeyFromBestMove = resetFenFullMovesCount(board.outputFen());

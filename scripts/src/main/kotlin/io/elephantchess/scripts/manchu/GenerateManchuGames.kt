@@ -1,8 +1,8 @@
 package io.elephantchess.scripts.manchu
 
-import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.HalfMove
+import io.elephantchess.xiangqi.XiangqiBoard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -19,9 +19,9 @@ object GenerateManchuGames {
     private const val MAX_MOVES_PER_GAME = 400
 
     private enum class GameResult {
-        RED_WINS_CHECKMATE,
+        WHITE_WINS_CHECKMATE,
         BLACK_WINS_CHECKMATE,
-        RED_WINS_STALEMATE,
+        WHITE_WINS_STALEMATE,
         BLACK_WINS_STALEMATE,
         TOO_LONG,
     }
@@ -36,7 +36,7 @@ object GenerateManchuGames {
         game.moves.joinToString(",")
 
     private fun generateGame(): GeneratedGame {
-        val board = Board(Board.MANCHU_START_FEN)
+        val board = XiangqiBoard(XiangqiBoard.MANCHU_START_FEN)
         val moves = mutableListOf<HalfMove>()
 
         while (moves.size < MAX_MOVES_PER_GAME) {
@@ -45,14 +45,14 @@ object GenerateManchuGames {
             if (board.isCheckmated()) {
                 // colorToPlay is the one that is checkmated, so opponent wins
                 val result =
-                    if (colorToPlay == Color.RED) GameResult.BLACK_WINS_CHECKMATE else GameResult.RED_WINS_CHECKMATE
+                    if (colorToPlay == Color.WHITE) GameResult.BLACK_WINS_CHECKMATE else GameResult.WHITE_WINS_CHECKMATE
                 return GeneratedGame(randomId(), moves.map { it.toUci() }, result)
             }
 
             if (board.isStalemated()) {
                 // colorToPlay is the one that is stalemated, so opponent wins (Xiangqi rules)
                 val result =
-                    if (colorToPlay == Color.RED) GameResult.BLACK_WINS_STALEMATE else GameResult.RED_WINS_STALEMATE
+                    if (colorToPlay == Color.WHITE) GameResult.BLACK_WINS_STALEMATE else GameResult.WHITE_WINS_STALEMATE
                 return GeneratedGame(randomId(), moves.map { it.toUci() }, result)
             }
 

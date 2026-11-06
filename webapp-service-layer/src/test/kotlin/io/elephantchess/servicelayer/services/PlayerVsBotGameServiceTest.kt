@@ -4,22 +4,39 @@ import io.elephantchess.config.AppConfig
 import io.elephantchess.db.services.OpeningRepositoryCacheDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.engines.EnginePool
+import io.elephantchess.engines.protocol.model.InfoLinesResult
 import io.elephantchess.model.Engine
+import io.elephantchess.model.GameEventType
 import io.elephantchess.model.OpeningMode
+import io.elephantchess.model.Outcome
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.dto.botgame.CreateBotGameRequest
+import io.elephantchess.servicelayer.dto.botgame.PlayMoveBotGameRequest
 import io.elephantchess.servicelayer.exceptions.BadRequestException
+import io.elephantchess.servicelayer.exceptions.RequestTimeoutException
 import io.elephantchess.servicelayer.model.UserId
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.utils.TryEither
+import io.elephantchess.xiangqi.Color
+import io.elephantchess.xiangqi.Color.BLACK
+import io.elephantchess.xiangqi.Color.WHITE
+import io.elephantchess.xiangqi.JanggiBoard
+import io.elephantchess.xiangqi.JanggiSetup
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.generateJanggiStartFen
+import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.BeforeEach
 import org.koin.core.component.inject
-import org.mockito.kotlin.mock
+import org.mockito.kotlin.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class PlayerVsBotGameServiceTest : ServiceTest() {
 
@@ -30,6 +47,11 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     private val appConfig by inject<AppConfig>()
     private val refresherScope by inject<CoroutineScope>()
     private val mockEnginePool = mock<EnginePool>()
+
+    @BeforeEach
+    fun resetEngine() {
+        reset(mockEnginePool)
+    }
 
     // mocked EnginePool
     private val service by lazy {
@@ -45,13 +67,235 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
         )
     }
 
+    private fun fixtureFen(moveCount: Int): String =
+        JanggiBoard().apply {
+            JanggiGameMovesDtoCache().findByGameId("7f0d05cd").uciMoves.take(moveCount).forEach { registerMove(it) }
+        }.outputFen()
+
+    private suspend fun createGame(userId: UserId, fen: String, color: Color = WHITE, variant: Variant = Variant.JANGGI): String =
+        service.create(
+            userId,
+            CreateBotGameRequest(
+                color = color,
+                depth = 1,
+                engine = Engine.FAIRYSTOCKFISH,
+                startFen = fen,
+                openingMode = OpeningMode.ENGINE_ONLY,
+                variant = variant,
+            ),
+        ).gameId
+
+    private suspend fun stubBotMove(move: String) {
+        whenever(mockEnginePool.queryForDepth(any(), any(), any(), any(), any(), anyOrNull()))
+            .thenReturn(InfoLinesResult(emptyList(), false, move, null))
+    }
+
+    @Test
+    fun `Janggi fixture ends in a persisted draw after the human move without querying the engine`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val gameId = createGame(userId, fixtureFen(154))
+            val response = service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "d5d7"))
+
+            assertEquals(GameEventType.STALEMATED, response.statusUpdate)
+            assertEquals(Outcome.DRAW, response.outcome)
+            assertEquals(null, response.botMove)
+            assertEquals(1, response.position)
+            val saved = pvbGameDaoService.fetchById(gameId)!!
+            assertEquals(Outcome.DRAW, saved.outcome)
+            assertEquals(GameEventType.STALEMATED, saved.gameStatus)
+            assertEquals(response.fen, saved.currentFen)
+            assertEquals(listOf("d5d7"), pvbGameDaoService.listMoves(gameId))
+            verifyNoInteractions(mockEnginePool)
+            assertFailsWith<BadRequestException> {
+                service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "e9e9"))
+            }
+        }
+
+    @Test
+    fun `Janggi draws after the bot move and excludes passes from the engine search`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            stubBotMove("d5d7")
+            val gameId = createGame(userId, fixtureFen(153), BLACK)
+            val response = service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "d9e9"))
+
+            assertEquals(Outcome.DRAW, response.outcome)
+            assertEquals(GameEventType.STALEMATED, response.statusUpdate)
+            assertEquals("d5d7", response.botMove)
+            assertEquals(2, response.position)
+            assertEquals(Outcome.DRAW, pvbGameDaoService.fetchById(gameId)!!.outcome)
+            assertEquals(listOf("d9e9", "d5d7"), pvbGameDaoService.listMoves(gameId))
+            val searchMoves = argumentCaptor<List<String>>()
+            verify(mockEnginePool).queryForDepth(any(), any(), any(), any(), eq(Variant.JANGGI), searchMoves.capture())
+            assertTrue(searchMoves.firstValue.isNotEmpty())
+            assertFalse(searchMoves.firstValue.any { it.take(2) == it.takeLast(2) })
+        }
+
+    @Test
+    fun `Janggi draws when the first bot move stalemates the human`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            stubBotMove("d5d7")
+            val gameId = createGame(userId, fixtureFen(154), BLACK)
+            val game = pvbGameDaoService.fetchById(gameId)!!
+            assertEquals(GameEventType.STALEMATED, game.gameStatus)
+            assertEquals(Outcome.DRAW, game.outcome)
+            assertEquals(1, game.currentHalfMoveIndex)
+            assertEquals(listOf("d5d7"), pvbGameDaoService.listMoves(gameId))
+        }
+
+    @Test
+    fun `Janggi rejects a start position with no non-pass legal moves`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val exception = assertFailsWith<BadRequestException> {
+                createGame(userId, fixtureFen(155), BLACK)
+            }
+            assertEquals("Start position is stalemate", exception.message)
+            verifyNoInteractions(mockEnginePool)
+        }
+
+    @Test
+    fun `Janggi rejects human and bot passes without persisting moves`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val gameId = createGame(userId, JanggiBoard.DEFAULT_JANGGI_START_FEN)
+            assertFailsWith<BadRequestException> {
+                service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "e1e1"))
+            }
+            verifyNoInteractions(mockEnginePool)
+            stubBotMove("e8e8")
+            assertFailsWith<RequestTimeoutException> {
+                service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "e3d3"))
+            }
+            assertTrue(pvbGameDaoService.listMoves(gameId).isEmpty())
+            assertEquals(0, pvbGameDaoService.fetchById(gameId)!!.currentHalfMoveIndex)
+        }
+
+    @Test
+    fun `failed callbacks return TryEither without persisting moves or changing the game`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val gameId = createGame(userId, JanggiBoard.DEFAULT_JANGGI_START_FEN)
+            val failure = IllegalStateException("callback failed")
+            val result = pvbGameDaoService.saveUserMoveResult(gameId, "e3d3") { _, _ -> throw failure }
+            assertSame(failure, assertIs<TryEither.Invalid<*>>(result).exception)
+            assertTrue(pvbGameDaoService.listMoves(gameId).isEmpty())
+            val game = pvbGameDaoService.fetchById(gameId)!!
+            assertEquals(0, game.currentHalfMoveIndex)
+            assertEquals(JanggiBoard.DEFAULT_JANGGI_START_FEN, game.currentFen)
+            assertEquals(GameEventType.CREATED, game.gameStatus)
+        }
+
+    @Test
+    fun `ordinary moves still persist both moves and engine timeouts persist neither`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val gameId = createGame(userId, JanggiBoard.DEFAULT_JANGGI_START_FEN)
+            val timeout = assertFailsWith<RequestTimeoutException> {
+                service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "e3d3"))
+            }
+            assertEquals("Engine did not respond in time, reload page", timeout.message)
+            assertTrue(pvbGameDaoService.listMoves(gameId).isEmpty())
+
+            val illegal = assertFailsWith<BadRequestException> {
+                service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "not-a-move"))
+            }
+            assertEquals("Illegal move not-a-move", illegal.message)
+            stubBotMove("a6b6")
+            val response = service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "e3d3"))
+            assertEquals(null, response.statusUpdate)
+            assertEquals(null, response.outcome)
+            assertEquals(2, response.position)
+            assertEquals(listOf("e3d3", "a6b6"), pvbGameDaoService.listMoves(gameId))
+            assertEquals(response.fen, pvbGameDaoService.fetchById(gameId)!!.currentFen)
+        }
+
+    @Test
+    fun `Xiangqi stalemate remains a victory and checkmate wins in both variants`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val fen = "4k4/9/R8/3R1R3/9/9/9/9/9/5K3 w - - 0 1"
+            val xiangqi = createGame(userId, fen, variant = Variant.XIANGQI)
+            val stalemate = service.playMove(userId.id, PlayMoveBotGameRequest(xiangqi, "a7a8"))
+            assertEquals(GameEventType.STALEMATED, stalemate.statusUpdate)
+            assertEquals(Outcome.WHITE_WINS, stalemate.outcome)
+            for (variant in listOf(Variant.XIANGQI, Variant.JANGGI)) {
+                val gameId = createGame(userId, fen, variant = variant)
+                val mate = service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "a7e7"))
+                assertEquals(GameEventType.CHECKMATED, mate.statusUpdate)
+                assertEquals(Outcome.WHITE_WINS, mate.outcome)
+            }
+            verifyNoInteractions(mockEnginePool)
+        }
+
+    @Test
+    fun `can create a Janggi bot game with Fairy Stockfish`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val startFen = generateJanggiStartFen(JanggiSetup.CENTRAL_CHARIOT, JanggiSetup.OUTER_ELEPHANT)
+            val response = service.create(
+                userId,
+                CreateBotGameRequest(
+                    color = WHITE,
+                    depth = 5,
+                    engine = Engine.FAIRYSTOCKFISH,
+                    startFen = startFen,
+                    openingMode = OpeningMode.ENGINE_ONLY,
+                    variant = Variant.JANGGI,
+                ),
+            )
+
+            val game = pvbGameDaoService.fetchById(response.gameId)!!
+            assertEquals(Variant.JANGGI, game.variant)
+            assertEquals(startFen, game.startFen)
+            assertEquals(Engine.FAIRYSTOCKFISH, game.engine)
+        }
+
+    @Test
+    fun `Janggi requires Fairy Stockfish`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val request = CreateBotGameRequest(
+                color = WHITE,
+                depth = 5,
+                engine = Engine.PIKAFISH,
+                startFen = null,
+                openingMode = OpeningMode.ENGINE_ONLY,
+                variant = Variant.JANGGI,
+            )
+            val exception = assertFailsWith<BadRequestException> {
+                service.create(userId, request)
+            }
+            assertEquals("Pikafish does not support the Janggi variant. Please use Fairy Stockfish", exception.message)
+        }
+
+    @Test
+    fun `Janggi requires engine-only opening mode`() =
+        runTest {
+            val userId = UserId(AUTHENTICATED, signUpTestUser().second)
+            val request = CreateBotGameRequest(
+                color = WHITE,
+                depth = 5,
+                engine = Engine.FAIRYSTOCKFISH,
+                startFen = null,
+                openingMode = OpeningMode.BY_FREQUENCY,
+                variant = Variant.JANGGI,
+            )
+            val exception = assertFailsWith<BadRequestException> {
+                service.create(userId, request)
+            }
+            assertEquals("Variants require engine-only opening mode", exception.message)
+        }
+
     @Test
     fun `manchu variant requires engine-only opening mode in service`() =
         runTest {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
 
             val request = CreateBotGameRequest(
-                color = RED,
+                color = WHITE,
                 depth = 5,
                 engine = Engine.FAIRYSTOCKFISH,
                 startFen = null,
@@ -72,7 +316,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
 
             val request = CreateBotGameRequest(
-                color = RED,
+                color = WHITE,
                 depth = 5,
                 engine = Engine.PIKAFISH,
                 startFen = null,
@@ -93,7 +337,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
 
             val request = CreateBotGameRequest(
-                color = RED,
+                color = WHITE,
                 depth = 15,
                 engine = Engine.PIKAFISH,
                 startFen = null,
@@ -112,7 +356,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             val guestId = UserId(GUEST, userService.obtainGuestUserToken().id)
 
             val request = CreateBotGameRequest(
-                color = RED,
+                color = WHITE,
                 depth = 7,
                 engine = Engine.PIKAFISH,
                 startFen = null,

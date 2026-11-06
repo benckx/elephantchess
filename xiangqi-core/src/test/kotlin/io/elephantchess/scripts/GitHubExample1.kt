@@ -1,9 +1,9 @@
 package io.elephantchess.scripts
 
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 
 fun main() {
-    val board = Board()
+    val board = XiangqiBoard()
     println(board.outputFen())
     println()
     println(board.print())

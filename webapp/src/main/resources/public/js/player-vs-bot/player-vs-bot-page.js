@@ -126,7 +126,9 @@ class PlayerVsBotPage extends BasePage {
         this.#controller = new PlayerVsBotController(
             gameId,
             (botGameDto) => {
+                this.#boardGui.setVariant(botGameDto.variant);
                 this.#boardGui.flipToColor(botGameDto.userColor);
+                this.#moveTreeWidget.variant = botGameDto.variant;
                 this.#moveTreeWidget.startFen = botGameDto.startFen;
                 let infoPlayer = document.getElementById('info-player');
                 if (botGameDto.isAnonymous) {
@@ -140,14 +142,16 @@ class PlayerVsBotPage extends BasePage {
                         )
                     );
                 }
-                document.getElementById('info-user-color').append(buildColorSpan(botGameDto.userColor));
+                document.getElementById('info-user-color').append(buildColorSpan(botGameDto.userColor, botGameDto.variant));
                 document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
                 document.getElementById('info-depth').innerText = botGameDto.depth.toString();
                 document.getElementById('info-created').innerText = botGameDto.formattedCreated;
-                if (botGameDto.isManchu) {
-                    document.getElementById('info-variant').innerText = 'Manchu';
+                if (botGameDto.variant !== Variant.XIANGQI) {
+                    document.getElementById('info-variant').innerText =
+                        botGameDto.variant === Variant.JANGGI ? 'Janggi' : 'Manchu';
                     document.getElementById('info-variant-row').style.display = '';
                 }
+                document.getElementById('janggi-beta-message').classList.toggle('hidden', botGameDto.variant !== Variant.JANGGI);
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
                 this.#enablePlayerMoveIfPermitted();
@@ -169,7 +173,8 @@ class PlayerVsBotPage extends BasePage {
                 this.#enablePlayerMoveIfPermitted();
             },
             () => this.#gameEndedCallback(true),
-            () => this.#gameEndedCallback(false)
+            () => this.#gameEndedCallback(false),
+            () => this.#gameEndedCallback(null)
         );
 
         // set up listeners
@@ -193,7 +198,6 @@ class PlayerVsBotPage extends BasePage {
                 this.#handleClickedCancelButton();
             }
         });
-
         this.#analyzeButtons.forEach((button) => {
             button.addEventListener('click', (e) => {
                 if (isAppButtonEnabled(e)) {
@@ -246,15 +250,17 @@ class PlayerVsBotPage extends BasePage {
     }
 
     /**
-     * @param isUserVictory {boolean}
+     * @param isUserVictory {boolean|null} Null for a draw.
      */
     #gameEndedCallback(isUserVictory) {
-        let modalName = isUserVictory ? Modals.GAME_WIN : Modals.GAME_LOSS;
-        UI.showModalByName(modalName, () => {
-            document
-                .getElementById('ok-button')
-                .addEventListener('click', () => UI.hideModal(null));
-        });
+        if (isUserVictory != null) {
+            let modalName = isUserVictory ? Modals.GAME_WIN : Modals.GAME_LOSS;
+            UI.showModalByName(modalName, () => {
+                document
+                    .getElementById('ok-button')
+                    .addEventListener('click', () => UI.hideModal(null));
+            });
+        }
         this.#boardGui.disablePlayerMove();
         this.#updateOutcomeLabel();
         this.#updateButtonsEnabled();
@@ -314,18 +320,21 @@ class PlayerVsBotPage extends BasePage {
         const isFinished = isStatusFinished(this.#controller.gameStatus());
         const hasMoves = this.#moveTreeWidget.getMainBranchNodes().length > 0;
         const isManchu = this.#controller.isManchu();
+        const isJanggi = this.#controller.isJanggi();
 
-        if (isFinished && hasMoves && !isManchu) {
+        if (isFinished && hasMoves && !isManchu && !isJanggi) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
             });
         } else {
-            const tooltip = isManchu
-                ? 'Analysis is not supported for Manchu variant games'
-                : isFinished
-                    ? ANALYZE_BUTTON_TOOLTIP_DISABLED_NO_MOVES
-                    : ANALYZE_BUTTON_TOOLTIP_DISABLED;
+            const tooltip = isJanggi
+                ? 'Analysis is not supported for Janggi variant games'
+                : isManchu
+                    ? 'Analysis is not supported for Manchu variant games'
+                    : isFinished
+                        ? ANALYZE_BUTTON_TOOLTIP_DISABLED_NO_MOVES
+                        : ANALYZE_BUTTON_TOOLTIP_DISABLED;
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
                 addToolTip(button, tooltip);

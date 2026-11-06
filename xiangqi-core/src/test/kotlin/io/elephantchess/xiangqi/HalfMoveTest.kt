@@ -24,7 +24,7 @@ class HalfMoveTest {
     fun parseMovesFromDigitsStringTest01() {
         val digits = loadDigitsStringGame("game1.ubb")
         val expectedFen = "3ak1b2/1C2a3n/2Nrb4/2R3P1p/9/4P3P/p2r5/4B4/3pA4/2B1KA3 w - - 0 57"
-        val board = Board()
+        val board = XiangqiBoard()
         board.registerMoves(parseMovesFromDigitsString(digits))
         val actualFen = board.outputFen()
 

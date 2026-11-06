@@ -123,7 +123,7 @@ test('PGN-1 resolves the full 38-move game with multiple ambiguous moves', () =>
     assert.equal(moves.length, 75);
 
     // Replay first 74 moves onto a fresh board.
-    const board = new ctx.Board();
+    const board = new ctx.XiangqiBoard();
     board.loadFen(String(ctx.DEFAULT_START_FEN));
     for (let i = 0; i < moves.length - 1; i++) {
         board.registerMove(moves[i].move);
