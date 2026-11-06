@@ -286,11 +286,11 @@ class PlayerVsPlayerGameService(
 
                 val shouldUpdate =
                     session.currentStatus() != status ||
-                            newMove != null ||
-                            hasJoinedEvent != null ||
-                            timeRemaining != null ||
-                            chatMessages.isNotEmpty() ||
-                            typingUsers.isNotEmpty()
+                        newMove != null ||
+                        hasJoinedEvent != null ||
+                        timeRemaining != null ||
+                        chatMessages.isNotEmpty() ||
+                        typingUsers.isNotEmpty()
 
                 // update session
                 if (shouldUpdate) {
@@ -329,7 +329,7 @@ class PlayerVsPlayerGameService(
             .listGamesOpenToJoin()
             .filter { gameRecord ->
                 gameRecord.alwaysVisibleInLobby ||
-                        onlineUserIds.contains(gameRecord.inviter)
+                    onlineUserIds.contains(gameRecord.inviter)
             }
 
     private suspend fun fetchAllActiveGames(onlineUserIds: Set<String>) =
@@ -337,7 +337,7 @@ class PlayerVsPlayerGameService(
             .listAllActiveGames()
             .filter { gameRecord ->
                 onlineUserIds.contains(gameRecord.inviter) ||
-                        onlineUserIds.contains(gameRecord.invitee)
+                    onlineUserIds.contains(gameRecord.invitee)
             }
 
     suspend fun createGame(userId: UserId, request: CreateGameRequest): CreateGameResponse {
@@ -370,8 +370,8 @@ class PlayerVsPlayerGameService(
         if (!request.privateInvite && request.alwaysVisibleInLobby && !isOptionAlwaysVisibleInLobbyAllowed(userId.id)) {
             throw BadRequestException(
                 "The 'always show in lobby' option is not allowed for this game. " +
-                        "It can only be enabled for correspondence games or if you have a valid email address and the" +
-                        " 'someone joined my game' email notification enabled.",
+                    "It can only be enabled for correspondence games or if you have a valid email address and the" +
+                    " 'someone joined my game' email notification enabled.",
             )
         }
 
@@ -1215,7 +1215,7 @@ class PlayerVsPlayerGameService(
                 val k = gameRecord.kValue
                 val isInviterWinner =
                     (outcome == WHITE_WINS && gameRecord.inviterColor == WHITE) ||
-                            (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
+                        (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
 
                 if (isInviterWinner) {
                     val elo = calculateElo(
