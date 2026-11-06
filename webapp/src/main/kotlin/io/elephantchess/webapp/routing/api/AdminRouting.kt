@@ -233,7 +233,6 @@ private fun Route.adminUserInsightsRoutes() {
                 adminUserInsightsService.listUserSuggestions(contains)
             }
         }
-
         get("/{identifier}/page-views") {
             requireAdminRole {
                 val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
@@ -243,7 +242,6 @@ private fun Route.adminUserInsightsRoutes() {
                 adminUserInsightsService.listUserPageViews(identifier, limit, offset)
             }
         }
-
         get("/{identifier}/chat-messages") {
             requireAdminRole {
                 val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
@@ -253,35 +251,30 @@ private fun Route.adminUserInsightsRoutes() {
                 adminUserInsightsService.listUserChatMessages(identifier, limit, offset)
             }
         }
-
         get("/{identifier}/game-activity-and-saved-analysis") {
             requireAdminRole {
                 val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
                 adminUserInsightsService.fetchUserInsightsGameAndSavedAnalysis(identifier)
             }
         }
-
         get("/{identifier}/related-users-and-sock-puppet-games") {
             requireAdminRole {
                 val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
                 adminUserInsightsService.fetchUserInsightsRelatedUsersAndSockPuppetGames(identifier)
             }
         }
-
         get("/{identifier}/latest-chat-messages") {
             requireAdminRole {
                 val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
                 adminUserInsightsService.fetchUserInsightsLatestChatMessages(identifier)
             }
         }
-
         get("/{identifier}/latest-page-views") {
             requireAdminRole {
                 val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
                 adminUserInsightsService.fetchUserInsightsLatestPageViews(identifier)
             }
         }
-
         get("/{identifier}/latest-sessions") {
             requireAdminRole {
                 val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
