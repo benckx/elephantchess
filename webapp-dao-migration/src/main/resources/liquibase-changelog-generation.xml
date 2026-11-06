@@ -2709,7 +2709,7 @@
             <column name="invitee_user_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="0122" author="benckx">
+    <changeSet id="0123" author="benckx">
         <comment>
             Xiangqi color normalization:
             migrate persisted color labels from RED/BLACK to WHITE/BLACK where Xiangqi Color is stored.
@@ -2735,7 +2735,7 @@
             <where>color = 'RED'</where>
         </update>
     </changeSet>
-    <changeSet id="0123" author="benckx">
+    <changeSet id="0124" author="benckx">
         <comment>
             Xiangqi outcome normalization:
             migrate persisted outcome values from RED_WINS/BLACK_WINS to WHITE_WINS/BLACK_WINS.
@@ -2753,7 +2753,7 @@
             <where>outcome = 'RED_WINS'</where>
         </update>
     </changeSet>
-    <changeSet id="0124" author="benckx">
+    <changeSet id="0125" author="benckx">
         <comment>Reference game player column normalization: rename red_player to white_player.</comment>
         <renameColumn tableName="reference_game"
                       oldColumnName="red_player"

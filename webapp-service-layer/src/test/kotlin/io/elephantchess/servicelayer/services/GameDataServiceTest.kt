@@ -14,7 +14,7 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
 import org.koin.core.component.inject
@@ -56,7 +56,7 @@ class GameDataServiceTest : ServiceTest() {
     fun startGameAnalysisShouldRejectGameWithoutMoves() =
         runTest {
             val request = CreateGameRequest(
-                inviterColor = RED,
+                inviterColor = WHITE,
                 isRated = true,
                 timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                 timeControlIncrement = null,
