@@ -85,7 +85,7 @@ object GenerateJanggiGames {
             val game = generateSelfPlayGame(enginePath, maxMoves, maxDepth)
             println("Attempt $attempts: ${game.moves.size} moves, ${game.result}; ${checkmates.size} checkmates collected")
             val key = game.moves.joinToString(",")
-            if (game.moves.size < MIN_MOVES_PER_GAME || !uniqueGames.add(key)) {
+            if (game.moves.size < MIN_MOVES_PER_GAME || game.moves.size >= maxMoves || !uniqueGames.add(key)) {
                 continue
             }
 
