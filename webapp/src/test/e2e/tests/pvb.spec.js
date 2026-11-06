@@ -55,6 +55,51 @@ async function waitForBotReply(page) {
 test.describe('PvB workflow (guest vs bot)', () => {
     test.setTimeout(180_000);
 
+    test('Janggi stalemate draws after the final human move', async ({browser}, testInfo) => {
+        const player = await newGuestContext(browser);
+        const page = player.page;
+        const gameId = await page.evaluate(async () => {
+            const response = await fetch('/api/botgame/create', {
+                method: 'POST',
+                headers: headers(),
+                body: JSON.stringify({
+                    color: Color.WHITE,
+                    depth: 1,
+                    engine: 'FAIRYSTOCKFISH',
+                    openingMode: 'ENGINE_ONLY',
+                    variant: Variant.JANGGI,
+                    // Game 7f0d05cd in janggi.txt, before move 155 (d5d7).
+                    startFen: '4k4/9/4P4/9/3R5/P5PP1/9/9/4A4/5K3 w - - 0 78'
+                })
+            });
+            if (!response.ok) throw new Error(await response.text());
+            return (await response.json()).gameId;
+        });
+        await page.goto(`/playbot?id=${gameId}`, {waitUntil: 'networkidle'});
+        await expect(page.locator('.flex-triptych-left-container #janggi-beta-message')).toBeVisible();
+        await expect(page.locator('#info-outcome')).toHaveText('--');
+        await captureStep(testInfo, 'Janggi-before-stalemate', [['player', page]]);
+
+        const replyPromise = page.waitForResponse(response => response.url().endsWith('/api/botgame/play-move'));
+        await playMove(page, 'd5d7');
+        const reply = await (await replyPromise).json();
+        expect(reply.statusUpdate).toBe('STALEMATED');
+        expect(reply.outcome).toBe('DRAW');
+        expect(reply.botMove).toBeNull();
+        await expect(page.locator('#info-outcome')).toHaveText('Draw');
+        await expect(page.locator('.piece-image-can-move')).toHaveCount(0);
+        await expect(page.locator('#game-win-modal, #game-loss-modal')).not.toBeVisible();
+        await captureStep(testInfo, 'Janggi-stalemate-draw', [['player', page]]);
+
+        await page.reload({waitUntil: 'networkidle'});
+        await expect(page.locator('#info-outcome')).toHaveText('Draw');
+        await expect(page.locator('.piece-image-can-move')).toHaveCount(0);
+        await page.setViewportSize({width: 390, height: 844});
+        await expect(page.locator('#janggi-beta-message')).toBeVisible();
+        await captureStep(testInfo, 'Janggi-draw-mobile', [['player', page]]);
+        await player.context.close();
+    });
+
     for (const engine of ENGINES) {
         test(`create game with ${engine.name}, play 2 moves, game is listed in my bot games`, async ({
                                                                                                          browser,

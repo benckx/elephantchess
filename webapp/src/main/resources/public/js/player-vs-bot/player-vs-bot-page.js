@@ -150,6 +150,7 @@ class PlayerVsBotPage extends BasePage {
                         botGameDto.variant === Variant.JANGGI ? 'Janggi' : 'Manchu';
                     document.getElementById('info-variant-row').style.display = '';
                 }
+                document.getElementById('janggi-beta-message').classList.toggle('hidden', botGameDto.variant !== Variant.JANGGI);
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
                 this.#enablePlayerMoveIfPermitted();
@@ -170,7 +171,8 @@ class PlayerVsBotPage extends BasePage {
                 this.#enablePlayerMoveIfPermitted();
             },
             () => this.#gameEndedCallback(true),
-            () => this.#gameEndedCallback(false)
+            () => this.#gameEndedCallback(false),
+            () => this.#gameEndedCallback(null)
         );
 
         // set up listeners
@@ -246,15 +248,17 @@ class PlayerVsBotPage extends BasePage {
     }
 
     /**
-     * @param isUserVictory {boolean}
+     * @param isUserVictory {boolean|null} Null for a draw.
      */
     #gameEndedCallback(isUserVictory) {
-        let modalName = isUserVictory ? Modals.GAME_WIN : Modals.GAME_LOSS;
-        UI.showModalByName(modalName, () => {
-            document
-                .getElementById('ok-button')
-                .addEventListener('click', () => UI.hideModal(null));
-        });
+        if (isUserVictory != null) {
+            let modalName = isUserVictory ? Modals.GAME_WIN : Modals.GAME_LOSS;
+            UI.showModalByName(modalName, () => {
+                document
+                    .getElementById('ok-button')
+                    .addEventListener('click', () => UI.hideModal(null));
+            });
+        }
         this.#boardGui.disablePlayerMove();
         this.#updateOutcomeLabel();
         this.#updateButtonsEnabled();

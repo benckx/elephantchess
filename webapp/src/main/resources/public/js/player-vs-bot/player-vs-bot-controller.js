@@ -58,6 +58,7 @@ class PlayerVsBotController {
      * @type {function()}
      */
     #botWinsCallback;
+    #drawCallback;
 
     /**
      * @param gameId {string}
@@ -67,13 +68,15 @@ class PlayerVsBotController {
      * @param botPlayCallback {function(HalfMove)}
      * @param userWinsCallback {function()}
      * @param botWinsCallback {function()}
+     * @param drawCallback {function()}
      */
-    constructor(gameId, initCallback, loadFenCallback, movesHistoryCallback, botPlayCallback, userWinsCallback, botWinsCallback) {
+    constructor(gameId, initCallback, loadFenCallback, movesHistoryCallback, botPlayCallback, userWinsCallback, botWinsCallback, drawCallback) {
         this.#gameId = gameId;
         this.#movesHistoryCallback = movesHistoryCallback;
         this.#botPlayCallback = botPlayCallback;
         this.#userWinsCallback = userWinsCallback;
         this.#botWinsCallback = botWinsCallback;
+        this.#drawCallback = drawCallback;
 
         this.#botGameClient = new PlayerVsBotClient(gameId);
         this.#botGameClient.fetchGameData(botGameDto => {
@@ -125,7 +128,10 @@ class PlayerVsBotController {
                 this.#botPlayCallback(response.botMove);
             }
 
-            if (response.isBotVictory()) {
+            if (response.isDraw()) {
+                this.#botGameDto.outcome = response.outcome;
+                this.#drawCallback();
+            } else if (response.isBotVictory()) {
                 if (this.#botGameDto.userColor === Color.WHITE) {
                     this.#botGameDto.outcome = Outcome.BLACK_WINS;
                 } else {
