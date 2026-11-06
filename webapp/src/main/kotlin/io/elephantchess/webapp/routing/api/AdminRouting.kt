@@ -10,6 +10,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import java.net.URLDecoder
+import java.nio.charset.StandardCharsets.UTF_8
 import java.time.YearMonth
 
 fun Route.adminConsoleRoutes() {
@@ -170,8 +171,7 @@ private fun Route.adminAnalyticsRoutes() {
     get("/page-view-stats-by-event-path") {
         requireAdminRole { _ ->
             val encodedPath = call.parameters["path"] ?: "/"
-            val eventPath = URLDecoder.decode(encodedPath, "UTF-8")
-
+            val eventPath = URLDecoder.decode(encodedPath, UTF_8)
             adminAnalyticsService.fetchPageViewStatsByEventPath(eventPath)
         }
     }
@@ -220,36 +220,66 @@ private fun Route.adminChatRoutes() {
 private fun Route.adminUserInsightsRoutes() {
     val adminUserInsightsService by koin<AdminUserInsightsService>()
 
-    get("/user-insights/autocomplete") {
-        requireAdminRole {
-            val contains = call.request.queryParameters["contains"]
-                ?: throw BadRequestException("missing contains")
+    route("/user-insights") {
+        get("/autocomplete") {
+            requireAdminRole {
+                val contains = call.request.queryParameters["contains"]
+                    ?: throw BadRequestException("missing contains")
 
-            if (contains.length < 2) {
-                throw BadRequestException("contains should contain at least 2 chars")
+                if (contains.length < 2) {
+                    throw BadRequestException("contains should contain at least 2 chars")
+                }
+
+                adminUserInsightsService.listUserSuggestions(contains)
             }
-
-            adminUserInsightsService.listUserSuggestions(contains)
         }
-    }
+        get("/{identifier}/page-views") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
+                val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
 
-    get("/user-insights/{identifier}/page-views") {
-        requireAdminRole {
-            val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
-            val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
-            val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
-
-            adminUserInsightsService.listUserPageViews(identifier, limit, offset)
+                adminUserInsightsService.listUserPageViews(identifier, limit, offset)
+            }
         }
-    }
+        get("/{identifier}/chat-messages") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
+                val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
 
-    get("/user-insights/{identifier}/chat-messages") {
-        requireAdminRole {
-            val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
-            val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
-            val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
-
-            adminUserInsightsService.listUserChatMessages(identifier, limit, offset)
+                adminUserInsightsService.listUserChatMessages(identifier, limit, offset)
+            }
+        }
+        get("/{identifier}/game-activity-and-saved-analysis") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsGameAndSavedAnalysis(identifier)
+            }
+        }
+        get("/{identifier}/related-users-and-sock-puppet-games") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsRelatedUsersAndSockPuppetGames(identifier)
+            }
+        }
+        get("/{identifier}/latest-chat-messages") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsLatestChatMessages(identifier)
+            }
+        }
+        get("/{identifier}/latest-page-views") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsLatestPageViews(identifier)
+            }
+        }
+        get("/{identifier}/latest-sessions") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsLatestSessions(identifier)
+            }
         }
     }
 }
