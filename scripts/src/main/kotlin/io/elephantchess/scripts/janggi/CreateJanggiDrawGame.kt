@@ -17,6 +17,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
 import org.koin.core.context.stopKoin
+import java.util.concurrent.Executors
 import kotlin.system.exitProcess
 
 /**
@@ -33,6 +34,7 @@ object CreateJanggiDrawGame : KoinScript {
         runBlocking {
             fun option(name: String): String? =
                 args.firstOrNull { it.startsWith("--$name=") }?.substringAfter("=")
+
             val username = option("username") ?: error("Supply --username=<existing local username>")
             // This fixture continues with a pass after move 155. PvB stops at that first no-pass stalemate.
             val fixture = JanggiGameMovesDtoCache().findByGameId("7f0d05cd")
@@ -44,7 +46,7 @@ object CreateJanggiDrawGame : KoinScript {
             check(!finalBoard.isInCheck(finalBoard.colorToPlay()))
             check(finalBoard.listLegalMoves(finalBoard.colorToPlay()).none { it.from != it.to })
 
-            val engines = EnginePool(emptyMap(), java.util.concurrent.Executors.newSingleThreadExecutor())
+            val engines = EnginePool(emptyMap(), Executors.newSingleThreadExecutor())
             initKoin(engines, option("profile"), option("config-location"))
             try {
                 val user = users.findByUserName(username) ?: error("No local user '$username'")
