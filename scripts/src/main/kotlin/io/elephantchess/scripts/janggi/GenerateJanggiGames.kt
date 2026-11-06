@@ -127,38 +127,28 @@ object GenerateJanggiGames {
 
         fun readUntil(predicate: (String) -> Boolean): String {
             while (true) {
-                val line = output.readLine() ?: continue
+                val line = output.readLine() ?: error("Fairy Stockfish exited before completing its handshake")
                 if (predicate(line)) return line
             }
         }
 
-        data class MoveEvaluation(
-            val bestMove: String?,
-            val pvMoves: List<String>,
-            val mateDistance: Int?,
-        )
+        data class MoveEvaluation(val bestMove: String?, val mateDistance: Int?)
 
         fun readMoveEvaluation(): MoveEvaluation {
             var bestMove: String? = null
-            var pvMoves = emptyList<String>()
             var mateDistance: Int? = null
 
             while (true) {
-                val line = output.readLine() ?: return MoveEvaluation(bestMove, pvMoves, mateDistance)
+                val line = output.readLine() ?: error("Fairy Stockfish exited before returning bestmove")
                 if (line.startsWith("info ")) {
                     val mateMatch = Regex("score mate (-?\\d+)").find(line)
                     if (mateMatch != null) {
                         mateDistance = mateMatch.groupValues[1].toInt()
                     }
-                    val pvMatch = Regex("pv (.+)").find(line)
-                    if (pvMatch != null) {
-                        pvMoves = pvMatch.groupValues[1].split(Regex("\\s+"), limit = 16)
-                            .filter { it.isNotBlank() }
-                    }
                 }
                 if (line.startsWith("bestmove ")) {
                     bestMove = line.substringAfter("bestmove ").substringBefore(' ').trim()
-                    return MoveEvaluation(bestMove, pvMoves, mateDistance)
+                    return MoveEvaluation(bestMove, mateDistance)
                 }
             }
         }
@@ -182,32 +172,12 @@ object GenerateJanggiGames {
                 send("go depth $jitteredDepth")
 
                 val evaluation = readMoveEvaluation()
-                val candidateMoves = buildList {
-                    if (
-                        !evaluation.bestMove.isNullOrBlank() &&
-                        evaluation.bestMove != "(none)" &&
-                        evaluation.bestMove != "none"
-                    ) {
-                        add(evaluation.bestMove)
-                    }
-                    addAll(evaluation.pvMoves)
-                }.distinct()
-                val chosenMove = when {
-                    candidateMoves.isEmpty() -> null
-
-                    evaluation.mateDistance != null &&
-                        evaluation.mateDistance <= 3 &&
-                        random.nextDouble() < 0.85 -> candidateMoves.firstOrNull()
-
-                    candidateMoves.size > 1 && random.nextDouble() < 0.2 -> candidateMoves.random()
-
-                    else -> evaluation.bestMove
-                }
+                val chosenMove = evaluation.bestMove
 
                 if (chosenMove.isNullOrBlank() || chosenMove == "(none)" || chosenMove == "none") {
                     terminalResult = when {
-                        history.size % 2 == 0 -> GameResult.CHECKMATE
-                        else -> GameResult.STALEMATE
+                        evaluation.mateDistance != null -> GameResult.CHECKMATE
+                        else -> GameResult.DRAW
                     }
                     break
                 }
