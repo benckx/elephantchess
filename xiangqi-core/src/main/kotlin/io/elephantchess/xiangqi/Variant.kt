@@ -1,5 +1,7 @@
 package io.elephantchess.xiangqi
 
+import io.elephantchess.utils.StringUtils.capitalize
+
 /**
  * The chess variant being played.
  */
@@ -29,6 +31,9 @@ enum class Variant {
             MANCHU -> "统"
             JANGGI -> "장"
         }
+
+    fun prettyName(): String =
+        name.capitalize()
 
     /**
      * The Fairy Stockfish variant name for this variant (used with `setoption name UCI_Variant value <name>`).

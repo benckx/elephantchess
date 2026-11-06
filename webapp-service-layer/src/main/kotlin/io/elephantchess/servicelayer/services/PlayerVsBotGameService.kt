@@ -141,9 +141,7 @@ class PlayerVsBotGameService(
 
         if (request.variant != Variant.XIANGQI && request.engine == Engine.PIKAFISH) {
             throw BadRequestException(
-                "Pikafish does not support the ${request.variant.name.lowercase().replaceFirstChar(
-                    Char::uppercase,
-                )} variant. Please use Fairy Stockfish",
+                "Pikafish does not support the ${request.variant.prettyName()} variant. Please use Fairy Stockfish",
             )
         }
 
