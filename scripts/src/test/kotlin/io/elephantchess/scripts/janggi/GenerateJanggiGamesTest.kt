@@ -23,7 +23,7 @@ class GenerateJanggiGamesTest {
     fun `uses Janggi and full move history until checkmate`() = runTest {
         val engines = mock<EnginePool>()
         val positions = mutableListOf<String>()
-        whenever(engines.queryForDepth(any(), eq(FairyStockfishEngineId), any(), any(), eq(Variant.JANGGI), isNull()))
+        whenever(engines.queryForDepth(any(), eq(FairyStockfishEngineId), any(), any(), eq(Variant.JANGGI), isNull(), eq(10L), eq(true)))
             .thenAnswer { invocation ->
                 val fen = invocation.getArgument<String>(0)
                 positions += fen
@@ -46,7 +46,7 @@ class GenerateJanggiGamesTest {
     @Test
     fun `stops at move limit and records a draw`() = runTest {
         val engines = mock<EnginePool>()
-        whenever(engines.queryForDepth(any(), eq(FairyStockfishEngineId), any(), any(), eq(Variant.JANGGI), isNull()))
+        whenever(engines.queryForDepth(any(), eq(FairyStockfishEngineId), any(), any(), eq(Variant.JANGGI), isNull(), eq(10L), eq(true)))
             .thenReturn(InfoLinesResult(emptyList(), false, "a0a1", null))
 
         val game = GenerateJanggiGames.generateSelfPlayGame(engines, maxMoves = 2, maxDepth = 1)
@@ -58,7 +58,7 @@ class GenerateJanggiGamesTest {
     @Test
     fun `fails rather than treating an incomplete engine result as a draw`() = runTest {
         val engines = mock<EnginePool>()
-        whenever(engines.queryForDepth(any(), eq(FairyStockfishEngineId), any(), any(), eq(Variant.JANGGI), isNull()))
+        whenever(engines.queryForDepth(any(), eq(FairyStockfishEngineId), any(), any(), eq(Variant.JANGGI), isNull(), eq(10L), eq(true)))
             .thenReturn(InfoLinesResult(emptyList(), false, null, null))
 
         assertFailsWith<IllegalStateException> {

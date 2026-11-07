@@ -51,9 +51,11 @@ class EnginePool(
         timeout: Long = 20_000,
         variant: Variant = Variant.XIANGQI,
         searchMoves: List<String>? = null,
+        checkPeriod: Long = EngineProcess.DEFAULT_CHECK_PERIOD,
+        waitForBestMove: Boolean = false,
     ): InfoLinesResult? =
         acquireAndExecute(engineId, timeout) { lockableEngineProcess ->
-            lockableEngineProcess.queryForBestMove(fen, depth, variant, searchMoves)
+            lockableEngineProcess.queryForBestMove(fen, depth, variant, searchMoves, checkPeriod, waitForBestMove)
         }
 
     suspend fun queryForNodes(
@@ -136,8 +138,15 @@ class EnginePool(
             engineProcess.quit()
         }
 
-        suspend fun queryForBestMove(fen: String, depth: Int, variant: Variant, searchMoves: List<String>?): InfoLinesResult =
-            engineProcess.queryForBestMove(fen, depth, variant, searchMoves = searchMoves)
+        suspend fun queryForBestMove(
+            fen: String,
+            depth: Int,
+            variant: Variant,
+            searchMoves: List<String>?,
+            checkPeriod: Long,
+            waitForBestMove: Boolean,
+        ): InfoLinesResult =
+            engineProcess.queryForBestMove(fen, depth, variant, checkPeriod = checkPeriod, searchMoves = searchMoves, waitForBestMove = waitForBestMove)
 
         suspend fun queryForNodes(fen: String, nodes: Long, variant: Variant, maxDelay: Long): InfoLinesResult =
             engineProcess.queryForNodes(fen, nodes, variant, maxDelay = maxDelay)

@@ -63,6 +63,7 @@ object GenerateJanggiGames {
                 executor,
                 object : EngineProcessLocator {
                     override fun launchCommand(binFileName: String) = enginePath
+                    override fun launchArguments(binFileName: String) = listOf(enginePath)
                 },
             )
         } catch (e: Exception) {
@@ -147,6 +148,8 @@ object GenerateJanggiGames {
                 engineId = FairyStockfishEngineId,
                 depth = depth,
                 variant = Variant.JANGGI,
+                checkPeriod = 10,
+                waitForBestMove = true,
             ) ?: error("Fairy Stockfish failed to evaluate the Janggi position")
 
         while (history.size < maxMoves) {
