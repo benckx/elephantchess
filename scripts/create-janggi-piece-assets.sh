@@ -353,7 +353,7 @@ for piece, glyph_id in glyph_ids.items():
     width, height = maxx - minx, maxy - miny
     cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
     # Keep the chariot slightly smaller; give every other pictogram the same longest edge.
-    size_factor = 0.88 if piece == "chariot" else 1.0
+    size_factor = 0.85 if piece == "chariot" else 1.0
     scale = size_factor * 0.765 * 78 / max(width, height)
 
     for color, colors in palette.items():
