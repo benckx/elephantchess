@@ -225,7 +225,7 @@ class PlayBotModalHandler extends ModalHandler {
         } else {
             this.#startFenInput.value = variant === Variant.MANCHU ? MANCHU_START_FEN : DEFAULT_START_FEN;
         }
-        this.#janggiSetupSelectors.style.display = variant === Variant.JANGGI ? '' : 'none';
+        this.#janggiSetupSelectors.style.visibility = variant === Variant.JANGGI ? '' : 'hidden';
     }
 
     #updateEngineAvailabilityFromVariant() {
@@ -269,14 +269,14 @@ class PlayBotModalHandler extends ModalHandler {
         const isJanggi = this.#getSelectedVariant() === Variant.JANGGI;
         const whiteButton = document.getElementById('play-as-red');
         const blackButton = document.getElementById('play-as-black');
-        this.#startFenOptions.style.display = isJanggi ? 'none' : '';
+        this.#startFenOptions.style.visibility = isJanggi ? 'hidden' : '';
         whiteButton.innerText = isJanggi ? 'Blue' : 'Red';
         blackButton.innerText = isJanggi ? 'Red' : 'Black';
         whiteButton.classList.toggle('blue-color', isJanggi);
         whiteButton.classList.toggle('red-color', !isJanggi);
         blackButton.classList.toggle('red-color', isJanggi);
         blackButton.classList.toggle('black-color', !isJanggi);
-        this.#janggiSetupSelectors.style.display = isJanggi ? '' : 'none';
+        this.#janggiSetupSelectors.style.visibility = isJanggi ? '' : 'hidden';
     }
 
     /**

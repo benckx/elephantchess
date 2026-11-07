@@ -40,3 +40,18 @@
 .janggi-setup-select-red {
     color: #a52626;
 }
+
+@media (max-width: 1000px) {
+    .janggi-setup-select-blue,
+    .janggi-setup-select-red {
+        font-size: 36px;
+        height: 64px;
+        max-width: 100%;
+    }
+
+    .janggi-setup-label-blue,
+    .janggi-setup-label-red {
+        width: 12em;
+        max-width: 100%;
+    }
+}

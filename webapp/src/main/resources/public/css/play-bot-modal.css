@@ -95,6 +95,16 @@
     text-align: center;
 }
 
+#play-bot-modal #starting-position-options {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+}
+
+#play-bot-modal #starting-position-options > div {
+    grid-area: 1 / 1;
+}
+
 #start-fen {
     width: 100%;
     text-align: center;
@@ -127,6 +137,28 @@
 }
 
 @media (max-width: 1000px) {
+    #play-bot-modal .play-bot-janggi-setup-selectors > div {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        gap: 10px;
+        width: 100%;
+    }
+
+    #play-bot-modal .play-bot-janggi-setup-selectors label {
+        width: auto;
+    }
+
+    #play-bot-modal .play-bot-janggi-setup-selectors select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    @media (max-width: 600px) {
+        #play-bot-modal .play-bot-janggi-setup-selectors > div {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
     #play-bot-modal {
         width: 94%;
     }
