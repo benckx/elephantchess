@@ -61,6 +61,7 @@ class AdminMoveAnnotationFailuresPage extends BasePage {
             if (entry.analysisStatus != null && entry.analysisStatus !== AnalysisStatus.NOT_STARTED) {
                 const button = document.createElement('button');
                 button.type = 'button';
+                button.className = 'app-buttons';
                 button.innerText = 'Clean analysis';
                 button.disabled = entry.analysisStatus === AnalysisStatus.STARTED;
                 if (button.disabled) {

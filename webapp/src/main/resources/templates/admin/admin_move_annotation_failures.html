@@ -8,25 +8,25 @@
 </head>
 <body>
 {{body_init}}
-<div class="main-container-text">
+<div class="main-container-text-extended-smaller">
     {{admin_submenu}}
     <h1>Move Annotation Failures</h1>
     <hr/>
     <p>Games with recorded move annotation errors. Cleaning deletes their pre-analysis data and resets analysis to
         NOT_STARTED, using the same cleanup as the scheduled batch. It does not delete games or saved user analyses.
         Running analyses must finish before cleaning. Exception history remains listed after cleanup.</p>
-    <button id="refresh-annotation-failures" type="button">Refresh</button>
+    <button id="refresh-annotation-failures" type="button" class="app-buttons">Refresh</button>
     <p id="annotation-failures-summary" role="status">Loading games...</p>
     <div style="overflow-x: auto">
         <table id="annotation-failures-table" class="stats-table">
             <thead>
             <tr>
-                <th>Game type</th>
-                <th>ID</th>
-                <th>Analysis status</th>
-                <th>Errors</th>
-                <th>Last error</th>
-                <th>Actions</th>
+                <th class="value-cell">Game type</th>
+                <th class="label-cell">ID</th>
+                <th class="label-cell">Analysis status</th>
+                <th class="value-cell">Errors</th>
+                <th class="label-cell">Last error</th>
+                <th class="label-cell">Actions</th>
             </tr>
             </thead>
             <tbody></tbody>
