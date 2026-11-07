@@ -2,6 +2,7 @@ package io.elephantchess.webapp.server
 
 import io.elephantchess.model.Engine
 import io.elephantchess.model.OpeningMode
+import io.elephantchess.servicelayer.dto.analysis.OpeningReferencePlayerNextMovesRequest
 import io.elephantchess.servicelayer.dto.botgame.CreateBotGameRequest
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
@@ -15,11 +16,70 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class JacksonEnumConfigTest {
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = ["WHITE", "BLACK", "white", "black"])
+    fun `API parses opening repertoire color as an enum`(color: String?) =
+        testApplication {
+            var receivedRequest: OpeningReferencePlayerNextMovesRequest? = null
+
+            application {
+                install(ContentNegotiation) {
+                    jackson { configureEnums() }
+                }
+                routing {
+                    post("/openings") {
+                        receivedRequest = call.receive<OpeningReferencePlayerNextMovesRequest>()
+                        call.respond(receivedRequest)
+                    }
+                }
+            }
+
+            val response = client.post("/openings") {
+                contentType(ContentType.Application.Json)
+                val colorJson = color?.let { "\"$it\"" } ?: "null"
+                setBody("""{"moves":[],"playerId":"player","color":$colorJson}""")
+            }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(color?.let { Color.valueOf(it.uppercase()) }, receivedRequest?.color)
+            assertEquals("player", receivedRequest?.playerId)
+            assertEquals(emptyList(), receivedRequest?.moves)
+            val colorJson = color?.let { "\"${it.uppercase()}\"" } ?: "null"
+            assertContains(response.bodyAsText(), "\"color\":$colorJson")
+        }
+
+    @Test
+    fun `API rejects legacy RED opening repertoire color`() =
+        testApplication {
+            application {
+                install(ContentNegotiation) {
+                    jackson { configureEnums() }
+                }
+                routing {
+                    post("/openings") {
+                        call.receive<OpeningReferencePlayerNextMovesRequest>()
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+            }
+
+            val response = client.post("/openings") {
+                contentType(ContentType.Application.Json)
+                setBody("""{"moves":[],"playerId":"player","color":"RED"}""")
+            }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
 
     @Test
     fun `API parses CreateBotGameRequest sent by frontend and writes enums by name`() =

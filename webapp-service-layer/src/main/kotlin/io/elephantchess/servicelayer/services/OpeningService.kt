@@ -6,22 +6,13 @@ import io.elephantchess.db.utils.nextMove
 import io.elephantchess.servicelayer.dto.analysis.OpeningNextMovesRequest
 import io.elephantchess.servicelayer.dto.analysis.OpeningNextMovesResponse
 import io.elephantchess.servicelayer.dto.analysis.OpeningReferencePlayerNextMovesRequest
-import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.xiangqi.Color
 
 @KoinSingleton
 class OpeningService(
     private val openingRepositoryCacheDaoService: OpeningRepositoryCacheDaoService,
     private val openingRepositoryReferencePlayerCacheDaoService: OpeningRepositoryReferencePlayerCacheDaoService,
 ) {
-    private fun parsePlayerColorOrThrow(color: String): Color =
-        when (color.uppercase()) {
-            "WHITE" -> Color.WHITE
-            "BLACK" -> Color.BLACK
-            else -> throw BadRequestException("Invalid player color: $color")
-        }
-
     suspend fun fetchNextMovesData(request: OpeningNextMovesRequest): OpeningNextMovesResponse {
         val entries =
             openingRepositoryCacheDaoService
@@ -46,8 +37,6 @@ class OpeningService(
      * is `null` ("all"), the per-color entries are aggregated by next move.
      */
     suspend fun fetchReferencePlayerNextMovesData(request: OpeningReferencePlayerNextMovesRequest): OpeningNextMovesResponse {
-        val color = request.color?.let { parsePlayerColorOrThrow(it) }
-
         // general population (all reference games) share of each next move at the same position,
         // shown next to the player's own share in the opening explorer
         val generalPopulationRecords = openingRepositoryCacheDaoService.fetchNextMovesData(request.moves)
@@ -62,7 +51,7 @@ class OpeningService(
 
         val entries =
             openingRepositoryReferencePlayerCacheDaoService
-                .fetchNextMovesData(request.playerId, color, request.moves)
+                .fetchNextMovesData(request.playerId, request.color, request.moves)
                 .groupBy { record -> record.nextMove() }
                 .map { (nextMove, records) ->
                     val occurrences = records.sumOf { it.occurrences }
