@@ -216,7 +216,7 @@ class PlayerVsBotPage extends BasePage {
                 break;
             case Variant.JANGGI:
                 document.getElementById('info-variant').innerText = 'Janggi';
-                document.getElementById('janggi-beta-message').style.display = 'block';
+                document.getElementById('janggi-beta-message').style.display = 'flex';
                 break;
         }
     }
