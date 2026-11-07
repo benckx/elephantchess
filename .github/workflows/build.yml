@@ -82,6 +82,7 @@ jobs:
 
       - name: Publish test report
         if: always()
+        id: java-test-report
         uses: mikepenz/action-junit-report@v6
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
@@ -92,7 +93,7 @@ jobs:
           require_tests: false
           annotate_notice: false
           updateComment: true
-          job_summary: true
+          job_summary: false
 
       - name: Publish JavaScript test report
         if: always()
@@ -105,6 +106,20 @@ jobs:
           require_tests: false
           annotate_notice: false
           job_summary: true
+
+      - name: Add collapsible test list
+        if: always()
+        env:
+          TEST_SUMMARY: ${{ steps.java-test-report.outputs.summary }}
+          TEST_DETAILS: ${{ steps.java-test-report.outputs.detailed_summary }}
+        run: |
+          {
+            printf '%s\n' "$TEST_SUMMARY"
+            echo '<details>'
+            echo '<summary>Show all test cases</summary>'
+            printf '%s\n' "$TEST_DETAILS"
+            echo '</details>'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload test reports
         if: always()
