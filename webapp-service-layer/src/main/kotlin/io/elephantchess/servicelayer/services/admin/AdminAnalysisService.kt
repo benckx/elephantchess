@@ -65,24 +65,24 @@ class AdminAnalysisService(
                         count = record.value2(),
                     )
                 } +
-                    playerVsBotGameDaoService
-                        .countGamesByAnalysisStatus(MIN_MOVE_INDEX)
-                        .map { record ->
-                            PreAnalysisStatusByGameTypeResponse.Entry(
-                                gameType = PVB,
-                                status = record.value1(),
-                                count = record.value2(),
-                            )
-                        } +
-                    playerVsPlayerGameDaoService
-                        .countGamesByAnalysisStatus(MIN_MOVE_INDEX)
-                        .map { record ->
-                            PreAnalysisStatusByGameTypeResponse.Entry(
-                                gameType = PVP,
-                                status = record.value1(),
-                                count = record.value2(),
-                            )
-                        }
+                playerVsBotGameDaoService
+                    .countGamesByAnalysisStatus(MIN_MOVE_INDEX)
+                    .map { record ->
+                        PreAnalysisStatusByGameTypeResponse.Entry(
+                            gameType = PVB,
+                            status = record.value1(),
+                            count = record.value2(),
+                        )
+                    } +
+                playerVsPlayerGameDaoService
+                    .countGamesByAnalysisStatus(MIN_MOVE_INDEX)
+                    .map { record ->
+                        PreAnalysisStatusByGameTypeResponse.Entry(
+                            gameType = PVP,
+                            status = record.value1(),
+                            count = record.value2(),
+                        )
+                    }
 
         return PreAnalysisStatusByGameTypeResponse(entries)
     }
