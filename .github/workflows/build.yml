@@ -97,6 +97,7 @@ jobs:
 
       - name: Publish JavaScript test report
         if: always()
+        id: javascript-test-report
         uses: mikepenz/action-junit-report@v6
         with:
           report_paths: 'webapp/src/test/js/build/test-results/js/TEST-*.xml'
@@ -105,19 +106,29 @@ jobs:
           include_passed: true
           require_tests: false
           annotate_notice: false
-          job_summary: true
+          job_summary: false
 
       - name: Add collapsible test list
         if: always()
         env:
-          TEST_SUMMARY: ${{ steps.java-test-report.outputs.summary }}
-          TEST_DETAILS: ${{ steps.java-test-report.outputs.detailed_summary }}
+          JAVA_SUMMARY: ${{ steps.java-test-report.outputs.summary }}
+          JAVA_DETAILS: ${{ steps.java-test-report.outputs.detailed_summary }}
+          JS_SUMMARY: ${{ steps.javascript-test-report.outputs.summary }}
+          JS_DETAILS: ${{ steps.javascript-test-report.outputs.detailed_summary }}
         run: |
           {
-            printf '%s\n' "$TEST_SUMMARY"
+            echo '### Java tests'
+            printf '%s\n' "$JAVA_SUMMARY"
             echo '<details>'
-            echo '<summary>Show all test cases</summary>'
-            printf '%s\n' "$TEST_DETAILS"
+            echo '<summary>Show all Java test cases</summary>'
+            printf '%s\n' "$JAVA_DETAILS"
+            echo '</details>'
+            echo
+            echo '### JavaScript tests'
+            printf '%s\n' "$JS_SUMMARY"
+            echo '<details>'
+            echo '<summary>Show all JavaScript test cases</summary>'
+            printf '%s\n' "$JS_DETAILS"
             echo '</details>'
           } >> "$GITHUB_STEP_SUMMARY"
 
