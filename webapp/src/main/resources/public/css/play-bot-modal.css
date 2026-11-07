@@ -43,6 +43,7 @@
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;
+    margin-bottom: 12px;
 }
 
 #play-bot-modal .new-game-option-table td,
@@ -170,17 +171,24 @@
     #play-bot-modal .option-button-div {
         height: 64px;
         font-size: 36px;
+        box-sizing: border-box;
+    }
+
+    #play-bot-modal .new-game-option-table {
+        width: 100%;
+        max-width: 660px;
+        margin-bottom: 24px;
     }
 
     #play-bot-modal .new-game-option-table td.button-cells {
-        width: 200px;
+        width: auto;
         padding-left: 6px;
         padding-right: 6px;
         height: 78px;
     }
 
     #play-bot-modal .new-game-option-table td.icons-cells {
-        width: 100px;
+        width: clamp(40px, 10vw, 100px);
     }
 
     #play-bot-modal img.time-control-icons {
