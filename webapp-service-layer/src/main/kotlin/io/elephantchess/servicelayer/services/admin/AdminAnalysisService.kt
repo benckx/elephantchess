@@ -7,6 +7,7 @@ import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.ReferenceGameDaoService
 import io.elephantchess.db.services.ThrownExceptionDaoService
 import io.elephantchess.model.AnalysisStatus.NOT_STARTED
+import io.elephantchess.model.AnalysisStatus.STARTED
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.DB
 import io.elephantchess.model.GameType.PVB
@@ -51,9 +52,10 @@ class AdminAnalysisService(
         if (status == NOT_STARTED) {
             throw PreConditionFailedException("Analysis for $gameId is already not started")
         }
-        if (!gameDataService.resetAnalysis(gameId, onlyIfIdle = true)) {
+        if (status == STARTED) {
             throw PreConditionFailedException("Analysis for $gameId is running; wait for it to finish before cleaning")
         }
+        gameDataService.resetAnalysis(gameId)
         return listMoveAnnotationFailures()
     }
 

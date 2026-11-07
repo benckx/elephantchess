@@ -313,8 +313,8 @@ class GameDataService(
         return gameIds.toList()
     }
 
-    suspend fun resetAnalysis(gameId: GameId, onlyIfIdle: Boolean = false): Boolean =
-        moveAnalysisDaoService.resetAnalysis(gameId, onlyIfIdle)
+    suspend fun resetAnalysis(gameId: GameId) =
+        moveAnalysisDaoService.resetAnalysis(gameId)
 
     private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean) {
         suspend fun queryEngine(fen: String): InfoLineResult? =

@@ -21,44 +21,6 @@ import kotlin.time.Clock
 @KoinSingleton
 class ThrownExceptionDaoService(private val dslContext: DSLContext) {
 
-    suspend fun listMoveAnnotationFailures(): List<MoveAnnotationFailureRecord> {
-        val gameKey = DSL.field(
-            "substring({0} from {1})",
-            String::class.java,
-            THROWN_EXCEPTION.EXCEPTION_MESSAGE,
-            DSL.inline("^Error while collecting move annotations for Game\\[((?:PVP|PVB|DB)-[A-Za-z0-9]+)\\]:"),
-        )
-        val count = DSL.count()
-        val lastException = DSL.max(THROWN_EXCEPTION.EXCEPTION_TIME)
-
-        return dslContext
-            .select(gameKey, count, lastException)
-            .from(THROWN_EXCEPTION)
-            .where(THROWN_EXCEPTION.EXCEPTION_CLASS.eq(MOVE_ANNOTATION_EXCEPTION_CLASS))
-            .and(gameKey.isNotNull)
-            .groupBy(gameKey)
-            .orderBy(lastException.desc(), gameKey)
-            .awaitRecords()
-            .map { record ->
-                val key = record[gameKey]
-                MoveAnnotationFailureRecord(
-                    gameId = GameId(GameType.valueOf(key.substringBefore('-')), key.substringAfter('-')),
-                    exceptionCount = record[count],
-                    lastExceptionTime = record[lastException],
-                )
-            }
-    }
-
-    suspend fun hasMoveAnnotationFailure(gameId: GameId): Boolean =
-        dslContext
-            .selectOne()
-            .from(THROWN_EXCEPTION)
-            .where(THROWN_EXCEPTION.EXCEPTION_CLASS.eq(MOVE_ANNOTATION_EXCEPTION_CLASS))
-            .and(THROWN_EXCEPTION.EXCEPTION_MESSAGE.startsWith("Error while collecting move annotations for $gameId:"))
-            .limit(1)
-            .awaitRecords()
-            .isNotEmpty()
-
     suspend fun save(record: ThrownException) {
         dslContext.transactionCoroutine { cfg ->
             ThrownExceptionDao(cfg).insertReactive(record)
@@ -123,7 +85,46 @@ class ThrownExceptionDaoService(private val dslContext: DSLContext) {
             }
     }
 
+    suspend fun listMoveAnnotationFailures(): List<MoveAnnotationFailureRecord> {
+        val gameKey = DSL.field(
+            "substring({0} from {1})",
+            String::class.java,
+            THROWN_EXCEPTION.EXCEPTION_MESSAGE,
+            DSL.inline("^Error while collecting move annotations for Game\\[((?:PVP|PVB|DB)-[A-Za-z0-9]+)\\]:"),
+        )
+        val count = DSL.count()
+        val lastException = DSL.max(THROWN_EXCEPTION.EXCEPTION_TIME)
+
+        return dslContext
+            .select(gameKey, count, lastException)
+            .from(THROWN_EXCEPTION)
+            .where(THROWN_EXCEPTION.EXCEPTION_CLASS.eq(MOVE_ANNOTATION_EXCEPTION_CLASS))
+            .and(gameKey.isNotNull)
+            .groupBy(gameKey)
+            .orderBy(lastException.desc(), gameKey)
+            .awaitRecords()
+            .map { record ->
+                val key = record[gameKey]
+                MoveAnnotationFailureRecord(
+                    gameId = GameId(GameType.valueOf(key.substringBefore('-')), key.substringAfter('-')),
+                    exceptionCount = record[count],
+                    lastExceptionTime = record[lastException],
+                )
+            }
+    }
+
+    suspend fun hasMoveAnnotationFailure(gameId: GameId): Boolean =
+        dslContext
+            .selectOne()
+            .from(THROWN_EXCEPTION)
+            .where(THROWN_EXCEPTION.EXCEPTION_CLASS.eq(MOVE_ANNOTATION_EXCEPTION_CLASS))
+            .and(THROWN_EXCEPTION.EXCEPTION_MESSAGE.startsWith("Error while collecting move annotations for $gameId:"))
+            .limit(1)
+            .awaitRecords()
+            .isNotEmpty()
+
     private companion object {
+
         const val MOVE_ANNOTATION_EXCEPTION_CLASS = "io.elephantchess.servicelayer.exceptions.PreConditionFailedException"
     }
 }
