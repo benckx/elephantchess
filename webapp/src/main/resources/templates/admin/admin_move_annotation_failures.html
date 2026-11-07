@@ -1,0 +1,36 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Move Annotation Failures</title>
+    <link rel="stylesheet" href="/css/admin/admin-console.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/admin/admin-move-annotation-failures.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text-extended-larger">
+    {{admin_submenu}}
+    <h1>Move Annotation Failures</h1>
+    <p>Games with recorded move annotation errors. Cleaning deletes their pre-analysis data and resets analysis to
+        NOT_STARTED, using the same cleanup as the scheduled batch. It does not delete games or saved user analyses.
+        Running analyses must finish before cleaning. Exception history remains listed after cleanup.</p>
+    <button id="refresh-annotation-failures" type="button">Refresh</button>
+    <p id="annotation-failures-summary" role="status">Loading games...</p>
+    <div style="overflow-x: auto">
+        <table id="annotation-failures-table" class="stats-table">
+            <thead>
+            <tr>
+                <th>Game type</th>
+                <th>ID</th>
+                <th>Analysis status</th>
+                <th>Errors</th>
+                <th>Last error</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

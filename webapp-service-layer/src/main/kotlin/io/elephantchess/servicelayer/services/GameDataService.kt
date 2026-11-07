@@ -290,7 +290,7 @@ class GameDataService(
                 moveAnnotations = moveAnnotationDtos,
             )
         } catch (e: Exception) {
-            throw PreConditionFailedException("Error while collecting move annotations for $gameId: ${e.message}")
+            throw PreConditionFailedException("Error while collecting move annotations for $gameId: ${e.message}", e)
         }
     }
 
@@ -312,10 +312,8 @@ class GameDataService(
         return gameIds.toList()
     }
 
-    suspend fun resetAnalysis(gameId: GameId) {
-        moveAnalysisDaoService.deleteAnalysisData(gameId)
-        moveAnalysisDaoService.resetAnalysisStatus(gameId)
-    }
+    suspend fun resetAnalysis(gameId: GameId, onlyIfIdle: Boolean = false): Boolean =
+        moveAnalysisDaoService.resetAnalysis(gameId, onlyIfIdle)
 
     private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean) {
         suspend fun queryEngine(fen: String): InfoLineResult? =

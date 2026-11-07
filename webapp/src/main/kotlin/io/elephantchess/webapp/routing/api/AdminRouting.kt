@@ -1,5 +1,6 @@
 package io.elephantchess.webapp.routing.api
 
+import io.elephantchess.model.GameId
 import io.elephantchess.servicelayer.dto.admin.CreateUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.ToggleUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.UpdateUpcomingEventRequest
@@ -318,6 +319,14 @@ private fun Route.adminUserEloRoutes() {
 private fun Route.adminAnalysisRoutes() {
     val adminAnalysisService by koin<AdminAnalysisService>()
 
+    get("/move-annotation-failures") {
+        requireAdminRole { adminAnalysisService.listMoveAnnotationFailures() }
+    }
+    post("/move-annotation-failures/clean") {
+        requireAdminRole {
+            adminAnalysisService.cleanFailedMoveAnnotations(call.receive<GameId>())
+        }
+    }
     get("/list-latest-move-analysis-by-game") {
         requireAdminRole { adminAnalysisService.listLatestMoveAnalysisByGame() }
     }

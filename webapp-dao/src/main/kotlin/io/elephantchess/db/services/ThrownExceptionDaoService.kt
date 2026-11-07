@@ -3,11 +3,14 @@ package io.elephantchess.db.services
 import io.elephantchess.db.dao.codegen.tables.ThrownException.THROWN_EXCEPTION
 import io.elephantchess.db.dao.codegen.tables.daos.ThrownExceptionDao
 import io.elephantchess.db.dao.codegen.tables.pojos.ThrownException
+import io.elephantchess.db.model.MoveAnnotationFailureRecord
 import io.elephantchess.db.model.ThrownExceptionMonthlyCountRecord
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.db.utils.insertReactive
 import io.elephantchess.db.utils.minusMonths
+import io.elephantchess.model.GameId
+import io.elephantchess.model.GameType
 import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -17,6 +20,44 @@ import kotlin.time.Clock
 
 @KoinSingleton
 class ThrownExceptionDaoService(private val dslContext: DSLContext) {
+
+    suspend fun listMoveAnnotationFailures(): List<MoveAnnotationFailureRecord> {
+        val gameKey = DSL.field(
+            "substring({0} from {1})",
+            String::class.java,
+            THROWN_EXCEPTION.EXCEPTION_MESSAGE,
+            DSL.inline("^Error while collecting move annotations for Game\\[((?:PVP|PVB|DB)-[A-Za-z0-9]+)\\]:"),
+        )
+        val count = DSL.count()
+        val lastException = DSL.max(THROWN_EXCEPTION.EXCEPTION_TIME)
+
+        return dslContext
+            .select(gameKey, count, lastException)
+            .from(THROWN_EXCEPTION)
+            .where(THROWN_EXCEPTION.EXCEPTION_CLASS.eq(MOVE_ANNOTATION_EXCEPTION_CLASS))
+            .and(gameKey.isNotNull)
+            .groupBy(gameKey)
+            .orderBy(lastException.desc(), gameKey)
+            .awaitRecords()
+            .map { record ->
+                val key = record[gameKey]
+                MoveAnnotationFailureRecord(
+                    gameId = GameId(GameType.valueOf(key.substringBefore('-')), key.substringAfter('-')),
+                    exceptionCount = record[count],
+                    lastExceptionTime = record[lastException],
+                )
+            }
+    }
+
+    suspend fun hasMoveAnnotationFailure(gameId: GameId): Boolean =
+        dslContext
+            .selectOne()
+            .from(THROWN_EXCEPTION)
+            .where(THROWN_EXCEPTION.EXCEPTION_CLASS.eq(MOVE_ANNOTATION_EXCEPTION_CLASS))
+            .and(THROWN_EXCEPTION.EXCEPTION_MESSAGE.startsWith("Error while collecting move annotations for $gameId:"))
+            .limit(1)
+            .awaitRecords()
+            .isNotEmpty()
 
     suspend fun save(record: ThrownException) {
         dslContext.transactionCoroutine { cfg ->
@@ -80,5 +121,9 @@ class ThrownExceptionDaoService(private val dslContext: DSLContext) {
                     serverErrors = record.get("server_errors", Int::class.java),
                 )
             }
+    }
+
+    private companion object {
+        const val MOVE_ANNOTATION_EXCEPTION_CLASS = "io.elephantchess.servicelayer.exceptions.PreConditionFailedException"
     }
 }

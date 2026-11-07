@@ -92,6 +92,7 @@ private val adminPagesMapping = mapOf(
     "/admin/daily-page-views" to "admin/admin_daily_page_views",
     "/admin/chat-messages" to "admin/admin_chat_messages",
     "/admin/pre-analysis" to "admin/admin_pre_analysis",
+    "/admin/move-annotation-failures" to "admin/admin_move_annotation_failures",
     "/admin/users" to "admin/admin_users",
     "/admin/db-search-queries" to "admin/admin_db_search_queries",
     "/admin/password-recovery-attempts" to "admin/admin_password_recovery_attempts",

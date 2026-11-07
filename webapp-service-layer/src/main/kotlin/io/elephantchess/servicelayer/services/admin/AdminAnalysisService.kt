@@ -5,12 +5,18 @@ import io.elephantchess.db.services.MoveAnalysisDaoService
 import io.elephantchess.db.services.PlayerVsBotGameDaoService
 import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
 import io.elephantchess.db.services.ReferenceGameDaoService
+import io.elephantchess.db.services.ThrownExceptionDaoService
+import io.elephantchess.model.AnalysisStatus.NOT_STARTED
+import io.elephantchess.model.GameId
 import io.elephantchess.model.GameType.DB
 import io.elephantchess.model.GameType.PVB
 import io.elephantchess.model.GameType.PVP
 import io.elephantchess.servicelayer.dto.admin.LatestMoveAnalysisByGameResponse
+import io.elephantchess.servicelayer.dto.admin.MoveAnnotationFailuresResponse
 import io.elephantchess.servicelayer.dto.admin.PreAnalysisStatusByGameTypeResponse
 import io.elephantchess.servicelayer.dto.admin.PreAnalyzedReferenceGamesPerYearResponse
+import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.servicelayer.exceptions.PreConditionFailedException
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.utils.di.KoinSingleton
@@ -22,7 +28,34 @@ class AdminAnalysisService(
     private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
     private val gameDataService: GameDataService,
+    private val thrownExceptionDaoService: ThrownExceptionDaoService,
 ) {
+
+    suspend fun listMoveAnnotationFailures(): MoveAnnotationFailuresResponse =
+        MoveAnnotationFailuresResponse(
+            thrownExceptionDaoService.listMoveAnnotationFailures().map { record ->
+                MoveAnnotationFailuresResponse.Entry(
+                    gameId = record.gameId,
+                    analysisStatus = moveAnalysisDaoService.fetchAnalysisStatus(record.gameId),
+                    exceptionCount = record.exceptionCount,
+                    lastExceptionTime = record.lastExceptionTime.toEpochMilliseconds(),
+                )
+            },
+        )
+
+    suspend fun cleanFailedMoveAnnotations(gameId: GameId): MoveAnnotationFailuresResponse {
+        if (!thrownExceptionDaoService.hasMoveAnnotationFailure(gameId)) {
+            throw NotFoundException("No move annotation failure recorded for $gameId")
+        }
+        val status = gameDataService.fetchAnalysisStatusOfGame(gameId)
+        if (status == NOT_STARTED) {
+            throw PreConditionFailedException("Analysis for $gameId is already not started")
+        }
+        if (!gameDataService.resetAnalysis(gameId, onlyIfIdle = true)) {
+            throw PreConditionFailedException("Analysis for $gameId is running; wait for it to finish before cleaning")
+        }
+        return listMoveAnnotationFailures()
+    }
 
     suspend fun listPreAnalysisStatusByGameType(): PreAnalysisStatusByGameTypeResponse {
         val minMoveIndex = MIN_MOVE_INDEX
