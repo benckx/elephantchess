@@ -20,7 +20,9 @@ jobs:
       - name: Generate games with Fairy Stockfish
         run: ./gradlew :scripts:generateJanggiGames --args='--max-depth=3 --max-moves=256' --no-daemon --stacktrace
       - name: Validate generated fixture
-        run: ./gradlew :xiangqi-core-test-utils:test --tests '*JanggiGameMovesDtoCacheTest' --no-daemon --stacktrace
+        run: |
+          ./gradlew :xiangqi-core-test-utils:test --tests '*JanggiGameMovesDtoCacheTest' --no-daemon --stacktrace
+          ./gradlew :xiangqi-core:test --tests '*JanggiBoardTest.synthetic games replay with legal moves and expected outcomes' --no-daemon --stacktrace
       - uses: actions/upload-artifact@v7
         with:
           name: janggi-fixtures
