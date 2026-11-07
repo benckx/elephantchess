@@ -120,15 +120,15 @@ a.board-outer-container-link-mask {
 }
 
 .piece-holder .piece-image-janggi-general {
-    width: 115%;
-    height: 115%;
-    margin: -7.5%;
+    width: 125%;
+    height: 125%;
+    margin: -12.5%;
 }
 
 .piece-holder .piece-image-janggi-small {
-    width: 70%;
-    height: 70%;
-    margin: 15%;
+    width: 65%;
+    height: 65%;
+    margin: 17.5%;
 }
 
 .board-container.colorblind-friendly-black-pieces .piece-image-black {
@@ -386,11 +386,11 @@ a.board-outer-container-link-mask {
 }
 
 .piece-holder:has(> .piece-image-janggi-general) {
-    --piece-indicator-size: 115;
+    --piece-indicator-size: 125;
 }
 
 .piece-holder:has(> .piece-image-janggi-small) {
-    --piece-indicator-size: 70;
+    --piece-indicator-size: 65;
 }
 
 .piece-holder > :is(.selected-piece, .highlighted-check, .highlighted-checkmate) {
