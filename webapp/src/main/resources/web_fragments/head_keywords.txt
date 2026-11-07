@@ -42,3 +42,8 @@ yitong chess
 满洲棋
 manchu chess online
 xiangqi variant
+korean chess
+janggi
+janggi online
+korean chess online
+janggi bot
