@@ -1,7 +1,15 @@
 package io.elephantchess.scripts.janggi
 
+import io.elephantchess.engines.EnginePool
+import io.elephantchess.engines.process.EngineConfig
+import io.elephantchess.engines.process.FairyStockfishEngineId
+import io.elephantchess.engines.protocol.commands.EngineProcessLocator
+import io.elephantchess.xiangqi.JanggiBoard.Companion.DEFAULT_JANGGI_START_FEN
+import io.elephantchess.xiangqi.Variant
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.*
+import java.util.concurrent.Executors
 import kotlin.random.Random
 
 object GenerateJanggiGames {
@@ -17,7 +25,7 @@ object GenerateJanggiGames {
 
     private val random = Random(System.nanoTime())
 
-    private enum class GameResult {
+    internal enum class GameResult {
         CHECKMATE,
         STALEMATE,
         DRAW,
@@ -48,9 +56,24 @@ object GenerateJanggiGames {
 
         println("totalGames=$totalGames, maxMoves=$maxMoves, maxDepth=$maxDepth, enginePath=$enginePath")
 
-        val games = generateSelfPlayGames(enginePath, totalGames, maxMoves, maxDepth)
-            .distinctBy { it.moves.joinToString(",") }
-            .take(totalGames)
+        val executor = Executors.newSingleThreadExecutor()
+        val engines = try {
+            EnginePool(
+                mapOf(FairyStockfishEngineId to EngineConfig(version = "14.0.1")),
+                executor,
+                object : EngineProcessLocator {
+                    override fun launchCommand(binFileName: String) = enginePath
+                },
+            )
+        } catch (e: Exception) {
+            executor.shutdownNow()
+            throw e
+        }
+        val games = try {
+            runBlocking { generateSelfPlayGames(engines, totalGames, maxMoves, maxDepth) }
+        } finally {
+            engines.close()
+        }
 
         val outputFile = File(OUTPUT_PATH)
         outputFile.parentFile?.mkdirs()
@@ -73,7 +96,7 @@ object GenerateJanggiGames {
         return candidates.firstOrNull { File(it).canExecute() }
     }
 
-    private fun generateSelfPlayGames(enginePath: String, totalGames: Int, maxMoves: Int, maxDepth: Int): List<GeneratedGame> {
+    private suspend fun generateSelfPlayGames(engines: EnginePool, totalGames: Int, maxMoves: Int, maxDepth: Int): List<GeneratedGame> {
         val uniqueGames = linkedSetOf<String>()
         val checkmates = mutableListOf<GeneratedGame>()
         val otherGames = mutableListOf<GeneratedGame>()
@@ -84,7 +107,7 @@ object GenerateJanggiGames {
             attempts < MAX_GENERATION_ATTEMPTS
         ) {
             attempts += 1
-            val game = generateSelfPlayGame(enginePath, maxMoves, maxDepth)
+            val game = generateSelfPlayGame(engines, maxMoves, maxDepth)
             println("Attempt $attempts: ${game.moves.size} moves, ${game.result}; ${checkmates.size} checkmates collected")
             val key = game.moves.joinToString(",")
             if (game.moves.size < MIN_MOVES_PER_GAME || game.moves.size >= maxMoves || !uniqueGames.add(key)) {
@@ -92,10 +115,8 @@ object GenerateJanggiGames {
             }
 
             if (game.result == GameResult.CHECKMATE) {
-                if (checkmates.none { it.moves == game.moves }) {
-                    checkmates += game
-                }
-            } else if (otherGames.none { it.moves == game.moves }) {
+                checkmates += game
+            } else {
                 otherGames += game
             }
         }
@@ -107,9 +128,7 @@ object GenerateJanggiGames {
             )
         }
 
-        val selected = (checkmates + otherGames)
-            .distinctBy { it.moves.joinToString(",") }
-            .take(totalGames)
+        val selected = (checkmates + otherGames).take(totalGames)
 
         if (selected.size != totalGames) {
             error("Expected $totalGames generated Janggi games but got ${selected.size}")
@@ -118,101 +137,43 @@ object GenerateJanggiGames {
         return selected
     }
 
-    private fun generateSelfPlayGame(enginePath: String, maxMoves: Int, maxDepth: Int): GeneratedGame {
-        val process = ProcessBuilder(enginePath)
-            .redirectErrorStream(true)
-            .start()
-        val input = process.outputStream.bufferedWriter()
-        val output = process.inputStream.bufferedReader()
+    internal suspend fun generateSelfPlayGame(engines: EnginePool, maxMoves: Int, maxDepth: Int): GeneratedGame {
+        val history = mutableListOf<String>()
+        var terminalResult = GameResult.DRAW
 
-        fun send(command: String) {
-            input.write(command + "\n")
-            input.flush()
-        }
+        suspend fun evaluate(depth: Int) =
+            engines.queryForDepth(
+                fen = DEFAULT_JANGGI_START_FEN + history.joinToString(" ", prefix = " moves "),
+                engineId = FairyStockfishEngineId,
+                depth = depth,
+                variant = Variant.JANGGI,
+            ) ?: error("Fairy Stockfish failed to evaluate the Janggi position")
 
-        fun readUntil(predicate: (String) -> Boolean): String {
-            while (true) {
-                val line = output.readLine() ?: error("Fairy Stockfish exited before completing its handshake")
-                if (predicate(line)) return line
+        while (history.size < maxMoves) {
+            val depth = random.nextInt(MIN_DEPTH, maxDepth + 1)
+            val jitteredDepth = if (random.nextDouble() < 0.35) random.nextInt(MIN_DEPTH, maxDepth + 1) else depth
+            val evaluation = evaluate(jitteredDepth)
+            val chosenMove = evaluation.bestMove
+
+            if (evaluation.checkmate || chosenMove == "(none)" || chosenMove == "none") {
+                terminalResult = if (evaluation.infoLines.any { it.mate != null }) GameResult.CHECKMATE else GameResult.DRAW
+                break
+            }
+            check(!chosenMove.isNullOrBlank()) { "Fairy Stockfish did not return a best move" }
+            history += chosenMove
+
+            if (random.nextDouble() < 0.15) {
+                evaluate(random.nextInt(MIN_DEPTH, maxDepth + 1))
             }
         }
 
-        data class MoveEvaluation(val bestMove: String?, val mateDistance: Int?)
-
-        fun readMoveEvaluation(): MoveEvaluation {
-            var bestMove: String? = null
-            var mateDistance: Int? = null
-
-            while (true) {
-                val line = output.readLine() ?: error("Fairy Stockfish exited before returning bestmove")
-                if (line.startsWith("info ")) {
-                    val mateMatch = Regex("score mate (-?\\d+)").find(line)
-                    if (mateMatch != null) {
-                        mateDistance = mateMatch.groupValues[1].toInt()
-                    }
-                }
-                if (line.startsWith("bestmove ")) {
-                    bestMove = line.substringAfter("bestmove ").substringBefore(' ').trim()
-                    return MoveEvaluation(bestMove, mateDistance)
-                }
-            }
-        }
-
-        try {
-            // UCCI uses the same zero-based ranks as the app on ten-rank boards.
-            send("ucci")
-            readUntil { it == "ucciok" }
-            send("isready")
-            readUntil { it == "readyok" }
-            send("setoption UCI_Variant janggitraditional")
-
-            val history = mutableListOf<String>()
-            var terminalResult = GameResult.DRAW
-
-            while (history.size < maxMoves) {
-                val depth = random.nextInt(MIN_DEPTH, maxDepth + 1)
-                val jitteredDepth = if (random.nextDouble() < 0.35) random.nextInt(MIN_DEPTH, maxDepth + 1) else depth
-
-                send("position startpos moves ${history.joinToString(" ")}")
-                send("go depth $jitteredDepth")
-
-                val evaluation = readMoveEvaluation()
-                val chosenMove = evaluation.bestMove
-
-                if (chosenMove.isNullOrBlank() || chosenMove == "(none)" || chosenMove == "none") {
-                    terminalResult = when {
-                        evaluation.mateDistance != null -> GameResult.CHECKMATE
-                        else -> GameResult.DRAW
-                    }
-                    break
-                }
-
-                history += chosenMove
-
-                if (random.nextDouble() < 0.15) {
-                    val extraDepth = random.nextInt(MIN_DEPTH, maxDepth + 1)
-                    send("position startpos moves ${history.joinToString(" ")}")
-                    send("go depth $extraDepth")
-                    readMoveEvaluation()
-                }
-            }
-
-            return GeneratedGame(randomId(), history, terminalResult)
-        } finally {
-            try {
-                send("quit")
-                process.waitFor()
-            } finally {
-                input.close()
-                output.close()
-            }
-        }
+        return GeneratedGame(randomId(), history, terminalResult)
     }
 
     private fun randomId(): String =
         UUID.randomUUID().toString().replace("-", "").take(8)
 
-    private data class GeneratedGame(
+    internal data class GeneratedGame(
         val id: String,
         val moves: List<String>,
         val result: GameResult,
