@@ -59,6 +59,7 @@ class GameDataService(
     private val userDaoService: UserDaoService,
     private val userService: UserService,
     private val userCache: UserCache,
+    private val exceptionService: ExceptionService,
     private val logger: KLogger,
 ) {
 
@@ -391,6 +392,9 @@ class GameDataService(
                             moveAnalysisDaoService.completeAnalysis(gameId)
                         } catch (e: Exception) {
                             logger.error(e) { "$gameId error while completing analysis" }
+                            exceptionService.saveException(
+                                IllegalStateException("$gameId error while completing analysis: ${e.message}", e),
+                            )
                             moveAnalysisDaoService.cancelAnalysis(gameId)
                         }
                     }
@@ -416,6 +420,9 @@ class GameDataService(
                             moveAnalysisDaoService.completeAnalysis(gameId)
                         } catch (e: Exception) {
                             logger.error(e) { "$gameId error while analyzing game" }
+                            exceptionService.saveException(
+                                IllegalStateException("$gameId error while analyzing game: ${e.message}", e),
+                            )
                             moveAnalysisDaoService.cancelAnalysis(gameId)
                         }
                     }
