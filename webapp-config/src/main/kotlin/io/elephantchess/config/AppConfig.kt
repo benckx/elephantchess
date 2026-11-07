@@ -67,14 +67,15 @@ data class AppConfig(
         get() = loadString("admin.email")
 
     /**
-     * Per-IP rate limiting for the public reference-database HTML pages (`/database/...`, `/browse/event`).
+     * Per-IP rate limiting for public reference-database, PvP and PvB HTML pages
+     * (`/database/...`, `/browse/event`, `/game`, `/playbot`, `/browse/player-vs-player`, `/browse/player-vs-bot`).
      * These are the pages targeted by scrapers (player and game enumeration). Well-known search/AI crawler
      * user-agents are always exempt (see DatabaseRateLimiter), so this does not affect SEO.
      */
     val isDatabaseRateLimitEnabled: Boolean
         get() = loadBoolean("database.rate.limit.enabled", true)
 
-    /** Maximum number of monitored database requests allowed per IP within [databaseRateLimitWindowSeconds]. */
+    /** Maximum number of monitored HTML requests allowed per IP within [databaseRateLimitWindowSeconds]. */
     val databaseRateLimitMaxRequests: Int
         get() = loadIntOrDefault("database.rate.limit.max.requests", 30)
 
