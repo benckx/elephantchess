@@ -59,29 +59,34 @@ class AdminMoveAnnotationFailuresPage extends BasePage {
             row.insertCell().innerText = formatTimestampDefaultDateFormat(entry.lastExceptionTime);
             const actions = row.insertCell();
             if (entry.analysisStatus != null && entry.analysisStatus !== AnalysisStatus.NOT_STARTED) {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'app-buttons';
-                button.innerText = 'Clean analysis';
-                button.disabled = entry.analysisStatus === AnalysisStatus.STARTED;
-                if (button.disabled) {
-                    button.title = 'Analysis is running. Refresh after it finishes.';
+                const link = document.createElement('a');
+                link.href = '#';
+                link.className = 'action-link';
+                link.innerText = 'Clean analysis';
+                link.setAttribute('aria-disabled', String(entry.analysisStatus === AnalysisStatus.STARTED));
+                if (entry.analysisStatus === AnalysisStatus.STARTED) {
+                    link.title = 'Analysis is running. Refresh after it finishes.';
                 }
-                button.addEventListener('click', () => this.#clean(entry.gameId, button));
-                actions.append(button);
+                link.addEventListener('click', event => {
+                    event.preventDefault();
+                    if (link.getAttribute('aria-disabled') !== 'true') {
+                        this.#clean(entry.gameId, link);
+                    }
+                });
+                actions.append(link);
             }
         });
     }
 
-    #clean(gameId, button) {
+    #clean(gameId, link) {
         if (!window.confirm(`Delete pre-analysis data for ${gameId.type}-${gameId.id} and reset to NOT_STARTED?`)) {
             return;
         }
-        button.disabled = true;
+        link.setAttribute('aria-disabled', 'true');
         const handler = new class extends SimpleResponseHandler {
             handle(response) {
                 if (!response.ok) {
-                    button.disabled = false;
+                    link.setAttribute('aria-disabled', 'false');
                 }
                 if (response.status === 412 || response.status === 404) {
                     response.text().then(text => UI.pushErrorNotification(text));
@@ -91,7 +96,7 @@ class AdminMoveAnnotationFailuresPage extends BasePage {
             }
 
             handleCatchError(error) {
-                button.disabled = false;
+                link.setAttribute('aria-disabled', 'false');
                 UI.pushErrorNotification('Could not clean analysis. Please retry.');
                 super.handleCatchError(error);
             }
