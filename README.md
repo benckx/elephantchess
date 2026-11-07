@@ -585,10 +585,10 @@ chess (Yitong) variant.
 #### Example 1
 
 ```kotlin
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 
 fun main() {
-    val board = Board()
+    val board = XiangqiBoard()
     println(board.outputFen())
     println()
     println(board.print())
@@ -679,8 +679,8 @@ implementation "com.github.benckx.elephantchess:seven-kingdoms-core:2.1.2"
 implementation "com.github.benckx.elephantchess:csv-dump-parser:2.1.2"
 ```
 
-Version 2.1.2 requires Java 25. The `seven-kingdoms-core-test-utils` artifact now uses Jackson 3
-(`tools.jackson` packages).
+Version 2.1.2 requires Java 25. The `seven-kingdoms-core-test-utils` artifact now uses Jackson 3 (`tools.jackson`
+packages).
 
 We added a sample project that uses the libraries
 https://github.com/benckx/elephantchess-library-usage
@@ -793,6 +793,8 @@ The same command runs in the CI build.
 
 End-to-end browser tests live under `webapp/src/test/e2e` and use [Playwright](https://playwright.dev). They drive the
 real front-end in a headless Chromium, to test the basic flows of the web app.
+
+The reports is generated and viewable at (for the main branch): https://benckx.github.io/elephantchess/e2e/main/
 
 Requirements:
 

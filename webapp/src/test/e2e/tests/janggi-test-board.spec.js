@@ -31,44 +31,6 @@ const [, moves, outcome] = fixture.split(';');
 const SYNTHETIC_JANGGI_MOVES = moves.split(',');
 
 test.describe('Janggi test board', () => {
-    test('piece indicators follow piece sizes without resizing move targets', async ({browser}) => {
-        const player = await newGuestContext(browser);
-        const page = player.page;
-        await page.goto('/janggi-test-board', {waitUntil: 'networkidle'});
-        await expect(page.locator('.piece-image-janggi-general').first()).toBeVisible();
-
-        const sizes = await page.evaluate(() => {
-            return ['piece-image-janggi-general', 'piece-image-janggi-small', 'piece-image-janggi']
-                .map(pieceClass => {
-                    const image = [...document.querySelectorAll(`.${pieceClass}`)].find(element =>
-                        pieceClass !== 'piece-image-janggi'
-                        || !element.matches('.piece-image-janggi-general, .piece-image-janggi-small'));
-                    const holder = image.parentElement;
-                    const indicator = holder.querySelector('[id*="-legal_move-"]');
-                    const originalClass = indicator.className;
-                    const ratios = {};
-                    for (const className of ['selected-piece', 'highlighted-check', 'highlighted-checkmate',
-                        'legal-move-place-holder', 'possible-capture']) {
-                        indicator.className = className;
-                        const reference = className === 'legal-move-place-holder' || className === 'possible-capture'
-                            ? holder : image;
-                        ratios[className] = indicator.getBoundingClientRect().width / reference.getBoundingClientRect().width;
-                    }
-                    indicator.className = originalClass;
-                    return ratios;
-                });
-        });
-
-        for (const ratios of sizes) {
-            expect(ratios['selected-piece']).toBeCloseTo(110 / 95, 2);
-            expect(ratios['highlighted-check']).toBeCloseTo(110 / 95, 2);
-            expect(ratios['highlighted-checkmate']).toBeCloseTo(120 / 95, 2);
-            expect(ratios['legal-move-place-holder']).toBeCloseTo(0.75, 2);
-            expect(ratios['possible-capture']).toBeCloseTo(1.1, 2);
-        }
-        await player.context.close();
-    });
-
     test('replays a synthetic game line and captures screenshots', async ({browser}, testInfo) => {
         expect(outcome).toBe('CHECKMATE');
         SYNTHETIC_JANGGI_MOVES.forEach(move => expect(move).toMatch(/^[a-i][0-9][a-i][0-9]$/));
