@@ -234,6 +234,9 @@ jobs:
     needs: e2e
     if: always() && needs.e2e.result != 'skipped' && github.event.pull_request.head.repo.fork != true
     runs-on: ubuntu-latest
+    environment:
+      name: playwright-report
+      url: ${{ steps.folder.outputs.dir && format('https://{0}.github.io/{1}/{2}/', github.repository_owner, github.event.repository.name, steps.folder.outputs.dir) || '' }}
     permissions:
       contents: write
     concurrency:
