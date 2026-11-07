@@ -59,6 +59,7 @@ class GameDataService(
     private val userDaoService: UserDaoService,
     private val userService: UserService,
     private val userCache: UserCache,
+    private val exceptionService: ExceptionService,
     private val logger: KLogger,
 ) {
 
@@ -290,7 +291,7 @@ class GameDataService(
                 moveAnnotations = moveAnnotationDtos,
             )
         } catch (e: Exception) {
-            throw PreConditionFailedException("Error while collecting move annotations for $gameId: ${e.message}")
+            throw PreConditionFailedException("Error while collecting move annotations for $gameId: ${e.message}", e)
         }
     }
 
@@ -312,10 +313,8 @@ class GameDataService(
         return gameIds.toList()
     }
 
-    suspend fun resetAnalysis(gameId: GameId) {
-        moveAnalysisDaoService.deleteAnalysisData(gameId)
-        moveAnalysisDaoService.resetAnalysisStatus(gameId)
-    }
+    suspend fun resetAnalysis(gameId: GameId) =
+        moveAnalysisDaoService.resetAnalysis(gameId)
 
     private fun startAnalysisAsync(gameId: GameId, isFromBatch: Boolean) {
         suspend fun queryEngine(fen: String): InfoLineResult? =
@@ -393,6 +392,9 @@ class GameDataService(
                             moveAnalysisDaoService.completeAnalysis(gameId)
                         } catch (e: Exception) {
                             logger.error(e) { "$gameId error while completing analysis" }
+                            exceptionService.saveException(
+                                IllegalStateException("$gameId error while completing analysis: ${e.message}", e),
+                            )
                             moveAnalysisDaoService.cancelAnalysis(gameId)
                         }
                     }
@@ -418,6 +420,9 @@ class GameDataService(
                             moveAnalysisDaoService.completeAnalysis(gameId)
                         } catch (e: Exception) {
                             logger.error(e) { "$gameId error while analyzing game" }
+                            exceptionService.saveException(
+                                IllegalStateException("$gameId error while analyzing game: ${e.message}", e),
+                            )
                             moveAnalysisDaoService.cancelAnalysis(gameId)
                         }
                     }
