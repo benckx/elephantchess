@@ -39,14 +39,14 @@ test('Janggi setups expose the five specified lowercase FEN fragments', () => {
     assert.ok(Object.isFrozen(ctx.JanggiSetup));
 });
 
-test('Janggi default remains inner elephants on both sides', () => {
-    const expected = 'rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1';
+test('Janggi default places elephants before horses on both sides', () => {
+    const expected = 'rbna1anbr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RBNA1ANBR w - - 0 1';
     assert.equal(ctx.generateJanggiStartFen(), expected);
     assert.equal(ctx.JANGGI_START_FEN, expected);
-    assert.equal(ctx.generateJanggiStartFen(ctx.JanggiSetup.OUTER_ELEPHANT),
-        ctx.generateJanggiStartFen(ctx.JanggiSetup.OUTER_ELEPHANT, ctx.JanggiSetup.INNER_ELEPHANT));
+    assert.equal(ctx.generateJanggiStartFen(ctx.JanggiSetup.INNER_ELEPHANT),
+        ctx.generateJanggiStartFen(ctx.JanggiSetup.INNER_ELEPHANT, ctx.JanggiSetup.OUTER_ELEPHANT));
     assert.equal(ctx.generateJanggiStartFen(undefined, ctx.JanggiSetup.CENTRAL_CHARIOT),
-        ctx.generateJanggiStartFen(ctx.JanggiSetup.INNER_ELEPHANT, ctx.JanggiSetup.CENTRAL_CHARIOT));
+        ctx.generateJanggiStartFen(ctx.JanggiSetup.OUTER_ELEPHANT, ctx.JanggiSetup.CENTRAL_CHARIOT));
 });
 
 test('Janggi start FEN composes all 25 independent setups with Blue playing first', () => {

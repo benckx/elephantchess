@@ -45,7 +45,7 @@ const JanggiSetup = Object.freeze({
  * @param {string} red A JanggiSetup value.
  * @returns {string}
  */
-function generateJanggiStartFen(blue = JanggiSetup.INNER_ELEPHANT, red = JanggiSetup.INNER_ELEPHANT) {
+function generateJanggiStartFen(blue = JanggiSetup.OUTER_ELEPHANT, red = JanggiSetup.OUTER_ELEPHANT) {
     const setups = Object.values(JanggiSetup);
     if (!setups.includes(blue) || !setups.includes(red)) {
         throw new Error('Invalid Janggi setup');

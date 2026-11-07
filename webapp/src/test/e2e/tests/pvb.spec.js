@@ -256,8 +256,10 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await expect(page.locator('#janggi-setup-selectors')).toBeVisible();
         await expect(page.locator('#janggi-setup-selectors')).toHaveCSS('flex-direction', 'column');
         await expect(page.locator('#janggi-blue-setup')).toHaveClass(/janggi-setup-select-blue/);
+        await expect(page.locator('#janggi-blue-setup')).toHaveValue('rbna1anbr');
         await expect(page.locator('.janggi-setup-label-blue')).toHaveCSS('color', 'rgb(31, 74, 168)');
         await expect(page.locator('#janggi-red-setup')).toHaveClass(/janggi-setup-select-red/);
+        await expect(page.locator('#janggi-red-setup')).toHaveValue('rbna1anbr');
         await expect(page.locator('.janggi-setup-label-red')).toHaveCSS('color', 'rgb(165, 38, 38)');
         await page.selectOption('#janggi-blue-setup', 'rbna1abnr');
         await page.selectOption('#janggi-red-setup', 'bnra1arnb');

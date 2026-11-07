@@ -18,7 +18,7 @@
  */
 
 class JanggiAboutPage extends BasePage {
-    #defaultSetup = JanggiSetup.INNER_ELEPHANT;
+    #defaultSetup = JanggiSetup.OUTER_ELEPHANT;
 
     #boardGuiGeneral = this.#createBoardGui('board-container-general-about');
     #boardGuiAdvisor = this.#createBoardGui('board-container-advisor-about');
