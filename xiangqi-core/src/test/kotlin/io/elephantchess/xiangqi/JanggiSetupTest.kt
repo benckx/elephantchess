@@ -21,8 +21,8 @@ class JanggiSetupTest {
     }
 
     @Test
-    fun defaultPlacesElephantsBeforeHorsesOnBothSides() {
-        val expected = "rbna1anbr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RBNA1ANBR w - - 0 1"
+    fun defaultPlacesHorsesBeforeElephantsOnBothSides() {
+        val expected = "rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1"
         assertEquals(expected, JanggiBoard.DEFAULT_JANGGI_START_FEN)
         assertEquals(expected, generateJanggiStartFen())
         assertEquals(expected, JanggiBoard().outputFen())
@@ -54,11 +54,11 @@ class JanggiSetupTest {
     @Test
     fun eitherSideCanKeepItsDefaultSetup() {
         assertEquals(
-            generateJanggiStartFen(JanggiSetup.OUTER_ELEPHANT, JanggiSetup.OUTER_ELEPHANT),
-            generateJanggiStartFen(blue = JanggiSetup.OUTER_ELEPHANT),
+            generateJanggiStartFen(JanggiSetup.INNER_ELEPHANT, JanggiSetup.INNER_ELEPHANT),
+            generateJanggiStartFen(blue = JanggiSetup.INNER_ELEPHANT),
         )
         assertEquals(
-            generateJanggiStartFen(JanggiSetup.OUTER_ELEPHANT, JanggiSetup.CENTRAL_CHARIOT),
+            generateJanggiStartFen(JanggiSetup.INNER_ELEPHANT, JanggiSetup.CENTRAL_CHARIOT),
             generateJanggiStartFen(red = JanggiSetup.CENTRAL_CHARIOT),
         )
     }
