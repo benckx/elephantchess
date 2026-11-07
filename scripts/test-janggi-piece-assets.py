@@ -75,7 +75,8 @@ class WesternizedPieceAssetsTest(unittest.TestCase):
                     left, top, right, bottom = mask.getbbox()
                     self.assertLess(abs((left + right) / 2 - 256), 3)
                     self.assertLess(abs((top + bottom) / 2 - 256), 3)
-                    self.assertAlmostEqual(max(right - left, bottom - top), 339, delta=5)
+                    expected_extent = 298 if name == "chariot" else 339
+                    self.assertAlmostEqual(max(right - left, bottom - top), expected_extent, delta=5)
                     self.assertGreater(right - left + bottom - top, 490)
                     for y in range(512):
                         for x in range(512):

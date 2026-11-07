@@ -352,8 +352,9 @@ for piece, glyph_id in glyph_ids.items():
     minx, miny, maxx, maxy = (value / 4 for value in bounds)
     width, height = maxx - minx, maxy - miny
     cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
-    # Give every pictogram the same longest edge, preserving its proportions.
-    scale = 0.765 * 78 / max(width, height)
+    # Keep the chariot slightly smaller; give every other pictogram the same longest edge.
+    size_factor = 0.88 if piece == "chariot" else 1.0
+    scale = size_factor * 0.765 * 78 / max(width, height)
 
     for color, colors in palette.items():
         pictogram = copy.deepcopy(glyph)
