@@ -10,5 +10,5 @@ enum class JanggiSetup(val fen: String) {
 }
 
 /** Blue plays first from the uppercase bottom rank; Red occupies the lowercase top rank. */
-fun generateJanggiStartFen(blue: JanggiSetup = JanggiSetup.OUTER_ELEPHANT, red: JanggiSetup = JanggiSetup.OUTER_ELEPHANT): String =
+fun generateJanggiStartFen(blue: JanggiSetup = JanggiSetup.INNER_ELEPHANT, red: JanggiSetup = JanggiSetup.INNER_ELEPHANT): String =
     "${red.fen}/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/${blue.fen.uppercase()} w - - 0 1"
