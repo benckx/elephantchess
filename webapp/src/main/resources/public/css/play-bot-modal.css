@@ -43,6 +43,7 @@
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;
+    margin-bottom: 12px;
 }
 
 #play-bot-modal .new-game-option-table td,
@@ -95,6 +96,16 @@
     text-align: center;
 }
 
+#play-bot-modal #starting-position-options {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+}
+
+#play-bot-modal #starting-position-options > div {
+    grid-area: 1 / 1;
+}
+
 #start-fen {
     width: 100%;
     text-align: center;
@@ -127,6 +138,28 @@
 }
 
 @media (max-width: 1000px) {
+    #play-bot-modal .play-bot-janggi-setup-selectors > div {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        gap: 10px;
+        width: 100%;
+    }
+
+    #play-bot-modal .play-bot-janggi-setup-selectors label {
+        width: auto;
+    }
+
+    #play-bot-modal .play-bot-janggi-setup-selectors select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    @media (max-width: 600px) {
+        #play-bot-modal .play-bot-janggi-setup-selectors > div {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
     #play-bot-modal {
         width: 94%;
     }
@@ -138,17 +171,24 @@
     #play-bot-modal .option-button-div {
         height: 64px;
         font-size: 36px;
+        box-sizing: border-box;
+    }
+
+    #play-bot-modal .new-game-option-table {
+        width: 100%;
+        max-width: 660px;
+        margin-bottom: 24px;
     }
 
     #play-bot-modal .new-game-option-table td.button-cells {
-        width: 200px;
+        width: auto;
         padding-left: 6px;
         padding-right: 6px;
         height: 78px;
     }
 
     #play-bot-modal .new-game-option-table td.icons-cells {
-        width: 100px;
+        width: clamp(40px, 10vw, 100px);
     }
 
     #play-bot-modal img.time-control-icons {

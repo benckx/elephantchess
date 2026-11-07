@@ -85,7 +85,7 @@ class JanggiBoardTest {
         val checkmateGames = games.filter { it.outcome == "CHECKMATE" }
         assertTrue(checkmateGames.isNotEmpty())
         games.forEach { game ->
-            val board = JanggiBoard()
+            val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.INNER_ELEPHANT, JanggiSetup.INNER_ELEPHANT))
             game.uciMoves.forEachIndexed { index, uci ->
                 val move = parseMoveFromUci(uci)
                 assertTrue(
@@ -113,7 +113,7 @@ class JanggiBoardTest {
     @Test
     fun `passing accepts bikjang even when in check`() {
         val game = JanggiGameMovesDtoCache().findByGameId("cb4951a3")
-        val board = JanggiBoard()
+        val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.INNER_ELEPHANT, JanggiSetup.INNER_ELEPHANT))
         game.uciMoves.dropLast(1).forEach { uci ->
             assertTrue(board.isLegalMove(parseMoveFromUci(uci)))
             board.registerMove(uci)

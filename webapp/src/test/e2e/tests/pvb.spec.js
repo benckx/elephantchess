@@ -68,6 +68,46 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await player.context.close();
     });
 
+    test('switching bot variants keeps the modal layout stable', async ({browser}) => {
+        const player = await newGuestContext(browser);
+        const page = player.page;
+        await page.goto('/?pvb', {waitUntil: 'networkidle'});
+        await expect(page.locator('#play-bot-modal')).toBeVisible();
+        await page.evaluate(() => document.fonts.ready);
+
+        for (const width of [1280, 860, 390]) {
+            await page.setViewportSize({width, height: 1500});
+            await page.locator('#variant-xiangqi-bot').click();
+            const modalBounds = await page.locator('#play-bot-modal').boundingBox();
+            const table = page.locator('#play-bot-modal .new-game-option-table');
+            for (const row of await table.locator('tr').all()) {
+                await expect(row.locator('td')).toHaveCount(3);
+            }
+            const tableBounds = await table.boundingBox();
+            expect(Math.abs(tableBounds.x + tableBounds.width / 2
+                - (modalBounds.x + modalBounds.width / 2))).toBeLessThan(1);
+            const startingPositionBounds = await page.locator('#starting-position-options').boundingBox();
+            const playButtonBounds = await page.locator('#play-bot-button').boundingBox();
+
+            for (const variant of ['janggi', 'manchu', 'xiangqi', 'janggi', 'xiangqi']) {
+                await page.locator(`#variant-${variant}-bot`).click();
+                expect(await page.locator('#play-bot-modal').boundingBox()).toEqual(modalBounds);
+                expect(await page.locator('#starting-position-options').boundingBox()).toEqual(startingPositionBounds);
+                expect(await page.locator('#play-bot-button').boundingBox()).toEqual(playButtonBounds);
+
+                if (variant === 'janggi') {
+                    await expect(page.locator('#janggi-setup-selectors')).toBeVisible();
+                    await expect(page.locator('#start-fen-options')).toBeHidden();
+                } else {
+                    await expect(page.locator('#start-fen-options')).toBeVisible();
+                    await expect(page.locator('#janggi-setup-selectors')).toBeHidden();
+                }
+            }
+        }
+
+        await player.context.close();
+    });
+
     test('create a Janggi game as Red and play three moves', async ({browser}, testInfo) => {
         const player = await newGuestContext(browser);
         const page = player.page;
@@ -216,8 +256,10 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await expect(page.locator('#janggi-setup-selectors')).toBeVisible();
         await expect(page.locator('#janggi-setup-selectors')).toHaveCSS('flex-direction', 'column');
         await expect(page.locator('#janggi-blue-setup')).toHaveClass(/janggi-setup-select-blue/);
+        await expect(page.locator('#janggi-blue-setup')).toHaveValue('rnba1abnr');
         await expect(page.locator('.janggi-setup-label-blue')).toHaveCSS('color', 'rgb(31, 74, 168)');
         await expect(page.locator('#janggi-red-setup')).toHaveClass(/janggi-setup-select-red/);
+        await expect(page.locator('#janggi-red-setup')).toHaveValue('rnba1abnr');
         await expect(page.locator('.janggi-setup-label-red')).toHaveCSS('color', 'rgb(165, 38, 38)');
         await page.selectOption('#janggi-blue-setup', 'rbna1abnr');
         await page.selectOption('#janggi-red-setup', 'bnra1arnb');

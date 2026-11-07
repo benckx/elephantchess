@@ -107,7 +107,7 @@ class PlayerVsBotPage extends BasePage {
         super();
 
         // handle url params
-        let gameId = getQueryParam('id');
+        const gameId = getQueryParam('id');
 
         // widgets
         this.#boardGui.disablePlayerMove();
@@ -124,42 +124,8 @@ class PlayerVsBotPage extends BasePage {
 
         this.#controller = new PlayerVsBotController(
             gameId,
-            (botGameDto) => {
-                this.#boardGui.setVariant(botGameDto.variant);
-                this.#boardGui.flipToColor(botGameDto.userColor);
-                this.#moveTreeWidget.variant = botGameDto.variant;
-                this.#moveTreeWidget.startFen = botGameDto.startFen;
-                let infoPlayer = document.getElementById('info-player');
-                if (botGameDto.isAnonymous) {
-                    infoPlayer.innerText = 'anonymous';
-                } else {
-                    infoPlayer.append(
-                        buildUsernameSpan(
-                            botGameDto.userId,
-                            botGameDto.username,
-                            botGameDto.userType
-                        )
-                    );
-                }
-                document.getElementById('info-user-color').append(buildColorSpan(botGameDto.userColor, botGameDto.variant));
-                document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
-                document.getElementById('info-depth').innerText = botGameDto.depth.toString();
-                document.getElementById('info-created').innerText = botGameDto.formattedCreated;
-                if (botGameDto.variant !== Variant.XIANGQI) {
-                    document.getElementById('info-variant').innerText =
-                        botGameDto.variant === Variant.JANGGI ? 'Janggi' : 'Manchu';
-                    document.getElementById('info-variant-row').style.display = '';
-                }
-                document.getElementById('janggi-beta-message').classList.toggle('hidden', botGameDto.variant !== Variant.JANGGI);
-                this.#updateOutcomeLabel();
-                this.#updateButtonsEnabled();
-                this.#enablePlayerMoveIfPermitted();
-                this.#startSpectatorSessionIfNeeded(gameId, botGameDto);
-                this.#setupIsOnlineStatusUpdates();
-            },
-            fen => {
-                this.#boardGui.loadFen(fen);
-            },
+            (botGameDto) => this.#initCallback(gameId, botGameDto),
+            fen => this.#boardGui.loadFen(fen),
             moves => {
                 this.#moveTreeWidget.setMoves(moves);
                 this.#renderAnalysisSummaryReportIfAvailable();
@@ -213,6 +179,46 @@ class PlayerVsBotPage extends BasePage {
             Modals.GAME_LOSS,
             Modals.CONFIRMATION
         );
+    }
+
+    /**
+     * @param gameId {string}
+     * @param botGameDto {BotGameDto}
+     */
+    #initCallback(gameId, botGameDto) {
+        this.#boardGui.setVariant(botGameDto.variant);
+        this.#boardGui.flipToColor(botGameDto.userColor);
+        this.#moveTreeWidget.variant = botGameDto.variant;
+        this.#moveTreeWidget.startFen = botGameDto.startFen;
+        const infoPlayer = document.getElementById('info-player');
+        if (botGameDto.isAnonymous) {
+            infoPlayer.innerText = 'anonymous';
+        } else {
+            infoPlayer.append(buildUsernameSpan(botGameDto.userId, botGameDto.username, botGameDto.userType));
+        }
+        document.getElementById('info-user-color').append(buildColorSpan(botGameDto.userColor, botGameDto.variant));
+        document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
+        document.getElementById('info-depth').innerText = botGameDto.depth.toString();
+        document.getElementById('info-created').innerText = botGameDto.formattedCreated;
+
+        this.#updateOutcomeLabel();
+        this.#updateButtonsEnabled();
+        this.#enablePlayerMoveIfPermitted();
+        this.#startSpectatorSessionIfNeeded(gameId, botGameDto);
+        this.#setupIsOnlineStatusUpdates();
+
+        switch (botGameDto.variant) {
+            case Variant.XIANGQI:
+                document.getElementById('info-variant').innerText = 'Xiangqi';
+                break;
+            case Variant.MANCHU:
+                document.getElementById('info-variant').innerText = 'Manchu';
+                break;
+            case Variant.JANGGI:
+                document.getElementById('info-variant').innerText = 'Janggi';
+                document.getElementById('janggi-beta-message').style.display = 'flex';
+                break;
+        }
     }
 
     #handleClickedResignButton() {
