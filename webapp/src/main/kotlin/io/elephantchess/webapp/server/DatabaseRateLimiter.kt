@@ -7,12 +7,14 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration
 
 /**
- * Per-IP rate limiter for the public reference-database HTML pages (`/database/...`, `/browse/event`).
+ * Per-IP rate limiter for public reference-database, PvP and PvB HTML pages
+ * (`/database/...`, `/browse/event`, `/game`, `/playbot`, `/browse/player-vs-player`, `/browse/player-vs-bot`).
  *
  * Context: these pages are repeatedly enumerated by scrapers (player and game crawling) using cookie-less
  * headless browsers that advertise a regular browser user-agent (e.g. "Chrome"). A per-IP fixed-window
  * limit cheaply throttles that sustained, concentrated traffic while leaving genuine visitors (who only
- * ever view a handful of database pages) unaffected.
+ * ever view a handful of these pages) unaffected. Database, PvP and PvB requests share the same allowance;
+ * gameplay API requests and WebSocket traffic are not monitored.
  *
  * Well-known search / AI crawler user-agents are always exempt so indexing and SEO are never impacted.
  *
@@ -45,8 +47,15 @@ class DatabaseRateLimiter(private val maxRequests: Int, window: Duration) {
 
     private companion object {
 
-        /** Path prefixes of the public reference-database pages targeted by scrapers. */
-        val MONITORED_PREFIXES = listOf("/database", "/browse/event")
+        /** Path prefixes of the public reference-database, PvP and PvB pages targeted by scrapers. */
+        val MONITORED_PREFIXES = listOf(
+            "/database",
+            "/browse/event",
+            "/game",
+            "/playbot",
+            "/browse/player-vs-player",
+            "/browse/player-vs-bot",
+        )
 
         /**
          * Lower-cased substrings identifying well-known search engine and AI crawlers that must never be

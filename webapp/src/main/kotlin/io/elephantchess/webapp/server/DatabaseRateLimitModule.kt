@@ -14,7 +14,7 @@ private val logger = KotlinLogging.logger {}
 private val appConfig by koin<AppConfig>()
 
 /**
- * Installs a per-IP rate limiter in front of the public reference-database HTML pages to throttle
+ * Installs a per-IP rate limiter in front of public reference-database, PvP and PvB HTML pages to throttle
  * scrapers. Runs early in the pipeline (before routing) and short-circuits offending requests with a
  * `429 Too Many Requests` and a `Retry-After` header.
  *
