@@ -385,6 +385,25 @@ a.board-outer-container-link-mask {
     margin: -10%;
 }
 
+.piece-holder:has(> .piece-image-janggi-general) {
+    --piece-indicator-size: 115;
+}
+
+.piece-holder:has(> .piece-image-janggi-small) {
+    --piece-indicator-size: 70;
+}
+
+.piece-holder > :is(.selected-piece, .highlighted-check, .highlighted-checkmate) {
+    --indicator-size: calc(110% * var(--piece-indicator-size, 95) / 95);
+    width: var(--indicator-size);
+    height: var(--indicator-size);
+    margin: calc((100% - var(--indicator-size)) / 2);
+}
+
+.piece-holder > .highlighted-checkmate {
+    --indicator-size: calc(120% * var(--piece-indicator-size, 95) / 95);
+}
+
 .legal-move-place-holder {
     width: 75%;
     height: 75%;
