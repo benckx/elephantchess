@@ -29,7 +29,10 @@ for (const {pageId, sectionId} of [
         try {
             await page.goto(`/about/${pageId}`, {waitUntil: 'networkidle'});
             const sections = page.locator('.main-container-text > .votable-content-section');
-            const headingCount = await page.locator('.main-container-text h1[id], .main-container-text h2[id]').count();
+            const headingCount = await page.locator(
+                '.main-container-text > .votable-content-section > h1[id], ' +
+                '.main-container-text > .votable-content-section > h2[id]'
+            ).count();
             expect(headingCount).toBeGreaterThan(0);
             await expect(sections).toHaveCount(headingCount);
             await expect(page.locator('.content-section-vote-panel')).toHaveCount(headingCount);
