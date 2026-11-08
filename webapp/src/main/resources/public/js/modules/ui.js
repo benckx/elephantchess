@@ -203,12 +203,23 @@ function buildDivWithTextAndClass(textContent, className) {
  */
 function buildVariantCell(variant) {
     const symbolText = formatVariantSymbol(variant);
-    const variantName = variant === Variant.JANGGI ? 'Janggi' : variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi';
-    const variantTitle = variant === Variant.JANGGI
-        ? 'Janggi (Korean chess)'
-        : variant === Variant.MANCHU
-            ? 'Manchu chess (or Yitong)'
-            : 'Xiangqi (Chinese chess)';
+    let variantName;
+    let variantTitle;
+    switch (variant) {
+        case Variant.JANGGI:
+            variantName = 'Janggi';
+            variantTitle = 'Janggi (Korean chess)';
+            break;
+        case Variant.MANCHU:
+            variantName = 'Manchu';
+            variantTitle = 'Manchu chess (or Yitong)';
+            break;
+        case Variant.XIANGQI:
+        default:
+            variantName = 'Xiangqi';
+            variantTitle = 'Xiangqi (Chinese chess)';
+            break;
+    }
     const cell = buildDivWithClass('variant-cell');
     const symbol = buildDivWithTextAndClass(symbolText, 'variant-symbol');
     symbol.title = variantTitle;
