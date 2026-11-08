@@ -71,7 +71,13 @@ object GenerateJanggiGames : KoinScriptInit() {
         // Keep games referenced by ID in tests and CreateJanggiDrawGame.
         val retained = listOf("7f0d05cd", "cb4951a3").map { id ->
             val game = JanggiGameMovesDtoCache().findByGameId(id)
-            GeneratedGame(id, game.uciMoves, GameResult.valueOf(requireNotNull(game.outcome)), game.blueSetup, game.redSetup)
+            GeneratedGame(
+                id,
+                game.uciMoves,
+                GameResult.valueOf(requireNotNull(game.outcome)),
+                JanggiSetup.valueOf(game.blueSetup),
+                JanggiSetup.valueOf(game.redSetup),
+            )
         }
         val uniqueGames = retained.mapTo(linkedSetOf()) { it.key() }
         val checkmates = retained.filter { it.result == GameResult.CHECKMATE }.toMutableList()

@@ -1,18 +1,12 @@
 package io.elephantchess.xiangqi.testutils
 
-import io.elephantchess.xiangqi.JanggiSetup
-import io.elephantchess.xiangqi.generateJanggiStartFen
-
 data class JanggiGameMovesDto(
     val gameId: String,
     val uciMoves: List<String>,
     val outcome: String? = null,
-    val blueSetup: JanggiSetup = JanggiSetup.INNER_ELEPHANT,
-    val redSetup: JanggiSetup = JanggiSetup.INNER_ELEPHANT,
-) {
-    val startFen: String
-        get() = generateJanggiStartFen(blueSetup, redSetup)
-}
+    val blueSetup: String = "INNER_ELEPHANT",
+    val redSetup: String = "INNER_ELEPHANT",
+)
 
 /** Loads id;moves;outcome;blueSetup;redSetup rows. Legacy rows use INNER_ELEPHANT for both sides. */
 class JanggiGameMovesDtoCache {
@@ -47,8 +41,9 @@ class JanggiGameMovesDtoCache {
                 "Invalid zero-based Janggi coordinates in game '$gameId'"
             }
             val outcome = pieces.getOrNull(2)?.takeIf { it.isNotBlank() }
-            val blueSetup = pieces.getOrNull(3)?.let { JanggiSetup.valueOf(it) } ?: JanggiSetup.INNER_ELEPHANT
-            val redSetup = pieces.getOrNull(4)?.let { JanggiSetup.valueOf(it) } ?: JanggiSetup.INNER_ELEPHANT
+            val blueSetup = pieces.getOrNull(3) ?: "INNER_ELEPHANT"
+            val redSetup = pieces.getOrNull(4) ?: "INNER_ELEPHANT"
+            require(blueSetup.isNotBlank() && redSetup.isNotBlank()) { "Missing Janggi setup in game '$gameId'" }
             return JanggiGameMovesDto(gameId, moves, outcome, blueSetup, redSetup)
         }
     }

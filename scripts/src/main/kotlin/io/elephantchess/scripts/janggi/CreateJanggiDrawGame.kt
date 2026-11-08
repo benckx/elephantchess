@@ -16,7 +16,9 @@ import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.xiangqi.HalfMove
 import io.elephantchess.xiangqi.JanggiBoard
+import io.elephantchess.xiangqi.JanggiSetup
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.generateJanggiStartFen
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -50,8 +52,9 @@ object CreateJanggiDrawGame : KoinScript {
             val username = option("username") ?: error("Supply --username=<existing local username>")
             // This fixture continues with a pass after move 155. PvB stops at that first no-pass stalemate.
             val fixture = JanggiGameMovesDtoCache().findByGameId("7f0d05cd")
+            val startFen = generateJanggiStartFen(JanggiSetup.valueOf(fixture.blueSetup), JanggiSetup.valueOf(fixture.redSetup))
             val history = fixture.uciMoves.take(154)
-            val board = JanggiBoard(fixture.startFen)
+            val board = JanggiBoard(startFen)
             history.forEach { uci ->
                 val move = HalfMove.parseMoveFromUci(uci)
                 check(move.from != move.to && board.isLegalMove(move)) { "Illegal fixture move $uci" }
@@ -73,7 +76,7 @@ object CreateJanggiDrawGame : KoinScript {
                         color = board.colorToPlay(),
                         depth = 1,
                         engine = Engine.FAIRYSTOCKFISH,
-                        startFen = fixture.startFen,
+                        startFen = startFen,
                         openingMode = OpeningMode.ENGINE_ONLY,
                         variant = Variant.JANGGI,
                     ),
@@ -99,7 +102,7 @@ object CreateJanggiDrawGame : KoinScript {
                 }
                 check(games.listMoves(response.gameId) == history)
                 val saved = games.fetchById(response.gameId)!!
-                check((saved.startFen ?: JanggiBoard.DEFAULT_JANGGI_START_FEN) == fixture.startFen)
+                check((saved.startFen ?: JanggiBoard.DEFAULT_JANGGI_START_FEN) == startFen)
                 check(saved.currentHalfMoveIndex == history.size)
                 check(saved.currentFen == board.outputFen())
                 println("Fixture: ${fixture.gameId}, before move 155, with ${history.size} saved half-moves")

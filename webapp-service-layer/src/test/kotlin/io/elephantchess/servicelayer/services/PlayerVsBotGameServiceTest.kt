@@ -69,7 +69,8 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
 
     private fun fixtureFen(moveCount: Int): String {
         val fixture = JanggiGameMovesDtoCache().findByGameId("7f0d05cd")
-        return JanggiBoard(fixture.startFen).apply {
+        val startFen = generateJanggiStartFen(JanggiSetup.valueOf(fixture.blueSetup), JanggiSetup.valueOf(fixture.redSetup))
+        return JanggiBoard(startFen).apply {
             fixture.uciMoves.take(moveCount).forEach { registerMove(it) }
         }.outputFen()
     }
