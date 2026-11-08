@@ -68,8 +68,11 @@ class EngineSearchMovesTest {
         )
         assertTrue(executable.setExecutable(true))
         val locator = object : EngineProcessLocator {
-            override fun launchCommand(binFileName: String) = executable.path
-            override fun launchArguments(binFileName: String) = listOf(executable.path)
+            override fun launchCommand(binFileName: String) =
+                executable.path
+
+            override fun launchArguments(binFileName: String) =
+                listOf(executable.path)
         }
         val process = FairyStockfishEngineProcess(locator, "test", 1)
         val executor = Executors.newSingleThreadExecutor()

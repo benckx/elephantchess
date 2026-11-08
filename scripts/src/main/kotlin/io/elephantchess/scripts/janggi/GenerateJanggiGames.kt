@@ -62,8 +62,10 @@ object GenerateJanggiGames {
                 mapOf(FairyStockfishEngineId to EngineConfig(version = "14.0.1")),
                 executor,
                 object : EngineProcessLocator {
-                    override fun launchCommand(binFileName: String) = enginePath
-                    override fun launchArguments(binFileName: String) = listOf(enginePath)
+                    override fun launchCommand(binFileName: String) =
+                        enginePath
+                    override fun launchArguments(binFileName: String) =
+                        listOf(enginePath)
                 },
             )
         } catch (e: Exception) {

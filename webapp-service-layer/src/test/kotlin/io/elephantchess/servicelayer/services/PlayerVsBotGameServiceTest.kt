@@ -86,7 +86,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
         ).gameId
 
     private suspend fun stubBotMove(move: String) {
-        whenever(mockEnginePool.queryForDepth(any(), any(), any(), any(), any(), anyOrNull()))
+        whenever(mockEnginePool.queryForDepth(any(), any(), any(), any(), any(), anyOrNull(), any(), any()))
             .thenReturn(InfoLinesResult(emptyList(), false, move, null))
     }
 
@@ -127,7 +127,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             assertEquals(Outcome.DRAW, pvbGameDaoService.fetchById(gameId)!!.outcome)
             assertEquals(listOf("d9e9", "d5d7"), pvbGameDaoService.listMoves(gameId))
             val searchMoves = argumentCaptor<List<String>>()
-            verify(mockEnginePool).queryForDepth(any(), any(), any(), any(), eq(Variant.JANGGI), searchMoves.capture())
+            verify(mockEnginePool).queryForDepth(any(), any(), any(), any(), eq(Variant.JANGGI), searchMoves.capture(), any(), any())
             assertTrue(searchMoves.firstValue.isNotEmpty())
             assertFalse(searchMoves.firstValue.any { it.take(2) == it.takeLast(2) })
         }
