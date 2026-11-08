@@ -14,10 +14,6 @@ import io.elephantchess.webapp.rendering.resolvers.*
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.*
-import java.time.Instant
-import java.time.ZoneOffset.UTC
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.time.Duration.Companion.hours
 
 @KoinSingleton(eager = true)
@@ -49,9 +45,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             .distinct()
             .sorted()
         val contributorsText = contributors.joinToString(", ")
-        val lastEditDate = edit.versionTime
-            ?.let { Instant.ofEpochMilli(it).atZone(UTC).toLocalDate() }
-            ?.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
+        val lastEditDate = formatDateUtc(edit.versionTime)
 
         val playerNameEncodedResolver = SimpleValueTagResolver("player_name_encoded", databasePlayer.urlName)
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
