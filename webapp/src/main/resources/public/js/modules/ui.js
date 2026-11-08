@@ -198,11 +198,11 @@ function buildDivWithTextAndClass(textContent, className) {
 /**
  * Builds a variant cell div (symbol + name) for the given variant.
  *
- * @param variant {string} - Variant.MANCHU or Variant.XIANGQI
+ * @param variant {string} - Variant.MANCHU, Variant.XIANGQI, or Variant.JANGGI
  * @returns {HTMLDivElement}
  */
 function buildVariantCell(variant) {
-    const symbolText = variant === Variant.JANGGI ? '장' : variant === Variant.MANCHU ? '统' : '象';
+    const symbolText = formatVariantSymbol(variant);
     const variantName = variant === Variant.JANGGI ? 'Janggi' : variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi';
     const variantTitle = variant === Variant.JANGGI
         ? 'Janggi (Korean chess)'
@@ -214,6 +214,10 @@ function buildVariantCell(variant) {
     symbol.title = variantTitle;
     cell.append(symbol, buildDivWithTextAndClass(variantName, 'variant-name'));
     return cell;
+}
+
+function formatVariantSymbol(variant) {
+    return variant === Variant.JANGGI ? '장' : variant === Variant.MANCHU ? '统' : '象';
 }
 
 /**
