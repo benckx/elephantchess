@@ -33,7 +33,7 @@ class ContentSectionVoteWidget {
         }
 
         UI.preloadModal('content-section-feedback');
-        const sections = document.querySelectorAll('.main-container-text h1[id], .main-container-text h2[id]');
+        const sections = document.querySelectorAll('.main-container-text > .votable-content-section');
         sections.forEach((section) => this.#addVotePanel(section));
         this.#fetchCurrentVotes();
     }
@@ -42,8 +42,9 @@ class ContentSectionVoteWidget {
      * @param section {HTMLElement}
      */
     #addVotePanel(section) {
-        const sectionId = section.id;
-        const sectionTitle = section.textContent.trim();
+        const heading = section.querySelector(':scope > h1[id], :scope > h2[id]');
+        const sectionId = heading.id;
+        const sectionTitle = heading.textContent.trim();
 
         const votePanel = document.createElement('div');
         votePanel.className = 'content-section-vote-panel';
@@ -53,14 +54,7 @@ class ContentSectionVoteWidget {
             <span class="content-section-feedback-link action-link">Tell us more</span>
         `;
 
-        // Insert the vote panel at the end of the section, before the next heading or section break.
-        let lastSectionNode = section;
-        let nextNode = section.nextElementSibling;
-        while (nextNode != null && !['h1', 'h2', 'br'].includes(nextNode.tagName.toLowerCase())) {
-            lastSectionNode = nextNode;
-            nextNode = nextNode.nextElementSibling;
-        }
-        lastSectionNode.after(votePanel);
+        section.append(votePanel);
 
         const upButton = votePanel.children[0];
         const downButton = votePanel.children[1];
