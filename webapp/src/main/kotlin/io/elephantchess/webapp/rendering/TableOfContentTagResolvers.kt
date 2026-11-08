@@ -77,10 +77,7 @@ fun categorizedPageTocTagResolver(tagName: String, templatePath: String): TagRes
     }
 }
 
-private fun headingTocEntries(
-    html: String,
-    headingRegex: Regex = headingWithIdRegex,
-): List<Pair<String, String>> =
+private fun headingTocEntries(html: String, headingRegex: Regex = headingWithIdRegex): List<Pair<String, String>> =
     headingRegex.findAll(html)
         .map { match ->
             val id = match.groupValues[1].trim()

@@ -2,10 +2,7 @@ package io.elephantchess.servicelayer.dto.admin
 
 import io.elephantchess.model.UserType
 
-data class ListContentSectionVoteFeedbackResponse(
-    val aggregates: List<Aggregate>,
-    val entries: List<Entry>,
-) {
+data class ListContentSectionVoteFeedbackResponse(val aggregates: List<Aggregate>, val entries: List<Entry>) {
     data class Aggregate(
         val pageId: String,
         val sectionId: String,

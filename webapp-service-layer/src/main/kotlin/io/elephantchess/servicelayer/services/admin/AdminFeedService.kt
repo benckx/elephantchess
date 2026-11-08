@@ -139,7 +139,7 @@ class AdminFeedService(
                     sectionId = record.sectionId,
                     upVotes = record.upVotes,
                     downVotes = record.downVotes,
-                    totalVotes = record.upVotes + record.downVotes,
+                    totalVotes = record.upVotes - record.downVotes,
                 )
             }
             .sortedWith(
