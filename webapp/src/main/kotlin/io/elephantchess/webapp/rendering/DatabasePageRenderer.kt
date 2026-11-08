@@ -45,7 +45,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             .distinct()
             .sorted()
         val contributorsText = contributors.joinToString(", ")
-        val lastEditDate = formatDateUtc(edit.versionTime)
+        val lastEditDate = formatTimestampUtc(edit.versionTime)
 
         val playerNameEncodedResolver = SimpleValueTagResolver("player_name_encoded", databasePlayer.urlName)
         val playerIdResolver = SimpleValueTagResolver("player_id", databasePlayer.id)
