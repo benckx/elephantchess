@@ -24,6 +24,7 @@ import io.elephantchess.xiangqi.JanggiBoard
 import io.elephantchess.xiangqi.JanggiSetup
 import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.generateJanggiStartFen
+import io.elephantchess.xiangqi.testutils.JanggiGameMovesDto
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
@@ -67,12 +68,34 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
         )
     }
 
-    private fun fixtureFen(moveCount: Int): String {
-        val fixture = JanggiGameMovesDtoCache().findByGameId("7f0d05cd")
+    private val janggiDrawFixture by lazy {
+        fun stalemateIndex(game: JanggiGameMovesDto): Int {
+            val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
+            return game.uciMoves.indexOfFirst { uci ->
+                board.registerMove(uci)
+                !board.isDraw() && !board.isInCheck(board.colorToPlay()) &&
+                    board.listLegalMoves(board.colorToPlay()).none { it.from != it.to }
+            }
+        }
+        val game = JanggiGameMovesDtoCache().randomGame {
+            val index = stalemateIndex(it)
+            // PvB excludes passes, so the human move immediately before the bot's final move must not be a pass.
+            index >= 1 && it.uciMoves[index - 1].let { move -> move.take(2) != move.takeLast(2) }
+        }
+        game to stalemateIndex(game)
+    }
+
+    private fun fixtureBoard(movesBeforeEnd: Int): JanggiBoard {
+        val (fixture, finalIndex) = janggiDrawFixture
         val startFen = generateJanggiStartFen(JanggiSetup.valueOf(fixture.blueSetup), JanggiSetup.valueOf(fixture.redSetup))
         return JanggiBoard(startFen).apply {
-            fixture.uciMoves.take(moveCount).forEach { registerMove(it) }
-        }.outputFen()
+            fixture.uciMoves.take(finalIndex + 1 - movesBeforeEnd).forEach { registerMove(it) }
+        }
+    }
+
+    private fun fixtureMove(movesBeforeEnd: Int): String {
+        val (fixture, finalIndex) = janggiDrawFixture
+        return fixture.uciMoves[finalIndex + 1 - movesBeforeEnd]
     }
 
     private suspend fun createGame(userId: UserId, fen: String, color: Color = WHITE, variant: Variant = Variant.JANGGI): String =
@@ -97,8 +120,10 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     fun `Janggi fixture ends in a persisted draw after the human move without querying the engine`() =
         runTest {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
-            val gameId = createGame(userId, fixtureFen(154))
-            val response = service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "d5d7"))
+            val board = fixtureBoard(1)
+            val finalMove = fixtureMove(1)
+            val gameId = createGame(userId, board.outputFen(), board.colorToPlay())
+            val response = service.playMove(userId.id, PlayMoveBotGameRequest(gameId, finalMove))
 
             assertEquals(GameEventType.STALEMATED, response.statusUpdate)
             assertEquals(Outcome.DRAW, response.outcome)
@@ -108,10 +133,10 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
             assertEquals(Outcome.DRAW, saved.outcome)
             assertEquals(GameEventType.STALEMATED, saved.gameStatus)
             assertEquals(response.fen, saved.currentFen)
-            assertEquals(listOf("d5d7"), pvbGameDaoService.listMoves(gameId))
+            assertEquals(listOf(finalMove), pvbGameDaoService.listMoves(gameId))
             verifyNoInteractions(mockEnginePool)
             assertFailsWith<BadRequestException> {
-                service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "e9e9"))
+                service.playMove(userId.id, PlayMoveBotGameRequest(gameId, finalMove))
             }
         }
 
@@ -119,16 +144,19 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     fun `Janggi draws after the bot move and excludes passes from the engine search`() =
         runTest {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
-            stubBotMove("d5d7")
-            val gameId = createGame(userId, fixtureFen(153), BLACK)
-            val response = service.playMove(userId.id, PlayMoveBotGameRequest(gameId, "d9e9"))
+            val board = fixtureBoard(2)
+            val humanMove = fixtureMove(2)
+            val finalMove = fixtureMove(1)
+            stubBotMove(finalMove)
+            val gameId = createGame(userId, board.outputFen(), board.colorToPlay())
+            val response = service.playMove(userId.id, PlayMoveBotGameRequest(gameId, humanMove))
 
             assertEquals(Outcome.DRAW, response.outcome)
             assertEquals(GameEventType.STALEMATED, response.statusUpdate)
-            assertEquals("d5d7", response.botMove)
+            assertEquals(finalMove, response.botMove)
             assertEquals(2, response.position)
             assertEquals(Outcome.DRAW, pvbGameDaoService.fetchById(gameId)!!.outcome)
-            assertEquals(listOf("d9e9", "d5d7"), pvbGameDaoService.listMoves(gameId))
+            assertEquals(listOf(humanMove, finalMove), pvbGameDaoService.listMoves(gameId))
             val searchMoves = argumentCaptor<List<String>>()
             verify(mockEnginePool).queryForDepth(any(), any(), any(), any(), eq(Variant.JANGGI), searchMoves.capture(), any(), any())
             assertTrue(searchMoves.firstValue.isNotEmpty())
@@ -139,13 +167,15 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     fun `Janggi draws when the first bot move stalemates the human`() =
         runTest {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
-            stubBotMove("d5d7")
-            val gameId = createGame(userId, fixtureFen(154), BLACK)
+            val board = fixtureBoard(1)
+            val finalMove = fixtureMove(1)
+            stubBotMove(finalMove)
+            val gameId = createGame(userId, board.outputFen(), board.colorToPlay().reverse())
             val game = pvbGameDaoService.fetchById(gameId)!!
             assertEquals(GameEventType.STALEMATED, game.gameStatus)
             assertEquals(Outcome.DRAW, game.outcome)
             assertEquals(1, game.currentHalfMoveIndex)
-            assertEquals(listOf("d5d7"), pvbGameDaoService.listMoves(gameId))
+            assertEquals(listOf(finalMove), pvbGameDaoService.listMoves(gameId))
         }
 
     @Test
@@ -153,7 +183,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
         runTest {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
             val exception = assertFailsWith<BadRequestException> {
-                createGame(userId, fixtureFen(155), BLACK)
+                createGame(userId, fixtureBoard(0).outputFen(), fixtureBoard(0).colorToPlay())
             }
             assertEquals("Start position is stalemate", exception.message)
             verifyNoInteractions(mockEnginePool)

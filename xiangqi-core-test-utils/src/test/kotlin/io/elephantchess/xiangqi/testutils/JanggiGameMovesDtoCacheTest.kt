@@ -14,7 +14,7 @@ class JanggiGameMovesDtoCacheTest {
         assertTrue(games.all { game -> game.uciMoves.all { movePattern.matches(it) } })
         assertTrue(games.any { game -> game.uciMoves.any { it.contains('0') } })
         val rawMoves = ResourcesUtils.getResourceAsText("/janggi.txt")
-            .lineSequence().first { it.isNotBlank() }.split(";")[1].split(",")
+            .lineSequence().first { it.isNotBlank() }.split(";").last().split(",")
         assertEquals(rawMoves, games.first().uciMoves)
     }
 
@@ -37,7 +37,7 @@ class JanggiGameMovesDtoCacheTest {
 
     @Test
     fun loadsIndependentSetups() {
-        val game = JanggiGameMovesDtoCache.parseLine("setup;e3d3;DRAW;OUTER_ELEPHANT;CENTRAL_CHARIOT")
+        val game = JanggiGameMovesDtoCache.parseLine("setup;DRAW;OUTER_ELEPHANT;CENTRAL_CHARIOT;e3d3")
         assertEquals("OUTER_ELEPHANT", game.blueSetup)
         assertEquals("CENTRAL_CHARIOT", game.redSetup)
         assertEquals("DRAW", game.outcome)
@@ -45,8 +45,8 @@ class JanggiGameMovesDtoCacheTest {
     }
 
     @Test
-    fun legacyFixturesUseInnerElephants() {
-        val game = JanggiGameMovesDtoCache.parseLine("legacy;e3d3;DRAW")
+    fun loadsInnerElephantSetups() {
+        val game = JanggiGameMovesDtoCache.parseLine("inner;DRAW;INNER_ELEPHANT;INNER_ELEPHANT;e3d3")
         assertEquals("INNER_ELEPHANT", game.blueSetup)
         assertEquals("INNER_ELEPHANT", game.redSetup)
     }
@@ -54,10 +54,10 @@ class JanggiGameMovesDtoCacheTest {
     @Test
     fun rejectsInvalidSetupColumns() {
         assertFailsWith<IllegalArgumentException> {
-            JanggiGameMovesDtoCache.parseLine("bad;e3d3;DRAW;INNER_ELEPHANT")
+            JanggiGameMovesDtoCache.parseLine("bad;DRAW;INNER_ELEPHANT;e3d3")
         }
         assertFailsWith<IllegalArgumentException> {
-            JanggiGameMovesDtoCache.parseLine("bad;e3d3;DRAW;;INNER_ELEPHANT")
+            JanggiGameMovesDtoCache.parseLine("bad;DRAW;;INNER_ELEPHANT;e3d3")
         }
     }
 }

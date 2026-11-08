@@ -8,7 +8,7 @@ data class JanggiGameMovesDto(
     val redSetup: String = "INNER_ELEPHANT",
 )
 
-/** Loads id;moves;outcome;blueSetup;redSetup rows. Legacy rows use INNER_ELEPHANT for both sides. */
+/** Loads id;outcome;blueSetup;redSetup;moves rows. */
 class JanggiGameMovesDtoCache {
 
     fun listAll(): List<JanggiGameMovesDto> =
@@ -16,6 +16,10 @@ class JanggiGameMovesDtoCache {
 
     fun randomGame(): JanggiGameMovesDto =
         cache.random()
+
+    fun randomGame(predicate: (JanggiGameMovesDto) -> Boolean): JanggiGameMovesDto =
+        cache.filter(predicate).randomOrNull()
+            ?: error("No Janggi game matches the requested conditions")
 
     fun findByGameId(gameId: String) =
         cache.find { it.gameId == gameId }
@@ -34,15 +38,15 @@ class JanggiGameMovesDtoCache {
 
         fun parseLine(line: String): JanggiGameMovesDto {
             val pieces = line.split(";")
-            require(pieces.size in setOf(2, 3, 5)) { "Invalid Janggi fixture columns: $line" }
+            require(pieces.size == 5) { "Invalid Janggi fixture columns: $line" }
             val gameId = pieces[0]
-            val moves = pieces[1].split(",").filter { it.isNotBlank() }
+            val moves = pieces[4].split(",").filter { it.isNotBlank() }
             require(moves.all { movePattern.matches(it) }) {
                 "Invalid zero-based Janggi coordinates in game '$gameId'"
             }
-            val outcome = pieces.getOrNull(2)?.takeIf { it.isNotBlank() }
-            val blueSetup = pieces.getOrNull(3) ?: "INNER_ELEPHANT"
-            val redSetup = pieces.getOrNull(4) ?: "INNER_ELEPHANT"
+            val outcome = pieces[1].takeIf { it.isNotBlank() }
+            val blueSetup = pieces[2]
+            val redSetup = pieces[3]
             require(blueSetup.isNotBlank() && redSetup.isNotBlank()) { "Missing Janggi setup in game '$gameId'" }
             return JanggiGameMovesDto(gameId, moves, outcome, blueSetup, redSetup)
         }

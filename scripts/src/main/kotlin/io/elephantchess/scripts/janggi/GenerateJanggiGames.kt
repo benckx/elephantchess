@@ -3,9 +3,7 @@ package io.elephantchess.scripts.janggi
 import io.elephantchess.engines.EnginePool
 import io.elephantchess.engines.process.FairyStockfishEngineId
 import io.elephantchess.scripts.KoinScriptInit
-import io.elephantchess.xiangqi.JanggiSetup
-import io.elephantchess.xiangqi.Variant
-import io.elephantchess.xiangqi.generateJanggiStartFen
+import io.elephantchess.xiangqi.*
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlinx.coroutines.runBlocking
 import org.koin.core.component.inject
@@ -17,7 +15,7 @@ import kotlin.random.Random
 /**
  * Run :scripts:generateJanggiGames with optional --games, --max-moves and --max-depth arguments.
  * Uses the configured EnginePool from KoinScriptInit (scripts.properties).
- * Output columns: id;moves;result;blueSetup;redSetup. Setups use JanggiSetup enum names.
+ * Output columns: id;result;blueSetup;redSetup;moves. Setups use JanggiSetup enum names.
  */
 object GenerateJanggiGames : KoinScriptInit() {
 
@@ -61,18 +59,37 @@ object GenerateJanggiGames : KoinScriptInit() {
         outputFile.parentFile?.mkdirs()
         outputFile.writeText(
             games.joinToString("\n") { game ->
-                "${game.id};${game.moves.joinToString(",")};${game.result.name};${game.blueSetup.name};${game.redSetup.name}"
+                "${game.id};${game.result.name};${game.blueSetup.name};${game.redSetup.name};${game.moves.joinToString(",")}"
             },
         )
         println("Wrote ${games.size} unique Janggi games to $OUTPUT_PATH")
     }
 
     private suspend fun generateSelfPlayGames(totalGames: Int, maxMoves: Int, maxDepth: Int): List<GeneratedGame> {
-        // Keep games referenced by ID in tests and CreateJanggiDrawGame.
-        val retained = listOf("7f0d05cd", "cb4951a3").map { id ->
-            val game = JanggiGameMovesDtoCache().findByGameId(id)
+        // Keep examples of both draw conditions available for fixture consumers.
+        val cache = JanggiGameMovesDtoCache()
+        val retained = listOf(
+            cache.randomGame { game ->
+                val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
+                game.uciMoves.any { uci ->
+                    board.registerMove(uci)
+                    !board.isDraw() && !board.isInCheck(board.colorToPlay()) &&
+                        board.listLegalMoves(board.colorToPlay()).none { it.from != it.to }
+                }
+            },
+            cache.randomGame { game ->
+                val lastMove = game.uciMoves.lastOrNull()?.let { HalfMove.parseMoveFromUci(it) }
+                if (lastMove == null || lastMove.from != lastMove.to) {
+                    false
+                } else {
+                    val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
+                    game.uciMoves.dropLast(1).forEach { board.registerMove(it) }
+                    board.areGeneralsFacing() && board.isInCheck(board.colorToPlay())
+                }
+            },
+        ).distinctBy { it.gameId }.map { game ->
             GeneratedGame(
-                id,
+                game.gameId,
                 game.uciMoves,
                 GameResult.valueOf(requireNotNull(game.outcome)),
                 JanggiSetup.valueOf(game.blueSetup),
@@ -167,6 +184,7 @@ object GenerateJanggiGames : KoinScriptInit() {
         val blueSetup: JanggiSetup,
         val redSetup: JanggiSetup,
     ) {
+
         fun key(): String =
             "${blueSetup.name};${redSetup.name};${moves.joinToString(",")}"
     }

@@ -112,13 +112,25 @@ class JanggiBoardTest {
 
     @Test
     fun `passing accepts bikjang even when in check`() {
-        val game = JanggiGameMovesDtoCache().findByGameId("cb4951a3")
+        val game = JanggiGameMovesDtoCache().randomGame { candidate ->
+            val lastMove = candidate.uciMoves.lastOrNull()?.let { parseMoveFromUci(it) }
+            if (lastMove == null || lastMove.from != lastMove.to) {
+                false
+            } else {
+                val board = JanggiBoard(
+                    generateJanggiStartFen(JanggiSetup.valueOf(candidate.blueSetup), JanggiSetup.valueOf(candidate.redSetup)),
+                )
+                candidate.uciMoves.dropLast(1).forEach { board.registerMove(it) }
+                board.areGeneralsFacing() && board.isInCheck(board.colorToPlay())
+            }
+        }
         val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
         game.uciMoves.dropLast(1).forEach { uci ->
             assertTrue(board.isLegalMove(parseMoveFromUci(uci)))
             board.registerMove(uci)
         }
-        assertEquals("e1e1", game.uciMoves.last())
+        val pass = parseMoveFromUci(game.uciMoves.last())
+        assertEquals(pass.from, pass.to)
         assertTrue(board.isInCheck(board.colorToPlay()))
         assertTrue(board.areGeneralsFacing())
         assertTrue(board.isLegalMove(parseMoveFromUci(game.uciMoves.last())))

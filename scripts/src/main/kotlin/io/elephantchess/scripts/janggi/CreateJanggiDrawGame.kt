@@ -50,17 +50,30 @@ object CreateJanggiDrawGame : KoinScript {
                 args.firstOrNull { it.startsWith("--$name=") }?.substringAfter("=")
 
             val username = option("username") ?: error("Supply --username=<existing local username>")
-            // This fixture continues with a pass after move 155. PvB stops at that first no-pass stalemate.
-            val fixture = JanggiGameMovesDtoCache().findByGameId("7f0d05cd")
+            val fixture = JanggiGameMovesDtoCache().randomGame { game ->
+                val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
+                game.uciMoves.any { uci ->
+                    board.registerMove(uci)
+                    !board.isDraw() && !board.isInCheck(board.colorToPlay()) &&
+                        board.listLegalMoves(board.colorToPlay()).none { it.from != it.to }
+                }
+            }
             val startFen = generateJanggiStartFen(JanggiSetup.valueOf(fixture.blueSetup), JanggiSetup.valueOf(fixture.redSetup))
-            val history = fixture.uciMoves.take(154)
             val board = JanggiBoard(startFen)
+            val terminalBoard = JanggiBoard(startFen)
+            val finalIndex = fixture.uciMoves.indexOfFirst { uci ->
+                terminalBoard.registerMove(uci)
+                !terminalBoard.isDraw() && !terminalBoard.isInCheck(terminalBoard.colorToPlay()) &&
+                    terminalBoard.listLegalMoves(terminalBoard.colorToPlay()).none { it.from != it.to }
+            }
+            check(finalIndex >= 0) { "Selected fixture has no stalemate" }
+            val history = fixture.uciMoves.take(finalIndex)
             history.forEach { uci ->
                 val move = HalfMove.parseMoveFromUci(uci)
-                check(move.from != move.to && board.isLegalMove(move)) { "Illegal fixture move $uci" }
+                check(board.isLegalMove(move)) { "Illegal fixture move $uci" }
                 board.registerMove(move)
             }
-            val finalMove = HalfMove.parseMoveFromUci(fixture.uciMoves[154])
+            val finalMove = HalfMove.parseMoveFromUci(fixture.uciMoves[finalIndex])
             check(board.isLegalMove(finalMove))
             val finalBoard = board.copy().apply { registerMove(finalMove) }
             check(!finalBoard.isInCheck(finalBoard.colorToPlay()))
@@ -105,7 +118,7 @@ object CreateJanggiDrawGame : KoinScript {
                 check((saved.startFen ?: JanggiBoard.DEFAULT_JANGGI_START_FEN) == startFen)
                 check(saved.currentHalfMoveIndex == history.size)
                 check(saved.currentFen == board.outputFen())
-                println("Fixture: ${fixture.gameId}, before move 155, with ${history.size} saved half-moves")
+                println("Fixture: ${fixture.gameId}, before move ${finalIndex + 1}, with ${history.size} saved half-moves")
                 println("Play ${finalMove.toUci()} (${finalMove.toAlgebraic()}) to draw. No engine is needed.")
                 println("http://localhost:8080/playbot?id=${response.gameId}")
             } finally {
