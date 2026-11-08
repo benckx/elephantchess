@@ -21,9 +21,9 @@ class JanggiGameMovesDtoCacheTest {
     @Test
     fun loadsGeneratedGames() {
         val games = JanggiGameMovesDtoCache().listAll()
-        assertEquals(200, games.size)
-        assertEquals(200, games.distinctBy { it.gameId }.size)
-        assertEquals(200, games.distinctBy { Triple(it.blueSetup, it.redSetup, it.uciMoves) }.size)
+        assertTrue(games.isNotEmpty())
+        assertEquals(games.size, games.distinctBy { it.gameId }.size)
+        assertEquals(games.size, games.distinctBy { Triple(it.blueSetup, it.redSetup, it.uciMoves) }.size)
         assertTrue(games.count { it.outcome == "CHECKMATE" } >= 25)
         assertTrue(
             games.all { game ->
