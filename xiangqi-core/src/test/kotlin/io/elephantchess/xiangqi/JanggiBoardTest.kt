@@ -8,9 +8,6 @@ import io.elephantchess.xiangqi.testutils.JanggiGameMovesDto
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlin.test.*
 
-private fun JanggiGameMovesDto.startFen(): String =
-    generateJanggiStartFen(JanggiSetup.valueOf(blueSetup), JanggiSetup.valueOf(redSetup))
-
 class JanggiBoardTest {
 
     @Test
@@ -189,4 +186,10 @@ class JanggiBoardTest {
         }
         return JanggiBoard("$placement w - - 0 1")
     }
+
+    private fun JanggiGameMovesDto.startFen(): String =
+        generateJanggiStartFen(
+            blue = JanggiSetup.valueOf(blueSetup),
+            red = JanggiSetup.valueOf(redSetup),
+        )
 }
