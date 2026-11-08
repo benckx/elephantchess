@@ -19,7 +19,12 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
         val downVotes = DSL.count().filterWhere(CONTENT_SECTION_VOTE.UP_VOTED.isFalse).`as`("down_votes")
 
         return dslContext
-            .select(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID, upVotes, downVotes)
+            .select(
+                CONTENT_SECTION_VOTE.PAGE_ID,
+                CONTENT_SECTION_VOTE.SECTION_ID,
+                upVotes,
+                downVotes
+            )
             .from(CONTENT_SECTION_VOTE)
             .groupBy(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID)
             .orderBy(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID)
