@@ -33,7 +33,7 @@ class AdminContentSectionFeedbackPage extends BasePage {
                 row.insertCell().innerText = aggregate.sectionId;
                 row.insertCell().innerText = aggregate.totalVotes;
                 row.insertCell().innerText = aggregate.upVotes;
-                row.insertCell().innerText = aggregate.downVotes;
+                row.insertCell().innerText = -aggregate.downVotes;
             });
 
             const tbody = emptyTable(this.#table);
