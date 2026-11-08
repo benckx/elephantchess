@@ -28,13 +28,8 @@ fun formatTimestampUtc(epochMillis: Long?, nullPlaceholder: String = "n/a"): Str
         dateTime.format(DateTimeFormatter.ofPattern(pattern).withLocale(Locale.ENGLISH))
     }
 
-fun formatDateUtc(epochMillis: Long?): String? =
-    epochMillis?.let {
-        Instant.ofEpochMilli(it)
-            .atZone(UTC)
-            .toLocalDate()
-            .format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
-    }
+fun formatDateUtc(instant: Instant?): String? =
+    instant?.atZone(UTC)?.toLocalDate()?.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
 
 fun formatTimestampToRelativeTime(epochMillis: Long?, nullPlaceholder: String = "n/a"): String {
     if (epochMillis == null) {

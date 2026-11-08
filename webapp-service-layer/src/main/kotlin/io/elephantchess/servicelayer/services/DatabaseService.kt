@@ -119,8 +119,8 @@ class DatabaseService(
         if (offset != null && offset > MAX_OFFSET) {
             throw BadRequestException(
                 "Results cannot be greater than $MAX_OFFSET. " +
-                    "You can make your query more specific. " +
-                    "Or feel free to contact us if you would like a sample of game data.",
+                        "You can make your query more specific. " +
+                        "Or feel free to contact us if you would like a sample of game data.",
             )
         }
 
@@ -188,13 +188,13 @@ class DatabaseService(
                 }
 
         val hasAnyCriteria = dateStartParsed != null ||
-            dateEndParsed != null ||
-            !playerName.isNullOrBlank() ||
-            resolvedPlayerIds.isNotEmpty() ||
-            playerColor != null ||
-            !eventName.isNullOrBlank() ||
-            resolvedEventIds.isNotEmpty() ||
-            !abridgedFen.isNullOrBlank()
+                dateEndParsed != null ||
+                !playerName.isNullOrBlank() ||
+                resolvedPlayerIds.isNotEmpty() ||
+                playerColor != null ||
+                !eventName.isNullOrBlank() ||
+                resolvedEventIds.isNotEmpty() ||
+                !abridgedFen.isNullOrBlank()
 
         if (hasAnyCriteria) {
             referenceGameDaoService.persistSearch(
@@ -330,7 +330,7 @@ class DatabaseService(
                     ?.coerceAtLeast(minOrDefaultLastPlayerUpdateDate)
 
                 (player?.canonicalName ?: record.id) to
-                    (lastModified ?: minOrDefaultLastPlayerUpdateDate)
+                        (lastModified ?: minOrDefaultLastPlayerUpdateDate)
             }
     }
 
@@ -407,6 +407,7 @@ class DatabaseService(
                 sources = fetchPlayerProfileSources(playerId, profileVersion.version),
                 editComment = profileVersion.comment,
                 enabled = profileVersion.enabled,
+                versionTime = profileVersion.versionTime
             )
         } else {
             val player = referencePlayerDaoService.findPlayer(playerId)
@@ -421,6 +422,7 @@ class DatabaseService(
                 sources = emptyList(),
                 editComment = null,
                 enabled = true,
+                versionTime = null
             )
         }
     }
