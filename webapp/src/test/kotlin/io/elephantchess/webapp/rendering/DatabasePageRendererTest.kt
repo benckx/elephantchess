@@ -1,7 +1,6 @@
 package io.elephantchess.webapp.rendering
 
 import io.elephantchess.htmlrenderer.HtmlRenderer
-import io.elephantchess.htmlrenderer.TemplateRenderer
 import io.elephantchess.servicelayer.dto.database.DatabasePlayer
 import io.elephantchess.servicelayer.dto.database.DatabasePlayerProfileEdit
 import kotlinx.coroutines.test.runTest
@@ -11,11 +10,14 @@ import kotlin.test.assertTrue
 
 class DatabasePageRendererTest {
 
-    private fun pageRenderer(): DatabasePageRenderer {
-        val templateRenderer = object : TemplateRenderer(baseTagResolvers = emptyList(), disabledTemplates = emptyList()) {}
-        val htmlRenderer = HtmlRenderer(isMinificationEnabled = false, cdnFolder = null, webTemplateRenderer = templateRenderer)
-        return DatabasePageRenderer(htmlRenderer)
-    }
+    private fun pageRenderer() =
+        DatabasePageRenderer(
+            HtmlRenderer(
+                isMinificationEnabled = false,
+                cdnFolder = null,
+                webTemplateRenderer = WebTemplateRenderer(),
+            ),
+        )
 
     @Test
     fun `renderPlayerPage includes contributors and last edit date`() =
