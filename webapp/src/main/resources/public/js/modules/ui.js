@@ -198,22 +198,47 @@ function buildDivWithTextAndClass(textContent, className) {
 /**
  * Builds a variant cell div (symbol + name) for the given variant.
  *
- * @param variant {string} - Variant.MANCHU or Variant.XIANGQI
+ * @param variant {string} - Variant.MANCHU, Variant.XIANGQI, or Variant.JANGGI
  * @returns {HTMLDivElement}
  */
 function buildVariantCell(variant) {
-    const symbolText = variant === Variant.JANGGI ? '장' : variant === Variant.MANCHU ? '统' : '象';
-    const variantName = variant === Variant.JANGGI ? 'Janggi' : variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi';
-    const variantTitle = variant === Variant.JANGGI
-        ? 'Janggi (Korean chess)'
-        : variant === Variant.MANCHU
-            ? 'Manchu chess (or Yitong)'
-            : 'Xiangqi (Chinese chess)';
+    const symbolText = formatVariantSymbol(variant);
+    let variantName;
+    let variantTitle;
+    switch (variant) {
+        case Variant.JANGGI:
+            variantName = 'Janggi';
+            variantTitle = 'Janggi (Korean chess)';
+            break;
+        case Variant.MANCHU:
+            variantName = 'Manchu';
+            variantTitle = 'Manchu chess (or Yitong)';
+            break;
+        case Variant.XIANGQI:
+        default:
+            variantName = 'Xiangqi';
+            variantTitle = 'Xiangqi (Chinese chess)';
+            break;
+    }
     const cell = buildDivWithClass('variant-cell');
     const symbol = buildDivWithTextAndClass(symbolText, 'variant-symbol');
     symbol.title = variantTitle;
     cell.append(symbol, buildDivWithTextAndClass(variantName, 'variant-name'));
     return cell;
+}
+
+function formatVariantSymbol(variant) {
+    switch (variant) {
+        case Variant.JANGGI:
+            return '장';
+        case Variant.MANCHU:
+            return '统';
+        case Variant.XIANGQI:
+            return '象';
+        default:
+            return '?';
+
+    }
 }
 
 /**

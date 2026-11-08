@@ -67,7 +67,7 @@ class AdminFeedsPage extends BasePage {
                 }
 
                 const variantCell = row.insertCell();
-                variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
+                variantCell.innerText = formatVariantSymbol(entry.variant);
 
                 const gameIdCell = row.insertCell();
                 gameIdCell.append(entry.buildGameAnchor());
@@ -159,7 +159,7 @@ class AdminFeedsPage extends BasePage {
 
                 const variantCell = row.insertCell();
                 variantCell.className = 'label-cell';
-                variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
+                variantCell.innerText = formatVariantSymbol(entry.variant);
 
                 const gameIdCell = row.insertCell();
                 gameIdCell.className = 'label-cell';

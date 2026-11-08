@@ -17,25 +17,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-class ChangelogPage extends BasePage {
+getElementsByClassNameArray('anchor-copy-link').forEach((link) => {
+    link.addEventListener('click', (event) => {
+        event.preventDefault();
 
-    constructor() {
-        super();
+        const target = link.dataset.anchorTarget;
+        if (!target) return;
 
-        // copy-paste anchor url upon clicking on the icons
-        getElementsByClassNameArray('anchor-copy-link').forEach((link) => {
-            link.addEventListener('click', (event) => {
-                event.preventDefault();
-
-                const target = link.dataset.anchorTarget;
-                if (!target) return;
-
-                const url = `${getFullHost()}${window.location.pathname}#${target}`;
-                copyTextToClipboardAndNotify(url, 'Link copied to clipboard!');
-            });
-        });
-    }
-
-}
-
-window.onload = () => new ChangelogPage();
+        const url = `${getFullHost()}${window.location.pathname}#${target}`;
+        copyTextToClipboardAndNotify(url, 'Link copied to clipboard!');
+    });
+});
