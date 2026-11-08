@@ -220,7 +220,7 @@ class TagResolversTest {
         }
 
     @Test
-    fun `roadmap toc groups headings under comment categories`() =
+    fun `roadmap toc groups headings under visible category headings`() =
         runTest {
             val resolver = categorizedPageTocTagResolver(
                 tagName = "roadmap_toc",

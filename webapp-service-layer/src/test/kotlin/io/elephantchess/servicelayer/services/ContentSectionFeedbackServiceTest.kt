@@ -7,6 +7,7 @@ import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.ContentSectionVoteRequest
 import io.elephantchess.servicelayer.exceptions.NotAcceptableException
 import io.elephantchess.servicelayer.model.UserId
+import io.elephantchess.servicelayer.services.admin.AdminFeedService
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
 import org.koin.core.component.inject
@@ -19,6 +20,7 @@ import kotlin.test.assertNull
 class ContentSectionFeedbackServiceTest : ServiceTest() {
 
     private val contentSectionFeedbackService by inject<ContentSectionFeedbackService>()
+    private val adminFeedService by inject<AdminFeedService>()
     private val dslContext by inject<DSLContext>()
 
     @AfterTest
@@ -133,5 +135,50 @@ class ContentSectionFeedbackServiceTest : ServiceTest() {
             assertFailsWith<NotAcceptableException> {
                 contentSectionFeedbackService.fetchContentSectionVotes("about", actor)
             }
+        }
+
+    @Test
+    fun `admin feedback should include current vote totals per section`() =
+        runTest {
+            val users = (1..3).map { signUpTestUser().second }
+
+            contentSectionFeedbackService.submitContentSectionVote(
+                ContentSectionVoteRequest("faq", "why-sign-up", true),
+                UserId(UserType.AUTHENTICATED, users[0]),
+            )
+            contentSectionFeedbackService.submitContentSectionVote(
+                ContentSectionVoteRequest("faq", "why-sign-up", true),
+                UserId(UserType.AUTHENTICATED, users[1]),
+            )
+            contentSectionFeedbackService.submitContentSectionVote(
+                ContentSectionVoteRequest("faq", "why-sign-up", false),
+                UserId(UserType.AUTHENTICATED, users[2]),
+            )
+            contentSectionFeedbackService.submitContentSectionVote(
+                ContentSectionVoteRequest("roadmap", "pre-move", true),
+                UserId(UserType.AUTHENTICATED, users[0]),
+            )
+            contentSectionFeedbackService.submitContentSectionVote(
+                ContentSectionVoteRequest("roadmap", "pre-move", false),
+                UserId(UserType.AUTHENTICATED, users[1]),
+            )
+            contentSectionFeedbackService.submitContentSectionVote(
+                ContentSectionVoteRequest("roadmap", "seven-kingdoms-variant", false),
+                UserId(UserType.AUTHENTICATED, users[2]),
+            )
+
+            val response = adminFeedService.listLatestFeedback()
+            val aggregate = response.aggregates.single { it.pageId == "faq" && it.sectionId == "why-sign-up" }
+
+            assertEquals(2, aggregate.upVotes)
+            assertEquals(1, aggregate.downVotes)
+            assertEquals(1, aggregate.totalVotes)
+            assertEquals(1, response.aggregates.first().totalVotes)
+            assertEquals("faq", response.aggregates.first().pageId)
+            val downvotedSection = response.aggregates.single { it.sectionId == "seven-kingdoms-variant" }
+            assertEquals(0, downvotedSection.upVotes)
+            assertEquals(1, downvotedSection.downVotes)
+            assertEquals(-1, downvotedSection.totalVotes)
+            assertEquals(downvotedSection, response.aggregates.last())
         }
 }
