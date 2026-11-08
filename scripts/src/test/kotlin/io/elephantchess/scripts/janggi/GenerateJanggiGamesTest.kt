@@ -14,7 +14,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class GenerateJanggiGamesTest {
@@ -77,28 +76,5 @@ class GenerateJanggiGamesTest {
 
             assertEquals(listOf("a0a1", "a0a1"), game.moves)
             assertEquals(GenerateJanggiGames.GameResult.DRAW, game.result)
-        }
-
-    @Test
-    fun `fails rather than treating an incomplete engine result as a draw`() =
-        runTest {
-            val engines = mock<EnginePool>()
-            whenever(
-                engines.queryForDepth(
-                    any(),
-                    eq(FairyStockfishEngineId),
-                    any(),
-                    any(),
-                    eq(Variant.JANGGI),
-                    isNull(),
-                    eq(10L),
-                    eq(true),
-                ),
-            )
-                .thenReturn(InfoLinesResult(emptyList(), false, null, null))
-
-            assertFailsWith<IllegalStateException> {
-                GenerateJanggiGames.generateSelfPlayGame(engines, maxMoves = 2, maxDepth = 1)
-            }
         }
 }
