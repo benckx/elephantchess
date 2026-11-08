@@ -23,12 +23,15 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomUtils
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.minutes
 
 abstract class ServiceTest :
     PostgresTest(),
     KoinComponent {
+    private companion object {
+        val testUserCounter = AtomicLong()
+    }
 
     protected val logger = KotlinLogging.logger {}
     protected val gameMovesCache by lazy { GameMovesDtoCache() }
@@ -68,12 +71,12 @@ abstract class ServiceTest :
     }
 
     protected suspend fun signUpTestUser(
-        i: Int = RandomUtils.nextInt(1_000, 1_000_000),
+        i: Long = testUserCounter.incrementAndGet(),
         transferGuestData: Boolean = false,
         guestUserId: String? = null,
     ): Pair<SignUpRequest, String> {
         val password = insecure().nextAlphanumeric(10)
-        val testUserIdentifier = "$i-${insecure().nextAlphanumeric(6)}"
+        val testUserIdentifier = i.toString()
         val request = SignUpRequest(
             username = "test$testUserIdentifier",
             email = "test$testUserIdentifier@gmail.com",
