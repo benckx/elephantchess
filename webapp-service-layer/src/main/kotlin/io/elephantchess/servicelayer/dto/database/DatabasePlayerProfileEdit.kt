@@ -1,5 +1,7 @@
 package io.elephantchess.servicelayer.dto.database
 
+import kotlin.time.Instant
+
 data class DatabasePlayerProfileEdit(
     val playerId: String,
     val canonicalName: String,
@@ -9,5 +11,5 @@ data class DatabasePlayerProfileEdit(
     val sources: List<DatabasePlayerProfileSource>,
     val editComment: String?,
     val enabled: Boolean,
-    val versionTime: Long? = null,
+    val versionTime: Instant?,
 )
