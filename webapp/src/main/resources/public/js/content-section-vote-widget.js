@@ -33,7 +33,7 @@ class ContentSectionVoteWidget {
         }
 
         UI.preloadModal('content-section-feedback');
-        const sections = document.querySelectorAll('.main-container-text h1[id]');
+        const sections = document.querySelectorAll('.main-container-text h1[id], .main-container-text h2[id]');
         sections.forEach((section) => this.#addVotePanel(section));
         this.#fetchCurrentVotes();
     }
@@ -53,12 +53,10 @@ class ContentSectionVoteWidget {
             <span class="content-section-feedback-link action-link">Tell us more</span>
         `;
 
-        // Insert the vote panel at the end of the section: walk the siblings
-        // following the heading until the next h1, then insert before it. If
-        // there is no following h1, append after the last sibling.
+        // Insert the vote panel at the end of the section, before the next heading or section break.
         let lastSectionNode = section;
         let nextNode = section.nextElementSibling;
-        while (nextNode != null && nextNode.tagName.toLowerCase() !== 'h1' && nextNode.tagName.toLowerCase() !== 'br') {
+        while (nextNode != null && !['h1', 'h2', 'br'].includes(nextNode.tagName.toLowerCase())) {
             lastSectionNode = nextNode;
             nextNode = nextNode.nextElementSibling;
         }
