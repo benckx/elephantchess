@@ -23,7 +23,7 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
                 CONTENT_SECTION_VOTE.PAGE_ID,
                 CONTENT_SECTION_VOTE.SECTION_ID,
                 upVotes,
-                downVotes
+                downVotes,
             )
             .from(CONTENT_SECTION_VOTE)
             .groupBy(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID)
@@ -51,7 +51,11 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .set(CONTENT_SECTION_VOTE.NOTIFIED, false)
             .set(CONTENT_SECTION_VOTE.CREATION_TIME, now)
             .set(CONTENT_SECTION_VOTE.UPDATE_TIME, now)
-            .onConflict(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID, CONTENT_SECTION_VOTE.USER_ID)
+            .onConflict(
+                CONTENT_SECTION_VOTE.PAGE_ID,
+                CONTENT_SECTION_VOTE.SECTION_ID,
+                CONTENT_SECTION_VOTE.USER_ID,
+            )
             .doUpdate()
             .set(CONTENT_SECTION_VOTE.UP_VOTED, upVoted)
             .set(CONTENT_SECTION_VOTE.FEEDBACK, feedback)
