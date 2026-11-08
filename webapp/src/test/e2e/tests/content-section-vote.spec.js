@@ -44,6 +44,13 @@ for (const {pageId, sectionId} of [
                 expect(layout.marginBottom).toBeGreaterThanOrEqual(24);
                 expect(layout.lastChildIsVotePanel).toBe(true);
             }
+            if (pageId === 'roadmap') {
+                await expect(page.locator('.main-container-text > br')).toHaveCount(0);
+                const headingMargins = await page.locator('.main-container-text > h1:not(:first-child)')
+                    .evaluateAll(headings => headings.map(heading => parseFloat(getComputedStyle(heading).marginTop)));
+                expect(headingMargins).toHaveLength(9);
+                headingMargins.forEach(margin => expect(margin).toBeGreaterThanOrEqual(48));
+            }
 
             const section = sections.filter({has: page.locator(`#${sectionId}`)});
             const upButton = section.getByAltText('vote up', {exact: true});

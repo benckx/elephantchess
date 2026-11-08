@@ -56,6 +56,10 @@
     word-break: break-word;
 }
 
+[data-page-id="roadmap"] > h1:not(:first-child) {
+    margin-top: 48px;
+}
+
 #page-toc {
     background-color: #f4f4f4;
     border: 1px solid #ddd;

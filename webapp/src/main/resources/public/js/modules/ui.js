@@ -217,7 +217,17 @@ function buildVariantCell(variant) {
 }
 
 function formatVariantSymbol(variant) {
-    return variant === Variant.JANGGI ? '장' : variant === Variant.MANCHU ? '统' : '象';
+    switch (variant) {
+        case Variant.JANGGI:
+            return '장';
+        case Variant.MANCHU:
+            return '统';
+        case Variant.XIANGQI:
+            return '象';
+        default:
+            return '?';
+
+    }
 }
 
 /**
