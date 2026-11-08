@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
@@ -17,12 +17,27 @@ jobs:
           distribution: temurin
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v6
+      - name: Use runner-local script configuration
+        run: printf 'app.profile=local\n' > scripts/src/main/resources/scripts.properties
       - name: Generate games with Fairy Stockfish
-        run: ./gradlew :scripts:generateJanggiGames --args='--max-depth=3 --max-moves=256' --no-daemon --stacktrace
+        run: ./gradlew :scripts:generateJanggiGames --args='--games=200 --max-depth=3 --max-moves=256' --no-daemon --stacktrace
       - name: Validate generated fixture
-        run: ./gradlew :xiangqi-core-test-utils:test --tests '*JanggiGameMovesDtoCacheTest' --no-daemon --stacktrace
+        run: |
+          ./gradlew :xiangqi-core-test-utils:test --tests '*JanggiGameMovesDtoCacheTest' --no-daemon --stacktrace
+          ./gradlew :xiangqi-core:test --tests '*JanggiBoardTest.synthetic games replay with legal moves and expected outcomes' --no-daemon --stacktrace
       - uses: actions/upload-artifact@v7
         with:
           name: janggi-fixtures
           path: xiangqi-core-test-utils/src/main/resources/janggi.txt
           if-no-files-found: error
+      - name: Commit generated fixtures to the selected branch
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add xiangqi-core-test-utils/src/main/resources/janggi.txt
+          git diff --cached --quiet && exit 0
+          git commit -m 'chore: regenerate 200 Janggi fixtures' \
+            -m 'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>'
+          git push origin "HEAD:$TARGET_BRANCH"

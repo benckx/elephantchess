@@ -6,4 +6,7 @@ package io.elephantchess.engines.protocol.commands
 interface EngineProcessLocator {
 
     fun launchCommand(binFileName: String): String
+
+    fun launchArguments(binFileName: String): List<String> =
+        launchCommand(binFileName).split(" ")
 }

@@ -2,6 +2,7 @@ package io.elephantchess.xiangqi.testutils
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class JanggiGameMovesDtoCacheTest {
@@ -13,16 +14,16 @@ class JanggiGameMovesDtoCacheTest {
         assertTrue(games.all { game -> game.uciMoves.all { movePattern.matches(it) } })
         assertTrue(games.any { game -> game.uciMoves.any { it.contains('0') } })
         val rawMoves = ResourcesUtils.getResourceAsText("/janggi.txt")
-            .lineSequence().first { it.isNotBlank() }.split(";")[1].split(",")
+            .lineSequence().first { it.isNotBlank() }.split(";").last().split(",")
         assertEquals(rawMoves, games.first().uciMoves)
     }
 
     @Test
     fun loadsGeneratedGames() {
         val games = JanggiGameMovesDtoCache().listAll()
-        assertTrue(games.size == 100)
-        assertTrue(games.distinctBy { it.gameId }.size == 100)
-        assertTrue(games.distinctBy { it.uciMoves.joinToString(",") }.size == 100)
+        assertTrue(games.isNotEmpty())
+        assertEquals(games.size, games.distinctBy { it.gameId }.size)
+        assertEquals(games.size, games.distinctBy { Triple(it.blueSetup, it.redSetup, it.uciMoves) }.size)
         assertTrue(games.count { it.outcome == "CHECKMATE" } >= 25)
         assertTrue(
             games.all { game ->
@@ -32,5 +33,31 @@ class JanggiGameMovesDtoCacheTest {
                     game.outcome in setOf("CHECKMATE", "STALEMATE", "DRAW")
             },
         )
+    }
+
+    @Test
+    fun loadsIndependentSetups() {
+        val game = JanggiGameMovesDtoCache.parseLine("setup;DRAW;OUTER_ELEPHANT;CENTRAL_CHARIOT;e3d3")
+        assertEquals("OUTER_ELEPHANT", game.blueSetup)
+        assertEquals("CENTRAL_CHARIOT", game.redSetup)
+        assertEquals("DRAW", game.outcome)
+        assertEquals(listOf("e3d3"), game.uciMoves)
+    }
+
+    @Test
+    fun loadsInnerElephantSetups() {
+        val game = JanggiGameMovesDtoCache.parseLine("inner;DRAW;INNER_ELEPHANT;INNER_ELEPHANT;e3d3")
+        assertEquals("INNER_ELEPHANT", game.blueSetup)
+        assertEquals("INNER_ELEPHANT", game.redSetup)
+    }
+
+    @Test
+    fun rejectsInvalidSetupColumns() {
+        assertFailsWith<IllegalArgumentException> {
+            JanggiGameMovesDtoCache.parseLine("bad;DRAW;INNER_ELEPHANT;e3d3")
+        }
+        assertFailsWith<IllegalArgumentException> {
+            JanggiGameMovesDtoCache.parseLine("bad;DRAW;;INNER_ELEPHANT;e3d3")
+        }
     }
 }

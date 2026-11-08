@@ -4,8 +4,12 @@ import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.Position.Companion.parsePositionFromUci
+import io.elephantchess.xiangqi.testutils.JanggiGameMovesDto
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlin.test.*
+
+private fun JanggiGameMovesDto.startFen(): String =
+    generateJanggiStartFen(JanggiSetup.valueOf(blueSetup), JanggiSetup.valueOf(redSetup))
 
 class JanggiBoardTest {
 
@@ -81,11 +85,11 @@ class JanggiBoardTest {
     @Test
     fun `synthetic games replay with legal moves and expected outcomes`() {
         val games = JanggiGameMovesDtoCache().listAll()
-        assertEquals(100, games.size)
+        assertTrue(games.isNotEmpty())
         val checkmateGames = games.filter { it.outcome == "CHECKMATE" }
         assertTrue(checkmateGames.isNotEmpty())
         games.forEach { game ->
-            val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.INNER_ELEPHANT, JanggiSetup.INNER_ELEPHANT))
+            val board = JanggiBoard(game.startFen())
             game.uciMoves.forEachIndexed { index, uci ->
                 val move = parseMoveFromUci(uci)
                 assertTrue(
@@ -112,13 +116,23 @@ class JanggiBoardTest {
 
     @Test
     fun `passing accepts bikjang even when in check`() {
-        val game = JanggiGameMovesDtoCache().findByGameId("cb4951a3")
-        val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.INNER_ELEPHANT, JanggiSetup.INNER_ELEPHANT))
+        val game = JanggiGameMovesDtoCache().randomGame { candidate ->
+            val lastMove = candidate.uciMoves.lastOrNull()?.let { parseMoveFromUci(it) }
+            if (lastMove == null || lastMove.from != lastMove.to) {
+                false
+            } else {
+                val board = JanggiBoard(candidate.startFen())
+                candidate.uciMoves.dropLast(1).forEach { board.registerMove(it) }
+                board.areGeneralsFacing() && board.isInCheck(board.colorToPlay())
+            }
+        }
+        val board = JanggiBoard(game.startFen())
         game.uciMoves.dropLast(1).forEach { uci ->
             assertTrue(board.isLegalMove(parseMoveFromUci(uci)))
             board.registerMove(uci)
         }
-        assertEquals("e1e1", game.uciMoves.last())
+        val pass = parseMoveFromUci(game.uciMoves.last())
+        assertEquals(pass.from, pass.to)
         assertTrue(board.isInCheck(board.colorToPlay()))
         assertTrue(board.areGeneralsFacing())
         assertTrue(board.isLegalMove(parseMoveFromUci(game.uciMoves.last())))

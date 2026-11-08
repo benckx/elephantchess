@@ -23,11 +23,16 @@ const path = require('path');
 const {newGuestContext, playMove, captureStep} = require('./helpers');
 
 const fixturePath = path.resolve(__dirname, '../../../../../xiangqi-core-test-utils/src/main/resources/janggi.txt');
-const fixture = fs.readFileSync(fixturePath, 'utf8').split(/\r?\n/).find(line => line.startsWith('246a7a10;'));
+const fixtures = fs.readFileSync(fixturePath, 'utf8').split(/\r?\n/)
+    .filter(line => line.trim())
+    .map(line => line.split(';'))
+    .filter(([, outcome, blueSetup, redSetup]) =>
+        outcome === 'CHECKMATE' && blueSetup === 'INNER_ELEPHANT' && redSetup === 'INNER_ELEPHANT');
+const fixture = fixtures[Math.floor(Math.random() * fixtures.length)];
 if (!fixture) {
-    throw new Error('Missing Janggi checkmate fixture 246a7a10');
+    throw new Error('Missing Janggi checkmate fixture with inner-elephant setups');
 }
-const [, moves, outcome] = fixture.split(';');
+const [, outcome, , , moves] = fixture;
 const SYNTHETIC_JANGGI_MOVES = moves.split(',');
 
 test.describe('Janggi test board', () => {
