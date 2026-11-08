@@ -1,26 +1,14 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.db.dao.codegen.Tables.PUZZLE
-import io.elephantchess.db.dao.codegen.Tables.PUZZLE_RESULT
-import io.elephantchess.db.dao.codegen.Tables.USER
+import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
-import io.elephantchess.db.services.AnalysisDaoService
-import io.elephantchess.db.services.ContentSectionVoteDaoService
-import io.elephantchess.db.services.PlayerVsBotGameDaoService
-import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
-import io.elephantchess.db.services.PuzzleResultDaoService
-import io.elephantchess.db.services.SockPuppetReportDaoService
+import io.elephantchess.db.services.*
 import io.elephantchess.db.utils.toUtcInstant
 import io.elephantchess.db.utils.winnerUserId
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
 import io.elephantchess.model.UserType
-import io.elephantchess.servicelayer.dto.admin.ListBotGamesResponse
-import io.elephantchess.servicelayer.dto.admin.ListContentSectionVoteFeedbackResponse
-import io.elephantchess.servicelayer.dto.admin.ListGamesResponse
-import io.elephantchess.servicelayer.dto.admin.ListLastPuzzleByLoggedInUsersResponse
-import io.elephantchess.servicelayer.dto.admin.ListLastUserAnalysisResponse
-import io.elephantchess.servicelayer.dto.admin.ListSockPuppetReportResponse
+import io.elephantchess.servicelayer.dto.admin.*
 import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.utils.di.KoinSingleton
@@ -38,6 +26,7 @@ class AdminFeedService(
     private val puzzleCache: PuzzleCache,
     private val userCache: UserCache,
 ) {
+
     suspend fun listLastPuzzlePlayedByLoggedUsers(): ListLastPuzzleByLoggedInUsersResponse =
         puzzleResultDaoService
             .listLastPuzzlePlayedByLoggedUsers(24)
@@ -147,6 +136,7 @@ class AdminFeedService(
                     .thenBy { it.pageId }
                     .thenBy { it.sectionId },
             )
+
         val entries = contentSectionVoteDaoService
             .listLatestFeedback(250)
             .map { record ->
@@ -162,6 +152,7 @@ class AdminFeedService(
                     updateTime = record.updateTime.toEpochMilliseconds(),
                 )
             }
+
         return ListContentSectionVoteFeedbackResponse(aggregates, entries)
     }
 

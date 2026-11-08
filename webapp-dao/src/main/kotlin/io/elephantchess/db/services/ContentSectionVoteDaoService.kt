@@ -2,6 +2,7 @@ package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.CONTENT_SECTION_VOTE
 import io.elephantchess.db.dao.codegen.tables.pojos.ContentSectionVote
+import io.elephantchess.db.model.ContentSectionVoteCountsRecord
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
 import io.elephantchess.db.utils.awaitRecords
@@ -13,7 +14,7 @@ import kotlin.time.Clock
 @KoinSingleton
 class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
 
-    suspend fun listVoteCountsByPageAndSection(): List<ContentSectionVoteCounts> {
+    suspend fun listVoteCountsByPageAndSection(): List<ContentSectionVoteCountsRecord> {
         val upVotes = DSL.count().filterWhere(CONTENT_SECTION_VOTE.UP_VOTED.isTrue).`as`("up_votes")
         val downVotes = DSL.count().filterWhere(CONTENT_SECTION_VOTE.UP_VOTED.isFalse).`as`("down_votes")
 
@@ -24,7 +25,7 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .orderBy(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID)
             .awaitRecords()
             .map { record ->
-                ContentSectionVoteCounts(
+                ContentSectionVoteCountsRecord(
                     pageId = requireNotNull(record.value1()),
                     sectionId = requireNotNull(record.value2()),
                     upVotes = record.value3(),
@@ -85,10 +86,3 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .limit(limit)
             .awaitMappedRecords<ContentSectionVote>()
 }
-
-data class ContentSectionVoteCounts(
-    val pageId: String,
-    val sectionId: String,
-    val upVotes: Int,
-    val downVotes: Int,
-)
