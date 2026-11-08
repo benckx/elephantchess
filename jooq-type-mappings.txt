@@ -9,7 +9,7 @@ reference_game.analysis_status, io.elephantchess.model.AnalysisStatus
 game_status_event.event_type, io.elephantchess.model.GameEventType
 game.inviter_color, io.elephantchess.xiangqi.Color
 game.outcome, io.elephantchess.model.Outcome
-game.status, io.elephantchess.model.GameEventType
+game.game_status, io.elephantchess.model.GameEventType
 game.time_control_category, io.elephantchess.model.TimeControlCategory
 game.time_control_mode, io.elephantchess.model.TimeControlMode
 game.join_source, io.elephantchess.model.GameJoinSource

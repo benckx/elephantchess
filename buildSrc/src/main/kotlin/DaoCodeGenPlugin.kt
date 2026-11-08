@@ -53,7 +53,7 @@ class DaoCodeGenPlugin : Plugin<Project> {
                 val forcedTypes = forcedTypeMap
                     .map { (key, value) ->
                         ForcedType()
-                            .withIncludeExpression(key)
+                            .withIncludeExpression(Regex.escape(key))
                             .withUserType(value)
                             .withEnumConverter(true)
                     }
