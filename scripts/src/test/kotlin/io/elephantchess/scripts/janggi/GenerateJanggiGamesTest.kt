@@ -25,7 +25,16 @@ class GenerateJanggiGamesTest {
             val engines = mock<EnginePool>()
             val positions = mutableListOf<String>()
             whenever(
-                engines.queryForDepth(any(), eq(FairyStockfishEngineId), any(), any(), eq(Variant.JANGGI), isNull(), eq(10L), eq(true)),
+                engines.queryForDepth(
+                    any(),
+                    eq(FairyStockfishEngineId),
+                    any(),
+                    any(),
+                    eq(Variant.JANGGI),
+                    isNull(),
+                    eq(10L),
+                    eq(true),
+                ),
             )
                 .thenAnswer { invocation ->
                     val fen = invocation.getArgument<String>(0)
@@ -51,7 +60,16 @@ class GenerateJanggiGamesTest {
         runTest {
             val engines = mock<EnginePool>()
             whenever(
-                engines.queryForDepth(any(), eq(FairyStockfishEngineId), any(), any(), eq(Variant.JANGGI), isNull(), eq(10L), eq(true)),
+                engines.queryForDepth(
+                    any(),
+                    eq(FairyStockfishEngineId),
+                    any(),
+                    any(),
+                    eq(Variant.JANGGI),
+                    isNull(),
+                    eq(10L),
+                    eq(true),
+                ),
             )
                 .thenReturn(InfoLinesResult(emptyList(), false, "a0a1", null))
 
@@ -66,7 +84,16 @@ class GenerateJanggiGamesTest {
         runTest {
             val engines = mock<EnginePool>()
             whenever(
-                engines.queryForDepth(any(), eq(FairyStockfishEngineId), any(), any(), eq(Variant.JANGGI), isNull(), eq(10L), eq(true)),
+                engines.queryForDepth(
+                    any(),
+                    eq(FairyStockfishEngineId),
+                    any(),
+                    any(),
+                    eq(Variant.JANGGI),
+                    isNull(),
+                    eq(10L),
+                    eq(true),
+                ),
             )
                 .thenReturn(InfoLinesResult(emptyList(), false, null, null))
 
