@@ -7,7 +7,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.time.Clock
 import kotlin.time.Instant
 
 class DatabasePageRendererTest {
@@ -36,7 +35,7 @@ class DatabasePageRendererTest {
                     sources = emptyList(),
                     editComment = null,
                     enabled = true,
-                    versionTime = Clock.System.now(),
+                    versionTime = Instant.fromEpochMilliseconds(1704067200000),
                 ),
                 fetchEditorsUsername = { listOf("Bob", "Alice", "Bob", "<script>") },
                 hasOpeningData = false,
