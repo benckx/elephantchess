@@ -1018,7 +1018,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     @Test
     fun `list user games exposes pre-analyzed status`() =
         runTest {
-            val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
+            val gameId = createAndJoinGame(userId1, userId2, inviterColor = io.elephantchess.xiangqi.Color.UPPERCASE_COLOR)
 
             suspend fun fetchEntry() =
                 pvpGameService
