@@ -67,10 +67,12 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
         )
     }
 
-    private fun fixtureFen(moveCount: Int): String =
-        JanggiBoard().apply {
-            JanggiGameMovesDtoCache().findByGameId("7f0d05cd").uciMoves.take(moveCount).forEach { registerMove(it) }
+    private fun fixtureFen(moveCount: Int): String {
+        val fixture = JanggiGameMovesDtoCache().findByGameId("7f0d05cd")
+        return JanggiBoard(fixture.startFen).apply {
+            fixture.uciMoves.take(moveCount).forEach { registerMove(it) }
         }.outputFen()
+    }
 
     private suspend fun createGame(userId: UserId, fen: String, color: Color = WHITE, variant: Variant = Variant.JANGGI): String =
         service.create(

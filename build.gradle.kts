@@ -235,6 +235,12 @@ project(":xiangqi-core") {
     }
 }
 
+project(":xiangqi-core-test-utils") {
+    dependencies {
+        api(project(":xiangqi-core"))
+    }
+}
+
 project(":seven-kingdoms-core") {
     dependencies {
         testImplementation(project(":seven-kingdoms-core-test-utils"))

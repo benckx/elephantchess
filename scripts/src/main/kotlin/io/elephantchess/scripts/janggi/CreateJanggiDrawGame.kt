@@ -51,7 +51,7 @@ object CreateJanggiDrawGame : KoinScript {
             // This fixture continues with a pass after move 155. PvB stops at that first no-pass stalemate.
             val fixture = JanggiGameMovesDtoCache().findByGameId("7f0d05cd")
             val history = fixture.uciMoves.take(154)
-            val board = JanggiBoard()
+            val board = JanggiBoard(fixture.startFen)
             history.forEach { uci ->
                 val move = HalfMove.parseMoveFromUci(uci)
                 check(move.from != move.to && board.isLegalMove(move)) { "Illegal fixture move $uci" }
@@ -73,7 +73,7 @@ object CreateJanggiDrawGame : KoinScript {
                         color = board.colorToPlay(),
                         depth = 1,
                         engine = Engine.FAIRYSTOCKFISH,
-                        startFen = null,
+                        startFen = fixture.startFen,
                         openingMode = OpeningMode.ENGINE_ONLY,
                         variant = Variant.JANGGI,
                     ),
@@ -99,7 +99,8 @@ object CreateJanggiDrawGame : KoinScript {
                 }
                 check(games.listMoves(response.gameId) == history)
                 val saved = games.fetchById(response.gameId)!!
-                check(saved.startFen == null && saved.currentHalfMoveIndex == history.size)
+                check((saved.startFen ?: JanggiBoard.DEFAULT_JANGGI_START_FEN) == fixture.startFen)
+                check(saved.currentHalfMoveIndex == history.size)
                 check(saved.currentFen == board.outputFen())
                 println("Fixture: ${fixture.gameId}, before move 155, with ${history.size} saved half-moves")
                 println("Play ${finalMove.toUci()} (${finalMove.toAlgebraic()}) to draw. No engine is needed.")
