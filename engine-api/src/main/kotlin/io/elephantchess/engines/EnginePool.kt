@@ -146,7 +146,14 @@ class EnginePool(
             checkPeriod: Long,
             waitForBestMove: Boolean,
         ): InfoLinesResult =
-            engineProcess.queryForBestMove(fen, depth, variant, checkPeriod = checkPeriod, searchMoves = searchMoves, waitForBestMove = waitForBestMove)
+            engineProcess.queryForBestMove(
+                fen,
+                depth,
+                variant,
+                checkPeriod = checkPeriod,
+                searchMoves = searchMoves,
+                waitForBestMove = waitForBestMove,
+            )
 
         suspend fun queryForNodes(fen: String, nodes: Long, variant: Variant, maxDelay: Long): InfoLinesResult =
             engineProcess.queryForNodes(fen, nodes, variant, maxDelay = maxDelay)
