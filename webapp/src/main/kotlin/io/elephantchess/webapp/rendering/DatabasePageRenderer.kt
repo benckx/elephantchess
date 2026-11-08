@@ -10,6 +10,7 @@ import io.elephantchess.servicelayer.dto.database.*
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.formatWithChineseName
+import io.elephantchess.webapp.rendering.resolvers.*
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.*
@@ -324,7 +325,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         val title = "$redDisplay vs. $blackDisplay"
 
         val outcomeText = when (summary.outcome) {
-            Outcome.RED_WINS -> "$redDisplay won (red)"
+            Outcome.WHITE_WINS -> "$redDisplay won (red)"
             Outcome.BLACK_WINS -> "$blackDisplay won (black)"
             Outcome.DRAW -> "draw"
             null -> null
@@ -361,7 +362,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
 
         val winnerStar =
             """<img alt="winner" class="winner-icon" src="/images/icons/blue-star-small.png">"""
-        val redWinnerSuffix = if (summary.outcome == Outcome.RED_WINS) " $winnerStar" else ""
+        val redWinnerSuffix = if (summary.outcome == Outcome.WHITE_WINS) " $winnerStar" else ""
         val blackWinnerSuffix = if (summary.outcome == Outcome.BLACK_WINS) " $winnerStar" else ""
 
         val playersInfoHtml = buildString {
@@ -403,7 +404,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         // is present, or an empty string when it isn't, so we don't pollute the body
         // tag with empty attributes like `data-pgn-date=""`.
         val pgnResult = when (summary.outcome) {
-            Outcome.RED_WINS -> "1-0"
+            Outcome.WHITE_WINS -> "1-0"
             Outcome.BLACK_WINS -> "0-1"
             Outcome.DRAW -> "1/2-1/2"
             null -> null

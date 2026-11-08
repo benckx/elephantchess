@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -298,7 +298,7 @@ function millisToRelativeTimeShorthand(elapsed) {
 // TODO: rename to PGN
 function formatOutcome(outcome) {
     switch (outcome) {
-        case Outcome.RED_WINS:
+        case Outcome.WHITE_WINS:
             return '1 - 0';
         case Outcome.BLACK_WINS:
             return '0 - 1'
@@ -396,6 +396,23 @@ function formatEnumValue(value) {
 }
 
 /**
+ * @param value {string}
+ * @return {string}
+ */
+function formatXiangqiOutcome(value) {
+    switch (value) {
+        case Outcome.WHITE_WINS:
+            return 'Red wins';
+        case Outcome.BLACK_WINS:
+            return 'Black wins';
+        case Outcome.DRAW:
+            return 'Draw';
+        default:
+            return formatEnumValue(value);
+    }
+}
+
+/**
  * @param engine {string}
  * @return {string}
  */
@@ -408,7 +425,7 @@ function formatEngineName(engine) {
         case 'FAIRYSTOCKFISH':
             return 'Fairy Stockfish';
         default:
-            return '??';
+            return engine;
     }
 }
 

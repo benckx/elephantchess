@@ -70,11 +70,45 @@ class DatabaseRateLimiterTest {
     }
 
     @Test
-    fun `only monitored database paths are limited`() {
+    fun `unmonitored pages and gameplay endpoints are not limited`() {
         val limiter = limiter(max = 1)
         // not monitored -> never limited regardless of volume
-        repeat(10) { assertFalse(limiter.hit(path = "/game?id=abc")) }
-        repeat(10) { assertFalse(limiter.hit(path = "/")) }
+        for (path in listOf(
+            "/",
+            "/puzzles",
+            "/analysis",
+            "/api/game/data?id=abc",
+            "/api/botgame/data?id=abc",
+            "/ws/pvp/game",
+            "/ws/botgame/watch-as-spectator",
+        )) {
+            repeat(10) { assertFalse(limiter.hit(path = path)) }
+        }
+        assertFalse(limiter.hit())
+    }
+
+    @Test
+    fun `PvP and PvB pages share the database request allowance`() {
+        val limiter = limiter(max = 5)
+        assertFalse(limiter.hit(path = "/database/player/Wang_Tianyi"))
+        assertFalse(limiter.hit(path = "/game?id=first"))
+        assertFalse(limiter.hit(path = "/browse/player-vs-player"))
+        assertFalse(limiter.hit(path = "/playbot?id=first"))
+        assertFalse(limiter.hit(path = "/browse/player-vs-bot"))
+        assertTrue(limiter.hit(path = "/game?id=second"))
+        assertTrue(limiter.hit(path = "/playbot?id=second"))
+        assertTrue(limiter.hit(path = "/database/game?id=abc"))
+    }
+
+    @Test
+    fun `PvP and PvB pages preserve crawler exemptions and non-GET behavior`() {
+        for (path in listOf("/game?id=abc", "/playbot?id=abc", "/browse/player-vs-player", "/browse/player-vs-bot")) {
+            val limiter = limiter(max = 1)
+            repeat(10) { assertFalse(limiter.hit(path = path, ua = "Googlebot/2.1")) }
+            repeat(10) { assertFalse(limiter.hit(path = path, method = "POST")) }
+            assertFalse(limiter.hit(path = path))
+            assertTrue(limiter.hit(path = path))
+        }
     }
 
     @Test
@@ -93,14 +127,35 @@ class DatabaseRateLimiterTest {
     @Test
     fun `monitored path detection ignores query string and avoids false prefixes`() {
         // monitored: limited on the 2nd hit (max = 1)
-        for (path in listOf("/database", "/database/player/Wang_Tianyi", "/database/game?id=abc", "/browse/event?id=abc")) {
+        for (path in listOf(
+            "/database",
+            "/database/player/Wang_Tianyi",
+            "/database/game?id=abc",
+            "/browse/event?id=abc",
+            "/game",
+            "/game?id=abc",
+            "/playbot",
+            "/playbot?id=abc",
+            "/browse/player-vs-player",
+            "/browse/player-vs-player?page=2",
+            "/browse/player-vs-bot",
+            "/browse/player-vs-bot?page=2",
+        )) {
             val limiter = limiter(max = 1)
             assertFalse(limiter.hit(path = path), "first hit to $path should pass")
             assertTrue(limiter.hit(path = path), "second hit to $path should be limited")
         }
 
         // not monitored: never limited, even with a similar prefix
-        for (path in listOf("/databases", "/game", "/")) {
+        for (path in listOf(
+            "/databases",
+            "/games",
+            "/game-api",
+            "/playbots",
+            "/browse/player-vs-players",
+            "/browse/player-vs-bots",
+            "/",
+        )) {
             val limiter = limiter(max = 1)
             repeat(5) { assertFalse(limiter.hit(path = path), "$path must never be limited") }
         }

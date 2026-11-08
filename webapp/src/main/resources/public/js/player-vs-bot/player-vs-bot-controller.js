@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,6 +58,7 @@ class PlayerVsBotController {
      * @type {function()}
      */
     #botWinsCallback;
+    #drawCallback;
 
     /**
      * @param gameId {string}
@@ -67,13 +68,15 @@ class PlayerVsBotController {
      * @param botPlayCallback {function(HalfMove)}
      * @param userWinsCallback {function()}
      * @param botWinsCallback {function()}
+     * @param drawCallback {function()}
      */
-    constructor(gameId, initCallback, loadFenCallback, movesHistoryCallback, botPlayCallback, userWinsCallback, botWinsCallback) {
+    constructor(gameId, initCallback, loadFenCallback, movesHistoryCallback, botPlayCallback, userWinsCallback, botWinsCallback, drawCallback) {
         this.#gameId = gameId;
         this.#movesHistoryCallback = movesHistoryCallback;
         this.#botPlayCallback = botPlayCallback;
         this.#userWinsCallback = userWinsCallback;
         this.#botWinsCallback = botWinsCallback;
+        this.#drawCallback = drawCallback;
 
         this.#botGameClient = new PlayerVsBotClient(gameId);
         this.#botGameClient.fetchGameData(botGameDto => {
@@ -85,7 +88,7 @@ class PlayerVsBotController {
                     if (this.#botGameDto.isInProgress()) {
                         // load all moves but one
                         let lastMove = moves.pop();
-                        let board = new Board();
+                        let board = createBoardForVariant(this.#botGameDto.startFen, this.#botGameDto.variant);
                         board.loadFen(this.#botGameDto.startFen);
                         moves.forEach(move => board.registerMove(move));
                         loadFenCallback(board.outputFen());
@@ -125,16 +128,19 @@ class PlayerVsBotController {
                 this.#botPlayCallback(response.botMove);
             }
 
-            if (response.isBotVictory()) {
-                if (this.#botGameDto.userColor === Color.RED) {
+            if (response.isDraw()) {
+                this.#botGameDto.outcome = response.outcome;
+                this.#drawCallback();
+            } else if (response.isBotVictory()) {
+                if (this.#botGameDto.userColor === Color.WHITE) {
                     this.#botGameDto.outcome = Outcome.BLACK_WINS;
                 } else {
-                    this.#botGameDto.outcome = Outcome.RED_WINS;
+                    this.#botGameDto.outcome = Outcome.WHITE_WINS;
                 }
                 this.#botWinsCallback();
             } else if (response.isUserVictory()) {
-                if (this.#botGameDto.userColor === Color.RED) {
-                    this.#botGameDto.outcome = Outcome.RED_WINS;
+                if (this.#botGameDto.userColor === Color.WHITE) {
+                    this.#botGameDto.outcome = Outcome.WHITE_WINS;
                 } else {
                     this.#botGameDto.outcome = Outcome.BLACK_WINS;
                 }
@@ -159,10 +165,10 @@ class PlayerVsBotController {
     resign(callback) {
         this.#botGameClient.resign(() => {
             this.#botGameDto.status = GameEventType.RESIGNED;
-            if (this.#botGameDto.userColor === Color.RED) {
+            if (this.#botGameDto.userColor === Color.WHITE) {
                 this.#botGameDto.outcome = Outcome.BLACK_WINS;
             } else {
-                this.#botGameDto.outcome = Outcome.RED_WINS;
+                this.#botGameDto.outcome = Outcome.WHITE_WINS;
             }
             callback();
         });
@@ -242,6 +248,10 @@ class PlayerVsBotController {
         return this.#botGameDto.isManchu;
     }
 
+    isJanggi() {
+        return this.#botGameDto.variant === Variant.JANGGI;
+    }
+
     /**
      * When watching as spectator and receiving updates via WebSocket
      *
@@ -270,7 +280,7 @@ class PlayerVsBotController {
         metadata.set('Date', formatTimestampToPgnDate(dto.lastUpdatedMillis));
 
         switch (dto.userColor) {
-            case Color.RED:
+            case Color.WHITE:
                 metadata.set('White', dto.username);
                 metadata.set('Black', `${dto.formattedEngine} (depth ${dto.depth})`);
                 break;
@@ -281,7 +291,7 @@ class PlayerVsBotController {
         }
 
         switch (dto.outcome) {
-            case Outcome.RED_WINS:
+            case Outcome.WHITE_WINS:
                 metadata.set('Result', '1-0');
                 break;
             case Outcome.BLACK_WINS:
@@ -292,7 +302,7 @@ class PlayerVsBotController {
                 break;
         }
 
-        metadata.set('Variant', dto.isManchu ? 'Manchu' : 'Xiangqi');
+        metadata.set('Variant', dto.variant === Variant.JANGGI ? 'Janggi' : dto.isManchu ? 'Manchu' : 'Xiangqi');
 
         switch (dto.status) {
             case GameEventType.CHECKMATED:

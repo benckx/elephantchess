@@ -12,7 +12,7 @@ import io.elephantchess.scripts.KoinScript
 import io.elephantchess.scripts.puzzles.FindMatePuzzleCandidates.MAX_MATE
 import io.elephantchess.scripts.puzzles.FindMatePuzzleCandidates.OUTPUT_FILE_NAME
 import io.elephantchess.servicelayer.utils.ops.safeQueryForDepth
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
@@ -33,6 +33,7 @@ private val logger = KotlinLogging.logger {}
  *
  * The CSV is then consumed by [CreatePuzzlesFromCsv] to create the actual puzzles.
  */
+// TODO: the FindMatePuzzleCandidates script didn't include the move history, which is a bit messy to reconstruct from the reference game
 object FindMatePuzzleCandidates : KoinScript {
 
     private const val DEPTH = 22
@@ -51,7 +52,7 @@ object FindMatePuzzleCandidates : KoinScript {
         val enginePool = EnginePool(
             configMap = mapOf(
                 PikafishEngineId to EngineConfig(
-                    version = "2023-03-05",
+                    version = "2026-09-06",
                     poolSize = 1,
                     numberOfThreads = ENGINE_THREADS,
                 ),
@@ -87,7 +88,7 @@ object FindMatePuzzleCandidates : KoinScript {
     private suspend fun evaluate(game: ReferenceGame, finalFen: String): MatePuzzleCandidate? {
         logger.info { "evaluating ${game.id} (fen=$finalFen)" }
 
-        val board = Board(finalFen)
+        val board = XiangqiBoard(finalFen)
         val playerColor = board.colorToPlay()
         if (board.isCheckmated() || board.isStalemated(playerColor)) {
             logger.info { "${game.id}: final position is already checkmate/stalemate, skipping" }
@@ -129,7 +130,7 @@ object FindMatePuzzleCandidates : KoinScript {
         }
 
         // verify the engine line actually ends in checkmate before trusting it
-        val replay = Board(finalFen)
+        val replay = XiangqiBoard(finalFen)
         solutionMoves.forEach { move -> replay.registerMove(move) }
         if (!replay.isCheckmated()) {
             logger.warn { "engine line for ${game.id} does not end in checkmate, skipping" }

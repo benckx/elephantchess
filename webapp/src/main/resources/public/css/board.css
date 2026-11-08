@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,6 +114,23 @@ a.board-outer-container-link-mask {
     z-index: 100;
 }
 
+.piece-holder .piece-image-janggi {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.piece-holder .piece-image-janggi-general {
+    width: 125%;
+    height: 125%;
+    margin: -12.5%;
+}
+
+.piece-holder .piece-image-janggi-small {
+    width: 65%;
+    height: 65%;
+    margin: 17.5%;
+}
+
 .board-container.colorblind-friendly-black-pieces .piece-image-black {
     filter: invert(1);
 }
@@ -122,7 +139,7 @@ a.board-outer-container-link-mask {
     transform: rotate(180deg);
 }
 
-.board-container.flip-opponent-pieces-red .piece-image-red {
+.board-container.flip-opponent-pieces-red .piece-image-white {
     transform: rotate(180deg);
 }
 
@@ -366,6 +383,25 @@ a.board-outer-container-link-mask {
     width: 120%;
     height: 120%;
     margin: -10%;
+}
+
+.piece-holder:has(> .piece-image-janggi-general) {
+    --piece-indicator-size: 125;
+}
+
+.piece-holder:has(> .piece-image-janggi-small) {
+    --piece-indicator-size: 65;
+}
+
+.piece-holder > :is(.selected-piece, .highlighted-check, .highlighted-checkmate) {
+    --indicator-size: calc(110% * var(--piece-indicator-size, 95) / 95);
+    width: var(--indicator-size);
+    height: var(--indicator-size);
+    margin: calc((100% - var(--indicator-size)) / 2);
+}
+
+.piece-holder > .highlighted-checkmate {
+    --indicator-size: calc(120% * var(--piece-indicator-size, 95) / 95);
 }
 
 .legal-move-place-holder {

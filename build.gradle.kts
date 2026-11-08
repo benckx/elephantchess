@@ -1,15 +1,6 @@
-import liquibase.Contexts
-import liquibase.Liquibase
-import liquibase.database.core.H2Database
-import liquibase.database.jvm.JdbcConnection
-import liquibase.resource.DirectoryResourceAccessor
+import DaoCodeGenPlugin
 import org.gradle.jvm.tasks.Jar
-import org.h2.Driver
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jooq.codegen.GenerationTool
-import org.jooq.meta.jaxb.*
-import org.jooq.meta.jaxb.Target
-import java.sql.Connection
 
 val rootLibs = libs
 
@@ -22,15 +13,6 @@ val publishableModules = listOf(
     "csv-dump-parser",
 )
 
-// buildscript classpath resolves from settings.pluginManagement.repositories (which include mavenCentral)
-buildscript {
-    dependencies {
-        classpath(libs.jooq.codegen)
-        classpath(libs.h2)
-        classpath(libs.liquibase.core)
-    }
-}
-
 plugins {
     alias(libs.plugins.versions)
     alias(libs.plugins.kotlin.jvm) apply false
@@ -38,6 +20,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.ktlint)
 }
+
+apply<DaoCodeGenPlugin>()
 
 repositories {
     mavenCentral()
@@ -61,7 +45,7 @@ subprojects {
     }
 
     extensions.configure<KotlinJvmProjectExtension> {
-        jvmToolchain(21)
+        jvmToolchain(25)
     }
 
     repositories {
@@ -74,9 +58,11 @@ subprojects {
 
         // Align all transitive Netty modules via the Netty BOM, so the Netty version used by
         // ktor-server-netty is pinned consistently across modules.
-        val nettyBom = enforcedPlatform(rootLibs.netty.bom)
-        implementation(nettyBom)
-        testImplementation(nettyBom)
+        if (project.name !in publishableModules) {
+            val nettyBom = enforcedPlatform(rootLibs.netty.bom)
+            implementation(nettyBom)
+            testImplementation(nettyBom)
+        }
 
         // Logging and coroutines pollute the published library classpath, so only
         // non-publishable modules get them by default. Publishable libraries declare
@@ -113,82 +99,8 @@ subprojects {
     }
 }
 
-val daoCodeGen = tasks.register("dao-code-gen") {
-    doLast {
-        val conn: Connection = Driver().connect("jdbc:h2:mem:test", null)
-
-        conn.createStatement().use { stmt ->
-            stmt.execute("drop all OBJECTS")
-            stmt.execute("set schema PUBLIC")
-        }
-
-        val resourceAccessor = DirectoryResourceAccessor(
-            project.layout.projectDirectory.dir("webapp-dao-migration/src/main/resources").asFile,
-        )
-        val db = H2Database().apply {
-            setConnection(JdbcConnection(conn))
-        }
-
-        val liquibase = Liquibase("liquibase-changelog-generation.xml", resourceAccessor, db)
-        liquibase.update(Contexts())
-        conn.commit()
-
-        val jdbc = Jdbc()
-            .withDriver("org.h2.Driver")
-            .withUrl("jdbc:h2:mem:test")
-
-        val forcedTypeMap = linkedMapOf<String, String>()
-        file("jooq-type-mappings.txt").forEachLine { line ->
-            val parts = line.split(",")
-            val columnName = parts[0].trim()
-            val typeName = parts[1].trim()
-            forcedTypeMap[columnName] = typeName
-        }
-
-        val forcedTypes = forcedTypeMap
-            .map { (key, value) ->
-                ForcedType()
-                    .withIncludeExpression(key)
-                    .withUserType(value)
-                    .withEnumConverter(true)
-            }
-            .toMutableList()
-
-        forcedTypes += ForcedType()
-            .withIncludeTypes("(?i:TIMESTAMP\\s+WITH\\s+TIME\\s+ZONE|TIMESTAMP\\([0-9]+\\)\\s+WITH\\s+TIME\\s+ZONE|TIMESTAMPTZ)")
-            .withUserType("kotlin.time.Instant")
-            .withConverter("io.elephantchess.db.codegen.OffsetDateTimeInstantConverter")
-
-        val database = Database()
-            .withExcludes("DATABASECHANGELOG|DATABASECHANGELOGLOCK")
-            .withInputSchema("PUBLIC")
-            .withForcedTypes(forcedTypes)
-
-        val generate = Generate()
-            .withPojos(true)
-            .withDaos(true)
-
-        val target = Target()
-            .withPackageName("io.elephantchess.db.dao.codegen")
-            .withDirectory("${project.projectDir}/webapp-dao/build/jooq")
-
-        val generator = Generator()
-            .withDatabase(database)
-            .withGenerate(generate)
-            .withTarget(target)
-
-        GenerationTool.generate(
-            Configuration()
-                .withJdbc(jdbc)
-                .withGenerator(generator),
-        )
-
-        conn.close()
-    }
-}
-
 project(":webapp-dao").tasks.named("compileKotlin") {
-    dependsOn(daoCodeGen)
+    dependsOn(":dao-code-gen")
 }
 
 configure(publishableModules.map { project(":$it") }) {
@@ -242,7 +154,6 @@ project(":seven-kingdoms-core") {
 project(":seven-kingdoms-core-test-utils") {
     dependencies {
         implementation(project(":seven-kingdoms-core"))
-        api(rootLibs.jackson.datatype.jsr310)
         api(rootLibs.jackson.module.kotlin)
     }
 }
@@ -338,7 +249,6 @@ project(":webapp") {
         implementation(rootLibs.ktor.serialization.kotlinx.json)
         implementation(rootLibs.ktor.server.websockets)
         implementation(rootLibs.ktor.server.compression)
-        implementation(rootLibs.jackson.datatype.jsr310)
         implementation(rootLibs.jackson.module.kotlin)
         implementation(rootLibs.cache4k)
         testImplementation(rootLibs.ktor.server.test.host)
@@ -371,6 +281,7 @@ project(":scripts") {
         implementation(project(":webapp"))
         implementation(rootLibs.guava)
         implementation(project(":xiangqi-core"))
+        implementation(project(":xiangqi-core-test-utils"))
         implementation(project(":engine-api"))
         implementation(rootLibs.ktor.client.core)
         implementation(rootLibs.ktor.client.cio)
@@ -404,6 +315,22 @@ project(":scripts") {
         group = "deployment"
         description = "Generate liquibase changelog for DB code generation"
         mainClass.set("io.elephantchess.scripts.LiquibaseGenerationKt")
+        classpath = sourceSets["main"].runtimeClasspath
+        workingDir = rootProject.projectDir
+    }
+
+    tasks.register<JavaExec>("generateJanggiGames") {
+        group = "generation"
+        description = "Generate synthetic Janggi test fixtures using Fairy Stockfish self-play"
+        mainClass.set("io.elephantchess.scripts.janggi.GenerateJanggiGames")
+        classpath = sourceSets["main"].runtimeClasspath
+        workingDir = rootProject.projectDir
+    }
+
+    tasks.register<JavaExec>("createJanggiDrawGame") {
+        group = "generation"
+        description = "Create a Janggi PvB game one human move away from a stalemate draw"
+        mainClass.set("io.elephantchess.scripts.janggi.CreateJanggiDrawGame")
         classpath = sourceSets["main"].runtimeClasspath
         workingDir = rootProject.projectDir
     }

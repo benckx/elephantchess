@@ -1,14 +1,18 @@
 package io.elephantchess.webapp.routing.api
 
+import io.elephantchess.model.GameId
 import io.elephantchess.servicelayer.dto.admin.CreateUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.ToggleUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.UpdateUpcomingEventRequest
 import io.elephantchess.servicelayer.services.admin.*
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.requireAdminRole
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import java.net.URLDecoder
+import java.nio.charset.StandardCharsets.UTF_8
+import java.time.YearMonth
 
 fun Route.adminConsoleRoutes() {
     route("/api/admin/analytics") {
@@ -27,6 +31,7 @@ fun Route.adminConsoleRoutes() {
         adminNewsletterRoutes()
         adminUpcomingEventsRoutes()
         adminSettingPreferenceRoutes()
+        adminUserInsightsRoutes()
     }
 }
 
@@ -97,6 +102,12 @@ private fun Route.adminFeedsRoutes() {
     get("/content-section-feedback") {
         requireAdminRole { adminFeedService.listLatestFeedback() }
     }
+    get("/sock-puppet-report") {
+        requireAdminRole { _ ->
+            val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 500
+            adminFeedService.listSockPuppetReport(limit)
+        }
+    }
 }
 
 private fun Route.adminAnalyticsRoutes() {
@@ -113,6 +124,17 @@ private fun Route.adminAnalyticsRoutes() {
     }
     get("/pvp-join-source-stats") {
         requireAdminRole { adminAnalyticsService.fetchPvpStatsByJoinSource() }
+    }
+    get("/matching-time-periods") {
+        requireAdminRole { adminAnalyticsService.fetchMatchingTimePeriods() }
+    }
+    get("/matching-time-stats") {
+        requireAdminRole { _ ->
+            val period = call.parameters["period"] ?: throw IllegalArgumentException("missing 'period' parameter")
+            val month = YearMonth.parse(period)
+
+            adminAnalyticsService.fetchMatchingTimeStatsForMonth(month)
+        }
     }
     get("/yearly-stats") {
         requireAdminRole { adminAnalyticsService.fetchYearlyStats() }
@@ -150,8 +172,7 @@ private fun Route.adminAnalyticsRoutes() {
     get("/page-view-stats-by-event-path") {
         requireAdminRole { _ ->
             val encodedPath = call.parameters["path"] ?: "/"
-            val eventPath = URLDecoder.decode(encodedPath, "UTF-8")
-
+            val eventPath = URLDecoder.decode(encodedPath, UTF_8)
             adminAnalyticsService.fetchPageViewStatsByEventPath(eventPath)
         }
     }
@@ -197,6 +218,73 @@ private fun Route.adminChatRoutes() {
     }
 }
 
+private fun Route.adminUserInsightsRoutes() {
+    val adminUserInsightsService by koin<AdminUserInsightsService>()
+
+    route("/user-insights") {
+        get("/autocomplete") {
+            requireAdminRole {
+                val contains = call.request.queryParameters["contains"]
+                    ?: throw BadRequestException("missing contains")
+
+                if (contains.length < 2) {
+                    throw BadRequestException("contains should contain at least 2 chars")
+                }
+
+                adminUserInsightsService.listUserSuggestions(contains)
+            }
+        }
+        get("/{identifier}/page-views") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
+                val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+
+                adminUserInsightsService.listUserPageViews(identifier, limit, offset)
+            }
+        }
+        get("/{identifier}/chat-messages") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull()?.coerceAtLeast(1) ?: 50
+                val offset = call.request.queryParameters["offset"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+
+                adminUserInsightsService.listUserChatMessages(identifier, limit, offset)
+            }
+        }
+        get("/{identifier}/game-activity-and-saved-analysis") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsGameAndSavedAnalysis(identifier)
+            }
+        }
+        get("/{identifier}/related-users-and-sock-puppet-games") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsRelatedUsersAndSockPuppetGames(identifier)
+            }
+        }
+        get("/{identifier}/latest-chat-messages") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsLatestChatMessages(identifier)
+            }
+        }
+        get("/{identifier}/latest-page-views") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsLatestPageViews(identifier)
+            }
+        }
+        get("/{identifier}/latest-sessions") {
+            requireAdminRole {
+                val identifier = call.parameters["identifier"] ?: throw BadRequestException("identifier not provided")
+                adminUserInsightsService.fetchUserInsightsLatestSessions(identifier)
+            }
+        }
+    }
+}
+
 private fun Route.adminDatabaseSearchRoutes() {
     val adminDatabaseSearchService by koin<AdminDatabaseSearchService>()
 
@@ -231,6 +319,14 @@ private fun Route.adminUserEloRoutes() {
 private fun Route.adminAnalysisRoutes() {
     val adminAnalysisService by koin<AdminAnalysisService>()
 
+    get("/move-annotation-failures") {
+        requireAdminRole { adminAnalysisService.listMoveAnnotationFailures() }
+    }
+    post("/move-annotation-failures/clean") {
+        requireAdminRole {
+            adminAnalysisService.cleanFailedMoveAnnotations(call.receive<GameId>())
+        }
+    }
     get("/list-latest-move-analysis-by-game") {
         requireAdminRole { adminAnalysisService.listLatestMoveAnalysisByGame() }
     }

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -72,6 +72,22 @@ pieceImageNames.set('P', 'red_soldier.png');
 pieceImageNames.set('p', 'black_soldier.png');
 // Manchu super-chariot (combines chariot + horse + cannon powers), red only, displayed as chariot
 pieceImageNames.set('M', 'red_chariot.png');
+
+const janggiPieceImageNames = new Map();
+janggiPieceImageNames.set('K', 'blue_general.png');
+janggiPieceImageNames.set('k', 'red_general.png');
+janggiPieceImageNames.set('A', 'blue_advisor.png');
+janggiPieceImageNames.set('a', 'red_advisor.png');
+janggiPieceImageNames.set('B', 'blue_elephant.png');
+janggiPieceImageNames.set('b', 'red_elephant.png');
+janggiPieceImageNames.set('N', 'blue_horse.png');
+janggiPieceImageNames.set('n', 'red_horse.png');
+janggiPieceImageNames.set('C', 'blue_cannon.png');
+janggiPieceImageNames.set('c', 'red_cannon.png');
+janggiPieceImageNames.set('R', 'blue_chariot.png');
+janggiPieceImageNames.set('r', 'red_chariot.png');
+janggiPieceImageNames.set('P', 'blue_soldier.png');
+janggiPieceImageNames.set('p', 'red_soldier.png');
 
 const diagonalDescending = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="0" x2="100" y2="100" vector-effect="non-scaling-stroke" stroke="black" /></svg>';
 const diagonalRising = '<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="100" x2="100" y2="0" vector-effect="non-scaling-stroke" stroke="black"/></svg>';
@@ -195,6 +211,7 @@ const PieceStyleSetting = Object.freeze({
  * @property {boolean}     [showColoredAreas]       - if true, river/palace areas are highlighted.
  * @property {string}      [fileNumbersStyle]       - one of {@link FileNumbersStyle}; selects how
  *                                                    file numbers are rendered in WXF mode.
+ * @property {string}     [variant]                - one of {@link Variant}; selects the chess variant.
  */
 
 /** @type {Readonly<Required<BoardGuiOptions>>} */
@@ -212,11 +229,13 @@ const DEFAULT_BOARD_GUI_OPTIONS = Object.freeze({
     flipOpponentPieces: false,
     showColoredAreas: false,
     fileNumbersStyle: FileNumbersStyle.DEFAULT,
+    variant: Variant.XIANGQI,
 });
 
 class BoardGui {
 
-    #board = new Board();
+    /** @type {AbstractXiangqiBoard} */
+    #board;
     #boardContainer;
     #currentShowingLegalMovesFor = null;
     #selectedPiecePosition = null;
@@ -269,8 +288,19 @@ class BoardGui {
     constructor(options = {}) {
         this.#isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         this.#options = Object.freeze({...DEFAULT_BOARD_GUI_OPTIONS, ...options});
+        this.#board = this.#newBoardForVariant();
 
         this.#clickSound = new Audio(`${this.#options.assetsBaseUrl}/audio/rclick-13693.mp3`);
+
+        switch (this.#options.variant) {
+            case Variant.XIANGQI:
+            case Variant.MANCHU:
+                this.#board = new XiangqiBoard();
+                break;
+            case Variant.JANGGI:
+                this.#board = new JanggiBoard();
+                break;
+        }
 
         this.#boardContainer = document.getElementById(this.#options.elementId);
         this.#renderColorblindFriendlyBlackPiecesSetting(this.#options.colorblindFriendlyBlackPieces);
@@ -332,6 +362,20 @@ class BoardGui {
         }
     }
 
+    setVariant(variant) {
+        if (variant === this.#options.variant) {
+            return;
+        }
+
+        const fen = this.#board.outputFen();
+        this.#options = Object.freeze({...this.#options, variant});
+        this.#board = createBoardForVariant(DEFAULT_START_FEN, variant);
+        this.#board.loadFen(fen);
+        this.#boardContainer.innerHTML = '';
+        this.#drawBoard();
+        this.#drawPieces();
+    }
+
     #drawPositionNoAnimation(targetFen) {
         this.#hideAllPiecePlaceHolders();
         this.#hideHighlightedLastMove();
@@ -345,7 +389,7 @@ class BoardGui {
 
     /**
      * Compute the target position (via a temporary board so we don't mutate the
-     * current {@link Board} model before we're ready) and diff it against the
+     * current {@link AbstractXiangqiBoard} model before we're ready) and diff it against the
      * currently displayed pieces to build the animation plan.
      *
      * @param targetFen {string}
@@ -363,7 +407,7 @@ class BoardGui {
 
         // compute the target piece layout via a temp board (no DOM side-effects,
         // and no mutation of the real model yet)
-        const targetBoard = new Board();
+        const targetBoard = this.#newBoardForVariant();
         targetBoard.loadFen(targetFen);
         const targetPieces = targetBoard.listPiecePositions();
 
@@ -397,13 +441,13 @@ class BoardGui {
     }
 
     /**
-     * Returns a copy of the underlying (non-GUI) {@link Board}, useful when
+     * Returns a copy of the underlying (non-GUI) {@link AbstractXiangqiBoard}, useful when
      * callers need to inspect/query the board model without touching the DOM.
      *
      * A copy is returned rather than the internal instance to preserve
      * encapsulation (so callers can't mutate the BoardGui's state directly).
      *
-     * @return {Board}
+     * @return {AbstractXiangqiBoard}
      */
     get board() {
         return this.#board.copy();
@@ -577,7 +621,8 @@ class BoardGui {
         // nothing to animate: bail out early; return a no-op cancel function
         if (animatedMoves.length === 0 && toRemove.length === 0 && toAdd.length === 0) {
             onDone();
-            return () => {};
+            return () => {
+            };
         }
 
         const transitionStr = `transform ${durationMs}ms ease, opacity ${durationMs}ms ease`;
@@ -713,6 +758,13 @@ class BoardGui {
         });
     }
 
+    #newBoardForVariant() {
+        if (typeof createBoardForVariant === 'function') {
+            return createBoardForVariant(DEFAULT_START_FEN, this.#options.variant);
+        }
+        return new XiangqiBoard();
+    }
+
     /**
      *
      * @param pieceChar {string}
@@ -738,7 +790,7 @@ class BoardGui {
         this.#hideAllCheckHighlights();
 
         if (!this.#options.mini || this.#options.forceRenderChecks) {
-            const redGeneral = this.#board.findGeneral(Color.RED);
+            const redGeneral = this.#board.findGeneral(Color.WHITE);
             const blackGeneral = this.#board.findGeneral(Color.BLACK);
 
             // generals may be absent (e.g. when flip() is called before any
@@ -747,8 +799,8 @@ class BoardGui {
                 return;
             }
 
-            if (this.#board.isInCheck(Color.RED)) {
-                if (this.#board.isCheckmate(Color.RED)) {
+            if (this.#board.isInCheck(Color.WHITE)) {
+                if (this.#board.isCheckmate(Color.WHITE)) {
                     this.disablePlayerMove();
                     this.#hideHighlightedLastMove();
                     this.#highlightCheckMate(redGeneral.position);
@@ -1144,6 +1196,9 @@ class BoardGui {
                 .filter(crosshair => crosshair !== null);
         }
 
+        const mustDrawRiverAndWritings =
+            this.#options.variant === Variant.XIANGQI || this.#options.variant === Variant.MANCHU;
+
         for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
             // draw rows
             let row = document.createElement('div');
@@ -1175,7 +1230,7 @@ class BoardGui {
                 legalMovePlaceHolder.id = this.#positionToElementId('legal_move', renderPosition);
                 pieceHolder.appendChild(legalMovePlaceHolder);
 
-                if (y === 5) {
+                if (y === 5 && mustDrawRiverAndWritings) {
                     if (x === 0) {
                         const river = buildDivWithClass('large-river');
                         river.classList.add('board-area-river');
@@ -1420,8 +1475,27 @@ class BoardGui {
      * @return {string}
      */
     getPieceImageSource(pieceChar) {
-        const style = this.#options.pieceStyle.toLowerCase();
-        return `${this.#options.assetsBaseUrl}/images/pieces/${style}/${pieceImageNames.get(pieceChar)}`;
+        let location = this.#options.pieceStyle.toLowerCase();
+        let imageName = pieceImageNames.get(pieceChar);
+
+        if (this.#options.variant === Variant.JANGGI) {
+            switch (this.#options.pieceStyle) {
+                case PieceStyleSetting.TRADITIONAL:
+                case PieceStyleSetting.INK_BRUSH:
+                    location = 'janggi_cursive';
+                    break;
+                case PieceStyleSetting.ROMANIZED_ROUNDED:
+                    location = 'janggi_westernized';
+                    break;
+                case PieceStyleSetting.MODERN:
+                    location = 'janggi_modern';
+                    break;
+            }
+
+            imageName = janggiPieceImageNames.get(pieceChar);
+        }
+
+        return `${this.#options.assetsBaseUrl}/images/pieces/${location}/${imageName}`;
     }
 
     /**
@@ -1442,8 +1516,20 @@ class BoardGui {
         img.className = 'piece-image';
         if (isBlackPiece(pieceChar)) {
             img.classList.add('piece-image-black');
-        } else if (isRedPiece(pieceChar)) {
-            img.classList.add('piece-image-red');
+        } else if (isWhitePiece(pieceChar)) {
+            img.classList.add('piece-image-white');
+        }
+        if (this.#options.variant === Variant.JANGGI) {
+            img.classList.add('piece-image-janggi');
+            switch (pieceChar.toLowerCase()) {
+                case 'k':
+                    img.classList.add('piece-image-janggi-general');
+                    break;
+                case 'a':
+                case 'p':
+                    img.classList.add('piece-image-janggi-small');
+                    break;
+            }
         }
         img.setAttribute('src', this.getPieceImageSource(pieceChar));
         img.addEventListener('click', () => this.#clickedOnPiece(position));
@@ -1728,7 +1814,7 @@ class BoardGui {
      * @param color {string|null}
      */
     flipToColor(color) {
-        if (color != null && ((this.#flippedRed && color === Color.BLACK) || (!this.#flippedRed && color === Color.RED))) {
+        if (color != null && ((this.#flippedRed && color === Color.BLACK) || (!this.#flippedRed && color === Color.WHITE))) {
             this.flip();
         }
     }
@@ -1739,7 +1825,7 @@ class BoardGui {
      * @return {string}
      */
     get bottomColor() {
-        return this.#flippedRed ? Color.RED : Color.BLACK;
+        return this.#flippedRed ? Color.WHITE : Color.BLACK;
     }
 
     flip() {
@@ -1751,7 +1837,7 @@ class BoardGui {
         this.#resetDraggableCursors();
         this.#renderFlipOpponentPiecesSetting(this.#options.flipOpponentPieces);
 
-        const newColor = this.#flippedRed ? Color.RED : Color.BLACK;
+        const newColor = this.#flippedRed ? Color.WHITE : Color.BLACK;
         this.#afterFlipListeners.forEach(listener => listener(newColor));
         this.#forceSafariLayoutRefresh();
     }
@@ -2014,7 +2100,7 @@ function parsePositionFromElementId(elementId) {
  * @param lazy {boolean} - If true, only create the board on first mouseenter (default: false)
  * @returns {HTMLElement|null} - The created miniboard div (null if lazy and not yet created)
  */
-function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false) {
+function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false, variant = Variant.XIANGQI) {
     const LEFT_MARGIN = 12;
     const MINI_BOARD_HEIGHT = 256 / 0.9;
 
@@ -2039,6 +2125,7 @@ function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false) {
             showCoordinates: false,
             mini: true,
             forceRenderChecks: true,
+            variant,
         });
         boardGui.loadFen(fen);
         boardGui.flipToColor(playerColor);

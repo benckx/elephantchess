@@ -19,7 +19,7 @@ class AdminUserEloService(private val userDaoService: UserDaoService) {
         )
 
     private suspend fun listEntries(userType: UserType): List<UserEloStatsResponse.Entry> =
-        Variant.entries.flatMap { variant ->
+        listOf(Variant.XIANGQI, Variant.MANCHU).flatMap { variant ->
             TimeControlCategory.entries.map { timeControlCategory ->
                 userDaoService.fetchRatingSummary(timeControlCategory, variant, userType).let { record ->
                     UserEloStatsResponse.Entry(

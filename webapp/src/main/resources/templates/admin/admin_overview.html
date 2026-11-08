@@ -27,60 +27,119 @@
 
     <h1>Latest Activity</h1>
     <hr/>
-    <table id="latest-activity" class="stats-table">
-        <thead>
-        <tr>
-            <th class="label-cell">activity</th>
-            <th class="value-cell-larger">time</th>
-        </tr>
-        <tr>
-            <td>PvP</td>
-            <td><span id="latest-pvp-timestamp">--</span></td>
-        </tr>
-        <tr>
-            <td>PvP > 3</td>
-            <td><span id="latest-pvp3-timestamp">--</span></td>
-        </tr>
-        <tr>
-            <td>PvB</td>
-            <td><span id="latest-pvb-timestamp">--</span></td>
-        </tr>
-        <tr>
-            <td>PvB > 3</td>
-            <td><span id="latest-pvb3-timestamp">--</span></td>
-        </tr>
-        <tr>
-            <td>live PvP</td>
-            <td><span id="live-pvp-games">--</span></td>
-        </tr>
-        <tr>
-            <td>live PvB</td>
-            <td><span id="live-pvb-games">--</span></td>
-        </tr>
-        <tr>
-            <td>Puzzle</td>
-            <td><span id="latest-puzzle-timestamp">--</span></td>
-        </tr>
-        <tr>
-            <td>Puzzle vote</td>
-            <td><span id="latest-puzzle-vote-timestamp">--</span></td>
-        </tr>
-        <tr>
-            <td>Move analysis</td>
-            <td><span id="latest-move-analysis-timestamp">--</span></td>
-        </tr>
-        <tr>
-            <td>New guest</td>
-            <td><span id="latest-new-guest-timestamp">--</span></td>
-        </tr>
-        <tr>
-            <td>New user</td>
-            <td><span id="latest-new-authenticated-user-timestamp">--</span></td>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    <div class="activity-panels">
+        <section class="activity-panel">
+            <div class="center-content-div">
+                <span><b>All Activity</b></span>
+            </div>
+            <table id="latest-activity" class="stats-table">
+                <tbody>
+                <tr>
+                    <td>PvP</td>
+                    <td><span id="latest-pvp-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>PvP > 3</td>
+                    <td><span id="latest-pvp3-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>PvB</td>
+                    <td><span id="latest-pvb-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>PvB > 3</td>
+                    <td><span id="latest-pvb3-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>live PvP</td>
+                    <td><span id="live-pvp-games">--</span></td>
+                </tr>
+                <tr>
+                    <td>live PvB</td>
+                    <td><span id="live-pvb-games">--</span></td>
+                </tr>
+                <tr>
+                    <td>Puzzle</td>
+                    <td><span id="latest-puzzle-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>Puzzle vote</td>
+                    <td><span id="latest-puzzle-vote-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>Move analysis</td>
+                    <td><span id="latest-move-analysis-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>New guest</td>
+                    <td><span id="latest-new-guest-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>New user</td>
+                    <td><span id="latest-new-authenticated-user-timestamp">--</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="activity-panel">
+            <div class="center-content-div">
+                <span><b>Xiangqi</b></span>
+            </div>
+            <table class="stats-table">
+                <tbody>
+                <tr>
+                    <td>PvP > 3</td>
+                    <td><span id="latest-pvp-xiangqi3-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>PvB > 3</td>
+                    <td><span id="latest-pvb-xiangqi3-timestamp">--</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="activity-panel">
+            <div class="center-content-div">
+                <span><b>Manchu</b></span>
+            </div>
+            <table class="stats-table">
+                <tbody>
+                <tr>
+                    <td>PvP > 3</td>
+                    <td><span id="latest-pvp-manchu3-timestamp">--</span></td>
+                </tr>
+                <tr>
+                    <td>PvB > 3</td>
+                    <td><span id="latest-pvb-manchu3-timestamp">--</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="activity-panel">
+            <div class="center-content-div">
+                <span><b>Janggi</b></span>
+            </div>
+            <table class="stats-table">
+                <tbody>
+                <tr>
+                    <td>PvB > 3</td>
+                    <td><span id="latest-pvb-janggi3-timestamp">--</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="activity-panel">
+            <div class="center-content-div"><span><b>Fairy Stockfish</b></span></div>
+            <table class="stats-table">
+                <tbody>
+                <tr>
+                    <td>PvB > 3</td>
+                    <td><span id="latest-pvb-fairy3-timestamp">--</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
     <br/>
 
     <h1>Unique Page Views (24h)</h1>

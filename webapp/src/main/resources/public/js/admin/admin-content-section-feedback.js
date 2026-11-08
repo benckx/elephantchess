@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,27 @@
 
 class AdminContentSectionFeedbackPage extends BasePage {
 
+    #summaryTable = document.getElementById('content-section-vote-summary-table');
     #table = document.getElementById('content-section-feedback-table');
 
     constructor() {
         super();
 
         getAndHandle(`${ADMIN_URL_PREFIX}/content-section-feedback`, json => {
+            const summaryTbody = emptyTable(this.#summaryTable);
+            json.aggregates.forEach(aggregate => {
+                const row = summaryTbody.insertRow();
+                row.insertCell().innerText = aggregate.pageId;
+                row.insertCell().innerText = aggregate.sectionId;
+                row.insertCell().innerText = aggregate.totalVotes;
+                row.insertCell().innerText = aggregate.upVotes;
+                row.insertCell().innerText = (-aggregate.downVotes).toString();
+            });
+
             const tbody = emptyTable(this.#table);
             json.entries.forEach(entry => {
                 const row = tbody.insertRow();
-                row.insertCell().append(buildUsernameSpan(entry.userId, entry.username, entry.userType));
+                row.insertCell().append(buildAdminUsernameSpan(entry.userId, entry.username, entry.userType));
                 row.insertCell().innerText = entry.pageId;
                 row.insertCell().innerText = entry.sectionId;
                 row.insertCell().innerText = entry.upVoted ? 'up' : 'down';

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -118,7 +118,7 @@ class AttackMap {
 
     constructor(color, startFen, moves, onlyGenerals) {
         // init
-        let board = new Board();
+        let board = new XiangqiBoard();
         board.loadFen(startFen);
         moves.forEach(move => board.registerMove(move));
         board.forceColorToPlay(color);
@@ -243,7 +243,7 @@ class PerpetualCheckingTracker {
 
     #moves = [];
     #startFen;
-    #board = new Board();
+    #board = new XiangqiBoard();
     #index = 0;
     #rulesSet = DEFAULT_RULES_SET;
 
@@ -255,7 +255,7 @@ class PerpetualCheckingTracker {
     constructor(startFen = DEFAULT_START_FEN) {
         this.#startFen = startFen;
         this.#board.loadFen(startFen);
-        this.#historyByColor.set(Color.RED, new PerpetualCheckingHistoryForColor(Color.RED));
+        this.#historyByColor.set(Color.WHITE, new PerpetualCheckingHistoryForColor(Color.WHITE));
         this.#historyByColor.set(Color.BLACK, new PerpetualCheckingHistoryForColor(Color.BLACK));
     }
 
@@ -342,7 +342,7 @@ class PerpetualCheckingTrackerWidget {
         const element = document.getElementById(this.#elementId);
         const boxes = element.getElementsByClassName(PERPETUAL_CHECKING_INFO_BOX_SUB_BOXES);
         if (boxes.length === 2) {
-            this.#renderForColor(Color.RED, boxes[0]);
+            this.#renderForColor(Color.WHITE, boxes[0]);
             this.#renderForColor(Color.BLACK, boxes[1]);
         }
     }

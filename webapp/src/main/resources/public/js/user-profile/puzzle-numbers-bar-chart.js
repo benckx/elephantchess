@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,7 +67,15 @@ class PuzzleNumbersBarChart extends ApexChartWidget {
                     },
                 },
                 stroke: {width: 0},
-                xaxis: {categories: historyDto.daysCategories},
+                xaxis: {type: 'category', categories: historyDto.daysCategories},
+                yaxis: {
+                    labels: {
+                        trim: false,
+                        minWidth: 90,
+                        maxWidth: 160,
+                        style: {fontSize: '12px'}
+                    }
+                },
                 fill: {opacity: 1},
                 legend: {show: false}
             };

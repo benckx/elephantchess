@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,7 +107,7 @@ class AdminPasswordRecovery extends BasePage {
             // user
             const userCell = row.insertCell();
             if (entry.userId != null && entry.username != null && entry.recoveryTime != null) {
-                userCell.append(buildUsernameSpan(entry.userId, entry.username, UserType.AUTHENTICATED));
+                userCell.append(buildAdminUsernameSpan(entry.userId, entry.username, UserType.AUTHENTICATED));
             } else {
                 userCell.innerText = '--';
             }

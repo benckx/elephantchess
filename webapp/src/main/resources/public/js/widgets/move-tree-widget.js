@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -222,6 +222,7 @@ class MoveTreeNode {
      * In this case, null means we use the default start fen
      */
     #customStartFen;
+    #variant = Variant.XIANGQI;
 
     // graph connections
     #previous = null;
@@ -308,6 +309,20 @@ class MoveTreeNode {
         } else {
             return DEFAULT_START_FEN;
         }
+    }
+
+    /**
+     * @param value {string}
+     */
+    set variant(value) {
+        this.#variant = value ?? Variant.XIANGQI;
+    }
+
+    /**
+     * @return {string}
+     */
+    get variant() {
+        return this.#variant;
     }
 
     get fullMoveCount() {
@@ -452,11 +467,12 @@ class MoveTreeNode {
      * Calculate and returns the label, but doesn't update UI
      *
      * @param moveFormat {string}
+     * @param variant {string}
      * @return {string}
      */
-    renderLabel(moveFormat) {
+    renderLabel(moveFormat, variant = Variant.XIANGQI) {
         const moves = this.getAllNodesLeadingUpTo().map(node => node.move);
-        const translated = translateMovesFormatTakeLast(moves, moveFormat.toString(), this.startFen);
+        const translated = translateMovesFormatTakeLast(moves, moveFormat.toString(), this.startFen, variant);
         if (translated != null) {
             return translated;
         } else {
@@ -550,6 +566,7 @@ class MoveTreeNode {
 
     #createBranchWithMoves(moves) {
         let nodes = MoveTreeNode.mapMovesToNodes(moves, this.#level + 1);
+        nodes.forEach(node => node.variant = this.#variant);
         if (this.#customStartFen != null) {
             nodes.forEach(node => node.startFen = this.#customStartFen);
         }
@@ -560,6 +577,7 @@ class MoveTreeNode {
 
     #appendAtTheEnd(moves) {
         let nodes = MoveTreeNode.mapMovesToNodes(moves, this.#level);
+        nodes.forEach(node => node.variant = this.#variant);
         if (this.#customStartFen != null) {
             nodes.forEach(node => node.startFen = this.#customStartFen);
         }
@@ -570,7 +588,7 @@ class MoveTreeNode {
 
     #calculateFen() {
         let moves = this.getAllNodesLeadingUpTo().map(node => node.move);
-        return calculateFen(moves, this.startFen);
+        return calculateFen(moves, this.startFen, this.#variant);
     }
 
     /**
@@ -642,11 +660,12 @@ class MoveTreeNode {
 
     /**
      * @param startFen {string}
+     * @param variant {string}
      * @return {string}
      */
-    toPgn(startFen) {
+    toPgn(startFen, variant = Variant.XIANGQI) {
         let nodes = this.getAllNodesLeadingUpTo();
-        let movesAsPgn = translateMovesToPgn(nodes.map(node => node.move), true, startFen);
+        let movesAsPgn = translateMovesToPgn(nodes.map(node => node.move), true, startFen, variant);
         let lastPgn = movesAsPgn[movesAsPgn.length - 1];
         let lastNode = nodes[nodes.length - 1];
         let position = lastNode.position;
@@ -695,6 +714,7 @@ class MoveTree {
     #rootNode = null;
     #startFen = DEFAULT_START_FEN;
     #useDefaultFen = true;
+    #variant = Variant.XIANGQI;
 
     get rootNode() {
         return this.#rootNode;
@@ -714,6 +734,13 @@ class MoveTree {
         } else {
             return this.#startFen;
         }
+    }
+
+    /**
+     * @param value {string}
+     */
+    set variant(value) {
+        this.#variant = value ?? Variant.XIANGQI;
     }
 
     isEmpty() {
@@ -753,6 +780,7 @@ class MoveTree {
 
     setMoves(moves) {
         let nodes = MoveTreeNode.mapMovesToNodes(moves, 0);
+        nodes.forEach(node => node.variant = this.#variant);
         if (!this.#useDefaultFen) {
             nodes.forEach(node => node.startFen = this.#startFen);
         }
@@ -770,12 +798,14 @@ class MoveTree {
         if (lastNode != null) {
             let nextNode = new MoveTreeNode(move, 0);
             nextNode.startFen = this.#startFen;
+            nextNode.variant = this.#variant;
             nextNode.previous = lastNode;
             lastNode.next = nextNode;
             return nextNode;
         } else {
             this.#rootNode = new MoveTreeNode(move, 0);
             this.#rootNode.startFen = this.#startFen;
+            this.#rootNode.variant = this.#variant;
             return this.#rootNode;
         }
     }
@@ -827,6 +857,7 @@ class MoveTree {
 
             // TODO: move to its own loop?
             node.startFen = this.#startFen;
+            node.variant = this.#variant;
         }
 
         // find root node
@@ -1371,6 +1402,7 @@ class MoveTreeWidget {
 
     #metadataFetcher = () => new Map();
     #startFen = DEFAULT_START_FEN;
+    #variant = Variant.XIANGQI;
     #useDefaultFen = true;
 
     #settingsManager = new SettingsManager();
@@ -1443,6 +1475,10 @@ class MoveTreeWidget {
         if (options.persistHeight !== undefined) {
             this.#persistHeight = options.persistHeight;
         }
+        if (options.variant !== undefined) {
+            this.#variant = options.variant;
+        }
+        this.#moveTree.variant = this.#variant;
 
         const containerId = options.containerId;
         if (containerId === undefined) {
@@ -1786,6 +1822,15 @@ class MoveTreeWidget {
         return this.#moveTree.startFen;
     }
 
+    set variant(value) {
+        this.#variant = value ?? Variant.XIANGQI;
+        this.#moveTree.variant = this.#variant;
+    }
+
+    get variant() {
+        return this.#variant;
+    }
+
     // COMPLEX GETTERS/SETTERS
 
     /**
@@ -1889,6 +1934,7 @@ class MoveTreeWidget {
         this.#previouslySelectedNode = null;
         this.#moveTree = new MoveTree();
         this.#moveTree.startFen = this.#startFen;
+        this.#moveTree.variant = this.#variant;
 
         if (moves.length > 0) {
             const lastNode = this.#moveTree.setMoves(moves);
@@ -2100,7 +2146,7 @@ class MoveTreeWidget {
         this.#moveTree.getAllNodes().forEach(node => {
             document
                 .getElementById(`move-label-placeholder-${node.nodeId}`)
-                .innerText = node.renderLabel(format);
+                .innerText = node.renderLabel(format, this.#variant);
         });
     }
 
@@ -2301,7 +2347,7 @@ class MoveTreeWidget {
             }
 
             // data
-            exportForLine.push(exportMovesToPgnLine(moves));
+            exportForLine.push(exportMovesToPgnLine(moves, this.#variant, this.#startFen));
             exportForLine.push('');
             exportForLine.push('');
             return exportForLine.join('\n');
@@ -2347,7 +2393,7 @@ class MoveTreeWidget {
     #exportNodesToPgnNested(nodes) {
         let result = [];
         for (let node of nodes) {
-            result.push(node.toPgn(this.#startFen));
+            result.push(node.toPgn(this.#startFen, this.#variant));
             for (let i = 0; i < node.childNodes.length; i++) {
                 let childNode = node.childNodes[i];
                 let continuationToken = '';
@@ -2549,6 +2595,8 @@ class MoveTreeWidget {
      * @param parentContainer {HTMLElement}
      */
     #renderNodes(nodes, parentContainer) {
+        const variant = this.#variant;
+
         // create a line in the move tree widget
         function buildMoveLineContainer(node, isFirstLineOfBranch = false, isLastLineOfBranch = false) {
             let lineContainer = document.createElement('div');
@@ -2620,7 +2668,7 @@ class MoveTreeWidget {
             const label = document.createElement('div');
             label.id = `move-label-placeholder-${node.nodeId}`;
             label.className = 'move-label-placeholder';
-            label.innerText = node.renderLabel(moveFormat);
+            label.innerText = node.renderLabel(moveFormat, variant);
             return label;
         }
 

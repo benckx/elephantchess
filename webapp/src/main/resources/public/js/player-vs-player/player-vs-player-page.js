@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,6 +154,9 @@ class PlayGamePage extends BasePage {
                 () => {
                     this.#boardGui.flipToColor(this.#gameController.gameDto.colorUserPlaysWith);
                     this.#updatePlayersInfo();
+                    // refresh the action buttons (resign / propose draw / cancel) so they
+                    // reflect the now in-progress game without requiring a page reload
+                    this.#updateGui();
                     if (this.#gameController.gameDto.userStatus !== UserStatus.INVITEE) {
                         UI.pushInfoNotification(`${this.#gameController.gameDto.inviteeUsername} has joined the game`, 4_000);
                         if (this.#settingsManager.isPlaySoundsEnabled) {
@@ -316,7 +319,10 @@ class PlayGamePage extends BasePage {
 
     #initBoard() {
         if (this.#gameController.gameDto.isManchu) {
+            this.#moveTreeWidget.variant = Variant.MANCHU;
             this.#moveTreeWidget.startFen = MANCHU_START_FEN;
+        } else {
+            this.#moveTreeWidget.variant = Variant.XIANGQI;
         }
 
         if (!this.#gameController.isGameFinished()) {
@@ -390,7 +396,7 @@ class PlayGamePage extends BasePage {
         }
 
         // update clock orientation
-        const colorUserPlaysWith = this.#gameController.gameDto.colorUserPlaysWith || Color.RED;
+        const colorUserPlaysWith = this.#gameController.gameDto.colorUserPlaysWith || Color.WHITE;
         this.#updateClocksOrientation(colorUserPlaysWith);
 
         // update clocks
@@ -561,7 +567,7 @@ class PlayGamePage extends BasePage {
             let inviteeDiv = null;
 
             switch (gameDto.inviterColor) {
-                case Color.RED:
+                case Color.WHITE:
                     inviterDiv = this.#redPlayerInfo;
                     inviteeDiv = this.#blackPlayerInfo;
                     this.#redPlayerInfo.style.display = 'block';
@@ -630,7 +636,7 @@ class PlayGamePage extends BasePage {
     #updateGameStatusInfo() {
         function colorToStatusText(color) {
             switch (color) {
-                case Color.RED:
+                case Color.WHITE:
                     return 'Red to play';
                 case Color.BLACK:
                     return 'Black to play';
@@ -664,7 +670,7 @@ class PlayGamePage extends BasePage {
         if (this.#gameController.isGameFinished()) {
             statusText = dto.formattedStatusOfFinishedGame;
             if (dto.outcome != null) {
-                outcomeText = formatEnumValue(dto.outcome);
+                outcomeText = formatXiangqiOutcome(dto.outcome);
                 if (dto.userHasWon()) {
                     outcomeText += ' (you won)';
                 } else if (dto.userHasLost()) {
@@ -768,7 +774,7 @@ class PlayGamePage extends BasePage {
         }
 
         switch (color) {
-            case Color.RED:
+            case Color.WHITE:
                 this.#topCounter.classList.add('black-counter');
                 this.#bottomCounter.classList.add('red-counter');
                 this.#miniTopCounter.classList.add('black-counter');

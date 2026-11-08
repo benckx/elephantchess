@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 class PuzzleState extends PuzzleDto {
 
-    #board = new Board();
+    #board = new XiangqiBoard();
     #preRecordedSolutionMovesIndex = 0;
 
     /**
@@ -30,6 +30,13 @@ class PuzzleState extends PuzzleDto {
     constructor(json) {
         super(json);
         this.#board.loadFen(this.startFen);
+    }
+
+    reset() {
+        this.#board.loadFen(this.startFen);
+        this.#playedMoves = [];
+        this.#preRecordedSolutionMovesIndex = 0;
+        this.outcome = null;
     }
 
     get moveHistoryIndex() {
@@ -77,6 +84,10 @@ class PuzzleState extends PuzzleDto {
     addPlayedMove(move) {
         this.#board.registerMove(move);
         this.#playedMoves.push(move);
+    }
+
+    hasPlayedMoves() {
+        return this.#playedMoves.length > 0;
     }
 
     outputFen() {
