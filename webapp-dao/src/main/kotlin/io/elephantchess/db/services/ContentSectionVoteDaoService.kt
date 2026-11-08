@@ -4,12 +4,34 @@ import io.elephantchess.db.dao.codegen.Tables.CONTENT_SECTION_VOTE
 import io.elephantchess.db.dao.codegen.tables.pojos.ContentSectionVote
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.awaitMappedRecords
+import io.elephantchess.db.utils.awaitRecords
 import io.elephantchess.utils.di.KoinSingleton
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import kotlin.time.Clock
 
 @KoinSingleton
 class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
+
+    suspend fun listVoteCountsByPageAndSection(): List<ContentSectionVoteCounts> {
+        val upVotes = DSL.count().filterWhere(CONTENT_SECTION_VOTE.UP_VOTED.isTrue).`as`("up_votes")
+        val downVotes = DSL.count().filterWhere(CONTENT_SECTION_VOTE.UP_VOTED.isFalse).`as`("down_votes")
+
+        return dslContext
+            .select(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID, upVotes, downVotes)
+            .from(CONTENT_SECTION_VOTE)
+            .groupBy(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID)
+            .orderBy(CONTENT_SECTION_VOTE.PAGE_ID, CONTENT_SECTION_VOTE.SECTION_ID)
+            .awaitRecords()
+            .map { record ->
+                ContentSectionVoteCounts(
+                    pageId = requireNotNull(record.value1()),
+                    sectionId = requireNotNull(record.value2()),
+                    upVotes = record.value3(),
+                    downVotes = record.value4(),
+                )
+            }
+    }
 
     suspend fun persistVote(userId: String, pageId: String, sectionId: String, upVoted: Boolean, feedback: String?) {
         val now = Clock.System.now()
@@ -63,3 +85,10 @@ class ContentSectionVoteDaoService(private val dslContext: DSLContext) {
             .limit(limit)
             .awaitMappedRecords<ContentSectionVote>()
 }
+
+data class ContentSectionVoteCounts(
+    val pageId: String,
+    val sectionId: String,
+    val upVotes: Int,
+    val downVotes: Int,
+)

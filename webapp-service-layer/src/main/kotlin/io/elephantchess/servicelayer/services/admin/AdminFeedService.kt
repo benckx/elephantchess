@@ -131,6 +131,22 @@ class AdminFeedService(
             .let { entries -> ListBotGamesResponse(entries) }
 
     suspend fun listLatestFeedback(): ListContentSectionVoteFeedbackResponse {
+        val aggregates = contentSectionVoteDaoService
+            .listVoteCountsByPageAndSection()
+            .map { record ->
+                ListContentSectionVoteFeedbackResponse.Aggregate(
+                    pageId = record.pageId,
+                    sectionId = record.sectionId,
+                    upVotes = record.upVotes,
+                    downVotes = record.downVotes,
+                    totalVotes = record.upVotes + record.downVotes,
+                )
+            }
+            .sortedWith(
+                compareByDescending<ListContentSectionVoteFeedbackResponse.Aggregate> { it.totalVotes }
+                    .thenBy { it.pageId }
+                    .thenBy { it.sectionId },
+            )
         val entries = contentSectionVoteDaoService
             .listLatestFeedback(250)
             .map { record ->
@@ -146,7 +162,7 @@ class AdminFeedService(
                     updateTime = record.updateTime.toEpochMilliseconds(),
                 )
             }
-        return ListContentSectionVoteFeedbackResponse(entries)
+        return ListContentSectionVoteFeedbackResponse(aggregates, entries)
     }
 
     suspend fun listSockPuppetReport(limit: Int = 500): ListSockPuppetReportResponse {

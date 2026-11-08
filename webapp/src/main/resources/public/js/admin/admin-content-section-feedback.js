@@ -19,12 +19,23 @@
 
 class AdminContentSectionFeedbackPage extends BasePage {
 
+    #summaryTable = document.getElementById('content-section-vote-summary-table');
     #table = document.getElementById('content-section-feedback-table');
 
     constructor() {
         super();
 
         getAndHandle(`${ADMIN_URL_PREFIX}/content-section-feedback`, json => {
+            const summaryTbody = emptyTable(this.#summaryTable);
+            json.aggregates.forEach(aggregate => {
+                const row = summaryTbody.insertRow();
+                row.insertCell().innerText = aggregate.pageId;
+                row.insertCell().innerText = aggregate.sectionId;
+                row.insertCell().innerText = aggregate.totalVotes;
+                row.insertCell().innerText = aggregate.upVotes;
+                row.insertCell().innerText = aggregate.downVotes;
+            });
+
             const tbody = emptyTable(this.#table);
             json.entries.forEach(entry => {
                 const row = tbody.insertRow();
