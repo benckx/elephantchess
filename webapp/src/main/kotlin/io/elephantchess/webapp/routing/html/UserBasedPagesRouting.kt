@@ -13,7 +13,12 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.routing.*
 
-internal fun Route.userProfileAndBrowseGamesPages() {
+fun Route.userBasedPagesRouting() {
+    userProfileAndBrowseGamesPages()
+    userSettingsPages()
+}
+
+private fun Route.userProfileAndBrowseGamesPages() {
     val userProfilePageRenderer by koin<UserProfilePageRenderer>()
     val userService by koin<UserService>()
 
@@ -38,7 +43,7 @@ internal fun Route.userProfileAndBrowseGamesPages() {
     }
 }
 
-internal fun Route.userSettingsPages() {
+private fun Route.userSettingsPages() {
     val renderer by koin<UserSettingsPageRenderer>()
 
     route("/user/settings") {

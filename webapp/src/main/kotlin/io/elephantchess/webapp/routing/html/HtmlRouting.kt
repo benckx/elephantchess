@@ -21,14 +21,13 @@ private val logger = logger {}
 fun Application.htmlRoutingModule() {
     routing {
         simpleMappings()
+        modals()
         gamePages()
         puzzlesPage()
-        boardGuiExample()
-        userProfileAndBrowseGamesPages()
-        userSettingsPages()
-        modals()
+        userBasedPagesRouting()
         databasePages()
         aboutPages()
+        boardGuiExample()
         adminPagesRouting()
         emailSettingUpdatePages()
     }
