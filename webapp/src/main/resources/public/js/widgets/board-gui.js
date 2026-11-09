@@ -2163,3 +2163,80 @@ function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false, varian
 
     return miniBoardDiv;
 }
+
+/**
+ * Downloads a PNG screenshot of a board container.
+ * Loads html2canvas lazily if needed.
+ *
+ * @param {string} elementId - id of the board container to capture
+ * @param {string} filename - output filename
+ * @returns {Promise<void>}
+ */
+const HTML2CANVAS_SCRIPT_ID = 'board-gui-html2canvas-script';
+const HTML2CANVAS_SCRIPT_SRC = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+let html2canvasLoadingPromise = null;
+
+function ensureHtml2Canvas() {
+    if (typeof window.html2canvas === 'function') {
+        return Promise.resolve(window.html2canvas);
+    }
+    if (html2canvasLoadingPromise !== null) {
+        return html2canvasLoadingPromise;
+    }
+
+    html2canvasLoadingPromise = new Promise((resolve, reject) => {
+        let script = document.getElementById(HTML2CANVAS_SCRIPT_ID);
+        if (!script) {
+            script = document.createElement('script');
+            script.id = HTML2CANVAS_SCRIPT_ID;
+            script.src = HTML2CANVAS_SCRIPT_SRC;
+            script.async = true;
+            document.head.appendChild(script);
+        }
+
+        function resolveIfReady() {
+            if (typeof window.html2canvas === 'function') {
+                resolve(window.html2canvas);
+                return true;
+            }
+            return false;
+        }
+
+        if (resolveIfReady()) {
+            return;
+        }
+
+        script.addEventListener('load', () => {
+            if (!resolveIfReady()) {
+                html2canvasLoadingPromise = null;
+                reject(new Error('Cannot download board screenshot: html2canvas loaded but window.html2canvas is missing'));
+            }
+        }, {once: true});
+
+        script.addEventListener('error', () => {
+            html2canvasLoadingPromise = null;
+            reject(new Error(`Cannot download board screenshot: failed to load ${HTML2CANVAS_SCRIPT_SRC}`));
+        }, {once: true});
+    });
+
+    return html2canvasLoadingPromise;
+}
+
+async function downloadBoardScreenshot(elementId = 'board-container', filename = 'board.png') {
+    const boardContainer = document.getElementById(elementId);
+    if (!boardContainer) {
+        throw new Error(`Cannot download board screenshot: element not found for id "${elementId}"`);
+    }
+    const html2canvas = await ensureHtml2Canvas();
+
+    const canvas = await html2canvas(boardContainer, {
+        backgroundColor: null,
+        useCORS: true,
+        logging: false,
+    });
+
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = filename;
+    link.click();
+}
