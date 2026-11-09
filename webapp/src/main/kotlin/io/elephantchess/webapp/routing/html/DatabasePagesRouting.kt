@@ -10,6 +10,7 @@ import io.elephantchess.webapp.ops.requireEditorRole
 import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.ops.respondNotFoundPage
 import io.elephantchess.webapp.rendering.DatabasePageRenderer
+import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -17,8 +18,10 @@ import io.ktor.server.routing.*
 
 private val databaseService by koin<DatabaseService>()
 
-internal fun Routing.databasePages() {
+internal fun Routing.databasePagesRouting() {
     val databasePageRenderer by koin<DatabasePageRenderer>()
+    val simplePageRenderer by koin<SimplePageRenderer>()
+
     val roleErrorPageRender: (suspend () -> String) =
         { simplePageRenderer.renderTemplate("database/database_player_edit_unauthorized") }
 
