@@ -2,19 +2,16 @@ package io.elephantchess.webapp.routing.html
 
 import io.elephantchess.config.AppConfig
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
-import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.exceptions.NotFoundException
 import io.elephantchess.servicelayer.services.PuzzleCache
-import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.ops.*
+import io.elephantchess.webapp.ops.respondBadRequestPage
+import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.rendering.*
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
-import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -75,56 +72,6 @@ private fun Route.puzzlesPage() {
         call.respondHtml(
             simplePageRenderer.renderTemplate("puzzles", resolvers),
         )
-    }
-}
-
-private fun Route.userProfileAndBrowseGamesPages() {
-    val userProfilePageRenderer by koin<UserProfilePageRenderer>()
-    val userService by koin<UserService>()
-
-    get("/@/{username}") {
-        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
-        val isAdmin = isAdmin()
-
-        val userProfileResponse = userService.fetchProfile(username)
-        call.respondHtml(userProfilePageRenderer.renderUserProfile(userProfileResponse, isAdmin))
-    }
-    get("/@/{username}/browse-pvp-games") {
-        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
-
-        userService.validateUserExists(username)
-        call.respondHtml(userProfilePageRenderer.renderUserBrowsePvpGames(username))
-    }
-    get("/@/{username}/browse-pvb-games") {
-        val username = call.parameters["username"] ?: throw BadRequestException("username not provided")
-
-        userService.validateUserExists(username)
-        call.respondHtml(userProfilePageRenderer.renderUserBrowsePvbGames(username))
-    }
-}
-
-private fun Route.userSettingsPages() {
-    val renderer by koin<UserSettingsPageRenderer>()
-
-    route("/user/settings") {
-        get {
-            requireAuthentication { token ->
-                TextContent(
-                    text = renderer.renderUserSettingsPage(token.userId),
-                    contentType = ContentType.Text.Html,
-                )
-            }
-        }
-        get("/sessions") {
-            requireAuthentication {
-                simplePageRenderer.renderTemplateHtmlToCall("user_sessions")
-            }
-        }
-        get("/views") {
-            requireAuthentication {
-                simplePageRenderer.renderTemplateHtmlToCall("user_views")
-            }
-        }
     }
 }
 
