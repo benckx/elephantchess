@@ -70,7 +70,7 @@ object GenerateJanggiGames : KoinScriptInit() {
         val cache = JanggiGameMovesDtoCache()
         val retained = listOf(
             cache.randomGame { game ->
-                val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
+                val board = JanggiBoard(janggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
                 game.uciMoves.any { uci ->
                     board.registerMove(uci)
                     !board.isDraw() && !board.isInCheck(board.colorToPlay()) &&
@@ -82,7 +82,7 @@ object GenerateJanggiGames : KoinScriptInit() {
                 if (lastMove == null || lastMove.from != lastMove.to) {
                     false
                 } else {
-                    val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
+                    val board = JanggiBoard(janggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
                     game.uciMoves.dropLast(1).forEach { board.registerMove(it) }
                     board.areGeneralsFacing() && board.isInCheck(board.colorToPlay())
                 }
@@ -139,7 +139,7 @@ object GenerateJanggiGames : KoinScriptInit() {
     private suspend fun generateSelfPlayGame(maxMoves: Int, maxDepth: Int): GeneratedGame {
         val blueSetup = JanggiSetup.entries.random(random)
         val redSetup = JanggiSetup.entries.random(random)
-        val startFen = generateJanggiStartFen(blueSetup, redSetup)
+        val startFen = janggiStartFen(blueSetup, redSetup)
         val history = mutableListOf<String>()
         var terminalResult = GameResult.DRAW
 

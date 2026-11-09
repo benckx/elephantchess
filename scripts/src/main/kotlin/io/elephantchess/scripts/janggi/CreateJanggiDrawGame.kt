@@ -8,17 +8,16 @@ import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.insertReactive
 import io.elephantchess.engines.EnginePool
-import io.elephantchess.model.Engine
-import io.elephantchess.model.OpeningMode
+import io.elephantchess.model.Engine.FAIRYSTOCKFISH
+import io.elephantchess.model.OpeningMode.ENGINE_ONLY
 import io.elephantchess.scripts.KoinScript
 import io.elephantchess.servicelayer.dto.botgame.CreateBotGameRequest
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.xiangqi.HalfMove
 import io.elephantchess.xiangqi.JanggiBoard
-import io.elephantchess.xiangqi.JanggiSetup
-import io.elephantchess.xiangqi.Variant
-import io.elephantchess.xiangqi.generateJanggiStartFen
+import io.elephantchess.xiangqi.JanggiBoard.Companion.DEFAULT_JANGGI_START_FEN
+import io.elephantchess.xiangqi.Variant.JANGGI
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDto
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlinx.coroutines.CoroutineScope
@@ -43,6 +42,7 @@ object CreateJanggiDrawGame : KoinScript {
     private val service by inject<PlayerVsBotGameService>()
     private val games by inject<PlayerVsBotGameDaoService>()
     private val dslContext by inject<DSLContext>()
+    private val scope by inject<CoroutineScope>()
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -56,17 +56,18 @@ object CreateJanggiDrawGame : KoinScript {
             // the user's color equal to the side to move at startFen (even stalemate index). That also means
             // PlayerVsBotGameService.create does not play an opening bot move, so no engine is needed.
             fun firstStalemateIndex(game: JanggiGameMovesDto): Int {
-                val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
+                val board = JanggiBoard(game.startFen())
                 return game.uciMoves.indexOfFirst { uci ->
                     board.registerMove(uci)
                     !board.isDraw() && !board.isInCheck(board.colorToPlay()) &&
                         board.listLegalMoves(board.colorToPlay()).none { it.from != it.to }
                 }
             }
+
             val fixture = JanggiGameMovesDtoCache().randomGame { game ->
                 firstStalemateIndex(game).let { index -> index >= 0 && index % 2 == 0 }
             }
-            val startFen = generateJanggiStartFen(JanggiSetup.valueOf(fixture.blueSetup), JanggiSetup.valueOf(fixture.redSetup))
+            val startFen = fixture.startFen()
             val board = JanggiBoard(startFen)
             val finalIndex = firstStalemateIndex(fixture)
             check(finalIndex >= 0) { "Selected fixture has no stalemate" }
@@ -91,10 +92,10 @@ object CreateJanggiDrawGame : KoinScript {
                     CreateBotGameRequest(
                         color = board.colorToPlay(),
                         depth = 1,
-                        engine = Engine.FAIRYSTOCKFISH,
+                        engine = FAIRYSTOCKFISH,
                         startFen = startFen,
-                        openingMode = OpeningMode.ENGINE_ONLY,
-                        variant = Variant.JANGGI,
+                        openingMode = ENGINE_ONLY,
+                        variant = JANGGI,
                     ),
                 )
                 // Backfill the fixture history directly instead of replaying it through the service, so no engine
@@ -120,18 +121,19 @@ object CreateJanggiDrawGame : KoinScript {
                 }
                 check(games.listMoves(response.gameId) == history)
                 val saved = games.fetchById(response.gameId)!!
-                check((saved.startFen ?: JanggiBoard.DEFAULT_JANGGI_START_FEN) == startFen)
+                check((saved.startFen ?: DEFAULT_JANGGI_START_FEN) == startFen)
                 check(saved.currentHalfMoveIndex == history.size)
                 check(saved.currentFen == board.outputFen())
                 println("Fixture: ${fixture.gameId}, before move ${finalIndex + 1}, with ${history.size} saved half-moves")
                 println("Play ${finalMove.toUci()} (${finalMove.toAlgebraic()}) to draw. No engine is needed.")
                 println("http://localhost:8080/playbot?id=${response.gameId}")
             } finally {
-                getKoin().get<CoroutineScope>().cancel()
+                scope.cancel()
                 engines.close()
                 stopKoin()
             }
         }
+
         exitProcess(0)
     }
 }
