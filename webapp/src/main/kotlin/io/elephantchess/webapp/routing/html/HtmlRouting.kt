@@ -29,10 +29,9 @@ private val simplePublicPageMapping = mapOf(
     "/401" to "errors/401",
     "/403" to "errors/403",
     "/404" to "errors/404",
-    "/board" to "xiangqi_test_board",
-    "/xiangqi-test-board" to "xiangqi_test_board",
-    "/manchu-test-board" to "manchu_test_board",
-    "/janggi-test-board" to "janggi_test_board",
+    "/xiangqi-test-board" to "test_boards/xiangqi_test_board",
+    "/manchu-test-board" to "test_boards/manchu_test_board",
+    "/janggi-test-board" to "test_boards/janggi_test_board",
     "/database" to "database/database_search",
     "/database/search" to "database/database_search",
     "/browse/player-vs-player" to "browse_pvp_games",
@@ -58,6 +57,7 @@ private val simplePublicPageMappingWithSupporterBanner = mapOf(
 private val publicPageRedirection = mapOf(
     "/7k" to "/7k/about",
     "/7k/rules" to "/7k/about",
+    "/board" to "/xiangqi-test-board",
 )
 
 // available to guests and authenticated users

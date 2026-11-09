@@ -1,13 +1,13 @@
 <html lang="en">
 <head>
     {{header_init}}
-    <title>Manchu Chess (Yitong) Test Board – elephantchess.io</title>
+    <title>Chinese Chess (Xiangqi) Test Board – elephantchess.io</title>
     <meta name="description"
-          content="A free interactive Manchu chess (Yitong) board to test positions or play in your browser.">
+          content="Simple Chinese Chess (Xiangqi) board tool to test positions or play in real life on a tablet. Free, no download, runs in your browser.">
     {{board_js}}
     <script defer src="/js/xiangqi-test-board.js"></script>
 </head>
-<body data-variant="manchu">
+<body>
 {{body_init}}
 <div class="flex-triptych-container">
     <div class="flex-triptych-left-container">
@@ -20,26 +20,12 @@
                         <img src="/images/icons/simple-grid.svg" alt="chess"/>
                     </td>
                     <td class="description-cell">
-                        Test positions or play Manchu chess (Yitong) in your browser.
+                        Use this Chinese Chess (Xiangqi) board to test positions or play in real life on a tablet.
                     </td>
                 </tr>
                 </tbody>
             </table>
         </div>
-        <div class="info-box">
-            <p>
-                Black sets up and moves as in Xiangqi. Red has one super-chariot instead of two Chariots, two Horses,
-                and two Cannons. It combines the powers of a Chariot, Horse, and Cannon.
-            </p>
-            <p>
-                The super-chariot is represented by M in FEN notation. Learn about
-                <a href="/how-to-play-xiangqi#manchu-chariot-moves">its moves</a> or
-                <a href="https://en.wikipedia.org/wiki/Manchu_chess" target="_blank">Manchu chess</a>.
-            </p>
-        </div>
-        <p>
-            <a href="/xiangqi-test-board?medium=manchu-test-board">Xiangqi test board</a>
-        </p>
     </div>
 
     <div class="flex-triptych-board-container">
@@ -53,7 +39,6 @@
     </div>
 </div>
 {{logged_as_guest_message}}
-{{footer}}
 {{kofi_floating_widget}}
 </body>
 </html>
