@@ -125,6 +125,10 @@ table.puzzle-state-info-box-table-rendered {
     opacity: 0.3;
 }
 
+.rating-loss-confirmation-checkbox {
+    justify-content: center;
+}
+
 @media (max-width: 1000px) {
     #puzzle-state-info-box {
         height: 196px;
@@ -153,9 +157,7 @@ table.puzzle-state-info-box-table-rendered {
         height: 60px;
         padding: 20px;
     }
-}
 
-@media (max-width: 1000px) {
     #vote-up-down-container {
         top: revert;
         right: 52px;
@@ -191,8 +193,4 @@ table.puzzle-state-info-box-table-rendered {
     #user-rating-info-box {
         order: 4;
     }
-}
-
-.rating-loss-confirmation-checkbox {
-    justify-content: center;
 }
