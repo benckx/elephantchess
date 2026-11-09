@@ -1,13 +1,8 @@
 package io.elephantchess.webapp.routing.html
 
-import io.elephantchess.config.AppConfig
-import io.elephantchess.htmlrenderer.SimpleValueTagResolver
-import io.elephantchess.servicelayer.exceptions.NotFoundException
-import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.ops.respondBadRequestPage
 import io.elephantchess.webapp.ops.respondHtml
-import io.elephantchess.webapp.rendering.*
+import io.elephantchess.webapp.rendering.ModalRenderer
 import io.elephantchess.webapp.routing.emailSettingUpdatePages
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -22,71 +17,14 @@ fun Application.htmlRoutingModule() {
     routing {
         simpleMappings()
         modals()
-        gamePages()
-        puzzlesPage()
+        gamePagesRouting()
+        puzzlesPageRouting()
         userBasedPagesRouting()
-        databasePages()
-        aboutPages()
-        boardGuiExample()
+        databasePagesRouting()
+        aboutPagesRouting()
+        boardGuiDocumentationPageRouting()
         adminPagesRouting()
         emailSettingUpdatePages()
-    }
-}
-
-private fun Route.gamePages() {
-    val gamePageRenderer by koin<GamePageRenderer>()
-
-    get("/game") {
-        val gameId = call.parameters["id"]
-        if (gameId == null) {
-            call.respondBadRequestPage()
-        } else {
-            call.respondHtml(gamePageRenderer.renderPvpGamePage(gameId))
-        }
-    }
-
-    get("/playbot") {
-        val gameId = call.parameters["id"]
-        if (gameId == null) {
-            call.respondBadRequestPage()
-        } else {
-            call.respondHtml(gamePageRenderer.renderPvbGamePage(gameId))
-        }
-    }
-}
-
-private fun Route.puzzlesPage() {
-    val appConfig by koin<AppConfig>()
-    val puzzleCache by koin<PuzzleCache>()
-    val isPuzzlesDebugModeEnabled = appConfig.isPuzzlesDebugModeEnabled
-    val resolvers = listOf(SimpleValueTagResolver("puzzles_debug_mode", isPuzzlesDebugModeEnabled.toString()))
-
-    get("/puzzles") {
-        val id = call.parameters["id"]
-
-        if (id != null && !puzzleCache.exists(id)) {
-            throw NotFoundException("Puzzle $id not found")
-        }
-
-        call.respondHtml(
-            simplePageRenderer.renderTemplate("puzzles", resolvers),
-        )
-    }
-}
-
-private fun Route.aboutPages() {
-    val changelogPageRenderer by koin<ChangelogPageRenderer>()
-    val faqPageRenderer by koin<FaqPageRenderer>()
-    val roadmapPageRenderer by koin<RoadmapPageRenderer>()
-
-    get("/about/roadmap") {
-        call.respondHtml(roadmapPageRenderer.renderRoadmapPage())
-    }
-    get("/about/faq") {
-        call.respondHtml(faqPageRenderer.renderFaqPage())
-    }
-    get("/about/changelog") {
-        call.respondHtml(changelogPageRenderer.renderChangelogPage())
     }
 }
 

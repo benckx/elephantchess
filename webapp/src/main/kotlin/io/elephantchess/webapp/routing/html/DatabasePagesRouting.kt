@@ -17,7 +17,7 @@ import io.ktor.server.routing.*
 
 private val databaseService by koin<DatabaseService>()
 
-internal fun Routing.databasePages() {
+internal fun Routing.databasePagesRouting() {
     val databasePageRenderer by koin<DatabasePageRenderer>()
     val roleErrorPageRender: (suspend () -> String) =
         { simplePageRenderer.renderTemplate("database/database_player_edit_unauthorized") }
