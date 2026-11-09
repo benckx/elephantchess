@@ -58,7 +58,7 @@ class JanggiBoardTest {
         assertEquals(board.outputFen(), copy.outputFen())
         assertEquals(board.listLegalMoves(WHITE), copy.listLegalMoves(WHITE))
         copy.registerMove("b3c3")
-        assertFalse(copy.outputFen() == board.outputFen())
+        assertNotEquals(copy.outputFen(), board.outputFen())
         copy.loadFen(JanggiBoard.DEFAULT_JANGGI_START_FEN)
         assertEquals(JanggiBoard.DEFAULT_JANGGI_START_FEN, copy.outputFen())
         assertEquals(32, copy.listAllPieces().size)
@@ -188,8 +188,5 @@ class JanggiBoardTest {
     }
 
     private fun JanggiGameMovesDto.startFen(): String =
-        generateJanggiStartFen(
-            blue = JanggiSetup.valueOf(blueSetup),
-            red = JanggiSetup.valueOf(redSetup),
-        )
+        janggiStartFen(blueSetup, redSetup)
 }

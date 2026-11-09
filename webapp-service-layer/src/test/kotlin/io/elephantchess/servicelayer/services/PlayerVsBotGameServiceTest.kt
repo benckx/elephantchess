@@ -18,12 +18,11 @@ import io.elephantchess.servicelayer.exceptions.RequestTimeoutException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.utils.TryEither
 import io.elephantchess.xiangqi.Color
-import io.elephantchess.xiangqi.Color.BLACK
 import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.JanggiBoard
 import io.elephantchess.xiangqi.JanggiSetup
 import io.elephantchess.xiangqi.Variant
-import io.elephantchess.xiangqi.generateJanggiStartFen
+import io.elephantchess.xiangqi.janggiStartFen
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDto
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlinx.coroutines.CoroutineScope
@@ -70,7 +69,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
 
     private val janggiDrawFixture by lazy {
         fun stalemateIndex(game: JanggiGameMovesDto): Int {
-            val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
+            val board = JanggiBoard(janggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
             return game.uciMoves.indexOfFirst { uci ->
                 board.registerMove(uci)
                 !board.isDraw() && !board.isInCheck(board.colorToPlay()) &&
@@ -87,7 +86,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
 
     private fun fixtureBoard(movesBeforeEnd: Int): JanggiBoard {
         val (fixture, finalIndex) = janggiDrawFixture
-        val startFen = generateJanggiStartFen(JanggiSetup.valueOf(fixture.blueSetup), JanggiSetup.valueOf(fixture.redSetup))
+        val startFen = janggiStartFen(JanggiSetup.valueOf(fixture.blueSetup), JanggiSetup.valueOf(fixture.redSetup))
         return JanggiBoard(startFen).apply {
             fixture.uciMoves.take(finalIndex + 1 - movesBeforeEnd).forEach { registerMove(it) }
         }
@@ -267,7 +266,7 @@ class PlayerVsBotGameServiceTest : ServiceTest() {
     fun `can create a Janggi bot game with Fairy Stockfish`() =
         runTest {
             val userId = UserId(AUTHENTICATED, signUpTestUser().second)
-            val startFen = generateJanggiStartFen(JanggiSetup.CENTRAL_CHARIOT, JanggiSetup.OUTER_ELEPHANT)
+            val startFen = janggiStartFen(JanggiSetup.CENTRAL_CHARIOT, JanggiSetup.OUTER_ELEPHANT)
             val response = service.create(
                 userId,
                 CreateBotGameRequest(
