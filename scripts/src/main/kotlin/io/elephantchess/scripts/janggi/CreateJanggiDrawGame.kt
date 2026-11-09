@@ -19,6 +19,7 @@ import io.elephantchess.xiangqi.JanggiBoard
 import io.elephantchess.xiangqi.JanggiSetup
 import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.generateJanggiStartFen
+import io.elephantchess.xiangqi.testutils.JanggiGameMovesDto
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -49,23 +50,25 @@ object CreateJanggiDrawGame : KoinScript {
             fun option(name: String): String? =
                 args.firstOrNull { it.startsWith("--$name=") }?.substringAfter("=")
 
-            val username = option("username") ?: error("Supply --username=<existing local username>")
-            val fixture = JanggiGameMovesDtoCache().randomGame { game ->
+            val username = option("username") ?: "benckx"
+
+            // The user plays the final (drawing) move from the browser, so it must land on their turn. We keep
+            // the user's color equal to the side to move at startFen (even stalemate index). That also means
+            // PlayerVsBotGameService.create does not play an opening bot move, so no engine is needed.
+            fun firstStalemateIndex(game: JanggiGameMovesDto): Int {
                 val board = JanggiBoard(generateJanggiStartFen(JanggiSetup.valueOf(game.blueSetup), JanggiSetup.valueOf(game.redSetup)))
-                game.uciMoves.any { uci ->
+                return game.uciMoves.indexOfFirst { uci ->
                     board.registerMove(uci)
                     !board.isDraw() && !board.isInCheck(board.colorToPlay()) &&
                         board.listLegalMoves(board.colorToPlay()).none { it.from != it.to }
                 }
             }
+            val fixture = JanggiGameMovesDtoCache().randomGame { game ->
+                firstStalemateIndex(game).let { index -> index >= 0 && index % 2 == 0 }
+            }
             val startFen = generateJanggiStartFen(JanggiSetup.valueOf(fixture.blueSetup), JanggiSetup.valueOf(fixture.redSetup))
             val board = JanggiBoard(startFen)
-            val terminalBoard = JanggiBoard(startFen)
-            val finalIndex = fixture.uciMoves.indexOfFirst { uci ->
-                terminalBoard.registerMove(uci)
-                !terminalBoard.isDraw() && !terminalBoard.isInCheck(terminalBoard.colorToPlay()) &&
-                    terminalBoard.listLegalMoves(terminalBoard.colorToPlay()).none { it.from != it.to }
-            }
+            val finalIndex = firstStalemateIndex(fixture)
             check(finalIndex >= 0) { "Selected fixture has no stalemate" }
             val history = fixture.uciMoves.take(finalIndex)
             history.forEach { uci ->
@@ -94,6 +97,8 @@ object CreateJanggiDrawGame : KoinScript {
                         variant = Variant.JANGGI,
                     ),
                 )
+                // Backfill the fixture history directly instead of replaying it through the service, so no engine
+                // is queried for the bot replies.
                 dslContext.transactionCoroutine { cfg ->
                     val moveDao = BotGameMoveDao(cfg)
                     val now = Clock.System.now()
