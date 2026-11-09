@@ -5,6 +5,7 @@ import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.renderTemplateHtmlToCall
 import io.elephantchess.webapp.ops.requireAdminRole
 import io.elephantchess.webapp.rendering.AdminUserInsightsPageRenderer
+import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -42,6 +43,7 @@ private val adminPagesMapping = mapOf(
 )
 
 internal fun Route.adminPagesRouting() {
+    val simplePageRenderer by koin<SimplePageRenderer>()
     val adminUserInsightsRenderer by koin<AdminUserInsightsPageRenderer>()
 
     adminPagesMapping.forEach { (path, templateName) ->

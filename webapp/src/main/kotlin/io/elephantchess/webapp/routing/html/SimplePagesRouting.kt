@@ -12,7 +12,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 private val logger = logger {}
-internal val simplePageRenderer by koin<SimplePageRenderer>()
 
 private val simplePublicPageMapping = mapOf(
     "/400" to "errors/400",
@@ -60,6 +59,7 @@ private val identificationRequiredPagesMapping = mapOf(
 )
 
 internal fun Routing.simpleMappings() {
+    val simplePageRenderer by koin<SimplePageRenderer>()
     val kofiService by koin<KofiService>()
 
     simplePublicPageMapping.forEach { (path, templateName) ->

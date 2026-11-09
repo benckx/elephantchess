@@ -7,6 +7,7 @@ import io.elephantchess.webapp.ops.isAdmin
 import io.elephantchess.webapp.ops.renderTemplateHtmlToCall
 import io.elephantchess.webapp.ops.requireAuthentication
 import io.elephantchess.webapp.ops.respondHtml
+import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.elephantchess.webapp.rendering.UserProfilePageRenderer
 import io.elephantchess.webapp.rendering.UserSettingsPageRenderer
 import io.ktor.http.*
@@ -44,13 +45,14 @@ private fun Route.userProfileAndBrowseGamesPages() {
 }
 
 private fun Route.userSettingsPages() {
-    val renderer by koin<UserSettingsPageRenderer>()
+    val userSettingsPageRenderer by koin<UserSettingsPageRenderer>()
+    val simplePageRenderer by koin<SimplePageRenderer>()
 
     route("/user/settings") {
         get {
             requireAuthentication { token ->
                 TextContent(
-                    text = renderer.renderUserSettingsPage(token.userId),
+                    text = userSettingsPageRenderer.renderUserSettingsPage(token.userId),
                     contentType = ContentType.Text.Html,
                 )
             }
