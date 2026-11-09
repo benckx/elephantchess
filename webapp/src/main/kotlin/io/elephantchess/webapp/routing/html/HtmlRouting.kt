@@ -266,7 +266,7 @@ private fun Route.userSettingsPages() {
     val renderer by koin<UserSettingsPageRenderer>()
 
     route("/user/settings") {
-        get("/") {
+        get {
             requireAuthentication { token ->
                 TextContent(
                     text = renderer.renderUserSettingsPage(token.userId),
