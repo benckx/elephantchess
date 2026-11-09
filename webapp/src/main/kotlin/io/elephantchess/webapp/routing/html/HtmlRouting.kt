@@ -101,16 +101,53 @@ private val adminPagesMapping = mapOf(
 fun Application.htmlRoutingModule() {
     routing {
         simpleMappings()
-        simpleMappingsWithSupporterBanner()
         gamePages()
         puzzlesPage()
         boardGuiExample()
-        userProfile()
+        userProfileAndBrowseGamesPages()
         userSettingsPages()
         modals()
         databasePages()
         aboutPages()
+        adminPages()
         emailSettingUpdatePages()
+    }
+}
+
+private fun Routing.simpleMappings() {
+    val kofiService by koin<KofiService>()
+
+    simplePublicPageMapping.forEach { (path, templateName) ->
+        logger.info { "[public] mapping html file $templateName to path $path" }
+        get(path) {
+            call.respondHtml(simplePageRenderer.renderTemplate(templateName))
+        }
+    }
+    publicPageRedirection.forEach { (fromPath, toPath) ->
+        logger.info { "[public] mapping redirection from $fromPath to $toPath" }
+        get(fromPath) {
+            call.respondRedirect(toPath)
+        }
+    }
+    identificationRequiredPagesMapping.forEach { (path, templateName) ->
+        logger.info { "[identification] mapping html file $templateName to path $path" }
+        get(path) {
+            requireIdentification { _ ->
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
+            }
+        }
+    }
+    simplePublicPageMappingWithSupporterBanner.forEach { (path, templateName) ->
+        logger.info { "[public] mapping html file $templateName to path $path (with supporter banner)" }
+        get(path) {
+            val latestTipper = kofiService.fetchLatestSupporter()
+            call.respondHtml(
+                simplePageRenderer.renderTemplate(
+                    templateName,
+                    listOf(latestSupporterTagResolver(latestTipper)),
+                ),
+            )
+        }
     }
 }
 
@@ -155,57 +192,8 @@ private fun Route.puzzlesPage() {
     }
 }
 
-private fun Routing.simpleMappings() {
-    simplePublicPageMapping.forEach { (path, templateName) ->
-        logger.info { "[public] mapping html file $templateName to path $path" }
-        get(path) {
-            call.respondHtml(simplePageRenderer.renderTemplate(templateName))
-        }
-    }
-    publicPageRedirection.forEach { (fromPath, toPath) ->
-        logger.info { "[public] mapping redirection from $fromPath to $toPath" }
-        get(fromPath) {
-            call.respondRedirect(toPath)
-        }
-    }
-    identificationRequiredPagesMapping.forEach { (path, templateName) ->
-        logger.info { "[identification] mapping html file $templateName to path $path" }
-        get(path) {
-            requireIdentification { _ ->
-                simplePageRenderer.renderTemplateHtmlToCall(templateName)
-            }
-        }
-    }
-    adminPagesMapping.forEach { (path, templateName) ->
-        logger.info { "[admin] mapping html file $templateName to path $path" }
-        get(path) {
-            requireAdminRole {
-                simplePageRenderer.renderTemplateHtmlToCall(templateName)
-            }
-        }
-    }
-}
-
-private fun Routing.simpleMappingsWithSupporterBanner() {
-    val kofiService by koin<KofiService>()
-
-    simplePublicPageMappingWithSupporterBanner.forEach { (path, templateName) ->
-        logger.info { "[public] mapping html file $templateName to path $path (with supporter banner)" }
-        get(path) {
-            val latestTipper = kofiService.fetchLatestSupporter()
-            call.respondHtml(
-                simplePageRenderer.renderTemplate(
-                    templateName,
-                    listOf(latestSupporterTagResolver(latestTipper)),
-                ),
-            )
-        }
-    }
-}
-
-private fun Route.userProfile() {
+private fun Route.userProfileAndBrowseGamesPages() {
     val userProfilePageRenderer by koin<UserProfilePageRenderer>()
-    val adminUserInsightsRenderer by koin<AdminUserInsightsPageRenderer>()
     val userService by koin<UserService>()
 
     get("/@/{username}") {
@@ -226,39 +214,6 @@ private fun Route.userProfile() {
 
         userService.validateUserExists(username)
         call.respondHtml(userProfilePageRenderer.renderUserBrowsePvbGames(username))
-    }
-    get("/admin/user/{identifier}") {
-        requireAdminRole { _ ->
-            val identifier = call.parameters["identifier"]
-                ?: throw BadRequestException("identifier not provided")
-
-            TextContent(
-                text = adminUserInsightsRenderer.renderUserInsightsPage(identifier),
-                contentType = ContentType.Text.Html,
-            )
-        }
-    }
-    get("/admin/user/{identifier}/page-views") {
-        requireAdminRole { _ ->
-            val identifier = call.parameters["identifier"]
-                ?: throw BadRequestException("identifier not provided")
-
-            TextContent(
-                text = adminUserInsightsRenderer.renderUserPageViewsPage(identifier),
-                contentType = ContentType.Text.Html,
-            )
-        }
-    }
-    get("/admin/user/{identifier}/chat-messages") {
-        requireAdminRole { _ ->
-            val identifier = call.parameters["identifier"]
-                ?: throw BadRequestException("identifier not provided")
-
-            TextContent(
-                text = adminUserInsightsRenderer.renderUserChatMessagesPage(identifier),
-                contentType = ContentType.Text.Html,
-            )
-        }
     }
 }
 
@@ -300,6 +255,52 @@ private fun Route.aboutPages() {
     }
     get("/about/changelog") {
         call.respondHtml(changelogPageRenderer.renderChangelogPage())
+    }
+}
+
+private fun Route.adminPages() {
+    val adminUserInsightsRenderer by koin<AdminUserInsightsPageRenderer>()
+
+    adminPagesMapping.forEach { (path, templateName) ->
+        logger.info { "[admin] mapping html file $templateName to path $path" }
+        get(path) {
+            requireAdminRole {
+                simplePageRenderer.renderTemplateHtmlToCall(templateName)
+            }
+        }
+    }
+    get("/admin/user/{identifier}") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserInsightsPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
+    }
+    get("/admin/user/{identifier}/page-views") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserPageViewsPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
+    }
+    get("/admin/user/{identifier}/chat-messages") {
+        requireAdminRole { _ ->
+            val identifier = call.parameters["identifier"]
+                ?: throw BadRequestException("identifier not provided")
+
+            TextContent(
+                text = adminUserInsightsRenderer.renderUserChatMessagesPage(identifier),
+                contentType = ContentType.Text.Html,
+            )
+        }
     }
 }
 
