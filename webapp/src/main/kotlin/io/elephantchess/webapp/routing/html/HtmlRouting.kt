@@ -69,12 +69,6 @@ private val identificationRequiredPagesMapping = mapOf(
     "/userdata/db-searches" to "userdata/my_db_searches",
 )
 
-// only available authenticated users
-private val authenticatedRequiredPagesMapping = mapOf(
-    "/user/settings/sessions" to "user_sessions",
-    "/user/settings/views" to "user_views",
-)
-
 private val adminPagesMapping = mapOf(
     "/admin" to "admin/admin_overview",
     "/admin/feeds" to "admin/admin_feeds",
@@ -112,7 +106,7 @@ fun Application.htmlRoutingModule() {
         puzzlesPage()
         boardGuiExample()
         userProfile()
-        userSettingsPage()
+        userSettingsPages()
         modals()
         databasePages()
         aboutPages()
@@ -178,14 +172,6 @@ private fun Routing.simpleMappings() {
         logger.info { "[identification] mapping html file $templateName to path $path" }
         get(path) {
             requireIdentification { _ ->
-                simplePageRenderer.renderTemplateHtmlToCall(templateName)
-            }
-        }
-    }
-    authenticatedRequiredPagesMapping.forEach { (path, templateName) ->
-        logger.info { "[authentication] mapping html file $templateName to path $path" }
-        get(path) {
-            requireAuthentication { _ ->
                 simplePageRenderer.renderTemplateHtmlToCall(templateName)
             }
         }
@@ -276,15 +262,27 @@ private fun Route.userProfile() {
     }
 }
 
-private fun Route.userSettingsPage() {
+private fun Route.userSettingsPages() {
     val renderer by koin<UserSettingsPageRenderer>()
 
-    get("/user/settings") {
-        requireAuthentication { token ->
-            TextContent(
-                text = renderer.renderUserSettingsPage(token.userId),
-                contentType = ContentType.Text.Html,
-            )
+    route("/user/settings") {
+        get("/") {
+            requireAuthentication { token ->
+                TextContent(
+                    text = renderer.renderUserSettingsPage(token.userId),
+                    contentType = ContentType.Text.Html,
+                )
+            }
+        }
+        get("/sessions") {
+            requireAuthentication {
+                simplePageRenderer.renderTemplateHtmlToCall("user_sessions")
+            }
+        }
+        get("/views") {
+            requireAuthentication {
+                simplePageRenderer.renderTemplateHtmlToCall("user_views")
+            }
         }
     }
 }
