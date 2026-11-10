@@ -214,37 +214,6 @@ Then you should be able to access the webapp at http://localhost:8080.
 
 Alternatively, you can launch the `Main` from your IDE of choice.
 
-## Email delivery reports
-
-`email_verification_bounce` keeps one latest delivery report per recipient:
-`email`, `bounced_time`, `action`, `status` (enhanced delivery status), and
-`diagnostic` (the server's diagnostic text). Re-importing updates the existing
-row; older reports do not replace newer ones. Mailbox collection/import is a
-separate operational script, not a background task in the web application.
-Bounce lookups and suppression filters compare stored email addresses directly,
-without trimming or case normalization. Bounce, verification, and newsletter
-writers trim addresses before insertion; signup already trims user email.
-Existing addresses are assumed properly formatted and are not rewritten.
-
-`SuppressingEmailStatus` names the codes that prevent further delivery:
-`5.1.1`, `5.1.3`, `5.1.0`, `5.2.1`, `5.2.2`, `4.4.3`, and `5.0.0`.
-Other recorded statuses (including `5.7.1` and `4.2.2`) do not suppress mail by
-themselves; normal confirmation/verification requirements still apply.
-Suppression takes precedence over manual confirmation, including confirmation
-emails and direct newsletter sends. Legacy rows with no status retain their
-previous suppression until enriched with delivery metadata.
-Suppressed queued recipients are excluded from newsletter batches; skipped
-deliveries are not marked as sent.
-
-Admins can review all fields and the suppression decision at
-`/admin/email-bounces`, linked from the admin menu. Both the page and its
-paginated API require the admin role.
-
-Migration `0125` only adds nullable columns, preserving existing bounce rows
-and allowing old writers during rollout. Roll back application code first if
-necessary; the old columns remain compatible. The optional schema rollback
-drops only the three new metadata columns (and loses their contents).
-
 ## Code Style
 
 Kotlin code is formatted with [ktlint](https://pinterest.github.io/ktlint/) (rules configured in `.editorconfig`).
