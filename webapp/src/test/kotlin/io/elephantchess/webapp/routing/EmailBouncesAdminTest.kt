@@ -31,7 +31,7 @@ import kotlin.time.Instant
 class EmailBouncesAdminTest {
 
     @Test
-    fun `bounce API and page require admin and return paginated metadata`() =
+    fun `bounce API and page require admin and return metadata`() =
         testApplication {
             val tokens = mock<TokenManager>()
             val users = mock<UserCache>()
@@ -77,7 +77,7 @@ class EmailBouncesAdminTest {
                 whenever(users.get("admin")).thenReturn(
                     CachedUser(AUTHENTICATED, "admin", "admin", Instant.DISTANT_PAST, listOf(ADMIN)),
                 )
-                whenever(bounces.listBounces(100)).thenReturn(
+                whenever(bounces.listBounces()).thenReturn(
                     EmailBouncesResponse(
                         listOf(
                             EmailBouncesResponse.Entry(
@@ -89,19 +89,12 @@ class EmailBouncesAdminTest {
                                 suppressed = false,
                             ),
                         ),
-                        false,
                     ),
                 )
-                val response = client.get("$api?offset=100") { bearerAuth("admin") }
+                val response = client.get(api) { bearerAuth("admin") }
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertContains(response.bodyAsText(), "\"diagnostic\":\"smtp; 550 <policy rejection>\"")
                 assertContains(response.bodyAsText(), "\"suppressed\":false")
-                for (offset in listOf("-1", "invalid", "2147483648")) {
-                    assertEquals(
-                        HttpStatusCode.BadRequest,
-                        client.get("$api?offset=$offset") { bearerAuth("admin") }.status,
-                    )
-                }
                 whenever(renderer.renderTemplate(eq("admin/admin_email_bounces"), any())).thenReturn("<h1>Email Bounces</h1>")
                 val page = client.get("/admin/email-bounces") { bearerAuth("admin") }
                 assertEquals(HttpStatusCode.OK, page.status)

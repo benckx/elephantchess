@@ -8,11 +8,10 @@ import io.elephantchess.utils.di.KoinSingleton
 @KoinSingleton
 class AdminEmailBounceService(private val emailVerificationDaoService: EmailVerificationDaoService) {
 
-    suspend fun listBounces(offset: Int): EmailBouncesResponse {
-        require(offset >= 0) { "offset must not be negative" }
-        val records = emailVerificationDaoService.listBounceRecords(PAGE_SIZE + 1, offset)
+    suspend fun listBounces(): EmailBouncesResponse {
+        val records = emailVerificationDaoService.listBounceRecords(Int.MAX_VALUE, 0)
         return EmailBouncesResponse(
-            entries = records.take(PAGE_SIZE).map {
+            entries = records.map {
                 EmailBouncesResponse.Entry(
                     email = it.email,
                     bouncedTime = it.bouncedTime.toEpochMilliseconds(),
@@ -22,12 +21,6 @@ class AdminEmailBounceService(private val emailVerificationDaoService: EmailVeri
                     suppressed = SuppressingEmailStatus.suppresses(it.status),
                 )
             },
-            hasMore = records.size > PAGE_SIZE,
         )
-    }
-
-    companion object {
-
-        const val PAGE_SIZE = 100
     }
 }

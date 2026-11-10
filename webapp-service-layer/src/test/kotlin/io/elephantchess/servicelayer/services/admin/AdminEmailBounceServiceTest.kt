@@ -14,7 +14,7 @@ import kotlin.time.Instant
 class AdminEmailBounceServiceTest {
 
     @Test
-    fun `admin response includes metadata suppression and next page indicator`() =
+    fun `admin response includes metadata suppression without pagination`() =
         runTest {
             val dao = mock<EmailVerificationDaoService>()
             val time = Instant.parse("2026-11-10T12:00:00Z")
@@ -31,10 +31,9 @@ class AdminEmailBounceServiceTest {
                     diagnostic = "smtp; 550 <policy rejection>"
                 }
             }
-            whenever(dao.listBounceRecords(101, 100)).thenReturn(records)
-            val response = AdminEmailBounceService(dao).listBounces(100)
-            assertEquals(100, response.entries.size)
-            assertTrue(response.hasMore)
+            whenever(dao.listBounceRecords(Int.MAX_VALUE, 0)).thenReturn(records)
+            val response = AdminEmailBounceService(dao).listBounces()
+            assertEquals(101, response.entries.size)
             assertTrue(response.entries[0].suppressed)
             assertTrue(response.entries[1].suppressed)
             assertFalse(response.entries[2].suppressed)
@@ -42,8 +41,5 @@ class AdminEmailBounceServiceTest {
             assertEquals("failed", response.entries[2].action)
             assertEquals(time.toEpochMilliseconds(), response.entries[2].bouncedTime)
             assertEquals("smtp; 550 <policy rejection>", response.entries[2].diagnostic)
-
-            whenever(dao.listBounceRecords(101, 200)).thenReturn(emptyList())
-            assertFalse(AdminEmailBounceService(dao).listBounces(200).hasMore)
         }
 }

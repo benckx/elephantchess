@@ -1,6 +1,6 @@
 package io.elephantchess.servicelayer.dto.admin
 
-data class EmailBouncesResponse(val entries: List<Entry>, val hasMore: Boolean) {
+data class EmailBouncesResponse(val entries: List<Entry>) {
 
     data class Entry(
         val email: String,

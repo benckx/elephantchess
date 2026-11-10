@@ -1,25 +1,17 @@
 class AdminEmailBounces extends BasePage {
 
-    #offset = 0;
-    #pageSize = 100;
-    #previous = document.getElementById('email-bounces-previous');
-    #next = document.getElementById('email-bounces-next');
     #summary = document.getElementById('email-bounces-summary');
     #tbody = document.querySelector('#email-bounces-table tbody');
 
     constructor() {
         super();
-        this.#previous.onclick = () => this.#load(this.#offset - this.#pageSize);
-        this.#next.onclick = () => this.#load(this.#offset + this.#pageSize);
-        this.#load(0);
+        this.#load();
     }
 
-    async #load(offset) {
-        this.#previous.disabled = true;
-        this.#next.disabled = true;
+    async #load() {
         this.#summary.innerText = 'Loading...';
         try {
-            const response = await fetch(`${ADMIN_URL_PREFIX}/email-bounces?offset=${offset}`, {
+            const response = await fetch(`${ADMIN_URL_PREFIX}/email-bounces`, {
                 method: 'GET',
                 headers: headers(),
             });
@@ -43,16 +35,12 @@ class AdminEmailBounces extends BasePage {
                     cell.innerText = value;
                 });
             });
-            this.#offset = offset;
             this.#summary.innerText = json.entries.length === 0
                 ? 'No bounce records.'
-                : `Showing ${offset + 1}-${offset + json.entries.length}`;
-            this.#next.disabled = !json.hasMore;
+                : `Showing ${json.entries.length} bounce record${json.entries.length === 1 ? '' : 's'}.`;
         } catch (error) {
             console.error('Error loading email bounces', error);
             this.#summary.innerText = 'Unable to load email bounces. Reload the page to retry.';
-        } finally {
-            this.#previous.disabled = this.#offset === 0;
         }
     }
 }

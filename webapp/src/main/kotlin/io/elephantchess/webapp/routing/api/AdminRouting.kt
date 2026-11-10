@@ -40,14 +40,7 @@ private fun Route.adminEmailBounceRoutes() {
     val adminEmailBounceService by koin<AdminEmailBounceService>()
 
     get("/email-bounces") {
-        requireAdminRole {
-            val rawOffset = call.request.queryParameters["offset"]
-            val offset = if (rawOffset == null) 0 else rawOffset.toIntOrNull()
-            if (offset == null || offset < 0) {
-                throw BadRequestException("offset must be a non-negative integer")
-            }
-            adminEmailBounceService.listBounces(offset)
-        }
+        requireAdminRole { adminEmailBounceService.listBounces() }
     }
 }
 
