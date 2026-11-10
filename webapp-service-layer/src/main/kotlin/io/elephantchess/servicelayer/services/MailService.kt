@@ -54,12 +54,8 @@ class MailService(
 
     private val mailScope by lazy { CoroutineScope(Dispatchers.IO) }
 
-    suspend fun isEmailAddressValid(email: String, skipValidityCheck: Boolean = false): Boolean =
-        if (skipValidityCheck) {
-            !emailVerificationDaoService.hasSuppressingBounce(email)
-        } else {
-            getEmailValidityDetails(email).isValid
-        }
+    suspend fun isEmailAddressValid(email: String): Boolean =
+        getEmailValidityDetails(email).isValid
 
     /**
      * Returns the full [EmailValidityStatus] for the given email.
@@ -167,7 +163,7 @@ class MailService(
         val automaticallyValidated =
             emailVerificationDaoService.listAllAutomaticallyValidatedEmails(emailValidityDuration)
         val manuallyConfirmed = userDaoService.listManuallyConfirmedEmailAddresses().toSet()
-        val bounced = emailVerificationDaoService.listSuppressedEmails().toSet()
+        val bounced = emailVerificationDaoService.listBouncedEmails().toSet()
         val newsletterRecipients = userDaoService
             .listNewsletterEmailAddresses()
             .filter { emailAddress ->
@@ -393,8 +389,7 @@ class MailService(
             return
         }
 
-        val recipientIsInvalid = !isEmailAddressValid(recipient, skipRecipientValidityCheck)
-        if (recipientIsInvalid) {
+        if (!skipRecipientValidityCheck && !isEmailAddressValid(recipient)) {
             logger.debug { "not sending e-mail '$subject' because recipient $recipient is not valid" }
             return
         }
@@ -414,7 +409,6 @@ class MailService(
      *
      * Automatically parses the rendered HTML body for CID references (src="cid:image-name")
      * and attaches the corresponding images from /newsletters/{templateName}/ folder.
-     * Returns false when delivery is disabled or suppressed; callers must not mark it sent.
      */
     suspend fun sendNewsLetter(
         recipient: String,
@@ -422,7 +416,7 @@ class MailService(
         subject: String,
         unsubscribeFromNewsletterCode: String,
         unsubscribeFromAllCode: String,
-    ): Boolean {
+    ) {
         if (sendMailNotifications) {
             val renderedBody =
                 mailRenderer.renderNewsLetter(
@@ -456,10 +450,8 @@ class MailService(
                     embeddedImages = imagesToEmbed,
                 ),
             )
-            return true
         } else {
             logger.info { "not sending newsletter because sendMailNotifications is disabled" }
-            return false
         }
     }
 

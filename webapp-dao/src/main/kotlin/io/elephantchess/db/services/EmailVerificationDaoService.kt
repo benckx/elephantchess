@@ -58,22 +58,16 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
         }
     }
 
-    suspend fun listBouncedEmails(): List<String> =
-        dslContext
-            .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
-            .from(EMAIL_VERIFICATION_BOUNCE)
-            .orderBy(EMAIL_VERIFICATION_BOUNCE.BOUNCED_TIME)
-            .awaitMappedRecords()
-
-    suspend fun listBounceRecords(limit: Int, offset: Int): List<EmailVerificationBounce> =
+    suspend fun listBouncedEmailsRecords(): List<EmailVerificationBounce> =
         dslContext
             .selectFrom(EMAIL_VERIFICATION_BOUNCE)
-            .orderBy(EMAIL_VERIFICATION_BOUNCE.BOUNCED_TIME.desc(), EMAIL_VERIFICATION_BOUNCE.EMAIL)
-            .limit(limit)
-            .offset(offset)
+            .orderBy(
+                EMAIL_VERIFICATION_BOUNCE.BOUNCED_TIME.desc(),
+                EMAIL_VERIFICATION_BOUNCE.EMAIL,
+            )
             .awaitMappedRecords()
 
-    suspend fun listSuppressedEmails(): List<String> =
+    suspend fun listBouncedEmails(): List<String> =
         dslContext
             .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
             .from(EMAIL_VERIFICATION_BOUNCE)
@@ -103,10 +97,7 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
                 EMAIL_VERIFICATION.RESULT.notIn("ok", "ok_for_all"),
             )
 
-        val bouncedEmails = dslContext
-            .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
-            .from(EMAIL_VERIFICATION_BOUNCE)
-            .where(suppressingBounceCondition())
+        val bouncedEmails = listBouncedEmails()
 
         return dslContext
             .select(USER.EMAIL)
@@ -156,8 +147,8 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
             .filter { (_, record) -> record.result == "ok" || record.result == "ok_for_all" }
             .map { (email, _) -> email }
             .toList()
-}
 
-internal fun suppressingBounceCondition() =
-    EMAIL_VERIFICATION_BOUNCE.STATUS.isNull
-        .or(EMAIL_VERIFICATION_BOUNCE.STATUS.`in`(SuppressingEmailStatus.codes))
+    private fun suppressingBounceCondition() =
+        EMAIL_VERIFICATION_BOUNCE.STATUS.isNull
+            .or(EMAIL_VERIFICATION_BOUNCE.STATUS.`in`(SuppressingEmailStatus.codes))
+}

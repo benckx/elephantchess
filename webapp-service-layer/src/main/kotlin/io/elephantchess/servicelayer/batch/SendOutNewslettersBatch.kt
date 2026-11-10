@@ -54,7 +54,7 @@ class SendOutNewslettersBatch(
                         newsletterDaoService
                             .findNewsletterById(entry.newsletterId)
                             ?.let { newsletter ->
-                                val sent = mailService.sendNewsLetter(
+                                mailService.sendNewsLetter(
                                     recipient = entry.emailAddress,
                                     templateName = newsletter.templateName,
                                     subject = newsletter.subject,
@@ -62,12 +62,10 @@ class SendOutNewslettersBatch(
                                     unsubscribeFromAllCode = entry.unsubscribeFromAllCode,
                                 )
 
-                                if (sent) {
-                                    newsletterDaoService.markAsSent(
-                                        newsletterId = entry.newsletterId,
-                                        emailAddress = entry.emailAddress,
-                                    )
-                                }
+                                newsletterDaoService.markAsSent(
+                                    newsletterId = entry.newsletterId,
+                                    emailAddress = entry.emailAddress,
+                                )
                             }
                     } catch (e: Exception) {
                         logger.warn(e) { "error while sending newsletter to ${entry.emailAddress}" }
