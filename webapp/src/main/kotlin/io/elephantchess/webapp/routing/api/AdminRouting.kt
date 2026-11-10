@@ -16,6 +16,7 @@ import java.time.YearMonth
 
 fun Route.adminConsoleRoutes() {
     route("/api/admin/analytics") {
+        adminEmailBounceRoutes()
         adminOverviewRoutes()
         adminFeedsRoutes()
         adminAnalyticsRoutes()
@@ -32,6 +33,21 @@ fun Route.adminConsoleRoutes() {
         adminUpcomingEventsRoutes()
         adminSettingPreferenceRoutes()
         adminUserInsightsRoutes()
+    }
+}
+
+private fun Route.adminEmailBounceRoutes() {
+    val adminEmailBounceService by koin<AdminEmailBounceService>()
+
+    get("/email-bounces") {
+        requireAdminRole {
+            val rawOffset = call.request.queryParameters["offset"]
+            val offset = if (rawOffset == null) 0 else rawOffset.toIntOrNull()
+            if (offset == null || offset < 0) {
+                throw BadRequestException("offset must be a non-negative integer")
+            }
+            adminEmailBounceService.listBounces(offset)
+        }
     }
 }
 

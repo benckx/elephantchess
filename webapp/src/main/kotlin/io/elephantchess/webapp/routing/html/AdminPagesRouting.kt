@@ -38,6 +38,7 @@ private val adminPagesMapping = mapOf(
     "/admin/setting-preferences" to "admin/admin_setting_preferences",
     "/admin/thrown-exceptions" to "admin/admin_thrown_exceptions",
     "/admin/newsletter-stats" to "admin/admin_newsletter_stats",
+    "/admin/email-bounces" to "admin/admin_email_bounces",
     "/admin/player-profile-edits" to "admin/admin_player_profile_edits",
     "/admin/upcoming-events" to "admin/admin_upcoming_events",
 )

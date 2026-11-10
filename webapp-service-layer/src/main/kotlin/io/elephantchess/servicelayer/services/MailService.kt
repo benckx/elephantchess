@@ -60,18 +60,17 @@ class MailService(
     /**
      * Returns the full [EmailValidityStatus] for the given email.
      *
-     * The check is layered: if a user owns this address and has clicked the confirmation
-     * link sent at signup, the address is considered [EmailValidityStatus.MANUALLY_CONFIRMED]
-     * (the strongest signal). Otherwise, we fall back to the automated verification.
+     * Suppressing bounce statuses take precedence over confirmation. Otherwise, a confirmed
+     * address is valid and unconfirmed addresses fall back to automated verification.
      */
     suspend fun getEmailValidityDetails(email: String): EmailValidityStatus {
+        if (emailVerificationDaoService.hasSuppressingBounce(email)) {
+            return EmailValidityStatus.AUTOMATED_BOUNCED
+        }
+
         val user = userDaoService.findByEmail(email)
         if (user?.emailConfirmedAt != null) {
             return EmailValidityStatus.MANUALLY_CONFIRMED
-        }
-
-        if (emailVerificationDaoService.hasEmailBounced(email)) {
-            return EmailValidityStatus.AUTOMATED_BOUNCED
         }
 
         val automatedVerifications =
@@ -157,20 +156,20 @@ class MailService(
      * List all emails that:
      * - have a valid status (manually confirmed by the user, or automatically validated by the
      *   external service)
-     * - have not bounced
+     * - have no suppressing bounce status
      * - consent to receive the newsletter (implicit)
      */
     suspend fun listNewsLetterRecipientEmails(): List<String> {
         val automaticallyValidated =
             emailVerificationDaoService.listAllAutomaticallyValidatedEmails(emailValidityDuration)
         val manuallyConfirmed = userDaoService.listManuallyConfirmedEmailAddresses().toSet()
-        val bounced = emailVerificationDaoService.listBouncedEmails()
+        val bounced = emailVerificationDaoService.listSuppressedEmails().map { it.trim().lowercase() }.toSet()
         val newsletterRecipients = userDaoService
             .listNewsletterEmailAddresses()
             .filter { emailAddress ->
                 manuallyConfirmed.contains(emailAddress) || automaticallyValidated.contains(emailAddress)
             }
-            .filterNot { emailAddress -> bounced.contains(emailAddress) }
+            .filterNot { emailAddress -> emailAddress.trim().lowercase() in bounced }
             .map { emailAddress -> emailAddress.trim() }
 
         logger.info {
@@ -390,7 +389,12 @@ class MailService(
             return
         }
 
-        if (!skipRecipientValidityCheck && !isEmailAddressValid(recipient)) {
+        val recipientIsInvalid = if (skipRecipientValidityCheck) {
+            emailVerificationDaoService.hasSuppressingBounce(recipient)
+        } else {
+            !isEmailAddressValid(recipient)
+        }
+        if (recipientIsInvalid) {
             logger.debug { "not sending e-mail '$subject' because recipient $recipient is not valid" }
             return
         }
@@ -410,6 +414,7 @@ class MailService(
      *
      * Automatically parses the rendered HTML body for CID references (src="cid:image-name")
      * and attaches the corresponding images from /newsletters/{templateName}/ folder.
+     * Returns false when delivery is disabled or suppressed; callers must not mark it sent.
      */
     suspend fun sendNewsLetter(
         recipient: String,
@@ -417,8 +422,12 @@ class MailService(
         subject: String,
         unsubscribeFromNewsletterCode: String,
         unsubscribeFromAllCode: String,
-    ) {
+    ): Boolean {
         if (sendMailNotifications) {
+            if (emailVerificationDaoService.hasSuppressingBounce(recipient)) {
+                logger.info { "not sending newsletter because recipient $recipient has a suppressing bounce" }
+                return false
+            }
             val renderedBody =
                 mailRenderer.renderNewsLetter(
                     templateName = templateName,
@@ -451,8 +460,10 @@ class MailService(
                     embeddedImages = imagesToEmbed,
                 ),
             )
+            return true
         } else {
             logger.info { "not sending newsletter because sendMailNotifications is disabled" }
+            return false
         }
     }
 

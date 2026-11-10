@@ -2756,4 +2756,17 @@
                       oldColumnName="red_player"
                       newColumnName="white_player"/>
     </changeSet>
+    <changeSet id="0125" author="benckx">
+        <comment>Keep delivery action, enhanced status and diagnostic text alongside the latest bounce per recipient.</comment>
+        <addColumn tableName="email_verification_bounce">
+            <column name="action" type="varchar(32)"/>
+            <column name="status" type="varchar(32)"/>
+            <column name="diagnostic" type="text"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="email_verification_bounce" columnName="diagnostic"/>
+            <dropColumn tableName="email_verification_bounce" columnName="status"/>
+            <dropColumn tableName="email_verification_bounce" columnName="action"/>
+        </rollback>
+    </changeSet>
 </databaseChangeLog>

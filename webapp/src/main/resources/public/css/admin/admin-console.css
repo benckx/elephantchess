@@ -36,6 +36,14 @@ h2 {
     white-space: nowrap;
 }
 
+#email-bounces-table td:last-child {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-width: 300px;
+    max-width: 600px;
+    text-align: left;
+}
+
 .stats-table th.value-cell,
 .stats-table td.value-cell {
     width: 80px;

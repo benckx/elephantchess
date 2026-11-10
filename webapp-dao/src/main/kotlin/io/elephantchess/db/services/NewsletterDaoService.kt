@@ -1,5 +1,6 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.db.dao.codegen.Tables.EMAIL_VERIFICATION_BOUNCE
 import io.elephantchess.db.dao.codegen.Tables.NEWSLETTER
 import io.elephantchess.db.dao.codegen.Tables.NEWSLETTER_EMAIL
 import io.elephantchess.db.dao.codegen.tables.daos.NewsletterEmailDao
@@ -56,6 +57,14 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
             .select()
             .from(NEWSLETTER_EMAIL)
             .where(NEWSLETTER_EMAIL.SENT_TIME.isNull)
+            .and(
+                DSL.trim(DSL.lower(NEWSLETTER_EMAIL.EMAIL_ADDRESS)).notIn(
+                    dslContext
+                        .select(DSL.trim(DSL.lower(EMAIL_VERIFICATION_BOUNCE.EMAIL)))
+                        .from(EMAIL_VERIFICATION_BOUNCE)
+                        .where(suppressingBounceCondition()),
+                ),
+            )
             .orderBy(NEWSLETTER_EMAIL.CREATED_TIME)
             .limit(size)
             .awaitMappedRecords()
