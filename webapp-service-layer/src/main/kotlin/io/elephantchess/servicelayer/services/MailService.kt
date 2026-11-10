@@ -424,10 +424,6 @@ class MailService(
         unsubscribeFromAllCode: String,
     ): Boolean {
         if (sendMailNotifications) {
-            if (emailVerificationDaoService.hasSuppressingBounce(recipient)) {
-                logger.info { "not sending newsletter because recipient $recipient has a suppressing bounce" }
-                return false
-            }
             val renderedBody =
                 mailRenderer.renderNewsLetter(
                     templateName = templateName,
