@@ -221,6 +221,10 @@ Alternatively, you can launch the `Main` from your IDE of choice.
 `diagnostic` (the server's diagnostic text). Re-importing updates the existing
 row; older reports do not replace newer ones. Mailbox collection/import is a
 separate operational script, not a background task in the web application.
+Bounce lookups and suppression filters compare stored email addresses directly,
+without trimming or case normalization. Bounce, verification, and newsletter
+writers trim addresses before insertion; signup already trims user email.
+Existing addresses are assumed properly formatted and are not rewritten.
 
 `SuppressingEmailStatus` names the codes that prevent further delivery:
 `5.1.1`, `5.1.3`, `5.1.0`, `5.2.1`, `5.2.2`, `4.4.3`, and `5.0.0`.

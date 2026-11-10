@@ -19,18 +19,21 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
 
     suspend fun save(record: EmailVerification) {
         dslContext.transactionCoroutine { cfg ->
-            EmailVerificationDao(cfg).insertReactive(record)
+            EmailVerificationDao(cfg).insertReactive(
+                EmailVerification(record).apply { email = email.trim() },
+            )
         }
     }
 
     // TODO: Remove this private-script import method once automated bounce ingestion is deployed.
     suspend fun insertOrUpdateBounced(records: List<EmailVerificationBounce>) {
         dslContext.transactionCoroutine { cfg ->
-            records.forEach { record ->
+            records.forEach { input ->
+                val record = EmailVerificationBounce(input).apply { email = email.trim() }
                 val found = DSL
                     .using(cfg)
                     .selectFrom(EMAIL_VERIFICATION_BOUNCE)
-                    .where(EMAIL_VERIFICATION_BOUNCE.EMAIL.eqIgnoreCaseTrimmed(record.email))
+                    .where(EMAIL_VERIFICATION_BOUNCE.EMAIL.eq(record.email))
                     .awaitMappedRecords<EmailVerificationBounce>().firstOrNull()
 
                 if (found == null) {
@@ -77,14 +80,11 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
             .where(suppressingBounceCondition())
             .awaitMappedRecords()
 
-    /**
-     * Case-insensitive and trim-insensitive
-     */
     suspend fun hasSuppressingBounce(email: String): Boolean =
         dslContext
             .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
             .from(EMAIL_VERIFICATION_BOUNCE)
-            .where(EMAIL_VERIFICATION_BOUNCE.EMAIL.eqIgnoreCaseTrimmed(email))
+            .where(EMAIL_VERIFICATION_BOUNCE.EMAIL.eq(email))
             .and(suppressingBounceCondition())
             .awaitSingleValue<String>() != null
 
@@ -104,7 +104,7 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
             )
 
         val bouncedEmails = dslContext
-            .select(DSL.trim(DSL.lower(EMAIL_VERIFICATION_BOUNCE.EMAIL)))
+            .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
             .from(EMAIL_VERIFICATION_BOUNCE)
             .where(suppressingBounceCondition())
 
@@ -122,7 +122,7 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
             )
             .and(
                 // exclude the ones in the "bounced emails" list
-                DSL.trim(DSL.lower(USER.EMAIL)).notIn(bouncedEmails),
+                USER.EMAIL.notIn(bouncedEmails),
             )
             .orderBy(USER.CREATION)
             .awaitMappedRecords()

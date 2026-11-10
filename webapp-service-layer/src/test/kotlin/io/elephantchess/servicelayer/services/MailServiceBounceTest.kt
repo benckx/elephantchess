@@ -68,13 +68,24 @@ class MailServiceBounceTest {
         }
 
     @Test
-    fun `newsletter recipients exclude suppressing bounces ignoring case and whitespace`() =
+    fun `newsletter recipients exclude exact suppressing bounce matches`() =
         runTest {
             whenever(dao.listAllAutomaticallyValidatedEmails(any())).thenReturn(emptyList())
             whenever(users.listManuallyConfirmedEmailAddresses()).thenReturn(listOf(email, "allowed@example.org"))
             whenever(users.listNewsletterEmailAddresses()).thenReturn(listOf(email, "allowed@example.org"))
-            whenever(dao.listSuppressedEmails()).thenReturn(listOf(" RECIPIENT@EXAMPLE.ORG "))
+            whenever(dao.listSuppressedEmails()).thenReturn(listOf(email))
 
             assertEquals(listOf("allowed@example.org"), mail.listNewsLetterRecipientEmails())
+        }
+
+    @Test
+    fun `newsletter bounce matching does not normalize case or whitespace`() =
+        runTest {
+            whenever(dao.listAllAutomaticallyValidatedEmails(any())).thenReturn(emptyList())
+            whenever(users.listManuallyConfirmedEmailAddresses()).thenReturn(listOf(email))
+            whenever(users.listNewsletterEmailAddresses()).thenReturn(listOf(email))
+            whenever(dao.listSuppressedEmails()).thenReturn(listOf(email.uppercase(), " $email "))
+
+            assertEquals(listOf(email), mail.listNewsLetterRecipientEmails())
         }
 }

@@ -1,13 +1,17 @@
 package io.elephantchess.db.services
 
 import io.elephantchess.config.DbConfig
+import io.elephantchess.db.dao.codegen.Tables.EMAIL_VERIFICATION
 import io.elephantchess.db.dao.codegen.Tables.EMAIL_VERIFICATION_BOUNCE
 import io.elephantchess.db.dao.codegen.Tables.NEWSLETTER
 import io.elephantchess.db.dao.codegen.Tables.NEWSLETTER_EMAIL
+import io.elephantchess.db.dao.codegen.tables.pojos.EmailVerification
 import io.elephantchess.db.dao.codegen.tables.pojos.EmailVerificationBounce
 import io.elephantchess.db.dao.codegen.tables.pojos.NewsletterEmail
 import io.elephantchess.db.utils.awaitExecute
+import io.elephantchess.db.utils.awaitSingleValue
 import io.elephantchess.db.utils.getDslContext
+import io.elephantchess.model.EmailVerifierService
 import io.elephantchess.model.SuppressingEmailStatus
 import io.elephantchess.servicelayer.services.PostgresTest
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -48,6 +52,30 @@ class EmailVerificationDaoServiceTest : PostgresTest() {
             dsl.deleteFrom(NEWSLETTER_EMAIL).awaitExecute()
             dsl.deleteFrom(NEWSLETTER).awaitExecute()
             dsl.deleteFrom(EMAIL_VERIFICATION_BOUNCE).awaitExecute()
+            dsl.deleteFrom(EMAIL_VERIFICATION).awaitExecute()
+        }
+
+    @Test
+    fun `bounce and verification writes trim addresses without changing case`() =
+        runTest {
+            dao.insertOrUpdateBounced(listOf(bounce("  Recipient@example.org\t", "5.1.1")))
+            assertEquals("Recipient@example.org", dao.listBounceRecords(100, 0).single().email)
+            dao.insertOrUpdateBounced(listOf(bounce("\tRecipient@example.org ", "5.7.1")))
+            assertEquals(1, dao.listBounceRecords(100, 0).size)
+            assertEquals("5.7.1", dao.listBounceRecords(100, 0).single().status)
+            dao.save(
+                EmailVerification().apply {
+                    id = "trim-test"
+                    email = "  Verified@example.org\t"
+                    verificationTime = time
+                    serviceName = EmailVerifierService.EMAIL_LIST_VERIFY
+                    result = "ok"
+                },
+            )
+            assertEquals(
+                "Verified@example.org",
+                dsl.select(EMAIL_VERIFICATION.EMAIL).from(EMAIL_VERIFICATION).awaitSingleValue<String>(),
+            )
         }
 
     @Test
@@ -99,7 +127,9 @@ class EmailVerificationDaoServiceTest : PostgresTest() {
             for (status in blockedCodes + allowedCodes) {
                 val email = "$status@example.org"
                 dao.insertOrUpdateBounced(listOf(bounce(email, status)))
-                assertEquals(status in blockedCodes, dao.hasSuppressingBounce("  ${email.uppercase()}  "))
+                assertEquals(status in blockedCodes, dao.hasSuppressingBounce(email))
+                assertFalse(dao.hasSuppressingBounce(" $email "))
+                assertFalse(dao.hasSuppressingBounce(email.uppercase()))
             }
             dao.insertOrUpdateBounced(listOf(bounce("legacy@example.org", null)))
             assertTrue(dao.hasSuppressingBounce("legacy@example.org"))
@@ -114,7 +144,7 @@ class EmailVerificationDaoServiceTest : PostgresTest() {
     @Test
     fun `updates existing bounce with metadata and ignores older duplicate reports`() =
         runTest {
-            dao.insertOrUpdateBounced(listOf(bounce("Recipient@example.org", null)))
+            dao.insertOrUpdateBounced(listOf(bounce("recipient@example.org", null)))
             val enriched = bounce("recipient@example.org", "5.7.1")
             dao.insertOrUpdateBounced(listOf(enriched, enriched))
             val records = dao.listBounceRecords(100, 0)
@@ -146,12 +176,12 @@ class EmailVerificationDaoServiceTest : PostgresTest() {
                 .set(NEWSLETTER.SUBJECT, "subject")
                 .awaitExecute()
             val newsletterDao = NewsletterDaoService(dsl)
-            val emails = listOf("BLOCKED@example.org", "legacy@example.org", "allowed@example.org")
+            val emails = listOf("blocked@example.org", "legacy@example.org", "allowed@example.org")
             newsletterDao.insertAll(
                 emails.map {
                     NewsletterEmail().apply {
                         newsletterId = "newsletter"
-                        emailAddress = it
+                        emailAddress = " $it\t"
                         createdTime = time
                         unsubscribeFromNewsletterCode = UUID.randomUUID().toString()
                         unsubscribeFromAllCode = UUID.randomUUID().toString()

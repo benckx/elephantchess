@@ -163,13 +163,13 @@ class MailService(
         val automaticallyValidated =
             emailVerificationDaoService.listAllAutomaticallyValidatedEmails(emailValidityDuration)
         val manuallyConfirmed = userDaoService.listManuallyConfirmedEmailAddresses().toSet()
-        val bounced = emailVerificationDaoService.listSuppressedEmails().map { it.trim().lowercase() }.toSet()
+        val bounced = emailVerificationDaoService.listSuppressedEmails().toSet()
         val newsletterRecipients = userDaoService
             .listNewsletterEmailAddresses()
             .filter { emailAddress ->
                 manuallyConfirmed.contains(emailAddress) || automaticallyValidated.contains(emailAddress)
             }
-            .filterNot { emailAddress -> emailAddress.trim().lowercase() in bounced }
+            .filterNot { emailAddress -> emailAddress in bounced }
             .map { emailAddress -> emailAddress.trim() }
 
         logger.info {

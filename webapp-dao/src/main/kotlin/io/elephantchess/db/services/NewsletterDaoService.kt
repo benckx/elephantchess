@@ -48,7 +48,9 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
 
     suspend fun insertAll(records: List<NewsletterEmail>) {
         dslContext.transactionCoroutine { cfg ->
-            NewsletterEmailDao(cfg).insertMultipleReactive(records)
+            NewsletterEmailDao(cfg).insertMultipleReactive(
+                records.map { NewsletterEmail(it).apply { emailAddress = emailAddress.trim() } },
+            )
         }
     }
 
@@ -58,9 +60,9 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
             .from(NEWSLETTER_EMAIL)
             .where(NEWSLETTER_EMAIL.SENT_TIME.isNull)
             .and(
-                DSL.trim(DSL.lower(NEWSLETTER_EMAIL.EMAIL_ADDRESS)).notIn(
+                NEWSLETTER_EMAIL.EMAIL_ADDRESS.notIn(
                     dslContext
-                        .select(DSL.trim(DSL.lower(EMAIL_VERIFICATION_BOUNCE.EMAIL)))
+                        .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
                         .from(EMAIL_VERIFICATION_BOUNCE)
                         .where(suppressingBounceCondition()),
                 ),
