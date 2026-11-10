@@ -54,8 +54,12 @@ class MailService(
 
     private val mailScope by lazy { CoroutineScope(Dispatchers.IO) }
 
-    suspend fun isEmailAddressValid(email: String): Boolean =
-        getEmailValidityDetails(email).isValid
+    suspend fun isEmailAddressValid(email: String, skipValidityCheck: Boolean = false): Boolean =
+        if (skipValidityCheck) {
+            !emailVerificationDaoService.hasSuppressingBounce(email)
+        } else {
+            getEmailValidityDetails(email).isValid
+        }
 
     /**
      * Returns the full [EmailValidityStatus] for the given email.
@@ -389,11 +393,7 @@ class MailService(
             return
         }
 
-        val recipientIsInvalid = if (skipRecipientValidityCheck) {
-            emailVerificationDaoService.hasSuppressingBounce(recipient)
-        } else {
-            !isEmailAddressValid(recipient)
-        }
+        val recipientIsInvalid = !isEmailAddressValid(recipient, skipRecipientValidityCheck)
         if (recipientIsInvalid) {
             logger.debug { "not sending e-mail '$subject' because recipient $recipient is not valid" }
             return
