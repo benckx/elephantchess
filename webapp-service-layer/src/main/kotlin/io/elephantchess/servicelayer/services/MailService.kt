@@ -64,7 +64,7 @@ class MailService(
      * address is valid and unconfirmed addresses fall back to automated verification.
      */
     suspend fun getEmailValidityDetails(email: String): EmailValidityStatus {
-        if (emailVerificationDaoService.hasSuppressingBounce(email)) {
+        if (emailVerificationDaoService.hasEmailBounced(email)) {
             return EmailValidityStatus.AUTOMATED_BOUNCED
         }
 

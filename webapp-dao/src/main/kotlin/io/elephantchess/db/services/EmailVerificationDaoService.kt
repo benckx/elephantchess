@@ -74,7 +74,7 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
             .where(suppressingBounceCondition())
             .awaitMappedRecords()
 
-    suspend fun hasSuppressingBounce(email: String): Boolean =
+    suspend fun hasEmailBounced(email: String): Boolean =
         dslContext
             .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
             .from(EMAIL_VERIFICATION_BOUNCE)
@@ -97,7 +97,9 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
                 EMAIL_VERIFICATION.RESULT.notIn("ok", "ok_for_all"),
             )
 
-        val bouncedEmails = listBouncedEmails()
+        val bouncedEmails = dslContext
+            .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
+            .from(EMAIL_VERIFICATION_BOUNCE)
 
         return dslContext
             .select(USER.EMAIL)
