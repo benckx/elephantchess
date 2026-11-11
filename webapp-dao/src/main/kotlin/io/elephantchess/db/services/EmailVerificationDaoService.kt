@@ -16,9 +16,10 @@ class EmailVerificationDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(record: EmailVerification) {
         dslContext.transactionCoroutine { cfg ->
-            EmailVerificationDao(cfg).insertReactive(
-                EmailVerification(record).apply { email = email.trim() },
-            )
+            val cleanRecord = EmailVerification(record).apply { email = email.trim() }
+
+            EmailVerificationDao(cfg)
+                .insertReactive(cleanRecord)
         }
     }
 
@@ -64,6 +65,7 @@ class EmailVerificationDaoService(private val dslContext: DSLContext) {
         val bouncedEmails = dslContext
             .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)
             .from(EMAIL_VERIFICATION_BOUNCE)
+            .where(suppressingBounceCondition())
 
         return dslContext
             .select(USER.EMAIL)
