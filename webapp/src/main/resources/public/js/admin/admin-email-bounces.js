@@ -17,7 +17,7 @@ class AdminEmailBounces extends BasePage {
                 [
                     entry.email,
                     formatTimestampDefaultDateFormat(entry.creationTime),
-                    formatTimestampDefaultDateFormat(entry.updateTime),
+                    entry.updateTime == null ? '--' : formatTimestampDefaultDateFormat(entry.updateTime),
                     entry.action ?? '--',
                     entry.status ?? '--',
                     entry.suppressed ? 'yes' : 'no',

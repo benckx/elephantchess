@@ -15,7 +15,7 @@ class AdminEmailBounceService(private val emailVerificationDaoService: EmailVeri
                 EmailBouncesResponse.Entry(
                     email = it.email,
                     creationTime = it.creationTime.toEpochMilliseconds(),
-                    updateTime = it.updateTime.toEpochMilliseconds(),
+                    updateTime = it.updateTime?.toEpochMilliseconds(),
                     action = it.action,
                     status = it.status,
                     diagnostic = it.diagnostic,
