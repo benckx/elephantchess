@@ -25,39 +25,6 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
         }
     }
 
-    // TODO: Remove this private-script import method once automated bounce ingestion is deployed.
-    suspend fun insertOrUpdateBounced(records: List<EmailVerificationBounce>) {
-        dslContext.transactionCoroutine { cfg ->
-            records.forEach { input ->
-                val record = EmailVerificationBounce(input).apply { email = email.trim() }
-                val found = DSL
-                    .using(cfg)
-                    .selectFrom(EMAIL_VERIFICATION_BOUNCE)
-                    .where(EMAIL_VERIFICATION_BOUNCE.EMAIL.eq(record.email))
-                    .awaitMappedRecords<EmailVerificationBounce>().firstOrNull()
-
-                if (found == null) {
-                    EmailVerificationBounceDao(cfg).insertReactive(record)
-                    logger.info { "bounced email inserted $record" }
-                } else if (record.status == null && found.status != null) {
-                    logger.info { "ignoring legacy bounce without status for ${record.email}; delivery metadata already exists" }
-                } else if (record.bouncedTime >= found.bouncedTime && record != found) {
-                    DSL.using(cfg)
-                        .update(EMAIL_VERIFICATION_BOUNCE)
-                        .set(EMAIL_VERIFICATION_BOUNCE.BOUNCED_TIME, record.bouncedTime)
-                        .set(EMAIL_VERIFICATION_BOUNCE.ACTION, record.action)
-                        .set(EMAIL_VERIFICATION_BOUNCE.STATUS, record.status)
-                        .set(EMAIL_VERIFICATION_BOUNCE.DIAGNOSTIC, record.diagnostic)
-                        .where(EMAIL_VERIFICATION_BOUNCE.EMAIL.eq(found.email))
-                        .awaitExecute()
-                    logger.info { "bounced email updated $record" }
-                } else {
-                    logger.info { "ignoring unchanged or older bounce for ${record.email}" }
-                }
-            }
-        }
-    }
-
     suspend fun listBouncedEmailsRecords(): List<EmailVerificationBounce> =
         dslContext
             .selectFrom(EMAIL_VERIFICATION_BOUNCE)
