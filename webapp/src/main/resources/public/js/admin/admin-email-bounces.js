@@ -16,7 +16,7 @@ class AdminEmailBounces extends BasePage {
                 const row = this.#tbody.insertRow();
                 [
                     entry.email,
-                    formatTimestampDefaultDateFormat(entry.bouncedTime),
+                    formatTimestampDefaultDateFormat(entry.creationTime),
                     entry.action ?? '--',
                     entry.status ?? 'unknown (legacy)',
                     entry.suppressed ? 'yes' : 'no',

@@ -4,7 +4,7 @@ data class EmailBouncesResponse(val entries: List<Entry>) {
 
     data class Entry(
         val email: String,
-        val bouncedTime: Long,
+        val creationTime: Long,
         val action: String?,
         val status: String?,
         val diagnostic: String?,

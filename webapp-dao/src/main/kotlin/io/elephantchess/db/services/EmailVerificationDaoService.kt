@@ -1,21 +1,18 @@
 package io.elephantchess.db.services
 
 import io.elephantchess.db.dao.codegen.Tables.*
-import io.elephantchess.db.dao.codegen.tables.daos.EmailVerificationBounceDao
 import io.elephantchess.db.dao.codegen.tables.daos.EmailVerificationDao
 import io.elephantchess.db.dao.codegen.tables.pojos.EmailVerification
 import io.elephantchess.db.dao.codegen.tables.pojos.EmailVerificationBounce
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.SuppressingEmailStatus
 import io.elephantchess.utils.di.KoinSingleton
-import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import kotlin.time.Duration
 
 @KoinSingleton
-class EmailVerificationDaoService(private val dslContext: DSLContext, private val logger: KLogger) {
+class EmailVerificationDaoService(private val dslContext: DSLContext) {
 
     suspend fun save(record: EmailVerification) {
         dslContext.transactionCoroutine { cfg ->
@@ -29,7 +26,7 @@ class EmailVerificationDaoService(private val dslContext: DSLContext, private va
         dslContext
             .selectFrom(EMAIL_VERIFICATION_BOUNCE)
             .orderBy(
-                EMAIL_VERIFICATION_BOUNCE.BOUNCED_TIME.desc(),
+                EMAIL_VERIFICATION_BOUNCE.CREATION_TIME.desc(),
                 EMAIL_VERIFICATION_BOUNCE.EMAIL,
             )
             .awaitMappedRecords()

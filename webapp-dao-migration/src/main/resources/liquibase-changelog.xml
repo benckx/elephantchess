@@ -3034,11 +3034,15 @@
             <column name="action" type="varchar(32)"/>
             <column name="status" type="varchar(32)"/>
             <column name="diagnostic" type="text"/>
+            <column name="update_time" type="datetime"/>
         </addColumn>
+        <renameColumn tableName="email_verification_bounce" oldColumnName="bounced_time" newColumnName="creation_time"/>
         <rollback>
             <dropColumn tableName="email_verification_bounce" columnName="diagnostic"/>
             <dropColumn tableName="email_verification_bounce" columnName="status"/>
             <dropColumn tableName="email_verification_bounce" columnName="action"/>
+            <dropColumn tableName="email_verification_bounce" columnName="update_time"/>
+            <renameColumn tableName="email_verification_bounce" oldColumnName="creation_time" newColumnName="bounced_time"/>
         </rollback>
     </changeSet>
 </databaseChangeLog>

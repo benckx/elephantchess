@@ -14,7 +14,7 @@ class AdminEmailBounceService(private val emailVerificationDaoService: EmailVeri
             entries = records.map {
                 EmailBouncesResponse.Entry(
                     email = it.email,
-                    bouncedTime = it.bouncedTime.toEpochMilliseconds(),
+                    creationTime = it.creationTime.toEpochMilliseconds(),
                     action = it.action,
                     status = it.status,
                     diagnostic = it.diagnostic,
