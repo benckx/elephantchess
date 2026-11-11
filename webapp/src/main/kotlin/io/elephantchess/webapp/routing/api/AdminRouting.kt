@@ -16,6 +16,7 @@ import java.time.YearMonth
 
 fun Route.adminConsoleRoutes() {
     route("/api/admin/analytics") {
+        adminEmailBounceRoutes()
         adminOverviewRoutes()
         adminFeedsRoutes()
         adminAnalyticsRoutes()
@@ -32,6 +33,14 @@ fun Route.adminConsoleRoutes() {
         adminUpcomingEventsRoutes()
         adminSettingPreferenceRoutes()
         adminUserInsightsRoutes()
+    }
+}
+
+private fun Route.adminEmailBounceRoutes() {
+    val adminEmailBounceService by koin<AdminEmailBounceService>()
+
+    get("/email-bounces") {
+        requireAdminRole { adminEmailBounceService.listBounces() }
     }
 }
 

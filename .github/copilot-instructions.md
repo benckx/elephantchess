@@ -29,6 +29,11 @@ confused, questions you ask the user. Resume after.
 Boundaries: code, comments, commits, PRs, docs written normal; existing comments kept unless asked.
 Floor: code, commands, paths, numbers and error strings verbatim; never drop not/never/no/only.
 
+## Repository change constraints
+
+- Do not edit `README.md` unless explicitly instructed by the user.
+- Do not create new unit test files unless explicitly instructed by the user.
+
 ## Verifying UI changes
 
 For any HTML/CSS/JS change, render the page and check it before reporting done. Full details: README "Run Locally". Only

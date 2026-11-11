@@ -20,7 +20,7 @@ import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
 import java.io.File
-import java.time.LocalDateTime
+import kotlin.time.Clock
 
 private val logger = KotlinLogging.logger {}
 
@@ -116,7 +116,7 @@ object CreatePuzzlesFromCsv : KoinScriptInit() {
                 initialRating = rating
                 this.rating = rating
                 disabledAt = null
-                createdAt = LocalDateTime.now()
+                createdAt = Clock.System.now()
             }
 
             val nonSolutionMovesRecords = nonSolutionMoves

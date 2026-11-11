@@ -64,6 +64,11 @@ class DaoCodeGenPlugin : Plugin<Project> {
                     .withUserType("kotlin.time.Instant")
                     .withConverter("io.elephantchess.db.codegen.OffsetDateTimeInstantConverter")
 
+                forcedTypes += ForcedType()
+                    .withIncludeTypes("(?i:TIMESTAMP(?:\\([0-9]+\\))?(?:\\s+WITHOUT\\s+TIME\\s+ZONE)?|DATETIME(?:\\([0-9]+\\))?)")
+                    .withUserType("kotlin.time.Instant")
+                    .withConverter("io.elephantchess.db.codegen.LocalDateTimeInstantConverter")
+
                 val database = Database()
                     .withExcludes("DATABASECHANGELOG|DATABASECHANGELOGLOCK")
                     .withInputSchema("PUBLIC")

@@ -203,7 +203,7 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
             .and(USER.USER_TYPE.eq(AUTHENTICATED))
             .awaitSingleValue()
 
-    suspend fun listNewsletterEmailAddresses(): List<String> =
+    suspend fun listAcceptNewsletterEmailAddresses(): List<String> =
         dslContext
             .select(USER.EMAIL)
             .from(USER)
