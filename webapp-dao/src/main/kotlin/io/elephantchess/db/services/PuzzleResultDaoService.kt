@@ -14,7 +14,6 @@ import org.jooq.DSLContext
 import org.jooq.Record6
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
-import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
@@ -284,7 +283,7 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record6<String, PuzzleOutcome, String, Instant, Boolean, LocalDateTime>> =
+    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record6<String, PuzzleOutcome, String, Instant, Boolean, Instant>> =
         dslContext
             .select(
                 PUZZLE_RESULT.PUZZLE_ID,

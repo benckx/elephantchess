@@ -4,7 +4,6 @@ import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.services.*
-import io.elephantchess.db.utils.toUtcInstant
 import io.elephantchess.db.utils.winnerUserId
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
 import io.elephantchess.model.UserType
@@ -44,7 +43,7 @@ class AdminFeedService(
                     username = username,
                     date = record.get(PUZZLE_RESULT.ENTRY_CREATION).toEpochMilliseconds(),
                     upVoted = record.get(PUZZLE_RESULT.UP_VOTED),
-                    puzzleCreated = record.get(PUZZLE.CREATED_AT).toUtcInstant().toEpochMilliseconds(),
+                    puzzleCreated = record.get(PUZZLE.CREATED_AT).toEpochMilliseconds(),
                     categories = puzzleCache.listCategories(puzzleId),
                 )
             }

@@ -17,8 +17,9 @@ class AdminEmailBounces extends BasePage {
                 [
                     entry.email,
                     formatTimestampDefaultDateFormat(entry.creationTime),
+                    formatTimestampDefaultDateFormat(entry.updateTime),
                     entry.action ?? '--',
-                    entry.status ?? 'unknown (legacy)',
+                    entry.status ?? '--',
                     entry.suppressed ? 'yes' : 'no',
                     entry.diagnostic ?? '--',
                 ].forEach(value => {
