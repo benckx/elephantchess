@@ -17,12 +17,13 @@ class EmailVerificationDaoService(private val dslContext: DSLContext) {
     suspend fun save(record: EmailVerification) {
         dslContext.transactionCoroutine { cfg ->
             val cleanRecord = EmailVerification(record).apply { email = email.trim() }
-
-            EmailVerificationDao(cfg)
-                .insertReactive(cleanRecord)
+            EmailVerificationDao(cfg).insertReactive(cleanRecord)
         }
     }
 
+    /**
+     * Not filtered
+     */
     suspend fun listAllBouncedEmailsRecords(): List<EmailVerificationBounce> =
         dslContext
             .selectFrom(EMAIL_VERIFICATION_BOUNCE)
