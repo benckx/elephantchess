@@ -16,11 +16,7 @@ import io.elephantchess.servicelayer.model.Email
 import io.elephantchess.servicelayer.model.MatchingEmail
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.UserService.Companion.PASSWORD_RECOVERY_TIMEOUT_HOURS
-import io.elephantchess.servicelayer.services.resolvers.ContentFeedbackRowsTagResolver
-import io.elephantchess.servicelayer.services.resolvers.EmailConfirmationLinkTagResolver
-import io.elephantchess.servicelayer.services.resolvers.GameLinkTagResolver
-import io.elephantchess.servicelayer.services.resolvers.RecoveryLinkTagResolver
-import io.elephantchess.servicelayer.services.resolvers.UnsubscribeTagResolver
+import io.elephantchess.servicelayer.services.resolvers.*
 import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
@@ -165,18 +161,18 @@ class MailService(
         val manuallyConfirmed = userDaoService.listManuallyConfirmedEmailAddresses().toSet()
         val bounced = emailVerificationDaoService.listBouncedEmails().toSet()
         val newsletterRecipients = userDaoService
-            .listNewsletterEmailAddresses()
+            .listAcceptNewsletterEmailAddresses()
             .filter { emailAddress ->
-                manuallyConfirmed.contains(emailAddress) || automaticallyValidated.contains(emailAddress)
+                (manuallyConfirmed.contains(emailAddress) || automaticallyValidated.contains(emailAddress))
+                        && (emailAddress !in bounced)
             }
-            .filterNot { emailAddress -> emailAddress in bounced }
             .map { emailAddress -> emailAddress.trim() }
 
         logger.info {
             "found ${automaticallyValidated.size} automatically validated e-mail addresses, " +
-                "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
-                "${bounced.size} bounced e-mail addresses, " +
-                "${newsletterRecipients.size} total newsletter recipients"
+                    "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
+                    "${bounced.size} bounced e-mail addresses, " +
+                    "${newsletterRecipients.size} total newsletter recipients"
         }
 
         return newsletterRecipients.sorted()
