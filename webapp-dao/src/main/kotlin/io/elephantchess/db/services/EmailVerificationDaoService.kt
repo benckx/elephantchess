@@ -23,7 +23,7 @@ class EmailVerificationDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listBouncedEmailsRecords(): List<EmailVerificationBounce> =
+    suspend fun listAllBouncedEmailsRecords(): List<EmailVerificationBounce> =
         dslContext
             .selectFrom(EMAIL_VERIFICATION_BOUNCE)
             .orderBy(
@@ -32,6 +32,9 @@ class EmailVerificationDaoService(private val dslContext: DSLContext) {
             )
             .awaitMappedRecords()
 
+    /**
+     * Filtered in for some "enhanced delivery-status codes"
+     */
     suspend fun listBouncedEmails(): List<String> =
         dslContext
             .select(EMAIL_VERIFICATION_BOUNCE.EMAIL)

@@ -9,7 +9,7 @@ import io.elephantchess.utils.di.KoinSingleton
 class AdminEmailBounceService(private val emailVerificationDaoService: EmailVerificationDaoService) {
 
     suspend fun listBounces(): EmailBouncesResponse {
-        val records = emailVerificationDaoService.listBouncedEmailsRecords()
+        val records = emailVerificationDaoService.listAllBouncedEmailsRecords()
         return EmailBouncesResponse(
             entries = records.map {
                 EmailBouncesResponse.Entry(

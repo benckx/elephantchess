@@ -160,19 +160,25 @@ class MailService(
             emailVerificationDaoService.listAllAutomaticallyValidatedEmails(emailValidityDuration)
         val manuallyConfirmed = userDaoService.listManuallyConfirmedEmailAddresses().toSet()
         val bounced = emailVerificationDaoService.listBouncedEmails().toSet()
+
+        val hasBeenConfirmed =
+            { emailAddress: String ->
+                manuallyConfirmed.contains(emailAddress) ||
+                    automaticallyValidated.contains(emailAddress)
+            }
+        val hasBounced =
+            { emailAddress: String -> bounced.contains(emailAddress) }
+
         val newsletterRecipients = userDaoService
             .listAcceptNewsletterEmailAddresses()
-            .filter { emailAddress ->
-                (manuallyConfirmed.contains(emailAddress) || automaticallyValidated.contains(emailAddress))
-                        && (emailAddress !in bounced)
-            }
+            .filter { emailAddress -> hasBeenConfirmed(emailAddress) && !hasBounced(emailAddress) }
             .map { emailAddress -> emailAddress.trim() }
 
         logger.info {
             "found ${automaticallyValidated.size} automatically validated e-mail addresses, " +
-                    "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
-                    "${bounced.size} bounced e-mail addresses, " +
-                    "${newsletterRecipients.size} total newsletter recipients"
+                "${manuallyConfirmed.size} manually confirmed e-mail addresses, " +
+                "${bounced.size} bounced e-mail addresses, " +
+                "${newsletterRecipients.size} total newsletter recipients"
         }
 
         return newsletterRecipients.sorted()
