@@ -13,7 +13,7 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.koin.core.component.inject
-import java.time.LocalDateTime
+import kotlin.time.Clock
 
 private val logger = KotlinLogging.logger {}
 
@@ -65,7 +65,7 @@ object DisablePuzzlesWithoutEnoughMoves : KoinScriptInit() {
                     DSL
                         .using(cfg)
                         .update(PUZZLE)
-                        .set(PUZZLE.DISABLED_AT, LocalDateTime.now())
+                        .set(PUZZLE.DISABLED_AT, Clock.System.now())
                         .where(PUZZLE.ID.`in`(puzzleIdsToDisable))
                         .awaitExecute()
                 }

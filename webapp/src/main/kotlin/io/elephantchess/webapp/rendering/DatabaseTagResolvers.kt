@@ -68,13 +68,13 @@ fun playersTableTagResolver(playerStandings: PlayersListResponse) =
                 }
             }
             tbody {
-                for (entry in playerStandings.entries) {
+                for ((_, name, slug, wins, draws, losses, totalGames) in playerStandings.entries) {
                     tr {
-                        td { a(href = "/database/player/${entry.slug}") { +entry.name } }
-                        td { +entry.wins.toString() }
-                        td { +entry.draws.toString() }
-                        td { +entry.losses.toString() }
-                        td { +entry.totalGames.toString() }
+                        td { a(href = "/database/player/$slug") { +name } }
+                        td { +wins.toString() }
+                        td { +draws.toString() }
+                        td { +losses.toString() }
+                        td { +totalGames.toString() }
                     }
                 }
             }
@@ -102,12 +102,12 @@ fun eventGamesListTagResolver(event: Event) =
 
         fun FlowContent.outcomeAnchor(game: Event.Game) {
             val colorClass = when (game.outcome) {
-                Outcome.RED_WINS -> "red-color"
+                Outcome.WHITE_WINS -> "red-color"
                 Outcome.BLACK_WINS -> "black-color"
                 Outcome.DRAW -> "any-color"
             }
             val outcomeText = when (game.outcome) {
-                Outcome.RED_WINS -> "2-0"
+                Outcome.WHITE_WINS -> "2-0"
                 Outcome.BLACK_WINS -> "0-2"
                 Outcome.DRAW -> "1-1"
             }
@@ -154,7 +154,7 @@ fun eventGamesListTagResolver(event: Event) =
                 if (redId != null) {
                     val stats = playerStats.getOrPut(redId) { PlayerStats() }
                     when (game.outcome) {
-                        Outcome.RED_WINS -> stats.wins++
+                        Outcome.WHITE_WINS -> stats.wins++
                         Outcome.BLACK_WINS -> stats.losses++
                         Outcome.DRAW -> stats.draws++
                     }
@@ -162,7 +162,7 @@ fun eventGamesListTagResolver(event: Event) =
                 if (blackId != null) {
                     val stats = playerStats.getOrPut(blackId) { PlayerStats() }
                     when (game.outcome) {
-                        Outcome.RED_WINS -> stats.losses++
+                        Outcome.WHITE_WINS -> stats.losses++
                         Outcome.BLACK_WINS -> stats.wins++
                         Outcome.DRAW -> stats.draws++
                     }

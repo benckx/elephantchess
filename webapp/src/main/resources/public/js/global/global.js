@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@ class GlobalStatsPage extends BasePage {
     constructor() {
         super();
         this.#fetchPlayerVsPlayerLeaderboard();
-        this.#fetchLeaderboardLast12Months();
-        this.#fetchLeaderboard();
+        this.#fetchPuzzleLeaderboardLast12Months();
+        this.#fetchPuzzleLeaderboard();
         this.#fetchGlobalPuzzleStats();
         this.#fetchGlobalGameStats();
         this.#fetchGlobalUsersStats();
@@ -90,15 +90,15 @@ class GlobalStatsPage extends BasePage {
             });
     }
 
-    #fetchLeaderboardLast12Months() {
+    #fetchPuzzleLeaderboardLast12Months() {
         getAndHandle('/api/user/info/puzzles/stats/leaderboard-last-12-months', json => {
-            this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'leaderboard-last-12-months');
+            this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'puzzle-leaderboard-last-12-months');
         });
     }
 
-    #fetchLeaderboard() {
+    #fetchPuzzleLeaderboard() {
         getAndHandle('/api/user/info/puzzles/stats/leaderboard', json => {
-            this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'leaderboard');
+            this.#renderPuzzleLeaderboard(LeaderboardEntryDto.parseJson(json), 'puzzle-leaderboard');
         });
     }
 
@@ -153,7 +153,9 @@ class GlobalStatsPage extends BasePage {
             successCell.className = 'success-cell';
 
             const successIndicator = new SuccessIndicator(entry.solvedRate, entry.failedRate);
-            successCell.append(successIndicator.render());
+            const successIndicatorContainer = successIndicator.render();
+            successIndicatorContainer.classList.add('only-desktop');
+            successCell.append(successIndicatorContainer);
         });
     }
 
@@ -163,12 +165,14 @@ class GlobalStatsPage extends BasePage {
             const totalGames = document.getElementById('total-games');
             const totalInAppGames = document.getElementById('total-in-app-games');
             const totalManchuGames = document.getElementById('total-manchu-games');
+            const totalJanggiGames = document.getElementById('total-janggi-games');
             const totalMoves = document.getElementById('total-moves');
             const totalInAppMoves = document.getElementById('total-in-app-moves');
 
             totalGames.innerText = formatNumberWithSuffix(json.totalGames);
             totalInAppGames.innerText = formatNumberWithSuffix(json.totalInAppGames);
             totalManchuGames.innerText = formatNumberWithSuffix(json.totalManchuGames);
+            totalJanggiGames.innerText = formatNumberWithSuffix(json.totalJanggiGames);
             totalMoves.innerText = formatNumberWithSuffix(Math.floor(json.totalMoves / 2));
             totalInAppMoves.innerText = formatNumberWithSuffix(Math.floor(json.totalInAppMoves / 2));
         });

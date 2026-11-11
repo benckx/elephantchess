@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ class InfoLineResult {
         if (this.#fen.includes('b - -')) {
             this.#colorToPlay = Color.BLACK;
         } else if (this.#fen.includes('w - -')) {
-            this.#colorToPlay = Color.RED;
+            this.#colorToPlay = Color.WHITE;
         } else {
             this.#colorToPlay = null;
         }
@@ -125,7 +125,7 @@ class InfoLineResult {
     get eval() {
         if (this.#isCheckmate && this.#colorToPlay === Color.BLACK) {
             return 100;
-        } else if (this.#isCheckmate && this.#colorToPlay === Color.RED) {
+        } else if (this.#isCheckmate && this.#colorToPlay === Color.WHITE) {
             return -100;
         } else if (this.#cp != null) {
             return this.linearNormalizedCp();

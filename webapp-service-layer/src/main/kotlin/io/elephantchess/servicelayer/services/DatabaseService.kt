@@ -22,9 +22,9 @@ import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.formatWithChineseName
 import io.elephantchess.utils.generateNameVariations
 import io.elephantchess.utils.isChineseText
-import io.elephantchess.xiangqi.Board.Companion.validateFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.validateFen
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.reactivecircus.cache4k.Cache
 import org.apache.commons.lang3.StringUtils
@@ -174,8 +174,8 @@ class DatabaseService(
                     GameMetadataDto(
                         gameId = GameId(GameType.DB, record.id),
                         lastUpdated = record.date?.atStartOfDay()?.toUtcInstant()?.toEpochMilliseconds(),
-                        redPlayerId = record.redPlayer,
-                        redPlayerName = playerIdToDisplayName(record.redPlayer),
+                        redPlayerId = record.whitePlayer,
+                        redPlayerName = playerIdToDisplayName(record.whitePlayer),
                         blackPlayerId = record.blackPlayer,
                         blackPlayerName = playerIdToDisplayName(record.blackPlayer),
                         eventName = idToEventName(record.event),
@@ -407,6 +407,7 @@ class DatabaseService(
                 sources = fetchPlayerProfileSources(playerId, profileVersion.version),
                 editComment = profileVersion.comment,
                 enabled = profileVersion.enabled,
+                versionTime = profileVersion.versionTime,
             )
         } else {
             val player = referencePlayerDaoService.findPlayer(playerId)
@@ -421,6 +422,7 @@ class DatabaseService(
                 sources = emptyList(),
                 editComment = null,
                 enabled = true,
+                versionTime = null,
             )
         }
     }
@@ -491,7 +493,7 @@ class DatabaseService(
 
     suspend fun fetchGameSummary(gameId: String): DatabaseGameSummary? {
         val record = referenceGameDaoService.findById(gameId) ?: return null
-        val redPlayer = record.redPlayer?.let { referencePlayerDaoService.findPlayer(it) }
+        val redPlayer = record.whitePlayer?.let { referencePlayerDaoService.findPlayer(it) }
         val blackPlayer = record.blackPlayer?.let { referencePlayerDaoService.findPlayer(it) }
         return DatabaseGameSummary(
             gameId = record.id,
@@ -516,7 +518,7 @@ class DatabaseService(
             ?: throw NotFoundException("event $eventId not found")
 
         val gameRecords = referenceGameDaoService.findByEventId(eventId)
-        val allPlayerIds = gameRecords.flatMap { listOf(it.redPlayer, it.blackPlayer) }.distinct()
+        val allPlayerIds = gameRecords.flatMap { listOf(it.whitePlayer, it.blackPlayer) }.distinct()
         val scores = mutableMapOf<String, Int>()
         allPlayerIds.forEach { playerId ->
             scores[playerId] = 0
@@ -524,12 +526,12 @@ class DatabaseService(
 
         gameRecords.forEach { game ->
             when (game.outcome) {
-                RED_WINS -> scores[game.redPlayer] = scores[game.redPlayer]!! + 2
+                WHITE_WINS -> scores[game.whitePlayer] = scores[game.whitePlayer]!! + 2
 
                 BLACK_WINS -> scores[game.blackPlayer] = scores[game.blackPlayer]!! + 2
 
                 DRAW -> {
-                    scores[game.redPlayer] = scores[game.redPlayer]!! + 1
+                    scores[game.whitePlayer] = scores[game.whitePlayer]!! + 1
                     scores[game.blackPlayer] = scores[game.blackPlayer]!! + 1
                 }
             }
@@ -538,9 +540,9 @@ class DatabaseService(
         val gameDtos = gameRecords.map { game ->
             Event.Game(
                 id = game.id,
-                redPlayerId = game.redPlayer,
-                redPlayerName = playerIdToDisplayName(game.redPlayer),
-                redPlayerSlug = playerIdToCanonicalName(game.redPlayer)?.replace(" ", "_"),
+                redPlayerId = game.whitePlayer,
+                redPlayerName = playerIdToDisplayName(game.whitePlayer),
+                redPlayerSlug = playerIdToCanonicalName(game.whitePlayer)?.replace(" ", "_"),
                 blackPlayerId = game.blackPlayer,
                 blackPlayerName = playerIdToDisplayName(game.blackPlayer),
                 blackPlayerSlug = playerIdToCanonicalName(game.blackPlayer)?.replace(" ", "_"),

@@ -16,7 +16,7 @@ import io.elephantchess.model.*
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
@@ -35,21 +35,25 @@ import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
-import io.elephantchess.xiangqi.Board.Companion.isCheckmated
-import io.elephantchess.xiangqi.Board.Companion.isInCheck
-import io.elephantchess.xiangqi.Board.Companion.isMoveLegal
-import io.elephantchess.xiangqi.Board.Companion.isStalemated
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.PerpetualCheckingRule.Companion.defaultPerpetualCheckingRules
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.calculateNewFen
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isCheckmated
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isInCheck
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isMoveLegal
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isStalemated
 import io.github.oshai.kotlinlogging.KLogger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -337,6 +341,10 @@ class PlayerVsPlayerGameService(
             }
 
     suspend fun createGame(userId: UserId, request: CreateGameRequest): CreateGameResponse {
+        if (request.variant == Variant.JANGGI) {
+            throw BadRequestException("Janggi games are not supported yet")
+        }
+
         // validation
         if (request.timeControlMode == TimeControlMode.MOVE_TIME) {
             if (request.timeControlIncrement != null) {
@@ -398,7 +406,7 @@ class PlayerVsPlayerGameService(
         game.id = generateId()
         game.inviter = userId.id
         game.inviterColor = request.inviterColor
-        game.currentFen = Board.defaultStartFen(request.variant)
+        game.currentFen = defaultStartFen(request.variant)
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
@@ -527,6 +535,9 @@ class PlayerVsPlayerGameService(
                     "dynamic matching: user $joinerId's game ${joinerGame.id} matched with ${matchGame.id}"
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) {
+                    currentCoroutineContext().ensureActive()
+                }
                 logger.warn(e) {
                     "dynamic matching failed for ${joinerGame.id} -> ${matchGame.id}"
                 }
@@ -801,7 +812,7 @@ class PlayerVsPlayerGameService(
 
         if (timeRemaining.red <= 0L && timeRemaining.red < timeRemaining.black) {
             logger.info { "$logTag red has flagged!" }
-            flagByColor(gameId, RED)
+            flagByColor(gameId, WHITE)
         } else if (timeRemaining.black <= 0L && timeRemaining.black < timeRemaining.red) {
             logger.info { "$logTag black has flagged!" }
             flagByColor(gameId, BLACK)
@@ -1017,13 +1028,13 @@ class PlayerVsPlayerGameService(
                 parseMoveFromUci(request.move)
             } catch (_: Exception) {
                 logger.warn { "[${request.gameId}] Move '${request.move}' can not be parsed" }
-                throw BadRequestException("Move '${request.move}' can not be parsed")
+                throw BadRequestException("Move '${request.move}' can not be parsed in game ${request.gameId}")
             }
 
             // validate move is legal
             if (!isMoveLegal(gameRecord.currentFen, request.move)) {
                 logger.warn { "[${request.gameId}] Move '${request.move}' is illegal" }
-                throw BadRequestException("Move '${request.move}' is illegal")
+                throw BadRequestException("Move '${request.move}' is illegal in game ${request.gameId}")
             }
 
             // validate that it is user's turn to play
@@ -1115,8 +1126,8 @@ class PlayerVsPlayerGameService(
      * Moves must include last one played
      */
     private fun hasViolatedPerpetualCheckingRuleCallback(game: Game, moves: List<String>): PerpetualCheckingCallbackResult? {
-        val startFen = Board.defaultStartFen(game.variant ?: Variant.XIANGQI)
-        val board = Board(startFen, keepHistory = true)
+        val startFen = defaultStartFen(game.variant ?: Variant.XIANGQI)
+        val board = XiangqiBoard(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val playerColor = board.colorToPlay().reverse()
         val history = board.getHistory()!!
@@ -1204,7 +1215,7 @@ class PlayerVsPlayerGameService(
             if (gameRecord.isRated && outcome != Outcome.DRAW) {
                 val k = gameRecord.kValue
                 val isInviterWinner =
-                    (outcome == RED_WINS && gameRecord.inviterColor == RED) ||
+                    (outcome == WHITE_WINS && gameRecord.inviterColor == WHITE) ||
                         (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
 
                 if (isInviterWinner) {

@@ -11,21 +11,22 @@ import io.elephantchess.servicelayer.model.TokenVerificationResult
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.*
-import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 
 private val opsLogger by lazy { logger {} }
-private val simplePageRenderer by koin<SimplePageRenderer>()
 private val userCache by koin<UserCache>()
+
+suspend fun RoutingContext.isAdmin(): Boolean {
+    val result = extractAndVerifyToken()
+    return result is AuthenticatedToken && result.hasRole(ADMIN) && verifyInDb(result, ADMIN)
+}
 
 /**
  * Require an authenticated user (not a guest)
@@ -97,7 +98,7 @@ private suspend fun RoutingContext.requireRole(
     if (result is AuthenticatedToken && result.hasRole(requiredRole) && verifyInDb(result, requiredRole)) {
         call.respond(handler(result))
     } else if (customErrorPage != null) {
-        call.respond(TextContent(customErrorPage(), Html))
+        call.respondHtml(customErrorPage(), Forbidden)
     } else {
         handleInvalidToken(result, requiredRole.name, Forbidden)
     }
@@ -127,8 +128,7 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
 private suspend fun RoutingContext.redirectOrRespond(statusCode: HttpStatusCode) {
     val isHtmlRequest = call.request.accept()?.contains("text/html") ?: false
     if (isHtmlRequest) {
-        val html = simplePageRenderer.renderTemplate(statusCode.value.toString())
-        call.respondText(html, Html)
+        call.respondErrorPage(statusCode)
     } else {
         call.response.status(statusCode)
     }
@@ -144,8 +144,7 @@ suspend fun verifyInDb(token: TokenVerificationResult, requiredRole: UserRole? =
 
         is GuestToken -> {
             val user = userCache.get(token.userId)
-            user != null && user.userType == GUEST &&
-                (requiredRole == null || user.roles.contains(requiredRole))
+            user != null && user.userType == GUEST && requiredRole == null
         }
 
         else -> false

@@ -55,19 +55,30 @@ class MoveAnalysisDaoService(private val dslContext: DSLContext) {
             .where(gameTableIdCondition(gameId))
             .awaitSingleValue()
 
-    suspend fun deleteAnalysisData(gameId: GameId) {
+    suspend fun resetAnalysis(gameId: GameId) {
         dslContext.transactionCoroutine { cfg ->
-            DSL
-                .using(cfg)
+            val transactional = DSL.using(cfg)
+
+            transactional
                 .deleteFrom(MOVE_ANALYSIS)
                 .where(moveAnalysisTableIdCondition(gameId))
                 .awaitExecute()
-        }
-    }
 
-    suspend fun resetAnalysisStatus(gameId: GameId) {
-        updateAnalysisStatus(gameId, NOT_STARTED, null)
-        setAnalyzedFromBatch(gameId, false)
+            val analyzedFromBatch = when (gameId.type) {
+                DB -> REFERENCE_GAME.ANALYZED_FROM_BATCH
+                PVP -> GAME.ANALYZED_FROM_BATCH
+                PVB -> BOT_GAME.ANALYZED_FROM_BATCH
+            }
+
+            transactional
+                .update(gameTable(gameId))
+                .set(gameTableAnalysisStatusField(gameId), NOT_STARTED)
+                .set(startTimeField(gameId), null as Instant?)
+                .set(endTimeField(gameId), null as Instant?)
+                .set(analyzedFromBatch, false)
+                .where(gameTableIdCondition(gameId))
+                .awaitExecute()
+        }
     }
 
     suspend fun startAnalysis(gameId: GameId, isFromBatch: Boolean) {

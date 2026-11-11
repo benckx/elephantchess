@@ -10,7 +10,7 @@ import io.elephantchess.model.GameEventType
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
@@ -21,7 +21,7 @@ import io.elephantchess.servicelayer.dto.user.NotificationsSettingsDto
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.testutils.Ops.endsInCheckmate
 import kotlinx.coroutines.test.runTest
@@ -66,6 +66,26 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                         .deleteFrom(table)
                         .awaitExecute()
                 }
+        }
+
+    @Test
+    fun `janggi remains unavailable for player games until server integration`() =
+        runTest {
+            val request = CreateGameRequest(
+                inviterColor = WHITE,
+                isRated = false,
+                timeControlBase = 600,
+                timeControlIncrement = null,
+                timeControlMode = TimeControlMode.GAME_TIME,
+                allowGuests = true,
+                alwaysVisibleInLobby = false,
+                privateInvite = true,
+                variant = Variant.JANGGI,
+            )
+            val exception = assertFailsWith<BadRequestException> {
+                pvpGameService.createGame(userId1, request)
+            }
+            assertEquals("Janggi games are not supported yet", exception.message)
         }
 
     @Nested
@@ -227,7 +247,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
 
         private fun alwaysVisibleInLobbyRapidPublicGameRequest() =
             CreateGameRequest(
-                inviterColor = RED,
+                inviterColor = WHITE,
                 isRated = true,
                 timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                 timeControlIncrement = null,
@@ -260,7 +280,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `joins matching game when requests are compatible`() =
             runTest {
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -276,7 +296,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response2 = pvpGameService.createGame(userId2, request2)
 
                 assertEquals(CREATED, response1.eventType)
-                assertEquals(RED, response1.color)
+                assertEquals(WHITE, response1.color)
 
                 assertEquals(JOINED, response2.eventType)
                 assertEquals(BLACK, response2.color)
@@ -289,7 +309,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `does not auto-match when both inviters choose the same color`() =
             runTest {
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -305,10 +325,10 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response2 = pvpGameService.createGame(userId2, request2)
 
                 assertEquals(CREATED, response1.eventType)
-                assertEquals(RED, response1.color)
+                assertEquals(WHITE, response1.color)
 
                 assertEquals(CREATED, response2.eventType)
-                assertEquals(RED, response2.color)
+                assertEquals(WHITE, response2.color)
 
                 assertEquals(0, countGameByStatus(JOINED))
                 assertEquals(2, countGameByStatus(CREATED))
@@ -322,7 +342,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `does not auto-match when rating mode differs`() =
             runTest {
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -338,10 +358,10 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response2 = pvpGameService.createGame(userId2, request2)
 
                 assertEquals(CREATED, response1.eventType)
-                assertEquals(RED, response1.color)
+                assertEquals(WHITE, response1.color)
 
                 assertEquals(CREATED, response2.eventType)
-                assertEquals(RED, response2.color)
+                assertEquals(WHITE, response2.color)
 
                 assertEquals(0, countGameByStatus(JOINED))
                 assertEquals(2, countGameByStatus(CREATED))
@@ -351,7 +371,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `does not auto-match when time control differs`() =
             runTest {
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -367,10 +387,10 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response2 = pvpGameService.createGame(userId2, request2)
 
                 assertEquals(CREATED, response1.eventType)
-                assertEquals(RED, response1.color)
+                assertEquals(WHITE, response1.color)
 
                 assertEquals(CREATED, response2.eventType)
-                assertEquals(RED, response2.color)
+                assertEquals(WHITE, response2.color)
 
                 assertEquals(0, countGameByStatus(JOINED))
                 assertEquals(2, countGameByStatus(CREATED))
@@ -380,7 +400,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `does not auto-match guest-created game with no-guests game`() =
             runTest {
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -398,7 +418,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response3 = pvpGameService.createGame(userId2, request3)
 
                 assertEquals(CREATED, response1.eventType)
-                assertEquals(RED, response1.color)
+                assertEquals(WHITE, response1.color)
 
                 assertEquals(CREATED, response2.eventType)
                 assertEquals(null, response2.color)
@@ -414,7 +434,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `does not auto-match games created by the same user`() =
             runTest {
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -430,7 +450,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response2 = pvpGameService.createGame(userId1, request2)
 
                 assertEquals(CREATED, response1.eventType)
-                assertEquals(RED, response1.color)
+                assertEquals(WHITE, response1.color)
 
                 assertEquals(CREATED, response2.eventType)
                 assertEquals(null, response2.color)
@@ -443,7 +463,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `does not auto-match private invite games`() =
             runTest {
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -459,7 +479,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response2 = pvpGameService.createGame(userId2, request2)
 
                 assertEquals(CREATED, response1.eventType)
-                assertEquals(RED, response1.color)
+                assertEquals(WHITE, response1.color)
 
                 assertEquals(CREATED, response2.eventType)
                 assertEquals(BLACK, response2.color)
@@ -472,7 +492,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `does not auto-match games with different variants`() =
             runTest {
                 val manchuRequest = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -489,7 +509,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response2 = pvpGameService.createGame(userId2, xiangqiRequest)
 
                 assertEquals(CREATED, response1.eventType)
-                assertEquals(RED, response1.color)
+                assertEquals(WHITE, response1.color)
 
                 assertEquals(CREATED, response2.eventType)
                 assertEquals(BLACK, response2.color)
@@ -505,7 +525,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `joins compatible manchu games`() =
             runTest {
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -522,7 +542,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response2 = pvpGameService.createGame(userId2, request2)
 
                 assertEquals(CREATED, response1.eventType)
-                assertEquals(RED, response1.color)
+                assertEquals(WHITE, response1.color)
 
                 assertEquals(JOINED, response2.eventType)
                 assertEquals(BLACK, response2.color)
@@ -535,7 +555,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `rejects guest joining a game that disallows guests`() =
             runTest {
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -573,7 +593,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 userService.refreshIsOnlineCache()
 
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -623,7 +643,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 userService.refreshIsOnlineCache()
 
                 val request1 = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -644,7 +664,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val response2 = pvpGameService.createGame(userId2, request1.copy())
                 assertEquals(CREATED, response2.eventType)
 
-                // both back online; games are incompatible (both RED) → no match
+                // both back online; games are incompatible (both WHITE) → no match
                 setUserOnline(userId1.id)
                 setUserOnline(userId2.id)
                 userService.refreshIsOnlineCache()
@@ -678,7 +698,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         @Test
         fun `completes a rated xiangqi game and updates only xiangqi ratings`() =
             runTest {
-                val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
+                val gameId = createAndJoinGame(userId1, userId2, inviterColor = WHITE)
                 val gameMoves = gameMovesCache.findByGameId("4Q815fbI")
                 assertTrue { gameMoves.endsInCheckmate() }
 
@@ -726,12 +746,12 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val expectedLoserRating = 1_000 - 8
 
                 val inviterWins =
-                    (gameData.outcome == RED_WINS && inviterColor == RED) ||
+                    (gameData.outcome == WHITE_WINS && inviterColor == WHITE) ||
                         (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
 
                 val inviteeWins =
-                    (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
-                        (gameData.outcome == BLACK_WINS && inviterColor == RED)
+                    (gameData.outcome == WHITE_WINS && inviterColor == BLACK) ||
+                        (gameData.outcome == BLACK_WINS && inviterColor == WHITE)
 
                 when {
                     inviterWins -> {
@@ -780,7 +800,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         @Test
         fun `completes a rated manchu game and updates only manchu ratings`() =
             runTest {
-                val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED, variant = Variant.MANCHU)
+                val gameId = createAndJoinGame(userId1, userId2, inviterColor = WHITE, variant = Variant.MANCHU)
                 val manchuMoves = manchuGameMovesCache.listAll().random()
 
                 manchuMoves.uciMoves.dropLast(1).forEachIndexed { i, move ->
@@ -813,12 +833,12 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val expectedLoserRating = 1_000 - 8
 
                 val inviterWins =
-                    (gameData.outcome == RED_WINS && inviterColor == RED) ||
+                    (gameData.outcome == WHITE_WINS && inviterColor == WHITE) ||
                         (gameData.outcome == BLACK_WINS && inviterColor == BLACK)
 
                 val inviteeWins =
-                    (gameData.outcome == RED_WINS && inviterColor == BLACK) ||
-                        (gameData.outcome == BLACK_WINS && inviterColor == RED)
+                    (gameData.outcome == WHITE_WINS && inviterColor == BLACK) ||
+                        (gameData.outcome == BLACK_WINS && inviterColor == WHITE)
 
                 when {
                     inviterWins -> {
@@ -867,7 +887,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         @Test
         fun `rejects playing opponent color non-parsable move and illegal move`() =
             runTest {
-                val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
+                val gameId = createAndJoinGame(userId1, userId2, inviterColor = WHITE)
                 val gameMoves = gameMovesCache.findByGameId("iaxeugSr")
 
                 gameMoves.uciMoves.dropLast(10).forEach { move ->
@@ -889,7 +909,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 }
 
                 logger.info { "expected exception $e1" }
-                assertEquals("It is RED turn to play and user ${userId2.id} plays BLACK", e1.message)
+                assertEquals("It is WHITE turn to play and user ${userId2.id} plays BLACK", e1.message)
 
                 // user attempts to play non-parsable move
                 val e2 = assertFailsWith<BadRequestException> {
@@ -903,7 +923,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 }
 
                 logger.info { "expected exception $e2" }
-                assertEquals("Move 'not a valid move' can not be parsed", e2.message)
+                assertEquals("Move 'not a valid move' can not be parsed in game $gameId", e2.message)
 
                 // user attempts to play illegal move
                 val e3 = assertFailsWith<BadRequestException> {
@@ -917,7 +937,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 }
 
                 logger.info { "expected exception $e3" }
-                assertEquals("Move 'a1b3' is illegal", e3.message)
+                assertEquals("Move 'a1b3' is illegal in game $gameId", e3.message)
             }
 
         /**
@@ -930,7 +950,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `rejects move that is illegal despite prior valid move history`() =
             runTest {
                 val moves = listOf("c3c4", "b9c7", "g3g4", "h7g7", "h0g2", "g7g4", "g2f4", "g6g5", "b2e2")
-                val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
+                val gameId = createAndJoinGame(userId1, userId2, inviterColor = WHITE)
 
                 moves.forEach { move ->
                     pvpGameService.playMove(
@@ -947,7 +967,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 }
 
                 logger.info { "expected exception $e" }
-                assertEquals("Move 'g4e4' is illegal", e.message)
+                assertEquals("Move 'g4e4' is illegal in game $gameId", e.message)
             }
 
         /**
@@ -971,7 +991,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     "d7d8", "e8e7", "d8d7", "e7e8", "d7d8", "e8e7", "d8d7", "e7e8",
                 )
 
-                val gameId = createAndJoinGame(userId1, userId2, inviterColor = RED)
+                val gameId = createAndJoinGame(userId1, userId2, inviterColor = WHITE)
                 moves.take(102).forEachIndexed { _, move ->
                     pvpGameService.playMove(
                         userId = userIdToPlay(gameId),
@@ -998,7 +1018,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         }
 
         private fun colorToPlay(currentHalfMoveIndex: Int) =
-            if (currentHalfMoveIndex % 2 == 0) RED else BLACK
+            if (currentHalfMoveIndex % 2 == 0) WHITE else BLACK
 
         private suspend fun fetchXiangqiRapidRating(userId: String): Int =
             dslContext
@@ -1057,7 +1077,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `rejects creating more than 3 pending games with same settings`() =
             runTest {
                 val request = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,
@@ -1088,7 +1108,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
         fun `applies limit per time category`() =
             runTest {
                 val request = CreateGameRequest(
-                    inviterColor = RED,
+                    inviterColor = WHITE,
                     isRated = true,
                     timeControlBase = 30.minutes.inWholeSeconds.toInt(),
                     timeControlIncrement = null,

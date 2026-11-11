@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,7 +90,7 @@ class AdminOverviewPage extends BasePage {
         return entries
             .sort((a, b) => a.userType.localeCompare(b.userType))
             .map(entry => {
-                const element = buildUsernameSpan(entry.id, entry.username, entry.userType);
+                const element = buildAdminUsernameSpan(entry.id, entry.username, entry.userType);
                 element.classList.add('user-link');
                 return element;
             });
@@ -104,19 +104,24 @@ class AdminOverviewPage extends BasePage {
     #renderAuthenticatedUsers(entries) {
         return entries
             .map(entry => {
-                const element = buildUsernameSpan(entry.id, entry.username, UserType.AUTHENTICATED);
+                const element = buildAdminUsernameSpan(entry.id, entry.username, UserType.AUTHENTICATED);
                 element.classList.add('user-link');
                 return element;
             });
     }
 
     #fetchLatestExceptions() {
-        getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-thrown-exceptions?limit=10&codeFilter=5xx`, json => {
+        getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-thrown-exceptions?limit=30`, json => {
             const tbody = emptyTable(this.#latestExceptionsTable);
 
             json.entries.forEach(entry => {
                 const row = tbody.insertRow();
-                renderExceptionRow(entry, row, {showFullyQualifiedClassName: false});
+                renderExceptionRow(entry, row,
+                    {
+                        showFullyQualifiedClassName: false,
+                        maxMessageLength: 100
+                    }
+                );
             });
         });
     }
@@ -125,11 +130,17 @@ class AdminOverviewPage extends BasePage {
         getAndHandle(`${ADMIN_URL_PREFIX}/latest-game-activity/latest-pvp`, json => {
             this.#setActivityTimestamp('latest-pvp-timestamp', json.latestPvpActivity);
             this.#setActivityTimestamp('latest-pvp3-timestamp', json.latestPvp3Activity);
+            this.#setActivityTimestamp('latest-pvp-manchu3-timestamp', json.latestManchu3Activity);
+            this.#setActivityTimestamp('latest-pvp-xiangqi3-timestamp', json.latestXiangqi3Activity);
         });
 
         getAndHandle(`${ADMIN_URL_PREFIX}/latest-game-activity/latest-pvb`, json => {
             this.#setActivityTimestamp('latest-pvb-timestamp', json.latestPvbActivity);
             this.#setActivityTimestamp('latest-pvb3-timestamp', json.latestPvb3Activity);
+            this.#setActivityTimestamp('latest-pvb-fairy3-timestamp', json.latestFairy3Activity);
+            this.#setActivityTimestamp('latest-pvb-manchu3-timestamp', json.latestManchu3Activity);
+            this.#setActivityTimestamp('latest-pvb-janggi3-timestamp', json.latestJanggi3Activity);
+            this.#setActivityTimestamp('latest-pvb-xiangqi3-timestamp', json.latestXiangqi3Activity);
         });
 
         getAndHandle(`${ADMIN_URL_PREFIX}/latest-game-activity/live-pvp`, json => {

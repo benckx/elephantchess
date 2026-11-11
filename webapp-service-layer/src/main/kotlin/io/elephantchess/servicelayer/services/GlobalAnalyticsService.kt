@@ -172,6 +172,7 @@ class GlobalAnalyticsService(
             totalMoves = totalMoves,
             totalInAppMoves = totalInAppMovesMap,
             totalManchuGames = gameDataService.countTotalManchuGames(),
+            totalJanggiGames = gameDataService.countTotalJanggiGames(),
         )
     }
 
@@ -216,7 +217,7 @@ class GlobalAnalyticsService(
     private fun computeGlobalAppData(): GlobalAppDataResponse {
         val lastDeploy =
             if (isDockerized) {
-                podService.getLastRedeployTime() ?: Clock.System.now()
+                podService.getLastRedeployTime()
             } else {
                 Clock.System.now().minusHours(4L)
             }

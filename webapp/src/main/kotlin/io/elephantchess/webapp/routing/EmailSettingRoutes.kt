@@ -8,42 +8,38 @@ import io.elephantchess.servicelayer.utils.obfuscateEmail
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 private val simplePageRenderer by koin<SimplePageRenderer>()
 
-fun Application.emailSettingUpdatePages() {
+fun Route.emailSettingUpdatePages() {
     emailConfirmationRoutes()
     newsletterUnsubscriptionRoutes()
 }
 
 // renders a public page when the user clicks the confirmation link sent to them by email at signup.
-private fun Application.emailConfirmationRoutes() {
+private fun Route.emailConfirmationRoutes() {
     val userService by koin<UserService>()
-    routing {
-        get("/email/confirm") {
-            val code = call.parameters["code"].orEmpty()
-            val confirmed = userService.confirmEmail(code)
-            val template = if (confirmed) {
-                "email_confirmation/email_confirmed"
-            } else {
-                "email_confirmation/email_confirmation_error"
-            }
-            call.respondText(simplePageRenderer.renderTemplateNoCache(template), ContentType.Text.Html)
+
+    get("/email/confirm") {
+        val code = call.parameters["code"].orEmpty()
+        val confirmed = userService.confirmEmail(code)
+        val template = if (confirmed) {
+            "email_confirmation/email_confirmed"
+        } else {
+            "email_confirmation/email_confirmation_error"
         }
+        call.respondText(simplePageRenderer.renderTemplateNoCache(template), ContentType.Text.Html)
     }
 }
 
 // when sending the newsletter, there is a link to unsubscribe, which contains a unique code that identifies
 // the user and the type of unsubscription (newsletter only or all notifications).
-private fun Application.newsletterUnsubscriptionRoutes() {
-    routing {
-        get("/unsubscribe") {
-            val code = call.parameters["code"] ?: throw BadRequestException("code not provided")
-            call.respondText(processAndRenderUnsubscription(code), ContentType.Text.Html)
-        }
+private fun Route.newsletterUnsubscriptionRoutes() {
+    get("/unsubscribe") {
+        val code = call.parameters["code"] ?: throw BadRequestException("code not provided")
+        call.respondText(processAndRenderUnsubscription(code), ContentType.Text.Html)
     }
 }
 

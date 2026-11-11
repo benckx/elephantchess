@@ -1,6 +1,6 @@
 package io.elephantchess.scripts.puzzles
 
-import io.elephantchess.xiangqi.Board
+import io.elephantchess.xiangqi.XiangqiBoard
 
 /**
  * Validates that a puzzle remains "solvable" in a meaningful way: while replaying the recorded
@@ -22,7 +22,7 @@ object PuzzleSolvabilityValidator {
      * @return `true` if every player step offers at least [minLegalMoves] legal moves, `false` otherwise.
      */
     fun hasEnoughMovesAtEachPlayerStep(setupMoves: List<String>, solutionMoves: List<String>, minLegalMoves: Int): Boolean {
-        val board = Board()
+        val board = XiangqiBoard()
         setupMoves.forEach { move -> board.registerMove(move) }
         return hasEnoughMovesAtEachPlayerStep(board, solutionMoves, minLegalMoves)
     }
@@ -32,9 +32,9 @@ object PuzzleSolvabilityValidator {
      * (i.e. there are no setup moves and the player is the side to move in [startFen]).
      */
     fun hasEnoughMovesAtEachPlayerStep(startFen: String, solutionMoves: List<String>, minLegalMoves: Int): Boolean =
-        hasEnoughMovesAtEachPlayerStep(Board(startFen), solutionMoves, minLegalMoves)
+        hasEnoughMovesAtEachPlayerStep(XiangqiBoard(startFen), solutionMoves, minLegalMoves)
 
-    private fun hasEnoughMovesAtEachPlayerStep(board: Board, solutionMoves: List<String>, minLegalMoves: Int): Boolean {
+    private fun hasEnoughMovesAtEachPlayerStep(board: XiangqiBoard, solutionMoves: List<String>, minLegalMoves: Int): Boolean {
         val playerColor = board.colorToPlay()
 
         solutionMoves.forEach { move ->

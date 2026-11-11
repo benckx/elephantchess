@@ -4,9 +4,9 @@ import io.elephantchess.model.MoveAnnotationCategory
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationDetails
 import io.elephantchess.servicelayer.dto.analysis.MoveAnnotationResult
 import io.elephantchess.servicelayer.dto.engines.InfoLineResultDto
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -17,16 +17,23 @@ class MoveAnnotationCalculationTest {
     }
 
     @Test
-    fun `calculateCpl requires matching depth of at least 18`() {
+    fun `calculateCpl requires comparable depth of at least 14`() {
         assertNull(
             calculateCpl(
-                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 20),
-                actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 18),
+                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 13),
+                actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 13),
             ),
         )
         assertNull(
             calculateCpl(
-                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 17),
+                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 14),
+                actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 18),
+            ),
+        )
+        assertEquals(
+            300,
+            calculateCpl(
+                engineBest = buildTestInfoLineResultDto(fen = "engine", cp = 300, depth = 20),
                 actualMove = buildTestInfoLineResultDto(fen = "actual", cp = 0, depth = 17),
             ),
         )
@@ -37,14 +44,14 @@ class MoveAnnotationCalculationTest {
         val move = "h2e2"
         val bestMove = "c3c4"
 
-        val startBoard = Board(DEFAULT_START_FEN)
+        val startBoard = XiangqiBoard(DEFAULT_XIANGQI_START_FEN)
         val startFen = resetFullMoveCount(startBoard.outputFen())
 
-        val bestMoveBoard = Board(DEFAULT_START_FEN)
+        val bestMoveBoard = XiangqiBoard(DEFAULT_XIANGQI_START_FEN)
         bestMoveBoard.registerMove(bestMove)
         val bestMoveFen = resetFullMoveCount(bestMoveBoard.outputFen())
 
-        val actualMoveBoard = Board(DEFAULT_START_FEN)
+        val actualMoveBoard = XiangqiBoard(DEFAULT_XIANGQI_START_FEN)
         actualMoveBoard.registerMove(move)
         val actualMoveFen = resetFullMoveCount(actualMoveBoard.outputFen())
 

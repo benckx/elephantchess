@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -198,17 +198,47 @@ function buildDivWithTextAndClass(textContent, className) {
 /**
  * Builds a variant cell div (symbol + name) for the given variant.
  *
- * @param variant {string} - Variant.MANCHU or Variant.XIANGQI
+ * @param variant {string} - Variant.MANCHU, Variant.XIANGQI, or Variant.JANGGI
  * @returns {HTMLDivElement}
  */
 function buildVariantCell(variant) {
-    const isManchu = variant === Variant.MANCHU;
+    const symbolText = formatVariantSymbol(variant);
+    let variantName;
+    let variantTitle;
+    switch (variant) {
+        case Variant.JANGGI:
+            variantName = 'Janggi';
+            variantTitle = 'Janggi (Korean chess)';
+            break;
+        case Variant.MANCHU:
+            variantName = 'Manchu';
+            variantTitle = 'Manchu chess (or Yitong)';
+            break;
+        case Variant.XIANGQI:
+        default:
+            variantName = 'Xiangqi';
+            variantTitle = 'Xiangqi (Chinese chess)';
+            break;
+    }
     const cell = buildDivWithClass('variant-cell');
-    const symbol = buildDivWithTextAndClass(isManchu ? '统' : '象', 'variant-symbol');
-    symbol.title = isManchu ? 'Manchu chess (or Yitong)' : 'Xiangqi (Chinese chess)';
-    const textContent = isManchu ? 'Manchu' : 'Xiangqi';
-    cell.append(symbol, buildDivWithTextAndClass(textContent, 'variant-name'));
+    const symbol = buildDivWithTextAndClass(symbolText, 'variant-symbol');
+    symbol.title = variantTitle;
+    cell.append(symbol, buildDivWithTextAndClass(variantName, 'variant-name'));
     return cell;
+}
+
+function formatVariantSymbol(variant) {
+    switch (variant) {
+        case Variant.JANGGI:
+            return '장';
+        case Variant.MANCHU:
+            return '统';
+        case Variant.XIANGQI:
+            return '象';
+        default:
+            return '?';
+
+    }
 }
 
 /**
@@ -297,16 +327,16 @@ function buildUsernameSpan(userId, username, userType, maxLength = null, removeG
  * @param color {string|null}
  * @return {HTMLSpanElement}
  */
-function buildColorSpan(color) {
+function buildColorSpan(color, variant = Variant.XIANGQI) {
     const colorSpan = document.createElement('span');
     switch (color) {
-        case Color.RED:
-            colorSpan.className = 'red-color';
-            colorSpan.innerText = 'Red';
+        case Color.WHITE:
+            colorSpan.className = variant === Variant.JANGGI ? 'blue-color' : 'red-color';
+            colorSpan.innerText = variant === Variant.JANGGI ? 'Blue' : 'Red';
             break;
         case Color.BLACK:
-            colorSpan.className = 'black-color';
-            colorSpan.innerText = 'Black';
+            colorSpan.className = variant === Variant.JANGGI ? 'red-color' : 'black-color';
+            colorSpan.innerText = variant === Variant.JANGGI ? 'Red' : 'Black';
             break;
         default:
             colorSpan.className = 'any-color';
@@ -608,9 +638,9 @@ function showNewGameModal() {
     });
 }
 
-function showPlayBotModal() {
+function showPlayBotModal(variant = null) {
     UI.showModalByName(Modals.PLAY_BOT, () => {
-        new PlayBotModalHandler();
+        new PlayBotModalHandler(variant);
     });
 }
 

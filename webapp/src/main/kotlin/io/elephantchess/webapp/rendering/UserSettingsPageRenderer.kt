@@ -8,14 +8,7 @@ import io.elephantchess.servicelayer.dto.user.NotificationsSettingsDto
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.services.analytics.ARCHIVE_PAGE_VIEW_AFTER_DAYS
 import io.elephantchess.utils.di.KoinSingleton
-import kotlinx.html.checkBoxInput
-import kotlinx.html.div
-import kotlinx.html.id
-import kotlinx.html.label
-import kotlinx.html.span
-import kotlinx.html.table
-import kotlinx.html.td
-import kotlinx.html.tr
+import kotlinx.html.*
 
 @KoinSingleton(eager = true)
 class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private val userService: UserService) {

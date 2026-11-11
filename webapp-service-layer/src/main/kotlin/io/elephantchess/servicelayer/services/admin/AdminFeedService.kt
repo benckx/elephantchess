@@ -1,23 +1,15 @@
 package io.elephantchess.servicelayer.services.admin
 
-import io.elephantchess.db.dao.codegen.Tables.PUZZLE_RESULT
-import io.elephantchess.db.dao.codegen.Tables.USER
+import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
-import io.elephantchess.db.services.AnalysisDaoService
-import io.elephantchess.db.services.ContentSectionVoteDaoService
-import io.elephantchess.db.services.PlayerVsBotGameDaoService
-import io.elephantchess.db.services.PlayerVsPlayerGameDaoService
-import io.elephantchess.db.services.PuzzleResultDaoService
+import io.elephantchess.db.services.*
 import io.elephantchess.db.utils.winnerUserId
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
 import io.elephantchess.model.UserType
-import io.elephantchess.servicelayer.dto.admin.ListBotGamesResponse
-import io.elephantchess.servicelayer.dto.admin.ListContentSectionVoteFeedbackResponse
-import io.elephantchess.servicelayer.dto.admin.ListGamesResponse
-import io.elephantchess.servicelayer.dto.admin.ListLastPuzzleByLoggedInUsersResponse
-import io.elephantchess.servicelayer.dto.admin.ListLastUserAnalysisResponse
+import io.elephantchess.servicelayer.dto.admin.*
+import io.elephantchess.servicelayer.services.PuzzleCache
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Variant
@@ -28,10 +20,13 @@ class AdminFeedService(
     private val analysisDaoService: AnalysisDaoService,
     private val pvbGameDaoService: PlayerVsBotGameDaoService,
     private val pvpGameDaoService: PlayerVsPlayerGameDaoService,
+    private val sockPuppetReportDaoService: SockPuppetReportDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val contentSectionVoteDaoService: ContentSectionVoteDaoService,
+    private val puzzleCache: PuzzleCache,
     private val userCache: UserCache,
 ) {
+
     suspend fun listLastPuzzlePlayedByLoggedUsers(): ListLastPuzzleByLoggedInUsersResponse =
         puzzleResultDaoService
             .listLastPuzzlePlayedByLoggedUsers(24)
@@ -39,15 +34,18 @@ class AdminFeedService(
                 val userId = record.get(USER.ID)
                 val username = userCache.fetchUsername(userId)
                 val userType = userCache.fetchUserType(userId)
+                val puzzleId = record.get(PUZZLE_RESULT.PUZZLE_ID)
 
                 ListLastPuzzleByLoggedInUsersResponse.Entry(
-                    puzzleId = record.get(PUZZLE_RESULT.PUZZLE_ID),
+                    puzzleId = puzzleId,
                     outcome = record.get(PUZZLE_RESULT.OUTCOME),
                     userId = userId,
                     userType = userType,
                     username = username,
                     date = record.get(PUZZLE_RESULT.ENTRY_CREATION).toEpochMilliseconds(),
                     upVoted = record.get(PUZZLE_RESULT.UP_VOTED),
+                    puzzleCreated = record.get(PUZZLE.CREATED_AT).toEpochMilliseconds(),
+                    categories = puzzleCache.listCategories(puzzleId),
                 )
             }
             .let { entries ->
@@ -84,7 +82,10 @@ class AdminFeedService(
                 statusToExcludes = listOf(AUTO_CANCELED),
                 variantsToInclude = listOf(XIANGQI),
             )
-            .map { record -> mapGameToDto(record) }
+            .let { records ->
+                val detectionCreationTimes = sockPuppetReportDaoService.findDetectionCreationTimes(records.map { record -> record.id })
+                records.map { record -> mapGameToDto(record, detectionCreationTimes[record.id]?.toEpochMilliseconds()) }
+            }
             .let { entries -> ListGamesResponse(entries) }
 
     suspend fun listLatestVariantPvpGames(): ListGamesResponse =
@@ -94,7 +95,10 @@ class AdminFeedService(
                 statusToExcludes = listOf(AUTO_CANCELED),
                 variantsToInclude = nonXiangqiVariants,
             )
-            .map { record -> mapGameToDto(record) }
+            .let { records ->
+                val detectionCreationTimes = sockPuppetReportDaoService.findDetectionCreationTimes(records.map { record -> record.id })
+                records.map { record -> mapGameToDto(record, detectionCreationTimes[record.id]?.toEpochMilliseconds()) }
+            }
             .let { entries -> ListGamesResponse(entries) }
 
     suspend fun listLatestPvbGames(): ListBotGamesResponse =
@@ -116,6 +120,23 @@ class AdminFeedService(
             .let { entries -> ListBotGamesResponse(entries) }
 
     suspend fun listLatestFeedback(): ListContentSectionVoteFeedbackResponse {
+        val aggregates = contentSectionVoteDaoService
+            .listVoteCountsByPageAndSection()
+            .map { record ->
+                ListContentSectionVoteFeedbackResponse.Aggregate(
+                    pageId = record.pageId,
+                    sectionId = record.sectionId,
+                    upVotes = record.upVotes,
+                    downVotes = record.downVotes,
+                    totalVotes = record.upVotes - record.downVotes,
+                )
+            }
+            .sortedWith(
+                compareByDescending<ListContentSectionVoteFeedbackResponse.Aggregate> { it.totalVotes }
+                    .thenBy { it.pageId }
+                    .thenBy { it.sectionId },
+            )
+
         val entries = contentSectionVoteDaoService
             .listLatestFeedback(250)
             .map { record ->
@@ -131,10 +152,49 @@ class AdminFeedService(
                     updateTime = record.updateTime.toEpochMilliseconds(),
                 )
             }
-        return ListContentSectionVoteFeedbackResponse(entries)
+
+        return ListContentSectionVoteFeedbackResponse(aggregates, entries)
     }
 
-    private suspend fun mapGameToDto(record: Game): ListGamesResponse.Entry =
+    suspend fun listSockPuppetReport(limit: Int = 500): ListSockPuppetReportResponse {
+        val summary = sockPuppetReportDaoService.fetchDetectionsSummary()
+        val entries = sockPuppetReportDaoService.listLatestDetections(limit)
+            .map { record ->
+                ListSockPuppetReportResponse.Entry(
+                    gameId = record.gameId,
+                    inviterUserId = record.inviterUserId,
+                    inviterUsername = userCache.fetchUsernameOrDefault(record.inviterUserId),
+                    inviteeUserId = record.inviteeUserId,
+                    inviteeUsername = userCache.fetchUsernameOrDefault(record.inviteeUserId),
+                    sharedRemoteAddressCount = record.sharedRemoteAddressCount,
+                    sharedFingerprintCount = record.sharedFingerprintCount,
+                    sharedRemoteAddress = record.sharedRemoteAddress,
+                    sharedCountryCode = record.sharedCountryCode,
+                    sharedCountryName = record.sharedCountryName,
+                    sharedRegion = record.sharedRegion,
+                    sharedCity = record.sharedCity,
+                    sharedOperatingSystemName = record.sharedOperatingSystemName,
+                    sharedAgentName = record.sharedAgentName,
+                    sharedAgentClass = record.sharedAgentClass,
+                    sharedUserAgent = record.sharedUserAgent,
+                    gameCreated = record.gameCreated.toEpochMilliseconds(),
+                )
+            }
+
+        return ListSockPuppetReportResponse(
+            summary = ListSockPuppetReportResponse.Summary(
+                totalDetections = summary.totalDetections,
+                totalUsersInvolved = summary.totalUsersInvolved,
+                distinctUsersInvolved = summary.distinctUsersInvolved,
+                reportedGamesLast30Days = summary.reportedGamesLast30Days,
+                totalPvpGamesLast30Days = summary.totalPvpGamesLast30Days,
+                reportedGamesPercentageLast30Days = summary.reportedGamesRatioLast30Days * 100.0,
+            ),
+            entries = entries,
+        )
+    }
+
+    private suspend fun mapGameToDto(record: Game, sockPuppetReportDate: Long?): ListGamesResponse.Entry =
         ListGamesResponse.Entry(
             gameId = record.id,
             inviterUserId = record.inviter,
@@ -154,6 +214,8 @@ class AdminFeedService(
             created = record.created.toEpochMilliseconds(),
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
             sourceType = record.joinSource,
+            hasSockPuppetDetection = sockPuppetReportDate != null,
+            sockPuppetReportDate = sockPuppetReportDate,
             variant = record.variant,
         )
 

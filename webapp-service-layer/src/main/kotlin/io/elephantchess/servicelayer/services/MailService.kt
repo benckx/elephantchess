@@ -16,11 +16,7 @@ import io.elephantchess.servicelayer.model.Email
 import io.elephantchess.servicelayer.model.MatchingEmail
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.UserService.Companion.PASSWORD_RECOVERY_TIMEOUT_HOURS
-import io.elephantchess.servicelayer.services.resolvers.ContentFeedbackRowsTagResolver
-import io.elephantchess.servicelayer.services.resolvers.EmailConfirmationLinkTagResolver
-import io.elephantchess.servicelayer.services.resolvers.GameLinkTagResolver
-import io.elephantchess.servicelayer.services.resolvers.RecoveryLinkTagResolver
-import io.elephantchess.servicelayer.services.resolvers.UnsubscribeTagResolver
+import io.elephantchess.servicelayer.services.resolvers.*
 import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
@@ -60,18 +56,17 @@ class MailService(
     /**
      * Returns the full [EmailValidityStatus] for the given email.
      *
-     * The check is layered: if a user owns this address and has clicked the confirmation
-     * link sent at signup, the address is considered [EmailValidityStatus.MANUALLY_CONFIRMED]
-     * (the strongest signal). Otherwise, we fall back to the automated verification.
+     * Suppressing bounce statuses take precedence over confirmation. Otherwise, a confirmed
+     * address is valid and unconfirmed addresses fall back to automated verification.
      */
     suspend fun getEmailValidityDetails(email: String): EmailValidityStatus {
+        if (emailVerificationDaoService.hasEmailBounced(email)) {
+            return EmailValidityStatus.AUTOMATED_BOUNCED
+        }
+
         val user = userDaoService.findByEmail(email)
         if (user?.emailConfirmedAt != null) {
             return EmailValidityStatus.MANUALLY_CONFIRMED
-        }
-
-        if (emailVerificationDaoService.hasEmailBounced(email)) {
-            return EmailValidityStatus.AUTOMATED_BOUNCED
         }
 
         val automatedVerifications =
@@ -157,20 +152,26 @@ class MailService(
      * List all emails that:
      * - have a valid status (manually confirmed by the user, or automatically validated by the
      *   external service)
-     * - have not bounced
+     * - have no suppressing bounce status
      * - consent to receive the newsletter (implicit)
      */
     suspend fun listNewsLetterRecipientEmails(): List<String> {
         val automaticallyValidated =
             emailVerificationDaoService.listAllAutomaticallyValidatedEmails(emailValidityDuration)
         val manuallyConfirmed = userDaoService.listManuallyConfirmedEmailAddresses().toSet()
-        val bounced = emailVerificationDaoService.listBouncedEmails()
-        val newsletterRecipients = userDaoService
-            .listNewsletterEmailAddresses()
-            .filter { emailAddress ->
-                manuallyConfirmed.contains(emailAddress) || automaticallyValidated.contains(emailAddress)
+        val bounced = emailVerificationDaoService.listBouncedEmails().toSet()
+
+        val hasBeenConfirmed =
+            { emailAddress: String ->
+                manuallyConfirmed.contains(emailAddress) ||
+                    automaticallyValidated.contains(emailAddress)
             }
-            .filterNot { emailAddress -> bounced.contains(emailAddress) }
+        val hasBounced =
+            { emailAddress: String -> bounced.contains(emailAddress) }
+
+        val newsletterRecipients = userDaoService
+            .listAcceptNewsletterEmailAddresses()
+            .filter { emailAddress -> hasBeenConfirmed(emailAddress) && !hasBounced(emailAddress) }
             .map { emailAddress -> emailAddress.trim() }
 
         logger.info {

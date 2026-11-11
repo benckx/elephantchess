@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,7 +107,7 @@ class PlayerVsBotPage extends BasePage {
         super();
 
         // handle url params
-        let gameId = getQueryParam('id');
+        const gameId = getQueryParam('id');
 
         // widgets
         this.#boardGui.disablePlayerMove();
@@ -124,38 +124,8 @@ class PlayerVsBotPage extends BasePage {
 
         this.#controller = new PlayerVsBotController(
             gameId,
-            (botGameDto) => {
-                this.#boardGui.flipToColor(botGameDto.userColor);
-                this.#moveTreeWidget.startFen = botGameDto.startFen;
-                let infoPlayer = document.getElementById('info-player');
-                if (botGameDto.isAnonymous) {
-                    infoPlayer.innerText = 'anonymous';
-                } else {
-                    infoPlayer.append(
-                        buildUsernameSpan(
-                            botGameDto.userId,
-                            botGameDto.username,
-                            botGameDto.userType
-                        )
-                    );
-                }
-                document.getElementById('info-user-color').append(buildColorSpan(botGameDto.userColor));
-                document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
-                document.getElementById('info-depth').innerText = botGameDto.depth.toString();
-                document.getElementById('info-created').innerText = botGameDto.formattedCreated;
-                if (botGameDto.isManchu) {
-                    document.getElementById('info-variant').innerText = 'Manchu';
-                    document.getElementById('info-variant-row').style.display = '';
-                }
-                this.#updateOutcomeLabel();
-                this.#updateButtonsEnabled();
-                this.#enablePlayerMoveIfPermitted();
-                this.#startSpectatorSessionIfNeeded(gameId, botGameDto);
-                this.#setupIsOnlineStatusUpdates();
-            },
-            fen => {
-                this.#boardGui.loadFen(fen);
-            },
+            (botGameDto) => this.#initCallback(gameId, botGameDto),
+            fen => this.#boardGui.loadFen(fen),
             moves => {
                 this.#moveTreeWidget.setMoves(moves);
                 this.#renderAnalysisSummaryReportIfAvailable();
@@ -167,7 +137,8 @@ class PlayerVsBotPage extends BasePage {
                 this.#enablePlayerMoveIfPermitted();
             },
             () => this.#gameEndedCallback(true),
-            () => this.#gameEndedCallback(false)
+            () => this.#gameEndedCallback(false),
+            () => this.#gameEndedCallback(null)
         );
 
         // set up listeners
@@ -191,7 +162,6 @@ class PlayerVsBotPage extends BasePage {
                 this.#handleClickedCancelButton();
             }
         });
-
         this.#analyzeButtons.forEach((button) => {
             button.addEventListener('click', (e) => {
                 if (isAppButtonEnabled(e)) {
@@ -209,6 +179,46 @@ class PlayerVsBotPage extends BasePage {
             Modals.GAME_LOSS,
             Modals.CONFIRMATION
         );
+    }
+
+    /**
+     * @param gameId {string}
+     * @param botGameDto {BotGameDto}
+     */
+    #initCallback(gameId, botGameDto) {
+        this.#boardGui.setVariant(botGameDto.variant);
+        this.#boardGui.flipToColor(botGameDto.userColor);
+        this.#moveTreeWidget.variant = botGameDto.variant;
+        this.#moveTreeWidget.startFen = botGameDto.startFen;
+        const infoPlayer = document.getElementById('info-player');
+        if (botGameDto.isAnonymous) {
+            infoPlayer.innerText = 'anonymous';
+        } else {
+            infoPlayer.append(buildUsernameSpan(botGameDto.userId, botGameDto.username, botGameDto.userType));
+        }
+        document.getElementById('info-user-color').append(buildColorSpan(botGameDto.userColor, botGameDto.variant));
+        document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
+        document.getElementById('info-depth').innerText = botGameDto.depth.toString();
+        document.getElementById('info-created').innerText = botGameDto.formattedCreated;
+
+        this.#updateOutcomeLabel();
+        this.#updateButtonsEnabled();
+        this.#enablePlayerMoveIfPermitted();
+        this.#startSpectatorSessionIfNeeded(gameId, botGameDto);
+        this.#setupIsOnlineStatusUpdates();
+
+        switch (botGameDto.variant) {
+            case Variant.XIANGQI:
+                document.getElementById('info-variant').innerText = 'Xiangqi';
+                break;
+            case Variant.MANCHU:
+                document.getElementById('info-variant').innerText = 'Manchu';
+                break;
+            case Variant.JANGGI:
+                document.getElementById('info-variant').innerText = 'Janggi';
+                document.getElementById('janggi-beta-message').style.display = 'flex';
+                break;
+        }
     }
 
     #handleClickedResignButton() {
@@ -244,15 +254,17 @@ class PlayerVsBotPage extends BasePage {
     }
 
     /**
-     * @param isUserVictory {boolean}
+     * @param isUserVictory {boolean|null} Null for a draw.
      */
     #gameEndedCallback(isUserVictory) {
-        let modalName = isUserVictory ? Modals.GAME_WIN : Modals.GAME_LOSS;
-        UI.showModalByName(modalName, () => {
-            document
-                .getElementById('ok-button')
-                .addEventListener('click', () => UI.hideModal(null));
-        });
+        if (isUserVictory != null) {
+            let modalName = isUserVictory ? Modals.GAME_WIN : Modals.GAME_LOSS;
+            UI.showModalByName(modalName, () => {
+                document
+                    .getElementById('ok-button')
+                    .addEventListener('click', () => UI.hideModal(null));
+            });
+        }
         this.#boardGui.disablePlayerMove();
         this.#updateOutcomeLabel();
         this.#updateButtonsEnabled();
@@ -309,15 +321,19 @@ class PlayerVsBotPage extends BasePage {
     }
 
     #updateButtonsEnabled() {
-        if (isStatusFinished(this.#controller.gameStatus()) && !this.#controller.isManchu()) {
+        if (isStatusFinished(this.#controller.gameStatus())
+            && !this.#controller.isManchu()
+            && !this.#controller.isJanggi()) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
             });
         } else {
-            const tooltip = this.#controller.isManchu()
-                ? 'Analysis is not supported for Manchu variant games'
-                : ANALYZE_BUTTON_TOOLTIP_DISABLED;
+            const tooltip = this.#controller.isJanggi()
+                ? 'Analysis is not supported for Janggi variant games'
+                : this.#controller.isManchu()
+                    ? 'Analysis is not supported for Manchu variant games'
+                    : ANALYZE_BUTTON_TOOLTIP_DISABLED;
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
                 addToolTip(button, tooltip);

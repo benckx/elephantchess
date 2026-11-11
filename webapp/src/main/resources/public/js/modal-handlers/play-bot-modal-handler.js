@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,10 +42,14 @@ class PlayBotModalHandler extends ModalHandler {
     #startFenStandardRadio = document.getElementById('start-fen-standard');
     #startFenCustomRadio = document.getElementById('start-fen-custom');
     #startFenInput = document.getElementById('start-fen');
+    #startFenOptions = document.getElementById('start-fen-options');
+    #janggiSetupSelectors = document.getElementById('janggi-setup-selectors');
+    #janggiBlueSetup = document.getElementById('janggi-blue-setup');
+    #janggiRedSetup = document.getElementById('janggi-red-setup');
 
     #playBotButton = document.getElementById('play-bot-button');
 
-    constructor() {
+    constructor(initialVariant = null) {
         super();
         this.#optionDivs = getElementsByClassNameArray(BOT_OPTION_BUTTON_CLASS);
 
@@ -67,10 +71,18 @@ class PlayBotModalHandler extends ModalHandler {
                     if (this.#startFenStandardRadio.checked) {
                         this.#setStartFenFromVariant();
                     }
+                    this.#updateColorLabelsFromVariant();
                 }
             });
         });
 
+        [this.#janggiBlueSetup, this.#janggiRedSetup].forEach(select => {
+            select.addEventListener('change', () => {
+                if (this.#startFenStandardRadio.checked) {
+                    this.#setStartFenFromVariant();
+                }
+            });
+        });
         this.#startFenStandardRadio.addEventListener('click', () => {
             this.#startFenInput.disabled = true;
             this.#setStartFenFromVariant();
@@ -85,13 +97,17 @@ class PlayBotModalHandler extends ModalHandler {
             this.#handleCreateGameClickEvent();
         });
 
-        // Auto-detect Manchu variant from FEN: if piece section contains an 'M', select Manchu
+        // Auto-detect Manchu variant from FEN: if piece section contains an 'M', select Manchu.
         this.#startFenInput.addEventListener('input', () => {
             const piecePart = this.#startFenInput.value.split(' ')[0];
             const isManchu = piecePart.includes('M');
-            this.#setSelectedVariant(isManchu ? Variant.MANCHU : Variant.XIANGQI);
+            const variant = isManchu
+                ? Variant.MANCHU
+                : this.#getSelectedVariant() === Variant.JANGGI ? Variant.JANGGI : Variant.XIANGQI;
+            this.#setSelectedVariant(variant);
             this.#updateEngineAvailabilityFromVariant();
             this.#updateOpeningModeAvailabilityFromVariant();
+            this.#updateColorLabelsFromVariant();
         });
 
         makeRadioClickable();
@@ -115,9 +131,16 @@ class PlayBotModalHandler extends ModalHandler {
             showGuestMessages();
         }
 
+        if (initialVariant !== null) {
+            this.#setSelectedVariant(initialVariant);
+            if (this.#startFenStandardRadio.checked) {
+                this.#setStartFenFromVariant();
+            }
+        }
         this.#updateDepthInfo();
         this.#updateEngineAvailabilityFromVariant();
         this.#updateOpeningModeAvailabilityFromVariant();
+        this.#updateColorLabelsFromVariant();
     }
 
     #handleCreateGameClickEvent() {
@@ -196,14 +219,20 @@ class PlayBotModalHandler extends ModalHandler {
     }
 
     #setStartFenFromVariant() {
-        this.#startFenInput.value = this.#getSelectedVariant() === Variant.MANCHU ? MANCHU_START_FEN : DEFAULT_START_FEN;
+        const variant = this.#getSelectedVariant();
+        if (variant === Variant.JANGGI) {
+            this.#startFenInput.value = generateJanggiStartFen(this.#janggiBlueSetup.value, this.#janggiRedSetup.value);
+        } else {
+            this.#startFenInput.value = variant === Variant.MANCHU ? MANCHU_START_FEN : DEFAULT_START_FEN;
+        }
+        this.#janggiSetupSelectors.style.visibility = variant === Variant.JANGGI ? '' : 'hidden';
     }
 
     #updateEngineAvailabilityFromVariant() {
-        const isManchu = this.#getSelectedVariant() === Variant.MANCHU;
+        const requiresFairy = this.#getSelectedVariant() !== Variant.XIANGQI;
         const pikaButton = document.getElementById('engine-pika');
 
-        if (isManchu) {
+        if (requiresFairy) {
             pikaButton.classList.add(BOT_OPTION_BUTTON_DISABLED_CLASS);
             if (pikaButton.classList.contains(BOT_OPTION_BUTTON_SELECTED_CLASS)) {
                 this.#unselectForGroup(BOT_ENGINE_OPTION_GROUP);
@@ -215,25 +244,39 @@ class PlayBotModalHandler extends ModalHandler {
     }
 
     #updateOpeningModeAvailabilityFromVariant() {
-        const isManchu = this.#getSelectedVariant() === Variant.MANCHU;
+        const isVariant = this.#getSelectedVariant() !== Variant.XIANGQI;
 
         for (let i = 0; i < this.#openingRadios.length; i++) {
-            this.#openingRadios[i].disabled = isManchu;
+            this.#openingRadios[i].disabled = isVariant;
         }
 
         this.#openingRadioOptions.forEach(option => {
-            if (isManchu) {
+            if (isVariant) {
                 option.classList.add('standard-radio-disabled');
             } else {
                 option.classList.remove('standard-radio-disabled');
             }
         });
 
-        if (isManchu) {
+        if (isVariant) {
             this.#openingEngineOnlyRadio.checked = true;
         } else {
             this.#openingByFrequencyRadio.checked = true;
         }
+    }
+
+    #updateColorLabelsFromVariant() {
+        const isJanggi = this.#getSelectedVariant() === Variant.JANGGI;
+        const whiteButton = document.getElementById('play-as-red');
+        const blackButton = document.getElementById('play-as-black');
+        this.#startFenOptions.style.visibility = isJanggi ? 'hidden' : '';
+        whiteButton.innerText = isJanggi ? 'Blue' : 'Red';
+        blackButton.innerText = isJanggi ? 'Red' : 'Black';
+        whiteButton.classList.toggle('blue-color', isJanggi);
+        whiteButton.classList.toggle('red-color', !isJanggi);
+        blackButton.classList.toggle('red-color', isJanggi);
+        blackButton.classList.toggle('black-color', !isJanggi);
+        this.#janggiSetupSelectors.style.visibility = isJanggi ? '' : 'hidden';
     }
 
     /**
@@ -252,7 +295,7 @@ class PlayBotModalHandler extends ModalHandler {
     #getSelectedColor() {
         return document.getElementById('play-as-black').classList.contains(BOT_OPTION_BUTTON_SELECTED_CLASS)
             ? Color.BLACK
-            : Color.RED;
+            : Color.WHITE;
     }
 
     /**
@@ -268,7 +311,9 @@ class PlayBotModalHandler extends ModalHandler {
      * @return {string|null}
      */
     #readStartFenValue() {
-        if (this.#startFenCustomRadio.checked) {
+        if (this.#getSelectedVariant() === Variant.JANGGI) {
+            return generateJanggiStartFen(this.#janggiBlueSetup.value, this.#janggiRedSetup.value);
+        } else if (this.#startFenCustomRadio.checked) {
             return this.#startFenInput.value;
         } else {
             return null;

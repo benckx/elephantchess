@@ -24,6 +24,8 @@ abstract class EngineProcess(
     private val locator: EngineProcessLocator,
     val engineId: EngineId,
     val version: String?,
+    private val osName: String? = null,
+    private val osArch: String? = null,
 ) : Runnable {
 
     abstract val logger: KLogger
@@ -50,17 +52,32 @@ abstract class EngineProcess(
         variant: Variant = Variant.XIANGQI,
         maxDelay: Long = DEFAULT_MAX_DELAY,
         checkPeriod: Long = DEFAULT_CHECK_PERIOD,
+        searchMoves: List<String>? = null,
+        waitForBestMove: Boolean = false,
     ): InfoLinesResult {
+        require(searchMoves == null || searchMoves.isNotEmpty()) { "searchMoves must not be empty" }
+        require(checkPeriod > 0) { "checkPeriod must be positive" }
         val infoListener = InfoLineListener()
         lineListener = infoListener
 
         setVariant(variant)
         inputCommand("position fen $fen")
-        inputCommand("go depth $maxDepth")
-        waitForCondition(maxDelay, checkPeriod) {
-            infoListener.shouldStopSearch(maxDepth)
+        val searchRestriction = searchMoves?.joinToString(" ", prefix = " searchmoves ") ?: ""
+        inputCommand("go depth $maxDepth$searchRestriction")
+        if (waitForBestMove) {
+            val gotResult = waitForCondition(maxDelay, checkPeriod) { infoListener.hasResult() }
+            if (!gotResult) {
+                inputCommand("stop")
+                check(waitForCondition(1_000, checkPeriod) { infoListener.hasResult() }) {
+                    "Engine did not return a best move for 'go depth $maxDepth' within ${maxDelay}ms."
+                }
+            }
+        } else {
+            waitForCondition(maxDelay, checkPeriod) {
+                infoListener.shouldStopSearch(maxDepth)
+            }
+            inputCommand("stop")
         }
-        inputCommand("stop")
         return infoListener.getResult()
     }
 
@@ -156,9 +173,9 @@ abstract class EngineProcess(
             lineListener?.receivedLine(line)
         }
 
-        val launchCommand = locator.launchCommand(engineId.pathOfExecutable(version))
-        logger.info { "running ${engineId.displayName} engine, launching $launchCommand" }
-        process = ProcessBuilder(launchCommand.split(" ")).start()
+        val launchArguments = locator.launchArguments(engineId.pathOfExecutable(version, osName, osArch))
+        logger.info { "running ${engineId.displayName} engine, launching ${launchArguments.joinToString(" ")}" }
+        process = ProcessBuilder(launchArguments).start()
         input = process.outputStream.bufferedWriter()
         reader = process.inputStream.bufferedReader()
         processedHasStarted.set(true)

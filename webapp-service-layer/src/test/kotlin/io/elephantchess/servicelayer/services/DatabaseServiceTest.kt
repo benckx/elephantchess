@@ -37,7 +37,7 @@ class DatabaseServiceTest : ServiceTest() {
     fun `search formats player names as canonical plus chinese name in brackets`() =
         runTest {
             dslContext.insertInto(REFERENCE_PLAYER)
-                .set(REFERENCE_PLAYER.ID, "p_red")
+                .set(REFERENCE_PLAYER.ID, "p_white")
                 .set(REFERENCE_PLAYER.SOURCE_NAME, "Hu Ronghua")
                 .set(REFERENCE_PLAYER.CANONICAL_NAME, "Hu Ronghua")
                 .set(REFERENCE_PLAYER.CHINESE_NAME, "胡荣华")
@@ -45,7 +45,7 @@ class DatabaseServiceTest : ServiceTest() {
                 .awaitExecute()
 
             dslContext.insertInto(REFERENCE_PLAYER)
-                .set(REFERENCE_PLAYER.ID, "p_blk")
+                .set(REFERENCE_PLAYER.ID, "p_black")
                 .set(REFERENCE_PLAYER.SOURCE_NAME, "Liu Dahua")
                 .set(REFERENCE_PLAYER.CANONICAL_NAME, "Liu Dahua")
                 .set(REFERENCE_PLAYER.CHINESE_NAME, "柳大华")
@@ -57,8 +57,8 @@ class DatabaseServiceTest : ServiceTest() {
                 .set(REFERENCE_GAME.NUMBER_OF_HALF_MOVES, 0)
                 .set(REFERENCE_GAME.DATE, LocalDate.of(2026, 1, 1))
                 .set(REFERENCE_GAME.YEAR, 2026)
-                .set(REFERENCE_GAME.RED_PLAYER, "p_red")
-                .set(REFERENCE_GAME.BLACK_PLAYER, "p_blk")
+                .set(REFERENCE_GAME.WHITE_PLAYER, "p_white")
+                .set(REFERENCE_GAME.BLACK_PLAYER, "p_black")
                 .set(REFERENCE_GAME.OUTCOME, Outcome.DRAW)
                 .set(
                     REFERENCE_GAME.FINAL_FEN,

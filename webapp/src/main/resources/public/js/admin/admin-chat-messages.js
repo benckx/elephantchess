@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ class AdminChatMessagesPage extends BasePage {
             const chatMessages = json.messages.map(message => new AdminChatMessageDto(message));
             chatMessages.forEach(message => {
                 const anchor = buildLink(gameIdToPageLink(message.gameId), message.gameId.id);
-                const author = buildUsernameSpan(message.author.userId, message.author.username, message.author.userType);
+                const author = buildAdminUsernameSpan(message.author.userId, message.author.username, message.author.userType);
                 const content = cropText(message.content, 60);
                 const timestamp = formatTimestampDefaultDateFormat(message.messageTime);
 
