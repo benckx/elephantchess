@@ -1,4 +1,3 @@
-import DaoCodeGenPlugin
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
@@ -14,14 +13,13 @@ val publishableModules = listOf(
 )
 
 plugins {
+    id("io.elephantchess.dao-code-gen")
     alias(libs.plugins.versions)
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.test.logger) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.ktlint)
 }
-
-apply<DaoCodeGenPlugin>()
 
 repositories {
     mavenCentral()
@@ -323,14 +321,6 @@ project(":scripts") {
         group = "generation"
         description = "Generate synthetic Janggi test fixtures using Fairy Stockfish self-play"
         mainClass.set("io.elephantchess.scripts.janggi.GenerateJanggiGames")
-        classpath = sourceSets["main"].runtimeClasspath
-        workingDir = rootProject.projectDir
-    }
-
-    tasks.register<JavaExec>("createJanggiDrawGame") {
-        group = "generation"
-        description = "Create a Janggi PvB game one human move away from a stalemate draw"
-        mainClass.set("io.elephantchess.scripts.janggi.CreateJanggiDrawGame")
         classpath = sourceSets["main"].runtimeClasspath
         workingDir = rootProject.projectDir
     }
