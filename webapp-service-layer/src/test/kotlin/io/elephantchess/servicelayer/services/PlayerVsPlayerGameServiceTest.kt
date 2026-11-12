@@ -486,6 +486,9 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     timeControlIncrement = 10,
                 )
 
+                assertEquals(TimeControlCategory.RAPID, TimeControlCategory.fromSeconds(request1.timeControlBase))
+                assertEquals(TimeControlCategory.RAPID, TimeControlCategory.fromSeconds(request2.timeControlBase))
+
                 val response1 = pvpGameService.createGame(userId1, request1)
                 val response2 = pvpGameService.createGame(userId2, request2)
 
@@ -815,7 +818,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 setUserOnline(userId2.id)
                 userService.refreshIsOnlineCache()
 
-                pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+                pvpGameService.attemptToMatchExistingGames(setOf(userId1.id, userId2.id))
 
                 assertEquals(1, countGameByStatus(JOINED))
                 assertEquals(0, countGameByStatus(CREATED))
@@ -867,7 +870,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 setUserOnline(userId2.id)
                 userService.refreshIsOnlineCache()
 
-                pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+                pvpGameService.attemptToMatchExistingGames(setOf(userId1.id, userId2.id))
 
                 assertEquals(1, countGameByStatus(JOINED))
                 assertEquals(0, countGameByStatus(CREATED))
@@ -909,7 +912,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 setUserOnline(userId2.id)
                 userService.refreshIsOnlineCache()
 
-                pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+                pvpGameService.attemptToMatchExistingGames(setOf(userId1.id, userId2.id))
 
                 assertEquals(0, countGameByStatus(JOINED))
                 assertEquals(2, countGameByStatus(CREATED))
@@ -951,7 +954,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 setUserOnline(userId2.id)
                 userService.refreshIsOnlineCache()
 
-                pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+                pvpGameService.attemptToMatchExistingGames(setOf(userId1.id, userId2.id))
 
                 assertEquals(0, countGameByStatus(JOINED))
                 assertEquals(2, countGameByStatus(CREATED))

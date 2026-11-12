@@ -20,7 +20,7 @@ class DynamicMatchingBatch(
     override suspend fun run() {
         val onlineUserIds = userService.onlineUserIds()
         if (onlineUserIds.size >= 2) {
-            pvpGameService.findDynamicMatches(onlineUserIds)
+            pvpGameService.attemptToMatchExistingGames(onlineUserIds)
         }
     }
 }

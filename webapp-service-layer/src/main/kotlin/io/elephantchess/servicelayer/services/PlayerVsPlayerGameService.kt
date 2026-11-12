@@ -498,7 +498,7 @@ class PlayerVsPlayerGameService(
      * at the same time). For each pair, the newer game's inviter joins the
      * older game and the newer game is auto-cancelled.
      */
-    internal suspend fun findDynamicMatches(onlineUserIds: Set<String>) {
+    suspend fun attemptToMatchExistingGames(onlineUserIds: Set<String>) {
         val candidates = pvpGameDaoService
             .listGamesOpenToJoin()
             .filter { game -> onlineUserIds.contains(game.inviter) }
