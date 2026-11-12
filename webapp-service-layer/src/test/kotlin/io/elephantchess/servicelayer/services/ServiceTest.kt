@@ -107,6 +107,7 @@ abstract class ServiceTest :
                 allowGuests = allowGuests,
                 alwaysVisibleInLobby = alwaysVisibleInLobby,
                 privateInvite = privateInvite,
+                allowSimilarTimeCategory = true,
                 variant = variant,
             ),
         )

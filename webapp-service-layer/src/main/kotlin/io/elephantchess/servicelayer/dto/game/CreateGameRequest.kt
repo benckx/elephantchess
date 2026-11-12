@@ -13,5 +13,6 @@ data class CreateGameRequest(
     val allowGuests: Boolean,
     val alwaysVisibleInLobby: Boolean,
     val privateInvite: Boolean,
+    val allowSimilarTimeCategory: Boolean,
     val variant: Variant = Variant.XIANGQI,
 )
