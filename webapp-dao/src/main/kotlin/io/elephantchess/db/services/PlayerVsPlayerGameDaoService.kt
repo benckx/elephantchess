@@ -78,7 +78,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         userType: UserType,
         userId: String,
         variant: Variant,
-        allowSimilarTimeCategory: Boolean = false,
+        allowSimilarTimeCategory: Boolean,
     ): List<Game> {
         var query =
             dslContext
