@@ -128,7 +128,7 @@ object CreateListOfGamesToJoin : KoinScriptInit() {
                         alwaysVisibleInLobby = true,
                         privateInvite = false,
                         variant = variant,
-                        allowSimilarTimeCategory = true
+                        allowSimilarTimeCategory = true,
                     )
 
                 try {
