@@ -21,7 +21,7 @@
     "alias": "android"
   },
   "appVersionName": "2.1.2",
-  "appVersionCode": 2,
+  "appVersionCode": 3,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://elephantchess.io/manifest.webmanifest",
