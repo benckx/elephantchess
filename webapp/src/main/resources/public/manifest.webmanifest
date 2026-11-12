@@ -1,7 +1,7 @@
 {
   "name": "ElephantChess - Xiangqi & Janggi",
   "short_name": "ElephantChess",
-  "description": "Play Chinese Chess (Xiangqi) and Korean Chess (Janggi) online with friends, against bots, or solve puzzles.",
+  "description": "Play Chinese chess (Xiangqi), Korean chess (Janggi) and Manchu chess (Yitong) online for free. Create a game and share the link to play with a friend, join a game from the lobby, challenge a bot, solve puzzles, analyze your games and learn from your mistakes. Colorblind mode available.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
