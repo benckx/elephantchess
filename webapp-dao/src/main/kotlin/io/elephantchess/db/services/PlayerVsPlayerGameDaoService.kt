@@ -91,14 +91,21 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .and(GAME.PRIVATE_INVITE.eq(false))
                 .and(GAME.VARIANT.eq(variant))
 
-        if (allowSimilarTimeCategory) {
-            query = query.and(GAME.TIME_CONTROL_CATEGORY.eq(TimeControlCategory.fromSeconds(timeControlBase)))
+        val exactTimeControl = GAME.TIME_CONTROL_BASE.eq(timeControlBase)
+            .and(
+                when (timeControlIncrement) {
+                    null -> GAME.TIME_CONTROL_INCREMENT.isNull
+                    else -> GAME.TIME_CONTROL_INCREMENT.eq(timeControlIncrement)
+                },
+            )
+
+        // a similar time control is only acceptable if both the requester and the existing game's inviter allow it
+        query = if (allowSimilarTimeCategory) {
+            query
+                .and(GAME.TIME_CONTROL_CATEGORY.eq(TimeControlCategory.fromSeconds(timeControlBase)))
+                .and(GAME.ALLOW_SIMILAR_TIME_CATEGORY.isTrue.or(exactTimeControl))
         } else {
-            query = query.and(GAME.TIME_CONTROL_BASE.eq(timeControlBase))
-            query = when (timeControlIncrement) {
-                null -> query.and(GAME.TIME_CONTROL_INCREMENT.isNull)
-                else -> query.and(GAME.TIME_CONTROL_INCREMENT.eq(timeControlIncrement))
-            }
+            query.and(exactTimeControl)
         }
 
         query = when (inviterColor) {
@@ -803,6 +810,11 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
+    /**
+     * Atomically join a game that is still [CREATED] and has no invitee yet.
+     *
+     * @return `false` if the game was joined (or its status changed) concurrently, in which case nothing is updated
+     */
     suspend fun joinGame(
         userId: String,
         userRating: Int,
@@ -811,7 +823,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         timeControlRecord: TimeControlRecord?,
         source: GameJoinSource?,
         sourceId: String?,
-    ) {
+    ): Boolean =
         dslContext.transactionCoroutine { cfg ->
             val now = Clock.System.now()
 
@@ -834,18 +846,54 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 update = update.set(GAME.MIN_FLAG_CHECK_TIME, now.plusSeconds(timeControlRecord.base.toLong()))
             }
 
-            update
+            val updatedRows = update
                 .where(GAME.ID.eq(gameId))
+                .and(GAME.GAME_STATUS.eq(CREATED))
+                .and(GAME.INVITEE.isNull)
                 .awaitExecute()
 
-            val gameStatusEvent = GameStatusEvent()
-            gameStatusEvent.gameId = gameId
-            gameStatusEvent.eventType = JOINED
-            gameStatusEvent.userId = userId
-            gameStatusEvent.eventTime = now
-            GameStatusEventDao(cfg).insertReactive(gameStatusEvent)
+            if (updatedRows == 0) {
+                false
+            } else {
+                val gameStatusEvent = GameStatusEvent()
+                gameStatusEvent.gameId = gameId
+                gameStatusEvent.eventType = JOINED
+                gameStatusEvent.userId = userId
+                gameStatusEvent.eventTime = now
+                GameStatusEventDao(cfg).insertReactive(gameStatusEvent)
+                true
+            }
         }
-    }
+
+    /**
+     * Atomically auto-cancel a game, only if it is still [CREATED] (i.e. nobody joined it in the meantime).
+     *
+     * @return `false` if the game was no longer [CREATED]
+     */
+    suspend fun autoCancelIfCreated(gameId: String): Boolean =
+        dslContext.transactionCoroutine { cfg ->
+            val now = Clock.System.now()
+
+            val updatedRows = DSL
+                .using(cfg)
+                .update(GAME)
+                .set(GAME.GAME_STATUS, AUTO_CANCELED)
+                .set(GAME.LAST_UPDATED, now)
+                .where(GAME.ID.eq(gameId))
+                .and(GAME.GAME_STATUS.eq(CREATED))
+                .awaitExecute()
+
+            if (updatedRows == 0) {
+                false
+            } else {
+                val gameStatusEvent = GameStatusEvent()
+                gameStatusEvent.gameId = gameId
+                gameStatusEvent.eventType = AUTO_CANCELED
+                gameStatusEvent.eventTime = now
+                GameStatusEventDao(cfg).insertReactive(gameStatusEvent)
+                true
+            }
+        }
 
     suspend fun updateStatus(userId: String?, gameId: String, status: GameEventType, outcome: Outcome? = null) {
         dslContext.transactionCoroutine { cfg ->

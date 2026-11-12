@@ -2773,4 +2773,12 @@
             <renameColumn tableName="email_verification_bounce" oldColumnName="creation_time" newColumnName="bounced_time"/>
         </rollback>
     </changeSet>
+    <changeSet id="0126" author="benckx">
+        <comment>Persist whether the inviter accepts opponents with a similar (same category) time control.</comment>
+        <addColumn tableName="game">
+            <column name="allow_similar_time_category" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

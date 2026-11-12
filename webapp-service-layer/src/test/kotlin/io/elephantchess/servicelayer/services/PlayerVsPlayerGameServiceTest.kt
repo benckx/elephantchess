@@ -493,6 +493,88 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             }
 
         @Test
+        fun `does not auto-match no-guests request with guest-created game`() =
+            runTest {
+                val guestRequest = CreateGameRequest(
+                    inviterColor = WHITE,
+                    isRated = false,
+                    timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = null,
+                    timeControlMode = TimeControlMode.GAME_TIME,
+                    allowGuests = true,
+                    alwaysVisibleInLobby = false,
+                    privateInvite = false,
+                    allowSimilarTimeCategory = true,
+                )
+
+                val guestResponse = pvpGameService.createGame(guestId1, guestRequest)
+                val userResponse = pvpGameService.createGame(
+                    userId1,
+                    guestRequest.copy(inviterColor = BLACK, allowGuests = false),
+                )
+
+                assertEquals(CREATED, guestResponse.eventType)
+                assertEquals(CREATED, userResponse.eventType)
+                assertEquals(0, countGameByStatus(JOINED))
+                assertEquals(2, countGameByStatus(CREATED))
+            }
+
+        @Test
+        fun `does not auto-match similar time control when existing game opted out`() =
+            runTest {
+                val request1 = CreateGameRequest(
+                    inviterColor = WHITE,
+                    isRated = true,
+                    timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = null,
+                    timeControlMode = TimeControlMode.GAME_TIME,
+                    allowGuests = true,
+                    alwaysVisibleInLobby = false,
+                    privateInvite = false,
+                    allowSimilarTimeCategory = false,
+                )
+
+                val request2 = request1.copy(
+                    inviterColor = BLACK,
+                    timeControlBase = 15.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = 10,
+                    allowSimilarTimeCategory = true,
+                )
+
+                val response1 = pvpGameService.createGame(userId1, request1)
+                val response2 = pvpGameService.createGame(userId2, request2)
+
+                assertEquals(CREATED, response1.eventType)
+                assertEquals(CREATED, response2.eventType)
+                assertEquals(0, countGameByStatus(JOINED))
+                assertEquals(2, countGameByStatus(CREATED))
+            }
+
+        @Test
+        fun `rejects joining a game that has already been joined`() =
+            runTest {
+                val request = CreateGameRequest(
+                    inviterColor = WHITE,
+                    isRated = true,
+                    timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = null,
+                    timeControlMode = TimeControlMode.GAME_TIME,
+                    allowGuests = true,
+                    alwaysVisibleInLobby = false,
+                    privateInvite = true,
+                    allowSimilarTimeCategory = true,
+                )
+
+                val gameId = pvpGameService.createGame(userId1, request).gameId
+                pvpGameService.joinGame(userId2, JoinGameRequest(gameId))
+
+                assertFailsWith<BadRequestException> {
+                    pvpGameService.joinGame(UserId(AUTHENTICATED, signUpTestUser().second), JoinGameRequest(gameId))
+                }
+                assertEquals(1, countGameByStatus(JOINED))
+            }
+
+        @Test
         fun `does not auto-match guest-created game with no-guests game`() =
             runTest {
                 val request1 = CreateGameRequest(
@@ -816,6 +898,48 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 assertEquals(CREATED, response2.eventType)
 
                 // both back online; games are incompatible (both WHITE) → no match
+                setUserOnline(userId1.id)
+                setUserOnline(userId2.id)
+                userService.refreshIsOnlineCache()
+
+                pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+
+                assertEquals(0, countGameByStatus(JOINED))
+                assertEquals(2, countGameByStatus(CREATED))
+                assertEquals(0, countGameByStatus(AUTO_CANCELED))
+            }
+
+        @Test
+        fun `does not dynamically match similar time control when older game opted out`() =
+            runTest {
+                setUserOffline(userId2.id)
+                userService.refreshIsOnlineCache()
+
+                val request1 = CreateGameRequest(
+                    inviterColor = WHITE,
+                    isRated = true,
+                    timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = null,
+                    timeControlMode = TimeControlMode.GAME_TIME,
+                    allowGuests = true,
+                    alwaysVisibleInLobby = false,
+                    privateInvite = false,
+                    allowSimilarTimeCategory = false,
+                )
+                pvpGameService.createGame(userId1, request1)
+
+                setUserOffline(userId1.id)
+                setUserOnline(userId2.id)
+                userService.refreshIsOnlineCache()
+
+                val request2 = request1.copy(
+                    inviterColor = BLACK,
+                    timeControlBase = 15.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = 10,
+                    allowSimilarTimeCategory = true,
+                )
+                pvpGameService.createGame(userId2, request2)
+
                 setUserOnline(userId1.id)
                 setUserOnline(userId2.id)
                 userService.refreshIsOnlineCache()
