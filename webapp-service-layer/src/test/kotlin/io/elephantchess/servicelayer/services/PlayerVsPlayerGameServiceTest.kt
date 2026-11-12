@@ -405,6 +405,48 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
             }
 
         @Test
+        fun `prefers exact time control match before same-category fallback`() =
+            runTest {
+                val exactRequest = CreateGameRequest(
+                    inviterColor = WHITE,
+                    isRated = true,
+                    timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = null,
+                    timeControlMode = TimeControlMode.GAME_TIME,
+                    allowGuests = true,
+                    alwaysVisibleInLobby = false,
+                    privateInvite = false,
+                    allowSimilarTimeCategory = true,
+                )
+
+                val sameCategoryFallbackRequest = CreateGameRequest(
+                    inviterColor = WHITE,
+                    isRated = true,
+                    timeControlBase = 15.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = 10,
+                    timeControlMode = TimeControlMode.GAME_TIME,
+                    allowGuests = true,
+                    alwaysVisibleInLobby = false,
+                    privateInvite = false,
+                    allowSimilarTimeCategory = true,
+                )
+
+                val exactGameResponse = pvpGameService.createGame(userId1, exactRequest)
+                assertEquals(CREATED, exactGameResponse.eventType)
+
+                val fallbackGameResponse = pvpGameService.createGame(userId2, sameCategoryFallbackRequest)
+                assertEquals(CREATED, fallbackGameResponse.eventType)
+
+                val thirdUserId = UserId(AUTHENTICATED, signUpTestUser().second)
+                val joiningResponse = pvpGameService.createGame(thirdUserId, exactRequest.copy(inviterColor = BLACK))
+
+                assertEquals(JOINED, joiningResponse.eventType)
+                assertEquals(exactGameResponse.gameId, joiningResponse.gameId)
+                assertEquals(1, countGameByStatus(JOINED))
+                assertEquals(1, countGameByStatus(CREATED))
+            }
+
+        @Test
         fun `does not auto-match when time control differs and similar category option is disabled`() =
             runTest {
                 val request1 = CreateGameRequest(
