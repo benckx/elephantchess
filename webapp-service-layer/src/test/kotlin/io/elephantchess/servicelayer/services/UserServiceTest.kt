@@ -497,7 +497,7 @@ class UserServiceTest : ServiceTest() {
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
                 privateInvite = false,
-            allowSimilarTimeCategory = true,
+                allowSimilarTimeCategory = true,
             )
             val gameResponse = pvpGameService.createGame(guestId, createGameRequest)
             val gameId = gameResponse.gameId
@@ -579,7 +579,7 @@ class UserServiceTest : ServiceTest() {
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
                 privateInvite = false,
-            allowSimilarTimeCategory = true,
+                allowSimilarTimeCategory = true,
             )
             val gameResponse = pvpGameService.createGame(guestId, createGameRequest)
             val gameId = gameResponse.gameId

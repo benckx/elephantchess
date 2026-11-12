@@ -254,7 +254,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 allowGuests = true,
                 alwaysVisibleInLobby = true,
                 privateInvite = false,
-            allowSimilarTimeCategory = true,
+                allowSimilarTimeCategory = true,
             )
 
         private suspend fun isOptionAlwaysVisibleInLobbyAllowed(userId: String): Boolean =
@@ -288,7 +288,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = true,
                     alwaysVisibleInLobby = false,
                     privateInvite = false,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 val request2 = request1.copy(inviterColor = BLACK)
@@ -318,7 +318,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = true,
                     alwaysVisibleInLobby = false,
                     privateInvite = false,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 val request2 = request1.copy()
@@ -352,7 +352,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = true,
                     alwaysVisibleInLobby = false,
                     privateInvite = false,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 val request2 = request1.copy(isRated = false)
@@ -450,7 +450,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = false,
                     alwaysVisibleInLobby = false,
                     privateInvite = false,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 val request2 = request1.copy(inviterColor = null, allowGuests = true)
@@ -485,7 +485,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = false,
                     alwaysVisibleInLobby = false,
                     privateInvite = false,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 val request2 = request1.copy(inviterColor = null)
@@ -515,7 +515,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = true,
                     alwaysVisibleInLobby = false,
                     privateInvite = true,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 val request2 = request1.copy(inviterColor = BLACK, privateInvite = false)
@@ -610,7 +610,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = false,
                     alwaysVisibleInLobby = false,
                     privateInvite = false,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 val response1 = pvpGameService.createGame(userId1, request1)
@@ -649,7 +649,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = true,
                     alwaysVisibleInLobby = false,
                     privateInvite = false,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 val response1 = pvpGameService.createGame(userId1, request1)
@@ -700,7 +700,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = true,
                     alwaysVisibleInLobby = false,
                     privateInvite = false,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 val response1 = pvpGameService.createGame(userId1, request1)
@@ -1104,7 +1104,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = false,
                     alwaysVisibleInLobby = false,
                     privateInvite = true,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 pvpGameService.createGame(userId1, request)
@@ -1136,7 +1136,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     allowGuests = false,
                     alwaysVisibleInLobby = false,
                     privateInvite = true,
-                allowSimilarTimeCategory = true,
+                    allowSimilarTimeCategory = true,
                 )
 
                 pvpGameService.createGame(userId1, request)
