@@ -39,12 +39,10 @@ fun Application.wellKnownRoutingModule() {
         ]
     """.trimIndent()
 
-    val trafficAdviceContentType = ContentType("application", "trafficadvice+json")
-
-    val assetLinks = buildAssetLinks()
-
     routing {
         route("/.well-known/assetlinks.json") {
+            val assetLinks = buildAssetLinks()
+
             get {
                 call.respondText(
                     text = assetLinks,
@@ -58,8 +56,8 @@ fun Application.wellKnownRoutingModule() {
                 call.response.header(HttpHeaders.ContentLength, assetLinks.length.toString())
             }
         }
-
         route("/.well-known/traffic-advice") {
+            val trafficAdviceContentType = ContentType("application", "trafficadvice+json")
             get {
                 call.respondText(
                     text = trafficAdvice,

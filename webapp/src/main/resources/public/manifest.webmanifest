@@ -11,7 +11,7 @@
   "background_color": "#fedaa4",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["games", "board"],
+  "categories": ["games", "board", "chess"],
   "icons": [
     {
       "src": "/images/pwa/icon-192.png",
