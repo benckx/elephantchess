@@ -778,7 +778,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     request = PlayMoveRequest(gameId, gameMoves.uciMoves.last()),
                 )
 
-                assertEquals(lastMoveResult.gameEventType, CHECKMATED)
+                assertEquals(CHECKMATED, lastMoveResult.gameEventType)
 
                 // check rating update
                 val ratingUpdate = lastMoveResult.ratingUpdate!!
@@ -787,7 +787,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 assertEquals(1_000, ratingUpdate.inviteeRatingFrom)
 
                 val gameData = pvpGameService.fetchGame(gameId)
-                assertEquals(gameData.gameEventType, CHECKMATED)
+                assertEquals(CHECKMATED, gameData.gameEventType)
                 assertNotNull(gameData.outcome)
                 assertNotEquals(Outcome.DRAW, gameData.outcome)
 
