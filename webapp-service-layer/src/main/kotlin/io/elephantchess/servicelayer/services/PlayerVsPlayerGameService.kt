@@ -466,20 +466,31 @@ class PlayerVsPlayerGameService(
         return notificationSettings.opponentJoinedGame
     }
 
-    private suspend fun findMatchingGame(userId: UserId, userRating: Int, request: CreateGameRequest): Game? =
-        pvpGameDaoService.listCompatibleGames(
-            inviterColor = request.inviterColor,
-            isRated = request.isRated,
-            timeControlMode = request.timeControlMode,
-            timeControlBase = request.timeControlBase,
-            timeControlIncrement = request.timeControlIncrement,
-            userType = userId.userType,
-            userId = userId.id,
-            variant = request.variant,
-            allowSimilarTimeCategory = request.allowSimilarTimeCategory,
-        )
-            .filter { gameRecord -> isOnline(gameRecord.inviter) }
+    private fun matchesExactTimeControl(gameRecord: Game, request: CreateGameRequest): Boolean =
+        gameRecord.timeControlMode == request.timeControlMode &&
+            gameRecord.timeControlBase == request.timeControlBase &&
+            gameRecord.timeControlIncrement == request.timeControlIncrement
+
+    private suspend fun findMatchingGame(userId: UserId, userRating: Int, request: CreateGameRequest): Game? {
+        val compatibleGames =
+            pvpGameDaoService.listCompatibleGames(
+                inviterColor = request.inviterColor,
+                isRated = request.isRated,
+                timeControlMode = request.timeControlMode,
+                timeControlBase = request.timeControlBase,
+                timeControlIncrement = request.timeControlIncrement,
+                userType = userId.userType,
+                userId = userId.id,
+                variant = request.variant,
+                allowSimilarTimeCategory = request.allowSimilarTimeCategory,
+            )
+                .filter { gameRecord -> isOnline(gameRecord.inviter) }
+
+        return compatibleGames
+            .filter { gameRecord -> matchesExactTimeControl(gameRecord, request) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
+            ?: compatibleGames.minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
+    }
 
     /**
      * Pair together pending games whose inviters are now both online but did
