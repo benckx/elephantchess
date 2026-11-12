@@ -82,7 +82,7 @@ object SimulateLiveGames : KoinScriptInit() {
                             allowGuests = true,
                             alwaysVisibleInLobby = false,
                             privateInvite = false,
-                        allowSimilarTimeCategory = true,
+                            allowSimilarTimeCategory = true,
                         )
 
                     val response = pvpGameService.createGame(UserId(AUTHENTICATED, user1.id), request)

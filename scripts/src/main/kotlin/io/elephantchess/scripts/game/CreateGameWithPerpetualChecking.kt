@@ -67,7 +67,7 @@ object CreateGameWithPerpetualChecking : KoinScriptInit() {
                             allowGuests = true,
                             alwaysVisibleInLobby = false,
                             privateInvite = false,
-                        allowSimilarTimeCategory = true,
+                            allowSimilarTimeCategory = true,
                         )
 
                     val response = pvpGameService.createGame(UserId(AUTHENTICATED, inviter.id), request)
