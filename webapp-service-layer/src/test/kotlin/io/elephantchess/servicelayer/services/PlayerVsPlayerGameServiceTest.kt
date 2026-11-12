@@ -437,13 +437,25 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 val fallbackGameResponse = pvpGameService.createGame(userId2, sameCategoryFallbackRequest)
                 assertEquals(CREATED, fallbackGameResponse.eventType)
 
+                val otherFallbackGameResponse = pvpGameService.createGame(
+                    UserId(AUTHENTICATED, signUpTestUser().second),
+                    sameCategoryFallbackRequest.copy(inviterColor = WHITE),
+                )
+                assertEquals(CREATED, otherFallbackGameResponse.eventType)
+
+                val secondOtherFallbackGameResponse = pvpGameService.createGame(
+                    UserId(AUTHENTICATED, signUpTestUser().second),
+                    sameCategoryFallbackRequest.copy(inviterColor = WHITE),
+                )
+                assertEquals(CREATED, secondOtherFallbackGameResponse.eventType)
+
                 val thirdUserId = UserId(AUTHENTICATED, signUpTestUser().second)
                 val joiningResponse = pvpGameService.createGame(thirdUserId, exactRequest.copy(inviterColor = BLACK))
 
                 assertEquals(JOINED, joiningResponse.eventType)
                 assertEquals(exactGameResponse.gameId, joiningResponse.gameId)
                 assertEquals(1, countGameByStatus(JOINED))
-                assertEquals(1, countGameByStatus(CREATED))
+                assertEquals(3, countGameByStatus(CREATED))
             }
 
         @Test
