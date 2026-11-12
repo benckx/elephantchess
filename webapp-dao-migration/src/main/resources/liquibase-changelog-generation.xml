@@ -2776,7 +2776,7 @@
     <changeSet id="0126" author="benckx">
         <comment>Persist whether the inviter accepts opponents with a similar (same category) time control.</comment>
         <addColumn tableName="game">
-            <column name="allow_similar_time_category" type="boolean" defaultValueBoolean="true">
+            <column name="allow_similar_time_category" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
         </addColumn>

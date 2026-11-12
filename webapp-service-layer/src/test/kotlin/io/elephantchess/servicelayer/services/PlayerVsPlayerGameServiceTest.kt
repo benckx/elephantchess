@@ -9,6 +9,7 @@ import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.Outcome
 import io.elephantchess.model.Outcome.BLACK_WINS
 import io.elephantchess.model.Outcome.WHITE_WINS
+import io.elephantchess.model.TimeControlCategory
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
@@ -391,6 +392,9 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     timeControlIncrement = 10,
                 )
 
+                assertEquals(TimeControlCategory.RAPID, TimeControlCategory.fromSeconds(request1.timeControlBase))
+                assertEquals(TimeControlCategory.RAPID, TimeControlCategory.fromSeconds(request2.timeControlBase))
+
                 val response1 = pvpGameService.createGame(userId1, request1)
                 val response2 = pvpGameService.createGame(userId2, request2)
 
@@ -430,6 +434,9 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     privateInvite = false,
                     allowSimilarTimeCategory = true,
                 )
+
+                assertEquals(TimeControlCategory.RAPID, TimeControlCategory.fromSeconds(exactRequest.timeControlBase))
+                assertEquals(TimeControlCategory.RAPID, TimeControlCategory.fromSeconds(sameCategoryFallbackRequest.timeControlBase))
 
                 val exactGameResponse = pvpGameService.createGame(userId1, exactRequest)
                 assertEquals(CREATED, exactGameResponse.eventType)
