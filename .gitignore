@@ -22,3 +22,5 @@ rendered_email.html
 *.keystore
 twa/*
 !twa/twa-manifest.json
+!twa/play-store-assets/
+!twa/play-store-assets/**
