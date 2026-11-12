@@ -519,6 +519,12 @@ class PlayerVsPlayerGameService(
             val joinerVariant = joinerGame.variant
             val joinerRating = getUserRating(joinerId, timeControlCategory, joinerVariant)
 
+            // Delayed matching reuses the same compatibility rules as a fresh create-game request.
+            // If a pending game opted out of same-category matching, it would not be eligible for
+            // this delayed-match search at all, so the fallback path here is intentionally the default
+            // permissive case for older game candidates still waiting to be paired.
+            val allowSameCategoryFallbackForDelayedMatch = true
+
             val joinerRequest = CreateGameRequest(
                 inviterColor = joinerGame.inviterColor,
                 isRated = joinerGame.isRated,
@@ -530,7 +536,7 @@ class PlayerVsPlayerGameService(
                 // candidates are guaranteed non-private by listGamesOpenToJoin,
                 // and listCompatibleGames also filters out private games
                 privateInvite = false,
-                allowSimilarTimeCategory = true,
+                allowSimilarTimeCategory = allowSameCategoryFallbackForDelayedMatch,
                 variant = joinerVariant,
             )
 
