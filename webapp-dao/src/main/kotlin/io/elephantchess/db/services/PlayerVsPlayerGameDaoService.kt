@@ -78,6 +78,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         userType: UserType,
         userId: String,
         variant: Variant,
+        allowSimilarTimeCategory: Boolean = false,
     ): List<Game> {
         var query =
             dslContext
@@ -85,15 +86,19 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .from(GAME)
                 .where(GAME.GAME_STATUS.eq(CREATED))
                 .and(GAME.TIME_CONTROL_MODE.eq(timeControlMode))
-                .and(GAME.TIME_CONTROL_BASE.eq(timeControlBase))
                 .and(GAME.IS_RATED.eq(isRated))
                 .and(GAME.INVITER.notEqual(userId))
                 .and(GAME.PRIVATE_INVITE.eq(false))
                 .and(GAME.VARIANT.eq(variant))
 
-        query = when (timeControlIncrement) {
-            null -> query.and(GAME.TIME_CONTROL_INCREMENT.isNull)
-            else -> query.and(GAME.TIME_CONTROL_INCREMENT.eq(timeControlIncrement))
+        if (allowSimilarTimeCategory) {
+            query = query.and(GAME.TIME_CONTROL_CATEGORY.eq(TimeControlCategory.fromSeconds(timeControlBase)))
+        } else {
+            query = query.and(GAME.TIME_CONTROL_BASE.eq(timeControlBase))
+            query = when (timeControlIncrement) {
+                null -> query.and(GAME.TIME_CONTROL_INCREMENT.isNull)
+                else -> query.and(GAME.TIME_CONTROL_INCREMENT.eq(timeControlIncrement))
+            }
         }
 
         query = when (inviterColor) {

@@ -476,6 +476,7 @@ class PlayerVsPlayerGameService(
             userType = userId.userType,
             userId = userId.id,
             variant = request.variant,
+            allowSimilarTimeCategory = request.allowSimilarTimeCategory,
         )
             .filter { gameRecord -> isOnline(gameRecord.inviter) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
@@ -518,6 +519,7 @@ class PlayerVsPlayerGameService(
                 // candidates are guaranteed non-private by listGamesOpenToJoin,
                 // and listCompatibleGames also filters out private games
                 privateInvite = false,
+                allowSimilarTimeCategory = true,
                 variant = joinerVariant,
             )
 
