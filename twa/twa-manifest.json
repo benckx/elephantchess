@@ -1,0 +1,41 @@
+{
+  "packageId": "io.elephantchess.twa",
+  "host": "elephantchess.io",
+  "name": "ElephantChess - Xiangqi & Janggi",
+  "launcherName": "ElephantChess",
+  "display": "standalone",
+  "orientation": "any",
+  "themeColor": "#9b1b1b",
+  "themeColorDark": "#9b1b1b",
+  "navigationColor": "#9b1b1b",
+  "navigationColorDark": "#9b1b1b",
+  "navigationDividerColor": "#9b1b1b",
+  "navigationDividerColorDark": "#9b1b1b",
+  "backgroundColor": "#fedaa4",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://elephantchess.io/images/pwa/icon-512.png",
+  "maskableIconUrl": "https://elephantchess.io/images/pwa/maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://elephantchess.io/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://elephantchess.io/",
+  "minSdkVersion": 21,
+  "orientationLockEnabled": false,
+  "manifestId": "https://elephantchess.io/"
+}

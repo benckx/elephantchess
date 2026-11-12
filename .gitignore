@@ -15,3 +15,10 @@ formatter.json
 rendered_email.html
 **/out/
 *.hprof
+
+# Android TWA (Bubblewrap) build artifacts and signing keys
+*.keystore
+twa/app-release-*.aab
+twa/app-release-*.apk
+twa/*.idsig
+twa/android.keystore

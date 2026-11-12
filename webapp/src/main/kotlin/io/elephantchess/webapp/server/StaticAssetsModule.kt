@@ -26,6 +26,9 @@ fun Application.staticAssetsModule() {
         staticResources("/audio", "public/audio")
         staticResources("/", "public", "robots.txt")
         staticResources("/", "public", "favicon.ico")
+        staticResources("/", "public", "manifest.webmanifest")
+        // served from the site root so its scope covers the whole origin ("/")
+        staticResources("/", "public", "sw.js")
     }
     install(Compression) {
         gzip {
