@@ -685,6 +685,53 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
          * are online.
          */
         @Test
+        fun `matches compatible pending games in the same time category when both inviters come back online`() =
+            runTest {
+                setUserOffline(userId2.id)
+                userService.refreshIsOnlineCache()
+
+                val request1 = CreateGameRequest(
+                    inviterColor = WHITE,
+                    isRated = true,
+                    timeControlBase = 30.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = null,
+                    timeControlMode = TimeControlMode.GAME_TIME,
+                    allowGuests = true,
+                    alwaysVisibleInLobby = false,
+                    privateInvite = false,
+                    allowSimilarTimeCategory = true,
+                )
+
+                val response1 = pvpGameService.createGame(userId1, request1)
+                assertEquals(CREATED, response1.eventType)
+
+                setUserOffline(userId1.id)
+                setUserOnline(userId2.id)
+                userService.refreshIsOnlineCache()
+
+                val request2 = request1.copy(
+                    inviterColor = BLACK,
+                    timeControlBase = 15.minutes.inWholeSeconds.toInt(),
+                    timeControlIncrement = 10,
+                )
+                val response2 = pvpGameService.createGame(userId2, request2)
+                assertEquals(CREATED, response2.eventType)
+
+                assertEquals(0, countGameByStatus(JOINED))
+                assertEquals(2, countGameByStatus(CREATED))
+
+                setUserOnline(userId1.id)
+                setUserOnline(userId2.id)
+                userService.refreshIsOnlineCache()
+
+                pvpGameService.findDynamicMatches(setOf(userId1.id, userId2.id))
+
+                assertEquals(1, countGameByStatus(JOINED))
+                assertEquals(0, countGameByStatus(CREATED))
+                assertEquals(1, countGameByStatus(AUTO_CANCELED))
+            }
+
+        @Test
         fun `does not match incompatible pending games even when inviters are online`() =
             runTest {
                 // user2 is offline when user1 creates their game
