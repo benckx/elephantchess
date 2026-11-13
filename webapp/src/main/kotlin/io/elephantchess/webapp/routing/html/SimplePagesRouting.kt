@@ -29,8 +29,6 @@ private val simplePublicPageMapping = mapOf(
     "/global" to "global",
     "/recovery" to "password_recovery1",
     "/recovery/finalize" to "password_recovery2",
-    "/about" to "about/about",
-    "/about/datasets" to "about/datasets",
     "/contact" to "contact_form",
     "/how-to-play-xiangqi" to "how_to_play_xiangqi",
     "/how-to-play-janggi" to "how_to_play_janggi",
