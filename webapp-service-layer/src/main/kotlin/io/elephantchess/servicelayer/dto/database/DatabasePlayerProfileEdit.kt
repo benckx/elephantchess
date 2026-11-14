@@ -11,5 +11,5 @@ data class DatabasePlayerProfileEdit(
     val sources: List<DatabasePlayerProfileSource>,
     val editComment: String?,
     val enabled: Boolean,
-    val versionTime: Instant?,
+    val versionTime: Instant? = null,
 )
