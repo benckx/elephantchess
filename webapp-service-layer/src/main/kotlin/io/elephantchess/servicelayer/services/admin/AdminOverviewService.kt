@@ -157,7 +157,7 @@ class AdminOverviewService(
             latestNewAuthenticatedUser = userDaoService.latestNewAuthenticatedUser()?.toEpochMilliseconds(),
         )
 
-    suspend fun fetchOverviewTrend(): OverviewTrendResponse {
+    suspend fun fetchOverviewTrends(): OverviewTrendResponse {
         val now = Clock.System.now()
         val latest30DaysStart = now - 30.days
         val previous30DaysStart = latest30DaysStart - 30.days

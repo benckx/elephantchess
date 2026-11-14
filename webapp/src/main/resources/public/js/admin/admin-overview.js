@@ -190,7 +190,7 @@ class AdminOverviewPage extends BasePage {
             this.#setActivityTimestamp('latest-new-authenticated-user-timestamp', json.latestNewAuthenticatedUser);
         });
 
-        getAndHandle(`${ADMIN_URL_PREFIX}/overview-trend`, json => {
+        getAndHandle(`${ADMIN_URL_PREFIX}/overview-trends`, json => {
             this.#setTrend(
                 'trend-games-over-3-count',
                 'trend-games-over-3-delta',
