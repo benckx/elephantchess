@@ -501,7 +501,7 @@ class UserDaoService(
      * Re-points every row that references [oldId] (via a user foreign key) to [newId], within [tx].
      * The list below mirrors all user foreign keys in the schema.
      */
-    suspend fun reassignAllReferences(tx: DSLContext, oldId: String, newId: String) {
+    private suspend fun reassignAllReferences(tx: DSLContext, oldId: String, newId: String) {
         reassign(tx, GAME.INVITER, oldId, newId)
         reassign(tx, GAME.INVITEE, oldId, newId)
         reassign(tx, GAME.DRAW_PROPOSITION_USER, oldId, newId)
