@@ -36,12 +36,14 @@ class UserService(
     private val userDaoService: UserDaoService,
     private val userSessionDaoService: UserSessionDaoService,
     private val archivedPageViewDaoService: ArchivedPageViewDaoService,
+    private val accountDeletionDaoService: AccountDeletionDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
     private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
     private val puzzleResultDaoService: PuzzleResultDaoService,
     private val referenceGameDaoService: ReferenceGameDaoService,
     private val userSessionService: UserSessionService,
     private val tokenManager: TokenManager,
+    private val userCache: UserCache,
     private val mailService: MailService,
     private val pageViewEventService: PageViewEventService,
     private val settingPreferenceEventService: SettingPreferenceEventService,
@@ -496,6 +498,19 @@ class UserService(
     suspend fun archiveUserPageViews(userId: String): ArchiveUserPageViewsResponse {
         val archivedCount = archivedPageViewDaoService.archiveAndDeletePageViewsForUser(userId)
         return ArchiveUserPageViewsResponse(archivedCount)
+    }
+
+    /**
+     * Permanently deletes the authenticated user's account. Its games, puzzles and ratings are kept
+     * but transferred to a freshly created, identity-less anonymized user (the id changes too), while
+     * all personal data (email, username, password, sessions, raw page views) is removed. The caches
+     * are then invalidated so the user's token stops being accepted immediately.
+     */
+    suspend fun deleteAccount(userId: String): DeleteAccountResponse {
+        val anonymizedId = accountDeletionDaoService.deleteAndAnonymize(userId)
+        userCache.invalidate(userId)
+        tokenManager.invalidateUser(userId)
+        return DeleteAccountResponse(deleted = anonymizedId != null)
     }
 
     fun isOnline(userId: String): Boolean =

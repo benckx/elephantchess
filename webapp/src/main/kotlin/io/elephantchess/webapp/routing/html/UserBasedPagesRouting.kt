@@ -67,5 +67,10 @@ private fun Route.userSettingsPages() {
                 simplePageRenderer.renderTemplateHtmlToCall("user_views")
             }
         }
+        get("/delete-account") {
+            requireAuthentication {
+                simplePageRenderer.renderTemplateHtmlToCall("user_delete_account")
+            }
+        }
     }
 }

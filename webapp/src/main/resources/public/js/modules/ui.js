@@ -315,6 +315,13 @@ function buildUsernameSpan(userId, username, userType, maxLength = null, removeG
                 return buildGuestUserSpan(userId, maxLength);
             }
             break;
+        case UserType.ANONYMIZED: {
+            // deleted account: its games/puzzles were transferred to an identity-less user
+            const span = document.createElement('span');
+            span.className = 'anonymized-name';
+            span.innerText = '<anon>';
+            return span;
+        }
     }
 
     console.warn('can not render username span: ' + userId + ', ' + username + ', ' + userType);
