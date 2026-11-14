@@ -80,7 +80,7 @@ class SiteMapService(
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/about/policy",
-            lastmod = LocalDate.of(2026, 11, 12),
+            lastmod = LocalDate.of(2026, 11, 14),
             changefreq = MONTHLY,
             priority = 0.8,
         ),
