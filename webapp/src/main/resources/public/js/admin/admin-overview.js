@@ -164,6 +164,21 @@ class AdminOverviewPage extends BasePage {
             this.#setActivityTimestamp('latest-new-guest-timestamp', json.latestNewGuest);
             this.#setActivityTimestamp('latest-new-authenticated-user-timestamp', json.latestNewAuthenticatedUser);
         });
+
+        getAndHandle(`${ADMIN_URL_PREFIX}/overview-trend`, json => {
+            this.#setTrend(
+                'trend-games-over-3-count',
+                'trend-games-over-3-delta',
+                json.gamesOver3.latest30Days,
+                json.gamesOver3.previous30Days
+            );
+            this.#setTrend(
+                'trend-puzzles-count',
+                'trend-puzzles-delta',
+                json.puzzles.latest30Days,
+                json.puzzles.previous30Days
+            );
+        });
     }
 
     #setActivityTimestamp(elementId, timestamp) {
@@ -195,6 +210,31 @@ class AdminOverviewPage extends BasePage {
         if (count > 0) {
             element.classList.add('activity-recent');
         }
+    }
+
+    #setTrend(countElementId, deltaElementId, latest30Days, previous30Days) {
+        const countElement = document.getElementById(countElementId);
+        const deltaElement = document.getElementById(deltaElementId);
+        countElement.innerText = latest30Days;
+
+        deltaElement.classList.remove('trend-up', 'trend-down', 'trend-flat');
+
+        const delta = latest30Days - previous30Days;
+        if (delta === 0) {
+            deltaElement.innerText = '(0 vs prev 30d)';
+            deltaElement.classList.add('trend-flat');
+            return;
+        }
+
+        const sign = delta > 0 ? '+' : '';
+        if (previous30Days === 0) {
+            deltaElement.innerText = `(${sign}${delta} vs prev 30d)`;
+        } else {
+            const pct = ((delta / previous30Days) * 100).toFixed(1);
+            deltaElement.innerText = `(${sign}${delta}, ${sign}${pct}% vs prev 30d)`;
+        }
+
+        deltaElement.classList.add(delta > 0 ? 'trend-up' : 'trend-down');
     }
 
     #fetchHourlyPageViews() {

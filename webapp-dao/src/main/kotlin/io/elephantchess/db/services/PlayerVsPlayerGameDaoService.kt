@@ -406,6 +406,15 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex).or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
             .awaitSingleValue()!!
 
+    suspend fun countGamesOverMoveIndexByCreatedBetween(minMoveIndex: Int, fromInclusive: Instant, toExclusive: Instant): Int =
+        dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.CREATED.ge(fromInclusive))
+            .and(GAME.CREATED.lt(toExclusive))
+            .awaitSingleValue() ?: 0
+
     suspend fun countVariantGames(minMoveIndex: Int, variant: Variant): Int {
         val countCondition =
             GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)
