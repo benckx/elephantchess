@@ -26,7 +26,8 @@
 # About
 
 [elephantchess.io](https://elephantchess.io) is a web application to play and
-study [Chinese chess](https://en.wikipedia.org/wiki/Xiangqi) (or xiangqi 象棋).
+study [Chinese chess](https://en.wikipedia.org/wiki/Xiangqi) (or Xiangqi, 象棋)
+and [Korean chess](https://en.wikipedia.org/wiki/Janggi) (or Janggi, 將棋, 장기).
 
 By default, the project is under GPL-3.0 license. Libraries (like the Kotlin xiangqi-core or the
 JavaScript [board-gui](https://elephantchess.io/about/developers/board-gui-example)) are under LGPL-3.0 license to allow
