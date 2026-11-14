@@ -85,6 +85,9 @@ private fun Route.adminOverviewRoutes() {
     get("/latest-new-users") {
         requireAdminRole { adminOverviewService.fetchLatestNewUsers() }
     }
+    get("/overview-trends") {
+        requireAdminRole { adminOverviewService.fetchOverviewTrends() }
+    }
 }
 
 private fun Route.adminFeedsRoutes() {
