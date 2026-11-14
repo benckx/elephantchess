@@ -169,9 +169,12 @@ class AnalysisBoardPage extends BasePage {
         // init import moves modal
         UI.preloadModal(Modals.IMPORT_MOVES);
         this.#moveTreeWidget.importMovesCallback = () => {
-            UI.showModalByName(Modals.IMPORT_MOVES, () => {
-                new ImportMovesHandler(this.#boardGui, this.#moveTreeWidget);
-            });
+            UI.openWithConfirmation(
+                !this.#moveTreeWidget.isEmpty(),
+                'Importing moves will erase the current game history. Continue?',
+                'import',
+                () => UI.showModalByName(Modals.IMPORT_MOVES, () => new ImportMovesHandler(this.#boardGui, this.#moveTreeWidget))
+            );
         };
 
         // move history drop down menu (to import moves, etc.)
