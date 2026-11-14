@@ -22,15 +22,14 @@ class AdminNewsletterService(
 
     suspend fun fetchNewsletterStats(): NewsletterStatsResponse {
         val potentialRecipients = mailService.listNewsLetterRecipientEmails().size
-        val clicksPerTemplate = mergeClicksPerTemplate(
-            current = pageViewEventDaoService.countNewsletterClicksPerTemplate(excludedUserIds),
-            archived = archivedPageViewDaoService.countArchivedNewsletterClicksPerTemplate(),
-        )
-        val linkClicksPerTemplate = mergeLinkClicks(
+        val mergedLinkClicks = mergeLinkClicks(
             current = pageViewEventDaoService.listNewsletterClicksPerTemplateAndLink(excludedUserIds),
             archived = archivedPageViewDaoService.listArchivedNewsletterClicksPerTemplateAndLink(),
         )
+        val linkClicksPerTemplate = mergedLinkClicks.groupBy { it.templateName }
+        val clicksPerTemplate = mergedLinkClicks
             .groupBy { it.templateName }
+            .mapValues { (_, records) -> records.sumOf { it.clickCount } }
 
         return newsletterDaoService
             .fetchNewsletterStats()
@@ -66,18 +65,6 @@ class AdminNewsletterService(
     }
 
     private companion object {
-
-        fun mergeClicksPerTemplate(current: Map<String, Int>, archived: Map<String, Int>): Map<String, Int> {
-            if (archived.isEmpty()) {
-                return current
-            }
-
-            val merged = current.toMutableMap()
-            archived.forEach { (templateName, clickCount) ->
-                merged.merge(templateName, clickCount, Int::plus)
-            }
-            return merged
-        }
 
         fun mergeLinkClicks(
             current: List<NewsletterLinkClickRecord>,
