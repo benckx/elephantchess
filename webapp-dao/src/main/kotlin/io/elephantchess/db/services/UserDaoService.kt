@@ -502,39 +502,40 @@ class UserDaoService(
      * The list below mirrors all user foreign keys in the schema.
      */
     private suspend fun reassignAllReferences(tx: DSLContext, oldId: String, newId: String) {
-        reassign(tx, GAME.INVITER, oldId, newId)
-        reassign(tx, GAME.INVITEE, oldId, newId)
-        reassign(tx, GAME.DRAW_PROPOSITION_USER, oldId, newId)
+        val fields = listOf(
+            GAME.INVITER,
+            GAME.INVITEE,
+            GAME.DRAW_PROPOSITION_USER,
+            BOT_GAME.USER_ID,
+            PUZZLE_RESULT.USER_ID,
+            ANALYSIS.OWNER_USER_ID,
+            GAME_STATUS_EVENT.USER_ID,
+            GAME_CHAT_MESSAGE.AUTHOR,
+            DISCORD_GAME_NOTIFICATION.USER_ID,
+            GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
+            GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
+            REFERENCE_GAME_SEARCH_QUERY.USER_ID,
+            REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID,
+            REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID,
+            KOFI_EVENT.MATCHED_USER_ID,
+            UPCOMING_EVENT.CREATED_BY,
+            SEVEN_KINGDOMS_GAME.PLAYER_WHITE,
+            SEVEN_KINGDOMS_GAME.PLAYER_RED,
+            SEVEN_KINGDOMS_GAME.PLAYER_ORANGE,
+            SEVEN_KINGDOMS_GAME.PLAYER_BLUE,
+            SEVEN_KINGDOMS_GAME.PLAYER_GREEN,
+            SEVEN_KINGDOMS_GAME.PLAYER_PURPLE,
+            SEVEN_KINGDOMS_GAME.PLAYER_BLACK,
+            SEVEN_KINGDOMS_GAME_EVENT.USER_ID,
+        )
 
-        reassign(tx, BOT_GAME.USER_ID, oldId, newId)
-        reassign(tx, PUZZLE_RESULT.USER_ID, oldId, newId)
-        reassign(tx, ANALYSIS.OWNER_USER_ID, oldId, newId)
-        reassign(tx, GAME_STATUS_EVENT.USER_ID, oldId, newId)
-        reassign(tx, GAME_CHAT_MESSAGE.AUTHOR, oldId, newId)
-        reassign(tx, DISCORD_GAME_NOTIFICATION.USER_ID, oldId, newId)
-
-        reassign(tx, GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID, oldId, newId)
-        reassign(tx, GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID, oldId, newId)
-
-        reassign(tx, REFERENCE_GAME_SEARCH_QUERY.USER_ID, oldId, newId)
-        reassign(tx, REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID, oldId, newId)
-        reassign(tx, REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID, oldId, newId)
-
-        reassign(tx, KOFI_EVENT.MATCHED_USER_ID, oldId, newId)
-        reassign(tx, UPCOMING_EVENT.CREATED_BY, oldId, newId)
-
-        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_WHITE, oldId, newId)
-        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_RED, oldId, newId)
-        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_ORANGE, oldId, newId)
-        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_BLUE, oldId, newId)
-        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_GREEN, oldId, newId)
-        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_PURPLE, oldId, newId)
-        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_BLACK, oldId, newId)
-        reassign(tx, SEVEN_KINGDOMS_GAME_EVENT.USER_ID, oldId, newId)
+        fields.forEach { field ->
+            reassign(tx, field, oldId, newId)
+        }
     }
 
     /** Re-points a single user-referencing column from [oldId] to [newId]. */
-    private suspend fun <R : Record> reassign(tx: DSLContext, field: TableField<R, String?>, oldId: String, newId: String) {
+    private suspend fun reassign(tx: DSLContext, field: TableField<out Record, String?>, oldId: String, newId: String) {
         tx
             .update(field.table)
             .set(field, newId)
