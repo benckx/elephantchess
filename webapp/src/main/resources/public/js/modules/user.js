@@ -213,6 +213,7 @@ function fetchAreOnline(userIds, cb) {
 const UserType = Object.freeze({
     AUTHENTICATED: 'AUTHENTICATED',
     GUEST: 'GUEST',
+    ANONYMIZED: 'ANONYMIZED',
 });
 
 class UserId {
@@ -339,6 +340,8 @@ class User {
                 return this.#username;
             case UserType.GUEST:
                 return `guest #${this.#userId}`;
+            case UserType.ANONYMIZED:
+                return '<anon>';
             default:
                 return 'Not identified';
         }

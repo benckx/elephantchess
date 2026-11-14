@@ -1,0 +1,42 @@
+<html lang="en">
+<head>
+    {{header_init}}
+    <title>Delete Account</title>
+    {{meta_no_index}}
+    <link rel="stylesheet" href="/css/user-settings.css"/>
+    <script defer src="/js/user-settings/delete-account-page.js"></script>
+</head>
+<body>
+{{body_init}}
+<div class="main-container-text">
+    <h1>Delete Account</h1>
+    <hr/>
+    <p><b>This action is permanent and cannot be undone.</b></p>
+    <p>
+        Deleting your account permanently removes your personal data: your email address, username,
+        password and the sessions we store about you (including their IP addresses). You will be
+        logged out immediately and will not be able to log back in.
+    </p>
+    <p>
+        Your games, bot games, puzzle results and ratings are <b>not</b> deleted: they are detached
+        from your identity and transferred to a new anonymized account with a different id, so they
+        can no longer be linked back to you. This keeps the games you played with other people intact.
+    </p>
+    <p>
+        If you only want to remove your stored sessions or page views instead, you can do that from
+        your <a href="/user/settings">account settings</a>.
+    </p>
+    <div id="delete-account-confirm-container">
+        <label class="settings-hit-box" for="delete-account-confirm-checkbox">
+            <input id="delete-account-confirm-checkbox" type="checkbox"/>
+            <span>I understand this is permanent and want to delete my account.</span>
+        </label>
+    </div>
+    <div id="delete-account-actions-container">
+        <input id="delete-account-button" type="button" class="app-buttons" value="delete my account"
+               disabled/>
+        <a href="/user/settings" class="app-buttons" id="delete-account-cancel-button">cancel</a>
+    </div>
+</div>
+</body>
+</html>

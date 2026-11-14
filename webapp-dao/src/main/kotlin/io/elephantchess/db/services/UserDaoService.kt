@@ -18,6 +18,7 @@ import io.elephantchess.utils.safeRandomAlphaNumericString
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KLogger
 import org.jooq.DSLContext
+import org.jooq.Record
 import org.jooq.TableField
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -29,7 +30,11 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 @KoinSingleton
-class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
+class UserDaoService(
+    private val dslContext: DSLContext,
+    private val archivedPageViewDaoService: ArchivedPageViewDaoService,
+    val logger: KLogger,
+) {
 
     suspend fun save(user: User): String {
         dslContext.transactionCoroutine { cfg ->
@@ -401,31 +406,179 @@ class UserDaoService(private val dslContext: DSLContext, val logger: KLogger) {
         }
     }
 
-    suspend fun transferRatingsFromGuest(guestUserId: String, newUserId: String) {
+    /**
+     * Transfers guest-owned data to the authenticated user created at signup.
+     *
+     * The transfer keeps provenance by filling `*_guest_user_id` columns before ids are
+     * reassigned through [reassignAllReferences], and also copies ratings from guest to user.
+     */
+    suspend fun transferGuestDataToUser(guestUserId: String, newUserId: String) {
         val guestUser = findById(guestUserId)
         if (guestUser == null) {
-            logger.warn { "transferRatingsFromGuest: guest user $guestUserId not found — ratings not transferred to $newUserId" }
+            logger.warn { "transferGuestDataToUser: guest user $guestUserId not found — data not transferred to $newUserId" }
             return
         }
         dslContext.transactionCoroutine { cfg ->
-            DSL.using(cfg)
-                .update(USER)
-                .set(USER.PUZZLE_RATING, guestUser.puzzleRating)
-                .set(USER.GAME_RATING_BULLET, guestUser.gameRatingBullet)
-                .set(USER.GAME_RATING_BLITZ, guestUser.gameRatingBlitz)
-                .set(USER.GAME_RATING_RAPID, guestUser.gameRatingRapid)
-                .set(USER.GAME_RATING_CLASSICAL, guestUser.gameRatingClassical)
-                .set(USER.GAME_RATING_SEVERAL_DAYS, guestUser.gameRatingSeveralDays)
-                .set(USER.GAME_RATING_CORRESPONDENCE, guestUser.gameRatingCorrespondence)
-                .set(USER.GAME_RATING_MANCHU_BULLET, guestUser.gameRatingManchuBullet)
-                .set(USER.GAME_RATING_MANCHU_BLITZ, guestUser.gameRatingManchuBlitz)
-                .set(USER.GAME_RATING_MANCHU_RAPID, guestUser.gameRatingManchuRapid)
-                .set(USER.GAME_RATING_MANCHU_CLASSICAL, guestUser.gameRatingManchuClassical)
-                .set(USER.GAME_RATING_MANCHU_SEVERAL_DAYS, guestUser.gameRatingManchuSeveralDays)
-                .set(USER.GAME_RATING_MANCHU_CORRESPONDENCE, guestUser.gameRatingManchuCorrespondence)
-                .where(USER.ID.eq(newUserId))
-                .awaitExecute()
+            val tx = DSL.using(cfg)
+            stampGuestOriginColumns(tx, guestUserId)
+            reassignAllReferences(tx, guestUserId, newUserId)
+            copyRatings(tx, guestUser, newUserId)
         }
+    }
+
+    /** Copies all puzzle/game ratings from [source] onto the user [targetId], within [tx]. */
+    private suspend fun copyRatings(tx: DSLContext, source: User, targetId: String) {
+        tx
+            .update(USER)
+            .set(USER.PUZZLE_RATING, source.puzzleRating)
+            .set(USER.GAME_RATING_BULLET, source.gameRatingBullet)
+            .set(USER.GAME_RATING_BLITZ, source.gameRatingBlitz)
+            .set(USER.GAME_RATING_RAPID, source.gameRatingRapid)
+            .set(USER.GAME_RATING_CLASSICAL, source.gameRatingClassical)
+            .set(USER.GAME_RATING_SEVERAL_DAYS, source.gameRatingSeveralDays)
+            .set(USER.GAME_RATING_CORRESPONDENCE, source.gameRatingCorrespondence)
+            .set(USER.GAME_RATING_MANCHU_BULLET, source.gameRatingManchuBullet)
+            .set(USER.GAME_RATING_MANCHU_BLITZ, source.gameRatingManchuBlitz)
+            .set(USER.GAME_RATING_MANCHU_RAPID, source.gameRatingManchuRapid)
+            .set(USER.GAME_RATING_MANCHU_CLASSICAL, source.gameRatingManchuClassical)
+            .set(USER.GAME_RATING_MANCHU_SEVERAL_DAYS, source.gameRatingManchuSeveralDays)
+            .set(USER.GAME_RATING_MANCHU_CORRESPONDENCE, source.gameRatingManchuCorrespondence)
+            .where(USER.ID.eq(targetId))
+            .awaitExecute()
+    }
+
+    /**
+     * Permanently deletes an account and transfers its data to a new [UserType.ANONYMIZED] user.
+     *
+     * Runs in a single transaction: a fresh identity-less user is created (ratings copied, no email,
+     * username or password), every row that referenced the deleted user is re-pointed to it via
+     * [reassignAllReferences], the user's page views are archived and their raw rows deleted, the
+     * user's sessions (which hold IP/location data) are deleted, and finally the user row is removed.
+     * Returns the new anonymized user id, or `null` if the user does not exist.
+     */
+    suspend fun deleteAndAnonymize(userId: String): String? {
+        val user = findById(userId)
+        if (user == null) {
+            logger.warn { "deleteAndAnonymize: user $userId not found — nothing to delete" }
+            return null
+        }
+
+        val anonymizedId = generateUniqueUserId()
+
+        dslContext.transactionCoroutine { cfg ->
+            val tx = DSL.using(cfg)
+
+            tx
+                .insertInto(USER)
+                .set(USER.ID, anonymizedId)
+                .set(USER.CREATION, user.creation)
+                .set(USER.LAST_ONLINE, Clock.System.now())
+                .set(USER.USER_TYPE, UserType.ANONYMIZED)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PLAYED_MOVE, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_RESIGNED, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW, false)
+                .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW, false)
+                .awaitExecute()
+
+            copyRatings(tx, user, anonymizedId)
+            reassignAllReferences(tx, userId, anonymizedId)
+
+            archivedPageViewDaoService.archivePageViews(tx, PAGE_VIEW_EVENT.USER_ID.eq(userId))
+            tx.deleteFrom(PAGE_VIEW_EVENT).where(PAGE_VIEW_EVENT.USER_ID.eq(userId)).awaitExecute()
+
+            tx.deleteFrom(USER_SESSION).where(USER_SESSION.USER_ID.eq(userId)).awaitExecute()
+            tx.deleteFrom(USER).where(USER.ID.eq(userId)).awaitExecute()
+        }
+
+        logger.info { "deleted account $userId, data transferred to anonymized user $anonymizedId" }
+        return anonymizedId
+    }
+
+    /**
+     * Re-points every row that references [oldId] (via a user foreign key) to [newId], within [tx].
+     * The list below mirrors all user foreign keys in the schema.
+     */
+    suspend fun reassignAllReferences(tx: DSLContext, oldId: String, newId: String) {
+        reassign(tx, GAME.INVITER, oldId, newId)
+        reassign(tx, GAME.INVITEE, oldId, newId)
+        reassign(tx, GAME.DRAW_PROPOSITION_USER, oldId, newId)
+
+        reassign(tx, BOT_GAME.USER_ID, oldId, newId)
+        reassign(tx, PUZZLE_RESULT.USER_ID, oldId, newId)
+        reassign(tx, ANALYSIS.OWNER_USER_ID, oldId, newId)
+        reassign(tx, GAME_STATUS_EVENT.USER_ID, oldId, newId)
+        reassign(tx, GAME_CHAT_MESSAGE.AUTHOR, oldId, newId)
+        reassign(tx, DISCORD_GAME_NOTIFICATION.USER_ID, oldId, newId)
+
+        reassign(tx, GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID, oldId, newId)
+        reassign(tx, GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID, oldId, newId)
+
+        reassign(tx, REFERENCE_GAME_SEARCH_QUERY.USER_ID, oldId, newId)
+        reassign(tx, REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID, oldId, newId)
+        reassign(tx, REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID, oldId, newId)
+
+        reassign(tx, KOFI_EVENT.MATCHED_USER_ID, oldId, newId)
+        reassign(tx, UPCOMING_EVENT.CREATED_BY, oldId, newId)
+
+        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_WHITE, oldId, newId)
+        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_RED, oldId, newId)
+        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_ORANGE, oldId, newId)
+        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_BLUE, oldId, newId)
+        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_GREEN, oldId, newId)
+        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_PURPLE, oldId, newId)
+        reassign(tx, SEVEN_KINGDOMS_GAME.PLAYER_BLACK, oldId, newId)
+        reassign(tx, SEVEN_KINGDOMS_GAME_EVENT.USER_ID, oldId, newId)
+    }
+
+    /** Re-points a single user-referencing column from [oldId] to [newId]. */
+    private suspend fun <R : Record> reassign(tx: DSLContext, field: TableField<R, String?>, oldId: String, newId: String) {
+        tx
+            .update(field.table)
+            .set(field, newId)
+            .where(field.eq(oldId))
+            .awaitExecute()
+    }
+
+    /** Stamps guest-origin columns for rows that still belong to [guestUserId], before reassignment. */
+    private suspend fun stampGuestOriginColumns(tx: DSLContext, guestUserId: String) {
+        tx
+            .update(GAME)
+            .set(GAME.GUEST_USER_ID, guestUserId)
+            .where(
+                GAME.INVITER
+                    .eq(guestUserId)
+                    .or(GAME.INVITEE.eq(guestUserId)),
+            )
+            .awaitExecute()
+
+        tx
+            .update(BOT_GAME)
+            .set(BOT_GAME.GUEST_USER_ID, guestUserId)
+            .where(BOT_GAME.USER_ID.eq(guestUserId))
+            .awaitExecute()
+
+        tx
+            .update(PUZZLE_RESULT)
+            .set(PUZZLE_RESULT.GUEST_USER_ID, guestUserId)
+            .where(PUZZLE_RESULT.USER_ID.eq(guestUserId))
+            .awaitExecute()
+
+        tx
+            .update(REFERENCE_GAME_SEARCH_QUERY)
+            .set(REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID, guestUserId)
+            .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(guestUserId))
+            .awaitExecute()
+    }
+
+    private suspend fun generateUniqueUserId(): String {
+        var id = generateId()
+        while (existsById(id)) {
+            id = generateId()
+        }
+        return id
     }
 
     suspend fun updateLastOnline(userIds: List<String>) {

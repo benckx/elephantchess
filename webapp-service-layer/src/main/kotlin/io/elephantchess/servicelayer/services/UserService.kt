@@ -37,11 +37,9 @@ class UserService(
     private val userSessionDaoService: UserSessionDaoService,
     private val archivedPageViewDaoService: ArchivedPageViewDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
-    private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
-    private val puzzleResultDaoService: PuzzleResultDaoService,
-    private val referenceGameDaoService: ReferenceGameDaoService,
     private val userSessionService: UserSessionService,
     private val tokenManager: TokenManager,
+    private val userCache: UserCache,
     private val mailService: MailService,
     private val pageViewEventService: PageViewEventService,
     private val settingPreferenceEventService: SettingPreferenceEventService,
@@ -498,6 +496,19 @@ class UserService(
         return ArchiveUserPageViewsResponse(archivedCount)
     }
 
+    /**
+     * Permanently deletes the authenticated user's account. Its games, puzzles and ratings are kept
+     * but transferred to a freshly created, identity-less anonymized user (the id changes too), while
+     * all personal data (email, username, password, sessions, raw page views) is removed. The caches
+     * are then invalidated so the user's token stops being accepted immediately.
+     */
+    suspend fun deleteAccount(userId: String): DeleteAccountResponse {
+        val anonymizedId = userDaoService.deleteAndAnonymize(userId)
+        userCache.invalidate(userId)
+        tokenManager.invalidateUser(userId)
+        return DeleteAccountResponse(deleted = anonymizedId != null)
+    }
+
     fun isOnline(userId: String): Boolean =
         onlineUserIds.contains(userId)
 
@@ -555,11 +566,7 @@ class UserService(
 
     private suspend fun transferGuestData(guestUserId: String, newUserId: String) {
         logger.debug { "transferring data from guest $guestUserId to new user $newUserId" }
-        playerVsPlayerGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
-        playerVsBotGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
-        puzzleResultDaoService.transferFromGuestToUser(guestUserId, newUserId)
-        referenceGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
-        userDaoService.transferRatingsFromGuest(guestUserId, newUserId)
+        userDaoService.transferGuestDataToUser(guestUserId, newUserId)
     }
 
     private fun hash(password: CharArray): ByteArray {

@@ -27,4 +27,8 @@ abstract class NullableCache<K : Any, V : Any>(expireAfterWrite: Duration, open 
             fromCache
         }
     }
+
+    fun invalidate(key: K) {
+        delegate.invalidate(key)
+    }
 }

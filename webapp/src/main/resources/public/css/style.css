@@ -485,6 +485,12 @@ table.standard-data-table-top-margin {
     color: #262626;
 }
 
+/* deleted/anonymized account label: readable medium grey on our light backgrounds */
+.anonymized-name {
+    color: #6c6c6c;
+    font-style: italic;
+}
+
 span.sub-text {
     font-size: 12px;
     color: #444444;

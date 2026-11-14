@@ -197,6 +197,11 @@ private fun Route.userSettingsRoutes() {
                 userService.archiveUserPageViews(verifiedToken.userId)
             }
         }
+        post("/account/delete") {
+            requireAuthentication { verifiedToken ->
+                userService.deleteAccount(verifiedToken.userId)
+            }
+        }
     }
 }
 
