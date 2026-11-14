@@ -254,8 +254,8 @@ class AdminOverviewPage extends BasePage {
     /**
      * Updates a trend's count and delta labels (absolute and percentage) with styling.
      *
-     * @param countElementId {string} - Id of the element showing the latest count.
-     * @param deltaElementId {string} - Id of the element showing the delta.
+     * @param countElementId {string} - id of the element showing the latest count.
+     * @param deltaElementId {string} - id of the element showing the delta.
      * @param latest30Days {number} - Count over the latest 30 days.
      * @param previous30Days {number} - Count over the previous 30 days.
      * @return {void}
