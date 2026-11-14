@@ -300,6 +300,14 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             .limit(n)
             .awaitRecords()
 
+    suspend fun countPlayedBetween(fromInclusive: Instant, toExclusive: Instant): Int =
+        dslContext
+            .selectCount()
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.ENTRY_CREATION.ge(fromInclusive))
+            .and(PUZZLE_RESULT.ENTRY_CREATION.lt(toExclusive))
+            .awaitSingleValue() ?: 0
+
     private companion object {
 
         fun renderDelta(value: Int): String =

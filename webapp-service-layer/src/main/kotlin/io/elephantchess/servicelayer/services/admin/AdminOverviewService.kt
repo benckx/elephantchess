@@ -14,6 +14,8 @@ import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.services.analytics.MIN_GENUINE_GUEST_LIFESPAN_SECONDS
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Variant
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
 @KoinSingleton
@@ -154,6 +156,33 @@ class AdminOverviewService(
             latestNewGuest = userDaoService.latestNewGuestUser()?.toEpochMilliseconds(),
             latestNewAuthenticatedUser = userDaoService.latestNewAuthenticatedUser()?.toEpochMilliseconds(),
         )
+
+    suspend fun fetchOverviewTrends(): OverviewTrendResponse {
+        val now = Clock.System.now()
+        val latest30DaysStart = now - 30.days
+        val previous30DaysStart = latest30DaysStart - 30.days
+
+        val latest30DaysGames =
+            pvpGameDaoService.countGamesOverMoveIndexByCreatedBetween(MIN_MOVE_INDEX, latest30DaysStart, now) +
+                pvbGameDaoService.countGamesOverMoveIndexByCreatedBetween(MIN_MOVE_INDEX, latest30DaysStart, now)
+        val previous30DaysGames =
+            pvpGameDaoService.countGamesOverMoveIndexByCreatedBetween(MIN_MOVE_INDEX, previous30DaysStart, latest30DaysStart) +
+                pvbGameDaoService.countGamesOverMoveIndexByCreatedBetween(MIN_MOVE_INDEX, previous30DaysStart, latest30DaysStart)
+
+        val latest30DaysPuzzles = puzzleResultDaoService.countPlayedBetween(latest30DaysStart, now)
+        val previous30DaysPuzzles = puzzleResultDaoService.countPlayedBetween(previous30DaysStart, latest30DaysStart)
+
+        return OverviewTrendResponse(
+            gamesOver3 = OverviewTrendResponse.TrendValue(
+                latest30Days = latest30DaysGames,
+                previous30Days = previous30DaysGames,
+            ),
+            puzzles = OverviewTrendResponse.TrendValue(
+                latest30Days = latest30DaysPuzzles,
+                previous30Days = previous30DaysPuzzles,
+            ),
+        )
+    }
 
     private companion object {
 

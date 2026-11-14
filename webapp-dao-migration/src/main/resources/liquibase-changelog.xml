@@ -3053,4 +3053,17 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="0127" author="benckx">
+        <comment>Technical changes (admin console)</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS page_view_event_newsletter_path_idx
+            ON page_view_event (event_path)
+            WHERE event_path LIKE '%medium=newsletter-%';
+        </sql>
+        <sql>
+            CREATE INDEX IF NOT EXISTS archived_page_view_daily_newsletter_url_idx
+            ON archived_page_view_daily (url)
+            WHERE url LIKE '%medium=newsletter-%';
+        </sql>
+    </changeSet>
 </databaseChangeLog>

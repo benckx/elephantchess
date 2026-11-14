@@ -295,6 +295,15 @@ class PlayerVsBotGameDaoService(private val dslContext: DSLContext) {
             .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex).or(BOT_GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
             .awaitSingleValue()!!
 
+    suspend fun countGamesOverMoveIndexByCreatedBetween(minMoveIndex: Int, fromInclusive: Instant, toExclusive: Instant): Int =
+        dslContext
+            .selectCount()
+            .from(BOT_GAME)
+            .where(BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(BOT_GAME.CREATED.ge(fromInclusive))
+            .and(BOT_GAME.CREATED.lt(toExclusive))
+            .awaitSingleValue() ?: 0
+
     suspend fun countVariantGames(minIndex: Int, variant: Variant): Int {
         val countCondition =
             BOT_GAME.CURRENT_HALF_MOVE_INDEX.ge(minIndex)
