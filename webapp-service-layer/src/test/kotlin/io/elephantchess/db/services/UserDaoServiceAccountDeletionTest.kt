@@ -20,11 +20,10 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.time.Clock
 
-class AccountDeletionDaoServiceTest : ServiceTest() {
+class UserDaoServiceAccountDeletionTest : ServiceTest() {
 
     private val dslContext by inject<DSLContext>()
     private val userDaoService by inject<UserDaoService>()
-    private val accountDeletionDaoService by inject<AccountDeletionDaoService>()
 
     @Test
     fun `deletes the account and transfers data to a new anonymized user`() =
@@ -34,7 +33,7 @@ class AccountDeletionDaoServiceTest : ServiceTest() {
             insertSession(userId)
             insertSearchQuery(userId)
 
-            val anonymizedId = accountDeletionDaoService.deleteAndAnonymize(userId)
+            val anonymizedId = userDaoService.deleteAndAnonymize(userId)
 
             assertNotNull(anonymizedId)
             assertNotEquals(userId, anonymizedId)
@@ -61,7 +60,7 @@ class AccountDeletionDaoServiceTest : ServiceTest() {
     @Test
     fun `returns null and changes nothing for an unknown user`() =
         runTest {
-            val result = accountDeletionDaoService.deleteAndAnonymize("does-not-exist")
+            val result = userDaoService.deleteAndAnonymize("does-not-exist")
             assertNull(result)
         }
 

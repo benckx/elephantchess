@@ -458,15 +458,6 @@ class ReferenceGameDaoService(private val dslContext: DSLContext) {
                 )
             }
 
-    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
-        dslContext
-            .update(REFERENCE_GAME_SEARCH_QUERY)
-            .set(REFERENCE_GAME_SEARCH_QUERY.USER_ID, newUserId)
-            .set(REFERENCE_GAME_SEARCH_QUERY.GUEST_USER_ID, guestUserId)
-            .where(REFERENCE_GAME_SEARCH_QUERY.USER_ID.eq(guestUserId))
-            .awaitExecute()
-    }
-
     suspend fun pickRandomGameForAnalysis(): String? =
         dslContext
             .select(REFERENCE_GAME.ID)

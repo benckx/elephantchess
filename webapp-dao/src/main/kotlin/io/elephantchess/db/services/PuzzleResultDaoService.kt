@@ -309,13 +309,4 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
                 value.toString()
             }
     }
-
-    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
-        dslContext
-            .update(PUZZLE_RESULT)
-            .set(PUZZLE_RESULT.USER_ID, newUserId)
-            .set(PUZZLE_RESULT.GUEST_USER_ID, guestUserId)
-            .where(PUZZLE_RESULT.USER_ID.eq(guestUserId))
-            .awaitExecute()
-    }
 }

@@ -36,11 +36,7 @@ class UserService(
     private val userDaoService: UserDaoService,
     private val userSessionDaoService: UserSessionDaoService,
     private val archivedPageViewDaoService: ArchivedPageViewDaoService,
-    private val accountDeletionDaoService: AccountDeletionDaoService,
     private val playerVsPlayerGameDaoService: PlayerVsPlayerGameDaoService,
-    private val playerVsBotGameDaoService: PlayerVsBotGameDaoService,
-    private val puzzleResultDaoService: PuzzleResultDaoService,
-    private val referenceGameDaoService: ReferenceGameDaoService,
     private val userSessionService: UserSessionService,
     private val tokenManager: TokenManager,
     private val userCache: UserCache,
@@ -507,7 +503,7 @@ class UserService(
      * are then invalidated so the user's token stops being accepted immediately.
      */
     suspend fun deleteAccount(userId: String): DeleteAccountResponse {
-        val anonymizedId = accountDeletionDaoService.deleteAndAnonymize(userId)
+        val anonymizedId = userDaoService.deleteAndAnonymize(userId)
         userCache.invalidate(userId)
         tokenManager.invalidateUser(userId)
         return DeleteAccountResponse(deleted = anonymizedId != null)
@@ -570,11 +566,7 @@ class UserService(
 
     private suspend fun transferGuestData(guestUserId: String, newUserId: String) {
         logger.debug { "transferring data from guest $guestUserId to new user $newUserId" }
-        playerVsPlayerGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
-        playerVsBotGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
-        puzzleResultDaoService.transferFromGuestToUser(guestUserId, newUserId)
-        referenceGameDaoService.transferFromGuestToUser(guestUserId, newUserId)
-        userDaoService.transferRatingsFromGuest(guestUserId, newUserId)
+        userDaoService.transferGuestDataToUser(guestUserId, newUserId)
     }
 
     private fun hash(password: CharArray): ByteArray {
