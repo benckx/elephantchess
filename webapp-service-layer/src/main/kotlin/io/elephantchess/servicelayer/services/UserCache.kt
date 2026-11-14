@@ -3,6 +3,8 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.roles
 import io.elephantchess.model.UserType
+import io.elephantchess.model.UserType.ANONYMIZED
+import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.utils.CachedUser
@@ -29,9 +31,9 @@ class UserCache(private val userDaoService: UserDaoService) :
                     userId = userRecord.id,
                     userType = userRecord.userType,
                     username = when (userRecord.userType) {
-                        UserType.AUTHENTICATED -> userRecord.handle
+                        AUTHENTICATED -> userRecord.handle
                         GUEST -> "guest #${userRecord.id}"
-                        UserType.ANONYMIZED -> "anonymized #${userRecord.id}"
+                        ANONYMIZED -> "<anon>"
                         else -> UNKNOWN_USERNAME
                     },
                     creationTime = userRecord.creation,
