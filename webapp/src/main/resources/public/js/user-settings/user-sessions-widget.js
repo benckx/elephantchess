@@ -130,7 +130,7 @@ class UserSessionsWidget {
             this.#emptyMessage.classList.toggle('hidden', hasEntries);
         }
         if (this.#allSessionsLink != null) {
-            this.#allSessionsLink.classList.toggle('hidden', total <= entries.length);
+            this.#allSessionsLink.classList.toggle('hidden', !hasEntries);
         }
 
         this.#onUpdate(entries, total);

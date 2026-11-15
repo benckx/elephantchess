@@ -7,6 +7,7 @@ import io.elephantchess.webapp.ops.isAdmin
 import io.elephantchess.webapp.ops.optionalIdentification
 import io.elephantchess.webapp.ops.renderTemplateHtmlToCall
 import io.elephantchess.webapp.ops.requireAuthentication
+import io.elephantchess.webapp.ops.requireIdentification
 import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.elephantchess.webapp.rendering.UserProfilePageRenderer
@@ -59,12 +60,12 @@ private fun Route.userSettingsPages() {
             }
         }
         get("/sessions") {
-            requireAuthentication {
+            requireIdentification {
                 simplePageRenderer.renderTemplateHtmlToCall("user_sessions")
             }
         }
         get("/views") {
-            requireAuthentication {
+            requireIdentification {
                 simplePageRenderer.renderTemplateHtmlToCall("user_views")
             }
         }
