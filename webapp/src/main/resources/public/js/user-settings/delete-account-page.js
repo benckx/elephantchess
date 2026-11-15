@@ -22,10 +22,21 @@ class DeleteAccountPage extends BasePage {
     #checkbox = document.getElementById('delete-account-confirm-checkbox');
     #deleteButton = document.getElementById('delete-account-button');
     #cancelButton = document.getElementById('delete-account-cancel-button');
+    #authWarningContainer = document.getElementById('delete-account-auth-warning');
+    #loginButton = document.getElementById('delete-account-login-button');
+    #signUpButton = document.getElementById('delete-account-signup-button');
 
     constructor() {
         super();
-        this.#checkbox.addEventListener('change', () => this.#refreshDeleteButton());
+        const isAuthenticated = isUserAuthenticated();
+        this.#checkbox.disabled = !isAuthenticated;
+        if (isAuthenticated) {
+            this.#checkbox.addEventListener('change', () => this.#refreshDeleteButton());
+        } else {
+            this.#authWarningContainer.classList.remove('hidden');
+            this.#loginButton.addEventListener('click', () => showLoginModal());
+            this.#signUpButton.addEventListener('click', () => showSignUpModal());
+        }
         this.#deleteButton.addEventListener('click', () => this.#deleteAccount());
         this.#cancelButton.addEventListener('click', () => window.location.href = '/');
         this.#refreshDeleteButton();

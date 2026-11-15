@@ -122,6 +122,14 @@
     margin-left: 12px;
 }
 
+#delete-account-auth-actions {
+    margin-top: 10px;
+}
+
+#delete-account-auth-actions .app-buttons {
+    margin-right: 8px;
+}
+
 #delete-account-link,
 #delete-account-link:visited {
     color: white;
