@@ -122,6 +122,11 @@
     margin-left: 12px;
 }
 
+#delete-account-link,
+#delete-account-link:visited {
+    color: white;
+}
+
 .hidden {
     display: none;
 }

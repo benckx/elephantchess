@@ -5,30 +5,57 @@ import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.NotificationsSettingsDto
+import io.elephantchess.servicelayer.model.AuthenticatedToken
+import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.services.analytics.ARCHIVE_PAGE_VIEW_AFTER_DAYS
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
+import io.elephantchess.webapp.rendering.resolvers.WebFragmentResolver
 import kotlinx.html.*
 
 @KoinSingleton(eager = true)
 class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private val userService: UserService) {
 
-    suspend fun renderUserSettingsPage(userId: String): String {
-        val profile = userService.fetchProfileSettings(userId)
-        val notifications = userService.fetchNotificationsSettings(userId)
+    suspend fun renderUserSettingsPage(token: VerifiedToken?): String {
+        val authenticatedToken = token as? AuthenticatedToken
+        val profile = authenticatedToken?.let { userService.fetchProfileSettings(it.userId) }
+        val notifications = authenticatedToken?.let { userService.fetchNotificationsSettings(it.userId) }
+        val hasAuthenticatedSettings = authenticatedToken != null
 
         return htmlRenderer.renderHtml(
             templatePath = "/templates/user_settings.html",
             specificTagResolvers = listOf(
-                SimpleValueTagResolver("profile_description", escapeHtml(profile.description)),
-                SimpleValueTagResolver("profile_country", escapeHtmlAttr(profile.country)),
-                SimpleValueTagResolver("show_pvp_games_checked", if (profile.showPvpGamesOnProfile) "checked" else ""),
-                SimpleValueTagResolver("show_pvb_games_checked", if (profile.showPvbGamesOnProfile) "checked" else ""),
+                authenticatedSettingsContentTagResolver(hasAuthenticatedSettings),
+                SimpleValueTagResolver("profile_description", escapeHtml(profile?.description.orEmpty())),
+                SimpleValueTagResolver("profile_country", escapeHtmlAttr(profile?.country.orEmpty())),
+                SimpleValueTagResolver("show_pvp_games_checked", if (profile?.showPvpGamesOnProfile == true) "checked" else ""),
+                SimpleValueTagResolver("show_pvb_games_checked", if (profile?.showPvbGamesOnProfile == true) "checked" else ""),
                 SimpleValueTagResolver("page_views_retention_days", ARCHIVE_PAGE_VIEW_AFTER_DAYS.toString()),
-                notificationsTableTagResolver(notifications),
+                notificationsTableTagResolver(
+                    notifications
+                        ?: NotificationsSettingsDto(
+                            newsletter = false,
+                            opponentJoinedGame = false,
+                            opponentPlayedMove = false,
+                            opponentResigned = false,
+                            opponentProposedDraw = false,
+                            opponentAcceptedDraw = false,
+                            opponentDeclinedDraw = false,
+                        ),
+                ),
             ),
         )
     }
+
+    private fun authenticatedSettingsContentTagResolver(hasAuthenticatedSettings: Boolean): TagResolver =
+        CallbackTagResolver("authenticated_user_settings_content") {
+            if (hasAuthenticatedSettings) {
+                WebFragmentResolver("authenticated_user_settings_content").resolveContent().firstOrNull() ?: ""
+            } else {
+                ""
+            }
+        }
 
     private fun notificationsTableTagResolver(dto: NotificationsSettingsDto): TagResolver {
         val rows = listOf(

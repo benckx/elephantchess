@@ -151,7 +151,7 @@ private fun Route.userSettingsRoutes() {
             }
         }
         get("/sessions") {
-            requireAuthentication { verifiedToken ->
+            requireIdentification { verifiedToken ->
                 val limit =
                     call.request.queryParameters["limit"]
                         ?.toIntOrNull()
@@ -177,7 +177,7 @@ private fun Route.userSettingsRoutes() {
             }
         }
         get("/views") {
-            requireAuthentication { verifiedToken ->
+            requireIdentification { verifiedToken ->
                 val limit =
                     call.request.queryParameters["limit"]
                         ?.toIntOrNull()

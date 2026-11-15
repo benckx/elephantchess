@@ -1,17 +1,18 @@
 package io.elephantchess.webapp.routing.html
 
+import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
+import io.elephantchess.webapp.ops.extractAndVerifyToken
 import io.elephantchess.webapp.ops.isAdmin
 import io.elephantchess.webapp.ops.renderTemplateHtmlToCall
 import io.elephantchess.webapp.ops.requireAuthentication
 import io.elephantchess.webapp.ops.respondHtml
+import io.elephantchess.webapp.ops.verifyInDb
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.elephantchess.webapp.rendering.UserProfilePageRenderer
 import io.elephantchess.webapp.rendering.UserSettingsPageRenderer
-import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.server.routing.*
 
 fun Route.userBasedPagesRouting() {
@@ -50,12 +51,10 @@ private fun Route.userSettingsPages() {
 
     route("/user/settings") {
         get {
-            requireAuthentication { token ->
-                TextContent(
-                    text = userSettingsPageRenderer.renderUserSettingsPage(token.userId),
-                    contentType = ContentType.Text.Html,
-                )
-            }
+            val verifiedToken =
+                (extractAndVerifyToken() as? VerifiedToken)
+                    ?.takeIf { verifyInDb(it) }
+            call.respondHtml(userSettingsPageRenderer.renderUserSettingsPage(verifiedToken))
         }
         get("/sessions") {
             requireAuthentication {
@@ -68,9 +67,9 @@ private fun Route.userSettingsPages() {
             }
         }
         get("/delete-account") {
-            requireAuthentication {
+            call.respond(
                 simplePageRenderer.renderTemplateHtmlToCall("user_delete_account")
-            }
+            )
         }
     }
 }
