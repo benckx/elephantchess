@@ -198,7 +198,7 @@ private fun Route.userSettingsRoutes() {
             }
         }
         post("/account/delete") {
-            requireIdentification { verifiedToken ->
+            requireAuthentication { verifiedToken ->
                 userService.deleteAccount(verifiedToken.userId)
             }
         }
