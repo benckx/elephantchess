@@ -28,6 +28,8 @@ const USERNAME_MAX_DESCRIPTION_LENGTH = 1_000;
 
 class UserSettingsPage extends BasePage {
 
+    #isAuthenticated = document.body.dataset.authenticated === 'true';
+
     // profile section
     #saveProfileButton = document.getElementById('save-profile-button');
     #descriptionField = document.getElementById('description');
@@ -57,7 +59,7 @@ class UserSettingsPage extends BasePage {
     constructor() {
         super();
 
-        if (this.#hasAuthenticatedSettingsSection()) {
+        if (this.#isAuthenticated) {
             // profile section
             fillSelect('countries');
             this.#selectLoadedCountry();
@@ -104,10 +106,6 @@ class UserSettingsPage extends BasePage {
             // page views section
             this.#pageViewsWidget.fetchAndRender();
         }
-    }
-
-    #hasAuthenticatedSettingsSection() {
-        return this.#saveProfileButton != null;
     }
 
     #profileStateSignature() {

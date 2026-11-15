@@ -26,6 +26,10 @@ class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private v
         return htmlRenderer.renderHtml(
             templatePath = "/templates/user_settings.html",
             specificTagResolvers = listOf(
+                SimpleValueTagResolver(
+                    "body_data_attrs",
+                    dataAttr("authenticated", hasAuthenticatedSettings.toString()),
+                ),
                 authenticatedSettingsContentTagResolver(hasAuthenticatedSettings),
                 SimpleValueTagResolver("profile_description", escapeHtml(profile?.description.orEmpty())),
                 SimpleValueTagResolver("profile_country", escapeHtmlAttr(profile?.country.orEmpty())),
@@ -120,4 +124,10 @@ class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private v
         val label: String,
         val checked: Boolean,
     )
+
+    private companion object {
+
+        fun dataAttr(name: String, value: String?): String =
+            if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
+    }
 }
