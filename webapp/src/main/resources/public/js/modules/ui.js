@@ -319,7 +319,7 @@ function buildUsernameSpan(userId, username, userType, maxLength = null, removeG
             // deleted account: its games/puzzles were transferred to an identity-less user
             const span = document.createElement('span');
             span.className = 'anonymized-name';
-            span.innerText = '<anon>';
+            span.innerText = '[anon]';
             return span;
         }
     }

@@ -33,7 +33,7 @@ class UserCache(private val userDaoService: UserDaoService) :
                     username = when (userRecord.userType) {
                         AUTHENTICATED -> userRecord.handle
                         GUEST -> "guest #${userRecord.id}"
-                        ANONYMIZED -> "<anon>"
+                        ANONYMIZED -> "[anon]"
                         else -> UNKNOWN_USERNAME
                     },
                     creationTime = userRecord.creation,

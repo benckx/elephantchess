@@ -341,7 +341,7 @@ class User {
             case UserType.GUEST:
                 return `guest #${this.#userId}`;
             case UserType.ANONYMIZED:
-                return '<anon>';
+                return '[anon]';
             default:
                 return 'Not identified';
         }
