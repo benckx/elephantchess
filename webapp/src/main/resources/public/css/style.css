@@ -850,7 +850,7 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
 }
 
 #user-profile-icon {
-    display: block;
+    display: none;
     margin-right: 12px;
     margin-top: 5px;
 }
