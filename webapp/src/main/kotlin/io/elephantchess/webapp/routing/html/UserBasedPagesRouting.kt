@@ -11,6 +11,8 @@ import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.elephantchess.webapp.rendering.UserProfilePageRenderer
 import io.elephantchess.webapp.rendering.UserSettingsPageRenderer
+import io.ktor.http.ContentType
+import io.ktor.http.content.TextContent
 import io.ktor.server.routing.*
 
 fun Route.userBasedPagesRouting() {
@@ -50,7 +52,10 @@ private fun Route.userSettingsPages() {
     route("/user/settings") {
         get {
             optionalIdentification { maybeVerifiedToken ->
-                call.respondHtml(userSettingsPageRenderer.renderUserSettingsPage(maybeVerifiedToken))
+                TextContent(
+                    userSettingsPageRenderer.renderUserSettingsPage(maybeVerifiedToken),
+                    ContentType.Text.Html,
+                )
             }
         }
         get("/sessions") {
