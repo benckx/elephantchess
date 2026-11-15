@@ -78,6 +78,15 @@ suspend inline fun <reified T : Any> RoutingContext.requireIdentificationWithBod
     }
 }
 
+suspend fun RoutingContext.optionalIdentification(handler: suspend (VerifiedToken?) -> Any) {
+    val result = extractAndVerifyToken()
+    if (result is VerifiedToken && verifyInDb(result)) {
+        call.respond(handler(result))
+    } else {
+        call.respond(handler(null))
+    }
+}
+
 suspend fun RoutingContext.requireAdminRole(customErrorPage: (suspend () -> String)? = null, handler: suspend (AuthenticatedToken) -> Any) {
     requireRole(ADMIN, handler, customErrorPage)
 }

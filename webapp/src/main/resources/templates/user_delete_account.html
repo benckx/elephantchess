@@ -51,7 +51,18 @@
                    value="delete my account" disabled/>
             <input id="delete-account-cancel-button" type="button" class="app-buttons" value="cancel"/>
         </div>
+        <div id="delete-account-auth-warning" class="little-message little-message-flattened info-data hidden">
+            <div>
+                <div class="icon-container">
+                    <img src="/images/icons/question.png" alt="authentication required"/>
+                </div>
+                <div class="message-container">
+                    This option is only applicable if you are authenticated.
+                </div>
+            </div>
+        </div>
     </div>
+    {{logged_as_guest_message}}
 </div>
 </body>
 </html>
