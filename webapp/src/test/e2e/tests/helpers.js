@@ -190,6 +190,30 @@ async function captureStep(testInfo, step, labelByPage, {fullPage = true} = {}) 
     }
 }
 
+async function authenticateUser(page, context, {login, password}) {
+    const response = await page.request.post('/api/login', {
+        data: {login, password},
+        headers: {'content-type': 'application/json'},
+    });
+    expect(response.ok()).toBe(true);
+    const json = await response.json();
+    await context.clearCookies();
+    const cookies = [
+        {name: 'user.userId', value: json.userId},
+        {name: 'user.handle', value: json.username},
+        {name: 'user.token', value: json.token},
+    ];
+    if (json.roles && json.roles.length > 0) {
+        cookies.push({name: 'user.roles', value: JSON.stringify(json.roles)});
+    }
+    await context.addCookies(
+        cookies.map((cookie) => ({
+            ...cookie,
+            url: page.url(),
+        }))
+    );
+}
+
 module.exports = {
     newGuestContext,
     createGame,
@@ -198,4 +222,5 @@ module.exports = {
     playMove,
     playScriptedGame,
     captureStep,
+    authenticateUser,
 };

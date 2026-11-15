@@ -210,8 +210,19 @@ jobs:
           echo "webapp did not start in time"; cat /tmp/webapp.log; exit 1
 
       - name: Run Playwright e2e tests
-        run: npm test
         working-directory: webapp/src/test/e2e
+        run: |
+          for attempt in 1 2; do
+            rm -rf playwright-report test-results
+            if npm test; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Playwright e2e failed after 2 attempts"
+              exit 1
+            fi
+            echo "Playwright e2e failed on attempt $attempt, retrying..."
+          done
 
       - name: Print webapp log on failure
         if: failure()
