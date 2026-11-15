@@ -143,8 +143,6 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    outputs:
-      playwright_report_artifact_id: ${{ steps.upload_playwright_report.outputs.artifact-id }}
 
     permissions:
       contents: read
@@ -231,7 +229,6 @@ jobs:
         run: cat /tmp/webapp.log || true
 
       - name: Upload Playwright report
-        id: upload_playwright_report
         if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -250,7 +247,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: playwright-report
-      url: ${{ needs.e2e.outputs.playwright_report_artifact_id && format('https://github.com/{0}/actions/runs/{1}/artifacts/{2}', github.repository, github.run_id, needs.e2e.outputs.playwright_report_artifact_id) || '' }}
+      url: ${{ steps.folder.outputs.dir && format('https://{0}.github.io/{1}/{2}/index.html', github.repository_owner, github.event.repository.name, steps.folder.outputs.dir) || '' }}
     permissions:
       contents: write
     concurrency:
@@ -283,12 +280,6 @@ jobs:
       - name: Link report in job summary
         if: steps.download.outcome == 'success'
         run: |
-          pages_url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ steps.folder.outputs.dir }}/"
-          artifact_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ needs.e2e.outputs.playwright_report_artifact_id }}"
-          if curl -fsSIL "$pages_url" >/dev/null; then
-            echo "Playwright report: $pages_url"
-            echo "### [Playwright report]($pages_url)" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Playwright Pages URL not available, linking artifact instead: $artifact_url"
-            echo "### [Playwright report artifact]($artifact_url)" >> "$GITHUB_STEP_SUMMARY"
-          fi
+          pages_url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ steps.folder.outputs.dir }}/index.html"
+          echo "Playwright report: $pages_url"
+          echo "### [Playwright report]($pages_url)" >> "$GITHUB_STEP_SUMMARY"
