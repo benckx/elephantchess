@@ -56,7 +56,13 @@
 
 .settings-hit-box:has(input:disabled),
 tr:has(input:disabled) .settings-hit-box {
-    cursor: default;
+    cursor: not-allowed;
+    color: #7a7a7a;
+}
+
+.settings-hit-box:has(input:disabled) *,
+tr:has(input:disabled) .settings-hit-box * {
+    cursor: not-allowed;
 }
 
 .settings-hit-box:has(input:disabled):hover,
@@ -132,12 +138,30 @@ tr:has(input:disabled) .settings-hit-box:hover {
     margin-left: 12px;
 }
 
-#delete-account-auth-actions {
-    margin-top: 10px;
+#delete-account-auth-warning:not(.hidden) {
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+    display: block;
 }
 
-#delete-account-auth-actions .app-buttons {
-    margin-right: 8px;
+#delete-account-auth-warning > div:first-child {
+    display: flex;
+    align-items: center;
+}
+
+#delete-account-auth-warning .message-container {
+    text-align: center;
+}
+
+#delete-account-auth-actions {
+    margin-top: 10px;
+    margin-left: 36px;
+    width: calc(100% - 36px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #delete-account-link,
