@@ -167,12 +167,12 @@ private fun Route.userSettingsRoutes() {
             }
         }
         post("/sessions/delete") {
-            requireAuthenticationWithBody<DeleteUserSessionsRequest> { verifiedToken, request ->
+            requireIdentificationWithBody<DeleteUserSessionsRequest> { verifiedToken, request ->
                 userService.deleteUserSessions(verifiedToken.userId, request)
             }
         }
         post("/sessions/delete-all") {
-            requireAuthentication { verifiedToken ->
+            requireIdentification { verifiedToken ->
                 userService.deleteAllUserSessions(verifiedToken.userId)
             }
         }
@@ -193,12 +193,12 @@ private fun Route.userSettingsRoutes() {
             }
         }
         post("/views/archive-now") {
-            requireAuthentication { verifiedToken ->
+            requireIdentification { verifiedToken ->
                 userService.archiveUserPageViews(verifiedToken.userId)
             }
         }
         post("/account/delete") {
-            requireAuthentication { verifiedToken ->
+            requireIdentification { verifiedToken ->
                 userService.deleteAccount(verifiedToken.userId)
             }
         }
