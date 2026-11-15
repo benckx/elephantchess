@@ -122,7 +122,7 @@ class PlayerVsPlayerGameService(
 
             gamesToPlaySessions.forEach { session ->
                 val gamesCanJoin = when (session.userType) {
-                    UserType.GUEST -> allGamesToJoin.filter { it.allowGuestsToJoin }
+                    UserType.GUEST, UserType.ANONYMIZED -> allGamesToJoin.filter { it.allowGuestsToJoin }
                     UserType.AUTHENTICATED -> allGamesToJoin
                 }
 
