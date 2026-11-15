@@ -23,7 +23,6 @@ class DeleteAccountPage extends BasePage {
     #deleteButton = document.getElementById('delete-account-button');
     #cancelButton = document.getElementById('delete-account-cancel-button');
     #authWarningContainer = document.getElementById('delete-account-auth-warning');
-    #loginButton = document.getElementById('delete-account-login-button');
 
     constructor() {
         super();
@@ -33,7 +32,6 @@ class DeleteAccountPage extends BasePage {
             this.#checkbox.addEventListener('change', () => this.#refreshDeleteButton());
         } else {
             this.#authWarningContainer.classList.remove('hidden');
-            this.#loginButton.addEventListener('click', () => showLoginModal());
         }
         this.#deleteButton.addEventListener('click', () => this.#deleteAccount());
         this.#cancelButton.addEventListener('click', () => window.location.href = '/');

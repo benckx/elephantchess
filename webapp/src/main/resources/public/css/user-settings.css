@@ -155,15 +155,6 @@ tr:has(input:disabled) .settings-hit-box:hover {
     text-align: center;
 }
 
-#delete-account-auth-actions {
-    margin-top: 10px;
-    margin-left: 36px;
-    width: calc(100% - 36px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 #delete-account-link,
 #delete-account-link:visited {
     color: white;
