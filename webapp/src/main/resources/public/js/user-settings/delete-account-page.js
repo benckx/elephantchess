@@ -24,7 +24,6 @@ class DeleteAccountPage extends BasePage {
     #cancelButton = document.getElementById('delete-account-cancel-button');
     #authWarningContainer = document.getElementById('delete-account-auth-warning');
     #loginButton = document.getElementById('delete-account-login-button');
-    #signUpButton = document.getElementById('delete-account-signup-button');
 
     constructor() {
         super();
@@ -35,7 +34,6 @@ class DeleteAccountPage extends BasePage {
         } else {
             this.#authWarningContainer.classList.remove('hidden');
             this.#loginButton.addEventListener('click', () => showLoginModal());
-            this.#signUpButton.addEventListener('click', () => showSignUpModal());
         }
         this.#deleteButton.addEventListener('click', () => this.#deleteAccount());
         this.#cancelButton.addEventListener('click', () => window.location.href = '/');

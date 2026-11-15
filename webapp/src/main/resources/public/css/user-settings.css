@@ -54,6 +54,16 @@
     background-color: #d7d3ce;
 }
 
+.settings-hit-box:has(input:disabled),
+tr:has(input:disabled) .settings-hit-box {
+    cursor: default;
+}
+
+.settings-hit-box:has(input:disabled):hover,
+tr:has(input:disabled) .settings-hit-box:hover {
+    background-color: transparent;
+}
+
 .little-message {
     font-size: 17px;
     margin-left: 15px;
