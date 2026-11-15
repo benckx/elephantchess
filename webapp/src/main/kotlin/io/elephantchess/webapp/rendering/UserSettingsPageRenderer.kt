@@ -35,7 +35,7 @@ class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private v
                 val notifications = authenticatedToken.let { userService.fetchNotificationsSettings(it.userId) }
 
                 htmlRenderer.renderHtml(
-                    "user_settings_authenticated_user_section.html",
+                    "/templates/user_settings_authenticated_user_section.html",
                     listOf(
                         SimpleValueTagResolver("profile_description", escapeHtml(profile.description)),
                         SimpleValueTagResolver("profile_country", escapeHtmlAttr(profile.country)),
