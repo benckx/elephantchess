@@ -17,17 +17,17 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-const DELETE_ACCOUNT_URL = '/api/user/settings/account/delete';
-
 class DeleteAccountPage extends BasePage {
 
     #checkbox = document.getElementById('delete-account-confirm-checkbox');
     #deleteButton = document.getElementById('delete-account-button');
+    #cancelButton = document.getElementById('delete-account-cancel-button');
 
     constructor() {
         super();
         this.#checkbox.addEventListener('change', () => this.#refreshDeleteButton());
         this.#deleteButton.addEventListener('click', () => this.#deleteAccount());
+        this.#cancelButton.addEventListener('click', () => window.location.href = '/');
         this.#refreshDeleteButton();
     }
 
@@ -37,7 +37,7 @@ class DeleteAccountPage extends BasePage {
 
     #deleteAccount() {
         this.#deleteButton.disabled = true;
-        postAndHandle(DELETE_ACCOUNT_URL, null, () => {
+        postAndHandle('/api/user/settings/account/delete', null, () => {
             // the account is gone server-side: drop every identification cookie and leave the
             // authenticated area so the user is fully logged out.
             eraseAllIdentificationCookies();
