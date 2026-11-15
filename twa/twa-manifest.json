@@ -4,12 +4,12 @@
   "name": "ElephantChess - Xiangqi & Janggi",
   "launcherName": "ElephantChess",
   "display": "standalone",
-  "themeColor": "#9B1B1B",
-  "themeColorDark": "#9B1B1B",
-  "navigationColor": "#9B1B1B",
-  "navigationColorDark": "#9B1B1B",
-  "navigationDividerColor": "#9B1B1B",
-  "navigationDividerColorDark": "#9B1B1B",
+  "themeColor": "#000000",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
   "backgroundColor": "#FEDAA4",
   "enableNotifications": false,
   "startUrl": "/",
@@ -20,8 +20,8 @@
     "path": "./android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1.0.0",
-  "appVersionCode": 1,
+  "appVersionName": "1.0.1",
+  "appVersionCode": 3,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://elephantchess.io/manifest.webmanifest",
@@ -40,5 +40,5 @@
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
   "displayOverride": [],
-  "appVersion": "1.0.0"
+  "appVersion": "1.0.1"
 }
