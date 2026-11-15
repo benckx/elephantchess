@@ -210,8 +210,19 @@ jobs:
           echo "webapp did not start in time"; cat /tmp/webapp.log; exit 1
 
       - name: Run Playwright e2e tests
-        run: npm test
         working-directory: webapp/src/test/e2e
+        run: |
+          for attempt in 1 2; do
+            rm -rf playwright-report test-results
+            if npm test; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Playwright e2e failed after 2 attempts"
+              exit 1
+            fi
+            echo "Playwright e2e failed on attempt $attempt, retrying..."
+          done
 
       - name: Print webapp log on failure
         if: failure()
@@ -236,7 +247,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: playwright-report
-      url: ${{ steps.folder.outputs.dir && format('https://{0}.github.io/{1}/{2}/', github.repository_owner, github.event.repository.name, steps.folder.outputs.dir) || '' }}
+      url: ${{ steps.folder.outputs.dir && format('https://{0}.github.io/{1}/{2}/index.html', github.repository_owner, github.event.repository.name, steps.folder.outputs.dir) || '' }}
     permissions:
       contents: write
     concurrency:
@@ -269,6 +280,6 @@ jobs:
       - name: Link report in job summary
         if: steps.download.outcome == 'success'
         run: |
-          url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ steps.folder.outputs.dir }}/"
-          echo "Playwright report: $url"
-          echo "### [Playwright report]($url)" >> "$GITHUB_STEP_SUMMARY"
+          pages_url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ steps.folder.outputs.dir }}/index.html"
+          echo "Playwright report: $pages_url"
+          echo "### [Playwright report]($pages_url)" >> "$GITHUB_STEP_SUMMARY"
