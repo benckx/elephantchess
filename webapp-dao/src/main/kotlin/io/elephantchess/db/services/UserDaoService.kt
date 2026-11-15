@@ -426,27 +426,6 @@ class UserDaoService(
         }
     }
 
-    /** Copies all puzzle/game ratings from [source] onto the user [targetId], within [tx]. */
-    private suspend fun copyRatings(tx: DSLContext, source: User, targetId: String) {
-        tx
-            .update(USER)
-            .set(USER.PUZZLE_RATING, source.puzzleRating)
-            .set(USER.GAME_RATING_BULLET, source.gameRatingBullet)
-            .set(USER.GAME_RATING_BLITZ, source.gameRatingBlitz)
-            .set(USER.GAME_RATING_RAPID, source.gameRatingRapid)
-            .set(USER.GAME_RATING_CLASSICAL, source.gameRatingClassical)
-            .set(USER.GAME_RATING_SEVERAL_DAYS, source.gameRatingSeveralDays)
-            .set(USER.GAME_RATING_CORRESPONDENCE, source.gameRatingCorrespondence)
-            .set(USER.GAME_RATING_MANCHU_BULLET, source.gameRatingManchuBullet)
-            .set(USER.GAME_RATING_MANCHU_BLITZ, source.gameRatingManchuBlitz)
-            .set(USER.GAME_RATING_MANCHU_RAPID, source.gameRatingManchuRapid)
-            .set(USER.GAME_RATING_MANCHU_CLASSICAL, source.gameRatingManchuClassical)
-            .set(USER.GAME_RATING_MANCHU_SEVERAL_DAYS, source.gameRatingManchuSeveralDays)
-            .set(USER.GAME_RATING_MANCHU_CORRESPONDENCE, source.gameRatingManchuCorrespondence)
-            .where(USER.ID.eq(targetId))
-            .awaitExecute()
-    }
-
     /**
      * Permanently deletes an account and transfers its data to a new [UserType.ANONYMIZED] user.
      *
@@ -497,41 +476,34 @@ class UserDaoService(
         return anonymizedId
     }
 
+    /** Copies all puzzle/game ratings from [source] onto the user [targetId], within [tx]. */
+    private suspend fun copyRatings(tx: DSLContext, source: User, targetId: String) {
+        tx
+            .update(USER)
+            .set(USER.PUZZLE_RATING, source.puzzleRating)
+            .set(USER.GAME_RATING_BULLET, source.gameRatingBullet)
+            .set(USER.GAME_RATING_BLITZ, source.gameRatingBlitz)
+            .set(USER.GAME_RATING_RAPID, source.gameRatingRapid)
+            .set(USER.GAME_RATING_CLASSICAL, source.gameRatingClassical)
+            .set(USER.GAME_RATING_SEVERAL_DAYS, source.gameRatingSeveralDays)
+            .set(USER.GAME_RATING_CORRESPONDENCE, source.gameRatingCorrespondence)
+            .set(USER.GAME_RATING_MANCHU_BULLET, source.gameRatingManchuBullet)
+            .set(USER.GAME_RATING_MANCHU_BLITZ, source.gameRatingManchuBlitz)
+            .set(USER.GAME_RATING_MANCHU_RAPID, source.gameRatingManchuRapid)
+            .set(USER.GAME_RATING_MANCHU_CLASSICAL, source.gameRatingManchuClassical)
+            .set(USER.GAME_RATING_MANCHU_SEVERAL_DAYS, source.gameRatingManchuSeveralDays)
+            .set(USER.GAME_RATING_MANCHU_CORRESPONDENCE, source.gameRatingManchuCorrespondence)
+            .where(USER.ID.eq(targetId))
+            .awaitExecute()
+    }
+
     /**
      * Re-points every row that references [oldId] (via a user foreign key) to [newId], within [tx].
      * The list below mirrors all user foreign keys in the schema.
      */
     private suspend fun reassignAllReferences(tx: DSLContext, oldId: String, newId: String) {
-        val fields = listOf(
-            GAME.INVITER,
-            GAME.INVITEE,
-            GAME.DRAW_PROPOSITION_USER,
-            BOT_GAME.USER_ID,
-            PUZZLE_RESULT.USER_ID,
-            ANALYSIS.OWNER_USER_ID,
-            GAME_STATUS_EVENT.USER_ID,
-            GAME_CHAT_MESSAGE.AUTHOR,
-            DISCORD_GAME_NOTIFICATION.USER_ID,
-            GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
-            GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
-            REFERENCE_GAME_SEARCH_QUERY.USER_ID,
-            REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID,
-            REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID,
-            KOFI_EVENT.MATCHED_USER_ID,
-            UPCOMING_EVENT.CREATED_BY,
-            SEVEN_KINGDOMS_GAME.PLAYER_WHITE,
-            SEVEN_KINGDOMS_GAME.PLAYER_RED,
-            SEVEN_KINGDOMS_GAME.PLAYER_ORANGE,
-            SEVEN_KINGDOMS_GAME.PLAYER_BLUE,
-            SEVEN_KINGDOMS_GAME.PLAYER_GREEN,
-            SEVEN_KINGDOMS_GAME.PLAYER_PURPLE,
-            SEVEN_KINGDOMS_GAME.PLAYER_BLACK,
-            SEVEN_KINGDOMS_GAME_EVENT.USER_ID,
-        )
-
-        fields.forEach { field ->
-            reassign(tx, field, oldId, newId)
-        }
+        ownershipTransferFields
+            .forEach { field -> reassign(tx, field, oldId, newId) }
     }
 
     /** Re-points a single user-referencing column from [oldId] to [newId]. */
@@ -960,5 +932,32 @@ class UserDaoService(
             listRatingFieldDefinitions()
                 .first { it.timeControlCategory == timeControlCategory && it.variant == variant }
                 .field
+
+        val ownershipTransferFields: List<TableField<out Record, String?>> = listOf(
+            GAME.INVITER,
+            GAME.INVITEE,
+            GAME.DRAW_PROPOSITION_USER,
+            BOT_GAME.USER_ID,
+            PUZZLE_RESULT.USER_ID,
+            ANALYSIS.OWNER_USER_ID,
+            GAME_STATUS_EVENT.USER_ID,
+            GAME_CHAT_MESSAGE.AUTHOR,
+            DISCORD_GAME_NOTIFICATION.USER_ID,
+            GAME_SOCK_PUPPET_DETECTION.INVITER_USER_ID,
+            GAME_SOCK_PUPPET_DETECTION.INVITEE_USER_ID,
+            REFERENCE_GAME_SEARCH_QUERY.USER_ID,
+            REFERENCE_PLAYER_PROFILE_EDIT.EDITOR_ID,
+            REFERENCE_PLAYER_PROFILE_EDIT_SOURCE.EDITOR_ID,
+            KOFI_EVENT.MATCHED_USER_ID,
+            UPCOMING_EVENT.CREATED_BY,
+            SEVEN_KINGDOMS_GAME.PLAYER_WHITE,
+            SEVEN_KINGDOMS_GAME.PLAYER_RED,
+            SEVEN_KINGDOMS_GAME.PLAYER_ORANGE,
+            SEVEN_KINGDOMS_GAME.PLAYER_BLUE,
+            SEVEN_KINGDOMS_GAME.PLAYER_GREEN,
+            SEVEN_KINGDOMS_GAME.PLAYER_PURPLE,
+            SEVEN_KINGDOMS_GAME.PLAYER_BLACK,
+            SEVEN_KINGDOMS_GAME_EVENT.USER_ID,
+        )
     }
 }
