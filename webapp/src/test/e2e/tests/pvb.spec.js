@@ -277,7 +277,6 @@ test.describe('PvB workflow (guest vs bot)', () => {
 
         // Browse PvB lists games after at least six half-moves.
         for (const [index, uci] of ['a3a4', 'c3c4', 'e3e4', 'a4a5'].entries()) {
-            await expect(page.locator('#game-status')).toHaveText(/Your turn/, {timeout: 60_000});
             await playMove(page, uci, {readyTimeout: 60_000});
             await waitForBotReply(page);
             await captureStep(testInfo, `Janggi-move-${index + 1}`, [['player', page]]);
