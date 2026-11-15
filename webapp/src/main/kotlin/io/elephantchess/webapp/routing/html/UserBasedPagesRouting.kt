@@ -1,7 +1,7 @@
 package io.elephantchess.webapp.routing.html
 
-import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.exceptions.BadRequestException
+import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.extractAndVerifyToken
@@ -67,9 +67,7 @@ private fun Route.userSettingsPages() {
             }
         }
         get("/delete-account") {
-            call.respond(
-                simplePageRenderer.renderTemplateHtmlToCall("user_delete_account")
-            )
+            simplePageRenderer.renderTemplateHtmlToCall("user_delete_account")
         }
     }
 }
