@@ -443,6 +443,7 @@ class UserDaoService(
         }
 
         val anonymizedId = generateUniqueUserId()
+        val now = Clock.System.now()
 
         dslContext.transactionCoroutine { cfg ->
             val tx = DSL.using(cfg)
@@ -450,8 +451,8 @@ class UserDaoService(
             tx
                 .insertInto(USER)
                 .set(USER.ID, anonymizedId)
-                .set(USER.CREATION, user.creation)
-                .set(USER.LAST_ONLINE, Clock.System.now())
+                .set(USER.CREATION, now)
+                .set(USER.LAST_ONLINE, now)
                 .set(USER.USER_TYPE, UserType.ANONYMIZED)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_NEWSLETTER, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_USER_JOINED_GAME, false)
@@ -460,6 +461,8 @@ class UserDaoService(
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_PROPOSED_DRAW, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_ACCEPTED_DRAW, false)
                 .set(USER.EMAIL_NOTIFICATION_ENABLED_OPPONENT_DECLINED_DRAW, false)
+                .set(USER.SHOW_PVP_GAMES_ON_PROFILE, false)
+                .set(USER.SHOW_PVP_GAMES_ON_PROFILE, false)
                 .awaitExecute()
 
             copyRatings(tx, user, anonymizedId)
