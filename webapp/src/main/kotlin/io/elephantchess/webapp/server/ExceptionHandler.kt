@@ -40,65 +40,11 @@ private val MUTED_URI_PATTERNS: List<String> by lazy {
         .map { it.lowercase() }
 }
 
-/**
- * Checks if an exception is caused by the client disconnecting,
- * these exceptions should be logged at debug level and not trigger error responses.
- */
-internal fun isClientDisconnectException(t: Throwable): Boolean {
-    var current: Throwable? = t
-    while (current != null) {
-        if (current is ClosedChannelException ||
-            current is ClosedByteChannelException ||
-            current is CancellationException ||
-            current is JavaCancellationException ||
-            (current is IOException && current.message?.contains("Broken pipe") == true) ||
-            (current is IOException && current.message?.contains("Connection reset") == true) ||
-            (current is UnsupportedOperationException && current.message?.contains("response was already completed") == true)
-        ) {
-            return true
-        }
-        current = current.cause
-    }
-    return false
-}
-
-/**
- * Ktor Netty throws `NullPointerException: Cannot invoke "RequestBodyHandler.upgrade()" because "bodyHandler" is null`
- * when the client closes the connection during a WebSocket upgrade (e.g. page left right after load, often headless
- * scrapers), as the Netty channel pipeline is already gone. The status has already been set to 101 at that point.
- *
- * The exception message can't be relied on: once the code is JIT-compiled, the JVM throws a pre-allocated NPE
- * without message nor stack trace (`-XX:+OmitStackTraceInFastThrow`, enabled by default).
- */
-internal fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, t: Throwable): Boolean =
-    t is NullPointerException && call.response.status() == HttpStatusCode.SwitchingProtocols
-
-/**
- * Ktor's static-content resolver throws `BadRequestException: Relative path should not contain path
- * traversing characters: ...` when a request tries to escape the static root (e.g. a scanner probing
- * `cache/original/../../.env`). These are vulnerability-scanner noise, so log them at DEBUG instead of
- * ERROR and don't persist them.
- */
-internal fun isPathTraversalProbe(t: Throwable): Boolean =
-    t.message?.contains("path traversing characters") == true
+private val logger = KotlinLogging.logger {}
 
 fun Application.exceptionHandler() {
-    val logger = KotlinLogging.logger {}
     val exceptionService by koin<ExceptionService>()
-    val webSocketUpgradeFailurePhase = PipelinePhase("WebSocketUpgradeFailure")
-
-    // StatusPages rethrows exceptions when no response was sent (always the case for a failed WebSocket upgrade),
-    // then Ktor logs them at ERROR level. Swallow the WebSocket upgrade NPE here: the client is gone anyway.
-    // The phase is inserted before installing StatusPages, so it wraps the StatusPages phase.
-    insertPhaseBefore(ApplicationCallPipeline.Setup, webSocketUpgradeFailurePhase)
-    intercept(webSocketUpgradeFailurePhase) {
-        try {
-            proceed()
-        } catch (e: NullPointerException) {
-            if (!isClientDisconnectDuringWebSocketUpgrade(call, e)) throw e
-            logger.debug { "client disconnected during WebSocket upgrade: ${call.request.uri}" }
-        }
-    }
+    installWebSocketUpgradeFailureHandler()
 
     install(StatusPages) {
         // handle 404 Not Found - log unmapped URIs
@@ -201,3 +147,62 @@ fun Application.exceptionHandler() {
         }
     }
 }
+
+private fun Application.installWebSocketUpgradeFailureHandler() {
+    val webSocketUpgradeFailurePhase = PipelinePhase("WebSocketUpgradeFailure")
+
+    // StatusPages rethrows exceptions when no response was sent (always the case for a failed WebSocket upgrade),
+    // then Ktor logs them at ERROR level. Swallow the WebSocket upgrade NPE here: the client is gone anyway.
+    // The phase is inserted before installing StatusPages, so it wraps the StatusPages phase.
+    insertPhaseBefore(ApplicationCallPipeline.Setup, webSocketUpgradeFailurePhase)
+    intercept(webSocketUpgradeFailurePhase) {
+        try {
+            proceed()
+        } catch (e: NullPointerException) {
+            if (!isClientDisconnectDuringWebSocketUpgrade(call, e)) throw e
+            logger.debug { "client disconnected during WebSocket upgrade: ${call.request.uri}" }
+        }
+    }
+}
+
+/**
+ * Checks if an exception is caused by the client disconnecting,
+ * these exceptions should be logged at debug level and not trigger error responses.
+ */
+internal fun isClientDisconnectException(t: Throwable): Boolean {
+    var current: Throwable? = t
+    while (current != null) {
+        if (current is ClosedChannelException ||
+            current is ClosedByteChannelException ||
+            current is CancellationException ||
+            current is JavaCancellationException ||
+            (current is IOException && current.message?.contains("Broken pipe") == true) ||
+            (current is IOException && current.message?.contains("Connection reset") == true) ||
+            (current is UnsupportedOperationException && current.message?.contains("response was already completed") == true)
+        ) {
+            return true
+        }
+        current = current.cause
+    }
+    return false
+}
+
+/**
+ * Ktor Netty throws `NullPointerException: Cannot invoke "RequestBodyHandler.upgrade()" because "bodyHandler" is null`
+ * when the client closes the connection during a WebSocket upgrade (e.g. page left right after load, often headless
+ * scrapers), as the Netty channel pipeline is already gone. The status has already been set to 101 at that point.
+ *
+ * The exception message can't be relied on: once the code is JIT-compiled, the JVM throws a pre-allocated NPE
+ * without message nor stack trace (`-XX:+OmitStackTraceInFastThrow`, enabled by default).
+ */
+private fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, t: Throwable): Boolean =
+    t is NullPointerException && call.response.status() == HttpStatusCode.SwitchingProtocols
+
+/**
+ * Ktor's static-content resolver throws `BadRequestException: Relative path should not contain path
+ * traversing characters: ...` when a request tries to escape the static root (e.g. a scanner probing
+ * `cache/original/../../.env`). These are vulnerability-scanner noise, so log them at DEBUG instead of
+ * ERROR and don't persist them.
+ */
+private fun isPathTraversalProbe(t: Throwable): Boolean =
+    t.message?.contains("path traversing characters") == true
