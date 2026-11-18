@@ -48,37 +48,7 @@ fun Application.exceptionHandler() {
 
     install(StatusPages) {
         // handle 404 Not Found - log unmapped URIs
-        status(HttpStatusCode.NotFound) { call, _ ->
-            val method = call.request.httpMethod.value
-            val uri = call.request.uri
-            val userAgent = call.request.headers["User-Agent"]
-            val contentType = call.request.headers["Content-Type"]
-
-            // Plain HTTP requests hitting a WebSocket endpoint (i.e. without a valid `Upgrade: websocket`
-            // header) fall through to here. This typically happens when an intermediary (corporate proxy,
-            // antivirus, mobile carrier, ...) strips the Upgrade header. Don't spam WARN logs for those:
-            // respond with 426 Upgrade Required and log at debug level.
-            if (uri.startsWith("/ws/")) {
-                logger.debug {
-                    "WebSocket path called without Upgrade header: $method $uri | User-Agent: ${userAgent?.take(100)}"
-                }
-                call.respond(HttpStatusCode.UpgradeRequired, ValidationErrorsResponse("WebSocket upgrade required"))
-                return@status
-            }
-
-            // Vulnerability-scanner noise and benign automatic client probes (native-app / passkey
-            // association files, favicon variants, ...) always 404. They flood the logs, so mute them:
-            // respond with a plain 404 and log at DEBUG. Patterns live in MUTED_URI_PATTERNS_RESOURCE.
-            val path = uri.substringBefore('?').lowercase()
-            if (MUTED_URI_PATTERNS.any { path.contains(it) }) {
-                logger.debug { "Ignoring muted 404 probe: $method $uri | User-Agent: ${userAgent?.take(100)}" }
-                call.respondNotFound(uri)
-                return@status
-            }
-
-            logger.warn { "UNMAPPED URI: $method $uri | Content-Type: $contentType | User-Agent: ${userAgent?.take(100)}" }
-            call.respondNotFound(uri)
-        }
+        status(HttpStatusCode.NotFound) { call, _ -> call.handleNotFound() }
 
         // handle client disconnection exceptions silently
         // nothing we can do if the client is gone, no need to store it
@@ -146,6 +116,38 @@ fun Application.exceptionHandler() {
             }
         }
     }
+}
+
+private suspend fun ApplicationCall.handleNotFound() {
+    val method = request.httpMethod.value
+    val uri = request.uri
+    val userAgent = request.headers["User-Agent"]
+    val contentType = request.headers["Content-Type"]
+
+    // Plain HTTP requests hitting a WebSocket endpoint (i.e. without a valid `Upgrade: websocket`
+    // header) fall through to here. This typically happens when an intermediary (corporate proxy,
+    // antivirus, mobile carrier, ...) strips the Upgrade header. Don't spam WARN logs for those:
+    // respond with 426 Upgrade Required and log at debug level.
+    if (uri.startsWith("/ws/")) {
+        logger.debug {
+            "WebSocket path called without Upgrade header: $method $uri | User-Agent: ${userAgent?.take(100)}"
+        }
+        respond(HttpStatusCode.UpgradeRequired, ValidationErrorsResponse("WebSocket upgrade required"))
+        return
+    }
+
+    // Vulnerability-scanner noise and benign automatic client probes (native-app / passkey
+    // association files, favicon variants, ...) always 404. They flood the logs, so mute them:
+    // respond with a plain 404 and log at DEBUG. Patterns live in MUTED_URI_PATTERNS_RESOURCE.
+    val path = uri.substringBefore('?').lowercase()
+    if (MUTED_URI_PATTERNS.any { path.contains(it) }) {
+        logger.debug { "Ignoring muted 404 probe: $method $uri | User-Agent: ${userAgent?.take(100)}" }
+        respondNotFound(uri)
+        return
+    }
+
+    logger.warn { "UNMAPPED URI: $method $uri | Content-Type: $contentType | User-Agent: ${userAgent?.take(100)}" }
+    respondNotFound(uri)
 }
 
 private fun Application.installWebSocketUpgradeFailureHandler() {
