@@ -27,6 +27,8 @@ import java.util.concurrent.CancellationException as JavaCancellationException
 
 private const val MUTED_URI_PATTERNS_RESOURCE = "/config/muted-uri-patterns.txt"
 
+private val logger = KotlinLogging.logger {}
+
 /**
  * Substring patterns (lower-cased) for 404 URIs that are only ever hit by vulnerability scanners or
  * benign automatic client probes. Requests matching one of these are logged at DEBUG instead of WARN
@@ -39,8 +41,6 @@ private val MUTED_URI_PATTERNS: List<String> by lazy {
         .filter { it.isNotEmpty() }
         .map { it.lowercase() }
 }
-
-private val logger = KotlinLogging.logger {}
 
 fun Application.exceptionHandler() {
     val exceptionService by koin<ExceptionService>()
@@ -132,7 +132,10 @@ private suspend fun ApplicationCall.handleNotFound() {
         logger.debug {
             "WebSocket path called without Upgrade header: $method $uri | User-Agent: ${userAgent?.take(100)}"
         }
-        respond(HttpStatusCode.UpgradeRequired, ValidationErrorsResponse("WebSocket upgrade required"))
+        respond(
+            status = HttpStatusCode.UpgradeRequired,
+            message = ValidationErrorsResponse("WebSocket upgrade required"),
+        )
         return
     }
 
@@ -197,8 +200,8 @@ internal fun isClientDisconnectException(t: Throwable): Boolean {
  * The exception message can't be relied on: once the code is JIT-compiled, the JVM throws a pre-allocated NPE
  * without message nor stack trace (`-XX:+OmitStackTraceInFastThrow`, enabled by default).
  */
-private fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, t: Throwable): Boolean =
-    t is NullPointerException && call.response.status() == HttpStatusCode.SwitchingProtocols
+private fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, throwable: Throwable): Boolean =
+    throwable is NullPointerException && call.response.status() == HttpStatusCode.SwitchingProtocols
 
 /**
  * Ktor's static-content resolver throws `BadRequestException: Relative path should not contain path
@@ -206,5 +209,5 @@ private fun isClientDisconnectDuringWebSocketUpgrade(call: ApplicationCall, t: T
  * `cache/original/../../.env`). These are vulnerability-scanner noise, so log them at DEBUG instead of
  * ERROR and don't persist them.
  */
-private fun isPathTraversalProbe(t: Throwable): Boolean =
-    t.message?.contains("path traversing characters") == true
+private fun isPathTraversalProbe(throwable: Throwable): Boolean =
+    throwable.message?.contains("path traversing characters") == true
