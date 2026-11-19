@@ -51,14 +51,14 @@ class SiteMapService(
             val millis = measureTimeMillis {
                 allSiteMapEntries +=
                     siteMapStaticEntries(webHostTrimmed, deployDay) +
-                    playerEntries() +
-                    userEntries()
+                    listDatabasePlayerEntries() +
+                    listUserProfileEntries()
             }
             logger.info { "generated sitemap with ${allSiteMapEntries.size} entries in $millis ms." }
             generateXml(allSiteMapEntries)
         }
 
-    private suspend fun playerEntries(): List<SitemapEntry> =
+    private suspend fun listDatabasePlayerEntries(): List<SitemapEntry> =
         databaseService
             .listPlayersForSiteMap(100)
             .map { (canonicalName, lastModDate) ->
@@ -70,7 +70,7 @@ class SiteMapService(
                 )
             }
 
-    private suspend fun userEntries(): List<SitemapEntry> =
+    private suspend fun listUserProfileEntries(): List<SitemapEntry> =
         userService
             .listUsersForSiteMap()
             .map { (username, lastProfileUpdate) ->

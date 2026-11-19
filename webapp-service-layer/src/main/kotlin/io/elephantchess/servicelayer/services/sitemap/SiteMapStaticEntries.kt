@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.services.sitemap
 
+import io.elephantchess.servicelayer.services.sitemap.ChangeFrequency.DAILY
 import io.elephantchess.servicelayer.services.sitemap.ChangeFrequency.MONTHLY
 import io.elephantchess.servicelayer.services.sitemap.ChangeFrequency.WEEKLY
 import java.time.LocalDate
@@ -35,25 +36,25 @@ internal fun siteMapStaticEntries(webHostTrimmed: String, deployDay: LocalDate):
             loc = "$webHostTrimmed/about/faq",
             lastmod = LocalDate.of(2026, 1, 18),
             changefreq = MONTHLY,
-            priority = 0.8,
+            priority = 0.9,
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/about/policy",
             lastmod = LocalDate.of(2026, 11, 14),
             changefreq = MONTHLY,
-            priority = 0.8,
+            priority = 0.9,
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/about/datasets",
             lastmod = LocalDate.of(2026, 6, 14),
             changefreq = MONTHLY,
-            priority = 0.8,
+            priority = 0.9,
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/about/developers/board-gui-example",
             lastmod = LocalDate.of(2026, 4, 30),
             changefreq = MONTHLY,
-            priority = 0.7,
+            priority = 0.9,
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/database",
@@ -89,30 +90,24 @@ internal fun siteMapStaticEntries(webHostTrimmed: String, deployDay: LocalDate):
             loc = "$webHostTrimmed/xiangqi-test-board",
             lastmod = xiangqiTestBoardLastChange,
             changefreq = MONTHLY,
-            priority = 0.8,
+            priority = 0.7,
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/manchu-test-board",
             lastmod = manchuTestBoardLastChange,
             changefreq = MONTHLY,
-            priority = 0.8,
+            priority = 0.7,
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/janggi-test-board",
             lastmod = janggiTestBoardLastChange,
             changefreq = MONTHLY,
-            priority = 0.8,
-        ),
-        SitemapEntry(
-            loc = "$webHostTrimmed/7k/about",
-            lastmod = sevenKingdomLastChange,
-            changefreq = MONTHLY,
-            priority = 0.8,
+            priority = 0.7,
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/global",
             lastmod = LocalDate.now(),
-            changefreq = WEEKLY,
+            changefreq = DAILY,
             priority = 0.7,
         ),
         SitemapEntry(
@@ -120,6 +115,12 @@ internal fun siteMapStaticEntries(webHostTrimmed: String, deployDay: LocalDate):
             lastmod = LocalDate.of(2025, 12, 10),
             changefreq = MONTHLY,
             priority = 0.6,
+        ),
+        SitemapEntry(
+            loc = "$webHostTrimmed/7k/about",
+            lastmod = sevenKingdomLastChange,
+            changefreq = MONTHLY,
+            priority = 0.7,
         ),
         SitemapEntry(
             loc = "$webHostTrimmed/7k/playground",
