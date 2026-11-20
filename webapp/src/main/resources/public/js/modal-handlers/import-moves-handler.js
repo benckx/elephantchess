@@ -23,8 +23,9 @@ class ImportMovesHandler extends ModalHandler {
     /**
      * @param boardGui {BoardGui}
      * @param moveTreeWidget {MoveTreeWidget}
+     * @param onImported {function(): void}
      */
-    constructor(boardGui, moveTreeWidget) {
+    constructor(boardGui, moveTreeWidget, onImported = () => {}) {
         super();
 
         let area = document.getElementById('moves-to-import-text-area');
@@ -40,6 +41,7 @@ class ImportMovesHandler extends ModalHandler {
                     const moves = entries.map(entry => entry.move);
                     boardGui.loadFen(calculateFen(moves), false);
                     moveTreeWidget.setMoves(moves);
+                    onImported();
                     UI.hideModal(null);
                 } catch (error) {
                     console.error(error);
