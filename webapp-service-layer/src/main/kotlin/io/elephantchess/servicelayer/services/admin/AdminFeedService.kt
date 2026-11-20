@@ -5,6 +5,7 @@ import io.elephantchess.db.dao.codegen.tables.pojos.BotGame
 import io.elephantchess.db.dao.codegen.tables.pojos.Game
 import io.elephantchess.db.services.*
 import io.elephantchess.db.utils.winnerUserId
+import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.GameEventType.AUTO_CANCELED
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.admin.*
@@ -208,6 +209,7 @@ class AdminFeedService(
             timeControlIncrement = record.timeControlIncrement,
             status = record.gameStatus,
             index = record.currentHalfMoveIndex,
+            isPreAnalyzed = record.analysisStatus == AnalysisStatus.COMPLETED,
             winnerUserId = record.winnerUserId(),
             created = record.created.toEpochMilliseconds(),
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
@@ -230,6 +232,7 @@ class AdminFeedService(
             status = record.gameStatus,
             outcome = record.outcome,
             index = record.currentHalfMoveIndex,
+            isPreAnalyzed = record.analysisStatus == AnalysisStatus.COMPLETED,
             created = record.created.toEpochMilliseconds(),
             lastUpdated = record.lastUpdated.toEpochMilliseconds(),
             variant = record.variant,

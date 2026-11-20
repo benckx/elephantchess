@@ -35,6 +35,7 @@ class GameEntryDto {
     #ratingFrom;
     #ratingTo;
     #numberOfMessages;
+    #isPreAnalyzed;
     #variant;
 
     /**
@@ -70,6 +71,7 @@ class GameEntryDto {
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
         this.#numberOfMessages = json.numberOfMessages;
+        this.#isPreAnalyzed = json.isPreAnalyzed;
         this.#variant = json.variant ?? Variant.XIANGQI;
     }
 
@@ -249,6 +251,13 @@ class GameEntryDto {
      */
     get numberOfMessages() {
         return Number(this.#numberOfMessages);
+    }
+
+    /**
+     * @return {boolean}
+     */
+    get isPreAnalyzed() {
+        return this.#isPreAnalyzed;
     }
 
     /**
