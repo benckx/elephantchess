@@ -35,18 +35,24 @@ class LiveGamesViewer {
      */
     #pvbThumbs = [];
 
-    #totalRefresh = 0;
+    /**
+     * @type {LiveGamesWebSocketSession}
+     */
+    #wsSession;
 
     /**
      * @param settingsGui {SettingsGui}
      */
     constructor(settingsGui) {
         this.#settingsGui = settingsGui;
+        this.#wsSession = new LiveGamesWebSocketSession((updates) => this.#applyUpdates(updates));
         this.#initThumbs();
 
+        // periodically reload the latest games to discover new ones (the individual
+        // move updates are pushed in real time over the WebSocket)
         setInterval(() => {
-            this.#refreshGames();
-        }, 1_000);
+            this.#completeRefreshIfNeeded();
+        }, 60_000);
     }
 
     #initThumbs() {
@@ -78,6 +84,7 @@ class LiveGamesViewer {
             elementId: boardElementId,
             showCoordinates: false,
             mini: true,
+            playSounds: false,
         });
         this.#settingsGui.addBoardGui(boardGui);
         return new GameThumb(div, boardGui);
@@ -88,6 +95,7 @@ class LiveGamesViewer {
             for (let i = 0; i < gameItemsDto.length; i++) {
                 this.#pvpThumbs[i].render(gameItemsDto[i], 'lobby');
             }
+            this.#updateSubscription();
         });
     }
 
@@ -96,6 +104,7 @@ class LiveGamesViewer {
             for (let i = 0; i < gameItemsDto.length; i++) {
                 this.#pvbThumbs[i].render(gameItemsDto[i], 'lobby');
             }
+            this.#updateSubscription();
         });
     }
 
@@ -106,54 +115,50 @@ class LiveGamesViewer {
         return this.#pvpThumbs.concat(this.#pvbThumbs);
     }
 
-    #refreshGames() {
-        const thumbs = this.#allThumbs().filter((t) => t.metadata != null);
-
-        if (thumbs.length === 0) {
-            return;
-        }
-
-        const gameIdsToUpdate = thumbs
+    /**
+     * Declare to the server which games we are watching. The server pushes
+     * individual move/status updates for those games over the WebSocket.
+     */
+    #updateSubscription() {
+        const gameIds = this.#allThumbs()
             .filter((thumb) => this.#shouldRefresh(thumb))
             .map((thumb) => thumb.metadata.gameId);
 
-        // do a complete refresh/re-initialization of the thumbs every 1 min,
-        // expect if we're already watching live games
-        const doCompleteRefreshIfNeeded = (mustSkipCompleteRefresh) => {
-            if (this.#totalRefresh % 60 === 0 && !mustSkipCompleteRefresh) {
-                this.#loadLatestPvpGames();
-                this.#loadLatestPvbGames();
+        this.#wsSession.subscribe(gameIds);
+    }
+
+    /**
+     * Apply the updates pushed over the WebSocket to the matching thumbs.
+     *
+     * @param updates {Array<{gameId: GameId, status: string, fen: string, lastUpdated: number, moveIndex: number|null, newMoves: string[]}>}
+     */
+    #applyUpdates(updates) {
+        const thumbs = this.#allThumbs().filter((t) => t.metadata != null);
+        updates.forEach((update) => {
+            const thumb = thumbs.find((t) => t.metadata.gameId.toString() === update.gameId.toString());
+            if (thumb != null) {
+                thumb.refresh(update);
             }
+        });
+    }
 
-            this.#totalRefresh++;
-        };
+    /**
+     * Reload the latest games (and re-subscribe), unless we're already watching
+     * mostly live games, to avoid interrupting their animations.
+     */
+    #completeRefreshIfNeeded() {
+        const thumbs = this.#allThumbs().filter((t) => t.metadata != null);
+        const liveGames = thumbs.filter((t) => t.metadata.isLive()).length;
+        const mustSkipCompleteRefresh = thumbs.length > 0 && liveGames / thumbs.length > 0.5;
 
-        if (gameIdsToUpdate.length > 0) {
-            let totalGames = 0;
-            let liveGames = 0;
-
-            this.#client.fetchLatestGamesUpdate(gameIdsToUpdate, (updates) => {
-                updates.forEach((update) => {
-                    const thumb = thumbs.find((t) => t.metadata.gameId.toString() === update.gameId.toString());
-                    if (thumb != null) {
-                        thumb.refresh(update);
-                        totalGames++;
-                        if (this.#isUpdateLive(thumb, update)) {
-                            liveGames++;
-                        }
-                    }
-                });
-
-                const mustSkipCompleteRefresh = totalGames > 0 && liveGames / totalGames > 0.5;
-                doCompleteRefreshIfNeeded(mustSkipCompleteRefresh);
-            });
-        } else {
-            doCompleteRefreshIfNeeded(false);
+        if (!mustSkipCompleteRefresh) {
+            this.#loadLatestPvpGames();
+            this.#loadLatestPvbGames();
         }
     }
 
     /**
-     * Whether the given thumb represents a game that should be polled for updates.
+     * Whether the given thumb represents a game that should be watched for updates.
      *
      * @param thumb {GameThumb}
      * @returns {boolean}
@@ -174,23 +179,6 @@ class LiveGamesViewer {
             return thumb.metadata.isLive();
         }
         return false;
-    }
-
-    /**
-     * Mirrors {@link GameMetadataDto#isLive} but uses the freshly fetched
-     * status / lastUpdated from an update payload (lastUpdated must be < 1 min).
-     *
-     * @param thumb {GameThumb}
-     * @param update {{status: string, lastUpdated: number}}
-     * @returns {boolean}
-     */
-    #isUpdateLive(thumb, update) {
-        if (thumb.metadata == null) {
-            return false;
-        }
-        const isPvb = thumb.metadata.gameId.type === GameType.PVB;
-        const inProgress = isStatusInProgress(update.status) || (isPvb && update.status === GameEventType.CREATED);
-        return inProgress && (new Date().getTime() - update.lastUpdated) <= 60_000;
     }
 
 }
