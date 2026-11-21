@@ -28,6 +28,13 @@ import kotlin.time.Instant
 @KoinSingleton
 class ReferencePlayerDaoService(private val dslContext: DSLContext) {
 
+    suspend fun playerExists(id: String): Boolean =
+        dslContext
+            .select(REFERENCE_PLAYER.ID)
+            .from(REFERENCE_PLAYER)
+            .where(REFERENCE_PLAYER.ID.eq(id))
+            .awaitSingleValue<String>() != null
+
     suspend fun findPlayer(id: String): ReferencePlayer? =
         dslContext
             .select(REFERENCE_PLAYER)
