@@ -113,16 +113,16 @@ class DatabaseService(
         userId: String,
     ): ReferenceGameSearchResult {
         if (playerIds.any { it.isBlank() || it.length > 12 }) {
-            throw BadRequestException("Invalid player ID")
+            throw BadRequestException("Invalid playerId")
         }
         if (eventIds.any { it.isBlank() || it.length > 12 }) {
-            throw BadRequestException("Invalid event ID")
+            throw BadRequestException("Invalid eventId")
         }
         if (playerIds.firstOrNull()?.let { !referencePlayerDaoService.playerExists(it) } == true) {
-            throw BadRequestException("Unknown player ID")
+            throw BadRequestException("Unknown playerId")
         }
         if (eventIds.firstOrNull()?.let { referenceEventDaoService.fetchEventById(it) == null } == true) {
-            throw BadRequestException("Unknown event ID")
+            throw BadRequestException("Unknown eventId")
         }
 
         if (offset != null && offset < 0) {
