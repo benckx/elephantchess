@@ -19,10 +19,7 @@ import kotlinx.html.*
 import kotlin.time.Duration.Companion.hours
 
 @KoinSingleton(eager = true)
-class DatabasePageRenderer(
-    private val htmlRenderer: HtmlRenderer,
-    private val databaseService: DatabaseService,
-) {
+class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer, private val databaseService: DatabaseService) {
 
     private val eventPagesCache =
         Cache
@@ -36,10 +33,7 @@ class DatabasePageRenderer(
             .expireAfterWrite(6.hours)
             .build()
 
-    suspend fun renderPlayerPage(
-        databasePlayer: DatabasePlayer,
-        requestedVersion: Int?,
-    ): String {
+    suspend fun renderPlayerPage(databasePlayer: DatabasePlayer, requestedVersion: Int?): String {
         val edit = databaseService.fetchPlayerEdit(databasePlayer.id, requestedVersion)
         val hasOpeningData = databaseService.hasPlayerOpeningData(databasePlayer.id)
         val description = edit.profileText
@@ -176,10 +170,7 @@ class DatabasePageRenderer(
         )
     }
 
-    suspend fun renderPlayerPageDiff(
-        databasePlayer: DatabasePlayer,
-        version: Int,
-    ): String {
+    suspend fun renderPlayerPageDiff(databasePlayer: DatabasePlayer, version: Int): String {
         fun mapGender(gender: String?): String =
             when (gender) {
                 "M" -> "Male"
