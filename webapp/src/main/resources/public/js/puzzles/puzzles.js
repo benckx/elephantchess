@@ -169,6 +169,9 @@ class PuzzlesPage extends BasePage {
 
         this.#voteThumbsUp.addEventListener('click', () => this.#handleVote(true));
         this.#voteThumbsDown.addEventListener('click', () => this.#handleVote(false));
+
+        // keep the screen awake (e.g. on mobile) while solving puzzles
+        ScreenWakeLock.keepAwake();
     }
 
     /**
