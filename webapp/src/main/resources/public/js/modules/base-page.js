@@ -50,9 +50,7 @@ class BasePage {
                 this.#postIdentification();
                 showGuestMessages();
                 if (!getCookie(PIECE_STYLE_SETTING)) {
-                    UI.showModalByName(Modals.GUEST_PIECE_STYLE, () => {
-                        new GuestPieceStyleModalHandler();
-                    });
+                    this.#showGuestPieceStyleModal();
                 } else {
                     UI.finishGuestSetup();
                     UI.pushInfoNotification(`Identified as ${new User().toString()}`);
@@ -67,6 +65,10 @@ class BasePage {
                 case UserType.GUEST:
                     this.#postIdentification();
                     showGuestMessages();
+                    if (!getCookie(PIECE_STYLE_SETTING)) {
+                        UI.beginGuestSetup();
+                        this.#showGuestPieceStyleModal();
+                    }
                     break;
                 default:
                     console.error('Unknown user type: ' + maybeUser.userType);
@@ -82,6 +84,10 @@ class BasePage {
                 this.#adjustKofiCloseButtonPosition();
             }, 1_000);
         }
+    }
+
+    #showGuestPieceStyleModal() {
+        UI.showModalByName(Modals.GUEST_PIECE_STYLE, () => new GuestPieceStyleModalHandler());
     }
 
     #adjustKofiCloseButtonPosition() {
