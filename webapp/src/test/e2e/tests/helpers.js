@@ -67,6 +67,7 @@ async function newGuestContext(browser) {
     const page = await context.newPage();
     await page.goto('/', {waitUntil: 'networkidle'});
     await waitForGuestToken(context, page);
+    await page.getByRole('button', {name: /Traditional \(default\)/}).click();
     return {context, page};
 }
 
@@ -223,4 +224,5 @@ module.exports = {
     playScriptedGame,
     captureStep,
     authenticateUser,
+    stubThirdPartyNoise,
 };
