@@ -25,7 +25,7 @@ test.describe('Guest piece style selection', () => {
         ['Traditional (default)', 'TRADITIONAL', 'traditional'],
         ['Romanized', 'ROMANIZED_ROUNDED', 'romanized_rounded'],
     ]) {
-        test(`new guest can choose ${label}`, async ({page, context}) => {
+        test(`new guest can choose ${label}`, async ({page, context}, testInfo) => {
             await stubThirdPartyNoise(context);
             await page.goto('/', {waitUntil: 'networkidle'});
             const modal = page.locator('#guest-piece-style-modal');
@@ -40,53 +40,62 @@ test.describe('Guest piece style selection', () => {
                 (await expiration.json()).expiration);
             await expect(modal.locator('#guest-piece-style-expiration')).toHaveText(expectedExpiration);
             await expect(modal.locator('button[data-piece-style] img')).toHaveCount(6);
+            await captureStep(testInfo, `1-${style.toLowerCase()}-guest-piece-style-modal`, [['guest', page]], {fullPage: false});
             await modal.getByRole('button', {name: new RegExp(label.replace(/[()]/g, '\\$&'))}).click();
             await expect(modal).toBeHidden();
             expect((await context.cookies()).find(cookie => cookie.name === 'setting.piece.style').value).toBe(style);
             await expect(page.locator('#piece-style-select')).toHaveValue(style);
             await expect(page.locator('#puzzle-board-container img.piece-image').first()).toHaveAttribute('src',
                 new RegExp(`/images/pieces/${folder}/`));
+            await captureStep(testInfo, `2-${style.toLowerCase()}-guest-piece-style-selected`, [['guest', page]]);
             await page.reload({waitUntil: 'networkidle'});
             await expect(modal).toHaveCount(0);
             await expect(page.locator('#piece-style-select')).toHaveValue(style);
+            await captureStep(testInfo, `3-${style.toLowerCase()}-guest-piece-style-persisted`, [['guest', page]]);
         });
     }
 
-    test('existing piece style skips the modal for a new guest', async ({page, context, baseURL}) => {
+    test('existing piece style skips the modal for a new guest', async ({page, context, baseURL}, testInfo) => {
         await stubThirdPartyNoise(context);
         await context.addCookies([{name: 'setting.piece.style', value: 'MODERN', url: baseURL}]);
         await page.goto('/', {waitUntil: 'networkidle'});
         await expect(page.locator('#notification-box')).toContainText('Identified as guest #');
         await expect(page.locator('#guest-piece-style-modal')).toHaveCount(0);
         await expect(page.locator('#piece-style-select')).toHaveValue('MODERN');
+        await captureStep(testInfo, 'existing-piece-style-skips-guest-modal', [['guest', page]]);
     });
 
-    test('a direct play-bot link opens after guest setup', async ({page, context}) => {
+    test('a direct play-bot link opens after guest setup', async ({page, context}, testInfo) => {
         await stubThirdPartyNoise(context);
         await page.goto('/?pvb', {waitUntil: 'networkidle'});
         const modal = page.locator('#guest-piece-style-modal');
         await expect(modal).toBeVisible();
         await page.waitForTimeout(1000);
         await expect(modal).toBeVisible();
+        await captureStep(testInfo, '1-direct-play-bot-link-guest-modal', [['guest', page]], {fullPage: false});
         await modal.getByRole('button', {name: /Romanized/}).click();
         await expect(page.locator('#play-bot-modal')).toBeVisible();
+        await captureStep(testInfo, '2-direct-play-bot-link-play-bot-modal', [['guest', page]], {fullPage: false});
     });
 
-    test('a dismissed guest modal still opens a queued play-bot modal', async ({page, context}) => {
+    test('a dismissed guest modal still opens a queued play-bot modal', async ({page, context}, testInfo) => {
         await stubThirdPartyNoise(context);
         await page.goto('/?pvb', {waitUntil: 'networkidle'});
         await expect(page.locator('#guest-piece-style-modal')).toBeVisible();
         await page.waitForTimeout(1000);
+        await captureStep(testInfo, '1-dismissed-guest-modal-before-dismissal', [['guest', page]], {fullPage: false});
         await page.keyboard.press('Escape');
         await expect(page.locator('#play-bot-modal')).toBeVisible();
+        await captureStep(testInfo, '2-dismissed-guest-modal-queued-play-bot', [['guest', page]], {fullPage: false});
     });
 
-    test('a failed guest request does not block other modals', async ({page, context}) => {
+    test('a failed guest request does not block other modals', async ({page, context}, testInfo) => {
         await stubThirdPartyNoise(context);
         await context.route('**/api/obtain-guest-user-token', route => route.fulfill({status: 503}));
         await page.goto('/?pvb', {waitUntil: 'networkidle'});
         await expect(page.locator('#play-bot-modal')).toBeVisible();
         await expect(page.locator('#guest-piece-style-modal')).toHaveCount(0);
+        await captureStep(testInfo, 'failed-guest-request-play-bot-modal', [['guest', page]], {fullPage: false});
     });
 });
 
@@ -132,20 +141,21 @@ test.describe('User settings access by auth level', () => {
             const updatedDescription = `${initialDescription} e2e profile update check`.trim();
             await page.locator('#description').fill(updatedDescription);
             await expect(page.locator('#save-profile-button')).toBeEnabled();
+            await captureStep(testInfo, '4-authenticated-profile-edited', [['authenticated', page]]);
             const profileUpdateResponse = page.waitForResponse((response) =>
                 response.url().endsWith('/api/user/settings/profile') && response.request().method() === 'POST'
             );
             await page.locator('#save-profile-button').click();
             expect((await profileUpdateResponse).ok()).toBe(true);
             await expect(page.locator('#save-profile-button')).toBeDisabled();
-            await captureStep(testInfo, '4-authenticated-profile-updated', [['authenticated', page]]);
+            await captureStep(testInfo, '5-authenticated-profile-updated', [['authenticated', page]]);
 
             await page.goto('/user/settings/delete-account', {waitUntil: 'networkidle'});
             const deleteCheckbox = page.locator('#delete-account-confirm-checkbox');
             await expect(deleteCheckbox).toBeVisible();
             await expect(deleteCheckbox).toBeEnabled();
             await expect(page.locator('#delete-account-auth-warning')).toBeHidden();
-            await captureStep(testInfo, '5-authenticated-delete-account', [['authenticated', page]]);
+            await captureStep(testInfo, '6-authenticated-delete-account', [['authenticated', page]]);
         } finally {
             await context.close();
         }
