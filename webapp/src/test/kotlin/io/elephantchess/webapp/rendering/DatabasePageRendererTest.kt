@@ -3,7 +3,10 @@ package io.elephantchess.webapp.rendering
 import io.elephantchess.htmlrenderer.HtmlRenderer
 import io.elephantchess.servicelayer.dto.database.DatabasePlayer
 import io.elephantchess.servicelayer.dto.database.DatabasePlayerProfileEdit
+import io.elephantchess.servicelayer.services.DatabaseService
 import kotlinx.coroutines.test.runTest
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -11,22 +14,22 @@ import kotlin.time.Instant
 
 class DatabasePageRendererTest {
 
-    private fun pageRenderer() =
+    private fun pageRenderer(databaseService: DatabaseService) =
         DatabasePageRenderer(
             HtmlRenderer(
                 isMinificationEnabled = false,
                 cdnFolder = null,
                 webTemplateRenderer = WebTemplateRenderer(),
             ),
+            databaseService,
         )
 
     @Test
     fun `renderPlayerPage includes contributors and last edit date`() =
         runTest {
-            val output = pageRenderer().renderPlayerPage(
-                databasePlayer = DatabasePlayer("player-id", "John Doe", null, null),
-                requestedVersion = null,
-                edit = DatabasePlayerProfileEdit(
+            val databaseService = mock<DatabaseService>()
+            whenever(databaseService.fetchPlayerEdit("player-id", null)).thenReturn(
+                DatabasePlayerProfileEdit(
                     playerId = "player-id",
                     canonicalName = "John Doe",
                     chineseName = null,
@@ -37,8 +40,14 @@ class DatabasePageRendererTest {
                     enabled = true,
                     versionTime = Instant.fromEpochMilliseconds(1704067200000),
                 ),
-                fetchEditorsUsername = { listOf("Bob", "Alice", "Bob", "<script>") },
-                hasOpeningData = false,
+            )
+            whenever(databaseService.hasPlayerOpeningData("player-id")).thenReturn(false)
+            whenever(databaseService.listAllEditorsUsername("player-id"))
+                .thenReturn(listOf("Bob", "Alice", "Bob", "<script>"))
+
+            val output = pageRenderer(databaseService).renderPlayerPage(
+                databasePlayer = DatabasePlayer("player-id", "John Doe", null, null),
+                requestedVersion = null,
             )
 
             assertTrue(output.contains("<b>Contributors:</b>"))
@@ -59,10 +68,9 @@ class DatabasePageRendererTest {
     @Test
     fun `renderPlayerPage omits profile metadata when unavailable`() =
         runTest {
-            val output = pageRenderer().renderPlayerPage(
-                databasePlayer = DatabasePlayer("player-id", "John Doe", null, null),
-                requestedVersion = null,
-                edit = DatabasePlayerProfileEdit(
+            val databaseService = mock<DatabaseService>()
+            whenever(databaseService.fetchPlayerEdit("player-id", null)).thenReturn(
+                DatabasePlayerProfileEdit(
                     playerId = "player-id",
                     canonicalName = "John Doe",
                     chineseName = null,
@@ -73,8 +81,13 @@ class DatabasePageRendererTest {
                     enabled = true,
                     versionTime = null,
                 ),
-                fetchEditorsUsername = { emptyList() },
-                hasOpeningData = false,
+            )
+            whenever(databaseService.hasPlayerOpeningData("player-id")).thenReturn(false)
+            whenever(databaseService.listAllEditorsUsername("player-id")).thenReturn(emptyList())
+
+            val output = pageRenderer(databaseService).renderPlayerPage(
+                databasePlayer = DatabasePlayer("player-id", "John Doe", null, null),
+                requestedVersion = null,
             )
 
             assertFalse(output.contains("<b>Contributors:</b>"))

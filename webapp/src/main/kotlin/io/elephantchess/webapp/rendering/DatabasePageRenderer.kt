@@ -7,6 +7,8 @@ import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.model.AnalysisStatus
 import io.elephantchess.model.Outcome
 import io.elephantchess.servicelayer.dto.database.*
+import io.elephantchess.servicelayer.exceptions.NotFoundException
+import io.elephantchess.servicelayer.services.DatabaseService
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.utils.formatWithChineseName
@@ -17,7 +19,7 @@ import kotlinx.html.*
 import kotlin.time.Duration.Companion.hours
 
 @KoinSingleton(eager = true)
-class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
+class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer, private val databaseService: DatabaseService) {
 
     private val eventPagesCache =
         Cache
@@ -31,15 +33,11 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             .expireAfterWrite(6.hours)
             .build()
 
-    suspend fun renderPlayerPage(
-        databasePlayer: DatabasePlayer,
-        requestedVersion: Int?,
-        edit: DatabasePlayerProfileEdit,
-        fetchEditorsUsername: suspend () -> List<String>,
-        hasOpeningData: Boolean,
-    ): String {
+    suspend fun renderPlayerPage(databasePlayer: DatabasePlayer, requestedVersion: Int?): String {
+        val edit = databaseService.fetchPlayerEdit(databasePlayer.id, requestedVersion)
+        val hasOpeningData = databaseService.hasPlayerOpeningData(databasePlayer.id)
         val description = edit.profileText
-        val contributors = fetchEditorsUsername()
+        val contributors = databaseService.listAllEditorsUsername(databasePlayer.id)
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .distinct()
@@ -172,12 +170,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         )
     }
 
-    suspend fun renderPlayerPageDiff(
-        databasePlayer: DatabasePlayer,
-        fromVersion: Int,
-        toVersion: Int,
-        fetchEdit: suspend (Int) -> DatabasePlayerProfileEdit,
-    ): String {
+    suspend fun renderPlayerPageDiff(databasePlayer: DatabasePlayer, version: Int): String {
         fun mapGender(gender: String?): String =
             when (gender) {
                 "M" -> "Male"
@@ -185,8 +178,8 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 else -> ""
             }
 
-        val editFrom = fetchEdit(fromVersion)
-        val editTo = fetchEdit(toVersion)
+        val editFrom = databaseService.fetchPlayerEdit(databasePlayer.id, version - 1)
+        val editTo = databaseService.fetchPlayerEdit(databasePlayer.id, version)
 
         val editCommentResolver =
             SimpleValueTagResolver("edit_comment", editTo.editComment ?: "")
@@ -245,7 +238,9 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         )
     }
 
-    suspend fun renderBrowseEventGamesPage(eventId: String, eventName: String, round: Int? = null): String {
+    suspend fun renderBrowseEventGamesPage(eventId: String, round: Int? = null): String {
+        val eventName = databaseService.fetchEventName(eventId)
+            ?: throw NotFoundException("event $eventId not found")
         val canonicalPath = buildString {
             append("/browse/event?id=")
             append(eventId)
@@ -264,8 +259,9 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
         )
     }
 
-    suspend fun renderEventPage(event: Event): String =
-        eventPagesCache.get(event.id) {
+    suspend fun renderEventPage(eventId: String): String {
+        val event = databaseService.fetchEvent(eventId)
+        return eventPagesCache.get(event.id) {
             // get top 10 players by score
             val topPlayerNames = event.scores
                 .entries
@@ -286,9 +282,11 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
                 canonicalPath = "/database/event?id=${event.id}",
             )
         }
+    }
 
-    suspend fun renderEventsListPage(eventsList: EventsListResponse): String =
+    suspend fun renderEventsListPage(): String =
         pageOfListCache.get("events") {
+            val eventsList = databaseService.listAllEventsWithStats(limit = 250)
             htmlRenderer.renderHtml(
                 templatePath = "/templates/database/database_events_list.html",
                 specificTagResolvers = listOf(eventsTableTagResolver(eventsList)),
@@ -296,8 +294,9 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             )
         }
 
-    suspend fun renderPlayersListPage(playersList: PlayersListResponse): String =
+    suspend fun renderPlayersListPage(): String =
         pageOfListCache.get("players") {
+            val playersList = databaseService.listAllPlayersWithStats(limit = 250)
             htmlRenderer.renderHtml(
                 templatePath = "/templates/database/database_players_list.html",
                 specificTagResolvers = listOf(playersTableTagResolver(playersList)),
@@ -305,7 +304,9 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer) {
             )
         }
 
-    suspend fun renderGamePage(summary: DatabaseGameSummary, orientation: String? = null): String {
+    suspend fun renderGamePage(gameId: String, orientation: String? = null): String {
+        val summary = databaseService.fetchGameSummary(gameId)
+            ?: throw NotFoundException("game $gameId not found")
         fun formatName(canonicalName: String?, chineseName: String?): String =
             if (!canonicalName.isNullOrBlank()) {
                 formatWithChineseName(canonicalName, chineseName)
