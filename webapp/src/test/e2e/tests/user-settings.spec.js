@@ -23,12 +23,12 @@ const {newGuestContext, captureStep, authenticateUser, stubThirdPartyNoise} = re
 test.describe('Guest piece style selection', () => {
     for (const [label, style, folder] of [
         ['Traditional (default)', 'TRADITIONAL', 'traditional'],
-        ['Westernized', 'ROMANIZED_ROUNDED', 'romanized_rounded'],
+        ['Romanized', 'ROMANIZED_ROUNDED', 'romanized_rounded'],
     ]) {
         test(`new guest can choose ${label}`, async ({page, context}) => {
             await stubThirdPartyNoise(context);
             await page.goto('/', {waitUntil: 'networkidle'});
-            const modal = page.getByRole('dialog', {name: 'Choose your pieces'});
+            const modal = page.getByRole('dialog', {name: 'Choose piece style'});
             await expect(modal).toBeVisible();
             const id = (await context.cookies()).find(cookie => cookie.name === 'guest.user.userId').value;
             await expect(modal.locator('#guest-piece-style-user')).toHaveText(`guest #${id}`);
@@ -64,18 +64,18 @@ test.describe('Guest piece style selection', () => {
     test('a direct play-bot link opens after guest setup', async ({page, context}) => {
         await stubThirdPartyNoise(context);
         await page.goto('/?pvb', {waitUntil: 'networkidle'});
-        const modal = page.getByRole('dialog', {name: 'Choose your pieces'});
+        const modal = page.getByRole('dialog', {name: 'Choose piece style'});
         await expect(modal).toBeVisible();
         await page.waitForTimeout(1000);
         await expect(modal).toBeVisible();
-        await modal.getByRole('button', {name: /Westernized/}).click();
+        await modal.getByRole('button', {name: /Romanized/}).click();
         await expect(page.locator('#play-bot-modal')).toBeVisible();
     });
 
     test('a dismissed guest modal still opens a queued play-bot modal', async ({page, context}) => {
         await stubThirdPartyNoise(context);
         await page.goto('/?pvb', {waitUntil: 'networkidle'});
-        await expect(page.getByRole('dialog', {name: 'Choose your pieces'})).toBeVisible();
+        await expect(page.getByRole('dialog', {name: 'Choose piece style'})).toBeVisible();
         await page.waitForTimeout(1000);
         await page.keyboard.press('Escape');
         await expect(page.locator('#play-bot-modal')).toBeVisible();
