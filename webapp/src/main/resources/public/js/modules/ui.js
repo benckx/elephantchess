@@ -603,12 +603,12 @@ function addToolTip(element, text) {
                     toolTip.style.visibility = 'visible';
                 }
             }, 1_000);
-        }, { signal });
+        }, {signal});
 
         element.addEventListener('mouseleave', () => {
             toolTip.style.visibility = 'hidden';
             clearTimeout(UI.timeoutId);
-        }, { signal });
+        }, {signal});
     } else {
         console.warn('empty tooltip text, will not render');
     }
@@ -690,7 +690,11 @@ class UI {
     static cursorY = -1;
     static timeoutId;
     static #modalHistoryStatePushed = false;
+
+    // Blocks other modals until a new guest completes piece-style setup.
     static #guestSetupPending = false;
+
+    // Stores the latest modal requested during guest setup, then opens it when setup ends.
     static #deferredModal = null;
 
     static init() {
@@ -908,6 +912,7 @@ class UI {
      * @param loadedCallback {function}
      */
     static showModalByName(modalName, loadedCallback = () => console.log(modalName + ' loaded')) {
+        // Guest setup must finish first; for example, defer a join-game modal until piece-style selection closes.
         if (UI.#guestSetupPending && modalName !== Modals.GUEST_PIECE_STYLE) {
             UI.#deferredModal = [modalName, loadedCallback];
             return;
@@ -937,10 +942,17 @@ class UI {
         }
     }
 
+    // Call before requesting a guest token when the new guest must choose a piece style.
     static beginGuestSetup() {
         UI.#guestSetupPending = true;
     }
 
+    /**
+     * Release queued modal requests after setup completes or is dismissed.
+     *
+     * For example non-identified guest click a PvP game link to join, the "pick piece style" shows up,
+     * and then the "join game" modal is queued until the guest finishes setup
+     */
     static finishGuestSetup() {
         if (!UI.#guestSetupPending) return;
         UI.#guestSetupPending = false;

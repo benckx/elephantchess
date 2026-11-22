@@ -50,7 +50,9 @@ class BasePage {
                 this.#postIdentification();
                 showGuestMessages();
                 if (!getCookie(PIECE_STYLE_SETTING)) {
-                    this.#showGuestPieceStyleModal();
+                    UI.showModalByName(Modals.GUEST_PIECE_STYLE, () => {
+                        new GuestPieceStyleModalHandler();
+                    });
                 } else {
                     UI.finishGuestSetup();
                     UI.pushInfoNotification(`Identified as ${new User().toString()}`);
@@ -80,25 +82,6 @@ class BasePage {
                 this.#adjustKofiCloseButtonPosition();
             }, 1_000);
         }
-    }
-
-    #showGuestPieceStyleModal() {
-        UI.showModalByName(Modals.GUEST_PIECE_STYLE, () => {
-            const modal = document.getElementById('guest-piece-style-modal');
-            modal.querySelector('#guest-piece-style-user').textContent = new User().toString();
-            getAndHandle('/api/token-expiration-date', (json) => {
-                modal.querySelector('#guest-piece-style-expiration').textContent =
-                    formatTimestampDefaultDateFormat(Number(json.expiration));
-            });
-            modal.querySelectorAll('[data-piece-style]').forEach(button => {
-                button.addEventListener('click', () => {
-                    const pieceStyle = button.dataset.pieceStyle;
-                    new SettingsManager().pieceStyle = pieceStyle;
-                    window.dispatchEvent(new CustomEvent('piece-style-selected', {detail: pieceStyle}));
-                    UI.hideModal(null);
-                });
-            });
-        });
     }
 
     #adjustKofiCloseButtonPosition() {
