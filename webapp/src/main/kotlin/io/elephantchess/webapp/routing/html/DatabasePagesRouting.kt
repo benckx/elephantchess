@@ -1,7 +1,6 @@
 package io.elephantchess.webapp.routing.html
 
 import io.elephantchess.servicelayer.dto.database.DatabasePlayer
-import io.elephantchess.servicelayer.dto.database.DatabasePlayerProfileEdit
 import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.DatabaseService
 import io.elephantchess.servicelayer.utils.ops.koin
@@ -33,16 +32,9 @@ internal fun Routing.databasePagesRouting() {
     get("/database/player/{playerName}") {
         resolveDatabasePlayer { databasePlayer ->
             val version = call.request.queryParameters["version"]?.toIntOrNull()
-            val fetchEditorsUsername: suspend () -> List<String> = {
-                databaseService.listAllEditorsUsername(databasePlayer.id)
-            }
-
             databasePageRenderer.renderPlayerPage(
                 databasePlayer = databasePlayer,
                 requestedVersion = version,
-                edit = databaseService.fetchPlayerEdit(databasePlayer.id, version),
-                fetchEditorsUsername = fetchEditorsUsername,
-                hasOpeningData = databaseService.hasPlayerOpeningData(databasePlayer.id),
             )
         }
     }
@@ -67,16 +59,10 @@ internal fun Routing.databasePagesRouting() {
                 throw BadRequestException("version must be >= 1 to show a diff")
             }
 
-            val fetchEdit: suspend (Int) -> DatabasePlayerProfileEdit = { version ->
-                databaseService.fetchPlayerEdit(databasePlayer.id, version)
-            }
-
             // TODO: if version doesn't exist (too high), throw error
             databasePageRenderer.renderPlayerPageDiff(
                 databasePlayer = databasePlayer,
-                fromVersion = version - 1,
-                toVersion = version,
-                fetchEdit = fetchEdit,
+                version = version,
             )
         }
     }
@@ -91,41 +77,28 @@ internal fun Routing.databasePagesRouting() {
         val eventId = call.parameters["id"]
             ?: throw BadRequestException("id query parameter not provided")
 
-        val event = databaseService.fetchEvent(eventId)
-        call.respondHtml(databasePageRenderer.renderEventPage(event))
+        call.respondHtml(databasePageRenderer.renderEventPage(eventId))
     }
     get("/database/events") {
         // list of events page
-        val events = databaseService.listAllEventsWithStats(limit = 250)
-        call.respondHtml(databasePageRenderer.renderEventsListPage(events))
+        call.respondHtml(databasePageRenderer.renderEventsListPage())
     }
     get("/database/players") {
         // list of players (W, L, D, games played) page
-        val players = databaseService.listAllPlayersWithStats(limit = 250)
-        call.respondHtml(databasePageRenderer.renderPlayersListPage(players))
+        call.respondHtml(databasePageRenderer.renderPlayersListPage())
     }
     get("/browse/event") {
         // browse games for an event
         val eventId = call.parameters["id"]
             ?: throw BadRequestException("id query parameter not provided")
 
-        val eventName = databaseService.fetchEventName(eventId)
-        if (eventName == null) {
-            call.respondNotFoundPage()
-        } else {
-            val round = call.request.queryParameters["round"]?.toIntOrNull()
-            call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, eventName, round))
-        }
+        val round = call.request.queryParameters["round"]?.toIntOrNull()
+        call.respondHtml(databasePageRenderer.renderBrowseEventGamesPage(eventId, round))
     }
     get("/database/game") {
         val gameId = call.parameters["id"] ?: throw BadRequestException("id query parameter not provided")
-        val summary = databaseService.fetchGameSummary(gameId)
-        if (summary == null) {
-            call.respondNotFoundPage()
-        } else {
-            val orientation = call.request.queryParameters["orientation"]
-            call.respondHtml(databasePageRenderer.renderGamePage(summary, orientation))
-        }
+        val orientation = call.request.queryParameters["orientation"]
+        call.respondHtml(databasePageRenderer.renderGamePage(gameId, orientation))
     }
 }
 
