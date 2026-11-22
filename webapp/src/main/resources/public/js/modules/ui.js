@@ -35,6 +35,7 @@ const Modals = Object.freeze({
     GAME_CANCELED: 'game-canceled',
     GAME_LOSS: 'game-loss',
     GAME_WIN: 'game-win',
+    GUEST_PIECE_STYLE: 'guest-piece-style',
     IMPORT_MOVES: 'import-moves',
     LOGIN: 'login',
     NEW_GAME: 'new-game',
@@ -689,6 +690,8 @@ class UI {
     static cursorY = -1;
     static timeoutId;
     static #modalHistoryStatePushed = false;
+    static #guestSetupPending = false;
+    static #deferredModal = null;
 
     static init() {
         setTimeout(() => {
@@ -727,6 +730,7 @@ class UI {
                     UI.#modalBackground.style.display = 'none';
                     UI.#modalBackground.innerHTML = '';
                     UI.#hideNotification();
+                    UI.finishGuestSetup();
                 }
             });
 
@@ -904,6 +908,10 @@ class UI {
      * @param loadedCallback {function}
      */
     static showModalByName(modalName, loadedCallback = () => console.log(modalName + ' loaded')) {
+        if (UI.#guestSetupPending && modalName !== Modals.GUEST_PIECE_STYLE) {
+            UI.#deferredModal = [modalName, loadedCallback];
+            return;
+        }
         if (modalCache.has(modalName)) {
             UI.#modalBackground.innerHTML = modalCache.get(modalName);
             UI.#modalBackground.style.display = 'flex';
@@ -926,6 +934,20 @@ class UI {
                     UI.#modalBackground.style.display = 'flex';
                     UI.#pushModalHistoryState();
                 });
+        }
+    }
+
+    static beginGuestSetup() {
+        UI.#guestSetupPending = true;
+    }
+
+    static finishGuestSetup() {
+        if (!UI.#guestSetupPending) return;
+        UI.#guestSetupPending = false;
+        const deferredModal = UI.#deferredModal;
+        UI.#deferredModal = null;
+        if (deferredModal != null) {
+            UI.showModalByName(...deferredModal);
         }
     }
 
@@ -952,7 +974,10 @@ class UI {
                 UI.#modalBackground.style.display = 'none';
                 UI.#modalBackground.innerHTML = '';
                 UI.#hideNotification();
-                UI.#popModalHistoryState();
+                if (!UI.#guestSetupPending || UI.#deferredModal == null) {
+                    UI.#popModalHistoryState();
+                }
+                UI.finishGuestSetup();
             }
         }
     }

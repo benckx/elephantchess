@@ -173,6 +173,24 @@
         box-shadow: rgba(0, 0, 0, 0.35) 0px 10px 25px;
     }
 
+    #guest-piece-style-modal {
+        width: 94%;
+        max-width: 94%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 52px 20px 20px;
+        font-size: 20px;
+    }
+
+    #guest-piece-style-modal h2 {
+        font-size: 25px;
+    }
+
+    .guest-piece-style-images img {
+        width: 48px;
+        height: 48px;
+    }
+
     .modal-content .standard-checkbox .label-span label,
     .modal-content .standard-radio .label-span label {
         font-size: 38px;

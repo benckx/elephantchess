@@ -1019,6 +1019,45 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     display: none;
 }
 
+#guest-piece-style-modal {
+    width: 340px;
+    max-width: 90%;
+    box-sizing: border-box;
+}
+
+.guest-piece-style-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border: 2px solid #777;
+    border-radius: 6px;
+    background: #f7f3ed;
+    color: #222;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.guest-piece-style-option:hover,
+.guest-piece-style-option:focus-visible {
+    border-color: #235b94;
+    background: #e2edf7;
+}
+
+.guest-piece-style-images {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.guest-piece-style-images img {
+    width: 42px;
+    height: 42px;
+}
+
 #login-modal,
 #signup-modal {
     display: flex;

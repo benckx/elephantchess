@@ -418,6 +418,7 @@ class SettingsGui {
                 this.#pieceStyleSelect.value = pieceStyle;
             }
         };
+        window.addEventListener('piece-style-selected', event => applyPieceStyle(event.detail));
 
         // select piece style 1 (main box)
         this.#selectPieceStyleTraditional.onclick = () => applyPieceStyle(PieceStyleSetting.TRADITIONAL);

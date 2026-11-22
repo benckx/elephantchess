@@ -17,6 +17,20 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+class GuestTokenResponseHandler extends SimpleResponseHandler {
+    handle(response) {
+        if (response.status !== 200 && response.status !== 201) {
+            UI.finishGuestSetup();
+        }
+        super.handle(response);
+    }
+
+    handleCatchError(error) {
+        UI.finishGuestSetup();
+        super.handleCatchError(error);
+    }
+}
+
 class BasePage {
 
     #gamesToPlayWebSocketSession;
@@ -27,13 +41,21 @@ class BasePage {
         UI.init();
         const maybeUser = this.#findIdentifiedUser();
         if (maybeUser == null) {
-            getAndHandle('/api/obtain-guest-user-token', (json) => {
+            if (!getCookie(PIECE_STYLE_SETTING)) {
+                UI.beginGuestSetup();
+            }
+            getAndHandleWith('/api/obtain-guest-user-token', new GuestTokenResponseHandler((json) => {
                 setCookie(GUEST_USER_ID_FIELD, json.id, ANONYMOUS_USER_COOKIE_TTL);
                 setCookie(GUEST_USER_TOKEN_FIELD, json.token, ANONYMOUS_USER_COOKIE_TTL);
                 this.#postIdentification();
                 showGuestMessages();
-                UI.pushInfoNotification(`Identified as ${new User().toString()}`);
-            });
+                if (!getCookie(PIECE_STYLE_SETTING)) {
+                    this.#showGuestPieceStyleModal();
+                } else {
+                    UI.finishGuestSetup();
+                    UI.pushInfoNotification(`Identified as ${new User().toString()}`);
+                }
+            }));
         } else {
             switch (maybeUser.userType) {
                 case UserType.AUTHENTICATED:
@@ -47,6 +69,7 @@ class BasePage {
                 default:
                     console.error('Unknown user type: ' + maybeUser.userType);
             }
+
         }
 
         setTimeout(() => removeTrackingParamsFromUrl(), 800);
@@ -57,6 +80,25 @@ class BasePage {
                 this.#adjustKofiCloseButtonPosition();
             }, 1_000);
         }
+    }
+
+    #showGuestPieceStyleModal() {
+        UI.showModalByName(Modals.GUEST_PIECE_STYLE, () => {
+            const modal = document.getElementById('guest-piece-style-modal');
+            modal.querySelector('#guest-piece-style-user').textContent = new User().toString();
+            getAndHandle('/api/token-expiration-date', (json) => {
+                modal.querySelector('#guest-piece-style-expiration').textContent =
+                    formatTimestampDefaultDateFormat(Number(json.expiration));
+            });
+            modal.querySelectorAll('[data-piece-style]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const pieceStyle = button.dataset.pieceStyle;
+                    new SettingsManager().pieceStyle = pieceStyle;
+                    window.dispatchEvent(new CustomEvent('piece-style-selected', {detail: pieceStyle}));
+                    UI.hideModal(null);
+                });
+            });
+        });
     }
 
     #adjustKofiCloseButtonPosition() {
