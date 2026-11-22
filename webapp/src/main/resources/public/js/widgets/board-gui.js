@@ -644,10 +644,8 @@ class BoardGui {
             // rename id so it doesn't conflict with drawPieceAt on the target square
             img.id = `animating-${Math.random().toString(36).slice(2)}`;
             img.style.transition = transitionStr;
-            // must stay above .crosshair-square (z-index: 80) and resting
-            // pieces (z-index: 100) so the moving piece isn't painted under
-            // crosshairs of neighboring squares it flies over
-            img.style.zIndex = '110';
+            // Keep the moving piece above crosshairs and resting pieces.
+            img.style.zIndex = 'var(--z-board-moving-piece, 110)';
             img.style.pointerEvents = 'none';
 
             // trigger on next frame so the transition actually runs
@@ -1630,7 +1628,7 @@ class BoardGui {
         ghost.className = 'piece-image touch-drag-ghost';
         ghost.style.position = 'fixed';
         ghost.style.pointerEvents = 'none';
-        ghost.style.zIndex = '1000';
+        ghost.style.zIndex = 'var(--z-board-drag-ghost, 1000)';
         ghost.style.width = rect.width + 'px';
         ghost.style.height = rect.height + 'px';
         ghost.style.margin = '0';

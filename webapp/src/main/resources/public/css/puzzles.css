@@ -79,7 +79,7 @@ table.puzzle-state-info-box-table-rendered {
 #vote-up-down-container {
     visibility: hidden;
     position: absolute;
-    z-index: 150;
+    z-index: var(--z-puzzle-vote);
     display: flex;
     align-items: center;
     justify-content: center;
