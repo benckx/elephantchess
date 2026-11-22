@@ -194,6 +194,7 @@
     .guest-piece-style-images img {
         width: 64px;
         height: 64px;
+        margin-left: 5px;
     }
 
     .modal-content .standard-checkbox .label-span label,
