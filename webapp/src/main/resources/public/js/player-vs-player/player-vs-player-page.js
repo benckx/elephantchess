@@ -262,10 +262,12 @@ class PlayGamePage extends BasePage {
 
             this.#shareLinkActions.forEach((link) =>
                 link.addEventListener('click', () => {
-                    navigator
-                        .clipboard
-                        .writeText(getFullHost() + '/game?id=' + this.#gameController.gameId)
-                        .then(() => UI.pushInfoNotification('Game link copied to clipboard!'));
+                    shareOrCopyLink(
+                        getFullHost() + '/game?id=' + this.#gameController.gameId,
+                        'Elephant Chess game',
+                        'Join my game on Elephant Chess:',
+                        'Game link copied to clipboard!'
+                    );
                 })
             );
 

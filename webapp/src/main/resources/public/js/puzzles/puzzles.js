@@ -155,8 +155,10 @@ class PuzzlesPage extends BasePage {
         });
 
         this.#puzzleIdLabel.addEventListener('click', () => {
-            copyTextToClipboardAndNotify(
+            shareOrCopyLink(
                 getFullHost() + '/puzzles?id=' + this.#puzzleState.id,
+                'Elephant Chess puzzle',
+                'Try this Elephant Chess puzzle:',
                 'Puzzle link copied to clipboard!'
             );
         });
