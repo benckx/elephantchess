@@ -187,14 +187,14 @@
 
     .guest-piece-style-option {
         flex-direction: column;
-        gap: 8px;
-        padding: 14px;
+        gap: 12px;
+        padding: 26px;
     }
 
     .guest-piece-style-images img {
-        width: 64px;
-        height: 64px;
-        margin-left: 5px;
+        width: 78px;
+        height: 78px;
+        margin-left: 10px;
     }
 
     .modal-content .standard-checkbox .label-span label,
