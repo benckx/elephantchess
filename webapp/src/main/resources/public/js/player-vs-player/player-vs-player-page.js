@@ -264,8 +264,8 @@ class PlayGamePage extends BasePage {
                 link.addEventListener('click', () => {
                     shareOrCopyLink(
                         getFullHost() + '/game?id=' + this.#gameController.gameId,
-                        'Elephant Chess game',
-                        'Join my game on Elephant Chess:',
+                        'elephantchess.io: game',
+                        'Join my game on elephantchess.io: ',
                         'Game link copied to clipboard!'
                     );
                 })
