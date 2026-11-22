@@ -205,6 +205,9 @@ class PlayerVsBotPage extends BasePage {
         this.#updateButtonsEnabled();
         this.#enablePlayerMoveIfPermitted();
         this.#startSpectatorSessionIfNeeded(gameId, botGameDto);
+        if (botGameDto.isInProgress()) {
+            ScreenWakeLock.keepAwake();
+        }
         this.#setupIsOnlineStatusUpdates();
 
         switch (botGameDto.variant) {
@@ -229,6 +232,7 @@ class PlayerVsBotPage extends BasePage {
                 this.#boardGui.disablePlayerMove();
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
+                ScreenWakeLock.release();
             });
         };
         let yesButtonText = 'resign';
@@ -245,6 +249,7 @@ class PlayerVsBotPage extends BasePage {
                 this.#boardGui.disablePlayerMove();
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
+                ScreenWakeLock.release();
             });
         };
         const yesButtonText = 'yes';
@@ -268,6 +273,7 @@ class PlayerVsBotPage extends BasePage {
         this.#boardGui.disablePlayerMove();
         this.#updateOutcomeLabel();
         this.#updateButtonsEnabled();
+        ScreenWakeLock.release();
     }
 
     #handleNavigationEvent() {

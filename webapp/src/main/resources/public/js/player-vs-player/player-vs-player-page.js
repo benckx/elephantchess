@@ -315,6 +315,18 @@ class PlayGamePage extends BasePage {
         this.#updateGameStatusInfo();
         this.#updateButtonsEnabled();
         this.#chatBoxWidget.enable(this.#gameController.isAllowedToSendChat(userIdOrNull()));
+        this.#updateScreenWakeLock();
+    }
+
+    /**
+     * Keep the screen awake (e.g. on mobile) until the game is finished
+     */
+    #updateScreenWakeLock() {
+        if (this.#gameController.isGameFinished()) {
+            ScreenWakeLock.release();
+        } else {
+            ScreenWakeLock.keepAwake();
+        }
     }
 
     #initBoard() {
