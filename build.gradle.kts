@@ -158,7 +158,7 @@ project(":seven-kingdoms-core-test-utils") {
 
 project(":webapp-dao-migration") {
     dependencies {
-        implementation(rootLibs.liquibase.core)
+        api(rootLibs.liquibase.core)
         implementation(rootLibs.postgresql)
     }
 }
@@ -174,10 +174,10 @@ project(":webapp-dao") {
         implementation(project(":webapp-model-common"))
         implementation(project(":xiangqi-core"))
         implementation(project(":engine-api"))
+        api(rootLibs.liquibase.core)
         implementation(rootLibs.jooq)
         implementation(rootLibs.jooq.kotlin)
         implementation(rootLibs.jooq.kotlin.coroutines)
-        implementation(rootLibs.liquibase.core)
         implementation(rootLibs.r2dbc.postgresql)
         implementation(rootLibs.r2dbc.pool)
     }
