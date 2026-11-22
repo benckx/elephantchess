@@ -517,6 +517,18 @@ function copyTextToClipboardAndNotify(textToCopy, textToNotify = 'Copied to clip
         .then(() => UI.pushInfoNotification(textToNotify));
 }
 
+function shareOrCopyLink(url, title, text, copyNotification) {
+    if (navigator.share) {
+        navigator.share({title, text, url}).catch(error => {
+            if (error.name !== 'AbortError') {
+                copyTextToClipboardAndNotify(url, copyNotification);
+            }
+        });
+    } else {
+        copyTextToClipboardAndNotify(url, copyNotification);
+    }
+}
+
 /**
  * Use as a predicate for filter(), it removes duplicates from an array.
  */
