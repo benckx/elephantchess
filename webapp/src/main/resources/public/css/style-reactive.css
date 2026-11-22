@@ -175,13 +175,10 @@
 
     /*noinspection CssReplaceWithShorthandSafely*/
     #guest-piece-style-modal {
-        width: 94%;
-        max-width: 94%;
-        max-height: 90vh;
-        overflow-y: auto;
+        width: 96%;
+        max-width: 96%;
         padding-top: 52px;
         padding-right: 20px;
-        padding-bottom: 20px;
         padding-left: 20px;
     }
 
