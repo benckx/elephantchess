@@ -87,7 +87,9 @@ class BasePage {
     }
 
     #showGuestPieceStyleModal() {
-        UI.showModalByName(Modals.GUEST_PIECE_STYLE, () => new GuestPieceStyleModalHandler());
+        UI.showModalByName(Modals.GUEST_PIECE_STYLE, () => {
+            new GuestPieceStyleModalHandler();
+        });
     }
 
     #adjustKofiCloseButtonPosition() {
