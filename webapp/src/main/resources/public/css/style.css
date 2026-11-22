@@ -508,7 +508,7 @@ span.sub-text a, span.sub-text a:visited {
 .drop-down-menu-container {
     position: absolute;
     width: 140px;
-    z-index: 120;
+    z-index: 200;
     box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
 }
 
