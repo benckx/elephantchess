@@ -179,16 +179,18 @@
         max-height: 90vh;
         overflow-y: auto;
         padding: 52px 20px 20px;
-        font-size: 20px;
+        font-size: 24px;
     }
 
-    #guest-piece-style-modal h2 {
-        font-size: 25px;
+    .guest-piece-style-option {
+        flex-direction: column;
+        gap: 8px;
+        padding: 14px;
     }
 
     .guest-piece-style-images img {
-        width: 48px;
-        height: 48px;
+        width: 64px;
+        height: 64px;
     }
 
     .modal-content .standard-checkbox .label-span label,
