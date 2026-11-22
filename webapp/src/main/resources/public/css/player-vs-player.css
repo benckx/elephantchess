@@ -98,7 +98,7 @@ tr#outcome-row {
     position: fixed;
     bottom: 8px;
     right: 8px;
-    z-index: 400;
+    z-index: var(--z-mini-counter);
     width: 378px;
     box-shadow: rgba(0, 0, 0, 0.4) 0 4px 10px;
     border-radius: 4px;
@@ -156,7 +156,7 @@ tr#outcome-row {
     justify-content: center;
     position: absolute;
     aspect-ratio: 0.9;
-    z-index: 150;
+    z-index: var(--z-message-board-mask);
     top: 0;
     left: 0;
     width: 100%;

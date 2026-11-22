@@ -101,7 +101,7 @@
     right: 0;
     height: 100%;
     background-color: #b0aca5;
-    z-index: 0;
+    z-index: var(--z-occurrence-bar);
 }
 
 .player-openings-explorer-column table#opening-repository-table tr:hover td.occurrence-cell .occurrence-bar {
@@ -110,7 +110,7 @@
 
 .player-openings-explorer-column table#opening-repository-table td.occurrence-cell .occurrence-cell-content {
     position: relative;
-    z-index: 1;
+    z-index: var(--z-occurrence-content);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -154,7 +154,7 @@
     width: 100%;
     height: 100%;
     background-color: #c7baa6;
-    z-index: 100;
+    z-index: var(--z-opening-loading-mask);
     display: flex;
     align-items: center;
     justify-content: center;

@@ -597,7 +597,7 @@
         height: auto;
         max-height: calc(100vh - 24px);
         transform: translate(-50%, -50%);
-        z-index: 1202;
+        z-index: var(--z-advanced-settings-mobile);
         overflow-y: auto;
         border-radius: 8px;
         padding: 76px 34px 34px;

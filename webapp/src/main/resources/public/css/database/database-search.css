@@ -48,14 +48,14 @@ input[type=text].datepicker-field {
 .suggestions-box {
     visibility: hidden;
     position: absolute;
-    z-index: 100;
+    z-index: var(--z-search-suggestions);
 }
 
 .suggestions-box-content {
     overflow-y: scroll;
     overflow-x: hidden;
     max-height: 350px;
-    z-index: 100;
+    z-index: var(--z-search-suggestions);
 }
 
 .suggestion-element {
@@ -66,7 +66,7 @@ input[type=text].datepicker-field {
     background: #f4f3f3;
     padding: 4px 6px;
     font-size: 13px;
-    z-index: 110;
+    z-index: var(--z-search-suggestion);
 }
 
 .suggestion-element:hover {
@@ -80,7 +80,7 @@ input[type=text].datepicker-field {
 }
 
 .time-control-icons {
-    z-index: 50;
+    z-index: var(--z-time-control-icons);
 }
 
 #date-range-search-inputs {

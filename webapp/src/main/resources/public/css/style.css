@@ -17,6 +17,36 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+:root {
+    /* Values are relative to each element's stacking context. */
+    --z-occurrence-bar: 0;
+    --z-occurrence-content: 1;
+    --z-board-highlight: 10;
+    --z-time-control-icons: 50;
+    --z-board-crosshair: 80;
+    --z-board-piece: 100;
+    --z-opening-loading-mask: 100;
+    --z-search-suggestions: 100;
+    --z-advanced-settings-toggle: 100;
+    --z-board-svg: 110;
+    --z-board-moving-piece: 110;
+    --z-search-suggestion: 110;
+    --z-analysis-annotation: 115;
+    --z-user-turn-panel: 120;
+    --z-board-link-mask: 150;
+    --z-puzzle-vote: 150;
+    --z-message-board-mask: 150;
+    --z-dropdown-menu: 200;
+    --z-mini-counter: 400;
+    --z-kofi-widget: 450;
+    --z-modal-background: 500;
+    --z-mini-board-overview: 700;
+    --z-tooltip: 800;
+    --z-notification: 1000;
+    --z-board-drag-ghost: 1000;
+    --z-advanced-settings: 1200;
+    --z-advanced-settings-mobile: 1202;
+}
 
 html {
     font-family: hero-new, sans-serif;
@@ -111,7 +141,7 @@ img.winner-icon {
     border: 1px solid #01014e;
     padding: 7px;
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
-    z-index: 800;
+    z-index: var(--z-tooltip);
     position: absolute;
     visibility: hidden;
 }
@@ -508,7 +538,7 @@ span.sub-text a, span.sub-text a:visited {
 .drop-down-menu-container {
     position: absolute;
     width: 140px;
-    z-index: 200;
+    z-index: var(--z-dropdown-menu);
     box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
 }
 
@@ -609,7 +639,7 @@ a, a:visited {
     left: 50%;
     transform: translateX(-50%);
     border-radius: 8px;
-    z-index: 1000;
+    z-index: var(--z-notification);
     position: fixed;
     width: 40%;
     min-width: 500px;
@@ -724,7 +754,7 @@ img#user-turn-to-play-games-header-icon {
 #user-turn-to-play-games-panel {
     display: none;
     background-color: #e0d2bd;
-    z-index: 120;
+    z-index: var(--z-user-turn-panel);
     box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
     border: 1px solid black;
     border-top-width: 0;
@@ -963,7 +993,7 @@ a.top-bar-menu-items:hover img.top-bar-menu-items-icons {
     align-items: center;
     justify-content: center;
     position: fixed;
-    z-index: 500;
+    z-index: var(--z-modal-background);
     left: 0;
     top: 0;
     width: 100%;
@@ -1527,7 +1557,7 @@ input[type=password].incorrect-data {
     font-style: italic;
     font-weight: bold;
     line-height: 1;
-    z-index: 100;
+    z-index: var(--z-advanced-settings-toggle);
 }
 
 #settings-info-box-container #advanced-settings-toggle:hover {
@@ -1540,7 +1570,7 @@ input[type=password].incorrect-data {
     top: calc(100% + 10px);
     left: -5px;
     width: calc(100% + 10px);
-    z-index: 1200;
+    z-index: var(--z-advanced-settings);
     background: #e0d2bd;
     border: 2px solid #393939;
     border-radius: 6px;
