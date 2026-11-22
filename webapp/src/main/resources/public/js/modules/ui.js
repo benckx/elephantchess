@@ -919,7 +919,6 @@ class UI {
         }
         if (modalCache.has(modalName)) {
             UI.#modalBackground.innerHTML = modalCache.get(modalName);
-            UI.#setModalAccessibility();
             UI.#modalBackground.style.display = 'flex';
             UI.#pushModalHistoryState();
             loadedCallback();
@@ -928,7 +927,6 @@ class UI {
                 .then((response) => response.text())
                 .then((modalHtml) => {
                     UI.#modalBackground.innerHTML = modalHtml;
-                    UI.#setModalAccessibility();
                     UI.#modalBackground.style.display = 'flex';
                     UI.#pushModalHistoryState();
                     loadedCallback();
@@ -941,19 +939,6 @@ class UI {
                     UI.#modalBackground.style.display = 'flex';
                     UI.#pushModalHistoryState();
                 });
-        }
-    }
-
-    static #setModalAccessibility() {
-        const modal = UI.#modalBackground.querySelector('.modal-content');
-        const title = modal?.querySelector('h2');
-        if (modal && title) {
-            if (!title.id) {
-                title.id = `${modal.id}-title`;
-            }
-            modal.setAttribute('role', 'dialog');
-            modal.setAttribute('aria-modal', 'true');
-            modal.setAttribute('aria-labelledby', title.id);
         }
     }
 

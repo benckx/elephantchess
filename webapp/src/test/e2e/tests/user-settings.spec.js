@@ -28,7 +28,7 @@ test.describe('Guest piece style selection', () => {
         test(`new guest can choose ${label}`, async ({page, context}) => {
             await stubThirdPartyNoise(context);
             await page.goto('/', {waitUntil: 'networkidle'});
-            const modal = page.getByRole('dialog', {name: 'Choose piece style'});
+            const modal = page.locator('#guest-piece-style-modal');
             await expect(modal).toBeVisible();
             const id = (await context.cookies()).find(cookie => cookie.name === 'guest.user.userId').value;
             await expect(modal.locator('#guest-piece-style-user')).toHaveText(`guest #${id}`);
@@ -64,7 +64,7 @@ test.describe('Guest piece style selection', () => {
     test('a direct play-bot link opens after guest setup', async ({page, context}) => {
         await stubThirdPartyNoise(context);
         await page.goto('/?pvb', {waitUntil: 'networkidle'});
-        const modal = page.getByRole('dialog', {name: 'Choose piece style'});
+        const modal = page.locator('#guest-piece-style-modal');
         await expect(modal).toBeVisible();
         await page.waitForTimeout(1000);
         await expect(modal).toBeVisible();
@@ -75,7 +75,7 @@ test.describe('Guest piece style selection', () => {
     test('a dismissed guest modal still opens a queued play-bot modal', async ({page, context}) => {
         await stubThirdPartyNoise(context);
         await page.goto('/?pvb', {waitUntil: 'networkidle'});
-        await expect(page.getByRole('dialog', {name: 'Choose piece style'})).toBeVisible();
+        await expect(page.locator('#guest-piece-style-modal')).toBeVisible();
         await page.waitForTimeout(1000);
         await page.keyboard.press('Escape');
         await expect(page.locator('#play-bot-modal')).toBeVisible();
