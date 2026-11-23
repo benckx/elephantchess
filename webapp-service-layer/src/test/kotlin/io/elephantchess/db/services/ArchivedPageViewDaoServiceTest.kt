@@ -28,8 +28,8 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
         runTest {
             val (_, userId) = signUpTestUser()
 
-            // two views on the same day+url collapse to one unique daily view; a third on another day
-            insertPageView(userId, instantOfUtc(2020, 3, 10, 12, 1, 0), eventPath = "/database")
+            // two views on the same day+url collapse to one unique daily view; only one came from Android
+            insertPageView(userId, instantOfUtc(2020, 3, 10, 12, 1, 0), eventPath = "/database", fromAndroidApp = true)
             insertPageView(userId, instantOfUtc(2020, 3, 10, 12, 2, 0), eventPath = "/database")
             insertPageView(userId, instantOfUtc(2020, 3, 9, 8, 0, 0), eventPath = "/puzzles")
 
@@ -38,6 +38,8 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
             assertEquals(3, archived)
             assertEquals(0, countPageViews(userId))
             assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 10), "/database"))
+            assertEquals(1, archivedAndroidAppPageViews(LocalDate.of(2020, 3, 10), "/database"))
+            assertEquals(0, archivedAndroidAppPageViews(LocalDate.of(2020, 3, 9), "/puzzles"))
             assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 9), "/puzzles"))
         }
 
@@ -105,13 +107,14 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
         return archivedPageViewDaoService.archiveAndDeletePageViews(eventIds)
     }
 
-    private suspend fun insertPageView(userId: String, eventTime: Instant, eventPath: String = "/") {
+    private suspend fun insertPageView(userId: String, eventTime: Instant, eventPath: String = "/", fromAndroidApp: Boolean = false) {
         dslContext
             .insertInto(PAGE_VIEW_EVENT)
             .set(PAGE_VIEW_EVENT.EVENT_ID, insecure().nextAlphanumeric(12))
             .set(PAGE_VIEW_EVENT.USER_ID, userId)
             .set(PAGE_VIEW_EVENT.EVENT_TIME, eventTime)
             .set(PAGE_VIEW_EVENT.EVENT_PATH, eventPath)
+            .set(PAGE_VIEW_EVENT.FROM_ANDROID_APP, fromAndroidApp)
             .awaitExecute()
     }
 
@@ -125,6 +128,16 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
     private suspend fun archivedPageViews(day: LocalDate, url: String): Int =
         dslContext
             .select(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
+            .from(ARCHIVED_PAGE_VIEW_DAILY)
+            .where(
+                ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)
+                    .and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url)),
+            )
+            .awaitSingleValue() ?: 0
+
+    private suspend fun archivedAndroidAppPageViews(day: LocalDate, url: String): Int =
+        dslContext
+            .select(ARCHIVED_PAGE_VIEW_DAILY.ANDROID_APP_PAGE_VIEWS)
             .from(ARCHIVED_PAGE_VIEW_DAILY)
             .where(
                 ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)
