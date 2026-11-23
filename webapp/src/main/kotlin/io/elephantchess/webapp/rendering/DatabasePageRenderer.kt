@@ -82,34 +82,6 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer, private val d
             }
         }
 
-        val profileMetaResolver = KtorHtmlBuilderTagResolver("profile_meta_info") {
-            if (contributors.isNotEmpty()) {
-                span {
-                    b { +"Contributors:" }
-                    +" "
-                    contributors.forEachIndexed { index, username ->
-                        if (index > 0) {
-                            +", "
-                        }
-                        a(href = "/@/${username.encodeURLPath()}") {
-                            +username
-                        }
-                    }
-                }
-            }
-            if (contributors.isNotEmpty() && lastEditDate != null) {
-                span(classes = "profile-meta-separator") {
-                    +" · "
-                }
-            }
-            if (lastEditDate != null) {
-                span {
-                    b { +"Last edit:" }
-                    +" $lastEditDate"
-                }
-            }
-        }
-
         val noIndexMeta = CallbackTagResolver("meta_no_index_conditional") {
             if (!edit.enabled || requestedVersion != null) {
                 WebFragmentResolver("meta_no_index").resolveContent().firstOrNull() ?: ""
@@ -141,7 +113,7 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer, private val d
                 sourcesResolver,
                 styleResolver,
                 authorMeta,
-                profileMetaResolver,
+                profileMetaInfoTagResolver(contributors, lastEditDate),
                 noIndexMeta,
                 openingsHeadResolver,
                 openingsSectionResolver,
