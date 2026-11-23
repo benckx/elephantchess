@@ -264,7 +264,6 @@ test.describe('PvB workflow (guest vs bot)', () => {
         await page.selectOption('#janggi-blue-setup', 'rbna1abnr');
         await page.selectOption('#janggi-red-setup', 'bnra1arnb');
         await expect(page.locator('#opening-engine-only')).toBeChecked();
-        await page.click('#play-as-black');
         await page.click('#engine-fairy');
         await page.locator('#play-bot-depth').fill('1');
         await captureStep(testInfo, 'Janggi-new-game-modal', [['player', page]], {fullPage: false});
@@ -273,11 +272,11 @@ test.describe('PvB workflow (guest vs bot)', () => {
         const gameId = gameIdFromUrl(page.url());
 
         await expect(page.locator('#info-variant')).toHaveText('Janggi');
-        await expect(page.locator('#info-user-color')).toHaveText('Red');
+        await expect(page.locator('#info-user-color')).toHaveText('Blue');
         await expect(page.locator('#info-engine')).toHaveText('Fairy Stockfish');
 
         // Browse PvB lists games after at least six half-moves.
-        for (const [index, uci] of ['a6a5', 'c6c5', 'e6e5'].entries()) {
+        for (const [index, uci] of ['a3a4', 'c3c4', 'e3e4', 'a4a5'].entries()) {
             await playMove(page, uci, {readyTimeout: 60_000});
             await waitForBotReply(page);
             await captureStep(testInfo, `Janggi-move-${index + 1}`, [['player', page]]);

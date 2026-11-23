@@ -28,9 +28,7 @@ const fixtures = fs.readFileSync(fixturePath, 'utf8').split(/\r?\n/)
     .map(line => line.split(';'))
     .filter(([, outcome, blueSetup, redSetup]) =>
         outcome === 'CHECKMATE' && blueSetup === 'INNER_ELEPHANT' && redSetup === 'INNER_ELEPHANT');
-const fixture = fixtures.reduce((shortest, candidate) =>
-    candidate[4].split(',').length < shortest[4].split(',').length ? candidate : shortest
-);
+const fixture = fixtures[Math.floor(Math.random() * fixtures.length)];
 if (!fixture) {
     throw new Error('Missing Janggi checkmate fixture with inner-elephant setups');
 }
