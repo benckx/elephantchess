@@ -22,6 +22,13 @@ import kotlin.test.assertTrue
 class EngineSearchMovesTest {
 
     @Test
+    fun `maps variants to Fairy Stockfish names`() {
+        assertEquals("xiangqi", Variant.XIANGQI.fairyStockfishVariantName())
+        assertEquals("manchu", Variant.MANCHU.fairyStockfishVariantName())
+        assertEquals("janggitraditional", Variant.JANGGI.fairyStockfishVariantName())
+    }
+
+    @Test
     fun `depth queries restrict root moves only when requested`() =
         runTest {
             val process = mock<EngineProcess>(defaultAnswer = CALLS_REAL_METHODS)
