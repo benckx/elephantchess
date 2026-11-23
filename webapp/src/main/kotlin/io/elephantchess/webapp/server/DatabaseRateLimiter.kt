@@ -7,8 +7,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration
 
 /**
- * Per-IP rate limiter for public reference-database, PvP and PvB HTML pages
- * (`/database/...`, `/browse/event`, `/game`, `/playbot`, `/browse/player-vs-player`, `/browse/player-vs-bot`).
+ * Per-IP rate limiter for public reference-database, PvP and PvB HTML pages and database search API requests
+ * (`/database/...`, `/api/database/search`, `/browse/event`, `/browse/player-vs-player`, `/browse/player-vs-bot`).
  *
  * Context: these pages are repeatedly enumerated by scrapers (player and game crawling) using cookie-less
  * headless browsers that advertise a regular browser user-agent (e.g. "Chrome"). A per-IP fixed-window
@@ -47,12 +47,11 @@ class DatabaseRateLimiter(private val maxRequests: Int, window: Duration) {
 
     private companion object {
 
-        /** Path prefixes of the public reference-database, PvP and PvB pages targeted by scrapers. */
+        /** Path prefixes of the pages and database search API targeted by scrapers. */
         val MONITORED_PREFIXES = listOf(
+            "/api/database/search",
             "/database",
             "/browse/event",
-            "/game",
-            "/playbot",
             "/browse/player-vs-player",
             "/browse/player-vs-bot",
         )
