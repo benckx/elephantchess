@@ -2781,9 +2781,6 @@
             </column>
         </addColumn>
     </changeSet>
-    <changeSet id="0127" author="benckx">
-        <comment>Technical changes (admin console)</comment>
-    </changeSet>
     <changeSet id="0128" author="benckx">
         <comment>Record whether page views come from the Android app.</comment>
         <addColumn tableName="page_view_event">
