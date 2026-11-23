@@ -77,6 +77,8 @@ class DatabaseRateLimiterTest {
             "/",
             "/puzzles",
             "/analysis",
+            "/game?id=abc",
+            "/playbot?id=abc",
             "/api/game/data?id=abc",
             "/api/botgame/data?id=abc",
             "/ws/pvp/game",
@@ -89,20 +91,20 @@ class DatabaseRateLimiterTest {
 
     @Test
     fun `PvP and PvB pages share the database request allowance`() {
-        val limiter = limiter(max = 5)
+        val limiter = limiter(max = 4)
         assertFalse(limiter.hit(path = "/database/player/Wang_Tianyi"))
-        assertFalse(limiter.hit(path = "/game?id=first"))
+        assertFalse(limiter.hit(path = "/api/database/search?continuation=500"))
         assertFalse(limiter.hit(path = "/browse/player-vs-player"))
-        assertFalse(limiter.hit(path = "/playbot?id=first"))
         assertFalse(limiter.hit(path = "/browse/player-vs-bot"))
-        assertTrue(limiter.hit(path = "/game?id=second"))
-        assertTrue(limiter.hit(path = "/playbot?id=second"))
+        assertTrue(limiter.hit(path = "/api/database/search"))
+        assertTrue(limiter.hit(path = "/browse/player-vs-player"))
+        assertTrue(limiter.hit(path = "/browse/player-vs-bot"))
         assertTrue(limiter.hit(path = "/database/game?id=abc"))
     }
 
     @Test
     fun `PvP and PvB pages preserve crawler exemptions and non-GET behavior`() {
-        for (path in listOf("/game?id=abc", "/playbot?id=abc", "/browse/player-vs-player", "/browse/player-vs-bot")) {
+        for (path in listOf("/api/database/search", "/browse/player-vs-player", "/browse/player-vs-bot")) {
             val limiter = limiter(max = 1)
             repeat(10) { assertFalse(limiter.hit(path = path, ua = "Googlebot/2.1")) }
             repeat(10) { assertFalse(limiter.hit(path = path, method = "POST")) }
@@ -131,11 +133,9 @@ class DatabaseRateLimiterTest {
             "/database",
             "/database/player/Wang_Tianyi",
             "/database/game?id=abc",
+            "/api/database/search",
+            "/api/database/search?continuation=500",
             "/browse/event?id=abc",
-            "/game",
-            "/game?id=abc",
-            "/playbot",
-            "/playbot?id=abc",
             "/browse/player-vs-player",
             "/browse/player-vs-player?page=2",
             "/browse/player-vs-bot",
@@ -149,6 +149,12 @@ class DatabaseRateLimiterTest {
         // not monitored: never limited, even with a similar prefix
         for (path in listOf(
             "/databases",
+            "/api/database/searches",
+            "/api/database/autocomplete/players",
+            "/game",
+            "/game?id=abc",
+            "/playbot",
+            "/playbot?id=abc",
             "/games",
             "/game-api",
             "/playbots",
