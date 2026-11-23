@@ -77,16 +77,6 @@ function wrapInDiv(element, className = null) {
 }
 
 /**
- * @param element {HTMLElement}
- * @return {HTMLDivElement}
- */
-function wrapInBold(element) {
-    const b = document.createElement('b');
-    b.append(element);
-    return b;
-}
-
-/**
  * @param url {string}
  * @param label {string}
  * @param target {string|null}
@@ -126,21 +116,6 @@ function buildSimpleSpan(text) {
     const spanElement = document.createElement('span');
     spanElement.innerText = text;
     return spanElement;
-}
-
-/**
- * @returns {HTMLSpanElement}
- */
-function buildSpan(innerText, className = null, title = null) {
-    const span = document.createElement('span');
-    span.innerText = innerText;
-    if (className != null) {
-        span.classList.add(className);
-    }
-    if (title != null) {
-        span.title = title;
-    }
-    return span;
 }
 
 /**
