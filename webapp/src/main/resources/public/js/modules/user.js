@@ -29,6 +29,12 @@ const COOKIE_DEFAULT_DAYS = 120;
 const CHROME_COOKIE_MAX_TTL = 400;
 const ANONYMOUS_USER_COOKIE_TTL = 30;
 
+// Copy of the authenticated session, kept in localStorage. Some browsers drop the cookies set from
+// JavaScript earlier than requested (e.g. when the Android app is closed), which logs the user out.
+// The copy has the same lifetime as the cookies and is used to restore them when they are missing.
+const USER_SESSION_STORAGE_KEY = 'user.session';
+const ONE_DAY_MILLIS = 24 * 60 * 60 * 1000;
+
 function setCookie(name, value, days) {
     let expires = "";
     if (days) {
@@ -95,7 +101,61 @@ function isUserIdentified() {
     return isUserIdentifiedAsGuest() || isUserAuthenticated();
 }
 
+/**
+ * @param json {{userId: string, username: string, token: string, roles: string[]}}
+ * @param days {number} lifetime, same as the one of the authentication cookies
+ */
+function storeAuthenticatedSession(json, days) {
+    try {
+        const session = {
+            userId: json.userId,
+            username: json.username,
+            token: json.token,
+            roles: json.roles || [],
+            expiresAt: Date.now() + days * ONE_DAY_MILLIS,
+        };
+        localStorage.setItem(USER_SESSION_STORAGE_KEY, JSON.stringify(session));
+    } catch (e) {
+        // localStorage is unavailable (e.g. blocked or full), only the cookies are used
+        console.warn('Failed to store session', e);
+    }
+}
+
+function eraseStoredAuthenticatedSession() {
+    try {
+        localStorage.removeItem(USER_SESSION_STORAGE_KEY);
+    } catch (e) {
+        console.warn('Failed to erase stored session', e);
+    }
+}
+
+/**
+ * Restores the authentication cookies from the copy kept in localStorage,
+ * when the browser dropped the cookies but the session has not expired yet.
+ */
+function restoreAuthenticationCookies() {
+    if (isUserAuthenticated()) {
+        return;
+    }
+    try {
+        const item = localStorage.getItem(USER_SESSION_STORAGE_KEY);
+        if (item == null) {
+            return;
+        }
+        const session = JSON.parse(item);
+        const remainingDays = (session.expiresAt - Date.now()) / ONE_DAY_MILLIS;
+        if (!session.userId || !session.username || !session.token || !(remainingDays > 0)) {
+            eraseStoredAuthenticatedSession();
+            return;
+        }
+        writeAuthenticationCookies(session, remainingDays);
+    } catch (e) {
+        console.warn('Failed to restore session', e);
+    }
+}
+
 function eraseAllIdentificationCookies() {
+    eraseStoredAuthenticatedSession();
     eraseCookie(USER_ID_FIELD);
     eraseCookie(USER_TOKEN_FIELD);
     eraseCookie(USER_USERNAME_FIELD);
@@ -109,13 +169,18 @@ function eraseGuestCookies() {
     eraseCookie(GUEST_USER_TOKEN_FIELD);
 }
 
-function setAuthenticationCookies(json) {
-    setCookie(USER_ID_FIELD, json.userId, COOKIE_DEFAULT_DAYS);
-    setCookie(USER_USERNAME_FIELD, json.username, COOKIE_DEFAULT_DAYS);
-    setCookie(USER_TOKEN_FIELD, json.token, COOKIE_DEFAULT_DAYS);
+function writeAuthenticationCookies(json, days) {
+    setCookie(USER_ID_FIELD, json.userId, days);
+    setCookie(USER_USERNAME_FIELD, json.username, days);
+    setCookie(USER_TOKEN_FIELD, json.token, days);
     if (json.roles && json.roles.length > 0) {
-        setCookie(USER_ROLES_FIELD, JSON.stringify(json.roles), COOKIE_DEFAULT_DAYS);
+        setCookie(USER_ROLES_FIELD, JSON.stringify(json.roles), days);
     }
+}
+
+function setAuthenticationCookies(json) {
+    writeAuthenticationCookies(json, COOKIE_DEFAULT_DAYS);
+    storeAuthenticatedSession(json, COOKIE_DEFAULT_DAYS);
 }
 
 class PingResponseHandler extends SimpleResponseHandler {
@@ -173,6 +238,11 @@ class PingResponseHandler extends SimpleResponseHandler {
             setCookie(USER_TOKEN_FIELD, json.renewedToken, CHROME_COOKIE_MAX_TTL);
             setCookie(USER_USERNAME_FIELD, getCookie(USER_USERNAME_FIELD), CHROME_COOKIE_MAX_TTL);
             setCookie(USER_ID_FIELD, getCookie(USER_ID_FIELD), CHROME_COOKIE_MAX_TTL);
+            const user = new User();
+            storeAuthenticatedSession(
+                {userId: user.userId, username: user.username, token: json.renewedToken, roles: user.roles},
+                CHROME_COOKIE_MAX_TTL
+            );
         }
     }
 
@@ -303,6 +373,13 @@ class User {
     }
 
     /**
+     * @return {string[]}
+     */
+    get roles() {
+        return this.#roles;
+    }
+
+    /**
      * @returns {UserId|null}
      */
     get compositeUserId() {
@@ -355,3 +432,6 @@ class User {
     }
 
 }
+
+// must run before any page script reads the identification cookies
+restoreAuthenticationCookies();
