@@ -151,7 +151,14 @@ class BasePage {
     #postIdentification() {
         UI.initLoginPanel();
 
-        const body = {'currentPage': window.location.href};
+        const androidAppSessionKey = 'android-app-session';
+        if (document.referrer.startsWith('android-app://')) {
+            sessionStorage.setItem(androidAppSessionKey, 'true');
+        }
+        const body = {
+            'currentPage': window.location.href,
+            'fromAndroidApp': sessionStorage.getItem(androidAppSessionKey) === 'true'
+        };
         postAndHandleWith('/api/ping-session', body, new PingResponseHandler());
 
         const allGamesToJoinListeners = [

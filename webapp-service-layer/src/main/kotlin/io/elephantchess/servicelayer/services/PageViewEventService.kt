@@ -21,7 +21,7 @@ class PageViewEventService(
     private val webHost = appConfig.webHost
     private val webHostUnsecure = webHost.replace("https://", "http://")
 
-    suspend fun processPageViewEvent(verifiedToken: VerifiedToken, currentPage: String?) {
+    suspend fun processPageViewEvent(verifiedToken: VerifiedToken, currentPage: String?, fromAndroidApp: Boolean) {
         if (currentPage == null) {
             return
         }
@@ -35,6 +35,7 @@ class PageViewEventService(
         record.eventId = generateId()
         record.userId = verifiedToken.userId
         record.eventPath = eventPath
+        record.fromAndroidApp = fromAndroidApp
         pageViewDaoService.save(record)
 
         logPingUserSession(verifiedToken, eventPath)

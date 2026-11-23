@@ -199,7 +199,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    suspend fun fetchDailyPageViews(days: Int, excludedUserIds: List<String>): List<DailyValueRecord> {
+    suspend fun fetchDailyPageViews(days: Int, excludedUserIds: List<String>, fromAndroidApp: Boolean): List<DailyValueRecord> {
         val dayField = PAGE_VIEW_EVENT.EVENT_TIME.localDate("day")
 
         // get the start of the current day to exclude it
@@ -216,6 +216,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.EVENT_TIME.isWithin(days.days))
             .and(PAGE_VIEW_EVENT.EVENT_TIME.lessThan(currentDayStart))
+            .and(PAGE_VIEW_EVENT.FROM_ANDROID_APP.eq(fromAndroidApp))
             .and(excludedUsersCondition(excludedUserIds))
             .groupBy(dayField)
             .orderBy(dayField.asc())

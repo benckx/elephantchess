@@ -181,6 +181,8 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
         // inline the bounds so the SELECT and GROUP BY expressions render identically for Postgres
         val url = DSL.substring(PAGE_VIEW_EVENT.EVENT_PATH, DSL.inline(1), DSL.inline(URL_MAX_LENGTH))
         val uniqueViewers = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID)
+        val uniqueAndroidAppViewers = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID)
+            .filterWhere(PAGE_VIEW_EVENT.FROM_ANDROID_APP.isTrue)
 
         val isProfileView = PAGE_VIEW_EVENT.EVENT_PATH.like("/@/%")
             .and(PAGE_VIEW_EVENT.EVENT_PATH.notLike("/@/%/%"))
@@ -195,12 +197,20 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
                 ARCHIVED_PAGE_VIEW_DAILY.DAY,
                 ARCHIVED_PAGE_VIEW_DAILY.URL,
                 ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS,
+                ARCHIVED_PAGE_VIEW_DAILY.ANDROID_APP_PAGE_VIEWS,
                 ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS,
                 ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS,
             )
             .select(
                 transactional
-                    .select(eventDay, url, uniqueViewers, uniqueOwnProfileViewers, uniqueOtherProfileViewers)
+                    .select(
+                        eventDay,
+                        url,
+                        uniqueViewers,
+                        uniqueAndroidAppViewers,
+                        uniqueOwnProfileViewers,
+                        uniqueOtherProfileViewers,
+                    )
                     .from(PAGE_VIEW_EVENT)
                     .leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
                     .where(selector)
@@ -209,6 +219,7 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
             .onConflict(ARCHIVED_PAGE_VIEW_DAILY.DAY, ARCHIVED_PAGE_VIEW_DAILY.URL)
             .doUpdate()
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
+            .accumulate(ARCHIVED_PAGE_VIEW_DAILY.ANDROID_APP_PAGE_VIEWS)
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS)
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS)
             .awaitExecute()

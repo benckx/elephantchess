@@ -325,17 +325,31 @@ class AdminAnalyticsService(
         return HourlyPageViewsResponse(entries)
     }
 
-    suspend fun fechDailyPageViews(days: Int = 30): DailyPageViewsResponse {
-        val records = pageViewEventDaoService.fetchDailyPageViews(
-            days = days,
+    suspend fun fetchDailyPageViews(numberOfDays: Int = 30): DailyPageViewsResponse {
+        val nonAndroidAppRecords = pageViewEventDaoService.fetchDailyPageViews(
+            days = numberOfDays,
             excludedUserIds = excludedUserIds,
+            fromAndroidApp = false,
         )
+        val androidAppRecords = pageViewEventDaoService.fetchDailyPageViews(
+            days = numberOfDays,
+            excludedUserIds = excludedUserIds,
+            fromAndroidApp = true,
+        )
+        val archivedAndroidAppRecords = archivedGuestDaoService.fetchArchivedPageViewsByDay(
+            days = numberOfDays,
+            androidAppOnly = true,
+        )
+        val androidAppPageViewsByDay = mutableMapOf<LocalDate, Long>()
+        (androidAppRecords + archivedAndroidAppRecords).forEach { record ->
+            androidAppPageViewsByDay.merge(record.day, record.value.toLong(), Long::plus)
+        }
 
-        val archivedRecords = archivedGuestDaoService.fetchArchivedPageViewsByDay(days = days)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedPageViewsByDay(days = numberOfDays)
 
         // guests are archived into a disjoint set of users, so per-day counts can simply be summed
         val pageViewsByDay = sortedMapOf<LocalDate, Long>()
-        (records + archivedRecords).forEach { record ->
+        (nonAndroidAppRecords + androidAppRecords + archivedRecords).forEach { record ->
             pageViewsByDay.merge(record.day, record.value.toLong(), Long::plus)
         }
 
@@ -343,6 +357,9 @@ class AdminAnalyticsService(
             DailyPageViewsResponse.Entry(
                 day = day.toString(),
                 pageViews = pageViews.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+                androidAppPageViews = (androidAppPageViewsByDay[day] ?: 0L)
+                    .coerceAtMost(Int.MAX_VALUE.toLong())
+                    .toInt(),
             )
         }
 
