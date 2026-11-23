@@ -149,17 +149,21 @@ class BasePage {
     }
 
     #postIdentification() {
+        function pingSession() {
+            const androidAppSessionKey = 'android-app-session';
+            if (document.referrer.startsWith('android-app://')) {
+                sessionStorage.setItem(androidAppSessionKey, 'true');
+            }
+            const body = {
+                'currentPage': window.location.href,
+                'fromAndroidApp': sessionStorage.getItem(androidAppSessionKey) === 'true'
+            };
+            postAndHandleWith('/api/ping-session', body, new PingResponseHandler());
+        }
+
         UI.initLoginPanel();
 
-        const androidAppSessionKey = 'android-app-session';
-        if (document.referrer.startsWith('android-app://')) {
-            sessionStorage.setItem(androidAppSessionKey, 'true');
-        }
-        const body = {
-            'currentPage': window.location.href,
-            'fromAndroidApp': sessionStorage.getItem(androidAppSessionKey) === 'true'
-        };
-        postAndHandleWith('/api/ping-session', body, new PingResponseHandler());
+        pingSession();
 
         const allGamesToJoinListeners = [
             ...this.additionalGamesToJoinListeners(),

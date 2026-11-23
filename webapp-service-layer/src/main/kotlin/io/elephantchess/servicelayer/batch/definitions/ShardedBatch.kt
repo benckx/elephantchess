@@ -1,6 +1,9 @@
 package io.elephantchess.servicelayer.batch.definitions
 
 import io.elephantchess.servicelayer.model.Pod
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 abstract class ShardedBatch<T> : Batch {
 
@@ -20,6 +23,9 @@ abstract class ShardedBatch<T> : Batch {
                 try {
                     process(element)
                 } catch (e: Exception) {
+                    if (e is CancellationException) {
+                        currentCoroutineContext().ensureActive()
+                    }
                     logger.warn(e) { "error processing $element" }
                 }
             }
