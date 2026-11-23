@@ -24,10 +24,7 @@ import kotlin.time.Duration
  * Mirrors [ArchivedGuestDaoService]'s page-view archiving so both feed the same aggregated metrics.
  */
 @KoinSingleton
-class ArchivedPageViewDaoService(
-    private val dslContext: DSLContext,
-    appConfig: AppConfig,
-) {
+class ArchivedPageViewDaoService(private val dslContext: DSLContext, appConfig: AppConfig) {
 
     private val excludedFromAnalytics = appConfig.excludedFromAnalytics
 
@@ -48,10 +45,7 @@ class ArchivedPageViewDaoService(
      * Archives and deletes the page view events with the given [pageViewEventIds]. Returns the number of
      * archived (deleted) page view events.
      */
-    suspend fun archiveAndDeletePageViews(
-        pageViewEventIds: List<String>,
-        excludedUserIds: List<String> = excludedFromAnalytics,
-    ): Int {
+    suspend fun archiveAndDeletePageViews(pageViewEventIds: List<String>, excludedUserIds: List<String> = excludedFromAnalytics): Int {
         if (pageViewEventIds.isEmpty()) {
             return 0
         }
