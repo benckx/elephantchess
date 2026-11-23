@@ -327,17 +327,17 @@ class AdminAnalyticsService(
 
     suspend fun fetchDailyPageViews(numberOfDays: Int = 30): DailyPageViewsResponse {
         val nonAndroidAppRecords = pageViewEventDaoService.fetchDailyPageViews(
-            days = numberOfDays,
+            numberOfDays = numberOfDays,
             excludedUserIds = excludedUserIds,
             fromAndroidApp = false,
         )
         val androidAppRecords = pageViewEventDaoService.fetchDailyPageViews(
-            days = numberOfDays,
+            numberOfDays = numberOfDays,
             excludedUserIds = excludedUserIds,
             fromAndroidApp = true,
         )
         val archivedAndroidAppRecords = archivedGuestDaoService.fetchArchivedPageViewsByDay(
-            days = numberOfDays,
+            numberOfDays = numberOfDays,
             androidAppOnly = true,
         )
         val androidAppPageViewsByDay = mutableMapOf<LocalDate, Long>()
@@ -345,7 +345,7 @@ class AdminAnalyticsService(
             androidAppPageViewsByDay.merge(record.day, record.value.toLong(), Long::plus)
         }
 
-        val archivedRecords = archivedGuestDaoService.fetchArchivedPageViewsByDay(days = numberOfDays)
+        val archivedRecords = archivedGuestDaoService.fetchArchivedPageViewsByDay(numberOfDays = numberOfDays)
 
         // guests are archived into a disjoint set of users, so per-day counts can simply be summed
         val pageViewsByDay = sortedMapOf<LocalDate, Long>()

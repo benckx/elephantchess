@@ -199,7 +199,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    suspend fun fetchDailyPageViews(days: Int, excludedUserIds: List<String>, fromAndroidApp: Boolean): List<DailyValueRecord> {
+    suspend fun fetchDailyPageViews(numberOfDays: Int, excludedUserIds: List<String>, fromAndroidApp: Boolean): List<DailyValueRecord> {
         val dayField = PAGE_VIEW_EVENT.EVENT_TIME.localDate("day")
 
         // get the start of the current day to exclude it
@@ -214,7 +214,7 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                 uniqueDailyPageViewsField(),
             )
             .from(PAGE_VIEW_EVENT)
-            .where(PAGE_VIEW_EVENT.EVENT_TIME.isWithin(days.days))
+            .where(PAGE_VIEW_EVENT.EVENT_TIME.isWithin(numberOfDays.days))
             .and(PAGE_VIEW_EVENT.EVENT_TIME.lessThan(currentDayStart))
             .and(PAGE_VIEW_EVENT.FROM_ANDROID_APP.eq(fromAndroidApp))
             .and(excludedUsersCondition(excludedUserIds))
@@ -227,35 +227,6 @@ class PageViewEventDaoService(private val dslContext: DSLContext) {
                     value = record.getValue("unique_page_views", Int::class.java),
                 )
             }
-    }
-
-    suspend fun countNewsletterClicksPerTemplate(excludedUserIds: List<String>): Map<String, Int> {
-        val newsletterTemplateField = DSL.field(
-            "substring({0} from 'medium=newsletter-([^&#]+)')",
-            String::class.java,
-            PAGE_VIEW_EVENT.EVENT_PATH,
-        )
-
-        return dslContext
-            .select(
-                newsletterTemplateField,
-                DSL.count().`as`("click_count"),
-            )
-            .from(PAGE_VIEW_EVENT)
-            .where(PAGE_VIEW_EVENT.EVENT_PATH.like("%medium=newsletter-%"))
-            .and(excludedUsersCondition(excludedUserIds))
-            .groupBy(newsletterTemplateField)
-            .awaitRecords()
-            .mapNotNull { record ->
-                val templateName = record.get(newsletterTemplateField)
-                if (templateName.isNullOrBlank()) {
-                    null
-                } else {
-                    val clickCount = record.get("click_count", Int::class.java) ?: 0
-                    templateName to clickCount
-                }
-            }
-            .toMap()
     }
 
     suspend fun listNewsletterClicksPerTemplateAndLink(excludedUserIds: List<String>): List<NewsletterLinkClickRecord> {
