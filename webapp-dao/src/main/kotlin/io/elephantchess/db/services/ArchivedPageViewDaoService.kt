@@ -39,22 +39,22 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
             .map { it.get(PAGE_VIEW_EVENT.EVENT_ID) }
 
     /**
-     * Archives and deletes the page view events with the given [eventIds]. Returns the number of
+     * Archives and deletes the page view events with the given [pageViewEventIds]. Returns the number of
      * archived (deleted) page view events.
      */
-    suspend fun archiveAndDeletePageViews(eventIds: List<String>): Int {
-        if (eventIds.isEmpty()) {
+    suspend fun archiveAndDeletePageViews(pageViewEventIds: List<String>): Int {
+        if (pageViewEventIds.isEmpty()) {
             return 0
         }
 
         return dslContext.transactionCoroutine { cfg ->
             val transactional = DSL.using(cfg)
 
-            archivePageViews(transactional, PAGE_VIEW_EVENT.EVENT_ID.`in`(eventIds))
+            archivePageViews(transactional, PAGE_VIEW_EVENT.EVENT_ID.`in`(pageViewEventIds))
 
             transactional
                 .deleteFrom(PAGE_VIEW_EVENT)
-                .where(PAGE_VIEW_EVENT.EVENT_ID.`in`(eventIds))
+                .where(PAGE_VIEW_EVENT.EVENT_ID.`in`(pageViewEventIds))
                 .awaitExecute()
         }
     }
