@@ -29,7 +29,7 @@ class PageViewEventService(
         val eventPath = currentPage
             .removePrefix(webHost)
             .removePrefix(webHostUnsecure)
-            .removePrefix("`") // why do I have entres like "/about?medium=footer`"?
+            .removePrefix("`") // why do I have entries like "/about?medium=footer`"?
 
         val record = PageViewEvent()
         record.eventId = generateId()
