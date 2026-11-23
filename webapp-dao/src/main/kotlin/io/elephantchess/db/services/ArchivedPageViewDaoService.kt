@@ -82,7 +82,7 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
             .selectCount()
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.USER_ID.eq(userId))
-            .awaitSingleValue<Int>() ?: 0
+            .awaitSingleValue() ?: 0
 
     /**
      * The [limit] most recent page views of [userId], most recent first, starting at [offset].
@@ -181,7 +181,8 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
         // inline the bounds so the SELECT and GROUP BY expressions render identically for Postgres
         val url = DSL.substring(PAGE_VIEW_EVENT.EVENT_PATH, DSL.inline(1), DSL.inline(URL_MAX_LENGTH))
         val uniqueViewers = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID)
-        val uniqueAndroidAppViewers = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID)
+        val uniqueAndroidAppViewers = DSL
+            .countDistinct(PAGE_VIEW_EVENT.USER_ID)
             .filterWhere(PAGE_VIEW_EVENT.FROM_ANDROID_APP.isTrue)
 
         val isProfileView = PAGE_VIEW_EVENT.EVENT_PATH.like("/@/%")
