@@ -269,17 +269,17 @@ class AdminOverviewPage extends BasePage {
 
         const delta = latest30Days - previous30Days;
         if (delta === 0) {
-            deltaElement.innerText = '(0 vs prev 30d)';
+            deltaElement.innerText = '(0)';
             deltaElement.classList.add('trend-flat');
             return;
         }
 
         const sign = delta > 0 ? '+' : '';
         if (previous30Days === 0) {
-            deltaElement.innerText = `(${sign}${formatNumber(delta)} vs prev 30d)`;
+            deltaElement.innerText = `(${sign}${formatNumber(delta)})`;
         } else {
             const pct = ((delta / previous30Days) * 100).toFixed(1);
-            deltaElement.innerText = `(${sign}${formatNumber(delta)}, ${sign}${pct}% vs prev 30d)`;
+            deltaElement.innerText = `(${sign}${formatNumber(delta)}, ${sign}${pct}%)`;
         }
 
         deltaElement.classList.add(delta > 0 ? 'trend-up' : 'trend-down');
