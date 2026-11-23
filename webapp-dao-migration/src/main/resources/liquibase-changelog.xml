@@ -3066,4 +3066,20 @@
             WHERE url LIKE '%medium=newsletter-%';
         </sql>
     </changeSet>
+    <changeSet id="0128" author="benckx">
+        <comment>Record whether page views come from the Android app.</comment>
+        <addColumn tableName="page_view_event">
+            <column name="from_android_app" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0129" author="benckx">
+        <comment>Preserve Android app page-view counts when raw page views are archived.</comment>
+        <addColumn tableName="archived_page_view_daily">
+            <column name="android_app_page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

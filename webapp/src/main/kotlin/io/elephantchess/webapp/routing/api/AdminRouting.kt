@@ -217,7 +217,7 @@ private fun Route.adminAnalyticsRoutes() {
     get("/daily-page-views") {
         requireAdminRole { _ ->
             val days = call.parameters["days"]?.toIntOrNull() ?: 30
-            adminAnalyticsService.fechDailyPageViews(days)
+            adminAnalyticsService.fetchDailyPageViews(numberOfDays = days)
         }
     }
 }

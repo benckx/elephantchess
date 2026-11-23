@@ -147,15 +147,21 @@ class ArchivedGuestDaoService(private val dslContext: DSLContext, private val ar
 
     /**
      * Archived unique daily page views (one per guest per day per url), aggregated by day, over the last
-     * [days]. Mirrors the counting used for live page views so both can be summed.
+     * [numberOfDays]. Mirrors the counting used for live page views so both can be summed.
      */
-    suspend fun fetchArchivedPageViewsByDay(days: Int): List<DailyValueRecord> {
-        val pageViews = DSL.sum(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS).`as`("page_views")
+    suspend fun fetchArchivedPageViewsByDay(numberOfDays: Int, androidAppOnly: Boolean = false): List<DailyValueRecord> {
+        val pageViews = DSL.sum(
+            if (androidAppOnly) {
+                ARCHIVED_PAGE_VIEW_DAILY.ANDROID_APP_PAGE_VIEWS
+            } else {
+                ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS
+            },
+        ).`as`("page_views")
 
         return dslContext
             .select(ARCHIVED_PAGE_VIEW_DAILY.DAY, pageViews)
             .from(ARCHIVED_PAGE_VIEW_DAILY)
-            .where(ARCHIVED_PAGE_VIEW_DAILY.DAY.ge(LocalDate.now().minusDays(days.toLong())))
+            .where(ARCHIVED_PAGE_VIEW_DAILY.DAY.ge(LocalDate.now().minusDays(numberOfDays.toLong())))
             .groupBy(ARCHIVED_PAGE_VIEW_DAILY.DAY)
             .orderBy(ARCHIVED_PAGE_VIEW_DAILY.DAY.asc())
             .awaitRecords()

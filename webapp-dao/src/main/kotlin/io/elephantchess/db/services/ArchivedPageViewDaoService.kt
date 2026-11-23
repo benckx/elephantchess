@@ -1,5 +1,6 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.model.PageViewRecord
 import io.elephantchess.db.model.analytics.NewsletterLinkClickRecord
@@ -23,7 +24,9 @@ import kotlin.time.Duration
  * Mirrors [ArchivedGuestDaoService]'s page-view archiving so both feed the same aggregated metrics.
  */
 @KoinSingleton
-class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
+class ArchivedPageViewDaoService(private val dslContext: DSLContext, appConfig: AppConfig) {
+
+    private val excludedFromAnalytics = appConfig.excludedFromAnalytics
 
     /**
      * Selects up to [limit] ids of page view events older than [maxAge]. Fetched once per batch run so
@@ -39,22 +42,22 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
             .map { it.get(PAGE_VIEW_EVENT.EVENT_ID) }
 
     /**
-     * Archives and deletes the page view events with the given [eventIds]. Returns the number of
+     * Archives and deletes the page view events with the given [pageViewEventIds]. Returns the number of
      * archived (deleted) page view events.
      */
-    suspend fun archiveAndDeletePageViews(eventIds: List<String>): Int {
-        if (eventIds.isEmpty()) {
+    suspend fun archiveAndDeletePageViews(pageViewEventIds: List<String>, excludedUserIds: List<String> = excludedFromAnalytics): Int {
+        if (pageViewEventIds.isEmpty()) {
             return 0
         }
 
         return dslContext.transactionCoroutine { cfg ->
             val transactional = DSL.using(cfg)
 
-            archivePageViews(transactional, PAGE_VIEW_EVENT.EVENT_ID.`in`(eventIds))
+            archivePageViews(transactional, PAGE_VIEW_EVENT.EVENT_ID.`in`(pageViewEventIds), excludedUserIds)
 
             transactional
                 .deleteFrom(PAGE_VIEW_EVENT)
-                .where(PAGE_VIEW_EVENT.EVENT_ID.`in`(eventIds))
+                .where(PAGE_VIEW_EVENT.EVENT_ID.`in`(pageViewEventIds))
                 .awaitExecute()
         }
     }
@@ -82,7 +85,7 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
             .selectCount()
             .from(PAGE_VIEW_EVENT)
             .where(PAGE_VIEW_EVENT.USER_ID.eq(userId))
-            .awaitSingleValue<Int>() ?: 0
+            .awaitSingleValue() ?: 0
 
     /**
      * The [limit] most recent page views of [userId], most recent first, starting at [offset].
@@ -175,12 +178,19 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
      * with [ArchivedGuestDaoService] (which passes a user-id selector) so both archive flows aggregate
      * page views identically. Runs on the caller-provided [transactional] context.
      */
-    internal suspend fun archivePageViews(transactional: DSLContext, selector: Condition) {
+    internal suspend fun archivePageViews(
+        transactional: DSLContext,
+        selector: Condition,
+        excludedUserIds: List<String> = excludedFromAnalytics,
+    ) {
         val eventDay = PAGE_VIEW_EVENT.EVENT_TIME.localDate(null)
         // truncate to the archive column width so overly long paths (long query strings) never overflow;
         // inline the bounds so the SELECT and GROUP BY expressions render identically for Postgres
         val url = DSL.substring(PAGE_VIEW_EVENT.EVENT_PATH, DSL.inline(1), DSL.inline(URL_MAX_LENGTH))
         val uniqueViewers = DSL.countDistinct(PAGE_VIEW_EVENT.USER_ID)
+        val uniqueAndroidAppViewers = DSL
+            .countDistinct(PAGE_VIEW_EVENT.USER_ID)
+            .filterWhere(PAGE_VIEW_EVENT.FROM_ANDROID_APP.isTrue)
 
         val isProfileView = PAGE_VIEW_EVENT.EVENT_PATH.like("/@/%")
             .and(PAGE_VIEW_EVENT.EVENT_PATH.notLike("/@/%/%"))
@@ -195,20 +205,36 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
                 ARCHIVED_PAGE_VIEW_DAILY.DAY,
                 ARCHIVED_PAGE_VIEW_DAILY.URL,
                 ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS,
+                ARCHIVED_PAGE_VIEW_DAILY.ANDROID_APP_PAGE_VIEWS,
                 ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS,
                 ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS,
             )
             .select(
                 transactional
-                    .select(eventDay, url, uniqueViewers, uniqueOwnProfileViewers, uniqueOtherProfileViewers)
+                    .select(
+                        eventDay,
+                        url,
+                        uniqueViewers,
+                        uniqueAndroidAppViewers,
+                        uniqueOwnProfileViewers,
+                        uniqueOtherProfileViewers,
+                    )
                     .from(PAGE_VIEW_EVENT)
                     .leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
                     .where(selector)
+                    .and(
+                        if (excludedUserIds.isEmpty()) {
+                            DSL.noCondition()
+                        } else {
+                            PAGE_VIEW_EVENT.USER_ID.notIn(excludedUserIds)
+                        },
+                    )
                     .groupBy(eventDay, url),
             )
             .onConflict(ARCHIVED_PAGE_VIEW_DAILY.DAY, ARCHIVED_PAGE_VIEW_DAILY.URL)
             .doUpdate()
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
+            .accumulate(ARCHIVED_PAGE_VIEW_DAILY.ANDROID_APP_PAGE_VIEWS)
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OWN_PROFILE_PAGE_VIEWS)
             .accumulate(ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS)
             .awaitExecute()

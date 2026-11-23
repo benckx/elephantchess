@@ -262,7 +262,7 @@ class UserService(
         userDaoService.updateLastOnline(userId)
 
         // handle page view event
-        pageViewEventService.processPageViewEvent(verifiedToken, request.currentPage)
+        pageViewEventService.processPageViewEvent(verifiedToken, request.currentPage, request.fromAndroidApp)
 
         // sample anonymous setting preferences (only a fraction of the time)
         if (!excludedFromAnalyticsUserIds.contains(verifiedToken.userId().id)) {
