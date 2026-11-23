@@ -1,5 +1,6 @@
 package io.elephantchess.db.services
 
+import io.elephantchess.config.AppConfig
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.model.PageViewRecord
 import io.elephantchess.db.model.analytics.NewsletterLinkClickRecord
@@ -23,7 +24,12 @@ import kotlin.time.Duration
  * Mirrors [ArchivedGuestDaoService]'s page-view archiving so both feed the same aggregated metrics.
  */
 @KoinSingleton
-class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
+class ArchivedPageViewDaoService(
+    private val dslContext: DSLContext,
+    appConfig: AppConfig,
+) {
+
+    private val excludedFromAnalytics = appConfig.excludedFromAnalytics
 
     /**
      * Selects up to [limit] ids of page view events older than [maxAge]. Fetched once per batch run so
@@ -42,7 +48,10 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
      * Archives and deletes the page view events with the given [pageViewEventIds]. Returns the number of
      * archived (deleted) page view events.
      */
-    suspend fun archiveAndDeletePageViews(pageViewEventIds: List<String>): Int {
+    suspend fun archiveAndDeletePageViews(
+        pageViewEventIds: List<String>,
+        excludedUserIds: List<String> = excludedFromAnalytics,
+    ): Int {
         if (pageViewEventIds.isEmpty()) {
             return 0
         }
@@ -50,7 +59,7 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
         return dslContext.transactionCoroutine { cfg ->
             val transactional = DSL.using(cfg)
 
-            archivePageViews(transactional, PAGE_VIEW_EVENT.EVENT_ID.`in`(pageViewEventIds))
+            archivePageViews(transactional, PAGE_VIEW_EVENT.EVENT_ID.`in`(pageViewEventIds), excludedUserIds)
 
             transactional
                 .deleteFrom(PAGE_VIEW_EVENT)
@@ -175,7 +184,11 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
      * with [ArchivedGuestDaoService] (which passes a user-id selector) so both archive flows aggregate
      * page views identically. Runs on the caller-provided [transactional] context.
      */
-    internal suspend fun archivePageViews(transactional: DSLContext, selector: Condition) {
+    internal suspend fun archivePageViews(
+        transactional: DSLContext,
+        selector: Condition,
+        excludedUserIds: List<String> = excludedFromAnalytics,
+    ) {
         val eventDay = PAGE_VIEW_EVENT.EVENT_TIME.localDate(null)
         // truncate to the archive column width so overly long paths (long query strings) never overflow;
         // inline the bounds so the SELECT and GROUP BY expressions render identically for Postgres
@@ -215,6 +228,13 @@ class ArchivedPageViewDaoService(private val dslContext: DSLContext) {
                     .from(PAGE_VIEW_EVENT)
                     .leftJoin(USER).on(USER.ID.eq(PAGE_VIEW_EVENT.USER_ID))
                     .where(selector)
+                    .and(
+                        if (excludedUserIds.isEmpty()) {
+                            DSL.noCondition()
+                        } else {
+                            PAGE_VIEW_EVENT.USER_ID.notIn(excludedUserIds)
+                        },
+                    )
                     .groupBy(eventDay, url),
             )
             .onConflict(ARCHIVED_PAGE_VIEW_DAILY.DAY, ARCHIVED_PAGE_VIEW_DAILY.URL)
