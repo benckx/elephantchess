@@ -64,6 +64,7 @@ class GameDataServiceTest : ServiceTest() {
                 allowGuests = true,
                 alwaysVisibleInLobby = false,
                 privateInvite = false,
+                allowSimilarTimeCategory = true,
             )
 
             val response = pvpGameService.createGame(userId, request)
