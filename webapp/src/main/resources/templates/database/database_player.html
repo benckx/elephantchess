@@ -27,10 +27,13 @@
             <ul>{{player_profile_sources}}</ul>
         </div>
     </div>
-    <div id="profile-actions">
-        <a id="view-current-version-link" href="/database/player/{{player_name_encoded}}">view current version</a>
-        <a href="/database/player/{{player_name_encoded}}/edit-history">view edit history</a>
-        <a href="/database/player/{{player_name_encoded}}/edit">edit profile</a>
+    <div id="profile-footer">
+        <div id="profile-meta-info">{{profile_meta_info}}</div>
+        <div id="profile-actions">
+            <a id="view-current-version-link" href="/database/player/{{player_name_encoded}}">view current version</a>
+            <a href="/database/player/{{player_name_encoded}}/edit-history">view edit history</a>
+            <a href="/database/player/{{player_name_encoded}}/edit">edit profile</a>
+        </div>
     </div>
     <h1>Statistics</h1>
     <div class="center-content-div">

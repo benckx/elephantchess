@@ -3,11 +3,13 @@ package io.elephantchess.webapp.rendering
 import io.elephantchess.utils.stripHtml
 import kotlinx.html.meta
 import kotlinx.html.stream.createHTML
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Locale
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 private const val SECOND_IN_MILLIS = 1_000L
 private const val MINUTE_IN_MILLIS = 60 * SECOND_IN_MILLIS
@@ -20,7 +22,7 @@ fun formatTimestampUtc(epochMillis: Long?, nullPlaceholder: String = "n/a"): Str
     if (epochMillis == null) {
         nullPlaceholder
     } else {
-        val dateTime = Instant.ofEpochMilli(epochMillis).atZone(UTC).toLocalDateTime()
+        val dateTime = Instant.fromEpochMilliseconds(epochMillis).toJavaInstant().atZone(UTC).toLocalDateTime()
         val currentYear = LocalDate.now(UTC).year
         val hasCurrentYear = dateTime.year == currentYear
         val pattern = if (hasCurrentYear) "EEE. d MMM. HH:mm" else "EEE. d MMM. yyyy HH:mm"
@@ -28,12 +30,19 @@ fun formatTimestampUtc(epochMillis: Long?, nullPlaceholder: String = "n/a"): Str
         dateTime.format(DateTimeFormatter.ofPattern(pattern).withLocale(Locale.ENGLISH))
     }
 
+fun formatDateUtc(instant: Instant?): String? =
+    instant
+        ?.toJavaInstant()
+        ?.atZone(UTC)
+        ?.toLocalDate()
+        ?.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
+
 fun formatTimestampToRelativeTime(epochMillis: Long?, nullPlaceholder: String = "n/a"): String {
     if (epochMillis == null) {
         return nullPlaceholder
     }
 
-    val elapsed = Instant.now().toEpochMilli() - epochMillis
+    val elapsed = Clock.System.now().toEpochMilliseconds() - epochMillis
     if (elapsed <= 0L) {
         return "just now"
     }

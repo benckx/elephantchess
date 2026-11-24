@@ -3091,4 +3091,58 @@
                       oldColumnName="red_player"
                       newColumnName="white_player"/>
     </changeSet>
+    <changeSet id="0125" author="benckx">
+        <comment>Keep delivery action, enhanced status and diagnostic text alongside the latest bounce per recipient.</comment>
+        <addColumn tableName="email_verification_bounce">
+            <column name="action" type="varchar(32)"/>
+            <column name="status" type="varchar(32)"/>
+            <column name="diagnostic" type="text"/>
+            <column name="update_time" type="datetime"/>
+        </addColumn>
+        <renameColumn tableName="email_verification_bounce" oldColumnName="bounced_time" newColumnName="creation_time"/>
+        <rollback>
+            <dropColumn tableName="email_verification_bounce" columnName="diagnostic"/>
+            <dropColumn tableName="email_verification_bounce" columnName="status"/>
+            <dropColumn tableName="email_verification_bounce" columnName="action"/>
+            <dropColumn tableName="email_verification_bounce" columnName="update_time"/>
+            <renameColumn tableName="email_verification_bounce" oldColumnName="creation_time" newColumnName="bounced_time"/>
+        </rollback>
+    </changeSet>
+    <changeSet id="0126" author="benckx">
+        <comment>Persist whether the inviter accepts opponents with a similar (same category) time control.</comment>
+        <addColumn tableName="game">
+            <column name="allow_similar_time_category" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0127" author="benckx">
+        <comment>Technical changes (admin console)</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS page_view_event_newsletter_path_idx
+            ON page_view_event (event_path)
+            WHERE event_path LIKE '%medium=newsletter-%';
+        </sql>
+        <sql>
+            CREATE INDEX IF NOT EXISTS archived_page_view_daily_newsletter_url_idx
+            ON archived_page_view_daily (url)
+            WHERE url LIKE '%medium=newsletter-%';
+        </sql>
+    </changeSet>
+    <changeSet id="0128" author="benckx">
+        <comment>Record whether page views come from the Android app.</comment>
+        <addColumn tableName="page_view_event">
+            <column name="from_android_app" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0129" author="benckx">
+        <comment>Preserve Android app page-view counts when raw page views are archived.</comment>
+        <addColumn tableName="archived_page_view_daily">
+            <column name="android_app_page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

@@ -2,6 +2,7 @@ package io.elephantchess.webapp.routing.api
 
 import io.elephantchess.servicelayer.services.GlobalAnalyticsService
 import io.elephantchess.servicelayer.utils.ops.koin
+import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
@@ -14,6 +15,7 @@ fun Route.globalPageRoutes() {
             call.respond(globalAnalyticsService.fetchPlayerVsPlayerLeaderboard())
         }
         get("/game-stats") {
+            call.response.headers.append(HttpHeaders.AccessControlAllowOrigin, "*")
             call.respond(globalAnalyticsService.fetchGlobalGameStats())
         }
         get("/app-data") {

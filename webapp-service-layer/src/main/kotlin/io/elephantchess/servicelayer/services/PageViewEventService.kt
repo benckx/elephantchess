@@ -21,7 +21,7 @@ class PageViewEventService(
     private val webHost = appConfig.webHost
     private val webHostUnsecure = webHost.replace("https://", "http://")
 
-    suspend fun processPageViewEvent(verifiedToken: VerifiedToken, currentPage: String?) {
+    suspend fun processPageViewEvent(verifiedToken: VerifiedToken, currentPage: String?, fromAndroidApp: Boolean) {
         if (currentPage == null) {
             return
         }
@@ -29,12 +29,13 @@ class PageViewEventService(
         val eventPath = currentPage
             .removePrefix(webHost)
             .removePrefix(webHostUnsecure)
-            .removePrefix("`") // why do I have entres like "/about?medium=footer`"?
+            .removePrefix("`") // why do I have entries like "/about?medium=footer`"?
 
         val record = PageViewEvent()
         record.eventId = generateId()
         record.userId = verifiedToken.userId
         record.eventPath = eventPath
+        record.fromAndroidApp = fromAndroidApp
         pageViewDaoService.save(record)
 
         logPingUserSession(verifiedToken, eventPath)

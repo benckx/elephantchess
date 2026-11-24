@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -155,8 +155,10 @@ class PuzzlesPage extends BasePage {
         });
 
         this.#puzzleIdLabel.addEventListener('click', () => {
-            copyTextToClipboardAndNotify(
+            shareOrCopyLink(
                 getFullHost() + '/puzzles?id=' + this.#puzzleState.id,
+                'Elephant Chess puzzle',
+                'Try this Elephant Chess puzzle:',
                 'Puzzle link copied to clipboard!'
             );
         });
@@ -167,6 +169,9 @@ class PuzzlesPage extends BasePage {
 
         this.#voteThumbsUp.addEventListener('click', () => this.#handleVote(true));
         this.#voteThumbsDown.addEventListener('click', () => this.#handleVote(false));
+
+        // keep the screen awake (e.g. on mobile) while solving puzzles
+        ScreenWakeLock.keepAwake();
     }
 
     /**

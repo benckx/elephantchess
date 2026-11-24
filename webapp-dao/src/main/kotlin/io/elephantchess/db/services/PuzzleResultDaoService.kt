@@ -14,7 +14,6 @@ import org.jooq.DSLContext
 import org.jooq.Record6
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
-import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
@@ -284,7 +283,7 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record6<String, PuzzleOutcome, String, Instant, Boolean, LocalDateTime>> =
+    suspend fun listLastPuzzlePlayedByLoggedUsers(n: Int): List<Record6<String, PuzzleOutcome, String, Instant, Boolean, Instant>> =
         dslContext
             .select(
                 PUZZLE_RESULT.PUZZLE_ID,
@@ -301,6 +300,14 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             .limit(n)
             .awaitRecords()
 
+    suspend fun countPlayedBetween(fromInclusive: Instant, toExclusive: Instant): Int =
+        dslContext
+            .selectCount()
+            .from(PUZZLE_RESULT)
+            .where(PUZZLE_RESULT.ENTRY_CREATION.ge(fromInclusive))
+            .and(PUZZLE_RESULT.ENTRY_CREATION.lt(toExclusive))
+            .awaitSingleValue() ?: 0
+
     private companion object {
 
         fun renderDelta(value: Int): String =
@@ -309,14 +316,5 @@ class PuzzleResultDaoService(private val dslContext: DSLContext) {
             } else {
                 value.toString()
             }
-    }
-
-    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
-        dslContext
-            .update(PUZZLE_RESULT)
-            .set(PUZZLE_RESULT.USER_ID, newUserId)
-            .set(PUZZLE_RESULT.GUEST_USER_ID, guestUserId)
-            .where(PUZZLE_RESULT.USER_ID.eq(guestUserId))
-            .awaitExecute()
     }
 }

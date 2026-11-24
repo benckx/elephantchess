@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ const Modals = Object.freeze({
     GAME_CANCELED: 'game-canceled',
     GAME_LOSS: 'game-loss',
     GAME_WIN: 'game-win',
+    GUEST_PIECE_STYLE: 'guest-piece-style',
     IMPORT_MOVES: 'import-moves',
     LOGIN: 'login',
     NEW_GAME: 'new-game',
@@ -73,16 +74,6 @@ function wrapInDiv(element, className = null) {
         div.className = className;
     }
     return div;
-}
-
-/**
- * @param element {HTMLElement}
- * @return {HTMLDivElement}
- */
-function wrapInBold(element) {
-    const b = document.createElement('b');
-    b.append(element);
-    return b;
 }
 
 /**
@@ -125,21 +116,6 @@ function buildSimpleSpan(text) {
     const spanElement = document.createElement('span');
     spanElement.innerText = text;
     return spanElement;
-}
-
-/**
- * @returns {HTMLSpanElement}
- */
-function buildSpan(innerText, className = null, title = null) {
-    const span = document.createElement('span');
-    span.innerText = innerText;
-    if (className != null) {
-        span.classList.add(className);
-    }
-    if (title != null) {
-        span.title = title;
-    }
-    return span;
 }
 
 /**
@@ -198,22 +174,47 @@ function buildDivWithTextAndClass(textContent, className) {
 /**
  * Builds a variant cell div (symbol + name) for the given variant.
  *
- * @param variant {string} - Variant.MANCHU or Variant.XIANGQI
+ * @param variant {string} - Variant.MANCHU, Variant.XIANGQI, or Variant.JANGGI
  * @returns {HTMLDivElement}
  */
 function buildVariantCell(variant) {
-    const symbolText = variant === Variant.JANGGI ? '장' : variant === Variant.MANCHU ? '统' : '象';
-    const variantName = variant === Variant.JANGGI ? 'Janggi' : variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi';
-    const variantTitle = variant === Variant.JANGGI
-        ? 'Janggi (Korean chess)'
-        : variant === Variant.MANCHU
-            ? 'Manchu chess (or Yitong)'
-            : 'Xiangqi (Chinese chess)';
+    const symbolText = formatVariantSymbol(variant);
+    let variantName;
+    let variantTitle;
+    switch (variant) {
+        case Variant.JANGGI:
+            variantName = 'Janggi';
+            variantTitle = 'Janggi (Korean chess)';
+            break;
+        case Variant.MANCHU:
+            variantName = 'Manchu';
+            variantTitle = 'Manchu chess (or Yitong)';
+            break;
+        case Variant.XIANGQI:
+        default:
+            variantName = 'Xiangqi';
+            variantTitle = 'Xiangqi (Chinese chess)';
+            break;
+    }
     const cell = buildDivWithClass('variant-cell');
     const symbol = buildDivWithTextAndClass(symbolText, 'variant-symbol');
     symbol.title = variantTitle;
     cell.append(symbol, buildDivWithTextAndClass(variantName, 'variant-name'));
     return cell;
+}
+
+function formatVariantSymbol(variant) {
+    switch (variant) {
+        case Variant.JANGGI:
+            return '장';
+        case Variant.MANCHU:
+            return '统';
+        case Variant.XIANGQI:
+            return '象';
+        default:
+            return '?';
+
+    }
 }
 
 /**
@@ -290,6 +291,13 @@ function buildUsernameSpan(userId, username, userType, maxLength = null, removeG
                 return buildGuestUserSpan(userId, maxLength);
             }
             break;
+        case UserType.ANONYMIZED: {
+            // deleted account: its games/puzzles were transferred to an identity-less user
+            const span = document.createElement('span');
+            span.className = 'anonymized-name';
+            span.innerText = '[anon]';
+            return span;
+        }
     }
 
     console.warn('can not render username span: ' + userId + ', ' + username + ', ' + userType);
@@ -570,12 +578,12 @@ function addToolTip(element, text) {
                     toolTip.style.visibility = 'visible';
                 }
             }, 1_000);
-        }, { signal });
+        }, {signal});
 
         element.addEventListener('mouseleave', () => {
             toolTip.style.visibility = 'hidden';
             clearTimeout(UI.timeoutId);
-        }, { signal });
+        }, {signal});
     } else {
         console.warn('empty tooltip text, will not render');
     }
@@ -658,6 +666,12 @@ class UI {
     static timeoutId;
     static #modalHistoryStatePushed = false;
 
+    // Blocks other modals until a new guest completes piece-style setup.
+    static #guestSetupPending = false;
+
+    // Stores the latest modal requested during guest setup, then opens it when setup ends.
+    static #deferredModal = null;
+
     static init() {
         setTimeout(() => {
             UI.#initNotification();
@@ -695,6 +709,7 @@ class UI {
                     UI.#modalBackground.style.display = 'none';
                     UI.#modalBackground.innerHTML = '';
                     UI.#hideNotification();
+                    UI.finishGuestSetup();
                 }
             });
 
@@ -872,6 +887,11 @@ class UI {
      * @param loadedCallback {function}
      */
     static showModalByName(modalName, loadedCallback = () => console.log(modalName + ' loaded')) {
+        // Guest setup must finish first; for example, defer a join-game modal until piece-style selection closes.
+        if (UI.#guestSetupPending && modalName !== Modals.GUEST_PIECE_STYLE) {
+            UI.#deferredModal = [modalName, loadedCallback];
+            return;
+        }
         if (modalCache.has(modalName)) {
             UI.#modalBackground.innerHTML = modalCache.get(modalName);
             UI.#modalBackground.style.display = 'flex';
@@ -894,6 +914,27 @@ class UI {
                     UI.#modalBackground.style.display = 'flex';
                     UI.#pushModalHistoryState();
                 });
+        }
+    }
+
+    // Call before requesting a guest token when the new guest must choose a piece style.
+    static beginGuestSetup() {
+        UI.#guestSetupPending = true;
+    }
+
+    /**
+     * Release queued modal requests after setup completes or is dismissed.
+     *
+     * For example non-identified guest click a PvP game link to join, the "pick piece style" shows up,
+     * and then the "join game" modal is queued until the guest finishes setup
+     */
+    static finishGuestSetup() {
+        if (!UI.#guestSetupPending) return;
+        UI.#guestSetupPending = false;
+        const deferredModal = UI.#deferredModal;
+        UI.#deferredModal = null;
+        if (deferredModal != null) {
+            UI.showModalByName(...deferredModal);
         }
     }
 
@@ -920,7 +961,10 @@ class UI {
                 UI.#modalBackground.style.display = 'none';
                 UI.#modalBackground.innerHTML = '';
                 UI.#hideNotification();
-                UI.#popModalHistoryState();
+                if (!UI.#guestSetupPending || UI.#deferredModal == null) {
+                    UI.#popModalHistoryState();
+                }
+                UI.finishGuestSetup();
             }
         }
     }

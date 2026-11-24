@@ -208,15 +208,15 @@ for group in root.findall(".//svg:g", ns):
 
 expected = {
     ("red", "chariot"): (37, 37),
-    ("red", "horse"): (109, 37),
-    ("red", "elephant"): (181, 37),
+    ("red", "horse"): (181, 37),
+    ("red", "elephant"): (109, 37),
     ("red", "advisor"): (253, 37),
     ("red", "general"): (326, 110),
     ("red", "cannon"): (109, 181),
     ("red", "soldier"): (37, 253),
     ("blue", "chariot"): (37, 685),
-    ("blue", "horse"): (109, 685),
-    ("blue", "elephant"): (181, 686),
+    ("blue", "horse"): (181, 685),
+    ("blue", "elephant"): (109, 686),
     ("blue", "advisor"): (253, 685),
     ("blue", "general"): (326, 614),
     ("blue", "cannon"): (109, 541),
@@ -352,8 +352,9 @@ for piece, glyph_id in glyph_ids.items():
     minx, miny, maxx, maxy = (value / 4 for value in bounds)
     width, height = maxx - minx, maxy - miny
     cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
-    # Give every pictogram the same longest edge, preserving its proportions.
-    scale = 0.765 * 78 / max(width, height)
+    # Keep the chariot slightly smaller; give every other pictogram the same longest edge.
+    size_factor = 0.85 if piece == "chariot" else 1.0
+    scale = size_factor * 0.765 * 78 / max(width, height)
 
     for color, colors in palette.items():
         pictogram = copy.deepcopy(glyph)

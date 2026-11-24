@@ -15,3 +15,12 @@ formatter.json
 rendered_email.html
 **/out/
 *.hprof
+
+# Android TWA (Bubblewrap): keep only twa-manifest.json as the source of truth.
+# The Android project, build output and signing keys are generated locally by
+# `bubblewrap build` and must never be committed.
+*.keystore
+twa/*
+!twa/twa-manifest.json
+!twa/play-store-assets/
+!twa/play-store-assets/**

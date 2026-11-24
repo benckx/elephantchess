@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
-    z-index: 100;
+    z-index: var(--z-board-piece);
 }
 
 .board-container-7k .piece-circle img {
@@ -120,7 +120,7 @@
 .board-container-7k .all-players-move-highlight {
     position: absolute;
     border-radius: 100%;
-    z-index: 10;
+    z-index: var(--z-board-highlight);
 }
 
 .board-container-7k .selected-piece-highlight {

@@ -5,7 +5,7 @@ import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.rendering.BoardGuiExampleRenderer
 import io.ktor.server.routing.*
 
-fun Routing.boardGuiExample() {
+internal fun Routing.boardGuiDocumentationPageRouting() {
     val renderer by koin<BoardGuiExampleRenderer>()
 
     get("/about/developers/board-gui-example") {

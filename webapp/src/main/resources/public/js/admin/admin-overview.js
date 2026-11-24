@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 function formatCounters(nbrOfAuthenticated, nbrOfGuests) {
     const total = nbrOfAuthenticated + nbrOfGuests;
-    return `${nbrOfAuthenticated} authenticated, ${nbrOfGuests} guests, total ${total}`;
+    return `${formatNumber(nbrOfAuthenticated)} authenticated, ${formatNumber(nbrOfGuests)} guests, total ${formatNumber(total)}`;
 }
 
 class AdminOverviewPage extends BasePage {
@@ -51,6 +51,11 @@ class AdminOverviewPage extends BasePage {
         this.#fetchHourlyPageViews();
     }
 
+    /**
+     * Fetches currently online users and renders them with a summary counter.
+     *
+     * @return {void}
+     */
     #fetchOnlineUsers() {
         // right now
         getAndHandle(ADMIN_URL_PREFIX + '/online-users', json => {
@@ -68,6 +73,14 @@ class AdminOverviewPage extends BasePage {
         });
     }
 
+    /**
+     * Fetches users seen online within the given number of hours and renders them.
+     *
+     * @param div {HTMLElement} - Container for the rendered user links.
+     * @param counter {HTMLElement} - Element receiving the summary counter text.
+     * @param hours {number} - Look-back window in hours.
+     * @return {void}
+     */
     #fetchRecentlyOnlineUsers(div, counter, hours) {
         getAndHandle(ADMIN_URL_PREFIX + '/online-within-hours?hours=' + hours, json => {
             div.innerHTML = '';
@@ -84,6 +97,7 @@ class AdminOverviewPage extends BasePage {
     /**
      * Renders online users of any type (authenticated and guests).
      *
+     * @param entries {Array<{id: string, username: string, userType: string}>} - Online user entries.
      * @return {HTMLElement[]}
      */
     #renderOnlineUsers(entries) {
@@ -99,6 +113,7 @@ class AdminOverviewPage extends BasePage {
     /**
      * Renders authenticated users only (guests are represented by a count elsewhere).
      *
+     * @param entries {Array<{id: string, username: string}>} - Authenticated user entries.
      * @return {HTMLElement[]}
      */
     #renderAuthenticatedUsers(entries) {
@@ -110,6 +125,11 @@ class AdminOverviewPage extends BasePage {
             });
     }
 
+    /**
+     * Fetches and renders the latest thrown exceptions into the exceptions table.
+     *
+     * @return {void}
+     */
     #fetchLatestExceptions() {
         getAndHandle(`${ADMIN_URL_PREFIX}/list-latest-thrown-exceptions?limit=30`, json => {
             const tbody = emptyTable(this.#latestExceptionsTable);
@@ -126,6 +146,11 @@ class AdminOverviewPage extends BasePage {
         });
     }
 
+    /**
+     * Fetches the latest game, puzzle, analysis and user activity, and updates the trends.
+     *
+     * @return {void}
+     */
     #fetchLatestActivity() {
         getAndHandle(`${ADMIN_URL_PREFIX}/latest-game-activity/latest-pvp`, json => {
             this.#setActivityTimestamp('latest-pvp-timestamp', json.latestPvpActivity);
@@ -164,8 +189,30 @@ class AdminOverviewPage extends BasePage {
             this.#setActivityTimestamp('latest-new-guest-timestamp', json.latestNewGuest);
             this.#setActivityTimestamp('latest-new-authenticated-user-timestamp', json.latestNewAuthenticatedUser);
         });
+
+        getAndHandle(`${ADMIN_URL_PREFIX}/overview-trends`, json => {
+            this.#setTrend(
+                'trend-games-over-3-count',
+                'trend-games-over-3-delta',
+                json.gamesOver3.latest30Days,
+                json.gamesOver3.previous30Days
+            );
+            this.#setTrend(
+                'trend-puzzles-count',
+                'trend-puzzles-delta',
+                json.puzzles.latest30Days,
+                json.puzzles.previous30Days
+            );
+        });
     }
 
+    /**
+     * Sets a relative-time label and recency CSS class for an activity timestamp.
+     *
+     * @param elementId {string} - Id of the target element.
+     * @param timestamp {number|null} - Epoch milliseconds of the activity, or null if none.
+     * @return {void}
+     */
     #setActivityTimestamp(elementId, timestamp) {
         const element = document.getElementById(elementId);
         element.classList.remove('activity-recent', 'activity-hours', 'activity-days');
@@ -187,16 +234,62 @@ class AdminOverviewPage extends BasePage {
         }
     }
 
+    /**
+     * Displays a live games count and highlights it when games are in progress.
+     *
+     * @param elementId {string} - Id of the target element.
+     * @param count {number} - Number of live games.
+     * @return {void}
+     */
     #setLiveGamesCount(elementId, count) {
         const element = document.getElementById(elementId);
         element.classList.remove('activity-recent', 'activity-hours', 'activity-days');
-        element.innerText = count;
+        element.innerText = formatNumber(count);
 
         if (count > 0) {
             element.classList.add('activity-recent');
         }
     }
 
+    /**
+     * Updates a trend's count and delta labels (absolute and percentage) with styling.
+     *
+     * @param countElementId {string} - id of the element showing the latest count.
+     * @param deltaElementId {string} - id of the element showing the delta.
+     * @param latest30Days {number} - Count over the latest 30 days.
+     * @param previous30Days {number} - Count over the previous 30 days.
+     * @return {void}
+     */
+    #setTrend(countElementId, deltaElementId, latest30Days, previous30Days) {
+        const countElement = document.getElementById(countElementId);
+        const deltaElement = document.getElementById(deltaElementId);
+        countElement.innerText = formatNumber(latest30Days);
+
+        deltaElement.classList.remove('trend-up', 'trend-down', 'trend-flat');
+
+        const delta = latest30Days - previous30Days;
+        if (delta === 0) {
+            deltaElement.innerText = '(0)';
+            deltaElement.classList.add('trend-flat');
+            return;
+        }
+
+        const sign = delta > 0 ? '+' : '';
+        if (previous30Days === 0) {
+            deltaElement.innerText = `(${sign}${formatNumber(delta)})`;
+        } else {
+            const pct = ((delta / previous30Days) * 100).toFixed(1);
+            deltaElement.innerText = `(${sign}${formatNumber(delta)}, ${sign}${pct}%)`;
+        }
+
+        deltaElement.classList.add(delta > 0 ? 'trend-up' : 'trend-down');
+    }
+
+    /**
+     * Fetches hourly page-view data and renders the chart.
+     *
+     * @return {void}
+     */
     #fetchHourlyPageViews() {
         getAndHandle(`${ADMIN_URL_PREFIX}/hourly-page-views`, json => {
             new HourlyPageViewsChart('hourly-page-views-chart', json).render();

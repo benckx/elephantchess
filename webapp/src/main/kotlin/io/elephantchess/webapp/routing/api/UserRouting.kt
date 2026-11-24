@@ -151,7 +151,7 @@ private fun Route.userSettingsRoutes() {
             }
         }
         get("/sessions") {
-            requireAuthentication { verifiedToken ->
+            requireIdentification { verifiedToken ->
                 val limit =
                     call.request.queryParameters["limit"]
                         ?.toIntOrNull()
@@ -167,17 +167,17 @@ private fun Route.userSettingsRoutes() {
             }
         }
         post("/sessions/delete") {
-            requireAuthenticationWithBody<DeleteUserSessionsRequest> { verifiedToken, request ->
+            requireIdentificationWithBody<DeleteUserSessionsRequest> { verifiedToken, request ->
                 userService.deleteUserSessions(verifiedToken.userId, request)
             }
         }
         post("/sessions/delete-all") {
-            requireAuthentication { verifiedToken ->
+            requireIdentification { verifiedToken ->
                 userService.deleteAllUserSessions(verifiedToken.userId)
             }
         }
         get("/views") {
-            requireAuthentication { verifiedToken ->
+            requireIdentification { verifiedToken ->
                 val limit =
                     call.request.queryParameters["limit"]
                         ?.toIntOrNull()
@@ -193,8 +193,13 @@ private fun Route.userSettingsRoutes() {
             }
         }
         post("/views/archive-now") {
-            requireAuthentication { verifiedToken ->
+            requireIdentification { verifiedToken ->
                 userService.archiveUserPageViews(verifiedToken.userId)
+            }
+        }
+        post("/account/delete") {
+            requireAuthentication { verifiedToken ->
+                userService.deleteAccount(verifiedToken.userId)
             }
         }
     }

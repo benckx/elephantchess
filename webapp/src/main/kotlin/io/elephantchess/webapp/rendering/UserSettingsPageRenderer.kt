@@ -5,30 +5,59 @@ import io.elephantchess.htmlrenderer.KtorHtmlBuilderTagResolver
 import io.elephantchess.htmlrenderer.SimpleValueTagResolver
 import io.elephantchess.htmlrenderer.TagResolver
 import io.elephantchess.servicelayer.dto.user.NotificationsSettingsDto
+import io.elephantchess.servicelayer.model.AuthenticatedToken
+import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.services.analytics.ARCHIVE_PAGE_VIEW_AFTER_DAYS
 import io.elephantchess.utils.di.KoinSingleton
+import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
 import kotlinx.html.*
 
 @KoinSingleton(eager = true)
 class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private val userService: UserService) {
 
-    suspend fun renderUserSettingsPage(userId: String): String {
-        val profile = userService.fetchProfileSettings(userId)
-        val notifications = userService.fetchNotificationsSettings(userId)
-
+    suspend fun renderUserSettingsPage(token: VerifiedToken?): String {
+        val isAuthenticated = token != null && token is AuthenticatedToken
         return htmlRenderer.renderHtml(
             templatePath = "/templates/user_settings.html",
             specificTagResolvers = listOf(
-                SimpleValueTagResolver("profile_description", escapeHtml(profile.description)),
-                SimpleValueTagResolver("profile_country", escapeHtmlAttr(profile.country)),
-                SimpleValueTagResolver("show_pvp_games_checked", if (profile.showPvpGamesOnProfile) "checked" else ""),
-                SimpleValueTagResolver("show_pvb_games_checked", if (profile.showPvbGamesOnProfile) "checked" else ""),
+                authenticatedSettingsContentTagResolver(token),
+                SimpleValueTagResolver("body_data_attrs", dataAttr("authenticated", isAuthenticated.toString())),
                 SimpleValueTagResolver("page_views_retention_days", ARCHIVE_PAGE_VIEW_AFTER_DAYS.toString()),
-                notificationsTableTagResolver(notifications),
             ),
         )
     }
+
+    private fun authenticatedSettingsContentTagResolver(authenticatedToken: VerifiedToken?): TagResolver =
+        CallbackTagResolver("user_settings_authenticated_user_section_content") {
+            if (authenticatedToken != null && authenticatedToken is AuthenticatedToken) {
+                val profile = authenticatedToken.let { userService.fetchProfileSettings(it.userId) }
+                val notifications = authenticatedToken.let { userService.fetchNotificationsSettings(it.userId) }
+
+                htmlRenderer.renderHtml(
+                    "/templates/user_settings_authenticated_user_section.html",
+                    listOf(
+                        SimpleValueTagResolver("profile_description", escapeHtml(profile.description)),
+                        SimpleValueTagResolver("profile_country", escapeHtmlAttr(profile.country)),
+                        SimpleValueTagResolver("show_pvp_games_checked", if (profile.showPvpGamesOnProfile) "checked" else ""),
+                        SimpleValueTagResolver("show_pvb_games_checked", if (profile.showPvbGamesOnProfile) "checked" else ""),
+                        notificationsTableTagResolver(
+                            NotificationsSettingsDto(
+                                newsletter = notifications.newsletter,
+                                opponentJoinedGame = notifications.opponentJoinedGame,
+                                opponentPlayedMove = notifications.opponentPlayedMove,
+                                opponentResigned = notifications.opponentResigned,
+                                opponentProposedDraw = notifications.opponentProposedDraw,
+                                opponentAcceptedDraw = notifications.opponentAcceptedDraw,
+                                opponentDeclinedDraw = notifications.opponentDeclinedDraw,
+                            ),
+                        ),
+                    ),
+                )
+            } else {
+                ""
+            }
+        }
 
     private fun notificationsTableTagResolver(dto: NotificationsSettingsDto): TagResolver {
         val rows = listOf(
@@ -93,4 +122,10 @@ class UserSettingsPageRenderer(private val htmlRenderer: HtmlRenderer, private v
         val label: String,
         val checked: Boolean,
     )
+
+    private companion object {
+
+        fun dataAttr(name: String, value: String?): String =
+            if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
+    }
 }

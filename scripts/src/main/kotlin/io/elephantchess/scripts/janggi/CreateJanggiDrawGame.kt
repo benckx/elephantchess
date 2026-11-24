@@ -8,15 +8,17 @@ import io.elephantchess.db.services.UserDaoService
 import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.db.utils.insertReactive
 import io.elephantchess.engines.EnginePool
-import io.elephantchess.model.Engine
-import io.elephantchess.model.OpeningMode
+import io.elephantchess.model.Engine.FAIRYSTOCKFISH
+import io.elephantchess.model.OpeningMode.ENGINE_ONLY
 import io.elephantchess.scripts.KoinScript
 import io.elephantchess.servicelayer.dto.botgame.CreateBotGameRequest
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.services.PlayerVsBotGameService
 import io.elephantchess.xiangqi.HalfMove
 import io.elephantchess.xiangqi.JanggiBoard
-import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.JanggiBoard.Companion.DEFAULT_JANGGI_START_FEN
+import io.elephantchess.xiangqi.Variant.JANGGI
+import io.elephantchess.xiangqi.testutils.JanggiGameMovesDto
 import io.elephantchess.xiangqi.testutils.JanggiGameMovesDtoCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -40,6 +42,7 @@ object CreateJanggiDrawGame : KoinScript {
     private val service by inject<PlayerVsBotGameService>()
     private val games by inject<PlayerVsBotGameDaoService>()
     private val dslContext by inject<DSLContext>()
+    private val scope by inject<CoroutineScope>()
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -47,17 +50,34 @@ object CreateJanggiDrawGame : KoinScript {
             fun option(name: String): String? =
                 args.firstOrNull { it.startsWith("--$name=") }?.substringAfter("=")
 
-            val username = option("username") ?: error("Supply --username=<existing local username>")
-            // This fixture continues with a pass after move 155. PvB stops at that first no-pass stalemate.
-            val fixture = JanggiGameMovesDtoCache().findByGameId("7f0d05cd")
-            val history = fixture.uciMoves.take(154)
-            val board = JanggiBoard()
+            val username = option("username") ?: "benckx"
+
+            // The user plays the final (drawing) move from the browser, so it must land on their turn. We keep
+            // the user's color equal to the side to move at startFen (even stalemate index). That also means
+            // PlayerVsBotGameService.create does not play an opening bot move, so no engine is needed.
+            fun firstStalemateIndex(game: JanggiGameMovesDto): Int {
+                val board = JanggiBoard(game.startFen())
+                return game.uciMoves.indexOfFirst { uci ->
+                    board.registerMove(uci)
+                    !board.isDraw() && !board.isInCheck(board.colorToPlay()) &&
+                        board.listLegalMoves(board.colorToPlay()).none { it.from != it.to }
+                }
+            }
+
+            val fixture = JanggiGameMovesDtoCache().randomGame { game ->
+                firstStalemateIndex(game).let { index -> index >= 0 && index % 2 == 0 }
+            }
+            val startFen = fixture.startFen()
+            val board = JanggiBoard(startFen)
+            val finalIndex = firstStalemateIndex(fixture)
+            check(finalIndex >= 0) { "Selected fixture has no stalemate" }
+            val history = fixture.uciMoves.take(finalIndex)
             history.forEach { uci ->
                 val move = HalfMove.parseMoveFromUci(uci)
-                check(move.from != move.to && board.isLegalMove(move)) { "Illegal fixture move $uci" }
+                check(board.isLegalMove(move)) { "Illegal fixture move $uci" }
                 board.registerMove(move)
             }
-            val finalMove = HalfMove.parseMoveFromUci(fixture.uciMoves[154])
+            val finalMove = HalfMove.parseMoveFromUci(fixture.uciMoves[finalIndex])
             check(board.isLegalMove(finalMove))
             val finalBoard = board.copy().apply { registerMove(finalMove) }
             check(!finalBoard.isInCheck(finalBoard.colorToPlay()))
@@ -72,12 +92,14 @@ object CreateJanggiDrawGame : KoinScript {
                     CreateBotGameRequest(
                         color = board.colorToPlay(),
                         depth = 1,
-                        engine = Engine.FAIRYSTOCKFISH,
-                        startFen = null,
-                        openingMode = OpeningMode.ENGINE_ONLY,
-                        variant = Variant.JANGGI,
+                        engine = FAIRYSTOCKFISH,
+                        startFen = startFen,
+                        openingMode = ENGINE_ONLY,
+                        variant = JANGGI,
                     ),
                 )
+                // Backfill the fixture history directly instead of replaying it through the service, so no engine
+                // is queried for the bot replies.
                 dslContext.transactionCoroutine { cfg ->
                     val moveDao = BotGameMoveDao(cfg)
                     val now = Clock.System.now()
@@ -99,17 +121,19 @@ object CreateJanggiDrawGame : KoinScript {
                 }
                 check(games.listMoves(response.gameId) == history)
                 val saved = games.fetchById(response.gameId)!!
-                check(saved.startFen == null && saved.currentHalfMoveIndex == history.size)
+                check((saved.startFen ?: DEFAULT_JANGGI_START_FEN) == startFen)
+                check(saved.currentHalfMoveIndex == history.size)
                 check(saved.currentFen == board.outputFen())
-                println("Fixture: ${fixture.gameId}, before move 155, with ${history.size} saved half-moves")
+                println("Fixture: ${fixture.gameId}, before move ${finalIndex + 1}, with ${history.size} saved half-moves")
                 println("Play ${finalMove.toUci()} (${finalMove.toAlgebraic()}) to draw. No engine is needed.")
                 println("http://localhost:8080/playbot?id=${response.gameId}")
             } finally {
-                getKoin().get<CoroutineScope>().cancel()
+                scope.cancel()
                 engines.close()
                 stopKoin()
             }
         }
+
         exitProcess(0)
     }
 }

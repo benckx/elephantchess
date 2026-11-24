@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ class AdminFeedsPage extends BasePage {
                 }
 
                 const variantCell = row.insertCell();
-                variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
+                variantCell.innerText = formatVariantSymbol(entry.variant);
 
                 const gameIdCell = row.insertCell();
                 gameIdCell.append(entry.buildGameAnchor());
@@ -159,7 +159,7 @@ class AdminFeedsPage extends BasePage {
 
                 const variantCell = row.insertCell();
                 variantCell.className = 'label-cell';
-                variantCell.innerText = entry.variant === Variant.MANCHU ? '统' : '象';
+                variantCell.innerText = formatVariantSymbol(entry.variant);
 
                 const gameIdCell = row.insertCell();
                 gameIdCell.className = 'label-cell';

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -213,6 +213,7 @@ function fetchAreOnline(userIds, cb) {
 const UserType = Object.freeze({
     AUTHENTICATED: 'AUTHENTICATED',
     GUEST: 'GUEST',
+    ANONYMIZED: 'ANONYMIZED',
 });
 
 class UserId {
@@ -339,6 +340,8 @@ class User {
                 return this.#username;
             case UserType.GUEST:
                 return `guest #${this.#userId}`;
+            case UserType.ANONYMIZED:
+                return '[anon]';
             default:
                 return 'Not identified';
         }

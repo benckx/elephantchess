@@ -1,5 +1,6 @@
 package io.elephantchess.webapp.routing.api
 
+import io.elephantchess.model.GameId
 import io.elephantchess.servicelayer.dto.admin.CreateUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.ToggleUpcomingEventRequest
 import io.elephantchess.servicelayer.dto.admin.UpdateUpcomingEventRequest
@@ -15,6 +16,7 @@ import java.time.YearMonth
 
 fun Route.adminConsoleRoutes() {
     route("/api/admin/analytics") {
+        adminEmailBounceRoutes()
         adminOverviewRoutes()
         adminFeedsRoutes()
         adminAnalyticsRoutes()
@@ -31,6 +33,14 @@ fun Route.adminConsoleRoutes() {
         adminUpcomingEventsRoutes()
         adminSettingPreferenceRoutes()
         adminUserInsightsRoutes()
+    }
+}
+
+private fun Route.adminEmailBounceRoutes() {
+    val adminEmailBounceService by koin<AdminEmailBounceService>()
+
+    get("/email-bounces") {
+        requireAdminRole { adminEmailBounceService.listBounces() }
     }
 }
 
@@ -74,6 +84,9 @@ private fun Route.adminOverviewRoutes() {
     }
     get("/latest-new-users") {
         requireAdminRole { adminOverviewService.fetchLatestNewUsers() }
+    }
+    get("/overview-trends") {
+        requireAdminRole { adminOverviewService.fetchOverviewTrends() }
     }
 }
 
@@ -204,7 +217,7 @@ private fun Route.adminAnalyticsRoutes() {
     get("/daily-page-views") {
         requireAdminRole { _ ->
             val days = call.parameters["days"]?.toIntOrNull() ?: 30
-            adminAnalyticsService.fechDailyPageViews(days)
+            adminAnalyticsService.fetchDailyPageViews(numberOfDays = days)
         }
     }
 }
@@ -318,6 +331,14 @@ private fun Route.adminUserEloRoutes() {
 private fun Route.adminAnalysisRoutes() {
     val adminAnalysisService by koin<AdminAnalysisService>()
 
+    get("/move-annotation-failures") {
+        requireAdminRole { adminAnalysisService.listMoveAnnotationFailures() }
+    }
+    post("/move-annotation-failures/clean") {
+        requireAdminRole {
+            adminAnalysisService.cleanFailedMoveAnnotations(call.receive<GameId>())
+        }
+    }
     get("/list-latest-move-analysis-by-game") {
         requireAdminRole { adminAnalysisService.listLatestMoveAnalysisByGame() }
     }

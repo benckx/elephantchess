@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,20 +21,24 @@ class DailyPageViewsChart extends ApexChartWidget {
 
     /**
      * @param containerId {string}
-     * @param data {{entries: Array<{day: string, pageViews: number}>}}
+     * @param data {{entries: Array<{day: string, pageViews: number, androidAppPageViews: number}>}}
      */
     constructor(containerId, data) {
         super(containerId);
 
         if (data && data.entries && data.entries.length > 0) {
             const categories = data.entries.map(entry => entry.day);
-            const values = data.entries.map(entry => entry.pageViews);
-
             this.chartOptions = {
-                series: [{
-                    name: 'Page Views',
-                    data: values
-                }],
+                series: [
+                    {
+                        name: 'Page Views',
+                        data: data.entries.map(entry => entry.pageViews)
+                    },
+                    {
+                        name: 'Android App',
+                        data: data.entries.map(entry => entry.androidAppPageViews)
+                    }
+                ],
                 chart: {
                     height: 300,
                     type: 'line',
@@ -49,7 +53,7 @@ class DailyPageViewsChart extends ApexChartWidget {
                 markers: {
                     size: 4
                 },
-                colors: ['#008FFB'],
+                colors: ['#008FFB', '#FEB019'],
                 xaxis: {
                     categories: categories,
                     labels: {

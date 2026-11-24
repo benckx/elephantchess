@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,6 +67,7 @@ async function newGuestContext(browser) {
     const page = await context.newPage();
     await page.goto('/', {waitUntil: 'networkidle'});
     await waitForGuestToken(context, page);
+    await page.getByRole('button', {name: /Traditional \(default\)/}).click();
     return {context, page};
 }
 
@@ -190,6 +191,30 @@ async function captureStep(testInfo, step, labelByPage, {fullPage = true} = {}) 
     }
 }
 
+async function authenticateUser(page, context, {login, password}) {
+    const response = await page.request.post('/api/login', {
+        data: {login, password},
+        headers: {'content-type': 'application/json'},
+    });
+    expect(response.ok()).toBe(true);
+    const json = await response.json();
+    await context.clearCookies();
+    const cookies = [
+        {name: 'user.userId', value: json.userId},
+        {name: 'user.handle', value: json.username},
+        {name: 'user.token', value: json.token},
+    ];
+    if (json.roles && json.roles.length > 0) {
+        cookies.push({name: 'user.roles', value: JSON.stringify(json.roles)});
+    }
+    await context.addCookies(
+        cookies.map((cookie) => ({
+            ...cookie,
+            url: page.url(),
+        }))
+    );
+}
+
 module.exports = {
     newGuestContext,
     createGame,
@@ -198,4 +223,6 @@ module.exports = {
     playMove,
     playScriptedGame,
     captureStep,
+    authenticateUser,
+    stubThirdPartyNoise,
 };

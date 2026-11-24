@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -644,10 +644,8 @@ class BoardGui {
             // rename id so it doesn't conflict with drawPieceAt on the target square
             img.id = `animating-${Math.random().toString(36).slice(2)}`;
             img.style.transition = transitionStr;
-            // must stay above .crosshair-square (z-index: 80) and resting
-            // pieces (z-index: 100) so the moving piece isn't painted under
-            // crosshairs of neighboring squares it flies over
-            img.style.zIndex = '110';
+            // Keep the moving piece above crosshairs and resting pieces.
+            img.style.zIndex = 'var(--z-board-moving-piece, 110)';
             img.style.pointerEvents = 'none';
 
             // trigger on next frame so the transition actually runs
@@ -1630,7 +1628,7 @@ class BoardGui {
         ghost.className = 'piece-image touch-drag-ghost';
         ghost.style.position = 'fixed';
         ghost.style.pointerEvents = 'none';
-        ghost.style.zIndex = '1000';
+        ghost.style.zIndex = 'var(--z-board-drag-ghost, 1000)';
         ghost.style.width = rect.width + 'px';
         ghost.style.height = rect.height + 'px';
         ghost.style.margin = '0';
@@ -2162,4 +2160,81 @@ function addMiniboardDiv(element, gameId, fen, playerColor, lazy = false, varian
     element.addEventListener('mouseleave', hideMiniboard);
 
     return miniBoardDiv;
+}
+
+/**
+ * Downloads a PNG screenshot of a board container.
+ * Loads html2canvas lazily if needed.
+ *
+ * @param {string} elementId - id of the board container to capture
+ * @param {string} filename - output filename
+ * @returns {Promise<void>}
+ */
+const HTML2CANVAS_SCRIPT_ID = 'board-gui-html2canvas-script';
+const HTML2CANVAS_SCRIPT_SRC = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+let html2canvasLoadingPromise = null;
+
+function ensureHtml2Canvas() {
+    if (typeof window.html2canvas === 'function') {
+        return Promise.resolve(window.html2canvas);
+    }
+    if (html2canvasLoadingPromise !== null) {
+        return html2canvasLoadingPromise;
+    }
+
+    html2canvasLoadingPromise = new Promise((resolve, reject) => {
+        let script = document.getElementById(HTML2CANVAS_SCRIPT_ID);
+        if (!script) {
+            script = document.createElement('script');
+            script.id = HTML2CANVAS_SCRIPT_ID;
+            script.src = HTML2CANVAS_SCRIPT_SRC;
+            script.async = true;
+            document.head.appendChild(script);
+        }
+
+        function resolveIfReady() {
+            if (typeof window.html2canvas === 'function') {
+                resolve(window.html2canvas);
+                return true;
+            }
+            return false;
+        }
+
+        if (resolveIfReady()) {
+            return;
+        }
+
+        script.addEventListener('load', () => {
+            if (!resolveIfReady()) {
+                html2canvasLoadingPromise = null;
+                reject(new Error('Cannot download board screenshot: html2canvas loaded but window.html2canvas is missing'));
+            }
+        }, {once: true});
+
+        script.addEventListener('error', () => {
+            html2canvasLoadingPromise = null;
+            reject(new Error(`Cannot download board screenshot: failed to load ${HTML2CANVAS_SCRIPT_SRC}`));
+        }, {once: true});
+    });
+
+    return html2canvasLoadingPromise;
+}
+
+async function downloadBoardScreenshot(elementId = 'board-container', filename = 'board.png') {
+    const boardContainer = document.getElementById(elementId);
+    if (!boardContainer) {
+        throw new Error(`Cannot download board screenshot: element not found for id "${elementId}"`);
+    }
+    const html2canvas = await ensureHtml2Canvas();
+
+    const canvas = await html2canvas(boardContainer, {
+        backgroundColor: null,
+        useCORS: true,
+        logging: false,
+    });
+
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = filename;
+    link.click();
 }

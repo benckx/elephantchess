@@ -29,9 +29,9 @@ class SendOutNewslettersBatch(
     private val mailService: MailService,
 ) : SinglePodBatch {
 
-    // max 192 emails/day
+    // max 288 emails/day
     private val minDurationBetweenBatch = 15.minutes
-    private val batchSize = 2
+    private val batchSize = 3
 
     override suspend fun run() {
         newsletterDaoService
