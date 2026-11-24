@@ -2754,12 +2754,6 @@
         </update>
     </changeSet>
     <changeSet id="0125" author="benckx">
-        <comment>Reference game player column normalization: rename red_player to white_player.</comment>
-        <renameColumn tableName="reference_game"
-                      oldColumnName="red_player"
-                      newColumnName="white_player"/>
-    </changeSet>
-    <changeSet id="0125" author="benckx">
         <comment>Keep delivery action, enhanced status and diagnostic text alongside the latest bounce per recipient.</comment>
         <addColumn tableName="email_verification_bounce">
             <column name="action" type="varchar(32)"/>
@@ -2784,6 +2778,19 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="0127" author="benckx">
+        <comment>Technical changes (admin console)</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS page_view_event_newsletter_path_idx
+            ON page_view_event (event_path)
+            WHERE event_path LIKE '%medium=newsletter-%';
+        </sql>
+        <sql>
+            CREATE INDEX IF NOT EXISTS archived_page_view_daily_newsletter_url_idx
+            ON archived_page_view_daily (url)
+            WHERE url LIKE '%medium=newsletter-%';
+        </sql>
+    </changeSet>
     <changeSet id="0128" author="benckx">
         <comment>Record whether page views come from the Android app.</comment>
         <addColumn tableName="page_view_event">
@@ -2799,5 +2806,11 @@
                 <constraints nullable="false"/>
             </column>
         </addColumn>
+    </changeSet>
+    <changeSet id="0130" author="benckx">
+        <comment>Reference game player column normalization: rename red_player to white_player.</comment>
+        <renameColumn tableName="reference_game"
+                      oldColumnName="red_player"
+                      newColumnName="white_player"/>
     </changeSet>
 </databaseChangeLog>
