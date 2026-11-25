@@ -3111,7 +3111,6 @@
         </addColumn>
     </changeSet>
     <changeSet id="0127" author="benckx" dbms="postgresql">
-        <comment>Technical changes (admin console)</comment>
         <sql>
             CREATE INDEX IF NOT EXISTS page_view_event_newsletter_path_idx
             ON page_view_event (event_path)
