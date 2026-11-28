@@ -5,9 +5,11 @@ import io.elephantchess.model.Outcome
 import io.elephantchess.servicelayer.dto.database.Event
 import io.elephantchess.servicelayer.dto.database.EventsListResponse
 import io.elephantchess.servicelayer.dto.database.PlayersListResponse
+import io.ktor.http.encodeURLPath
 import kotlinx.html.FlowContent
 import kotlinx.html.TagConsumer
 import kotlinx.html.a
+import kotlinx.html.b
 import kotlinx.html.div
 import kotlinx.html.h2
 import kotlinx.html.span
@@ -21,7 +23,36 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-fun eventsTableTagResolver(eventsListResponse: EventsListResponse) =
+internal fun profileMetaInfoTagResolver(contributors: List<String>, lastEditDate: String?) =
+    KtorHtmlBuilderTagResolver("profile_meta_info") {
+        if (contributors.isNotEmpty()) {
+            span {
+                b { +"Contributors:" }
+                +" "
+                contributors.forEachIndexed { index, username ->
+                    if (index > 0) {
+                        +", "
+                    }
+                    a(href = "/@/${username.encodeURLPath()}") {
+                        +username
+                    }
+                }
+            }
+        }
+        if (contributors.isNotEmpty() && lastEditDate != null) {
+            span(classes = "profile-meta-separator") {
+                +" · "
+            }
+        }
+        if (lastEditDate != null) {
+            span {
+                b { +"Last edit:" }
+                +" $lastEditDate"
+            }
+        }
+    }
+
+internal fun eventsTableTagResolver(eventsListResponse: EventsListResponse) =
     KtorHtmlBuilderTagResolver("events_table") {
         val dateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)
         fun formatDate(dateString: String?): String {
@@ -43,19 +74,19 @@ fun eventsTableTagResolver(eventsListResponse: EventsListResponse) =
                 }
             }
             tbody {
-                for (entry in eventsListResponse.entries) {
+                for ((id, name, date, maxRound, gameCount) in eventsListResponse.entries) {
                     tr {
-                        td { a(href = "/database/event?id=${entry.id}") { +entry.name } }
-                        td { +formatDate(entry.date) }
-                        td { +(entry.maxRound?.toString() ?: "-") }
-                        td { +entry.gameCount.toString() }
+                        td { a(href = "/database/event?id=$id") { +name } }
+                        td { +formatDate(date) }
+                        td { +(maxRound?.toString() ?: "-") }
+                        td { +gameCount.toString() }
                     }
                 }
             }
         }
     }
 
-fun playersTableTagResolver(playerStandings: PlayersListResponse) =
+internal fun playersTableTagResolver(playerStandings: PlayersListResponse) =
     KtorHtmlBuilderTagResolver("players_table") {
         table(classes = "database-table standings-table nice-table nice-table-striped") {
             thead {
@@ -68,20 +99,20 @@ fun playersTableTagResolver(playerStandings: PlayersListResponse) =
                 }
             }
             tbody {
-                for (entry in playerStandings.entries) {
+                for ((_, name, slug, wins, draws, losses, totalGames) in playerStandings.entries) {
                     tr {
-                        td { a(href = "/database/player/${entry.slug}") { +entry.name } }
-                        td { +entry.wins.toString() }
-                        td { +entry.draws.toString() }
-                        td { +entry.losses.toString() }
-                        td { +entry.totalGames.toString() }
+                        td { a(href = "/database/player/$slug") { +name } }
+                        td { +wins.toString() }
+                        td { +draws.toString() }
+                        td { +losses.toString() }
+                        td { +totalGames.toString() }
                     }
                 }
             }
         }
     }
 
-fun eventGamesListTagResolver(event: Event) =
+internal fun eventGamesListTagResolver(event: Event) =
     KtorHtmlBuilderTagResolver("event_games_list") {
         val eventId = event.id
         val games = event.games
@@ -102,12 +133,12 @@ fun eventGamesListTagResolver(event: Event) =
 
         fun FlowContent.outcomeAnchor(game: Event.Game) {
             val colorClass = when (game.outcome) {
-                Outcome.RED_WINS -> "red-color"
+                Outcome.WHITE_WINS -> "red-color"
                 Outcome.BLACK_WINS -> "black-color"
                 Outcome.DRAW -> "any-color"
             }
             val outcomeText = when (game.outcome) {
-                Outcome.RED_WINS -> "2-0"
+                Outcome.WHITE_WINS -> "2-0"
                 Outcome.BLACK_WINS -> "0-2"
                 Outcome.DRAW -> "1-1"
             }
@@ -154,7 +185,7 @@ fun eventGamesListTagResolver(event: Event) =
                 if (redId != null) {
                     val stats = playerStats.getOrPut(redId) { PlayerStats() }
                     when (game.outcome) {
-                        Outcome.RED_WINS -> stats.wins++
+                        Outcome.WHITE_WINS -> stats.wins++
                         Outcome.BLACK_WINS -> stats.losses++
                         Outcome.DRAW -> stats.draws++
                     }
@@ -162,7 +193,7 @@ fun eventGamesListTagResolver(event: Event) =
                 if (blackId != null) {
                     val stats = playerStats.getOrPut(blackId) { PlayerStats() }
                     when (game.outcome) {
-                        Outcome.RED_WINS -> stats.losses++
+                        Outcome.WHITE_WINS -> stats.losses++
                         Outcome.BLACK_WINS -> stats.wins++
                         Outcome.DRAW -> stats.draws++
                     }

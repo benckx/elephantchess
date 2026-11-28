@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,88 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
-class ResultCandidate {
-
-    #board = new Board();
-
-    /**
-     * @type {HalfMove[]}
-     */
-    #moves = [];
-
-    #valid = true;
-
-    constructor() {
-        this.#board.loadFen(DEFAULT_START_FEN);
-    }
-
-    isValid() {
-        return this.#valid;
-    }
-
-    invalidate() {
-        this.#valid = false;
-    }
-
-    /**
-     * @return {MoveAndAnnotation[]}
-     */
-    listMoves() {
-        return this.#moves.map(move => new MoveAndAnnotation(move, null));
-    }
-
-    /**
-     * @param from {Position}
-     * @return {HalfMove[]}
-     */
-    listLegalMovesFrom(from) {
-        return this.#board.listLegalMovesFrom(from)
-    }
-
-    /**
-     * @param piece {string}
-     * @return {Position[]}
-     */
-    listPositionsForPiece(piece) {
-        return this.#board.listPositionsForPiece(piece)
-    }
-
-    attemptToAddMove(move) {
-        // TODO: replace by "is legal move"
-        try {
-            this.#board.registerMove(move);
-            this.#moves.push(move);
-            this.#valid = true;
-        } catch (e) {
-            this.#valid = false;
-        }
-    }
-
-    /**
-     * @return {ResultCandidate}
-     */
-    copy() {
-        let copy = new ResultCandidate();
-        copy.#board = this.#board.copy();
-        copy.#moves = this.#moves.slice();
-        copy.#valid = this.#valid;
-        return copy;
-    }
-
-    /**
-     * @param moves {HalfMove[]}
-     * @return {ResultCandidate[]}
-     */
-    copyForMoves(moves) {
-        return moves.map(move => {
-            let copy = this.copy();
-            copy.attemptToAddMove(move);
-            return copy;
-        });
-    }
-
-}
 
 class WxfTokenParser extends SimpleTokenParser {
 
@@ -124,7 +42,7 @@ class WxfParser extends MoveParser {
      */
     #resultCandidates = [];
 
-    #color = 'RED';
+    #color = Color.WHITE;
 
     constructor(input) {
         super(input);
@@ -218,9 +136,9 @@ class WxfParser extends MoveParser {
         if (isCharDigit(fileChar)) {
             let fileAsUci = this.#wxfFileToUciLetter(parseInt(fileChar));
             candidatePositions.push(...this.#findPositionFromFile(fileAsUci, resultCandidate));
-        } else if ((fileChar === '+' && this.#color === Color.RED) || (fileChar === '-' && this.#color === Color.BLACK)) {
+        } else if ((fileChar === '+' && this.#color === Color.WHITE) || (fileChar === '-' && this.#color === Color.BLACK)) {
             candidatePositions.push(this.#findTopPosition(resultCandidate));
-        } else if ((fileChar === '-' && this.#color === Color.RED) || (fileChar === '+' && this.#color === Color.BLACK)) {
+        } else if ((fileChar === '-' && this.#color === Color.WHITE) || (fileChar === '+' && this.#color === Color.BLACK)) {
             candidatePositions.push(this.#findBottomPosition(resultCandidate));
         }
 
@@ -245,8 +163,12 @@ class WxfParser extends MoveParser {
      * @return {HalfMove[]}
      */
     #filterCandidates(direction, from, legalMoves) {
-        if (this.#color === 'BLACK') {
+        if (this.#color === Color.BLACK) {
             direction = -direction;
+        }
+
+        if (this.#color === Color.WHITE) {
+            direction = direction;
         }
 
         if (this.#isGeneral() || this.#isChariot() || this.#isSoldier() || this.#isCannon()) {
@@ -293,7 +215,7 @@ class WxfParser extends MoveParser {
         }
 
         let piece = extractPieceChar(this.#token);
-        if (this.#color === 'RED') {
+        if (this.#color === Color.WHITE) {
             return piece.toUpperCase();
         } else {
             return piece;
@@ -338,7 +260,7 @@ class WxfParser extends MoveParser {
      */
     #wxfFileToUciLetter(n) {
         switch (this.#color) {
-            case Color.RED:
+            case Color.WHITE:
                 return UCI_LETTER.slice().reverse()[n - 1];
             case Color.BLACK:
                 return UCI_LETTER[n - 1];

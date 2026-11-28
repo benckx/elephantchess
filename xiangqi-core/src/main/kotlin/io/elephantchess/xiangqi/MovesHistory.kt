@@ -3,7 +3,7 @@ package io.elephantchess.xiangqi
 import io.elephantchess.utils.SequenceUtils.allCombinationsOfMax
 import io.elephantchess.utils.SequenceUtils.longestConsecutiveSequence
 import io.elephantchess.xiangqi.AbstractPieceType.CHARIOT
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Position.Companion.parsePositionFromUci
 
 data class MovesHistory(val history: List<HistoricalMove>) {
@@ -28,7 +28,7 @@ data class MovesHistory(val history: List<HistoricalMove>) {
                 val moves = longestConsecutiveChecks(pieces)
 
 //                println("pieces: $pieces")
-//                if (pieces == setOf(PhysicalPiece(PieceType(CHARIOT, RED), parsePositionFromUci("a0")))) {
+//                if (pieces == setOf(PhysicalPiece(PieceType(CHARIOT, WHITE), parsePositionFromUci("a0")))) {
 //                    println("moves: ${moves.size}")
 //                    println("areAllPiecesInvolved: ${areAllPiecesInvolved(pieces, moves)}")
 //                }

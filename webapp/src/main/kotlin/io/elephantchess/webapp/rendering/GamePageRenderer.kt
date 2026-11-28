@@ -44,23 +44,21 @@ class GamePageRenderer(
     }
 
     private suspend fun fetchPvpTitle(gameId: String): String {
-        val title = gameId.let { id ->
+        val game = pvpGameService.fetchGame(gameId)
+        val title =
             runCatching {
-                val game = pvpGameService.fetchGame(id)
                 formatPvpPageTitle(game.inviterUsername, game.inviteeUsername, game.inviterColor)
             }.getOrDefault(DEFAULT_PVP_TITLE)
-        }
 
         return escapeHtml(title)
     }
 
     private suspend fun fetchPvbTitle(gameId: String): String {
-        val title = gameId.let { id ->
+        val game = pvbGameService.fetchGameData(gameId)
+        val title =
             runCatching {
-                val game = pvbGameService.fetchGameData(id)
                 formatPvbPageTitle(game.username, game.userColor, game.engine, game.depth)
             }.getOrDefault(DEFAULT_PVB_TITLE)
-        }
 
         return escapeHtml(title)
     }
@@ -77,7 +75,7 @@ class GamePageRenderer(
 
             val invitee = inviteeUsername ?: "<waiting>"
             return when (inviterColor) {
-                Color.RED -> "$inviterUsername vs. $invitee"
+                Color.WHITE -> "$inviterUsername vs. $invitee"
                 Color.BLACK -> "$invitee vs. $inviterUsername"
             }
         }
@@ -87,7 +85,7 @@ class GamePageRenderer(
             val botPlayer = "${formatEngineName(engine)} ($depth)"
 
             return when (userColor) {
-                Color.RED -> "$humanPlayer vs. $botPlayer"
+                Color.WHITE -> "$humanPlayer vs. $botPlayer"
                 Color.BLACK -> "$botPlayer vs. $humanPlayer"
             }
         }

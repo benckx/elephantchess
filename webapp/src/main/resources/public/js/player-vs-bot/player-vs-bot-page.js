@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 const ANALYZE_BUTTON_TOOLTIP_ENABLED = 'You can analyse the game with the Analysis Board tool';
 const ANALYZE_BUTTON_TOOLTIP_DISABLED = `Game must be finished before you can analyze them. If you want to analyze this game now, you have to resign first.`;
+const ANALYZE_BUTTON_TOOLTIP_DISABLED_NO_MOVES = 'Games without moves cannot be analyzed.';
 
 class BotGameSpectatorWebSocketSession {
 
@@ -107,7 +108,7 @@ class PlayerVsBotPage extends BasePage {
         super();
 
         // handle url params
-        let gameId = getQueryParam('id');
+        const gameId = getQueryParam('id');
 
         // widgets
         this.#boardGui.disablePlayerMove();
@@ -124,41 +125,12 @@ class PlayerVsBotPage extends BasePage {
 
         this.#controller = new PlayerVsBotController(
             gameId,
-            (botGameDto) => {
-                this.#boardGui.flipToColor(botGameDto.userColor);
-                this.#moveTreeWidget.startFen = botGameDto.startFen;
-                let infoPlayer = document.getElementById('info-player');
-                if (botGameDto.isAnonymous) {
-                    infoPlayer.innerText = 'anonymous';
-                } else {
-                    infoPlayer.append(
-                        buildUsernameSpan(
-                            botGameDto.userId,
-                            botGameDto.username,
-                            botGameDto.userType
-                        )
-                    );
-                }
-                document.getElementById('info-user-color').append(buildColorSpan(botGameDto.userColor));
-                document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
-                document.getElementById('info-depth').innerText = botGameDto.depth.toString();
-                document.getElementById('info-created').innerText = botGameDto.formattedCreated;
-                if (botGameDto.isManchu) {
-                    document.getElementById('info-variant').innerText = 'Manchu';
-                    document.getElementById('info-variant-row').style.display = '';
-                }
-                this.#updateOutcomeLabel();
-                this.#updateButtonsEnabled();
-                this.#enablePlayerMoveIfPermitted();
-                this.#startSpectatorSessionIfNeeded(gameId, botGameDto);
-                this.#setupIsOnlineStatusUpdates();
-            },
-            fen => {
-                this.#boardGui.loadFen(fen);
-            },
+            (botGameDto) => this.#initCallback(gameId, botGameDto),
+            fen => this.#boardGui.loadFen(fen),
             moves => {
                 this.#moveTreeWidget.setMoves(moves);
                 this.#renderAnalysisSummaryReportIfAvailable();
+                this.#updateButtonsEnabled();
             },
             (botMove) => {
                 this.#boardGui.registerOpponentMove(botMove, true, null);
@@ -167,7 +139,8 @@ class PlayerVsBotPage extends BasePage {
                 this.#enablePlayerMoveIfPermitted();
             },
             () => this.#gameEndedCallback(true),
-            () => this.#gameEndedCallback(false)
+            () => this.#gameEndedCallback(false),
+            () => this.#gameEndedCallback(null)
         );
 
         // set up listeners
@@ -191,7 +164,6 @@ class PlayerVsBotPage extends BasePage {
                 this.#handleClickedCancelButton();
             }
         });
-
         this.#analyzeButtons.forEach((button) => {
             button.addEventListener('click', (e) => {
                 if (isAppButtonEnabled(e)) {
@@ -211,6 +183,49 @@ class PlayerVsBotPage extends BasePage {
         );
     }
 
+    /**
+     * @param gameId {string}
+     * @param botGameDto {BotGameDto}
+     */
+    #initCallback(gameId, botGameDto) {
+        this.#boardGui.setVariant(botGameDto.variant);
+        this.#boardGui.flipToColor(botGameDto.userColor);
+        this.#moveTreeWidget.variant = botGameDto.variant;
+        this.#moveTreeWidget.startFen = botGameDto.startFen;
+        const infoPlayer = document.getElementById('info-player');
+        if (botGameDto.isAnonymous) {
+            infoPlayer.innerText = 'anonymous';
+        } else {
+            infoPlayer.append(buildUsernameSpan(botGameDto.userId, botGameDto.username, botGameDto.userType));
+        }
+        document.getElementById('info-user-color').append(buildColorSpan(botGameDto.userColor, botGameDto.variant));
+        document.getElementById('info-engine').innerText = botGameDto.formattedEngine;
+        document.getElementById('info-depth').innerText = botGameDto.depth.toString();
+        document.getElementById('info-created').innerText = botGameDto.formattedCreated;
+
+        this.#updateOutcomeLabel();
+        this.#updateButtonsEnabled();
+        this.#enablePlayerMoveIfPermitted();
+        this.#startSpectatorSessionIfNeeded(gameId, botGameDto);
+        if (botGameDto.isInProgress()) {
+            ScreenWakeLock.keepAwake();
+        }
+        this.#setupIsOnlineStatusUpdates();
+
+        switch (botGameDto.variant) {
+            case Variant.XIANGQI:
+                document.getElementById('info-variant').innerText = 'Xiangqi';
+                break;
+            case Variant.MANCHU:
+                document.getElementById('info-variant').innerText = 'Manchu';
+                break;
+            case Variant.JANGGI:
+                document.getElementById('info-variant').innerText = 'Janggi';
+                document.getElementById('janggi-beta-message').style.display = 'flex';
+                break;
+        }
+    }
+
     #handleClickedResignButton() {
         let span = document.createElement('span');
         span.innerText = 'Are you sure you want to resign?';
@@ -219,6 +234,7 @@ class PlayerVsBotPage extends BasePage {
                 this.#boardGui.disablePlayerMove();
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
+                ScreenWakeLock.release();
             });
         };
         let yesButtonText = 'resign';
@@ -235,6 +251,7 @@ class PlayerVsBotPage extends BasePage {
                 this.#boardGui.disablePlayerMove();
                 this.#updateOutcomeLabel();
                 this.#updateButtonsEnabled();
+                ScreenWakeLock.release();
             });
         };
         const yesButtonText = 'yes';
@@ -244,18 +261,21 @@ class PlayerVsBotPage extends BasePage {
     }
 
     /**
-     * @param isUserVictory {boolean}
+     * @param isUserVictory {boolean|null} Null for a draw.
      */
     #gameEndedCallback(isUserVictory) {
-        let modalName = isUserVictory ? Modals.GAME_WIN : Modals.GAME_LOSS;
-        UI.showModalByName(modalName, () => {
-            document
-                .getElementById('ok-button')
-                .addEventListener('click', () => UI.hideModal(null));
-        });
+        if (isUserVictory != null) {
+            let modalName = isUserVictory ? Modals.GAME_WIN : Modals.GAME_LOSS;
+            UI.showModalByName(modalName, () => {
+                document
+                    .getElementById('ok-button')
+                    .addEventListener('click', () => UI.hideModal(null));
+            });
+        }
         this.#boardGui.disablePlayerMove();
         this.#updateOutcomeLabel();
         this.#updateButtonsEnabled();
+        ScreenWakeLock.release();
     }
 
     #handleNavigationEvent() {
@@ -309,15 +329,23 @@ class PlayerVsBotPage extends BasePage {
     }
 
     #updateButtonsEnabled() {
-        if (isStatusFinished(this.#controller.gameStatus()) && !this.#controller.isManchu()) {
+        const isFinished = isStatusFinished(this.#controller.gameStatus());
+        const hasMoves = this.#moveTreeWidget.getMainBranchNodes().length > 0;
+        const isVariant = this.#controller.isManchu() || this.#controller.isJanggi();
+
+        if (isFinished && hasMoves && !isVariant) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
             });
         } else {
-            const tooltip = this.#controller.isManchu()
-                ? 'Analysis is not supported for Manchu variant games'
-                : ANALYZE_BUTTON_TOOLTIP_DISABLED;
+            const tooltip = this.#controller.isJanggi()
+                ? 'Analysis is not supported for Janggi variant games'
+                : this.#controller.isManchu()
+                    ? 'Analysis is not supported for Manchu variant games'
+                    : isFinished
+                        ? ANALYZE_BUTTON_TOOLTIP_DISABLED_NO_MOVES
+                        : ANALYZE_BUTTON_TOOLTIP_DISABLED;
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
                 addToolTip(button, tooltip);

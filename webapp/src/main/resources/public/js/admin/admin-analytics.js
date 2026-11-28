@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -156,7 +156,7 @@ class AdminAnalyticsPage extends BasePage {
                 tbody.append(tr);
 
                 // content
-                userCell.append(buildUserLinkDiv(entry.username));
+                userCell.append(buildAdminUsernameSpan(null, entry.username, UserType.AUTHENTICATED));
                 countCell.innerText = entry.count;
                 lastUpdated.innerText = formatTimestampToDateTime(entry.lastUpdated);
             });

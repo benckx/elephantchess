@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,16 +81,9 @@ class AdminUserEloStatsPage extends BasePage {
             return;
         }
 
-        if (username) {
-            const link = document.createElement('a');
-            link.href = `/@/${username}`;
-            link.innerText = username;
-            cell.appendChild(link);
-        } else if (userId) {
-            const guestName = document.createElement('span');
-            guestName.className = 'guest-name';
-            guestName.innerText = `guest #${userId}`;
-            cell.appendChild(guestName);
+        if (username || userId) {
+            const userType = username ? UserType.AUTHENTICATED : UserType.GUEST;
+            cell.appendChild(buildAdminUsernameSpan(userId, username, userType));
         } else {
             cell.innerText = '-';
             return;

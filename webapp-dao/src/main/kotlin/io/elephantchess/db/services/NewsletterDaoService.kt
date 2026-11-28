@@ -47,7 +47,11 @@ class NewsletterDaoService(private val dslContext: DSLContext) {
 
     suspend fun insertAll(records: List<NewsletterEmail>) {
         dslContext.transactionCoroutine { cfg ->
-            NewsletterEmailDao(cfg).insertMultipleReactive(records)
+            NewsletterEmailDao(cfg).insertMultipleReactive(
+                records.map { record ->
+                    NewsletterEmail(record).apply { emailAddress = emailAddress.trim() }
+                },
+            )
         }
     }
 

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@
     }
 
     #user-profile-icon {
-        display: block;
+        display: none;
         margin-right: 0;
     }
 
@@ -114,7 +114,7 @@
     }
 
     .action-link {
-        font-size: 32px;
+        font-size: 36px;
     }
 
     .standard-checkbox,
@@ -171,6 +171,27 @@
         padding-left: 0;
         padding-right: 0;
         box-shadow: rgba(0, 0, 0, 0.35) 0px 10px 25px;
+    }
+
+    /*noinspection CssReplaceWithShorthandSafely*/
+    #guest-piece-style-modal {
+        width: 96%;
+        max-width: 96%;
+        padding-top: 52px;
+        padding-right: 20px;
+        padding-left: 20px;
+    }
+
+    .guest-piece-style-option {
+        flex-direction: column;
+        gap: 12px;
+        padding: 26px;
+    }
+
+    .guest-piece-style-images img {
+        width: 78px;
+        height: 78px;
+        margin-left: 10px;
     }
 
     .modal-content .standard-checkbox .label-span label,
@@ -476,30 +497,30 @@
         margin-bottom: 20px;
     }
 
-    table.info-box-table {
+    .info-box-table {
         font-size: 26px;
         border-spacing: 0 20px;
     }
 
-    table.info-box-table td.description-cell {
+    .info-box-table td.description-cell {
         font-size: 34px;
         line-height: 40px;
     }
 
-    table.info-box-table td.icon-cell img {
+    .info-box-table td.icon-cell img {
         max-width: 60px;
     }
 
-    table.info-box-sub-table td {
+    .info-box-sub-table td {
         font-size: 32px;
     }
 
-    table.info-box-sub-table td.labels {
+    .info-box-sub-table td.labels {
         font-size: 34px;
     }
 
-    table.info-box-table tr.enabled-button td.description-cell,
-    table.info-box-table tr.disabled-button td.description-cell {
+    .info-box-table tr.enabled-button td.description-cell,
+    .info-box-table tr.disabled-button td.description-cell {
         padding-top: 10px;
         padding-bottom: 10px;
     }
@@ -576,7 +597,7 @@
         height: auto;
         max-height: calc(100vh - 24px);
         transform: translate(-50%, -50%);
-        z-index: 1202;
+        z-index: var(--z-advanced-settings-mobile);
         overflow-y: auto;
         border-radius: 8px;
         padding: 76px 34px 34px;

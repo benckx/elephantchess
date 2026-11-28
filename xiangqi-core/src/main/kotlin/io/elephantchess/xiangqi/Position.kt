@@ -1,7 +1,7 @@
 package io.elephantchess.xiangqi
 
-import io.elephantchess.xiangqi.Board.Companion.HEIGHT
-import io.elephantchess.xiangqi.Board.Companion.WIDTH
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.HEIGHT
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.WIDTH
 
 data class Position(val x: Int, val y: Int) {
 
@@ -11,7 +11,7 @@ data class Position(val x: Int, val y: Int) {
     fun toAlgebraic() =
         "${fileIndexToLetter(x)}${y + 1}"
 
-    fun existsOnBoard() =
+    fun existsOnXiangqiBoard() =
         (x in 0 until WIDTH) && (y in 0 until HEIGHT)
 
     fun getTop() =
@@ -39,28 +39,28 @@ data class Position(val x: Int, val y: Int) {
         Position(x + 1, y - 1)
 
     fun getTopLine(): List<Position> =
-        if (y == HEIGHT || !existsOnBoard()) {
+        if (y == HEIGHT || !existsOnXiangqiBoard()) {
             listOf()
         } else {
             (y + 1 until HEIGHT).map { Position(x, it) }
         }
 
     fun getBottomLine(): List<Position> =
-        if (y == 0 || !existsOnBoard()) {
+        if (y == 0 || !existsOnXiangqiBoard()) {
             listOf()
         } else {
             (y - 1 downTo 0).map { Position(x, it) }
         }
 
     fun getLeftLine(): List<Position> =
-        if (x == 0 || !existsOnBoard()) {
+        if (x == 0 || !existsOnXiangqiBoard()) {
             listOf()
         } else {
             (x - 1 downTo 0).map { Position(it, y) }
         }
 
     fun getRightLine(): List<Position> =
-        if (x == WIDTH || !existsOnBoard()) {
+        if (x == WIDTH || !existsOnXiangqiBoard()) {
             listOf()
         } else {
             (x + 1 until WIDTH).map { Position(it, y) }
@@ -75,7 +75,7 @@ data class Position(val x: Int, val y: Int) {
     fun getDiagonal() =
         listOf(getTopLeft(), getTopRight(), getBottomLeft(), getBottomRight())
 
-    fun isInRedPalace() =
+    fun isInWhitePalace() =
         x in 3..5 && y <= 2
 
     fun isInBlackPalace() =

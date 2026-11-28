@@ -1,3 +1,7 @@
+.votable-content-section {
+    margin-bottom: 24px;
+}
+
 .content-section-vote-panel {
     display: flex;
     align-items: center;

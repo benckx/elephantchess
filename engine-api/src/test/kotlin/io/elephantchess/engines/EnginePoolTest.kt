@@ -3,8 +3,8 @@ package io.elephantchess.engines
 import io.elephantchess.engines.process.EngineConfig
 import io.elephantchess.engines.process.EngineId
 import io.elephantchess.engines.process.PikafishEngineId
-import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
+import io.elephantchess.xiangqi.XiangqiBoard
 import kotlinx.coroutines.*
 import java.util.Collections.synchronizedList
 import java.util.concurrent.Executors
@@ -54,7 +54,7 @@ fun main() {
 @OptIn(DelicateCoroutinesApi::class)
 private suspend fun runExperiment(fens: List<String>, poolSize: Int, depth: Int): ExperimentResult {
     val results = synchronizedList(mutableListOf<FenAndResult>())
-    val engineConfigs: Map<EngineId, EngineConfig> = mapOf(PikafishEngineId to EngineConfig("2022-12-26", poolSize, 1))
+    val engineConfigs: Map<EngineId, EngineConfig> = mapOf(PikafishEngineId to EngineConfig("2026-09-06", poolSize, 1))
     val enginePool = EnginePool(engineConfigs, Executors.newFixedThreadPool(poolSize))
 
     val timeMs = measureTimeMillis {
@@ -68,7 +68,7 @@ private suspend fun runExperiment(fens: List<String>, poolSize: Int, depth: Int)
             }
         }
 
-        jobs.forEach { it.join() }
+        jobs.joinAll()
     }
 
     results.filter { it.bestMove == null }.forEach { result ->
@@ -102,6 +102,7 @@ private suspend fun runExperiment(fens: List<String>, poolSize: Int, depth: Int)
     )
 }
 
+@Suppress("SameParameterValue")
 private fun listRandomFens(n: Int): List<String> {
     fun getResourceAsText(path: String): String =
         object {}.javaClass.getResource(path)?.readText()!!
@@ -143,7 +144,7 @@ private data class FenAndResult(val fen: String, val bestMove: String?) {
 
     fun isBestMoveLegal(): Boolean {
         bestMove?.let { bestMove ->
-            return Board(fen).isLegalMove(parseMoveFromUci(bestMove))
+            return XiangqiBoard(fen).isLegalMove(parseMoveFromUci(bestMove))
         }
         return false
     }

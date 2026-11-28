@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,8 +83,10 @@ function loadParsers() {
         clearTimeout: clearTimeout,
         // utils.js calls dayjs.extend(...) at load time; the parsers never use
         // dayjs, so a no-op stub is enough to evaluate the file.
-        dayjs: Object.assign(() => ({}), {extend: () => {
-        }}),
+        dayjs: Object.assign(() => ({}), {
+            extend: () => {
+            }
+        }),
         dayjs_plugin_utc: {}
     };
     sandbox.globalThis = sandbox;
@@ -112,10 +114,15 @@ function loadParsers() {
         'IccsParser',
         'WxfParser',
         'Board',
+        'XiangqiBoard',
+        'JanggiBoard',
         'Position',
         'HalfMove',
         'Color',
-        'DEFAULT_START_FEN'
+        'DEFAULT_START_FEN',
+        'JanggiSetup',
+        'generateJanggiStartFen',
+        'JANGGI_START_FEN'
     ];
 
     const combinedCode = SCRIPT_LOAD_ORDER

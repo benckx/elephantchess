@@ -9,16 +9,10 @@ import io.elephantchess.servicelayer.dto.user.UserProfileDto
 import io.elephantchess.servicelayer.services.UserProfileAnalyticsService
 import io.elephantchess.utils.cropToFirstNWords
 import io.elephantchess.utils.di.KoinSingleton
-import io.ktor.http.encodeURLPath
-import kotlinx.html.div
-import kotlinx.html.id
-import kotlinx.html.img
-import kotlinx.html.p
-import kotlinx.html.span
-import kotlinx.html.table
-import kotlinx.html.td
-import kotlinx.html.th
-import kotlinx.html.tr
+import io.elephantchess.webapp.rendering.resolvers.CallbackTagResolver
+import io.elephantchess.webapp.rendering.resolvers.WebFragmentResolver
+import io.ktor.http.*
+import kotlinx.html.*
 
 @KoinSingleton(eager = true)
 class UserProfilePageRenderer(
@@ -26,7 +20,7 @@ class UserProfilePageRenderer(
     private val userProfileAnalyticsService: UserProfileAnalyticsService,
 ) {
 
-    suspend fun renderUserProfile(userProfileDto: UserProfileDto): String {
+    suspend fun renderUserProfile(userProfileDto: UserProfileDto, isAdmin: Boolean): String {
         val username = userProfileDto.username
         val description = userProfileDto.profileDescription
         val countryCode = userProfileDto.country?.lowercase()
@@ -43,6 +37,7 @@ class UserProfilePageRenderer(
                 SimpleValueTagResolver("show_pvb_games", userProfileDto.showPvbGamesOnProfile.toString()),
                 descriptionMeta(username, description),
                 flagPanelTagResolver(countryCode),
+                adminUserInsightsLinkTagResolver(username, isAdmin),
                 descriptionDivTagResolver(username, description),
                 gameStatsTableTagResolver(gameStats),
             ),
@@ -92,6 +87,21 @@ class UserProfilePageRenderer(
                 div("empty-block-placeholder") {
                     id = "profile-description"
                     +"$username has not filled their description yet."
+                }
+            }
+        }
+
+    private fun adminUserInsightsLinkTagResolver(username: String, isAdmin: Boolean): TagResolver =
+        KtorHtmlBuilderTagResolver("admin_user_insights_link") {
+            if (isAdmin) {
+                div("center-content-div") {
+                    a(
+                        href = "/admin/user/${username.encodeURLPath()}",
+                        classes = "action-link",
+                    ) {
+                        id = "admin-user-insights-link"
+                        +"admin insights"
+                    }
                 }
             }
         }

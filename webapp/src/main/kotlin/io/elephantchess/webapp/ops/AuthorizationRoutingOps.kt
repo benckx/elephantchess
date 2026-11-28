@@ -11,21 +11,22 @@ import io.elephantchess.servicelayer.model.TokenVerificationResult
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.UserCache
 import io.elephantchess.servicelayer.utils.ops.koin
-import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.http.*
-import io.ktor.http.ContentType.Text.Html
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import io.ktor.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 
-private val opsLogger by lazy { logger {} }
-private val simplePageRenderer by koin<SimplePageRenderer>()
+private val logger by lazy { logger {} }
 private val userCache by koin<UserCache>()
+
+suspend fun RoutingContext.isAdmin(): Boolean {
+    val result = extractAndVerifyToken()
+    return result is AuthenticatedToken && result.hasRole(ADMIN) && verifyInDb(result, ADMIN)
+}
 
 /**
  * Require an authenticated user (not a guest)
@@ -77,6 +78,15 @@ suspend inline fun <reified T : Any> RoutingContext.requireIdentificationWithBod
     }
 }
 
+suspend fun RoutingContext.optionalIdentification(handler: suspend (VerifiedToken?) -> Any) {
+    val result = extractAndVerifyToken()
+    if (result is VerifiedToken && verifyInDb(result)) {
+        call.respond(handler(result))
+    } else {
+        call.respond(handler(null))
+    }
+}
+
 suspend fun RoutingContext.requireAdminRole(customErrorPage: (suspend () -> String)? = null, handler: suspend (AuthenticatedToken) -> Any) {
     requireRole(ADMIN, handler, customErrorPage)
 }
@@ -97,7 +107,7 @@ private suspend fun RoutingContext.requireRole(
     if (result is AuthenticatedToken && result.hasRole(requiredRole) && verifyInDb(result, requiredRole)) {
         call.respond(handler(result))
     } else if (customErrorPage != null) {
-        call.respond(TextContent(customErrorPage(), Html))
+        call.respondHtml(customErrorPage(), Forbidden)
     } else {
         handleInvalidToken(result, requiredRole.name, Forbidden)
     }
@@ -107,7 +117,10 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
     val headersStr =
         call.request.headers
             .toMap()
-            .filterNot { (key, _) -> key == "Authorization" || key == "Cookie" }
+            .filterNot { (key, _) ->
+                listOf(HttpHeaders.Authorization, HttpHeaders.Cookie, HttpHeaders.Referrer)
+                    .any { it.equals(key, ignoreCase = true) }
+            }
             .map { header -> header.key + " = " + header.value }
             .joinToString(", ")
 
@@ -118,8 +131,11 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
             .map { cookie -> cookie.key + " = " + cookie.value }
             .joinToString(", ")
 
-    opsLogger.warn {
-        "[requested:$permission] received $result for ${call.request.uri}, accept ${call.request.accept()}, $headersStr, $cookiesStr"
+    logger.warn {
+        "[requested:$permission] received $result for ${call.request.path()}, " +
+            "accept ${call.request.accept()}, " +
+            "$headersStr, " +
+            cookiesStr
     }
     redirectOrRespond(statusCode)
 }
@@ -127,25 +143,23 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
 private suspend fun RoutingContext.redirectOrRespond(statusCode: HttpStatusCode) {
     val isHtmlRequest = call.request.accept()?.contains("text/html") ?: false
     if (isHtmlRequest) {
-        val html = simplePageRenderer.renderTemplate(statusCode.value.toString())
-        call.respondText(html, Html)
+        call.respondErrorPage(statusCode)
     } else {
         call.response.status(statusCode)
     }
 }
 
-suspend fun verifyInDb(token: TokenVerificationResult, requiredRole: UserRole? = null): Boolean =
-    when (token) {
+suspend fun verifyInDb(verificationResult: TokenVerificationResult, requiredRole: UserRole? = null): Boolean =
+    when (verificationResult) {
         is AuthenticatedToken -> {
-            val user = userCache.get(token.userId)
+            val user = userCache.get(verificationResult.userId)
             user != null && user.userType == AUTHENTICATED &&
                 (requiredRole == null || user.roles.contains(requiredRole))
         }
 
         is GuestToken -> {
-            val user = userCache.get(token.userId)
-            user != null && user.userType == GUEST &&
-                (requiredRole == null || user.roles.contains(requiredRole))
+            val user = userCache.get(verificationResult.userId)
+            user != null && user.userType == GUEST && requiredRole == null
         }
 
         else -> false

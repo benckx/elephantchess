@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,22 @@
 
 .settings-hit-box:hover {
     background-color: #d7d3ce;
+}
+
+.settings-hit-box:has(input:disabled),
+tr:has(input:disabled) .settings-hit-box {
+    cursor: not-allowed;
+    color: #7a7a7a;
+}
+
+.settings-hit-box:has(input:disabled) *,
+tr:has(input:disabled) .settings-hit-box * {
+    cursor: not-allowed;
+}
+
+.settings-hit-box:has(input:disabled):hover,
+tr:has(input:disabled) .settings-hit-box:hover {
+    background-color: transparent;
 }
 
 .little-message {
@@ -122,6 +138,28 @@
     margin-left: 12px;
 }
 
+#delete-account-auth-warning:not(.hidden) {
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+    display: block;
+}
+
+#delete-account-auth-warning > div:first-child {
+    display: flex;
+    align-items: center;
+}
+
+#delete-account-auth-warning .message-container {
+    text-align: center;
+}
+
+#delete-account-link,
+#delete-account-link:visited {
+    color: white;
+}
+
 .hidden {
     display: none;
 }
@@ -147,6 +185,10 @@
         font-size: 30px;
         border-spacing: 0 8px;
         width: 100%;
+    }
+
+    #profile-games-visibility-table .settings-hit-box {
+        width: 90%;
     }
 
     #email-address,

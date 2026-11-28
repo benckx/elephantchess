@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -364,14 +364,14 @@ class GameMetadataDto {
      */
     toStringOutcome() {
         switch (this.#outcome) {
-            case Outcome.RED_WINS:
+            case Outcome.WHITE_WINS:
                 let redPlayerName = '';
                 if (this.#gameId.type === GameType.PVB && this.#redPlayerId == null && this.#engine != null) {
                     redPlayerName = formatEngineName(this.#engine);
                 } else {
                     redPlayerName = formatPlayerName(this.#redPlayerName)
                 }
-                return redPlayerName + ' victory (Red)';
+                return redPlayerName + ` victory (${this.#variant === Variant.JANGGI ? 'Blue' : 'Red'})`;
             case Outcome.BLACK_WINS:
                 let blackPlayerName = '';
                 if (this.#gameId.type === GameType.PVB && this.#blackPlayerId == null && this.#engine != null) {
@@ -379,7 +379,7 @@ class GameMetadataDto {
                 } else {
                     blackPlayerName = formatPlayerName(this.#blackPlayerName)
                 }
-                return blackPlayerName + ' victory (Black)';
+                return blackPlayerName + ` victory (${this.#variant === Variant.JANGGI ? 'Red' : 'Black'})`;
             case Outcome.DRAW:
                 return 'Draw';
             default:
@@ -422,7 +422,10 @@ class GameMetadataDto {
             }
         }
 
-        metadata.set('Variant', this.#variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi');
+        metadata.set(
+            'Variant',
+            this.#variant === Variant.JANGGI ? 'Janggi' : this.#variant === Variant.MANCHU ? 'Manchu' : 'Xiangqi'
+        );
 
         // TODO: add date, tournament, etc.
 

@@ -1,6 +1,5 @@
 package io.elephantchess.webapp.ops
 
-import com.fasterxml.jackson.databind.json.JsonMapper
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.ktor.server.websocket.*
@@ -9,6 +8,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.ChannelResult
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.delay
+import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
 import java.nio.channels.ClosedChannelException
 import kotlin.coroutines.cancellation.CancellationException

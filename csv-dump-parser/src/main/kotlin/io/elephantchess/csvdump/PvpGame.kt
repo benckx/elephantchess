@@ -1,5 +1,7 @@
 package io.elephantchess.csvdump
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
@@ -20,6 +22,8 @@ data class PvpGame(
     val outcome: Outcome?,
     val gameJoinSource: GameJoinSource?,
     val moves: List<PvpMove>,
+    val matchingTime: Duration?,
+    val hasSockPuppetReport: Boolean,
 ) {
 
     val moveCount: Int get() = moves.size
@@ -69,6 +73,8 @@ data class PvpGame(
                         outcome = Outcome.fromCsvOrNull(first.value("outcome")),
                         gameJoinSource = GameJoinSource.fromCsvOrNull(first.value("game_join_source")),
                         moves = moves,
+                        matchingTime = first.intOrNull("matching_time_seconds")?.seconds,
+                        hasSockPuppetReport = first.value("has_sock_puppet_report").trim().toBooleanStrict(),
                     )
                 }
     }

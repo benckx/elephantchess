@@ -12,7 +12,7 @@ import io.elephantchess.db.utils.awaitExecute
 import io.elephantchess.model.Outcome
 import io.elephantchess.model.Outcome.BLACK_WINS
 import io.elephantchess.model.Outcome.DRAW
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.scripts.utils.ScriptConfig.Companion.loadScriptConfig
 import io.elephantchess.scripts.utils.getScriptDslContext
 import io.elephantchess.xiangqi.Color
@@ -144,7 +144,7 @@ private class OpeningAggregate(val numberOfMoves: Int) {
     fun register(outcome: Outcome) {
         occurrences++
         when (outcome) {
-            RED_WINS -> redWins++
+            WHITE_WINS -> redWins++
             BLACK_WINS -> blackWins++
             DRAW -> draws++
         }

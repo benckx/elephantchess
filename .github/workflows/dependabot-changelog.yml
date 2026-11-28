@@ -1,0 +1,121 @@
+name: Dependabot changelog
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  update-changelog:
+    if: >
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Add changelog entry
+        env:
+          MERGED_AT: ${{ github.event.pull_request.merged_at }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+          CHANGELOG_FILE: webapp/src/main/resources/templates/about/changelog.html
+        run: |
+          python <<'PY'
+          import os
+          from datetime import datetime
+
+          changelog_file = os.environ["CHANGELOG_FILE"]
+          pr_number = os.environ["PR_NUMBER"]
+          repository = os.environ["REPOSITORY"]
+          merged_at = os.environ["MERGED_AT"]
+
+          merged_date = datetime.fromisoformat(merged_at.replace("Z", "+00:00")).strftime("%Y-%m-%d")
+          month_id = merged_date[:7]
+          month_title = datetime.strptime(merged_date, "%Y-%m-%d").strftime("%B %Y")
+
+          with open(changelog_file, "r", encoding="utf-8") as f:
+            content = f.read()
+
+          pr_marker = f'PR #{pr_number}</a>'
+          if pr_marker in content:
+            raise SystemExit(0)
+
+          list_item = (
+            "        <li>\n"
+            "            Technical changes (dependency upgrades)\n"
+            f'            (<a href="https://github.com/{repository}/pull/{pr_number}" target="_blank">PR #{pr_number}</a>)\n'
+            "        </li>\n"
+          )
+
+          month_header = f'<h1 id="{month_id}">{month_title}'
+          month_start = content.find(month_header)
+
+          if month_start == -1:
+            insertion_marker = '<h1 id="'
+            insertion_at = content.find(insertion_marker)
+            if insertion_at == -1:
+              raise RuntimeError("Could not find insertion point for month section.")
+
+            month_block = (
+              f'    <h1 id="{month_id}">{month_title}\n'
+              f'        <a class="anchor-copy-link" data-anchor-target="{month_id}" title="Copy link to this section">\n'
+              '            <img src="/images/icons/link.png" alt="Copy link">\n'
+              '        </a>\n'
+              '    </h1>\n'
+              '    <hr/>\n'
+              f'    <h4>{merged_date}</h4>\n'
+              '    <ul>\n'
+              f'{list_item}'
+              '    </ul>\n'
+            )
+            updated = content[:insertion_at] + month_block + content[insertion_at:]
+          else:
+            next_month = content.find('<h1 id="', month_start + 1)
+            section_end = len(content) if next_month == -1 else next_month
+            month_section = content[month_start:section_end]
+
+            date_header = f"<h4>{merged_date}</h4>"
+            date_start = month_section.find(date_header)
+
+            if date_start != -1:
+              ul_start = month_section.find("<ul>", date_start)
+              ul_end = month_section.find("</ul>", ul_start)
+              if ul_start == -1 or ul_end == -1:
+                raise RuntimeError(f"Malformed changelog section for date {merged_date}.")
+              insertion_at = month_start + ul_end
+              updated = content[:insertion_at] + list_item + content[insertion_at:]
+            else:
+              hr_end = month_section.find("<hr/>")
+              if hr_end == -1:
+                raise RuntimeError(f"Malformed changelog section for month {month_id}.")
+              insertion_at = month_start + hr_end + len("<hr/>\n")
+              date_block = (
+                f"    <h4>{merged_date}</h4>\n"
+                "    <ul>\n"
+                f"{list_item}"
+                "    </ul>\n"
+              )
+              updated = content[:insertion_at] + date_block + content[insertion_at:]
+
+          with open(changelog_file, "w", encoding="utf-8") as f:
+            f.write(updated)
+          PY
+
+      - name: Commit and push
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if git diff --quiet -- webapp/src/main/resources/templates/about/changelog.html; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add webapp/src/main/resources/templates/about/changelog.html
+          git commit -m "chore(changelog): add dependency upgrade entry for #${PR_NUMBER}"
+          git push

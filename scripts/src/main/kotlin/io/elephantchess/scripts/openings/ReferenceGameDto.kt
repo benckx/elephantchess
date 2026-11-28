@@ -3,7 +3,7 @@ package io.elephantchess.scripts.openings
 import io.elephantchess.model.Outcome
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 
 internal data class ReferenceGameDto(
     val id: String,
@@ -14,7 +14,7 @@ internal data class ReferenceGameDto(
 ) {
     fun playerColor(playerId: String): Color? =
         when (playerId) {
-            redPlayer -> RED
+            redPlayer -> WHITE
             blackPlayer -> BLACK
             else -> null
         }

@@ -31,6 +31,7 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
     private val dslContext by inject<DSLContext>()
     private val userDaoService by inject<UserDaoService>()
     private val archivedGuestDaoService by inject<ArchivedGuestDaoService>()
+    private val archivedPageViewDaoService by inject<ArchivedPageViewDaoService>()
 
     @Test
     fun `archives old inactive guest and deletes its data`() =
@@ -141,7 +142,7 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
 
             // monthly-by-url aggregates the two "/database" days into one month
             val databaseMonthly = archivedGuestDaoService.fetchArchivedMonthlyPageViews("/database")
-            assertEquals(1, databaseMonthly.size)
+            assertEquals(2, databaseMonthly.size)
             assertEquals(2, databaseMonthly.first().uniquePageViews)
             assertEquals("/database", databaseMonthly.first().label)
 
@@ -171,6 +172,36 @@ class ArchivedGuestDaoServiceTest : ServiceTest() {
 
             // the guest has no own profile, so own-profile archived views are empty
             assertTrue(archivedGuestDaoService.fetchArchivedMonthlyOwnProfilePageViews().isEmpty())
+        }
+
+    @Test
+    fun `archives newsletter clicks and exposes per-template and per-link stats`() =
+        runTest {
+            val creation = instantOfUtc(2023, 3, 2, 12, 0, 0)
+            val guest1 = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+            val guest2 = createOldGuest(creation = creation, lifespanSeconds = 20 * 60)
+
+            insertPageView(guest1, instantOfUtc(2023, 3, 2, 12, 1, 0), eventPath = "/puzzles?medium=newsletter-weekly")
+            insertPageView(guest2, instantOfUtc(2023, 3, 2, 12, 2, 0), eventPath = "/puzzles?medium=newsletter-weekly")
+            insertPageView(guest1, instantOfUtc(2023, 3, 2, 12, 3, 0), eventPath = "/news?medium=newsletter-weekly&src=mail")
+            insertPageView(guest1, instantOfUtc(2023, 3, 2, 12, 4, 0), eventPath = "/database?medium=newsletter-monthly")
+            insertPageView(guest1, instantOfUtc(2023, 3, 2, 12, 5, 0), eventPath = "/news?medium=organic")
+
+            archivedGuestDaoService.archiveAndDeleteOldGuests(maxAge = 90.days, batchSize = 1_000)
+
+            assertEquals(
+                mapOf("weekly" to 3, "monthly" to 1),
+                archivedPageViewDaoService.countArchivedNewsletterClicksPerTemplate(),
+            )
+
+            val perTemplateAndLink = archivedPageViewDaoService
+                .listArchivedNewsletterClicksPerTemplateAndLink()
+                .associate { (it.templateName to it.link) to it.clickCount }
+
+            assertEquals(3, perTemplateAndLink.size)
+            assertEquals(2, perTemplateAndLink["weekly" to "/puzzles"])
+            assertEquals(1, perTemplateAndLink["weekly" to "/news"])
+            assertEquals(1, perTemplateAndLink["monthly" to "/database"])
         }
 
     private suspend fun metricValueForYear(metricName: String, year: Int): Int {

@@ -16,7 +16,7 @@ import io.elephantchess.model.*
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.servicelayer.dto.ChatMessage
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.game.RatingUpdate
@@ -35,21 +35,25 @@ import io.elephantchess.servicelayer.utils.ops.ratingUpdate
 import io.elephantchess.utils.EloCalculator.calculateElo
 import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.calculateNewFen
-import io.elephantchess.xiangqi.Board.Companion.isCheckmated
-import io.elephantchess.xiangqi.Board.Companion.isInCheck
-import io.elephantchess.xiangqi.Board.Companion.isMoveLegal
-import io.elephantchess.xiangqi.Board.Companion.isStalemated
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.HalfMove.Companion.parseMoveFromUci
 import io.elephantchess.xiangqi.PerpetualCheckingRule.Companion.defaultPerpetualCheckingRules
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.calculateNewFen
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isCheckmated
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isInCheck
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isMoveLegal
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.isStalemated
 import io.github.oshai.kotlinlogging.KLogger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ChannelResult
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -103,22 +107,9 @@ class PlayerVsPlayerGameService(
         action = { refreshGamesToPlaySessions() },
     )
 
-    private val dynamicMatchingJob = launchAtFixedRate(
-        scope = refresherScope,
-        initialDelay = 5.seconds,
-        period = 5.seconds,
-        action = {
-            val onlineUserIds = userService.onlineUserIds()
-            if (onlineUserIds.size >= 2) {
-                findDynamicMatches(onlineUserIds)
-            }
-        },
-    )
-
     fun cancel() {
         pvpSessionsRefreshJob.cancel()
         gamesToPlayRefreshJob.cancel()
-        dynamicMatchingJob.cancel()
     }
 
     private suspend fun refreshGamesToPlaySessions() {
@@ -131,7 +122,7 @@ class PlayerVsPlayerGameService(
 
             gamesToPlaySessions.forEach { session ->
                 val gamesCanJoin = when (session.userType) {
-                    UserType.GUEST -> allGamesToJoin.filter { it.allowGuestsToJoin }
+                    UserType.GUEST, UserType.ANONYMIZED -> allGamesToJoin.filter { it.allowGuestsToJoin }
                     UserType.AUTHENTICATED -> allGamesToJoin
                 }
 
@@ -337,6 +328,10 @@ class PlayerVsPlayerGameService(
             }
 
     suspend fun createGame(userId: UserId, request: CreateGameRequest): CreateGameResponse {
+        if (request.variant == Variant.JANGGI) {
+            throw BadRequestException("Janggi games are not supported yet")
+        }
+
         // validation
         if (request.timeControlMode == TimeControlMode.MOVE_TIME) {
             if (request.timeControlIncrement != null) {
@@ -380,7 +375,6 @@ class PlayerVsPlayerGameService(
         // if user is a guest, always allow guests to join
         // it should be disabled by UI already, so it's additional backend validation
         val allowGuests = userId.userType == UserType.GUEST || request.allowGuests
-
         val userRating = getUserRating(userId.id, timeControlCategory, request.variant)
 
         // if such a game already exists, join it instead of creating a new one
@@ -398,12 +392,13 @@ class PlayerVsPlayerGameService(
         game.id = generateId()
         game.inviter = userId.id
         game.inviterColor = request.inviterColor
-        game.currentFen = Board.defaultStartFen(request.variant)
+        game.currentFen = defaultStartFen(request.variant)
         game.gameStatus = CREATED
         game.currentHalfMoveIndex = 0
         game.allowGuestsToJoin = allowGuests
         game.alwaysVisibleInLobby = !request.privateInvite && request.alwaysVisibleInLobby
         game.privateInvite = request.privateInvite
+        game.allowSimilarTimeCategory = request.allowSimilarTimeCategory
         game.containsErrors = false
         game.variant = request.variant
 
@@ -458,19 +453,43 @@ class PlayerVsPlayerGameService(
         return notificationSettings.opponentJoinedGame
     }
 
-    private suspend fun findMatchingGame(userId: UserId, userRating: Int, request: CreateGameRequest): Game? =
-        pvpGameDaoService.listCompatibleGames(
-            inviterColor = request.inviterColor,
-            isRated = request.isRated,
-            timeControlMode = request.timeControlMode,
-            timeControlBase = request.timeControlBase,
-            timeControlIncrement = request.timeControlIncrement,
-            userType = userId.userType,
-            userId = userId.id,
-            variant = request.variant,
-        )
-            .filter { gameRecord -> isOnline(gameRecord.inviter) }
+    private fun matchesExactTimeControl(gameRecord: Game, request: CreateGameRequest): Boolean =
+        gameRecord.timeControlMode == request.timeControlMode &&
+            gameRecord.timeControlBase == request.timeControlBase &&
+            gameRecord.timeControlIncrement == request.timeControlIncrement
+
+    private suspend fun findMatchingGame(
+        userId: UserId,
+        userRating: Int,
+        request: CreateGameRequest,
+        excludedGameIds: Set<String> = emptySet(),
+    ): Game? {
+        // guests always accept guests (same rule as in createGame)
+        val acceptsGuestOpponent = userId.userType == UserType.GUEST || request.allowGuests
+
+        val compatibleGames =
+            pvpGameDaoService.listCompatibleGames(
+                inviterColor = request.inviterColor,
+                isRated = request.isRated,
+                timeControlMode = request.timeControlMode,
+                timeControlBase = request.timeControlBase,
+                timeControlIncrement = request.timeControlIncrement,
+                userType = userId.userType,
+                userId = userId.id,
+                variant = request.variant,
+                allowSimilarTimeCategory = request.allowSimilarTimeCategory,
+            )
+                .filter { gameRecord -> gameRecord.id !in excludedGameIds }
+                .filter { gameRecord -> isOnline(gameRecord.inviter) }
+                .filter { gameRecord ->
+                    acceptsGuestOpponent || userCache.fetchUserType(gameRecord.inviter) != UserType.GUEST
+                }
+
+        return compatibleGames
+            .filter { gameRecord -> matchesExactTimeControl(gameRecord, request) }
             .minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
+            ?: compatibleGames.minByOrNull { gameRecord -> abs(gameRecord.inviterRatingFrom - userRating) }
+    }
 
     /**
      * Pair together pending games whose inviters are now both online but did
@@ -478,7 +497,7 @@ class PlayerVsPlayerGameService(
      * at the same time). For each pair, the newer game's inviter joins the
      * older game and the newer game is auto-cancelled.
      */
-    internal suspend fun findDynamicMatches(onlineUserIds: Set<String>) {
+    suspend fun attemptToMatchExistingGames(onlineUserIds: Set<String>) {
         val candidates = pvpGameDaoService
             .listGamesOpenToJoin()
             .filter { game -> onlineUserIds.contains(game.inviter) }
@@ -499,6 +518,7 @@ class PlayerVsPlayerGameService(
             val joinerVariant = joinerGame.variant
             val joinerRating = getUserRating(joinerId, timeControlCategory, joinerVariant)
 
+            // delayed matching reuses the same compatibility rules as a fresh create-game request
             val joinerRequest = CreateGameRequest(
                 inviterColor = joinerGame.inviterColor,
                 isRated = joinerGame.isRated,
@@ -510,23 +530,31 @@ class PlayerVsPlayerGameService(
                 // candidates are guaranteed non-private by listGamesOpenToJoin,
                 // and listCompatibleGames also filters out private games
                 privateInvite = false,
+                allowSimilarTimeCategory = joinerGame.allowSimilarTimeCategory,
                 variant = joinerVariant,
             )
 
             val joinerUserId = UserId(joinerUserType, joinerId)
-            val matchGame = findMatchingGame(joinerUserId, joinerRating, joinerRequest)
-                ?.takeIf { it.id !in matched }
+            val matchGame = findMatchingGame(joinerUserId, joinerRating, joinerRequest, excludedGameIds = matched)
                 ?: continue
 
             try {
                 joinGame(joinerUserId, JoinGameRequest(matchGame.id, GameJoinSource.DYNAMIC_MATCHED, null))
-                autoCancelGame(joinerGame.id)
+                if (!pvpGameDaoService.autoCancelIfCreated(joinerGame.id)) {
+                    logger.warn {
+                        "dynamic matching: ${joinerGame.id} was joined concurrently, " +
+                            "user $joinerId now has 2 games (${joinerGame.id}, ${matchGame.id})"
+                    }
+                }
                 matched += joinerGame.id
                 matched += matchGame.id
                 logger.debug {
                     "dynamic matching: user $joinerId's game ${joinerGame.id} matched with ${matchGame.id}"
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) {
+                    currentCoroutineContext().ensureActive()
+                }
                 logger.warn(e) {
                     "dynamic matching failed for ${joinerGame.id} -> ${matchGame.id}"
                 }
@@ -800,7 +828,7 @@ class PlayerVsPlayerGameService(
 
         if (timeRemaining.red <= 0L && timeRemaining.red < timeRemaining.black) {
             logger.info { "$logTag red has flagged!" }
-            flagByColor(gameId, RED)
+            flagByColor(gameId, WHITE)
         } else if (timeRemaining.black <= 0L && timeRemaining.black < timeRemaining.red) {
             logger.info { "$logTag black has flagged!" }
             flagByColor(gameId, BLACK)
@@ -841,7 +869,7 @@ class PlayerVsPlayerGameService(
     }
 
     suspend fun autoCancelGame(gameId: String) {
-        pvpGameDaoService.updateStatus(null, gameId, AUTO_CANCELED)
+        pvpGameDaoService.autoCancelIfCreated(gameId)
     }
 
     suspend fun joinGame(userId: UserId, request: JoinGameRequest): JoinGameResponse {
@@ -875,7 +903,7 @@ class PlayerVsPlayerGameService(
             }
             val userRating = getUserRating(userId.id, timeControlCategory, variant)
             val timeControlRecord = pvpGameDaoService.fetchTimeControl(gameId)
-            pvpGameDaoService.joinGame(
+            val joined = pvpGameDaoService.joinGame(
                 userId = userId.id,
                 userRating = userRating,
                 gameId = gameId,
@@ -884,6 +912,9 @@ class PlayerVsPlayerGameService(
                 source = request.source,
                 sourceId = request.sourceId,
             )
+            if (!joined) {
+                throw BadRequestException("This game has already been joined")
+            }
 
             // if inviter has been offline for > N seconds, send email notification
             pvpGameDaoService
@@ -1016,13 +1047,13 @@ class PlayerVsPlayerGameService(
                 parseMoveFromUci(request.move)
             } catch (_: Exception) {
                 logger.warn { "[${request.gameId}] Move '${request.move}' can not be parsed" }
-                throw BadRequestException("Move '${request.move}' can not be parsed")
+                throw BadRequestException("Move '${request.move}' can not be parsed in game ${request.gameId}")
             }
 
             // validate move is legal
             if (!isMoveLegal(gameRecord.currentFen, request.move)) {
                 logger.warn { "[${request.gameId}] Move '${request.move}' is illegal" }
-                throw BadRequestException("Move '${request.move}' is illegal")
+                throw BadRequestException("Move '${request.move}' is illegal in game ${request.gameId}")
             }
 
             // validate that it is user's turn to play
@@ -1114,8 +1145,8 @@ class PlayerVsPlayerGameService(
      * Moves must include last one played
      */
     private fun hasViolatedPerpetualCheckingRuleCallback(game: Game, moves: List<String>): PerpetualCheckingCallbackResult? {
-        val startFen = Board.defaultStartFen(game.variant ?: Variant.XIANGQI)
-        val board = Board(startFen, keepHistory = true)
+        val startFen = defaultStartFen(game.variant ?: Variant.XIANGQI)
+        val board = XiangqiBoard(startFen, keepHistory = true)
         board.registerMoves(moves.map { parseMoveFromUci(it) })
         val playerColor = board.colorToPlay().reverse()
         val history = board.getHistory()!!
@@ -1203,7 +1234,7 @@ class PlayerVsPlayerGameService(
             if (gameRecord.isRated && outcome != Outcome.DRAW) {
                 val k = gameRecord.kValue
                 val isInviterWinner =
-                    (outcome == RED_WINS && gameRecord.inviterColor == RED) ||
+                    (outcome == WHITE_WINS && gameRecord.inviterColor == WHITE) ||
                         (outcome == BLACK_WINS && gameRecord.inviterColor == BLACK)
 
                 if (isInviterWinner) {

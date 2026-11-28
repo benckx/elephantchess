@@ -16,7 +16,7 @@ data class PieceType(val abstractPieceType: AbstractPieceType, val color: Color)
         }
 
     fun chineseCharacter(): Char =
-        if (color == Color.RED) {
+        if (color == Color.WHITE) {
             abstractPieceType.redLabel
         } else {
             abstractPieceType.blackLabel

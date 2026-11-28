@@ -28,7 +28,7 @@ private suspend fun listAllGames(readContext: DSLContext): List<ReferenceGameDto
         .select(
             REFERENCE_GAME.ID,
             REFERENCE_GAME.OUTCOME,
-            REFERENCE_GAME.RED_PLAYER,
+            REFERENCE_GAME.WHITE_PLAYER,
             REFERENCE_GAME.BLACK_PLAYER,
         )
         .from(REFERENCE_GAME)
@@ -37,7 +37,7 @@ private suspend fun listAllGames(readContext: DSLContext): List<ReferenceGameDto
             ReferenceGameDto(
                 id = record.get(REFERENCE_GAME.ID),
                 outcome = record.get(REFERENCE_GAME.OUTCOME),
-                redPlayer = record.get(REFERENCE_GAME.RED_PLAYER),
+                redPlayer = record.get(REFERENCE_GAME.WHITE_PLAYER),
                 blackPlayer = record.get(REFERENCE_GAME.BLACK_PLAYER),
                 moves = emptyList(),
             )

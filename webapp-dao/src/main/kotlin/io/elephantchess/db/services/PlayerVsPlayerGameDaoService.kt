@@ -14,32 +14,30 @@ import io.elephantchess.db.dao.codegen.tables.records.GameRecord
 import io.elephantchess.db.dao.codegen.tables.records.UserRecord
 import io.elephantchess.db.model.*
 import io.elephantchess.db.model.analytics.PvpJoinSourceRecord
+import io.elephantchess.db.services.UserSessionDaoService.Companion.USER_SESSION_TTL
 import io.elephantchess.db.utils.*
 import io.elephantchess.model.*
-import io.elephantchess.model.AnalysisStatus.CANCELLED
-import io.elephantchess.model.AnalysisStatus.NOT_STARTED
-import io.elephantchess.model.AnalysisStatus.PARTIALLY_COMPLETED
-import io.elephantchess.model.AnalysisStatus.STARTED
+import io.elephantchess.model.AnalysisStatus.*
 import io.elephantchess.model.GameEventType.*
 import io.elephantchess.model.GameEventType.Companion.gameEndedStatuses
 import io.elephantchess.model.GameEventType.Companion.inProgressStatuses
 import io.elephantchess.model.Outcome.BLACK_WINS
-import io.elephantchess.model.Outcome.RED_WINS
+import io.elephantchess.model.Outcome.WHITE_WINS
 import io.elephantchess.utils.TryEither
 import io.elephantchess.utils.di.KoinSingleton
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.reactor.awaitSingle
-import org.jooq.Condition
-import org.jooq.DSLContext
-import org.jooq.Record2
-import org.jooq.TableField
+import org.jooq.*
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import reactor.core.publisher.Flux
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.YearMonth
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -80,6 +78,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         userType: UserType,
         userId: String,
         variant: Variant,
+        allowSimilarTimeCategory: Boolean,
     ): List<Game> {
         var query =
             dslContext
@@ -87,20 +86,31 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .from(GAME)
                 .where(GAME.GAME_STATUS.eq(CREATED))
                 .and(GAME.TIME_CONTROL_MODE.eq(timeControlMode))
-                .and(GAME.TIME_CONTROL_BASE.eq(timeControlBase))
                 .and(GAME.IS_RATED.eq(isRated))
                 .and(GAME.INVITER.notEqual(userId))
                 .and(GAME.PRIVATE_INVITE.eq(false))
                 .and(GAME.VARIANT.eq(variant))
 
-        query = when (timeControlIncrement) {
-            null -> query.and(GAME.TIME_CONTROL_INCREMENT.isNull)
-            else -> query.and(GAME.TIME_CONTROL_INCREMENT.eq(timeControlIncrement))
+        val exactTimeControl = GAME.TIME_CONTROL_BASE.eq(timeControlBase)
+            .and(
+                when (timeControlIncrement) {
+                    null -> GAME.TIME_CONTROL_INCREMENT.isNull
+                    else -> GAME.TIME_CONTROL_INCREMENT.eq(timeControlIncrement)
+                },
+            )
+
+        // a similar time control is only acceptable if both the requester and the existing game's inviter allow it
+        query = if (allowSimilarTimeCategory) {
+            query
+                .and(GAME.TIME_CONTROL_CATEGORY.eq(TimeControlCategory.fromSeconds(timeControlBase)))
+                .and(GAME.ALLOW_SIMILAR_TIME_CATEGORY.isTrue.or(exactTimeControl))
+        } else {
+            query.and(exactTimeControl)
         }
 
         query = when (inviterColor) {
-            RED -> query.and(GAME.INVITER_COLOR.eq(BLACK))
-            BLACK -> query.and(GAME.INVITER_COLOR.eq(RED))
+            WHITE -> query.and(GAME.INVITER_COLOR.eq(BLACK))
+            BLACK -> query.and(GAME.INVITER_COLOR.eq(WHITE))
             else -> query
         }
 
@@ -194,6 +204,39 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return games
     }
 
+    suspend fun listGamesPendingSockPuppetScan(): List<SockPuppetScanCandidateRecord> =
+        dslContext
+            .select(
+                GAME.ID,
+                GAME.INVITER,
+                GAME.INVITEE,
+            )
+            .from(GAME)
+            .where(DSL.coalesce(GAME_SCANNED, DSL.inline(false)).eq(false))
+            .and(GAME.INVITEE.isNotNull)
+            .and(GAME.CREATED.isWithin(USER_SESSION_TTL))
+            .orderBy(GAME.LAST_UPDATED.asc())
+            .awaitRecords()
+            .map { record ->
+                SockPuppetScanCandidateRecord(
+                    gameId = record.get(GAME.ID),
+                    inviterUserId = record.get(GAME.INVITER),
+                    inviteeUserId = record.get(GAME.INVITEE),
+                )
+            }
+
+    suspend fun markGamesAsSockPuppetScanned(gameIds: Collection<String>): Int {
+        if (gameIds.isEmpty()) {
+            return 0
+        }
+
+        return dslContext
+            .update(GAME)
+            .set(GAME_SCANNED, true)
+            .where(GAME.ID.`in`(gameIds))
+            .awaitExecute()
+    }
+
     suspend fun listLastGames(limit: Int, statusToExcludes: List<GameEventType> = listOf(), variantsToInclude: List<Variant>): List<Game> {
         val conditions = mutableListOf<Condition>()
         if (statusToExcludes.isNotEmpty()) {
@@ -274,20 +317,59 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 )
             }
 
-    suspend fun latestGameActivity(minMoveIndex: Int = 0): Instant? =
+    suspend fun fetchUserActivitySummary(userId: String, minMoveIndex: Int? = null): UserActivitySummaryRecord {
+        val firstPlayed = DSL.min(GAME.LAST_UPDATED).`as`("first_played")
+        val lastPlayed = DSL.max(GAME.LAST_UPDATED).`as`("last_played")
+        val totalPlayed = DSL.count().`as`("total_played")
+
+        var query = dslContext
+            .select(firstPlayed, lastPlayed, totalPlayed)
+            .from(GAME)
+            .where(isPlaying(userId))
+
+        if (minMoveIndex != null) {
+            query = query.and(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+        }
+
+        val record = query.awaitSingleRecord()
+
+        return UserActivitySummaryRecord(
+            firstPlayed = record?.get(firstPlayed),
+            lastPlayed = record?.get(lastPlayed),
+            totalPlayed = record?.get(totalPlayed) ?: 0,
+        )
+    }
+
+    suspend fun countGamesBetweenUsers(userId1: String, userId2: String): Int =
+        dslContext
+            .selectCount()
+            .from(GAME)
+            .where(
+                GAME.INVITER.eq(userId1)
+                    .and(GAME.INVITEE.eq(userId2))
+                    .or(
+                        GAME.INVITER.eq(userId2)
+                            .and(GAME.INVITEE.eq(userId1)),
+                    ),
+            )
+            .awaitSingleValue() ?: 0
+
+    suspend fun latestGameActivity(minMoveIndex: Int = 0, variant: Variant? = null): Instant? =
         dslContext
             .select(DSL.max(GAME.LAST_UPDATED))
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
             .and(GAME.GAME_STATUS.notIn(listOf(FLAGGED, AUTO_CANCELED)))
+            .and(variant?.let { GAME.VARIANT.eq(it) } ?: DSL.noCondition())
             .awaitSingleValue()
 
-    suspend fun latestMoveTime(minMoveIndex: Int = 0): Instant? =
+    suspend fun latestMoveTime(minMoveIndex: Int = 0, variant: Variant? = null): Instant? =
         dslContext
             .select(DSL.max(GAME_MOVE.EVENT_TIME))
             .from(GAME, GAME_MOVE)
             .where(GAME.ID.eq(GAME_MOVE.GAME_ID))
             .and(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(variant?.let { GAME.VARIANT.eq(it) } ?: DSL.noCondition())
             .awaitSingleValue()
 
     suspend fun countCreatedGamesByUser(userId: String, timeControlCategory: TimeControlCategory): Int =
@@ -324,7 +406,16 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex).or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
             .awaitSingleValue()!!
 
-    suspend fun countManchuGames(minMoveIndex: Int): Int {
+    suspend fun countGamesOverMoveIndexByCreatedBetween(minMoveIndex: Int, fromInclusive: Instant, toExclusive: Instant): Int =
+        dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.CREATED.ge(fromInclusive))
+            .and(GAME.CREATED.lt(toExclusive))
+            .awaitSingleValue() ?: 0
+
+    suspend fun countVariantGames(minMoveIndex: Int, variant: Variant): Int {
         val countCondition =
             GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)
                 .or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED))
@@ -332,7 +423,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         return dslContext
             .selectCount()
             .from(GAME)
-            .where(countCondition.and(GAME.VARIANT.eq(Variant.MANCHU)))
+            .where(countCondition.and(GAME.VARIANT.eq(variant)))
             .awaitSingleValue()!!
     }
 
@@ -418,19 +509,19 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         val isUserPlaying = isInviter.or(isInvitee)
 
         val inviterWinCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(WHITE_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
 
         val inviteeWinCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
-                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(WHITE_WINS)))
 
         val inviterLossCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(BLACK_WINS))
-                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(RED_WINS)))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(BLACK_WINS))
+                .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(WHITE_WINS)))
 
         val inviteeLossCondition =
-            GAME.INVITER_COLOR.eq(RED).and(GAME.OUTCOME.eq(RED_WINS))
+            GAME.INVITER_COLOR.eq(WHITE).and(GAME.OUTCOME.eq(WHITE_WINS))
                 .or(GAME.INVITER_COLOR.eq(BLACK).and(GAME.OUTCOME.eq(BLACK_WINS)))
 
         val winCondition = isInviter.and(inviterWinCondition).or(isInvitee.and(inviteeWinCondition))
@@ -728,6 +819,11 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
+    /**
+     * Atomically join a game that is still [CREATED] and has no invitee yet.
+     *
+     * @return `false` if the game was joined (or its status changed) concurrently, in which case nothing is updated
+     */
     suspend fun joinGame(
         userId: String,
         userRating: Int,
@@ -736,7 +832,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         timeControlRecord: TimeControlRecord?,
         source: GameJoinSource?,
         sourceId: String?,
-    ) {
+    ): Boolean =
         dslContext.transactionCoroutine { cfg ->
             val now = Clock.System.now()
 
@@ -759,18 +855,54 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 update = update.set(GAME.MIN_FLAG_CHECK_TIME, now.plusSeconds(timeControlRecord.base.toLong()))
             }
 
-            update
+            val updatedRows = update
                 .where(GAME.ID.eq(gameId))
+                .and(GAME.GAME_STATUS.eq(CREATED))
+                .and(GAME.INVITEE.isNull)
                 .awaitExecute()
 
-            val gameStatusEvent = GameStatusEvent()
-            gameStatusEvent.gameId = gameId
-            gameStatusEvent.eventType = JOINED
-            gameStatusEvent.userId = userId
-            gameStatusEvent.eventTime = now
-            GameStatusEventDao(cfg).insertReactive(gameStatusEvent)
+            if (updatedRows == 0) {
+                false
+            } else {
+                val gameStatusEvent = GameStatusEvent()
+                gameStatusEvent.gameId = gameId
+                gameStatusEvent.eventType = JOINED
+                gameStatusEvent.userId = userId
+                gameStatusEvent.eventTime = now
+                GameStatusEventDao(cfg).insertReactive(gameStatusEvent)
+                true
+            }
         }
-    }
+
+    /**
+     * Atomically auto-cancel a game, only if it is still [CREATED] (i.e. nobody joined it in the meantime).
+     *
+     * @return `false` if the game was no longer [CREATED]
+     */
+    suspend fun autoCancelIfCreated(gameId: String): Boolean =
+        dslContext.transactionCoroutine { cfg ->
+            val now = Clock.System.now()
+
+            val updatedRows = DSL
+                .using(cfg)
+                .update(GAME)
+                .set(GAME.GAME_STATUS, AUTO_CANCELED)
+                .set(GAME.LAST_UPDATED, now)
+                .where(GAME.ID.eq(gameId))
+                .and(GAME.GAME_STATUS.eq(CREATED))
+                .awaitExecute()
+
+            if (updatedRows == 0) {
+                false
+            } else {
+                val gameStatusEvent = GameStatusEvent()
+                gameStatusEvent.gameId = gameId
+                gameStatusEvent.eventType = AUTO_CANCELED
+                gameStatusEvent.eventTime = now
+                GameStatusEventDao(cfg).insertReactive(gameStatusEvent)
+                true
+            }
+        }
 
     suspend fun updateStatus(userId: String?, gameId: String, status: GameEventType, outcome: Outcome? = null) {
         dslContext.transactionCoroutine { cfg ->
@@ -998,58 +1130,6 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .and(GAME.GAME_STATUS.`in`(inProgressStatuses))
             .awaitSingleMappedRecord()
 
-    private companion object {
-
-        fun findOpponentUserIdField(gamePlayersStatus: GamePlayersStatus, userId: String?): TableField<GameRecord, String>? {
-            if (userId == null) {
-                return null
-            }
-
-            val opponentUserId = gamePlayersStatus.getOpponentUserId(userId)
-            return findUserIdField(gamePlayersStatus, opponentUserId)
-        }
-
-        fun findUserIdField(gamePlayersStatus: GamePlayersStatus, userId: String?): TableField<GameRecord, String>? {
-            if (userId == null) {
-                return null
-            }
-
-            var field: TableField<GameRecord, String>? = null
-
-            if (gamePlayersStatus.isInviter(userId)) {
-                field = GAME.INVITER
-            } else if (gamePlayersStatus.isInvitee(userId)) {
-                field = GAME.INVITEE
-            }
-
-            return field
-        }
-
-        fun findRatingField(timeControlCategory: TimeControlCategory, variant: Variant): TableField<UserRecord, Int> =
-            when (variant) {
-                Variant.XIANGQI -> when (timeControlCategory) {
-                    TimeControlCategory.BULLET -> USER.GAME_RATING_BULLET
-                    TimeControlCategory.BLITZ -> USER.GAME_RATING_BLITZ
-                    TimeControlCategory.RAPID -> USER.GAME_RATING_RAPID
-                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_CLASSICAL
-                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
-                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
-                }
-
-                Variant.MANCHU -> when (timeControlCategory) {
-                    TimeControlCategory.BULLET -> USER.GAME_RATING_MANCHU_BULLET
-                    TimeControlCategory.BLITZ -> USER.GAME_RATING_MANCHU_BLITZ
-                    TimeControlCategory.RAPID -> USER.GAME_RATING_MANCHU_RAPID
-                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_MANCHU_CLASSICAL
-                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_MANCHU_SEVERAL_DAYS
-                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_MANCHU_CORRESPONDENCE
-                }
-            }
-
-        fun isPlaying(userId: String): Condition =
-            GAME.INVITER.eq(userId).or(GAME.INVITEE.eq(userId))
-    }
-
     /**
      * Counts total PvP games grouped by month
      */
@@ -1128,22 +1208,80 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
-        dslContext.transactionCoroutine { cfg ->
-            val transaction = DSL.using(cfg)
+    /**
+     * Matching time (in milliseconds) between a game being created and joined, for a single [month].
+     * Only games with at least [minMoveIndex] moves and a join source in [joinSources] are considered.
+     * The join time is the earliest [JOINED] status event of the game. Games without a join event are ignored.
+     *
+     * Reports percentiles (p50/median, p90, p95, p99) alongside min/max so the distribution stays
+     * readable despite rare very long waits. Scoped to a single month so each call stays cheap and the
+     * admin page can load month by month.
+     */
+    suspend fun matchingTimeStatsForMonth(
+        minMoveIndex: Int,
+        joinSources: Collection<GameJoinSource>,
+        month: YearMonth,
+    ): MatchingTimeStatsRecord {
+        val stats = MatchingTimeStatsFields(matchingTimeMillis())
 
-            transaction.update(GAME)
-                .set(GAME.INVITER, newUserId)
-                .set(GAME.GUEST_USER_ID, guestUserId)
-                .where(GAME.INVITER.eq(guestUserId))
-                .awaitExecute()
+        val record = dslContext
+            .select(stats.fields)
+            .from(GAME)
+            .where(matchingGamesCondition(minMoveIndex, joinSources, month))
+            .awaitSingleRecord()
 
-            transaction.update(GAME)
-                .set(GAME.INVITEE, newUserId)
-                .set(GAME.GUEST_USER_ID, guestUserId)
-                .where(GAME.INVITEE.eq(guestUserId))
-                .awaitExecute()
-        }
+        return record?.let(stats::toRecord) ?: MatchingTimeStatsRecord(
+            count = 0,
+            minMillis = null,
+            medianMillis = null,
+            p90Millis = null,
+            p95Millis = null,
+            p99Millis = null,
+            maxMillis = null,
+        )
+    }
+
+    /**
+     * Same as [matchingTimeStatsForMonth] but broken down by [TimeControlCategoryGroup], so
+     * correspondence games (which naturally wait much longer) do not inflate the percentiles of the
+     * faster real-time categories. Groups with no joined game in the month are omitted from the map.
+     */
+    suspend fun matchingTimeStatsByCategoryGroupForMonth(
+        minMoveIndex: Int,
+        joinSources: Collection<GameJoinSource>,
+        month: YearMonth,
+    ): Map<TimeControlCategoryGroup, MatchingTimeStatsRecord> {
+        // Assign each game to its category group in a derived table, then aggregate by that group in
+        // the outer query. Grouping on the CASE expression directly is rejected by Postgres, so the
+        // group label is materialized first.
+        val groupLabel = DSL
+            .case_(GAME.TIME_CONTROL_CATEGORY)
+            .mapValues(
+                TimeControlCategory.entries.associateWith { category ->
+                    TimeControlCategoryGroup.of(category).name
+                },
+            )
+            .`as`("category_group")
+        val diffColumn = matchingTimeMillis().`as`("matching_time_millis")
+
+        val games = DSL
+            .select(groupLabel, diffColumn)
+            .from(GAME)
+            .where(matchingGamesCondition(minMoveIndex, joinSources, month))
+            .and(GAME.TIME_CONTROL_CATEGORY.isNotNull)
+            .asTable("games")
+
+        val groupField = games.field(groupLabel)!!
+        val stats = MatchingTimeStatsFields(games.field(diffColumn)!!)
+
+        return dslContext
+            .select(listOf(groupField) + stats.fields)
+            .from(games)
+            .groupBy(groupField)
+            .awaitRecords()
+            .associate { record ->
+                TimeControlCategoryGroup.valueOf(record.get(groupField)) to stats.toRecord(record)
+            }
     }
 
     suspend fun disableAlwaysVisibleInLobbyOptionForUserCreatedGames(userId: String) {
@@ -1157,14 +1295,124 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun pickRandomGameForAnalysis(): String? =
+    suspend fun pickRandomGameForAnalysis(minMoveIndex: Int): String? =
         dslContext
             .select(GAME.ID)
             .from(GAME)
             .where(GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
             .and(GAME.GAME_STATUS.`in`(gameEndedStatuses))
-            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterThan(10))
+            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterOrEqual(minMoveIndex))
             .orderBy(DSL.rand())
             .limit(1)
             .awaitSingleValue()
+
+    private companion object {
+
+        val GAME_SCANNED = DSL.field(DSL.name("game", "scanned"), Boolean::class.java)
+
+        fun findOpponentUserIdField(gamePlayersStatus: GamePlayersStatus, userId: String?): TableField<GameRecord, String>? {
+            if (userId == null) {
+                return null
+            }
+
+            val opponentUserId = gamePlayersStatus.getOpponentUserId(userId)
+            return findUserIdField(gamePlayersStatus, opponentUserId)
+        }
+
+        fun findUserIdField(gamePlayersStatus: GamePlayersStatus, userId: String?): TableField<GameRecord, String>? {
+            if (userId == null) {
+                return null
+            }
+
+            var field: TableField<GameRecord, String>? = null
+
+            if (gamePlayersStatus.isInviter(userId)) {
+                field = GAME.INVITER
+            } else if (gamePlayersStatus.isInvitee(userId)) {
+                field = GAME.INVITEE
+            }
+
+            return field
+        }
+
+        fun findRatingField(timeControlCategory: TimeControlCategory, variant: Variant): TableField<UserRecord, Int> =
+            when (variant) {
+                Variant.XIANGQI -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_CORRESPONDENCE
+                }
+
+                Variant.MANCHU -> when (timeControlCategory) {
+                    TimeControlCategory.BULLET -> USER.GAME_RATING_MANCHU_BULLET
+                    TimeControlCategory.BLITZ -> USER.GAME_RATING_MANCHU_BLITZ
+                    TimeControlCategory.RAPID -> USER.GAME_RATING_MANCHU_RAPID
+                    TimeControlCategory.CLASSICAL -> USER.GAME_RATING_MANCHU_CLASSICAL
+                    TimeControlCategory.SEVERAL_DAYS -> USER.GAME_RATING_MANCHU_SEVERAL_DAYS
+                    TimeControlCategory.CORRESPONDENCE -> USER.GAME_RATING_MANCHU_CORRESPONDENCE
+                }
+
+                Variant.JANGGI -> error("Janggi ratings are not supported yet")
+            }
+
+        fun isPlaying(userId: String): Condition =
+            GAME.INVITER.eq(userId).or(GAME.INVITEE.eq(userId))
+
+        /**
+         * Milliseconds between a game's creation and its earliest [JOINED] status event (null if never joined).
+         */
+        fun matchingTimeMillis(): Field<Long> {
+            val joinedTime = DSL.field(
+                DSL
+                    .select(DSL.min(GAME_STATUS_EVENT.EVENT_TIME))
+                    .from(GAME_STATUS_EVENT)
+                    .where(GAME_STATUS_EVENT.GAME_ID.eq(GAME.ID))
+                    .and(GAME_STATUS_EVENT.EVENT_TYPE.eq(JOINED)),
+            )
+            return diffInMillis(joinedTime, GAME.CREATED)
+        }
+
+        fun matchingGamesCondition(minMoveIndex: Int, joinSources: Collection<GameJoinSource>, month: YearMonth): Condition {
+            val monthStart = month.atDay(1).atStartOfDay().toUtcInstant()
+            val monthEnd = month.plusMonths(1).atDay(1).atStartOfDay().toUtcInstant()
+            return GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex)
+                .and(GAME.JOIN_SOURCE.`in`(joinSources))
+                .and(GAME.CREATED.ge(monthStart))
+                .and(GAME.CREATED.lt(monthEnd))
+        }
+
+        /**
+         * Aggregate fields (count, min/max, percentiles) over a matching time column, and their mapping
+         * back to a [MatchingTimeStatsRecord].
+         */
+        class MatchingTimeStatsFields(diff: Field<Long>) {
+
+            private val count = DSL.count(diff)
+            private val min = DSL.min(diff)
+            private val max = DSL.max(diff)
+            private val p50 = DSL.percentileCont(0.5).withinGroupOrderBy(diff)
+            private val p90 = DSL.percentileCont(0.9).withinGroupOrderBy(diff)
+            private val p95 = DSL.percentileCont(0.95).withinGroupOrderBy(diff)
+            private val p99 = DSL.percentileCont(0.99).withinGroupOrderBy(diff)
+
+            val fields = listOf(count, min, max, p50, p90, p95, p99)
+
+            fun toRecord(record: Record): MatchingTimeStatsRecord =
+                MatchingTimeStatsRecord(
+                    count = record.get(count),
+                    minMillis = record.get(min),
+                    medianMillis = record.get(p50)?.toMillis(),
+                    p90Millis = record.get(p90)?.toMillis(),
+                    p95Millis = record.get(p95)?.toMillis(),
+                    p99Millis = record.get(p99)?.toMillis(),
+                    maxMillis = record.get(max),
+                )
+
+            private fun BigDecimal.toMillis(): Long =
+                setScale(0, RoundingMode.HALF_UP).toLong()
+        }
+    }
 }

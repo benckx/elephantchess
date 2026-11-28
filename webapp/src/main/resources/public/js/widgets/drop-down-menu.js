@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -220,7 +220,8 @@ class UserNameDropDownMenu extends DropDownMenu {
                 });
                 break;
             case UserType.GUEST:
-                this.addSimpleItemWithHref('My Games', '/userdata/games');
+                this.addSimpleItemWithHref('Settings', '/user/settings');
+                this.addItemWithTopSeparatorAndHref('My Games', '/userdata/games');
                 this.addSimpleItemWithHref('My Bot Games', '/userdata/botgames');
                 this.addSimpleItemWithHref('My Puzzles', '/userdata/puzzles');
                 this.addSimpleItemWithHref('My DB Searches', '/userdata/db-searches');

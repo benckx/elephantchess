@@ -1,0 +1,82 @@
+<html lang="en">
+<head>
+    {{header_init_admin}}
+    <title>Admin user insights - {{username}}</title>
+    <link rel="stylesheet" href="/css/common/nice-table.css"/>
+    <link rel="stylesheet" href="/css/database/database-search.css"/>
+    <link rel="stylesheet" href="/css/admin-user-insights.css"/>
+    <script defer src="/js/admin/admin-utils.js"></script>
+    <script defer src="/js/widgets/database-autocompletion.js"></script>
+    <script defer src="/js/admin/admin-user-insights.js"></script>
+</head>
+<body data-user-identifier="{{identifier}}">
+{{body_init}}
+<div class="main-container-text-extended-smaller">
+    <h1>Admin User Insights</h1>
+    <hr/>
+    <div id="admin-user-insights-search-box" class="search-container">
+        <label class="search-label">
+            <span>Search user (handle or guest id)</span>
+            <input id="insights-user-search" type="text" value="{{username}}"/>
+        </label>
+        <div class="suggestions-box">
+            <div class="suggestions-box-content"></div>
+        </div>
+        <div id="admin-user-insights-search-actions">
+            <input id="admin-user-insights-search-button" type="button" class="app-buttons" value="search">
+        </div>
+    </div>
+
+    <p>
+        {{admin_user_public_profile_link}}
+    </p>
+
+    <h2>User Metadata</h2>
+    <hr/>
+    {{admin_user_metadata_table}}
+
+    <h2>Game Activity</h2>
+    <hr/>
+    <div id="admin-user-game-activity-content" class="admin-user-insights-dynamic-content">
+        <p class="empty-block-placeholder">Loading game activity...</p>
+    </div>
+
+    <h2>Related Users / Sock Puppet</h2>
+    <hr/>
+    <div id="admin-user-related-users-content" class="admin-user-insights-dynamic-content">
+        <p class="empty-block-placeholder">Loading related users...</p>
+    </div>
+    <h3>Game Sock Puppet Report</h3>
+    <div id="admin-user-sock-puppet-games-content" class="admin-user-insights-dynamic-content">
+        <p class="empty-block-placeholder">Loading sock puppet report...</p>
+    </div>
+
+    <h2>Saved Analysis</h2>
+    <hr/>
+    <div id="admin-user-saved-analysis-content" class="admin-user-insights-dynamic-content">
+        <p class="empty-block-placeholder">Loading saved analysis...</p>
+    </div>
+
+    <h2>Chat Messages</h2>
+    <hr/>
+    <div id="admin-user-latest-chat-messages-content" class="admin-user-insights-dynamic-content">
+        <p class="empty-block-placeholder">Loading chat messages...</p>
+    </div>
+    <p id="admin-user-chat-messages-full-link-container" class="admin-user-insights-center-link"></p>
+
+    <h2>Page Views</h2>
+    <hr/>
+    <div id="admin-user-latest-page-views-content" class="admin-user-insights-dynamic-content">
+        <p class="empty-block-placeholder">Loading page views...</p>
+    </div>
+    <p id="admin-user-page-views-full-link-container" class="admin-user-insights-center-link"></p>
+
+    <h2>User Sessions</h2>
+    <hr/>
+    <div id="admin-user-latest-sessions-content" class="admin-user-insights-dynamic-content">
+        <p class="empty-block-placeholder">Loading sessions...</p>
+    </div>
+</div>
+{{footer}}
+</body>
+</html>

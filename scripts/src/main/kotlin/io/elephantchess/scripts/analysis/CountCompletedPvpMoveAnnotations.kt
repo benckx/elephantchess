@@ -14,11 +14,11 @@ import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.utils.calculateMoveAnnotation
 import io.elephantchess.servicelayer.utils.findAnalysisDataFromEngineBestMove
 import io.elephantchess.servicelayer.utils.hasComparableAnalysisData
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.DEFAULT_START_FEN
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
 import io.elephantchess.xiangqi.HalfMove.Companion.halfMoveIndexToFullMove
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.DEFAULT_XIANGQI_START_FEN
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.koin.core.component.inject
@@ -213,10 +213,10 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
     private fun summarizeMoveAnnotations(
         moves: List<String>,
         analysisMap: Map<String, InfoLineResultDto>,
-        startFen: String = DEFAULT_START_FEN,
+        startFen: String = DEFAULT_XIANGQI_START_FEN,
         actualMoveFilter: (InfoLineResultDto?) -> Boolean = { true },
     ): MoveAnnotationSummary {
-        val board = Board(startFen)
+        val board = XiangqiBoard(startFen)
         var annotatedMoves = 0
         var neutralMoves = 0
         var skippedMoves = 0
@@ -267,9 +267,9 @@ object CountCompletedPvpMoveAnnotations : KoinScriptInit() {
         gameId: String,
         moves: List<String>,
         analysisMap: Map<String, InfoLineResultDto>,
-        startFen: String = DEFAULT_START_FEN,
+        startFen: String = DEFAULT_XIANGQI_START_FEN,
     ): List<AnnotatedMoveDetail> {
-        val board = Board(startFen)
+        val board = XiangqiBoard(startFen)
         val annotatedMoves = mutableListOf<AnnotatedMoveDetail>()
 
         moves.forEachIndexed { index, move ->

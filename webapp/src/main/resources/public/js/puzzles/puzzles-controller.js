@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ class PuzzlesController {
 
     #isEngineModeEnabled = false;
     #readyToMoveToNextPuzzle = false;
+    #hasRecordedOutcome = false;
 
     /**
      * @type {function(PuzzleState)}
@@ -124,6 +125,7 @@ class PuzzlesController {
      */
     #loadState(puzzleState) {
         this.#puzzleState = puzzleState;
+        this.#hasRecordedOutcome = false;
         this.#reInit();
         let url = 'puzzles?id=' + this.#puzzleState.id;
         if (this.#selectedCategories.length > 0) {
@@ -135,7 +137,19 @@ class PuzzlesController {
 
     #reInit() {
         this.#isEngineModeEnabled = false;
-        this.#isEngineModeEnabled = false;
+        this.#readyToMoveToNextPuzzle = false;
+    }
+
+    retry() {
+        if (this.#puzzleState != null) {
+            this.#puzzleState.reset();
+            this.#reInit();
+            this.#loadedPuzzleCb(this.#puzzleState);
+        }
+    }
+
+    hasRecordedOutcome() {
+        return this.#hasRecordedOutcome;
     }
 
     // only exists for debug
@@ -219,6 +233,11 @@ class PuzzlesController {
         if (!this.#puzzleState.hasOutcome()) {
             this.#puzzleState.outcome = outcome;
             this.#readyToMoveToNextPuzzle = true;
+            // Replaying a completed puzzle must not change its recorded result or rating.
+            if (this.#hasRecordedOutcome) {
+                return;
+            }
+            this.#hasRecordedOutcome = true;
             this.#puzzlesClient.postOutcome(
                 this.#puzzleState.id,
                 outcome,

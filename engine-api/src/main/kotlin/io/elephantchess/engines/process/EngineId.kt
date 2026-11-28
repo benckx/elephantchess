@@ -19,6 +19,9 @@ abstract class EngineId {
 
     abstract fun pathOfExecutable(version: String?): String
 
+    open fun pathOfExecutable(version: String?, osName: String?, osArch: String?): String =
+        pathOfExecutable(version)
+
     abstract fun makeProcess(config: EngineConfig, engineProcessLocator: EngineProcessLocator): EngineProcess
 
     override fun toString() =

@@ -1,5 +1,6 @@
 package io.elephantchess.servicelayer.dto.admin
 
+import io.elephantchess.model.PuzzleCategory
 import io.elephantchess.model.PuzzleOutcome
 import io.elephantchess.model.UserType
 
@@ -13,5 +14,7 @@ data class ListLastPuzzleByLoggedInUsersResponse(val entries: List<Entry>) {
         val username: String?,
         val date: Long,
         val upVoted: Boolean?,
+        val puzzleCreated: Long,
+        val categories: List<PuzzleCategory>,
     )
 }

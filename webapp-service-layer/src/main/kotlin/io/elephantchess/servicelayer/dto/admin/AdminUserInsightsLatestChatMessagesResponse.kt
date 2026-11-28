@@ -1,0 +1,3 @@
+package io.elephantchess.servicelayer.dto.admin
+
+data class AdminUserInsightsLatestChatMessagesResponse(val latestChatMessages: List<AdminUserInsightsDetailsResponse.ChatMessageEntry>)

@@ -3,6 +3,8 @@ package io.elephantchess.scripts.game
 import com.opencsv.CSVWriter
 import io.elephantchess.db.dao.codegen.Tables.*
 import io.elephantchess.db.utils.awaitRecords
+import io.elephantchess.db.utils.diffInSeconds
+import io.elephantchess.model.GameEventType.JOINED
 import io.elephantchess.model.GameId
 import io.elephantchess.model.GameJoinSource
 import io.elephantchess.model.GameType.PVP
@@ -10,13 +12,15 @@ import io.elephantchess.model.TimeControlMode
 import io.elephantchess.scripts.KoinScriptInit
 import io.elephantchess.servicelayer.services.GameDataService
 import io.elephantchess.servicelayer.utils.calculateCpl
-import io.elephantchess.xiangqi.Board
-import io.elephantchess.xiangqi.Board.Companion.resetFullMoveCount
+import io.elephantchess.xiangqi.AbstractXiangqiBoard.Companion.defaultStartFen
 import io.elephantchess.xiangqi.Color
 import io.elephantchess.xiangqi.Variant
+import io.elephantchess.xiangqi.XiangqiBoard
+import io.elephantchess.xiangqi.XiangqiBoard.Companion.resetFullMoveCount
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils.insecure
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.koin.core.component.inject
 import java.io.File
 import java.time.LocalDate
@@ -48,6 +52,7 @@ private val CSV_HEADER = arrayOf(
     "game_status",
     "outcome",
     "game_join_source",
+    "matching_time_seconds",
     "move_analysis",
     "engine_analysis",
     "cpl",
@@ -55,6 +60,7 @@ private val CSV_HEADER = arrayOf(
     "red_user_type",
     "black_account_age",
     "black_user_type",
+    "has_sock_puppet_report",
 )
 
 object ExtractPvpMovesToCsv : KoinScriptInit() {
@@ -74,6 +80,22 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
     private suspend fun exportCsv(outputPath: String, mustAnonymize: Boolean, variant: Variant) {
         val inviterUser = USER.`as`("inviter_user")
         val inviteeUser = USER.`as`("invitee_user")
+
+        val joinedTime = DSL.field(
+            DSL
+                .select(DSL.min(GAME_STATUS_EVENT.EVENT_TIME))
+                .from(GAME_STATUS_EVENT)
+                .where(GAME_STATUS_EVENT.GAME_ID.eq(GAME.ID))
+                .and(GAME_STATUS_EVENT.EVENT_TYPE.eq(JOINED)),
+        )
+        val matchingTimeSeconds = diffInSeconds(joinedTime, GAME.CREATED)
+        val hasSockPuppetReport = DSL.field(
+            DSL.exists(
+                DSL.selectOne()
+                    .from(GAME_SOCK_PUPPET_DETECTION)
+                    .where(GAME_SOCK_PUPPET_DETECTION.GAME_ID.eq(GAME.ID)),
+            ),
+        )
 
         val rows = dslContext
             .select(
@@ -104,6 +126,8 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                 inviteeUser.HANDLE,
                 inviteeUser.CREATION,
                 inviteeUser.USER_TYPE,
+                matchingTimeSeconds,
+                hasSockPuppetReport,
             )
             .from(GAME)
             .join(GAME_MOVE).on(GAME_MOVE.GAME_ID.eq(GAME.ID))
@@ -119,14 +143,14 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
         // We also keep the full FEN of the position *before* each move so we can replay the engine's best move.
         // The first event time seen per game (rows ordered by position asc) is also captured here.
         var currentGameId: String? = null
-        var board = Board(Board.defaultStartFen(variant))
+        var board = XiangqiBoard(defaultStartFen(variant))
         val fenBeforeMove = mutableListOf<String>()
         val firstMoveTimeByGameId = mutableMapOf<String, Instant>()
         val fenKeys = rows.map { row ->
             val gameId = row.get(GAME.ID)
             if (gameId != currentGameId) {
                 currentGameId = gameId
-                board = Board(Board.defaultStartFen(variant))
+                board = XiangqiBoard(defaultStartFen(variant))
                 val eventTime = row.get(GAME_MOVE.EVENT_TIME)
                 if (eventTime != null) firstMoveTimeByGameId[gameId] = eventTime
             }
@@ -196,7 +220,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                         val inviterColor = row.get(GAME.INVITER_COLOR)
                         val inviterHandle = row.get(inviterUser.HANDLE) ?: guestName(row.get(inviterUser.ID))
                         val inviteeHandle = row.get(inviteeUser.HANDLE) ?: guestName(row.get(inviteeUser.ID))
-                        val inviterIsRed = inviterColor == Color.RED
+                        val inviterIsRed = inviterColor == Color.WHITE
                         val redHandle = if (inviterIsRed) inviterHandle else inviteeHandle
                         val blackHandle = if (inviterIsRed) inviteeHandle else inviterHandle
                         val redPlayerName = anonymizedNames[redHandle] ?: redHandle
@@ -221,7 +245,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                             ?.bestMove
                             ?.let { bestMove ->
                                 runCatching {
-                                    val bestMoveBoard = Board(fenBeforeMove[index])
+                                    val bestMoveBoard = XiangqiBoard(fenBeforeMove[index])
                                     bestMoveBoard.registerMove(bestMove)
                                     resetFullMoveCount(bestMoveBoard.outputFen())
                                 }.getOrNull()
@@ -277,6 +301,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 row.get(GAME.GAME_STATUS)?.name ?: "",
                                 row.get(GAME.OUTCOME)?.name ?: "",
                                 simplifiedJoinSource,
+                                row.get(matchingTimeSeconds)?.toString() ?: "",
                                 actualMoveAnalysis?.line ?: "",
                                 engineBestAnalysis?.line ?: "",
                                 cpl?.toString() ?: "",
@@ -284,6 +309,7 @@ object ExtractPvpMovesToCsv : KoinScriptInit() {
                                 redUserType?.name ?: "",
                                 blackAccountAge,
                                 blackUserType?.name ?: "",
+                                row.get(hasSockPuppetReport).toString(),
                             ),
                         )
                     }

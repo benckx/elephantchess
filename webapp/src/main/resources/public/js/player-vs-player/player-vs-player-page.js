@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,6 +154,9 @@ class PlayGamePage extends BasePage {
                 () => {
                     this.#boardGui.flipToColor(this.#gameController.gameDto.colorUserPlaysWith);
                     this.#updatePlayersInfo();
+                    // refresh the action buttons (resign / propose draw / cancel) so they
+                    // reflect the now in-progress game without requiring a page reload
+                    this.#updateGui();
                     if (this.#gameController.gameDto.userStatus !== UserStatus.INVITEE) {
                         UI.pushInfoNotification(`${this.#gameController.gameDto.inviteeUsername} has joined the game`, 4_000);
                         if (this.#settingsManager.isPlaySoundsEnabled) {
@@ -212,6 +215,7 @@ class PlayGamePage extends BasePage {
                     }
 
                     this.#renderAnalysisSummaryReportIfAvailable();
+                    this.#updateButtonsEnabled();
                 },
                 (chatMessages, acks) => {
                     this.#handleChatMessages(chatMessages, acks);
@@ -259,10 +263,12 @@ class PlayGamePage extends BasePage {
 
             this.#shareLinkActions.forEach((link) =>
                 link.addEventListener('click', () => {
-                    navigator
-                        .clipboard
-                        .writeText(getFullHost() + '/game?id=' + this.#gameController.gameId)
-                        .then(() => UI.pushInfoNotification('Game link copied to clipboard!'));
+                    shareOrCopyLink(
+                        getFullHost() + '/game?id=' + this.#gameController.gameId,
+                        'elephantchess.io: game',
+                        'Join my game on elephantchess.io: ',
+                        'Game link copied to clipboard!'
+                    );
                 })
             );
 
@@ -312,11 +318,26 @@ class PlayGamePage extends BasePage {
         this.#updateGameStatusInfo();
         this.#updateButtonsEnabled();
         this.#chatBoxWidget.enable(this.#gameController.isAllowedToSendChat(userIdOrNull()));
+        this.#updateScreenWakeLock();
+    }
+
+    /**
+     * Keep the screen awake (e.g. on mobile) until the game is finished
+     */
+    #updateScreenWakeLock() {
+        if (this.#gameController.isGameFinished()) {
+            ScreenWakeLock.release();
+        } else {
+            ScreenWakeLock.keepAwake();
+        }
     }
 
     #initBoard() {
         if (this.#gameController.gameDto.isManchu) {
+            this.#moveTreeWidget.variant = Variant.MANCHU;
             this.#moveTreeWidget.startFen = MANCHU_START_FEN;
+        } else {
+            this.#moveTreeWidget.variant = Variant.XIANGQI;
         }
 
         if (!this.#gameController.isGameFinished()) {
@@ -390,7 +411,7 @@ class PlayGamePage extends BasePage {
         }
 
         // update clock orientation
-        const colorUserPlaysWith = this.#gameController.gameDto.colorUserPlaysWith || Color.RED;
+        const colorUserPlaysWith = this.#gameController.gameDto.colorUserPlaysWith || Color.WHITE;
         this.#updateClocksOrientation(colorUserPlaysWith);
 
         // update clocks
@@ -561,7 +582,7 @@ class PlayGamePage extends BasePage {
             let inviteeDiv = null;
 
             switch (gameDto.inviterColor) {
-                case Color.RED:
+                case Color.WHITE:
                     inviterDiv = this.#redPlayerInfo;
                     inviteeDiv = this.#blackPlayerInfo;
                     this.#redPlayerInfo.style.display = 'block';
@@ -630,7 +651,7 @@ class PlayGamePage extends BasePage {
     #updateGameStatusInfo() {
         function colorToStatusText(color) {
             switch (color) {
-                case Color.RED:
+                case Color.WHITE:
                     return 'Red to play';
                 case Color.BLACK:
                     return 'Black to play';
@@ -664,7 +685,7 @@ class PlayGamePage extends BasePage {
         if (this.#gameController.isGameFinished()) {
             statusText = dto.formattedStatusOfFinishedGame;
             if (dto.outcome != null) {
-                outcomeText = formatEnumValue(dto.outcome);
+                outcomeText = formatXiangqiOutcome(dto.outcome);
                 if (dto.userHasWon()) {
                     outcomeText += ' (you won)';
                 } else if (dto.userHasLost()) {
@@ -708,7 +729,12 @@ class PlayGamePage extends BasePage {
             this.#showGameActionButtonsBlock(false);
         }
 
-        if (this.#gameController.isGameFinished() && !this.#gameController.gameDto.isManchu) {
+        const canAnalyze =
+            this.#gameController.isGameFinished() &&
+            this.#moveTreeWidget.getMainBranchNodes().length > 0 &&
+            !this.#gameController.gameDto.isManchu;
+
+        if (canAnalyze) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, 'You can analyse the game with the Analysis Board tool');
@@ -716,7 +742,9 @@ class PlayGamePage extends BasePage {
         } else {
             const tooltip = this.#gameController.gameDto.isManchu
                 ? 'Analysis is not supported for Manchu variant games'
-                : 'Game must be finished before you can analyze it. If you want to analyze this game now, you have to resign first.';
+                : this.#gameController.isGameFinished()
+                    ? 'Games without moves cannot be analyzed.'
+                    : 'Game must be finished before you can analyze it. If you want to analyze this game now, you have to resign first.';
             this.#analyzeButtons.forEach((button) => {
                 button.classList.add('app-buttons-disabled');
                 addToolTip(button, tooltip);
@@ -768,7 +796,7 @@ class PlayGamePage extends BasePage {
         }
 
         switch (color) {
-            case Color.RED:
+            case Color.WHITE:
                 this.#topCounter.classList.add('black-counter');
                 this.#bottomCounter.classList.add('red-counter');
                 this.#miniTopCounter.classList.add('black-counter');

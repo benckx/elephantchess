@@ -1,8 +1,8 @@
 package io.elephantchess.scripts
 
-import io.elephantchess.xiangqi.Board
 import io.elephantchess.xiangqi.Color.BLACK
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
+import io.elephantchess.xiangqi.XiangqiBoard
 import io.elephantchess.xiangqi.testutils.GameMovesDtoCache
 import io.elephantchess.xiangqi.testutils.Ops.moves
 
@@ -13,11 +13,11 @@ fun main() {
         .listAll()
         .forEach { game ->
             try {
-                val board = Board(keepHistory = true)
+                val board = XiangqiBoard(keepHistory = true)
                 board.registerMoves(game.moves())
                 val history = board.getHistory()!!
 
-                listOf(RED, BLACK).forEach { color ->
+                listOf(WHITE, BLACK).forEach { color ->
                     val map = history.findSequencesOfConsecutiveChecks(color)
                     if (map.isNotEmpty()) {
                         println("gameId: ${game.gameId} [$color]")

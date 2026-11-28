@@ -111,6 +111,9 @@ fun Field<LocalDate>.centuryOfDay(): Field<Int> =
 fun diffInSeconds(f1: Field<Instant>, f2: Field<Instant>): Field<Int> =
     DSL.extract(f1, DatePart.EPOCH).minus(DSL.extract(f2, DatePart.EPOCH))
 
+fun diffInMillis(f1: Field<Instant>, f2: Field<Instant>): Field<Long> =
+    diffInSeconds(f1, f2).cast(Long::class.java).mul(1000L)
+
 fun Field<Instant>.isAfter(timestamp: Instant): Condition =
     greaterThan(timestamp)
 

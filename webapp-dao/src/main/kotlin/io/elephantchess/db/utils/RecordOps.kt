@@ -54,6 +54,8 @@ fun User.rating(timeControlCategory: TimeControlCategory, variant: Variant = Var
             TimeControlCategory.SEVERAL_DAYS -> gameRatingManchuSeveralDays
             TimeControlCategory.CORRESPONDENCE -> gameRatingManchuCorrespondence
         }
+
+        Variant.JANGGI -> error("Janggi ratings are not supported yet")
     }
 
 fun Analysis.gameId(): GameId? =
@@ -76,7 +78,7 @@ fun MoveAnalysis.setGameId(gameId: GameId) {
 }
 
 fun Color.asWinnerOutcome(): Outcome =
-    if (this == Color.RED) Outcome.RED_WINS else Outcome.BLACK_WINS
+    if (this == Color.WHITE) Outcome.WHITE_WINS else Outcome.BLACK_WINS
 
 fun Color.asLoserOutcome(): Outcome =
     this.reverse().asWinnerOutcome()
@@ -110,7 +112,7 @@ fun Game.opponentColorOf(userId: String): Color? =
     opponentOf(userId)?.let { opponentUserId -> userColor(opponentUserId) }
 
 fun Game.colorToPlay(): Color =
-    if (this.currentHalfMoveIndex % 2 == 0) Color.RED else Color.BLACK
+    if (this.currentHalfMoveIndex % 2 == 0) Color.WHITE else Color.BLACK
 
 fun Game.userColor(userId: String): Color? {
     val isUserInviter = userId == this.inviter
@@ -135,9 +137,9 @@ fun Game.userOutcome(userId: String): UserOutcome? =
 
         RESIGNED, CHECKMATED, STALEMATED, FLAGGED, PERPETUAL_CHECKING -> {
             when (userColor(userId)) {
-                Color.RED -> {
+                Color.WHITE -> {
                     when (this.outcome) {
-                        Outcome.RED_WINS -> UserOutcome.WIN
+                        Outcome.WHITE_WINS -> UserOutcome.WIN
                         Outcome.BLACK_WINS -> UserOutcome.LOSS
                         Outcome.DRAW -> UserOutcome.DRAW
                         else -> null
@@ -146,7 +148,7 @@ fun Game.userOutcome(userId: String): UserOutcome? =
 
                 Color.BLACK -> {
                     when (this.outcome) {
-                        Outcome.RED_WINS -> UserOutcome.LOSS
+                        Outcome.WHITE_WINS -> UserOutcome.LOSS
                         Outcome.BLACK_WINS -> UserOutcome.WIN
                         Outcome.DRAW -> UserOutcome.DRAW
                         else -> null
@@ -181,7 +183,7 @@ private fun Game.userIds(): List<String> =
     listOfNotNull(inviter, invitee)
 
 fun Game.redUserId() =
-    userIdByColor(Color.RED)
+    userIdByColor(Color.WHITE)
 
 fun Game.blackUserId() =
     userIdByColor(Color.BLACK)

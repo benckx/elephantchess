@@ -9,7 +9,9 @@ class FairyStockfishEngineProcess(
     locator: EngineProcessLocator = LocalProcessLocator,
     version: String?,
     private val numberOfThreads: Int,
-) : EngineProcess(locator, FairyStockfishEngineId, version) {
+    osName: String? = null,
+    osArch: String? = null,
+) : EngineProcess(locator, FairyStockfishEngineId, version, osName, osArch) {
 
     override val logger = KotlinLogging.logger {}
 
@@ -27,3 +29,13 @@ class FairyStockfishEngineProcess(
         }
     }
 }
+
+/**
+ * The Fairy Stockfish variant name used with `setoption name UCI_Variant value <name>`.
+ */
+fun Variant.fairyStockfishVariantName(): String =
+    when (this) {
+        Variant.XIANGQI -> "xiangqi"
+        Variant.MANCHU -> "manchu"
+        Variant.JANGGI -> "janggitraditional"
+    }

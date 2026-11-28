@@ -17,7 +17,7 @@ class GamePageRendererTest {
     fun `pvp page title contains both player names`() {
         assertEquals(
             "alice vs. bob",
-            GamePageRenderer.formatPvpPageTitle("alice", "bob", Color.RED),
+            GamePageRenderer.formatPvpPageTitle("alice", "bob", Color.WHITE),
         )
     }
 
@@ -49,7 +49,7 @@ class GamePageRendererTest {
     fun `pvb page title puts human first when playing red`() {
         assertEquals(
             "alice vs. Fairy Stockfish (5)",
-            GamePageRenderer.formatPvbPageTitle("alice", Color.RED, Engine.FAIRYSTOCKFISH, 5),
+            GamePageRenderer.formatPvbPageTitle("alice", Color.WHITE, Engine.FAIRYSTOCKFISH, 5),
         )
     }
 
@@ -65,7 +65,7 @@ class GamePageRendererTest {
     fun `pvb page title uses anonymous fallback`() {
         assertEquals(
             "anonymous vs. Pikafish (8)",
-            GamePageRenderer.formatPvbPageTitle(null, Color.RED, Engine.PIKAFISH, 8),
+            GamePageRenderer.formatPvbPageTitle(null, Color.WHITE, Engine.PIKAFISH, 8),
         )
     }
 }

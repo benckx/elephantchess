@@ -10,7 +10,7 @@ import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
+import io.ktor.serialization.jackson3.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -28,13 +28,14 @@ import java.io.IOException
 import java.nio.channels.ClosedChannelException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.*
+import java.util.concurrent.CancellationException as JavaCancellationException
 
 class ExceptionHandlerTest {
 
     private val exceptionService = mock<ExceptionService>()
     private val simplePageRenderer = mock<SimplePageRenderer> {
-        on { renderTemplate(eq("404"), any()) } doReturn "<html>not found page</html>"
-        on { renderTemplate(eq("500"), any()) } doReturn "<html>error page</html>"
+        on { renderTemplate(eq("errors/404"), any()) } doReturn "<html>not found page</html>"
+        on { renderTemplate(eq("errors/500"), any()) } doReturn "<html>error page</html>"
     }
 
     private val rootLogger = LoggerFactory.getLogger(ROOT_LOGGER_NAME) as Logger
@@ -84,6 +85,7 @@ class ExceptionHandlerTest {
     fun `isClientDisconnectException detects client disconnects in the cause chain`() {
         assertTrue(isClientDisconnectException(ClosedChannelException()))
         assertTrue(isClientDisconnectException(CancellationException("cancelled")))
+        assertTrue(isClientDisconnectException(JavaCancellationException("HTTP upgrade has been cancelled")))
         assertTrue(isClientDisconnectException(IOException("Broken pipe")))
         assertTrue(isClientDisconnectException(IOException("Connection reset by peer")))
         assertTrue(isClientDisconnectException(UnsupportedOperationException("response was already completed")))
@@ -134,6 +136,15 @@ class ExceptionHandlerTest {
             verifyNoInteractions(exceptionService)
         }
 
+    @Test
+    fun `Java CancellationException from HTTP upgrade cancellation is not saved`() =
+        testExceptionHandler({
+            get("/test") { throw JavaCancellationException("HTTP upgrade has been cancelled") }
+        }) {
+            runCatching { client.get("/test") }
+            verifyNoInteractions(exceptionService)
+        }
+
     // --- 404 ---
 
     @Test
@@ -170,10 +181,21 @@ class ExceptionHandlerTest {
             "/_profiler/phpinfo",
             "/actuator/health",
             "/api/config.json",
+            "/application.properties",
+            "/debug/default/view?panel=config",
             "/firebase-config.js",
+            "/server.js",
             "/onboarding",
             "/login",
             "/dashboard/billing",
+            "/dashboard/analytics",
+            "/backoffice",
+            "/deployments",
+            "/pipelines",
+            "/_image?href=/../../../.env",
+            "/ngsw.json",
+            "/sitemap_index.xml",
+            "/%2Fadmin",
             "/public/admin.json",
             "/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200/",
         ],

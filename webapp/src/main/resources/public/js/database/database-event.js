@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ class DatabaseEventPage extends BasePage {
                 const gameId = row.getAttribute('data-game-id');
 
                 if (fen && gameId) {
-                    addMiniboardDiv(row, gameId, fen, Color.RED, true);
+                    addMiniboardDiv(row, gameId, fen, Color.WHITE, true);
                     row.addEventListener('click', () => {
                         window.location.href = `/database/game?id=${gameId}`;
                     });

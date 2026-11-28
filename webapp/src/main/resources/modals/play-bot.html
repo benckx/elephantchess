@@ -28,6 +28,17 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="icons-cells"></td>
+                    <td class="button-cells">
+                        <div id="variant-janggi-bot"
+                             data-variant="JANGGI"
+                             class="option-button-div bot-variant-option-button-div">
+                            장 Janggi
+                        </div>
+                    </td>
+                    <td class="button-cells"></td>
+                </tr>
+                <tr>
                     <td class="icons-cells">
                         <div class="center-content-div">
                             <img src="/images/icons/contrast-circle-symbol.png"
@@ -112,26 +123,54 @@
             </div>
             <div class="modal-form-label">
                 <h3>Starting Position</h3>
-                <div class="standard-radio">
-                    <span>
-                        <input type="radio" id="start-fen-standard" name="start-position-radio" value="Standard"
-                               checked="checked">
-                    </span>
-                    <span class="label-span">
-                        <label for="start-fen-standard">Standard</label>
-                    </span>
+                <div id="starting-position-options">
+                    <div id="janggi-setup-selectors"
+                         class="janggi-setup-selectors play-bot-janggi-setup-selectors"
+                         style="visibility: hidden">
+                        <div>
+                            <label for="janggi-blue-setup" class="janggi-setup-label-blue">Blue setup</label>
+                            <select id="janggi-blue-setup" class="janggi-setup-select-blue">
+                                <option value="rnba1abnr" selected>Inner Elephant</option>
+                                <option value="rbna1anbr">Outer Elephant</option>
+                                <option value="rnba1anbr">Right Elephant</option>
+                                <option value="rbna1abnr">Left Elephant</option>
+                                <option value="bnra1arnb">Central Chariot</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="janggi-red-setup" class="janggi-setup-label-red">Red setup</label>
+                            <select id="janggi-red-setup" class="janggi-setup-select-red">
+                                <option value="rnba1abnr" selected>Inner Elephant</option>
+                                <option value="rbna1anbr">Outer Elephant</option>
+                                <option value="rnba1anbr">Right Elephant</option>
+                                <option value="rbna1abnr">Left Elephant</option>
+                                <option value="bnra1arnb">Central Chariot</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="start-fen-options">
+                        <div class="standard-radio">
+                        <span>
+                            <input type="radio" id="start-fen-standard" name="start-position-radio" value="Standard"
+                                   checked="checked">
+                        </span>
+                            <span class="label-span">
+                            <label for="start-fen-standard">Standard</label>
+                        </span>
+                        </div>
+                        <div class="standard-radio">
+                        <span>
+                            <input type="radio" id="start-fen-custom" name="start-position-radio" value="Custom">
+                        </span>
+                            <span class="label-span">
+                            <label for="start-fen-custom">Custom</label>
+                        </span>
+                        </div>
+                        <input id="start-fen" type="text"
+                               value="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
+                               style="margin-top: 5px" disabled/>
+                    </div>
                 </div>
-                <div class="standard-radio">
-                    <span>
-                        <input type="radio" id="start-fen-custom" name="start-position-radio" value="Custom">
-                    </span>
-                    <span class="label-span">
-                        <label for="start-fen-custom">Custom</label>
-                    </span>
-                </div>
-                <input id="start-fen" type="text"
-                       value="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 0"
-                       style="margin-top: 5px" disabled/>
             </div>
         </div>
     </div>

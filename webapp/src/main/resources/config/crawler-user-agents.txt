@@ -1,5 +1,5 @@
 # Lower-cased substrings identifying well-known search engine and AI crawlers that must never be
-# rate limited on the reference-database pages (protects indexing / SEO). Matched case-insensitively
+# rate limited on the reference-database, PvP and PvB pages (protects indexing / SEO). Matched case-insensitively
 # as a substring against the request User-Agent.
 #
 # One token per line. Blank lines and lines starting with '#' are ignored.

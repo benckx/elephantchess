@@ -3,14 +3,15 @@ package io.elephantchess.servicelayer.services
 import io.elephantchess.config.ArgConfig
 import io.elephantchess.config.DbConfig
 import io.elephantchess.db.utils.getDslContext
+import io.elephantchess.engines.EnginePool
 import io.elephantchess.model.TimeControlMode
 import io.elephantchess.servicelayer.dto.game.CreateGameRequest
 import io.elephantchess.servicelayer.dto.game.JoinGameRequest
 import io.elephantchess.servicelayer.dto.user.SignUpRequest
+import io.elephantchess.servicelayer.koin.serviceLayerModule
 import io.elephantchess.servicelayer.model.UserId
-import io.elephantchess.servicelayer.serviceLayerModule
 import io.elephantchess.xiangqi.Color
-import io.elephantchess.xiangqi.Color.RED
+import io.elephantchess.xiangqi.Color.WHITE
 import io.elephantchess.xiangqi.Variant
 import io.elephantchess.xiangqi.testutils.GameMovesDtoCache
 import io.elephantchess.xiangqi.testutils.ManchuGameMovesDtoCache
@@ -34,6 +35,7 @@ abstract class ServiceTest :
     protected val gameMovesCache by lazy { GameMovesDtoCache() }
     protected val manchuGameMovesCache by lazy { ManchuGameMovesDtoCache() }
     protected val userService by inject<UserService>()
+    protected open val enginesPool: EnginePool? = null
     protected val pvpGameService by inject<PlayerVsPlayerGameService>()
 
     @BeforeAll
@@ -43,6 +45,7 @@ abstract class ServiceTest :
             modules(
                 serviceLayerModule(
                     argConfig = ArgConfig("local", null),
+                    enginesPool = enginesPool,
                     dslBuilder = {
                         val dbConfig = DbConfig(
                             dbName = "postgres",
@@ -86,7 +89,7 @@ abstract class ServiceTest :
     protected suspend fun createAndJoinGame(
         inviter: UserId,
         invitee: UserId,
-        inviterColor: Color = RED,
+        inviterColor: Color = WHITE,
         isRated: Boolean = true,
         timeControlBase: Int = 30.minutes.inWholeSeconds.toInt(),
         timeControlIncrement: Int? = null,
@@ -107,6 +110,7 @@ abstract class ServiceTest :
                 allowGuests = allowGuests,
                 alwaysVisibleInLobby = alwaysVisibleInLobby,
                 privateInvite = privateInvite,
+                allowSimilarTimeCategory = true,
                 variant = variant,
             ),
         )

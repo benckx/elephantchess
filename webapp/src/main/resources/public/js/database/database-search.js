@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
     #last30DaysRangeSelector = document.getElementById('range-selector-30d');
 
     #featuredPlayersList = document.getElementById('featured-players-list');
+    #randomizeFeaturedPlayersButton = document.getElementById('randomize-featured-players-button');
 
     // Search parameters
     #currentPlayerName = null;
@@ -55,6 +56,9 @@ class DatabaseSearchPage extends InfiniteScrollPage {
 
         this.#fetchTotalGames();
         this.#fetchFeaturedPlayers();
+        this.#randomizeFeaturedPlayersButton.addEventListener('click', () => {
+            this.#fetchFeaturedPlayers();
+        });
 
         document
             .getElementsByTagName('html')
@@ -358,7 +362,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             } else {
                 // use the Outcome enum for proper type checking
                 switch (entry.outcome) {
-                    case Outcome.RED_WINS:
+                    case Outcome.WHITE_WINS:
                         outcomeDiv.textContent = 'RED';
                         outcomeDiv.classList.add('outcome-label-red-wins');
                         break;
@@ -395,7 +399,7 @@ class DatabaseSearchPage extends InfiniteScrollPage {
 
         // miniboard
         if (entry.finalFen != null) {
-            addMiniboardDiv(gameItem, entry.gameId.id, entry.finalFen, Color.RED);
+            addMiniboardDiv(gameItem, entry.gameId.id, entry.finalFen, Color.WHITE);
         }
 
         return gameItem;
@@ -419,13 +423,13 @@ class DatabaseSearchPage extends InfiniteScrollPage {
             return null;
         }
 
-        if (entry.userColor === Color.RED || entry.userColor === Color.BLACK) {
+        if (entry.userColor === Color.WHITE || entry.userColor === Color.BLACK) {
             return entry.userColor;
         }
 
         if (this.#currentPlayerIds.length > 0) {
             if (entry.redPlayerId != null && this.#currentPlayerIds.includes(entry.redPlayerId)) {
-                return Color.RED;
+                return Color.WHITE;
             }
             if (entry.blackPlayerId != null && this.#currentPlayerIds.includes(entry.blackPlayerId)) {
                 return Color.BLACK;
@@ -436,14 +440,14 @@ class DatabaseSearchPage extends InfiniteScrollPage {
         const redPlayerName = this.#normalizePlayerName(entry.redPlayerName);
         const blackPlayerName = this.#normalizePlayerName(entry.blackPlayerName);
         if (redPlayerName === searchedPlayerName) {
-            return Color.RED;
+            return Color.WHITE;
         }
         if (blackPlayerName === searchedPlayerName) {
             return Color.BLACK;
         }
 
         if (this.#currentPlayerColor === 'red') {
-            return Color.RED;
+            return Color.WHITE;
         }
         if (this.#currentPlayerColor === 'black') {
             return Color.BLACK;

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2026  Encelade SRL
- * Copyright (C) 2026  elephantchess.io
- * Copyright (C) 2026  Benoît Vleminckx (benckx)
+ * Copyright (C) 2023-2026 Encelade SRL
+ * Copyright (C) 2023-2026 elephantchess.io
+ * Copyright (C) 2023-2026 Benoît Vleminckx (benckx)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ class TimeControlClock {
 
     decrement(color) {
         switch (color) {
-            case Color.RED:
+            case Color.WHITE:
                 this.#redMillis -= 1_000;
                 if (this.#redMillis < 0) {
                     this.#redMillis = 0;
@@ -110,7 +110,7 @@ class TimeControlClock {
      */
     increment(color, millis) {
         switch (color) {
-            case Color.RED:
+            case Color.WHITE:
                 this.#redMillis += millis;
                 break;
             case Color.BLACK:
@@ -128,7 +128,7 @@ class TimeControlClock {
      */
     resetToBaseTime(base, color) {
         switch (color) {
-            case Color.RED:
+            case Color.WHITE:
                 this.#redMillis = base.toMillis();
                 break;
             case Color.BLACK:
@@ -275,7 +275,7 @@ class GameDto {
      */
     get inviterColor() {
         switch (this.#inviterColor) {
-            case Color.RED:
+            case Color.WHITE:
             case Color.BLACK:
                 return this.#inviterColor;
             default:
@@ -450,7 +450,7 @@ class GameDto {
      * @return {string}
      */
     get colorToPlay() {
-        return this.#moveIndex % 2 === 0 ? Color.RED : Color.BLACK;
+        return this.#moveIndex % 2 === 0 ? Color.WHITE : Color.BLACK;
     }
 
     /**
@@ -503,7 +503,7 @@ class GameDto {
         if (this.inviterColor == null) {
             return null;
         } else {
-            return this.inviterColor === Color.RED ? this.inviterId : this.inviteeId;
+            return this.inviterColor === Color.WHITE ? this.inviterId : this.inviteeId;
         }
     }
 
@@ -514,7 +514,7 @@ class GameDto {
         if (this.inviterColor == null) {
             return null;
         } else {
-            return this.inviterColor === Color.RED ? this.inviterUsername : this.inviteeUsername;
+            return this.inviterColor === Color.WHITE ? this.inviterUsername : this.inviteeUsername;
         }
     }
 
@@ -669,11 +669,11 @@ class GameDto {
         if (this.#timeControlMode === TimeControlMode.MOVE_TIME) {
             let base = this.#timeControl?.base;
             switch (this.colorToPlay) {
-                case Color.RED:
+                case Color.WHITE:
                     this.#timeControlClock?.resetToBaseTime(base, Color.BLACK);
                     break;
                 case Color.BLACK:
-                    this.#timeControlClock?.resetToBaseTime(base, Color.RED);
+                    this.#timeControlClock?.resetToBaseTime(base, Color.WHITE);
                     break;
                 default:
                     throw new Error(`Invalid color: ${this.colorToPlay}`);
@@ -799,14 +799,14 @@ class GameDto {
 
     userHasWon() {
         const userColor = this.colorUserPlaysWith;
-        return (userColor === Color.RED && this.#outcome === Outcome.RED_WINS) ||
+        return (userColor === Color.WHITE && this.#outcome === Outcome.WHITE_WINS) ||
             (userColor === Color.BLACK && this.#outcome === Outcome.BLACK_WINS);
     }
 
     userHasLost() {
         const userColor = this.colorUserPlaysWith;
-        return (userColor === Color.RED && this.#outcome === Outcome.BLACK_WINS) ||
-            (userColor === Color.BLACK && this.#outcome === Outcome.RED_WINS);
+        return (userColor === Color.WHITE && this.#outcome === Outcome.BLACK_WINS) ||
+            (userColor === Color.BLACK && this.#outcome === Outcome.WHITE_WINS);
     }
 
     get hasRatingUpdate() {
@@ -839,7 +839,7 @@ class GameDto {
         }
 
         switch (this.outcome) {
-            case Outcome.RED_WINS:
+            case Outcome.WHITE_WINS:
                 metadata.set('Result', '1-0');
                 break;
             case Outcome.BLACK_WINS:
@@ -856,7 +856,7 @@ class GameDto {
 
         if (this.inviterRating != null && this.inviteeRating != null) {
             switch (this.inviterColor) {
-                case Color.RED:
+                case Color.WHITE:
                     metadata.set('WhiteElo', this.inviterRating);
                     metadata.set('BlackElo', this.inviteeRating);
                     break;
