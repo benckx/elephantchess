@@ -27,7 +27,7 @@
     height: 100%;
     left: 0;
     top: 0;
-    z-index: 110;
+    z-index: var(--z-board-svg, 110);
     pointer-events: none;
 }
 
@@ -76,7 +76,7 @@
 a.board-outer-container-link-mask {
     position: absolute;
     aspect-ratio: 0.9;
-    z-index: 150;
+    z-index: var(--z-board-link-mask, 150);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -111,7 +111,7 @@ a.board-outer-container-link-mask {
     position: absolute;
     border-radius: 100%;
     box-shadow: rgba(0, 0, 0, 0.24) 0px 2px 5px;
-    z-index: 100;
+    z-index: var(--z-board-piece, 100);
 }
 
 .piece-holder .piece-image-janggi {
@@ -148,7 +148,7 @@ a.board-outer-container-link-mask {
 }
 
 .piece-holder .piece-image-moving {
-    z-index: 110;
+    z-index: var(--z-board-moving-piece, 110);
 }
 
 .crosshair-square {
@@ -157,7 +157,7 @@ a.board-outer-container-link-mask {
     /*background-color: rgba(0, 0, 227, 0.47);*/
     width: 19%;
     height: 19%;
-    z-index: 80;
+    z-index: var(--z-board-crosshair, 80);
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
 }
@@ -314,7 +314,7 @@ a.board-outer-container-link-mask {
 .mini-board-overview {
     display: none;
     position: absolute;
-    z-index: 700;
+    z-index: var(--z-mini-board-overview, 700);
     max-width: 236px;
     width: 236px;
     padding: 8px;
@@ -366,7 +366,7 @@ a.board-outer-container-link-mask {
 .highlighted-last-move {
     position: absolute;
     border-radius: 100%;
-    z-index: 10;
+    z-index: var(--z-board-highlight, 10);
 }
 
 .selected-piece,

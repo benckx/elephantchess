@@ -72,6 +72,15 @@ class TokenManager(
         return tokenBuilder.sign(algorithm)
     }
 
+    /**
+     * Drops the cached "is allowed" entry for the user so a token stops being accepted immediately,
+     * e.g. right after the account is deleted/anonymized (otherwise the cache keeps it valid for up
+     * to the cache TTL).
+     */
+    fun invalidateUser(userId: String) {
+        isUserAllowedCache.invalidate(userId)
+    }
+
     fun verifyToken(token: String): TokenVerificationResult =
         try {
             val decodedJWT = verifier.verify(token)
@@ -92,7 +101,11 @@ class TokenManager(
             } else {
                 when (tokenType) {
                     UserType.AUTHENTICATED, null -> AuthenticatedToken(userId, decodedJWT)
+
                     UserType.GUEST -> GuestToken(userId, decodedJWT)
+
+                    // anonymized users never receive a token and cannot authenticate
+                    UserType.ANONYMIZED -> InvalidToken(UnauthorizedException("anonymized user $userId cannot authenticate"))
                 }
             }
         } catch (e: Exception) {

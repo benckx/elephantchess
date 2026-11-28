@@ -78,6 +78,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         userType: UserType,
         userId: String,
         variant: Variant,
+        allowSimilarTimeCategory: Boolean,
     ): List<Game> {
         var query =
             dslContext
@@ -85,15 +86,26 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 .from(GAME)
                 .where(GAME.GAME_STATUS.eq(CREATED))
                 .and(GAME.TIME_CONTROL_MODE.eq(timeControlMode))
-                .and(GAME.TIME_CONTROL_BASE.eq(timeControlBase))
                 .and(GAME.IS_RATED.eq(isRated))
                 .and(GAME.INVITER.notEqual(userId))
                 .and(GAME.PRIVATE_INVITE.eq(false))
                 .and(GAME.VARIANT.eq(variant))
 
-        query = when (timeControlIncrement) {
-            null -> query.and(GAME.TIME_CONTROL_INCREMENT.isNull)
-            else -> query.and(GAME.TIME_CONTROL_INCREMENT.eq(timeControlIncrement))
+        val exactTimeControl = GAME.TIME_CONTROL_BASE.eq(timeControlBase)
+            .and(
+                when (timeControlIncrement) {
+                    null -> GAME.TIME_CONTROL_INCREMENT.isNull
+                    else -> GAME.TIME_CONTROL_INCREMENT.eq(timeControlIncrement)
+                },
+            )
+
+        // a similar time control is only acceptable if both the requester and the existing game's inviter allow it
+        query = if (allowSimilarTimeCategory) {
+            query
+                .and(GAME.TIME_CONTROL_CATEGORY.eq(TimeControlCategory.fromSeconds(timeControlBase)))
+                .and(GAME.ALLOW_SIMILAR_TIME_CATEGORY.isTrue.or(exactTimeControl))
+        } else {
+            query.and(exactTimeControl)
         }
 
         query = when (inviterColor) {
@@ -393,6 +405,15 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .from(GAME)
             .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex).or(GAME.GAME_STATUS.`in`(CHECKMATED, STALEMATED)))
             .awaitSingleValue()!!
+
+    suspend fun countGamesOverMoveIndexByCreatedBetween(minMoveIndex: Int, fromInclusive: Instant, toExclusive: Instant): Int =
+        dslContext
+            .selectCount()
+            .from(GAME)
+            .where(GAME.CURRENT_HALF_MOVE_INDEX.ge(minMoveIndex))
+            .and(GAME.CREATED.ge(fromInclusive))
+            .and(GAME.CREATED.lt(toExclusive))
+            .awaitSingleValue() ?: 0
 
     suspend fun countVariantGames(minMoveIndex: Int, variant: Variant): Int {
         val countCondition =
@@ -798,6 +819,11 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             .awaitSingleValue()
     }
 
+    /**
+     * Atomically join a game that is still [CREATED] and has no invitee yet.
+     *
+     * @return `false` if the game was joined (or its status changed) concurrently, in which case nothing is updated
+     */
     suspend fun joinGame(
         userId: String,
         userRating: Int,
@@ -806,7 +832,7 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         timeControlRecord: TimeControlRecord?,
         source: GameJoinSource?,
         sourceId: String?,
-    ) {
+    ): Boolean =
         dslContext.transactionCoroutine { cfg ->
             val now = Clock.System.now()
 
@@ -829,18 +855,54 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
                 update = update.set(GAME.MIN_FLAG_CHECK_TIME, now.plusSeconds(timeControlRecord.base.toLong()))
             }
 
-            update
+            val updatedRows = update
                 .where(GAME.ID.eq(gameId))
+                .and(GAME.GAME_STATUS.eq(CREATED))
+                .and(GAME.INVITEE.isNull)
                 .awaitExecute()
 
-            val gameStatusEvent = GameStatusEvent()
-            gameStatusEvent.gameId = gameId
-            gameStatusEvent.eventType = JOINED
-            gameStatusEvent.userId = userId
-            gameStatusEvent.eventTime = now
-            GameStatusEventDao(cfg).insertReactive(gameStatusEvent)
+            if (updatedRows == 0) {
+                false
+            } else {
+                val gameStatusEvent = GameStatusEvent()
+                gameStatusEvent.gameId = gameId
+                gameStatusEvent.eventType = JOINED
+                gameStatusEvent.userId = userId
+                gameStatusEvent.eventTime = now
+                GameStatusEventDao(cfg).insertReactive(gameStatusEvent)
+                true
+            }
         }
-    }
+
+    /**
+     * Atomically auto-cancel a game, only if it is still [CREATED] (i.e. nobody joined it in the meantime).
+     *
+     * @return `false` if the game was no longer [CREATED]
+     */
+    suspend fun autoCancelIfCreated(gameId: String): Boolean =
+        dslContext.transactionCoroutine { cfg ->
+            val now = Clock.System.now()
+
+            val updatedRows = DSL
+                .using(cfg)
+                .update(GAME)
+                .set(GAME.GAME_STATUS, AUTO_CANCELED)
+                .set(GAME.LAST_UPDATED, now)
+                .where(GAME.ID.eq(gameId))
+                .and(GAME.GAME_STATUS.eq(CREATED))
+                .awaitExecute()
+
+            if (updatedRows == 0) {
+                false
+            } else {
+                val gameStatusEvent = GameStatusEvent()
+                gameStatusEvent.gameId = gameId
+                gameStatusEvent.eventType = AUTO_CANCELED
+                gameStatusEvent.eventTime = now
+                GameStatusEventDao(cfg).insertReactive(gameStatusEvent)
+                true
+            }
+        }
 
     suspend fun updateStatus(userId: String?, gameId: String, status: GameEventType, outcome: Outcome? = null) {
         dslContext.transactionCoroutine { cfg ->
@@ -1222,24 +1284,6 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
             }
     }
 
-    suspend fun transferFromGuestToUser(guestUserId: String, newUserId: String) {
-        dslContext.transactionCoroutine { cfg ->
-            val transaction = DSL.using(cfg)
-
-            transaction.update(GAME)
-                .set(GAME.INVITER, newUserId)
-                .set(GAME.GUEST_USER_ID, guestUserId)
-                .where(GAME.INVITER.eq(guestUserId))
-                .awaitExecute()
-
-            transaction.update(GAME)
-                .set(GAME.INVITEE, newUserId)
-                .set(GAME.GUEST_USER_ID, guestUserId)
-                .where(GAME.INVITEE.eq(guestUserId))
-                .awaitExecute()
-        }
-    }
-
     suspend fun disableAlwaysVisibleInLobbyOptionForUserCreatedGames(userId: String) {
         dslContext.transactionCoroutine { cfg ->
             DSL.using(cfg)
@@ -1251,13 +1295,13 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun pickRandomGameForAnalysis(): String? =
+    suspend fun pickRandomGameForAnalysis(minMoveIndex: Int): String? =
         dslContext
             .select(GAME.ID)
             .from(GAME)
             .where(GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
             .and(GAME.GAME_STATUS.`in`(gameEndedStatuses))
-            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterThan(10))
+            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterOrEqual(minMoveIndex))
             .orderBy(DSL.rand())
             .limit(1)
             .awaitSingleValue()

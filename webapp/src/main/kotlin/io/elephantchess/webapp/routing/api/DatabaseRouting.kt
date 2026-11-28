@@ -102,12 +102,12 @@ fun Route.databaseRoutes() {
                 val dateStart = call.request.queryParameters["dateStart"]
                 val dateEnd = call.request.queryParameters["dateEnd"]
                 val playerName = call.request.queryParameters["playerName"]
-                val playerIds = call.request.queryParameters.getAll("playerIds") ?: emptyList()
+                val playerIds = call.request.queryParameters.getAll("playerIds").orEmpty().flatMap { it.split(",") }
                 val playerColor = call.request.queryParameters["playerColor"]?.let {
                     parsePlayerColorOrThrow(it)
                 }
                 val eventName = call.request.queryParameters["eventName"]
-                val eventIds = call.request.queryParameters.getAll("eventIds") ?: emptyList()
+                val eventIds = call.request.queryParameters.getAll("eventIds").orEmpty().flatMap { it.split(",") }
                 val fen = call.request.queryParameters["fen"]
                 val offset = call.request.queryParameters["continuation"]?.toIntOrNull()
                 call.respond(

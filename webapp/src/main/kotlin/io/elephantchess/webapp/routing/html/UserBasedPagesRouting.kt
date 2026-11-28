@@ -4,14 +4,16 @@ import io.elephantchess.servicelayer.exceptions.BadRequestException
 import io.elephantchess.servicelayer.services.UserService
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.isAdmin
+import io.elephantchess.webapp.ops.optionalIdentification
 import io.elephantchess.webapp.ops.renderTemplateHtmlToCall
 import io.elephantchess.webapp.ops.requireAuthentication
+import io.elephantchess.webapp.ops.requireIdentification
 import io.elephantchess.webapp.ops.respondHtml
 import io.elephantchess.webapp.rendering.SimplePageRenderer
 import io.elephantchess.webapp.rendering.UserProfilePageRenderer
 import io.elephantchess.webapp.rendering.UserSettingsPageRenderer
-import io.ktor.http.*
-import io.ktor.http.content.*
+import io.ktor.http.ContentType
+import io.ktor.http.content.TextContent
 import io.ktor.server.routing.*
 
 fun Route.userBasedPagesRouting() {
@@ -50,22 +52,25 @@ private fun Route.userSettingsPages() {
 
     route("/user/settings") {
         get {
-            requireAuthentication { token ->
+            optionalIdentification { maybeVerifiedToken ->
                 TextContent(
-                    text = userSettingsPageRenderer.renderUserSettingsPage(token.userId),
-                    contentType = ContentType.Text.Html,
+                    userSettingsPageRenderer.renderUserSettingsPage(maybeVerifiedToken),
+                    ContentType.Text.Html,
                 )
             }
         }
         get("/sessions") {
-            requireAuthentication {
+            requireIdentification {
                 simplePageRenderer.renderTemplateHtmlToCall("user_sessions")
             }
         }
         get("/views") {
-            requireAuthentication {
+            requireIdentification {
                 simplePageRenderer.renderTemplateHtmlToCall("user_views")
             }
+        }
+        get("/delete-account") {
+            call.respondHtml(simplePageRenderer.renderTemplate("user_delete_account"))
         }
     }
 }

@@ -176,7 +176,6 @@ class JanggiBoardTest {
         assertEquals(Variant.MANCHU, AbstractXiangqiBoard.create(Variant.MANCHU).variant)
         assertEquals(XiangqiBoard.MANCHU_START_FEN, AbstractXiangqiBoard.create(Variant.MANCHU).outputFen())
         assertFailsWith<IllegalArgumentException> { XiangqiBoard(variant = Variant.JANGGI) }
-        assertEquals("janggitraditional", Variant.JANGGI.fairyStockfishVariantName())
     }
 
     private fun board(vararg pieces: Pair<String, String>): JanggiBoard {

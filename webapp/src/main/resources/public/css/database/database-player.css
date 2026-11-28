@@ -22,8 +22,16 @@
     margin-bottom: 12px;
 }
 
-#profile-meta-info {
+#profile-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
     margin-bottom: 15px;
+}
+
+#profile-meta-info {
     font-size: 13px;
 }
 

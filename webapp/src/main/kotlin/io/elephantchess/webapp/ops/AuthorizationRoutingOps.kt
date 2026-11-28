@@ -20,7 +20,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 
-private val opsLogger by lazy { logger {} }
+private val logger by lazy { logger {} }
 private val userCache by koin<UserCache>()
 
 suspend fun RoutingContext.isAdmin(): Boolean {
@@ -78,6 +78,15 @@ suspend inline fun <reified T : Any> RoutingContext.requireIdentificationWithBod
     }
 }
 
+suspend fun RoutingContext.optionalIdentification(handler: suspend (VerifiedToken?) -> Any) {
+    val result = extractAndVerifyToken()
+    if (result is VerifiedToken && verifyInDb(result)) {
+        call.respond(handler(result))
+    } else {
+        call.respond(handler(null))
+    }
+}
+
 suspend fun RoutingContext.requireAdminRole(customErrorPage: (suspend () -> String)? = null, handler: suspend (AuthenticatedToken) -> Any) {
     requireRole(ADMIN, handler, customErrorPage)
 }
@@ -108,7 +117,10 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
     val headersStr =
         call.request.headers
             .toMap()
-            .filterNot { (key, _) -> key == "Authorization" || key == "Cookie" }
+            .filterNot { (key, _) ->
+                listOf(HttpHeaders.Authorization, HttpHeaders.Cookie, HttpHeaders.Referrer)
+                    .any { it.equals(key, ignoreCase = true) }
+            }
             .map { header -> header.key + " = " + header.value }
             .joinToString(", ")
 
@@ -119,8 +131,11 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
             .map { cookie -> cookie.key + " = " + cookie.value }
             .joinToString(", ")
 
-    opsLogger.warn {
-        "[requested:$permission] received $result for ${call.request.uri}, accept ${call.request.accept()}, $headersStr, $cookiesStr"
+    logger.warn {
+        "[requested:$permission] received $result for ${call.request.path()}, " +
+            "accept ${call.request.accept()}, " +
+            "$headersStr, " +
+            cookiesStr
     }
     redirectOrRespond(statusCode)
 }
@@ -134,16 +149,16 @@ private suspend fun RoutingContext.redirectOrRespond(statusCode: HttpStatusCode)
     }
 }
 
-suspend fun verifyInDb(token: TokenVerificationResult, requiredRole: UserRole? = null): Boolean =
-    when (token) {
+suspend fun verifyInDb(verificationResult: TokenVerificationResult, requiredRole: UserRole? = null): Boolean =
+    when (verificationResult) {
         is AuthenticatedToken -> {
-            val user = userCache.get(token.userId)
+            val user = userCache.get(verificationResult.userId)
             user != null && user.userType == AUTHENTICATED &&
                 (requiredRole == null || user.roles.contains(requiredRole))
         }
 
         is GuestToken -> {
-            val user = userCache.get(token.userId)
+            val user = userCache.get(verificationResult.userId)
             user != null && user.userType == GUEST && requiredRole == null
         }
 

@@ -2773,4 +2773,28 @@
             <renameColumn tableName="email_verification_bounce" oldColumnName="creation_time" newColumnName="bounced_time"/>
         </rollback>
     </changeSet>
+    <changeSet id="0126" author="benckx">
+        <comment>Persist whether the inviter accepts opponents with a similar (same category) time control.</comment>
+        <addColumn tableName="game">
+            <column name="allow_similar_time_category" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0128" author="benckx">
+        <comment>Record whether page views come from the Android app.</comment>
+        <addColumn tableName="page_view_event">
+            <column name="from_android_app" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="0129" author="benckx">
+        <comment>Preserve Android app page-view counts when raw page views are archived.</comment>
+        <addColumn tableName="archived_page_view_daily">
+            <column name="android_app_page_views" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

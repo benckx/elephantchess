@@ -27,17 +27,22 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
     fun `archives old page views per url and deletes the events`() =
         runTest {
             val (_, userId) = signUpTestUser()
+            val (_, excludedUserId) = signUpTestUser()
 
-            // two views on the same day+url collapse to one unique daily view; a third on another day
-            insertPageView(userId, instantOfUtc(2020, 3, 10, 12, 1, 0), eventPath = "/database")
+            // Same-day views collapse to one unique viewer; excluded viewers must not be archived.
+            insertPageView(userId, instantOfUtc(2020, 3, 10, 12, 1, 0), eventPath = "/database", fromAndroidApp = true)
             insertPageView(userId, instantOfUtc(2020, 3, 10, 12, 2, 0), eventPath = "/database")
+            insertPageView(excludedUserId, instantOfUtc(2020, 3, 10, 12, 3, 0), eventPath = "/database", fromAndroidApp = true)
             insertPageView(userId, instantOfUtc(2020, 3, 9, 8, 0, 0), eventPath = "/puzzles")
 
-            val archived = archiveOldPageViews(maxAge = 90.days)
+            val archived = archiveOldPageViews(maxAge = 90.days, excludedUserIds = listOf(excludedUserId))
 
-            assertEquals(3, archived)
+            assertEquals(4, archived)
             assertEquals(0, countPageViews(userId))
+            assertEquals(0, countPageViews(excludedUserId))
             assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 10), "/database"))
+            assertEquals(1, archivedAndroidAppPageViews(LocalDate.of(2020, 3, 10), "/database"))
+            assertEquals(0, archivedAndroidAppPageViews(LocalDate.of(2020, 3, 9), "/puzzles"))
             assertEquals(1, archivedPageViews(LocalDate.of(2020, 3, 9), "/puzzles"))
         }
 
@@ -100,18 +105,19 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
             assertEquals(1, archivedBucket(LocalDate.of(2021, 7, 12), "/@/someoneelse", ARCHIVED_PAGE_VIEW_DAILY.OTHER_PROFILE_PAGE_VIEWS))
         }
 
-    private suspend fun archiveOldPageViews(maxAge: kotlin.time.Duration): Int {
+    private suspend fun archiveOldPageViews(maxAge: kotlin.time.Duration, excludedUserIds: List<String> = emptyList()): Int {
         val eventIds = archivedPageViewDaoService.selectOldPageViewEventIds(maxAge, limit = 1_000)
-        return archivedPageViewDaoService.archiveAndDeletePageViews(eventIds)
+        return archivedPageViewDaoService.archiveAndDeletePageViews(eventIds, excludedUserIds)
     }
 
-    private suspend fun insertPageView(userId: String, eventTime: Instant, eventPath: String = "/") {
+    private suspend fun insertPageView(userId: String, eventTime: Instant, eventPath: String = "/", fromAndroidApp: Boolean = false) {
         dslContext
             .insertInto(PAGE_VIEW_EVENT)
             .set(PAGE_VIEW_EVENT.EVENT_ID, insecure().nextAlphanumeric(12))
             .set(PAGE_VIEW_EVENT.USER_ID, userId)
             .set(PAGE_VIEW_EVENT.EVENT_TIME, eventTime)
             .set(PAGE_VIEW_EVENT.EVENT_PATH, eventPath)
+            .set(PAGE_VIEW_EVENT.FROM_ANDROID_APP, fromAndroidApp)
             .awaitExecute()
     }
 
@@ -125,6 +131,16 @@ class ArchivedPageViewDaoServiceTest : ServiceTest() {
     private suspend fun archivedPageViews(day: LocalDate, url: String): Int =
         dslContext
             .select(ARCHIVED_PAGE_VIEW_DAILY.PAGE_VIEWS)
+            .from(ARCHIVED_PAGE_VIEW_DAILY)
+            .where(
+                ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)
+                    .and(ARCHIVED_PAGE_VIEW_DAILY.URL.eq(url)),
+            )
+            .awaitSingleValue() ?: 0
+
+    private suspend fun archivedAndroidAppPageViews(day: LocalDate, url: String): Int =
+        dslContext
+            .select(ARCHIVED_PAGE_VIEW_DAILY.ANDROID_APP_PAGE_VIEWS)
             .from(ARCHIVED_PAGE_VIEW_DAILY)
             .where(
                 ARCHIVED_PAGE_VIEW_DAILY.DAY.eq(day)

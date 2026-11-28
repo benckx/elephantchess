@@ -220,7 +220,8 @@ class UserNameDropDownMenu extends DropDownMenu {
                 });
                 break;
             case UserType.GUEST:
-                this.addSimpleItemWithHref('My Games', '/userdata/games');
+                this.addSimpleItemWithHref('Settings', '/user/settings');
+                this.addItemWithTopSeparatorAndHref('My Games', '/userdata/games');
                 this.addSimpleItemWithHref('My Bot Games', '/userdata/botgames');
                 this.addSimpleItemWithHref('My Puzzles', '/userdata/puzzles');
                 this.addSimpleItemWithHref('My DB Searches', '/userdata/db-searches');

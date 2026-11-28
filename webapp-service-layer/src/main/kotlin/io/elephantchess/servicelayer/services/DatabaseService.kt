@@ -112,6 +112,19 @@ class DatabaseService(
         offset: Int?,
         userId: String,
     ): ReferenceGameSearchResult {
+        if (playerIds.any { it.isBlank() || it.length > 12 }) {
+            throw BadRequestException("Invalid playerId")
+        }
+        if (eventIds.any { it.isBlank() || it.length > 12 }) {
+            throw BadRequestException("Invalid eventId")
+        }
+        if (playerIds.firstOrNull()?.let { !referencePlayerDaoService.playerExists(it) } == true) {
+            throw BadRequestException("Unknown playerId")
+        }
+        if (eventIds.firstOrNull()?.let { referenceEventDaoService.fetchEventById(it) == null } == true) {
+            throw BadRequestException("Unknown eventId")
+        }
+
         if (offset != null && offset < 0) {
             throw BadRequestException("Offset cannot be negative")
         }

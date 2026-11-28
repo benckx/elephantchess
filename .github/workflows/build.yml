@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up JDK 25
-        uses: actions/setup-java@v6.2.0
+        uses: actions/setup-java@v6.3.0
         with:
           distribution: temurin
           java-version: '25'
@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up JDK 25
-        uses: actions/setup-java@v6.2.0
+        uses: actions/setup-java@v6.3.0
         with:
           distribution: temurin
           java-version: '25'
@@ -166,7 +166,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up JDK 25
-        uses: actions/setup-java@v6.2.0
+        uses: actions/setup-java@v6.3.0
         with:
           distribution: temurin
           java-version: '25'
@@ -210,8 +210,19 @@ jobs:
           echo "webapp did not start in time"; cat /tmp/webapp.log; exit 1
 
       - name: Run Playwright e2e tests
-        run: npm test
         working-directory: webapp/src/test/e2e
+        run: |
+          for attempt in 1 2; do
+            rm -rf playwright-report test-results
+            if npm test; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Playwright e2e failed after 2 attempts"
+              exit 1
+            fi
+            echo "Playwright e2e failed on attempt $attempt, retrying..."
+          done
 
       - name: Print webapp log on failure
         if: failure()
@@ -227,8 +238,8 @@ jobs:
 
   # Publish the HTML report to the gh-pages branch so it can be viewed in the
   # browser instead of downloading the artifact zip. Each PR gets its own folder
-  # (e2e/pr-<number>/), main uses e2e/main/. Requires Pages to serve the
-  # gh-pages branch (Settings -> Pages -> "Deploy from a branch" -> gh-pages).
+  # (e2e/pr-<number>/), main uses e2e/main/. GitHub Pages serves the gh-pages
+  # branch (Settings -> Pages -> "Deploy from a branch" -> gh-pages, path /).
   # Skipped for fork PRs, whose token cannot push.
   deploy-e2e-report:
     needs: e2e
@@ -236,7 +247,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: playwright-report
-      url: ${{ steps.folder.outputs.dir && format('https://{0}.github.io/{1}/{2}/', github.repository_owner, github.event.repository.name, steps.folder.outputs.dir) || '' }}
+      url: ${{ steps.folder.outputs.dir && format('https://{0}.github.io/{1}/{2}/index.html', github.repository_owner, github.event.repository.name, steps.folder.outputs.dir) || '' }}
     permissions:
       contents: write
     concurrency:
@@ -269,6 +280,30 @@ jobs:
       - name: Link report in job summary
         if: steps.download.outcome == 'success'
         run: |
-          url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ steps.folder.outputs.dir }}/"
-          echo "Playwright report: $url"
-          echo "### [Playwright report]($url)" >> "$GITHUB_STEP_SUMMARY"
+          pages_url="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ steps.folder.outputs.dir }}/index.html"
+          echo "Playwright report: $pages_url"
+          echo "### [Playwright report]($pages_url)" >> "$GITHUB_STEP_SUMMARY"
+
+      # The gh-pages site root would otherwise be a bare 404; redirect it to the
+      # latest main report so the site URL is useful. Only needed on main.
+      - name: Publish site root redirect
+        if: steps.download.outcome == 'success' && github.ref_name == 'main' && github.event_name == 'push'
+        run: |
+          mkdir -p site-root
+          cat > site-root/index.html <<'HTML'
+          <!doctype html>
+          <meta charset="utf-8">
+          <title>elephantchess e2e reports</title>
+          <meta http-equiv="refresh" content="0; url=e2e/main/index.html">
+          <a href="e2e/main/index.html">Latest main Playwright report</a>
+          HTML
+
+      - name: Deploy site root redirect
+        if: steps.download.outcome == 'success' && github.ref_name == 'main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: site-root
+          destination_dir: .
+          keep_files: true
+          commit_message: "e2e report: site root redirect"

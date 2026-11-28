@@ -9,8 +9,12 @@ import io.elephantchess.model.UserType.AUTHENTICATED
 import io.elephantchess.model.UserType.GUEST
 import io.elephantchess.servicelayer.batch.definitions.ShardedBatch
 import io.elephantchess.servicelayer.services.GameDataService
+import io.elephantchess.servicelayer.services.GameDataService.Companion.MIN_MOVE_INDEX
 import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlin.time.Duration.Companion.minutes
 
 @KoinSingleton
@@ -50,7 +54,7 @@ class BackgroundGameAnalysisBatch(
 //        }
 
         // If no reference game found, try a PvP game
-        val pvpGameId = pvpGameDaoService.pickRandomGameForAnalysis()
+        val pvpGameId = pvpGameDaoService.pickRandomGameForAnalysis(MIN_MOVE_INDEX)
         if (pvpGameId != null) {
             return listOf(GameId(GameType.PVP, pvpGameId))
         }
@@ -65,11 +69,15 @@ class BackgroundGameAnalysisBatch(
             gameDataService.startGameAnalysis(element, isFromBatch = true)
             logger.info { "$element successfully started batch analysis" }
         } catch (e: Exception) {
+            if (e is CancellationException) {
+                currentCoroutineContext().ensureActive()
+            }
             logger.error { "$element error starting batch analysis: $e" }
         }
     }
 
     companion object {
+
         private const val MAX_CONNECTED_USERS = 6
     }
 }

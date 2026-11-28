@@ -33,7 +33,7 @@ class ArchiveOldPageViewsBatch(private val archivedPageViewDaoService: ArchivedP
         var totalArchived = 0
 
         for (chunk in eventIds.chunked(CHUNK_SIZE)) {
-            totalArchived += archivedPageViewDaoService.archiveAndDeletePageViews(chunk)
+            totalArchived += archivedPageViewDaoService.archiveAndDeletePageViews(pageViewEventIds = chunk)
         }
 
         if (totalArchived > 0) {
@@ -42,6 +42,7 @@ class ArchiveOldPageViewsBatch(private val archivedPageViewDaoService: ArchivedP
     }
 
     private companion object {
+
         const val CHUNK_SIZE = 10_000
         const val MAX_CHUNKS_PER_RUN = 20
     }

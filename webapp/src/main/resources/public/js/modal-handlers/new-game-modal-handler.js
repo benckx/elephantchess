@@ -40,6 +40,7 @@ class NewGameHandler extends ModalHandler {
     #isRatedCheckbox = document.getElementById('is-rated');
     #alwaysVisibleInLobbyCheckBox = document.getElementById('always-visible-in-lobby');
     #allowGuestsCheckBox = document.getElementById('allow-guests');
+    #allowSimilarTimeCategoryCheckbox = document.getElementById('allow-similar-time-category');
     #privateInvite = document.getElementById('private-invite');
 
     /**
@@ -115,6 +116,11 @@ class NewGameHandler extends ModalHandler {
             document.getElementById('allow-guests-container'),
             'Let guest users (i.e. users without a registered account) join this game. ' +
             'This option is not available for guest users.'
+        );
+
+        addToolTip(
+            document.getElementById('allow-similar-time-category-container'),
+            'If checked, you may join games in the same time category even when the exact time control differs slightly.'
         );
 
         addToolTip(
@@ -286,6 +292,7 @@ class NewGameHandler extends ModalHandler {
 
         const allowGuests = this.#allowGuestsCheckBox.checked;
         const alwaysVisibleInLobby = this.#alwaysVisibleInLobbyCheckBox.checked;
+        const allowSimilarTimeCategory = this.#allowSimilarTimeCategoryCheckbox.checked;
         const privateInvite = this.#privateInvite.checked;
         const variant = this.#getSelectedVariant();
 
@@ -298,6 +305,7 @@ class NewGameHandler extends ModalHandler {
             'allowGuests': allowGuests,
             'alwaysVisibleInLobby': alwaysVisibleInLobby,
             'privateInvite': privateInvite,
+            'allowSimilarTimeCategory': allowSimilarTimeCategory,
             'variant': variant,
         };
 

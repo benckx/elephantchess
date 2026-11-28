@@ -75,7 +75,7 @@ data class AppConfig(
     val isDatabaseRateLimitEnabled: Boolean
         get() = loadBoolean("database.rate.limit.enabled", true)
 
-    /** Maximum number of monitored HTML requests allowed per IP within [databaseRateLimitWindowSeconds]. */
+    /** Maximum number of monitored requests allowed per IP within [databaseRateLimitWindowSeconds]. */
     val databaseRateLimitMaxRequests: Int
         get() = loadIntOrDefault("database.rate.limit.max.requests", 30)
 

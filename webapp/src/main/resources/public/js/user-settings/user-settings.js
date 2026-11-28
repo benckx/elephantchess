@@ -28,6 +28,8 @@ const USERNAME_MAX_DESCRIPTION_LENGTH = 1_000;
 
 class UserSettingsPage extends BasePage {
 
+    #isAuthenticated = document.body.dataset.authenticated === 'true';
+
     // profile section
     #saveProfileButton = document.getElementById('save-profile-button');
     #descriptionField = document.getElementById('description');
@@ -57,49 +59,53 @@ class UserSettingsPage extends BasePage {
     constructor() {
         super();
 
-        // profile section
-        fillSelect('countries');
-        this.#selectLoadedCountry();
-        this.#updateDescriptionCharacterCounter();
-        this.#saveProfileButton.addEventListener('click', () => this.#updateProfileSettings());
-        this.#descriptionField.addEventListener('input', () => this.#updateDescriptionCharacterCounter());
-        this.#descriptionField.setAttribute('maxlength', USERNAME_MAX_DESCRIPTION_LENGTH.toString());
-        this.#profileBaseline = this.#profileStateSignature();
-        [this.#descriptionField, this.#countryField, this.#showPvpGamesCheckbox, this.#showPvbGamesCheckbox]
-            .forEach(field => {
-                field.addEventListener('input', () => this.#refreshProfileSaveButton());
-                field.addEventListener('change', () => this.#refreshProfileSaveButton());
+        if (this.#isAuthenticated) {
+            // profile section
+            fillSelect('countries');
+            this.#selectLoadedCountry();
+            this.#updateDescriptionCharacterCounter();
+            this.#saveProfileButton.addEventListener('click', () => this.#updateProfileSettings());
+            this.#descriptionField.addEventListener('input', () => this.#updateDescriptionCharacterCounter());
+            this.#descriptionField.setAttribute('maxlength', USERNAME_MAX_DESCRIPTION_LENGTH.toString());
+            this.#profileBaseline = this.#profileStateSignature();
+            [this.#descriptionField, this.#countryField, this.#showPvpGamesCheckbox, this.#showPvbGamesCheckbox]
+                .forEach(field => {
+                    field.addEventListener('input', () => this.#refreshProfileSaveButton());
+                    field.addEventListener('change', () => this.#refreshProfileSaveButton());
+                });
+            this.#refreshProfileSaveButton();
+
+            // notifications section
+            this.#saveNotificationsButton.addEventListener('click', () => {
+                this.#notificationSettingsWidget.updateSettings(() => {
+                    UI.pushInfoNotification('Notifications settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
+                    this.#notificationsBaseline = this.#notificationSettingsWidget.stateSignature();
+                    this.#refreshNotificationsSaveButton();
+                })
             });
-        this.#refreshProfileSaveButton();
-
-        // notifications section
-        this.#saveNotificationsButton.addEventListener('click', () => {
-            this.#notificationSettingsWidget.updateSettings(() => {
-                UI.pushInfoNotification('Notifications settings successfully updated!', UI_NOTIFICATION_TIMEOUT);
-                this.#notificationsBaseline = this.#notificationSettingsWidget.stateSignature();
+            this.#notificationsBaseline = this.#notificationSettingsWidget.stateSignature();
+            this.#notificationSettingsWidget.addChangeListener(() => this.#refreshNotificationsSaveButton());
+            document.getElementById('notifications-select-all').addEventListener('click', () => {
+                this.#notificationSettingsWidget.setAll(true);
                 this.#refreshNotificationsSaveButton();
-            })
-        });
-        this.#notificationsBaseline = this.#notificationSettingsWidget.stateSignature();
-        this.#notificationSettingsWidget.addChangeListener(() => this.#refreshNotificationsSaveButton());
-        document.getElementById('notifications-select-all').addEventListener('click', () => {
-            this.#notificationSettingsWidget.setAll(true);
+            });
+            document.getElementById('notifications-unselect-all').addEventListener('click', () => {
+                this.#notificationSettingsWidget.setAll(false);
+                this.#refreshNotificationsSaveButton();
+            });
             this.#refreshNotificationsSaveButton();
-        });
-        document.getElementById('notifications-unselect-all').addEventListener('click', () => {
-            this.#notificationSettingsWidget.setAll(false);
-            this.#refreshNotificationsSaveButton();
-        });
-        this.#refreshNotificationsSaveButton();
 
-        // email address section
-        this.#fetchEmailAddressSettings();
+            // email address section
+            this.#fetchEmailAddressSettings();
+        }
 
-        // sessions section
-        this.#sessionsWidget.fetchAndRender();
+        if (isUserIdentified()) {
+            // sessions section
+            this.#sessionsWidget.fetchAndRender();
 
-        // page views section
-        this.#pageViewsWidget.fetchAndRender();
+            // page views section
+            this.#pageViewsWidget.fetchAndRender();
+        }
     }
 
     #profileStateSignature() {

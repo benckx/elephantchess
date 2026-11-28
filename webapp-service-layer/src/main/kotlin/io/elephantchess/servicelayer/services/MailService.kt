@@ -19,8 +19,11 @@ import io.elephantchess.servicelayer.services.UserService.Companion.PASSWORD_REC
 import io.elephantchess.servicelayer.services.resolvers.*
 import io.elephantchess.utils.di.KoinSingleton
 import io.github.oshai.kotlinlogging.KLogger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import javax.activation.DataHandler
 import javax.activation.URLDataSource
@@ -116,6 +119,9 @@ class MailService(
                 logger.info { "not verifying emails because mustSendEmails is disabled" }
             }
         } catch (e: Exception) {
+            if (e is CancellationException) {
+                currentCoroutineContext().ensureActive()
+            }
             logger.error(e) { "error verifying email $email" }
         }
     }
@@ -303,7 +309,6 @@ class MailService(
                 SimpleValueTagResolver("invitee", inviteeUsername),
                 GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true,
         )
     }
 
@@ -317,7 +322,6 @@ class MailService(
                 SimpleValueTagResolver("opponent", opponent),
                 GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true,
         )
     }
 
@@ -330,7 +334,6 @@ class MailService(
                 SimpleValueTagResolver("opponent", opponent),
                 GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true,
         )
     }
 
@@ -343,7 +346,6 @@ class MailService(
                 SimpleValueTagResolver("opponent", opponent),
                 GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true,
         )
     }
 
@@ -361,7 +363,6 @@ class MailService(
                 SimpleValueTagResolver("verb2", verb2),
                 GameLinkTagResolver(webHost, gameId),
             ),
-            copyToAdmin = true,
         )
     }
 
