@@ -381,7 +381,11 @@ class AnalysisBoardPage extends BasePage {
 
     #setSaveAnalysisButtonEnabled(enabled) {
         this.#saveAnalysisButton.disabled = !enabled;
-        this.#saveAnalysisButton.classList.toggle('app-buttons-disabled', !enabled);
+        if (enabled) {
+            enableAppButton(this.#saveAnalysisButton);
+        } else {
+            disableAppButton(this.#saveAnalysisButton);
+        }
     }
 
     #syncSaveAnalysisButtonState() {
