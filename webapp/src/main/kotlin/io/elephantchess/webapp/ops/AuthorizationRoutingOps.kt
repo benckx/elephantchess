@@ -117,7 +117,9 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
     val headersStr =
         call.request.headers
             .toMap()
-            .filterNot { (key, _) -> key == "Authorization" || key == "Cookie" }
+            .filterNot { (key, _) ->
+                listOf(HttpHeaders.Authorization, HttpHeaders.Cookie, HttpHeaders.Referrer).any { it.equals(key, ignoreCase = true) }
+            }
             .map { header -> header.key + " = " + header.value }
             .joinToString(", ")
 
@@ -129,7 +131,7 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
             .joinToString(", ")
 
     opsLogger.warn {
-        "[requested:$permission] received $result for ${call.request.uri}, accept ${call.request.accept()}, $headersStr, $cookiesStr"
+        "[requested:$permission] received $result for ${call.request.path()}, accept ${call.request.accept()}, $headersStr, $cookiesStr"
     }
     redirectOrRespond(statusCode)
 }

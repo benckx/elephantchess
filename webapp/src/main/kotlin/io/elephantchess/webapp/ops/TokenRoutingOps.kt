@@ -9,12 +9,15 @@ import io.ktor.server.routing.*
 private val tokenManager by koin<TokenManager>()
 
 fun RoutingContext.extractAndVerifyToken(): TokenVerificationResult? =
-    call.token()?.let { token -> tokenManager.verifyToken(token) }
+    call.extractAndVerifyToken()
+
+fun ApplicationCall.extractAndVerifyToken(allowCookies: Boolean = true): TokenVerificationResult? =
+    token(allowCookies)?.let { token -> tokenManager.verifyToken(token) }
 
 /**
  * Extract token from header or cookies
  */
-private fun ApplicationCall.token(): String? {
+private fun ApplicationCall.token(allowCookies: Boolean): String? {
     fun findFromHeaders(): String? =
         request.headers["Authorization"]?.let { header ->
             val split = header.split(' ')
@@ -29,6 +32,5 @@ private fun ApplicationCall.token(): String? {
         request.cookies[name]?.let { token -> token.ifBlank { null } }
 
     return findFromHeaders()
-        ?: findFromCookie("user.token")
-        ?: findFromCookie("guest.user.token")
+        ?: if (allowCookies) findFromCookie("user.token") ?: findFromCookie("guest.user.token") else null
 }

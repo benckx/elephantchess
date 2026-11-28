@@ -1,21 +1,22 @@
 package io.elephantchess.webapp.routing.api
 
+import io.elephantchess.config.AppConfig
 import io.elephantchess.model.UserType
 import io.elephantchess.servicelayer.dto.game.*
 import io.elephantchess.servicelayer.dto.ws.PlayerVsPlayerInput
 import io.elephantchess.servicelayer.model.UserId
 import io.elephantchess.servicelayer.model.VerifiedToken
 import io.elephantchess.servicelayer.services.PlayerVsPlayerGameService
-import io.elephantchess.servicelayer.services.TokenManager
 import io.elephantchess.servicelayer.utils.ops.koin
 import io.elephantchess.webapp.ops.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 
 private val pvpGameService by koin<PlayerVsPlayerGameService>()
-private val tokenManager by koin<TokenManager>()
+private val appConfig by koin<AppConfig>()
 private val logger = KotlinLogging.logger {}
 
 fun Route.pvpGameRoutes() {
@@ -93,24 +94,22 @@ fun Route.pvpGameWsRoutes() {
         )
     }
     webSocket("ws/pvp/game") {
-        val token = call.parameters["token"]
-            ?: throw IllegalArgumentException("token is required")
         val gameId = call.parameters["gameId"]
             ?: throw IllegalArgumentException("gameId is required")
 
-        val userId = when (val result = tokenManager.verifyToken(token)) {
-            is VerifiedToken -> result.userId()
-
-            else -> {
-                // An invalid/expired token on a WebSocket is normal client behaviour (e.g. a stale
-                // tab reconnecting after a key rotation or after the guest token TTL expired).
-                // Close the socket cleanly instead of throwing, which would otherwise bubble up
-                // uncaught and be logged as an ERROR ("Websocket handler failed") with a full stack trace.
-                logger.debug { "rejecting PvP game WebSocket for game $gameId: $result" }
-                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
-                return@webSocket
-            }
+        val origins = call.request.headers.getAll(HttpHeaders.Origin)
+        if (origins != null && (origins.size != 1 || origins.single() != appConfig.webHost.trimEnd('/'))) {
+            close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid origin"))
+            return@webSocket
         }
+        // Clients without an Origin must use a bearer token, never ambient cookies.
+        val result = call.extractAndVerifyToken(allowCookies = origins != null)
+        if (result !is VerifiedToken || !verifyInDb(result)) {
+            logger.debug { "rejecting PvP game WebSocket: invalid token" }
+            close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
+            return@webSocket
+        }
+        val userId = result.userId()
 
         handleBidirectionalWebSocketSession<PlayerVsPlayerInput>(
             { pvpGameService.startPlayerVsPlayerSession(userId, gameId) { sendWs(it) } },
