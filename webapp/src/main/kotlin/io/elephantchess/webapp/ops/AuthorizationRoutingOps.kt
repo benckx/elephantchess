@@ -135,7 +135,7 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
         "[requested:$permission] received $result for ${call.request.path()}, " +
             "accept ${call.request.accept()}, " +
             "$headersStr, " +
-            "$cookiesStr"
+            cookiesStr
     }
     redirectOrRespond(statusCode)
 }
@@ -149,16 +149,16 @@ private suspend fun RoutingContext.redirectOrRespond(statusCode: HttpStatusCode)
     }
 }
 
-suspend fun verifyInDb(token: TokenVerificationResult, requiredRole: UserRole? = null): Boolean =
-    when (token) {
+suspend fun verifyInDb(verificationResult: TokenVerificationResult, requiredRole: UserRole? = null): Boolean =
+    when (verificationResult) {
         is AuthenticatedToken -> {
-            val user = userCache.get(token.userId)
+            val user = userCache.get(verificationResult.userId)
             user != null && user.userType == AUTHENTICATED &&
                 (requiredRole == null || user.roles.contains(requiredRole))
         }
 
         is GuestToken -> {
-            val user = userCache.get(token.userId)
+            val user = userCache.get(verificationResult.userId)
             user != null && user.userType == GUEST && requiredRole == null
         }
 
