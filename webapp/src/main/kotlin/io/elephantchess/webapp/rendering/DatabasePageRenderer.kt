@@ -407,7 +407,6 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer, private val d
     }
 
     private companion object {
-
         fun dataAttr(name: String, value: String?): String =
             if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
 

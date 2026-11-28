@@ -26,6 +26,7 @@ data class ListUserGamesResponse(val entries: List<Entry>) {
         val outcome: UserOutcome?,
         val ratingFrom: Int?,
         val ratingTo: Int?,
+        val isAnalyzed: Boolean,
         val created: Long,
         val lastUpdated: Long,
         val numberOfMessages: Int,
