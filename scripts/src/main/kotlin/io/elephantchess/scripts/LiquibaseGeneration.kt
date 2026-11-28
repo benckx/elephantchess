@@ -13,7 +13,7 @@ fun main() {
     val destination = File("$path/liquibase-changelog-generation.xml")
 
     // Blacklist of changeset IDs to exclude from generation
-    val blacklistedChangesets = setOf("0070", "0080", "0085", "0087", "0113", "0119", "0127")
+    val blacklistedChangesets = setOf("0070", "0080", "0085", "0087", "0113", "0119", "0127", "0130")
 
     var isInsideSqlTag = false
     var isInsideBlacklistedChangeset = false
