@@ -92,7 +92,7 @@ fun Application.exceptionHandler() {
                 exceptionService.saveException(e, BadRequest.value)
                 call.respond(BadRequest, ValidationErrorsResponse("Bad Request: JSON error"))
             } else if (isPathTraversalProbe(e)) {
-                logger.debug { "Ignoring path-traversal probe: ${call.request.uri}" }
+                logger.debug { "Ignoring path-traversal probe: ${call.request.path()}" }
                 call.respond(BadRequest, ValidationErrorsResponse("Bad Request"))
             } else {
                 logger.error(e) { e.toString() }
@@ -130,7 +130,7 @@ private suspend fun ApplicationCall.handleNotFound() {
     // respond with 426 Upgrade Required and log at debug level.
     if (uri.startsWith("/ws/")) {
         logger.debug {
-            "WebSocket path called without Upgrade header: $method $uri | User-Agent: ${userAgent?.take(100)}"
+            "WebSocket path called without Upgrade header: $method ${request.path()} | User-Agent: ${userAgent?.take(100)}"
         }
         respond(
             status = HttpStatusCode.UpgradeRequired,
@@ -144,12 +144,12 @@ private suspend fun ApplicationCall.handleNotFound() {
     // respond with a plain 404 and log at DEBUG. Patterns live in MUTED_URI_PATTERNS_RESOURCE.
     val path = uri.substringBefore('?').lowercase()
     if (MUTED_URI_PATTERNS.any { path.contains(it) }) {
-        logger.debug { "Ignoring muted 404 probe: $method $uri | User-Agent: ${userAgent?.take(100)}" }
+        logger.debug { "Ignoring muted 404 probe: $method ${request.path()} | User-Agent: ${userAgent?.take(100)}" }
         respondNotFound(uri)
         return
     }
 
-    logger.warn { "UNMAPPED URI: $method $uri | Content-Type: $contentType | User-Agent: ${userAgent?.take(100)}" }
+    logger.warn { "UNMAPPED URI: $method ${request.path()} | Content-Type: $contentType | User-Agent: ${userAgent?.take(100)}" }
     respondNotFound(uri)
 }
 
@@ -165,7 +165,7 @@ private fun Application.installWebSocketUpgradeFailureHandler() {
             proceed()
         } catch (e: NullPointerException) {
             if (!isClientDisconnectDuringWebSocketUpgrade(call, e)) throw e
-            logger.debug { "client disconnected during WebSocket upgrade: ${call.request.uri}" }
+            logger.debug { "client disconnected during WebSocket upgrade: ${call.request.path()}" }
         }
     }
 }
