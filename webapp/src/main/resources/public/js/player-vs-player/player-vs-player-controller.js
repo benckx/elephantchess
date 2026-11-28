@@ -179,7 +179,6 @@ class GameController {
                     'Try a different network, or disable your VPN / antivirus / browser extensions.',
                 buildParams: () => new Map([
                     ['gameId', gameId],
-                    ['token', getToken()],
                 ]),
                 onOpen: (ws) => {
                     this.#webSocket = ws;

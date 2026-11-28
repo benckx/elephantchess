@@ -9,7 +9,10 @@ import io.ktor.server.routing.*
 private val tokenManager by koin<TokenManager>()
 
 fun RoutingContext.extractAndVerifyToken(): TokenVerificationResult? =
-    call.token()?.let { token -> tokenManager.verifyToken(token) }
+    call.extractAndVerifyToken()
+
+fun ApplicationCall.extractAndVerifyToken(): TokenVerificationResult? =
+    token()?.let { token -> tokenManager.verifyToken(token) }
 
 /**
  * Extract token from header or cookies
