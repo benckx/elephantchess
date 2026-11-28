@@ -375,10 +375,6 @@ class AnalysisBoardPage extends BasePage {
         }
     }
 
-    #hasMovesToSave() {
-        return this.#moveTreeWidget.serializeToDtos().length > 0;
-    }
-
     #setSaveAnalysisButtonEnabled(enabled) {
         this.#saveAnalysisButton.disabled = !enabled;
         if (enabled) {
@@ -389,7 +385,7 @@ class AnalysisBoardPage extends BasePage {
     }
 
     #syncSaveAnalysisButtonState() {
-        this.#setSaveAnalysisButtonEnabled(this.#hasMovesToSave() && !this.#isSaveAnalysisButtonLocked);
+        this.#setSaveAnalysisButtonEnabled(!this.#moveTreeWidget.isEmpty() && !this.#isSaveAnalysisButtonLocked);
     }
 
     /**

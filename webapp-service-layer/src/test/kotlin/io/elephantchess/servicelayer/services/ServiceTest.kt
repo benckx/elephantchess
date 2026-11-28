@@ -76,26 +76,14 @@ abstract class ServiceTest :
         guestUserId: String? = null,
     ): Pair<SignUpRequest, String> {
         val password = insecure().nextAlphanumeric(10)
-        var request = SignUpRequest(
+        val request = SignUpRequest(
             username = "test$i",
             email = "test$i@gmail.com",
             password = password,
             transferGuestData = transferGuestData,
         )
-        repeat(5) { retry ->
-            val either = userService.signUp(request, guestUserId = guestUserId)
-            if (either.isRight()) {
-                return request to either.right().userId
-            }
-
-            val nextI = i + retry + 1
-            request = request.copy(
-                username = "test$nextI",
-                email = "test$nextI@gmail.com",
-            )
-        }
-
-        error("Could not sign up a unique test user after retries")
+        val either = userService.signUp(request, guestUserId = guestUserId)
+        return request to either.right().userId
     }
 
     protected suspend fun createAndJoinGame(
