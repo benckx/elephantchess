@@ -11,13 +11,13 @@ private val tokenManager by koin<TokenManager>()
 fun RoutingContext.extractAndVerifyToken(): TokenVerificationResult? =
     call.extractAndVerifyToken()
 
-fun ApplicationCall.extractAndVerifyToken(allowCookies: Boolean = true): TokenVerificationResult? =
-    token(allowCookies)?.let { token -> tokenManager.verifyToken(token) }
+fun ApplicationCall.extractAndVerifyToken(): TokenVerificationResult? =
+    token()?.let { token -> tokenManager.verifyToken(token) }
 
 /**
  * Extract token from header or cookies
  */
-private fun ApplicationCall.token(allowCookies: Boolean): String? {
+private fun ApplicationCall.token(): String? {
     fun findFromHeaders(): String? =
         request.headers["Authorization"]?.let { header ->
             val split = header.split(' ')
@@ -32,5 +32,6 @@ private fun ApplicationCall.token(allowCookies: Boolean): String? {
         request.cookies[name]?.let { token -> token.ifBlank { null } }
 
     return findFromHeaders()
-        ?: if (allowCookies) findFromCookie("user.token") ?: findFromCookie("guest.user.token") else null
+        ?: findFromCookie("user.token")
+        ?: findFromCookie("guest.user.token")
 }

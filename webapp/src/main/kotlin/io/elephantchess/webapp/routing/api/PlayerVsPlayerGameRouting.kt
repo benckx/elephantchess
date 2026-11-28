@@ -102,8 +102,7 @@ fun Route.pvpGameWsRoutes() {
             close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid origin"))
             return@webSocket
         }
-        // Clients without an Origin must use a bearer token, never ambient cookies.
-        val result = call.extractAndVerifyToken(allowCookies = origins != null)
+        val result = call.extractAndVerifyToken()
         if (result !is VerifiedToken || !verifyInDb(result)) {
             logger.debug { "rejecting PvP game WebSocket: invalid token" }
             close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
