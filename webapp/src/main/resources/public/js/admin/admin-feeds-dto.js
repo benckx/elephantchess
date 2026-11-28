@@ -31,7 +31,7 @@ class GameAnalyticsDto {
     #timeControl;
     #status;
     #index;
-    #isPreAnalyzed;
+    #isAnalyzed;
     #winnerUserId;
     #created;
     #lastUpdated;
@@ -53,7 +53,7 @@ class GameAnalyticsDto {
         this.#timeControl = TimeControl.fromJson(json);
         this.#status = json.status;
         this.#index = json.index;
-        this.#isPreAnalyzed = json.isPreAnalyzed;
+        this.#isAnalyzed = json.isAnalyzed;
         this.#winnerUserId = json.winnerUserId;
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
@@ -162,8 +162,8 @@ class GameAnalyticsDto {
     /**
      * @return {boolean}
      */
-    get isPreAnalyzed() {
-        return this.#isPreAnalyzed;
+    get isAnalyzed() {
+        return this.#isAnalyzed;
     }
 
     /**
@@ -267,7 +267,7 @@ class BotGameAnalyticsDto {
     #status;
     #outcome;
     #index;
-    #isPreAnalyzed;
+    #isAnalyzed;
     #created;
     #lastUpdated;
     #variant;
@@ -284,7 +284,7 @@ class BotGameAnalyticsDto {
         this.#status = json.status;
         this.#outcome = json.outcome;
         this.#index = Number(json.index);
-        this.#isPreAnalyzed = json.isPreAnalyzed;
+        this.#isAnalyzed = json.isAnalyzed;
         this.#created = Number(json.created);
         this.#lastUpdated = Number(json.lastUpdated);
         this.#variant = json.variant ?? Variant.XIANGQI;
@@ -377,8 +377,8 @@ class BotGameAnalyticsDto {
     /**
      * @return {boolean}
      */
-    get isPreAnalyzed() {
-        return this.#isPreAnalyzed;
+    get isAnalyzed() {
+        return this.#isAnalyzed;
     }
 
     /**

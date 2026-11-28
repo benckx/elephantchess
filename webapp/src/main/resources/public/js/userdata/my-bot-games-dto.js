@@ -28,7 +28,7 @@ class BotGameEntryDto {
     #status;
     #outcome;
     #moveIndex;
-    #isPreAnalyzed;
+    #isAnalyzed;
     #variant;
 
     /**
@@ -51,7 +51,7 @@ class BotGameEntryDto {
         this.#status = json.status;
         this.#outcome = json.outcome;
         this.#moveIndex = json.moveIndex;
-        this.#isPreAnalyzed = json.isPreAnalyzed;
+        this.#isAnalyzed = json.isAnalyzed;
         this.#created = json.created;
         this.#lastUpdated = json.lastUpdated;
         this.#variant = json.variant ?? Variant.XIANGQI;
@@ -163,8 +163,8 @@ class BotGameEntryDto {
     /**
      * @return {boolean}
      */
-    get isPreAnalyzed() {
-        return this.#isPreAnalyzed;
+    get isAnalyzed() {
+        return this.#isAnalyzed;
     }
 
     get created() {

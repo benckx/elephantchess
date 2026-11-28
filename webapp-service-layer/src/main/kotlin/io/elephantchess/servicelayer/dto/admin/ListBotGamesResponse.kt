@@ -21,7 +21,7 @@ data class ListBotGamesResponse(val entries: List<Entry>) {
         val status: GameEventType,
         val outcome: Outcome?,
         val index: Int,
-        val isPreAnalyzed: Boolean,
+        val isAnalyzed: Boolean,
         val created: Long,
         val lastUpdated: Long,
         val variant: Variant?,

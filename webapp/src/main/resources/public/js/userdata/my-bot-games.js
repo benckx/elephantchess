@@ -90,8 +90,8 @@ class MyBotGamesPage extends InfiniteScrollPage {
             const customFenIndicatorPane = document.createElement('div');
             customFenIndicatorPane.className = 'indicator-pane';
 
-            const preAnalysisIndicatorPane = document.createElement('div');
-            preAnalysisIndicatorPane.className = 'indicator-pane';
+            const analyzedIndicatorPane = document.createElement('div');
+            analyzedIndicatorPane.className = 'indicator-pane';
 
             const outcomeIndicatorPane = document.createElement('div');
             outcomeIndicatorPane.className = 'indicator-pane';
@@ -108,7 +108,7 @@ class MyBotGamesPage extends InfiniteScrollPage {
                 leftPane,
                 middlePane,
                 customFenIndicatorPane,
-                preAnalysisIndicatorPane,
+                analyzedIndicatorPane,
                 outcomeIndicatorPane,
                 rightPane
             );
@@ -135,8 +135,8 @@ class MyBotGamesPage extends InfiniteScrollPage {
             if (entry.variant === Variant.XIANGQI && entry.hasCustomStartFen) {
                 customFenIndicatorPane.append(buildCustomFenIcon(entry));
             }
-            if (entry.isPreAnalyzed) {
-                preAnalysisIndicatorPane.append(buildPreAnalyzedIcon(entry.gameId));
+            if (entry.isAnalyzed) {
+                analyzedIndicatorPane.append(buildAnalyzedIcon(entry.gameId));
             }
 
             // outcome indicator pane

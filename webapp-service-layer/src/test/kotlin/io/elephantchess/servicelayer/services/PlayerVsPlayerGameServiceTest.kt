@@ -1323,7 +1323,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
     }
 
     @Test
-    fun `list user games exposes pre-analyzed status`() =
+    fun `list user games exposes analyzed status`() =
         runTest {
             val gameId = createAndJoinGame(userId1, userId2, inviterColor = io.elephantchess.xiangqi.Color.UPPERCASE_COLOR)
 
@@ -1334,7 +1334,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                     .find { it.gameId == gameId }
                     ?: throw AssertionError("Expected game $gameId in list")
 
-            assertFalse(fetchEntry().isPreAnalyzed)
+            assertFalse(fetchEntry().isAnalyzed)
 
             dslContext
                 .update(GAME)
@@ -1342,7 +1342,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 .where(GAME.ID.eq(gameId))
                 .awaitExecute()
 
-            assertFalse(fetchEntry().isPreAnalyzed)
+            assertFalse(fetchEntry().isAnalyzed)
 
             dslContext
                 .update(GAME)
@@ -1350,7 +1350,7 @@ class PlayerVsPlayerGameServiceTest : ServiceTest() {
                 .where(GAME.ID.eq(gameId))
                 .awaitExecute()
 
-            assertTrue(fetchEntry().isPreAnalyzed)
+            assertTrue(fetchEntry().isAnalyzed)
         }
 
     @Nested

@@ -276,7 +276,7 @@ class MyGamesPage extends InfiniteScrollPage {
             const chatIndicatorPane = buildDivWithClass('indicator-pane');
             const outcomeIndicatorPane = buildDivWithClass('indicator-pane');
             const ratingDeltaIndicatorPane = buildDivWithClass('indicator-pane');
-            const preAnalyzedIndicatorPane = buildDivWithClass('indicator-pane');
+            const analyzedIndicatorPane = buildDivWithClass('indicator-pane');
             const rightPane = buildDivWithClass('right-pane');
             const item = buildAnchorWithClass(entry.gameUrl,null, 'my-game-item');
 
@@ -284,7 +284,7 @@ class MyGamesPage extends InfiniteScrollPage {
                 variantPane,
                 timeControlPane,
                 middlePane,
-                preAnalyzedIndicatorPane,
+                analyzedIndicatorPane,
                 chatIndicatorPane,
                 ratingDeltaIndicatorPane,
                 outcomeIndicatorPane,
@@ -332,9 +332,9 @@ class MyGamesPage extends InfiniteScrollPage {
             }
             ratingDeltaIndicatorPane.append(buildRatingModeDiv(entry));
 
-            // pre-analysis indicator pane
-            if (entry.isPreAnalyzed) {
-                preAnalyzedIndicatorPane.append(buildPreAnalyzedIcon(entry.gameId));
+            // analysis indicator pane
+            if (entry.isAnalyzed) {
+                analyzedIndicatorPane.append(buildAnalyzedIcon(entry.gameId));
             }
 
             // outcome indicator pane

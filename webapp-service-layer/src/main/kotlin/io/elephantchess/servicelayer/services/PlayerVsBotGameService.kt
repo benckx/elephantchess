@@ -245,7 +245,7 @@ class PlayerVsBotGameService(
                     status = record.gameStatus,
                     outcome = record.outcome,
                     moveIndex = record.currentHalfMoveIndex,
-                    isPreAnalyzed = record.analysisStatus == AnalysisStatus.COMPLETED,
+                    isAnalyzed = record.analysisStatus == AnalysisStatus.COMPLETED,
                     created = record.created.toEpochMilliseconds(),
                     lastUpdated = record.lastUpdated.toEpochMilliseconds(),
                     variant = record.variant ?: Variant.XIANGQI,

@@ -21,13 +21,13 @@
  * @param gameId {string}
  * @returns {HTMLDivElement}
  */
-function buildPreAnalyzedIcon(gameId) {
+function buildAnalyzedIcon(gameId) {
     const iconImg = buildImg('/images/icons/stats.png', 'icon');
-    iconImg.alt = 'This game is pre-analyzed';
+    iconImg.alt = 'This game is analyzed';
     iconImg.style.opacity = '75%';
 
     const div = wrapInDiv(iconImg);
-    div.id = `pre-analyzed-${gameId}`;
-    addToolTip(div, 'This game is pre-analyzed');
+    div.id = `analyzed-${gameId}`;
+    addToolTip(div, 'This game is analyzed');
     return div;
 }
