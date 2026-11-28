@@ -1295,13 +1295,13 @@ class PlayerVsPlayerGameDaoService(private val dslContext: DSLContext) {
         }
     }
 
-    suspend fun pickRandomGameForAnalysis(): String? =
+    suspend fun pickRandomGameForAnalysis(minMoveIndex: Int): String? =
         dslContext
             .select(GAME.ID)
             .from(GAME)
             .where(GAME.ANALYSIS_STATUS.`in`(NOT_STARTED, PARTIALLY_COMPLETED))
             .and(GAME.GAME_STATUS.`in`(gameEndedStatuses))
-            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterThan(10))
+            .and(GAME.CURRENT_HALF_MOVE_INDEX.greaterOrEqual(minMoveIndex))
             .orderBy(DSL.rand())
             .limit(1)
             .awaitSingleValue()

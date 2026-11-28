@@ -1831,6 +1831,10 @@ class MoveTreeWidget {
         return this.#variant;
     }
 
+    isEmpty() {
+        return this.#moveTree.isEmpty();
+    }
+
     // COMPLEX GETTERS/SETTERS
 
     /**
