@@ -46,15 +46,21 @@ class MoveHistoryDropDownMenuWidget extends DropDownMenu {
 
         // callbacks
         this.addSimpleItem('Import moves', () => {
-            UI.showModalByName(Modals.IMPORT_MOVES, () => {
-                new ImportMovesHandler(boardGui, moveTreeWidget);
-            });
+            UI.openWithConfirmation(
+                !moveTreeWidget.isEmpty(),
+                'Importing moves will erase the current game history. Continue?',
+                'import',
+                () => UI.showModalByName(Modals.IMPORT_MOVES, () => new ImportMovesHandler(boardGui, moveTreeWidget))
+            );
         });
 
         this.addSimpleItem('Edit start position', () => {
-            UI.showModalByName(Modals.POSITION_EDITOR, () => {
-                new PositionEditorHandler(getCurrentStartFenCb, selectedFenCb);
-            });
+            UI.openWithConfirmation(
+                !moveTreeWidget.isEmpty(),
+                'Editing the start position will erase the current game history. Continue?',
+                'continue',
+                () => UI.showModalByName(Modals.POSITION_EDITOR, () => new PositionEditorHandler(getCurrentStartFenCb, selectedFenCb))
+            );
         });
 
         // register
