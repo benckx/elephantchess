@@ -20,7 +20,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 
-private val opsLogger by lazy { logger {} }
+private val logger by lazy { logger {} }
 private val userCache by koin<UserCache>()
 
 suspend fun RoutingContext.isAdmin(): Boolean {
@@ -118,7 +118,8 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
         call.request.headers
             .toMap()
             .filterNot { (key, _) ->
-                listOf(HttpHeaders.Authorization, HttpHeaders.Cookie, HttpHeaders.Referrer).any { it.equals(key, ignoreCase = true) }
+                listOf(HttpHeaders.Authorization, HttpHeaders.Cookie, HttpHeaders.Referrer)
+                    .any { it.equals(key, ignoreCase = true) }
             }
             .map { header -> header.key + " = " + header.value }
             .joinToString(", ")
@@ -130,8 +131,11 @@ suspend fun RoutingContext.handleInvalidToken(result: TokenVerificationResult?, 
             .map { cookie -> cookie.key + " = " + cookie.value }
             .joinToString(", ")
 
-    opsLogger.warn {
-        "[requested:$permission] received $result for ${call.request.path()}, accept ${call.request.accept()}, $headersStr, $cookiesStr"
+    logger.warn {
+        "[requested:$permission] received $result for ${call.request.path()}, " +
+            "accept ${call.request.accept()}, " +
+            "$headersStr, " +
+            "$cookiesStr"
     }
     redirectOrRespond(statusCode)
 }
