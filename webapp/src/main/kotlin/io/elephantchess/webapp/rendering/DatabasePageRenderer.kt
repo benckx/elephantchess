@@ -16,10 +16,6 @@ import io.elephantchess.webapp.rendering.resolvers.*
 import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import kotlinx.html.*
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.time.Duration.Companion.hours
 
 @KoinSingleton(eager = true)
@@ -411,15 +407,6 @@ class DatabasePageRenderer(private val htmlRenderer: HtmlRenderer, private val d
     }
 
     private companion object {
-        val utcDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)
-
-        fun formatDateUtc(instant: kotlin.time.Instant?): String? =
-            instant
-                ?.toEpochMilliseconds()
-                ?.let(Instant::ofEpochMilli)
-                ?.atZone(ZoneOffset.UTC)
-                ?.format(utcDateFormatter)
-
         fun dataAttr(name: String, value: String?): String =
             if (value.isNullOrBlank()) "" else """ data-$name="${escapeHtmlAttr(value)}""""
 
