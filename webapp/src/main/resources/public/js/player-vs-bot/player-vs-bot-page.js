@@ -331,18 +331,17 @@ class PlayerVsBotPage extends BasePage {
     #updateButtonsEnabled() {
         const isFinished = isStatusFinished(this.#controller.gameStatus());
         const hasMoves = this.#moveTreeWidget.getMainBranchNodes().length > 0;
-        const isManchu = this.#controller.isManchu();
-        const isJanggi = this.#controller.isJanggi();
+        const isVariant = this.#controller.isManchu() || this.#controller.isJanggi();
 
-        if (isFinished && hasMoves && !isManchu && !isJanggi) {
+        if (isFinished && hasMoves && !isVariant) {
             this.#analyzeButtons.forEach((button) => {
                 button.classList.remove('app-buttons-disabled');
                 addToolTip(button, ANALYZE_BUTTON_TOOLTIP_ENABLED);
             });
         } else {
-            const tooltip = isJanggi
+            const tooltip = this.#controller.isJanggi()
                 ? 'Analysis is not supported for Janggi variant games'
-                : isManchu
+                : this.#controller.isManchu()
                     ? 'Analysis is not supported for Manchu variant games'
                     : isFinished
                         ? ANALYZE_BUTTON_TOOLTIP_DISABLED_NO_MOVES
